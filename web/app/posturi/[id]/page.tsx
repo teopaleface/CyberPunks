@@ -8,7 +8,7 @@ import { SyntheticGlyph } from "@/components/shell/provenance";
 import { AppShell } from "@/components/shell/app-shell";
 import type { WorkItem } from "@/lib/contracts";
 import { getSeries } from "@/lib/data";
-import { DECISION_LABEL_RO, predictionLabelRo, ruleRo } from "@/lib/data/labels";
+import { factorLabelRo, DECISION_LABEL_RO, predictionLabelRo, ruleRo } from "@/lib/data/labels";
 import { POST_COLOR_THRESHOLDS, getPosts } from "@/lib/data/posts";
 import { BILANT_LABEL, bilantFusion, remedyOptions } from "@/lib/extras";
 import { fmtDec, fmtInt, fmtLei, fmtScore, sentence } from "@/lib/format";
@@ -143,7 +143,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
                 <ul className="mt-3 space-y-1.5 text-[15.5px]">
                   {bilant.explanation.top_factors.map((f) => (
                     <li key={f.feature} className="flex justify-between gap-6 border-t border-rule pt-1.5">
-                      <span>{sentence(f.label_ro).replace(/\.$/, "")}</span>
+                      <span>{factorLabelRo(f.label_ro)}</span>
                       <span className="font-[600] tabular-nums">
                         {f.contribution >= 0 ? "+" : "−"}
                         {fmtScore(Math.abs(f.contribution))}

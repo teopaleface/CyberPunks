@@ -6,7 +6,7 @@ import { ScoreScale } from "@/components/plan/score-scale";
 import { AppShell } from "@/components/shell/app-shell";
 import type { AuditRecord, Decision, WorkItem } from "@/lib/contracts";
 import { getAudit } from "@/lib/data";
-import { CONFIDENCE_RO, DECISION_LABEL_RO, SOURCE_LABEL_RO, predictionLabelRo, ruleRo } from "@/lib/data/labels";
+import { factorLabelRo, CONFIDENCE_RO, DECISION_LABEL_RO, SOURCE_LABEL_RO, predictionLabelRo, ruleRo } from "@/lib/data/labels";
 import { fmtLei, fmtMoment, fmtScore, plural, sentence } from "@/lib/format";
 import { markerSvg } from "@/lib/marker-svg";
 import { itemPlace, itemTitle } from "@/lib/plan-screen";
@@ -243,7 +243,7 @@ function WaitingRow({ item: { decision, w }, scenario }: { item: Waiting; scenar
               <div className="mt-4 space-y-2">
                 {factors.map((f) => (
                   <div key={f.feature} className="grid grid-cols-[minmax(0,1fr)_120px_52px] items-center gap-x-3 text-[15px]">
-                    <span className="min-w-0">{sentence(f.label_ro).replace(/\.$/, "")}</span>
+                    <span className="min-w-0">{factorLabelRo(f.label_ro)}</span>
                     <span className="relative h-2.5 bg-muted" aria-hidden="true">
                       <i
                         className="absolute inset-y-0 left-0"

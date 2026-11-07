@@ -9,7 +9,7 @@ import { SyntheticGlyph } from "@/components/shell/provenance";
 import { AppShell } from "@/components/shell/app-shell";
 import type { AuditRecord, Decision, WorkItem } from "@/lib/contracts";
 import { getSeries, getWorkItem } from "@/lib/data";
-import {
+import { factorLabelRo,
   ACTION_RO,
   CONFIDENCE_RO,
   DECISION_LABEL_RO,
@@ -331,7 +331,7 @@ function Factors({ w }: { w: WorkItem }) {
       {w.explanation.top_factors.map((f) => (
         <div key={f.feature} className="grid grid-cols-[minmax(0,1fr)_minmax(140px,240px)_56px] items-center gap-x-4 text-[16px]">
           <span>
-            {sentence(f.label_ro).replace(/\.$/, "")}
+            {factorLabelRo(f.label_ro)}
             <span className="dense ml-2 text-[13px] text-muted-foreground">{f.feature}</span>
           </span>
           <span className="relative h-3 bg-muted" aria-hidden="true">

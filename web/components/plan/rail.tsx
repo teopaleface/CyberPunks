@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { Alert, Decision, WorkItem } from "@/lib/contracts";
 import { submitReview } from "@/lib/data/actions";
-import { ACTION_RO, CONFIDENCE_RO, DECISION_LABEL_RO, outcomeRo, predictionLabelRo, ruleRo } from "@/lib/data/labels";
+import { factorLabelRo, ACTION_RO, CONFIDENCE_RO, DECISION_LABEL_RO, outcomeRo, predictionLabelRo, ruleRo } from "@/lib/data/labels";
 import type { ReviewDecision } from "@/lib/data/types";
 import { fmtDec, fmtInt, fmtLei, fmtScore, fmtTime, sentence } from "@/lib/format";
 import { markerKind, markerSvg } from "@/lib/marker-svg";
@@ -321,7 +321,7 @@ export function WorkItemPeek({
         <dd className="space-y-1.5">
           {w.explanation.top_factors.slice(0, 4).map((f) => (
             <div key={f.feature} className="grid grid-cols-[minmax(0,1fr)_140px_48px] items-center gap-x-3">
-              <span>{sentence(f.label_ro).replace(/\.$/, "")}</span>
+              <span>{factorLabelRo(f.label_ro)}</span>
               <span className="relative h-2.5 bg-muted" aria-hidden="true">
                 <i
                   className="absolute inset-y-0 left-0 bg-ink"

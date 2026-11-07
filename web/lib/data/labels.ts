@@ -185,3 +185,17 @@ export function thresholdValueRo(key: string, v: unknown): string {
   if (key.endsWith("multiplier")) return `×${ro(v, Number.isInteger(v) ? 0 : 1)}`;
   return Number.isInteger(v) ? ro(v, 0) : ro(v, 2);
 }
+
+/**
+ * Textul unui factor, pregătit pentru afișare: zecimalele cu punct devin virgulă („0.46” → „0,46”),
+ * iar procentele absurde (împărțiri la aproape zero, de exemplu „18273047%”) devin „peste 1.000%”.
+ * Datele originale rămân neatinse; e doar o protecție la afișare.
+ */
+export function factorLabelRo(label: string): string {
+  const t = label
+    .replace(/(\d)\.(\d)/g, "$1,$2")
+    .replace(/(\d+(?:,\d+)?)\s?%/g, (m, n: string) => (Number(n.replace(",", ".")) > 1000 ? "peste 1.000%" : m));
+  const out = t.trim();
+  if (!out) return out;
+  return (out.charAt(0).toLocaleUpperCase("ro-RO") + out.slice(1)).replace(/\.$/, "");
+}
