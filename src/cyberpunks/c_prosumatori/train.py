@@ -142,6 +142,12 @@ class Baseline:
 # ------------------------------------------------------------------------------------------------
 
 
+def widen(q10: np.ndarray, q50: np.ndarray, q90: np.ndarray, margin) -> tuple[np.ndarray, np.ndarray]:
+    """Corecția conformală a intervalului, aceeași la predicție și la evaluare: lărgire (sau strângere) cu marginea,
+    fără să treacă de P50."""
+    return np.minimum(q10 - margin, q50), np.maximum(q90 + margin, q50)
+
+
 def _conformal_q(e: np.ndarray, level: float = 0.8) -> float:
     """Cuantila conformală (cu corecția pentru eșantion finit) a reziduurilor de neconformitate."""
     n = len(e)
@@ -179,7 +185,7 @@ class DailyModel:
         self.iso = IsotonicRegression(out_of_bounds="clip", y_min=0.0, y_max=1.0).fit(oof["raw_p"], oof["exceed"])
         e = np.maximum(oof["q10"] - oof["vmax_day"], oof["vmax_day"] - oof["q90"]).to_numpy()
         self.cqr_margin = _conformal_q(e)
-        if "sens_pv_pu" in oof:
+        if "sens_pv_pu" in oof and "sens_pv_pu" in self.features:  # grupele doar după ce vede și modelul
             sens = oof["sens_pv_pu"].to_numpy()
             self.cqr_edges = [float(x) for x in np.quantile(sens, [0.25, 0.5, 0.75])]
             g = np.searchsorted(self.cqr_edges, sens, side="right")
@@ -188,7 +194,7 @@ class DailyModel:
     def margins(self, df: pd.DataFrame) -> np.ndarray:
         """Lărgirea conformală pentru fiecare rând: pe grupa de sensibilitate a rețelei, altfel cea globală."""
         edges, margins = getattr(self, "cqr_edges", []), getattr(self, "cqr_margins", [])
-        if edges and margins and "sens_pv_pu" in df:
+        if edges and margins and "sens_pv_pu" in df and "sens_pv_pu" in self.features:
             g = np.searchsorted(edges, df["sens_pv_pu"].to_numpy(), side="right")
             return np.asarray(margins)[g]
         return np.full(len(df), self.cqr_margin)
@@ -203,7 +209,7 @@ class DailyModel:
         if calibrated:
             m = self.margins(df)
             # o margine negativă (interval prea larg) poate strânge intervalul, dar nu are voie să încrucișeze P50
-            out["q10"], out["q90"] = np.minimum(q10 - m, q50), np.maximum(q90 + m, q50)
+            out["q10"], out["q90"] = widen(q10, q50, q90, m)
             out["p_exceed"] = self.iso.predict(raw_p) if self.iso is not None else raw_p
         else:
             out["p_exceed"] = raw_p
@@ -283,7 +289,8 @@ class HourlyModel:
         q = {a: self.models[a].predict(X) for a in QUANTILES}
         m = getattr(self, "cqr_margin", 0.0)
         q10, q50, q90 = np.minimum(q[0.1], q[0.5]), q[0.5], np.maximum(q[0.9], q[0.5])
-        return {"q10": np.minimum(q10 - m, q50), "q50": q50, "q90": np.maximum(q90 + m, q50)}
+        lo, hi = widen(q10, q50, q90, m)
+        return {"q10": lo, "q50": q50, "q90": hi}
 
 
 def hourly_logo_margin(df: pd.DataFrame, feats: list[str], level: float = 0.8) -> float:

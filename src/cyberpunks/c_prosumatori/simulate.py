@@ -29,8 +29,11 @@ OUT = DATA_PROCESSED / "C"
 HOURLY_COLS = ["vmax", "vmin", "n_over", "lost_kwh", "pv_kw", "load_kw", "export_kw", "loading"]
 
 
+BATTERY_ETA_ONE_WAY = 0.95  # IPOTEZĂ: randament la încărcare și la descărcare (dus-întors 0,95² ≈ 0,90)
+
+
 def battery_dispatch(
-    surplus: np.ndarray, cap_kwh: np.ndarray, p_kw: np.ndarray, eta: float = 0.95, allow_charge: np.ndarray | None = None
+    surplus: np.ndarray, cap_kwh: np.ndarray, p_kw: np.ndarray, eta: float = BATTERY_ETA_ONE_WAY, allow_charge: np.ndarray | None = None
 ) -> np.ndarray:
     """Autoconsum: bateria se încarcă din surplusul PV și se descarcă când casa consumă. >0 = încărcare (kW).
 

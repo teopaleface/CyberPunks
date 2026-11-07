@@ -44,7 +44,7 @@ ASSUMPTIONS = {
     "battery_min_effect_pu": 0.0005,  # IPOTEZĂ: oferta merge doar dacă bateria coboară tensiunea postului vizibil
     "battery_max_payback_years": 15.0,  # IPOTEZĂ: peste atât oferta nu e cinstită pentru client
     "battery_margin_share": 0.15,  # IPOTEZĂ: marja PPC Energie din vânzarea bateriei și a montajului
-    "battery_eta": 0.9,  # IPOTEZĂ: randamentul dus-întors al bateriei
+    "battery_eta": simulate.BATTERY_ETA_ONE_WAY**2,  # dus-întors, aceeași convenție ca în simulare (0,95 × 0,95)
     "export_caps": (0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3),  # fracții din kWp încercate pentru limita de export
     "upgrade_line_scale": 0.5,  # IPOTEZĂ: postul nou împarte rețeaua în două, drumurile scad la jumătate
     # EN 50160: factorul de dezechilibru al tensiunii ≤ 2% în 95% din timp; o rețea mai dezechilibrată ar fi deja

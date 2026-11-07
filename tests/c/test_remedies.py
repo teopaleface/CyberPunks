@@ -116,3 +116,13 @@ def test_window_ending_at_midnight() -> None:
 
     end = _window_end(date(2025, 7, 8), 24)
     assert (end.year, end.month, end.day, end.hour, end.minute) == (2025, 7, 9, 0, 0)
+
+
+def test_widen_never_crosses_median() -> None:
+    from cyberpunks.c_prosumatori.train import widen
+
+    q10, q50, q90 = np.array([1.04]), np.array([1.05]), np.array([1.06])
+    lo, hi = widen(q10, q50, q90, 0.01)
+    assert lo[0] == pytest.approx(1.03) and hi[0] == pytest.approx(1.07)
+    lo, hi = widen(q10, q50, q90, -0.02)  # strângere prea mare: se oprește la P50
+    assert lo[0] == pytest.approx(1.05) and hi[0] == pytest.approx(1.05)
