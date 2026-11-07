@@ -1,6 +1,6 @@
 # Status: Teo-prezentare
-Actualizat: 2026-11-07 14:26
-Milestone curent: filmul nou (varianta 2, după referința lui Teo): cadrele-cheie așteaptă "da" de la Teo
+Actualizat: 2026-11-07 14:37
+Milestone curent: filmul nou, varianta 3 (simplă, fără jargon): textul celor 6 momente așteaptă "da" de la Teo
 Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul comun)
 
 ## Făcut
@@ -23,6 +23,10 @@ Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul co
 - 14:26 12 cadre-cheie cu textul final și timpii, arătate lui Teo (`presentation/video/boards/kf/`). Animarea completă vine după "da".
 - În lucru: obiecte 3D adevărate în Blender (Codex Sol și Astra în paralel, calitate maximă), muzica nouă de 120 BPM (subagent).
 
+- 14:37 Teo: cadrele variantei 2 sunt "confuze". Varianta 3: 6 momente, cuvinte de zi cu zi, fără jargon (fără Perceive/Estimate/Decide/Act, bilanț, 1,10 pe ecran; acestea rămân în slideuri și demo). Textul trimis lui Teo spre aprobare; animez după "da".
+- Abilități folosite la varianta 3 (până acum): `hyperframes`, `motion-doctrine`, `reference-to-motion` (structura cârligului din referință). La animare: `apple-design`, `apple-launch-film`, `cut-the-curve`, `seam-craft`, `oversized-cursor`, `motion-effects`, `milestone-reveal`, `gsap-timeline`/`gsap-core`/`gsap-performance`.
+- 14:37 Greșeală reparată: commitul 2625d9e a inclus din greșeală folderele de lucru 3D (154 MB, 365 de fișiere, o arhivă de 47 MB). Scoase din urmărire și ignorate (commit 9d973f2). Rămân în istorie: vezi cererea către orchestrator.
+
 ## Urmează
 - Arăt storyboard-ul lui Teo (gata înainte de 15:00).
 - Repar ce găsesc review-urile, apoi v0.1.
@@ -33,6 +37,7 @@ Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul co
 - Niciunul.
 
 ## Cereri către orchestrator
+- ISTORIE: commitul 2625d9e de pe `Teo-prezentare` conține din greșeală `presentation/assets/3d-astra/` și `presentation/assets/3d-sol/` (154 MB, inclusiv `3d-sol.zip` de 47 MB). Le-am scos din urmărire în 9d973f2, dar sunt în istorie. Înainte de repo-ul public (decizia lui Teo de la 11:00): `git filter-repo --path presentation/assets/3d-astra --path presentation/assets/3d-sol --invert-paths` pe ramurile care conțin commitul, apoi force-push (eu n-am voie). Dacă faceți merge din `Teo-prezentare` în `Teo` înainte de curățare, istoria crește cu 154 MB.
 - Bug vizibil pentru juriu, în consola reală (coada "Nu sunt sigur", `/coada`): factori de tipul "Consumul de noapte a crescut cu 18273047% față de istoric" (și 25359262%, 19488814%). Probabil împărțire la un istoric aproape zero în textul factorului (firul A sau șablonul de text). Ar trebui plafonat sau formulat altfel ("de la aproape zero").
 - Pagina postului (`/posturi/PT-0267`) spune "Bilanțul pe acest post nu e calculat încă": filmul folosește deocamdată curbe ilustrative pentru bilanț; când intră bilanțul în consolă, capturez pagina reală.
 - (rezolvat 13:20) Harta întunecată și cardul "Nu sunt sigur" în `/demo`: cerute interfeței de orchestrator. Mulțumesc.
