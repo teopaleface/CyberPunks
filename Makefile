@@ -22,6 +22,23 @@ validate-fixtures:
 	uv run cyberpunks validate contracts/fixtures/work_items_A.jsonl contracts/fixtures/work_items_B.jsonl contracts/fixtures/work_items_C.jsonl
 
 # ---- A: contoare (firul Teo-A-contoare) ----
+.PHONY: a-data a-train a-evaluate a-predict a-release a-test a-all
+a-data:           ## A: descarcă SGCC și Low Carbon London (SHA-256), construiește features și eșantioanele
+	uv run python -m cyberpunks.a_contoare.download
+	uv run python -m cyberpunks.a_contoare.sgcc
+	uv run python -m cyberpunks.a_contoare.lcl
+a-train:          ## A: antrenează a-lgbm (Londra, probleme injectate) și a-lgbm-sgcc (SGCC, furt real)
+	uv run python -m cyberpunks.a_contoare.train
+a-evaluate:       ## A: evaluarea pe test separat -> reports/A/metrics.json, metrics_full.json, figuri
+	uv run python -m cyberpunks.a_contoare.evaluate
+a-predict:        ## A: lucrările pentru demo-vara și maine (merge și fără a-data, din pachetul demo din git)
+	uv run python -m cyberpunks.a_contoare.predict --scenario demo-vara
+	uv run python -m cyberpunks.a_contoare.predict --scenario maine
+a-release:        ## A: modelul și pachetul demo care intră în git (models/release/A, data/samples/A)
+	uv run python -m cyberpunks.a_contoare.train --release
+a-test:           ## A: testele firului A
+	uv run pytest tests/a
+a-all: a-data a-train a-evaluate a-predict  ## A: totul, de la zero (~5 minute)
 
 # ---- B: furtună (firul Teo-B-furtuna) ----
 
