@@ -1,7 +1,13 @@
 # Status: Teo-C-prosumatori
-Actualizat: 2026-11-07 17:13
+Actualizat: 2026-11-07 17:59
 Milestone curent: M4 terminat (M0 13:10, M1 13:45, M2 14:11, M3 15:40, M4 16:50)
 Gata de merge: da (commit 97e4af7; `git merge Teo` făcut la 17:16, `make check` trece: 277 de teste, inclusiv `tests/test_repo_size.py`)
+
+## QA cap-coadă (cererea de la 17:55)
+- Zecimalele din textele scării sunt cu virgulă (PT-1269: „0,020 pu”, „0,001 pu”, „2,2 ori”), la fel în cererile de racordare și în raportul de baterii; datele din anunțul de întrerupere au luna în litere („9 iulie 2025”).
+- Probabilitatea în texte: „peste 99%” în loc de 100%, „sub 1%” în loc de 0%.
+- `extra.ladder_base_p90_pu` e în fiecare lucrare cu scară (PT-1269: 1,1768), mai mare sau egal cu P90 al modelului.
+- Test nou, cap-coadă și offline (`tests/c/test_predict.py`): contractul, seriile, valoarea așteptată, câmpurile scării, fără zecimale cu punct și fără 0%/100% în texte.
 
 ## Testele C fără rețea (cererea de la 17:05)
 - Cele 32 de teste din `tests/c` rulează offline: vremea vine din mostra din git `data/samples/C/weather_2025_utc.parquet` (2025, 0,15 MB), descărcările sunt blocate în `tests/c/conftest.py`. Verificat cu `data/raw/C`, `data/processed/C`, `data/interim/C` și `models/C` ascunse și rețeaua blocată (proxy invalid, `uv run --offline`): 32 trec.

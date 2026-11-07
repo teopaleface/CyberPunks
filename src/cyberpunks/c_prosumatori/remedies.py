@@ -27,6 +27,7 @@ import numpy as np
 import pandas as pd
 
 from cyberpunks.c_prosumatori import actions, grids, posts, profiles, simulate, weather
+from cyberpunks.c_prosumatori.explain import fmt
 from cyberpunks.common.config import load
 
 LIMIT = 1.10
@@ -366,15 +367,15 @@ def build_ladder(post_id: str, day: Day, p90_model: float, n_customers: int, hor
     eff = unb["after"] - unb["before"]
     cost = c["phase_rebalance_cost_lei"] + ASSUMPTIONS["rebalance_houses"] * c["phase_rebalance_outage_hours"] * c["customer_hour"]
     note = (f"Casele cu cel mult {ASSUMPTIONS['single_phase_max_kwp']:.0f} kWp sunt monofazate (IPOTEZĂ); cu fazele atribuite la întâmplare, "
-            f"faza cea mai încărcată are cu {unb['before']:.4f} pu mai mult decât calculul echilibrat; mutarea a {unb['moved']} case "
-            f"îl reduce la {unb['after']:.4f} pu. Aproximare analitică ΔU ≈ (R_fază + R_neutru)·I pe sensibilitatea rețelei; "
+            f"faza cea mai încărcată are cu {fmt(unb['before'], 3)} pu mai mult decât calculul echilibrat; mutarea a {unb['moved']} case "
+            f"îl reduce la {fmt(unb['after'], 3)} pu. Aproximare analitică ΔU ≈ (R_fază + R_neutru)·I pe sensibilitatea rețelei; "
             "bilanțul pe post poate confirma fazele reale.")
     conf = "low"
     if bilant:
         note = (f"Bilanțul pe post ({bilant.get('work_item_id', 'lucrarea A')}) a găsit dezechilibru: circa "
-                f"{bilant['max_phase_share_est']:.0%} din case pe o fază, pierderi pe cabluri de {bilant.get('loss_ratio_vs_normal', 0):.1f} ori "
-                f"normalul. Pe faza aceea tensiunea e cu {unb['before']:.4f} pu peste calculul echilibrat; mutarea a {unb['moved']} case îl "
-                f"reduce la {unb['after']:.4f} pu (aproximare ΔU ≈ (R_fază + R_neutru)·I, plafonată la 0,02 pu).")
+                f"{bilant['max_phase_share_est']:.0%} din case pe o fază, pierderi pe cabluri de {fmt(bilant.get('loss_ratio_vs_normal', 0), 1)} ori "
+                f"normalul. Pe faza aceea tensiunea e cu {fmt(unb['before'], 3)} pu peste calculul echilibrat; mutarea a {unb['moved']} case îl "
+                f"reduce la {fmt(unb['after'], 3)} pu (aproximare ΔU ≈ (R_fază + R_neutru)·I, plafonată la 0,02 pu).")
         conf = "medium"  # dezechilibrul e susținut de datele contoarelor, nu doar presupus
     opts.append(_opt("phase_rebalance", cost, p90_start, eff, conf, 90, True, note))
 
@@ -385,7 +386,7 @@ def build_ladder(post_id: str, day: Day, p90_model: float, n_customers: int, hor
         eff = tap.vmax - base.vmax
         winter = _winter_vmin(post_id)
         wnote = "" if winter is None else (
-            f" Iarna seara tensiunea minimă ar coborî la {winter - 0.025:.3f} pu" + (", sub 0,90: priza revine în octombrie." if winter - 0.025 < 0.90 else
+            f" Iarna seara tensiunea minimă ar coborî la {fmt(winter - 0.025, 3)} pu" + (", sub 0,90: priza revine în octombrie." if winter - 0.025 < 0.90 else
                                                                                       ", peste 0,90: priza poate rămâne și iarna."))
         opts.append(_opt("adjust_tap", actions.tap_cost_lei(n_customers), p90_start, eff, "high", 120, True,
                          f"Priza de la {spec.tap_pos:+d} la {spec.tap_pos + 1:+d} (vara). Cere oprirea postului circa o oră, anunțată cu 2 zile lucrătoare "
@@ -414,7 +415,7 @@ def build_ladder(post_id: str, day: Day, p90_model: float, n_customers: int, hor
     if actions.in_ore_smart_season(day.d):
         msg += " Cu PPC Ore Smart+, consumul de la prânz costă mai puțin."
     note = (f"Participare simulată 10/20/30% din cei {targeted} clienți cu contor inteligent (IPOTEZĂ): tensiunea scade cu "
-            + "/".join(f"{abs(res_rate[r][0]):.4f}" for r in sorted(res_rate)) + " pu, opriri evitate "
+            + "/".join(fmt(abs(res_rate[r][0]), 4) for r in sorted(res_rate)) + " pu, opriri evitate "
             + "/".join(f"{res_rate[r][1]:.0f}" for r in sorted(res_rate)) + f". P90 după soluție e calculat la participarea minimă ({r_min:.0%}).")
     opts.append(_opt("notify_customers", c["notify_cost"] * targeted, p90_start, eff_min, "low", 0, False, note, skill=None,
                      participation_rate=r_min, risk_hours=[window], inverter_trips_avoided=round(trips_min, 1),

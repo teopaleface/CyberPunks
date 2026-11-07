@@ -317,10 +317,19 @@ def tap_extra(st: pd.Series, d: date, created: datetime) -> dict:
     }
 
 
+def _pct(p: float) -> str:
+    """Probabilitatea în cuvinte: fără 0% și 100% (modelul nu e niciodată absolut sigur)."""
+    if p >= 0.995:
+        return "peste 99%"
+    if p < 0.005:
+        return "sub 1%"
+    return f"{p * 100:.0f}%"
+
+
 def _summary(dec: actions.Decision, r: pd.Series, d: date, h0: int, h1: int, factors: list[dict]) -> str:
     when = f"Pe {d.day} {explain.MONTHS_RO[d.month - 1]}, între {h0}:00 și {h1}:00,"
     core = (f"{when} tensiunea maximă estimată e {explain.fmt(r['q50'], 3)} pu (între {explain.fmt(r['q10'], 3)} și "
-            f"{explain.fmt(r['q90'], 3)}), față de limita de 1,10; probabilitatea depășirii {r['p_exceed'] * 100:.0f}%.")
+            f"{explain.fmt(r['q90'], 3)}), față de limita de 1,10; probabilitatea depășirii {_pct(r['p_exceed'])}.")
     why = " Motive: " + "; ".join(f["label_ro"] for f in factors[:2]) + "." if factors else ""
     return core + why + " " + dec.reason_ro
 
