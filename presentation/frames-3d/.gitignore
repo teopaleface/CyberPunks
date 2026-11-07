@@ -1,0 +1,5 @@
+# Dependențe și cadre intermediare (se refac din scripturi)
+threejs/node_modules/
+**/frames_tmp/
+**/tmp/
+*.blend1
