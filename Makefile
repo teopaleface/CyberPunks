@@ -120,5 +120,14 @@ test-planner:     ## testele planificatorului și ale API-ului
 	uv run pytest tests/planner
 
 # ---- Interfață (firul Teo-ui) ----
+.PHONY: web web-install web-build web-test
+web-install:      ## instalează dependențele consolei (bun; merge și npm install în web/)
+	cd web && bun install
+web: web-install  ## pornește consola dispecerului pe http://localhost:3710 (API-ul pe 8710 e opțional)
+	cd web && bun run dev
+web-build: web-install  ## build de producție al consolei
+	cd web && bun run build
+web-test:         ## testele consolei (stratul de date: API, instantaneu demo, fixture-uri)
+	cd web && bun test
 
 # ---- Prezentare (firul Teo-prezentare) ----
