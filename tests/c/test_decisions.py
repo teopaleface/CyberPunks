@@ -9,8 +9,8 @@ import pandas as pd
 from cyberpunks.c_prosumatori import actions
 from cyberpunks.c_prosumatori.predict import check_post, ood_reasons
 
-BASE = dict(q10=1.10, q50=1.12, q90=1.13, lost_kwh=60.0, n_prosumers=40, n_customers=100, tap_pos=0, q50_after_tap=1.095,
-            target=date(2025, 7, 8), issues_block=[], ood_reasons=[], weather_uncertain=False)
+BASE = {"q10": 1.10, "q50": 1.12, "q90": 1.13, "lost_kwh": 60.0, "n_prosumers": 40, "n_customers": 100, "tap_pos": 0,
+        "q50_after_tap": 1.095, "target": date(2025, 7, 8), "issues_block": [], "ood_reasons": [], "weather_uncertain": False}
 
 
 def _post(**kw) -> pd.Series:

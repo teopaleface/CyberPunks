@@ -26,7 +26,7 @@ from cyberpunks.c_prosumatori import train as T
 from cyberpunks.c_prosumatori.population import BBOX
 from cyberpunks.common.config import load
 from cyberpunks.common.contracts import Series, WorkItem
-from cyberpunks.common.paths import DATA_PROCESSED, DATA_SAMPLES, OUTPUTS, work_items_path
+from cyberpunks.common.paths import DATA_PROCESSED, OUTPUTS, work_items_path
 
 TZ = ZoneInfo(profiles.TZ)
 DEMO_VARA_FALLBACK = "2025-07-08"  # data aleasă de firul B (status B, 12:58): caniculă și cer senin în București-Ilfov
@@ -80,10 +80,9 @@ def weather_for_day(d: date) -> tuple[pd.DataFrame, str, list[str]]:
 
 
 def registry() -> pd.DataFrame:
-    p = DATA_PROCESSED / "C" / "population" / "registry.parquet"
-    if p.exists():
-        return pd.read_parquet(p)
-    return pd.read_csv(DATA_SAMPLES / "C" / "posts_population_full.csv")
+    from cyberpunks.c_prosumatori.posts import load_posts
+
+    return load_posts()
 
 
 def check_post(r: pd.Series) -> tuple[list[str], list[str]]:

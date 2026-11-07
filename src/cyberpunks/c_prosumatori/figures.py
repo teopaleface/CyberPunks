@@ -111,7 +111,7 @@ def example_series(scenario: str = "demo-vara") -> None:
     ax.set_xlabel("ora")
     ax.set_ylabel("tensiunea maximă pe post (pu)")
     ax.set_title(f"{it['asset_id']}, {it['target_date']}: tensiunea oră cu oră (post sintetic)", loc="left")
-    ax.legend(loc="lower right", ncols=3)
+    ax.legend(loc="upper left", ncols=3)
     ax.set_xticks(range(0, 24, 2))
     _save(fig, f"series_{scenario}.png")
 
