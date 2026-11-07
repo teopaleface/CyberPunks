@@ -214,6 +214,12 @@ export function readFixtureWorkItems(source?: WorkItemSource): Promise<FileRead<
   return readWorkItemFiles((src) => [path.join(fixturesDir(), `work_items_${src}.jsonl`)], source);
 }
 
+/** Seria de exemplu pentru o lucrare din fixture-uri (contracts/fixtures/series_<id>.json). */
+export function readFixtureSeries(workItemId: string): Promise<FileRead<Series> | null> {
+  if (!isSafeSegment(workItemId)) return Promise.resolve(null);
+  return readFirstJson<Series>([path.join(fixturesDir(), `series_${workItemId}.json`)]);
+}
+
 /** Lucrările greșite intenționat (pentru demo-ul „respinsă la intrare”), ca obiecte brute. */
 export async function readFixtureInvalidWorkItems(): Promise<FileRead<JsonlResult<Record<string, unknown>>> | null> {
   return readFirstJsonl<Record<string, unknown>>([path.join(fixturesDir(), "work_items_invalid.jsonl")]);
@@ -227,8 +233,10 @@ export function readFixtureAudit(): Promise<FileRead<JsonlResult<AuditRecord>> |
 // outputs/demo/ (instantaneul demo)
 // ---------------------------------------------------------------------------------------------
 
+/** Instantaneul demo: implicit outputs/demo; DEMO_DIR îl poate muta (de exemplu pe outputs/ al unei rulări locale). */
 export function demoDir(): string {
-  return repoPath("outputs", "demo");
+  const custom = process.env.DEMO_DIR;
+  return custom ? path.resolve(custom) : repoPath("outputs", "demo");
 }
 
 export interface DemoCandidates {
@@ -358,6 +366,31 @@ export async function readDemoWorkItems(
     return { data: { records, errors: [...combined.data.errors, ...split.errors] }, files: combined.files };
   }
   return readWorkItemFiles(candidates.workItems, source);
+}
+
+/** Posturile din instantaneul demo (outputs/demo/plans/<s>/posts.json, aceeași formă ca GET /posts). */
+export async function readDemoPosts(scenario: string): Promise<FileRead<unknown> | null> {
+  if (!isSafeSegment(scenario)) return null;
+  const base = demoDir();
+  try {
+    return await readFirstJson<unknown>([path.join(base, "plans", scenario, "posts.json"), path.join(base, scenario, "posts.json")]);
+  } catch {
+    return null;
+  }
+}
+
+/** Costul energiei pierdute (lei/kWh) din config/economics.yaml, cu comentariul de sursă. */
+export async function readLossCost(): Promise<{ value: number; note: string } | null> {
+  try {
+    const text = await readFile(repoPath("config", "economics.yaml"), "utf8");
+    const line = text.split("\n").find((l) => /^\s*loss_cost_lei_per_kwh\s*:/.test(l));
+    if (!line) return null;
+    const value = Number(line.split(":")[1].split("#")[0].trim());
+    const note = line.includes("#") ? line.slice(line.indexOf("#") + 1).trim() : "";
+    return Number.isFinite(value) ? { value, note } : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Timpii ultimei rulări salvate (outputs/demo/plans/<s>/run.json). Null dacă lipsesc. */

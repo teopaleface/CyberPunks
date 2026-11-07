@@ -10,8 +10,8 @@ Clasele diagnosticului (tabelul din conceptul lui Teo, `memory/11-bilant-pe-post
 | `client_post_gresit`   | un client al postului X apare în bază la postul vecin Y (X are lipsă, Y are surplus) | corecție în birou |
 | `contor_bilant_setat`  | contorul de bilanț numără exact de 2 ori mai mult (raport de transformare greșit) | echipa de contoare |
 
-Formulele pentru contoare sunt aceleași ca în generatorul firului A (`cyberpunks.a_contoare.inject`: zero, stuck,
-negative, h1, bypass), aplicate aici pe valori orare. Plajele parametrilor sunt IPOTEZE (vezi docs/data/bilant.md).
+Defectele și manipulările de contor vin direct din generatorul firului A (`cyberpunks.a_contoare.inject`: zero, stuck,
+negative, h1, bypass), cu parametrii trași de el, aplicate pe valori orare. Plajele parametrilor sunt IPOTEZE (vezi docs/data/bilant.md).
 """
 
 from __future__ import annotations
@@ -85,11 +85,11 @@ def make_plan(
         if rng.random() < p_meter_problem:
             if rng.random() < 0.6:
                 k = str(rng.choice(METER_FAULTS))
-                params = {"type": k, "s": float(rng.uniform(0.3, 1.0)), "seed": int(rng.integers(0, 2**31 - 1))}
+                params = {"type": k, "seed": int(rng.integers(0, 2**31 - 1))}
                 plan.problems.append(Problem("meter_fault", int(rng.integers(min_onset, last)), i, params))
             else:
                 k = str(rng.choice(METER_TAMPERS))
-                params = {"type": k, "alpha": float(rng.uniform(0.1, 0.8)), "p": float(rng.uniform(0.2, 0.6)), "ramp_days": int(rng.integers(1, 31))}
+                params = {"type": k, "seed": int(rng.integers(0, 2**31 - 1))}  # parametrii îi trage generatorul lui A
                 plan.problems.append(Problem("meter_tamper", int(rng.integers(min_onset, last)), i, params))
         r = rng.random()
         if r < 0.03:  # concediu: 7-21 zile la consum de veghe (benign, A îl poate confunda cu o problemă)
@@ -120,25 +120,33 @@ def make_plan(
 
 
 def apply_meter_problem(x: np.ndarray, on: np.ndarray, params: dict, local_day: np.ndarray) -> np.ndarray:
-    """Aplică defectul sau manipularea pe seria orară `x` a unui contor (kWh), pe orele `on`."""
+    """Aplică defectul sau manipularea pe seria orară `x` a unui contor (kWh), de la prima zi din `on`.
+
+    Folosește generatorul firului A (`cyberpunks.a_contoare.inject.inject`), care lucrează pe zile de 48 de jumătăți
+    de oră: fiecare oră se împarte în două jumătăți egale, se injectează, apoi jumătățile se adună la loc. Ora în plus
+    din ziua schimbării orei (25 de ore) primește același raport înregistrat/real ca restul zilei.
+    """
+    from cyberpunks.a_contoare.inject import inject
+
+    if not on.any():
+        return x.copy()
+    D = int(local_day.max()) + 1
+    starts = np.searchsorted(local_day, np.arange(D + 1))
+    grid = np.zeros((D, 48))
+    for d in range(D):
+        h = x[starts[d] : starts[d + 1]]
+        k = min(24, len(h))
+        grid[d, : 2 * k] = np.repeat(h[:k] / 2.0, 2)
+    onset = int(local_day[on][0])
+    overrides = {k: v for k, v in params.items() if k in ("alpha", "p", "s", "D")}
+    yg, _ = inject(grid, params["type"], np.random.default_rng(params["seed"]), start_day=onset, **overrides)
     y = x.copy()
-    t = params["type"]
-    if t == "zero":
-        y[on] = 0.0
-    elif t == "stuck":
-        prev = x[~on]
-        c = float(prev[-1]) if len(prev) else float(np.nanmean(x))
-        y[on] = c
-    elif t == "negative":
-        r = np.random.default_rng(params["seed"])
-        flip = on & (r.random(len(x)) < params["s"])
-        y[flip] = -np.abs(x[flip])
-    elif t == "h1":
-        y[on] = x[on] * params["alpha"]
-    elif t == "bypass":
-        start = int(local_day[on][0]) if on.any() else 0
-        ramp = np.minimum(1.0, (local_day - start + 1) / params["ramp_days"])
-        y[on] = x[on] * (1 - params["p"] * ramp[on])
-    else:
-        raise ValueError(f"tip necunoscut: {t}")
+    for d in range(onset, D):
+        h = x[starts[d] : starts[d + 1]]
+        k = min(24, len(h))
+        yh = yg[d, : 2 * k].reshape(k, 2).sum(1)
+        y[starts[d] : starts[d] + k] = yh
+        if len(h) > 24:
+            ratio = yh.sum() / h[:k].sum() if abs(h[:k].sum()) > 1e-9 else 1.0
+            y[starts[d] + k : starts[d + 1]] = h[k:] * ratio
     return y

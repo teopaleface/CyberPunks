@@ -22,7 +22,7 @@ validate-fixtures:
 	uv run cyberpunks validate contracts/fixtures/work_items_A.jsonl contracts/fixtures/work_items_B.jsonl contracts/fixtures/work_items_C.jsonl
 
 # ---- A: contoare (firul Teo-A-contoare) ----
-.PHONY: a-data a-train a-evaluate a-predict a-release a-test a-all
+.PHONY: a-data a-train a-evaluate a-robustness a-select a-report a-predict a-release a-test a-all
 a-data:           ## A: descarcă SGCC și Low Carbon London (SHA-256), construiește features și eșantioanele
 	uv run python -m cyberpunks.a_contoare.download
 	uv run python -m cyberpunks.a_contoare.sgcc
@@ -31,6 +31,12 @@ a-train:          ## A: antrenează a-lgbm (Londra, probleme injectate) și a-lg
 	uv run python -m cyberpunks.a_contoare.train
 a-evaluate:       ## A: evaluarea pe test separat -> reports/A/metrics.json, metrics_full.json, figuri
 	uv run python -m cyberpunks.a_contoare.evaluate
+a-robustness:     ## A: date lipsă 0-70% pe populația demo, SGCC pe timp -> reports/A/robustness.json
+	uv run python -m cyberpunks.a_contoare.robustness
+a-select:         ## A: alegerea features pe setul de calibrare -> reports/A/feature_selection.json
+	uv run python -m cyberpunks.a_contoare.select_features
+a-report:         ## A: reports/A/error_analysis.md și model_card.md, generate din cifrele scripturilor
+	uv run python -m cyberpunks.a_contoare.report
 a-predict:        ## A: lucrările pentru demo-vara și maine (merge și fără a-data, din pachetul demo din git)
 	uv run python -m cyberpunks.a_contoare.predict --scenario demo-vara
 	uv run python -m cyberpunks.a_contoare.predict --scenario maine
@@ -38,7 +44,7 @@ a-release:        ## A: modelul și pachetul demo care intră în git (models/re
 	uv run python -m cyberpunks.a_contoare.train --release
 a-test:           ## A: testele firului A
 	uv run pytest tests/a
-a-all: a-data a-train a-evaluate a-predict  ## A: totul, de la zero (~5 minute)
+a-all: a-data a-train a-evaluate a-robustness a-select a-predict a-report  ## A: totul, de la zero (~8 minute)
 
 # ---- B: furtună (firul Teo-B-furtuna) ----
 .PHONY: b-data b-weather b-dataset b-evaluate b-predict b-reports b-test b-all
@@ -88,24 +94,29 @@ c-eval:           ## C: evaluarea pe rețele nevăzute și luni nevăzute (repor
 	uv run python -m cyberpunks.c_prosumatori.figures
 c-train:          ## C: modelele finale (models/C/bundle.joblib), fără ziua demo
 	uv run python -m cyberpunks.c_prosumatori.train
-c-predict:        ## C: lucrările pentru demo-vara și maine (outputs/work_items/<s>/C.jsonl, outputs/series/<s>/)
+c-predict:        ## C: lucrările pentru demo-vara și maine (C.jsonl, serii, scara de soluții), raportul ofertelor de baterii
 	uv run python -m cyberpunks.c_prosumatori.predict --scenario demo-vara
 	uv run python -m cyberpunks.c_prosumatori.predict --scenario maine
+	uv run python -m cyberpunks.c_prosumatori.reports_c offers --scenario demo-vara
 c-test:           ## C: testele firului C
 	uv run pytest tests/c
 c-all: c-weather c-sim c-population c-train c-predict c-eval  ## C: tot lanțul, de la date la lucrări (circa 15 minute)
 
 # ---- Bilanț pe post (firul Teo-bilant) ----
-.PHONY: bilant-data bilant-eval bilant-test
+.PHONY: bilant-data bilant-eval bilant-predict bilant-test
 bilant-data:      ## Bilanț: lumea simulată, 600 de posturi cu probleme ascunse (data/processed/bilant), cel mult 4 procese
 	uv run python -m cyberpunks.a_bilant.dataset --workers 4
-bilant-eval:      ## Bilanț: modelele și metodele simple, reports/bilant/metrics.json și figurile
+bilant-eval:      ## Bilanț: modelele și metodele simple, reports/bilant/metrics.json, figurile, planul B, analiza erorilor
 	uv run python -m cyberpunks.a_bilant.evaluate
+	uv run python -m cyberpunks.a_bilant.planb
+	uv run python -m cyberpunks.a_bilant.error_analysis
+bilant-predict:   ## Bilanț: lucrările A_bilant.jsonl, seriile și starea pentru fuziune, scenariul demo-vara
+	uv run python -m cyberpunks.a_bilant.predict --scenario demo-vara
 bilant-test:      ## Bilanț: testele firului
 	uv run pytest tests/bilant
 
 # ---- Planificator și API (firul Teo-planificator) ----
-.PHONY: api api-dev run-demo test-planner
+.PHONY: api api-dev run-demo test-planner agent-eval solver-bench demo-snapshot
 
 api:              ## API-ul agentului pe http://127.0.0.1:8710/api (documentație: /docs)
 	uv run uvicorn cyberpunks.api.app:app --host 127.0.0.1 --port 8710
@@ -118,6 +129,15 @@ run-demo:         ## agentul cap-coadă pe scenariul demo-vara
 
 test-planner:     ## testele planificatorului și ale API-ului
 	uv run pytest tests/planner
+
+agent-eval:       ## evaluarea agentului față de strategii simple (reports/planner/agent_eval.json și .md)
+	uv run python -m cyberpunks.planner.evaluate
+
+solver-bench:     ## OR-Tools față de greedy pe 100-300 de lucrări (reports/planner/solver_benchmark.json)
+	uv run python -m cyberpunks.planner.benchmark
+
+demo-snapshot:    ## copiază planul demo-vara în outputs/demo/ (intră în git; interfața îl folosește ca rezervă)
+	uv run python -m cyberpunks.planner.snapshot --scenario demo-vara
 
 # ---- Interfață (firul Teo-ui) ----
 .PHONY: web web-install web-build web-test

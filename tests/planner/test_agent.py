@@ -232,7 +232,7 @@ def test_storm_onset_and_gust_warning(out_root: Path) -> None:
     assert d.rule_id == "R-B-PREPOSITION"  # la B, safety_flag nu face lucrarea obligatorie
     assert "nu lucrează la înălțime" in d.reason_ro and "15:00" in d.reason_ro
     stop = next(st for r in res.plan.routes for st in r.stops if st.work_item_id == gusty["work_item_id"])
-    assert stop.eta.hour < 14  # ajunge cu o oră înainte de furtuna de la 15:00
+    assert stop.eta == datetime(2026, 11, 9, 14, 0, tzinfo=TZ)  # în zonă cu o oră înainte de furtuna de la 15:00, nu dis-de-dimineață
     route = next(r for r in res.plan.routes if r.stops[-1].work_item_id == gusty["work_item_id"])
     assert route.return_at is None  # echipa rămâne în zonă
 

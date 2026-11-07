@@ -1,0 +1,497 @@
+{
+ "contract_version": "1.0",
+ "work_item_id": "A-20250708-MTR-001268",
+ "source": "A",
+ "title_ro": "Consum zilnic, contor MTR-001268, ultimele 60 de zile (date sintetice)",
+ "unit": "kWh",
+ "points": [
+  {
+   "t": "2025-05-10T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-11T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-12T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-13T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-14T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-15T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-16T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-17T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-18T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-19T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-20T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-21T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-22T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-23T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-24T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-25T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-26T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-27T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-28T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-29T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-30T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-05-31T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-01T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-02T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-03T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-04T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-05T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-06T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-07T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-08T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-09T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-10T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-11T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-12T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-13T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-14T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-15T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-16T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-17T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-18T00:00:00",
+   "value": null,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-19T00:00:00",
+   "value": 9.008,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-06-20T00:00:00",
+   "value": 9.982,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-06-21T00:00:00",
+   "value": 11.825,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-06-22T00:00:00",
+   "value": 16.144,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-06-23T00:00:00",
+   "value": 9.317,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-06-24T00:00:00",
+   "value": 8.502,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-06-25T00:00:00",
+   "value": 8.609,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-06-26T00:00:00",
+   "value": 7.399,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-06-27T00:00:00",
+   "value": 8.149,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-06-28T00:00:00",
+   "value": 13.709,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-06-29T00:00:00",
+   "value": 18.119,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-06-30T00:00:00",
+   "value": 7.581,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-01T00:00:00",
+   "value": 7.297,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-02T00:00:00",
+   "value": 7.404,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-03T00:00:00",
+   "value": 7.846,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-04T00:00:00",
+   "value": 7.859,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-05T00:00:00",
+   "value": 11.856,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-06T00:00:00",
+   "value": 10.7,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-07T00:00:00",
+   "value": 7.225,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T00:00:00",
+   "value": 7.59,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  }
+ ],
+ "thresholds": {},
+ "annotations": [
+  {
+   "t": "2025-05-10T00:00:00",
+   "label_ro": "încep lipsurile de date"
+  }
+ ],
+ "synthetic": true
+}

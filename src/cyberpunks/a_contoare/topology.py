@@ -1,7 +1,13 @@
 """Topologie SINTETICĂ pentru firul A (contoare defecte sau manipulate).
 
-Scop: ~10.000 de contoare inteligente grupate pe ~400 de posturi de transformare (PT) în București-Ilfov,
-ca să putem compara fiecare contor cu vecinii de pe același post și ca harta dispecerului să arate real.
+DE LA 7 NOV., 14:00: posturile vin din registrul COMUN al produsului, deținut de firul C
+(`data/samples/C/posts.csv`, PT-1001..PT-1300, 300 de posturi cu numărul de clienți), ca A, C și bilanțul pe post
+să se întâlnească la același post și harta să arate un singur set de posturi. `build_from_registry()` pune pe
+fiecare post contoarele inteligente INTEGRATE: 58,81% din clienții postului, gradul de integrare a contoarelor
+inteligente în Muntenia la 31 dec. 2025 (sursă: infobuz, rezumat în memory/12-probleme-reale-ppc-2026.md,
+neverificat de noi), adică ~15.900 de contoare cu date la 30 de minute.
+
+Varianta veche (păstrată ca rezervă, `build_topology()`): ~10.000 de contoare pe ~400 de posturi proprii, din OSM.
 
 Surse:
 - poziții de posturi: OpenStreetMap, prin Overpass API (`power=transformer` și `power=substation`, fără stații
@@ -36,8 +42,11 @@ from matplotlib.path import Path as MplPath
 ROOT = Path(__file__).resolve().parents[3]
 RAW_DIR = ROOT / "data" / "raw" / "A" / "osm"
 OUT_DIR = ROOT / "data" / "samples" / "A"
-POSTS_CSV = OUT_DIR / "posts.csv"
+POSTS_CSV = OUT_DIR / "posts.csv"  # doar varianta veche
 METERS_CSV = OUT_DIR / "meters.csv"
+C_POSTS_CSV = ROOT / "data" / "samples" / "C" / "posts.csv"  # registrul comun al posturilor (firul C)
+SMART_METER_INTEGRATION = 0.5881  # Muntenia, 31.12.2025 (infobuz; memory/12-probleme-reale-ppc-2026.md)
+METER_RADIUS_M = {"urban": (25, 150), "semiurban": (40, 250), "rural": (60, 400)}
 
 BBOX = {"lat_min": 44.25, "lat_max": 44.65, "lon_min": 25.85, "lon_max": 26.40}
 BBOX_STR = f"{BBOX['lat_min']},{BBOX['lon_min']},{BBOX['lat_max']},{BBOX['lon_max']}"
@@ -414,25 +423,64 @@ def build_topology(
     return posts, meters
 
 
+def load_registry_posts() -> pd.DataFrame:
+    """Registrul comun al posturilor (firul C), coloanele de care are nevoie A."""
+    cols = ["post_id", "label", "lat", "lon", "zone_id", "county", "locality", "area", "n_customers", "kva"]
+    posts = pd.read_csv(C_POSTS_CSV)
+    return posts[[c for c in cols if c in posts.columns]].copy()
+
+
+def build_from_registry(rate: float = SMART_METER_INTEGRATION, seed: int = 7) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Contoarele inteligente integrate, pe posturile din registrul comun: round(rate × clienți) pe fiecare post."""
+    rng = np.random.default_rng(seed)
+    posts = load_registry_posts().sort_values("post_id").reset_index(drop=True)
+    posts["n_meters"] = np.maximum(1, np.round(posts["n_customers"].to_numpy() * rate)).astype(int)
+    rows = []
+    mid = 0
+    for _, p in posts.iterrows():
+        lo, hi = METER_RADIUS_M.get(str(p.get("area", "semiurban")), (40, 250))
+        k = int(p["n_meters"])
+        ang = rng.uniform(0, 2 * np.pi, k)
+        rad = rng.uniform(lo, hi, k)
+        dlat = rad * np.cos(ang) / M_PER_DEG
+        dlon = rad * np.sin(ang) / (M_PER_DEG * np.cos(np.radians(p["lat"])))
+        for j in range(k):
+            mid += 1
+            rows.append(
+                {
+                    "meter_id": f"MTR-{mid:06d}",
+                    "post_id": p["post_id"],
+                    "lat": round(float(np.clip(p["lat"] + dlat[j], BBOX["lat_min"], BBOX["lat_max"])), 6),
+                    "lon": round(float(np.clip(p["lon"] + dlon[j], BBOX["lon_min"], BBOX["lon_max"])), 6),
+                    "zone_id": p["zone_id"],
+                    "county": p["county"],
+                    "synthetic": True,
+                    "profile_slot": mid - 1,
+                }
+            )
+    return posts, pd.DataFrame(rows)
+
+
 def write_topology(posts: pd.DataFrame, meters: pd.DataFrame) -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    posts.sort_values("post_id").to_csv(POSTS_CSV, index=False, encoding="utf-8")
     meters.sort_values("meter_id").to_csv(METERS_CSV, index=False, encoding="utf-8")
 
 
 def load_topology() -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Citește (posts, meters) din CSV-urile generate."""
-    posts = pd.read_csv(POSTS_CSV, dtype={"osm_id": str}, keep_default_na=False)
+    """(posturi din registrul comun, cu n_meters; contoarele A din data/samples/A/meters.csv)."""
     meters = pd.read_csv(METERS_CSV)
+    posts = load_registry_posts()
+    posts = posts.merge(meters.groupby("post_id").size().rename("n_meters"), on="post_id", how="left")
+    posts["n_meters"] = posts["n_meters"].fillna(0).astype(int)
     return posts, meters
 
 
 def main() -> None:
-    posts, meters = build_topology()
+    posts, meters = build_from_registry()
     write_topology(posts, meters)
-    print(f"Posturi: {len(posts)} ({posts['source'].value_counts().to_dict()}), contoare: {len(meters)} (SINTETICE)")
-    print(posts.groupby("county").agg(posturi=("post_id", "count"), contoare=("n_meters", "sum")))
-    print(posts.groupby("zone_id").agg(posturi=("post_id", "count"), contoare=("n_meters", "sum")).to_string())
+    print(f"Posturi din registrul comun: {len(posts)}, contoare integrate: {len(meters)} (SINTETICE)")
+    print(posts.groupby("county").agg(posturi=("post_id", "count"), clienti=("n_customers", "sum"),
+                                      contoare=("n_meters", "sum")).to_string())
 
 
 if __name__ == "__main__":

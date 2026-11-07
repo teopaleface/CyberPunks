@@ -129,6 +129,8 @@ def finalize(
     alerts: list[Alert] = []
     notifications: list[Notification] = []
 
+    pending_alerts: list[tuple[AlertSpec, Proposal]] = []
+
     def add_alert(spec: AlertSpec, ids: list[str]) -> None:
         alerts.append(
             Alert(alert_id=f"AL-{len(alerts) + 1}", severity=spec.severity, title_ro=spec.title_ro, body_ro=spec.body_ro,
@@ -169,7 +171,7 @@ def finalize(
             )
         )
         for spec in p.alerts:
-            add_alert(spec, [p.id])
+            pending_alerts.append((spec, p))
         for spec in p.notifications:
             add_notification(spec, wi.asset_id, p.id)
         if p.decision == DecisionType.assigned and p.action == "preposition_crew" and crew:
@@ -182,6 +184,8 @@ def finalize(
             )
             add_notification(NotificationSpec("echipa", msg, generated_at + timedelta(minutes=1)), wi.asset_id, p.id)
 
+    _grouped_alerts(ctx, pending_alerts, add_alert)
+
     # ---- 3. carantina
     for load in loads.values():
         for q in load.quarantined:
@@ -191,7 +195,8 @@ def finalize(
                          reason_ro="Intrare greșită, pusă în carantină: " + "; ".join(q.errors), rule_id="R-QUARANTINE",
                          threshold={}, audit_id=aid)
             )
-            pred = (q.raw.get("prediction") or {}) if isinstance(q.raw, dict) else {}
+            pred = q.raw.get("prediction") if isinstance(q.raw, dict) else None
+            pred = pred if isinstance(pred, dict) else {}
             audit.append(
                 AuditRecord(audit_id=aid, ts=generated_at, actor="agent", action="rejected_invalid", work_item_id=q.work_item_id,
                             prediction_id=pred.get("prediction_id") if isinstance(pred.get("prediction_id"), str) else None,
@@ -233,6 +238,32 @@ def combined_status(loads: dict[str, SourceLoad], source: str) -> str:
     return "degraded"
 
 
+GROUP_TITLES = {
+    "Risc de siguranță": ("critical", "{n} cazuri cu risc de siguranță", "Intră primele în trasee, oricare ar fi costul: {labels}."),
+    "Siguranță, de decis azi": ("critical", "{n} cazuri de siguranță de decis azi", "Modelul nu e sigur, dar e risc pentru oameni: {labels}."),
+    "Risc de avarii": ("warning", "Risc de avarii în {n} zone", "Zonele cu probabilitate peste pragul de alertă: {labels}."),
+}
+
+
+def _grouped_alerts(ctx: Context, pending: list[tuple[AlertSpec, Proposal]], add_alert) -> None:
+    """O alertă pe lucrare, dar cele de același fel se strâng într-una singură când sunt mai mult de `alerts.max_per_kind`."""
+    limit = int(ctx.settings.rule("alerts", "max_per_kind", default=3))
+    kinds: dict[str, list[tuple[AlertSpec, Proposal]]] = {}
+    for spec, p in pending:
+        kinds.setdefault(spec.title_ro.split(":")[0], []).append((spec, p))
+    for kind, rows in kinds.items():
+        if kind not in GROUP_TITLES or len(rows) <= limit:
+            for spec, p in rows:
+                add_alert(spec, [p.id])
+            continue
+        severity, title, body = GROUP_TITLES[kind]
+        if any(spec.severity == "critical" for spec, _ in rows):
+            severity = "critical"
+        names = [p.wi.location.label or p.wi.asset_id for _, p in rows]
+        labels = ", ".join(names[:6]) + (f" și încă {len(names) - 6}" if len(names) > 6 else "")
+        add_alert(AlertSpec(severity, title.format(n=len(rows)), body.format(labels=labels)), [p.id for _, p in rows])
+
+
 def _global_alerts(ctx: Context, final: dict[str, Proposal], loads: dict[str, SourceLoad], routing: RoutingResult, add_alert) -> None:
     for src, load in loads.items():
         if load.optional and load.status == "missing":
@@ -247,6 +278,16 @@ def _global_alerts(ctx: Context, final: dict[str, Proposal], loads: dict[str, So
     invalid = [q.work_item_id for load in loads.values() for q in load.quarantined]
     if invalid:
         add_alert(AlertSpec("warning", f"{len(invalid)} intrări greșite în carantină", "Nu intră în plan; motivele sunt în jurnal și în lista de carantină."), invalid)
+    capped = [p for p in final.values() if p.rule_id == "R-B-REGION-CAP"]
+    if capped:
+        regions = sorted({(ctx.settings.regions.get(ctx.settings.region_of_county(p.wi.location.county) or "", {}) or {}).get("label_ro", "zona necunoscută")
+                          for p in capped})
+        total = sum(p.wi.impact.expected_value_lei for p in capped)
+        names = ", ".join((p.wi.location.label or p.wi.asset_id) for p in capped[:6]) + (f" și încă {len(capped) - 6}" if len(capped) > 6 else "")
+        add_alert(AlertSpec("critical", f"Întăriri necesare: {len(capped)} zone de furtună fără echipă",
+                            f"Plafonul de echipe trimise din timp e atins în {', '.join(regions)}. Valoare așteptată {lei(total)}: {names}. "
+                            "Propun echipe din alte regiuni sau contractori; dispecerul aprobă zonele din coada „nu sunt sigur”."),
+                  [p.id for p in capped])
     review = [p for p in final.values() if p.decision == DecisionType.human_review]
     if review:
         total = sum(p.wi.impact.expected_value_lei for p in review)

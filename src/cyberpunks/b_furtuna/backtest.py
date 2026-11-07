@@ -26,6 +26,14 @@ from cyberpunks.common import config
 from cyberpunks.common.paths import OUTPUTS, REPORTS
 
 DAYS = [date(2025, 7, d) for d in range(6, 11)]
+# Al doilea caz: furtuna de la Slobozia (Ialomița), seara de 17 iulie 2025
+CASE2_DAYS = [date(2025, 7, d) for d in (16, 17, 18)]
+CASE2_ZONE = "IL-SLOBOZIA"
+CASE2_PRESS = ("2025-07-17 (seara)", "Ialomița (Slobozia)",
+               ("Cod roșu de vreme severă; peste 52 de copaci doborâți, acoperișuri smulse, străzi inundate, peste 100 de "
+               "intervenții ale pompierilor. Articolul nu dă cifre despre curent."),
+               ("https://stirileprotv.ro/stiri/actualitate/furtuna-a-facut-pagube-majore-in-slobozia-peste-50-de-copaci-au-"
+               "fost-doborati-de-vant-si-mai-multe-strazi-au-fost-inundate.html"))
 OUT_MD = REPORTS / "B" / "backtest_romania.md"
 OUT_FIG = REPORTS / "B" / "fig_backtest_zones.png"
 OUT_ITEMS = OUTPUTS / "work_items" / "backtest-2025-07"
@@ -51,12 +59,13 @@ def run() -> pd.DataFrame:
     model = BModel.load()
     econ = config.load("economics")["storm"]
     zones = romania.load_zones()
-    wx, issues = romania.weather_daily_range(zones, DAYS[0] - timedelta(days=romania.LAG_DAYS), DAYS[-1])
-    hourly = romania.weather_hourly_range(zones, DAYS[0] - timedelta(days=1), DAYS[-1] + timedelta(days=1))
-    mdaily = predict.hist_models_daily(zones, DAYS[0] - timedelta(days=1), DAYS[-1])
+    all_days = DAYS + CASE2_DAYS
+    wx, issues = romania.weather_daily_range(zones, all_days[0] - timedelta(days=romania.LAG_DAYS), all_days[-1])
+    hourly = romania.weather_hourly_range(zones, all_days[0] - timedelta(days=1), all_days[-1] + timedelta(days=1))
+    mdaily = predict.hist_models_daily(zones, all_days[0] - timedelta(days=1), all_days[-1])
     OUT_ITEMS.mkdir(parents=True, exist_ok=True)
     rows = []
-    for d in DAYS:
+    for d in all_days:
         feats = predict.target_features(zones, wx, d)
         lo, hi, src = predict.uncertainty(model, zones, feats, d, "historical", mdaily=mdaily)
         created = predict.decision_time(d, "historical")
@@ -73,7 +82,7 @@ def run() -> pd.DataFrame:
                 "onset": it.extra["storm_onset"][11:16], "reason": it.prediction.abstain_reason or "",
             })
     df = pd.DataFrame(rows)
-    figure(df, model.decision_threshold)
+    figure(df[df["date"].isin(DAYS)], model.decision_threshold)
     write_md(df, model)
     return df
 
@@ -167,6 +176,32 @@ def write_md(df: pd.DataFrame, model: BModel) -> None:
          "„clienți așteptați” e suma vârfurilor așteptate pe zonele din Banat, deci se compară doar ca ordin de mărime."),
         "",
         "![Risc pe zone](fig_backtest_zones.png)",
+        "",
+    ]
+    c2 = df[df["date"].isin(CASE2_DAYS)]
+    tgt = c2[c2["zone_id"] == CASE2_ZONE].set_index("date")
+    others = c2[c2["zone_id"] != CASE2_ZONE].groupby("date")["p"].mean()
+    d17 = CASE2_DAYS[1]
+    rank17 = int((c2[c2["date"] == d17]["p"] > tgt.loc[d17, "p"]).sum()) + 1
+    lines += [
+        "## Al doilea caz: furtuna de la Slobozia, 17 iulie 2025",
+        "",
+        "| Ziua | Unde | Ce s-a întâmplat | Sursa |",
+        "|---|---|---|---|",
+        f"| {CASE2_PRESS[0]} | {CASE2_PRESS[1]} | {CASE2_PRESS[2]} | {CASE2_PRESS[3]} |",
+        "",
+        "| Ziua | P Slobozia | interval | Recomandare | Rafală (km/h) | Ploaie 48 h (mm) | Început estimat | P medie, celelalte 25 de zone |",
+        "|---|---|---|---|---|---|---|---|",
+    ]
+    for d in CASE2_DAYS:
+        r = tgt.loc[d]
+        lines.append(f"| {d:%d.%m} | {r['p']:.2f} | {r['lo']:.2f}-{r['hi']:.2f} | {r['action']} | {r['gust']} | "
+                     f"{r['precip48']} | {r['onset']} | {others.loc[d]:.2f} |")
+    lines += [
+        "",
+        (f"Pe 17 iulie, Slobozia a fost pe locul {rank17} din 26 de zone după risc (P = {tgt.loc[d17, 'p']:.2f}). "
+         "Nu avem cifre despre clienții fără curent, deci verificăm doar dacă zona lovită iese în față."),
+
         "",
     ]
     OUT_MD.write_text("\n".join(lines) + "\n", encoding="utf-8")

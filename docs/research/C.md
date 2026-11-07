@@ -4,7 +4,8 @@ Faza 0, 7 nov. 2026, 12:45-13:30. Trei cercetări în paralel (date publice, nor
 
 ## 1. Problema, cu cifrele publice
 
-- **359.378 de prosumatori** la 30 iunie 2026 (324.535 persoane fizice, 34.843 juridice), **4.019 MW** instalați (2.067 MW persoane fizice, 1.952 MW juridice), **127.084 cu baterii**. Sursa: ANRE prin News.ro, în https://startupcafe.ro/romani-panouri-solare-cati-prosumatori-racordare-retelele-electrice-romania-105065 (13 aug. 2026). Documentul ANRE primar nu l-am găsit.
+- **Cifrele cele mai noi (ANRE, 31 aug. 2026): 385.791 de prosumatori, 4.281,86 MW, din care 151.040 cu stocare.** Pe județe (ANRE, aug. 2026): **Ilfov e primul din țară, cu 21.647 de prosumatori (303,81 MW)**; Timiș are 18.262 (205,62 MW), București 8.307 (134,94 MW); toate în zona Rețele Electrice. Sursa: documentul de research primit de Teo la 14:30 (`memory/12-probleme-reale-ppc-2026.md`, neverificat de noi). Puterea medie a unei gospodării prosumatoare: circa 6,4 kW.
+- Cifrele anterioare (30 iunie 2026): **359.378 de prosumatori** (324.535 persoane fizice, 34.843 juridice), **4.019 MW** instalați (2.067 MW persoane fizice, 1.952 MW juridice), **127.084 cu baterii**. Sursa: ANRE prin News.ro, în https://startupcafe.ro/romani-panouri-solare-cati-prosumatori-racordare-retelele-electrice-romania-105065 (13 aug. 2026). Documentul ANRE primar nu l-am găsit.
   - Corectură față de plan: planul spunea „circa 3.800 MW” și „peste 101.000 cu baterii”. Cifrele de mai sus sunt mai noi.
   - Medii calculate din aceste cifre: 6,4 kW pe prosumator persoană fizică, 56 kW pe persoană juridică.
 - Creștere: 44.000 (ian. 2023), 107.001 (nov. 2023), 198.756 (sfârșit 2024), 359.378 (iun. 2026). Surse: https://hotnews.ro/?p=15210, https://www.economica.net/?p=812499.
@@ -95,7 +96,9 @@ Ce am aflat din ele:
 
 Concluzie: calculul vectorizat dă aceleași tensiuni ca pandapower (diferențe sub 1e-7 pu) și rezolvă un an de ore în sub o zecime de secundă. Asta face posibilă simularea a sute de posturi pe aproape 4 ani de meteo orară (33.744 de ore) în câteva minute, pe 4 nuclee.
 
-**Prima rețea simulată** (`uv run python -m cyberpunks.c_prosumatori.simulate one`): post sintetic pe topologia rural3, 630 kVA, cablu torsadat TYIR 50, linii de 1,79 ori mai lungi, 52 de prosumatori cu 346 kWp, priza pe −1. Pe 2025: tensiunea maximă 1,143 pu, 232 de zile și 1.107 ore peste 1,10 pu, 11.842 kWh fotovoltaici pierduți prin oprirea invertoarelor (2,7% din producție). Simularea celor 8.760 de ore a durat 0,18 s.
+**Prima rețea simulată** (`uv run python -m cyberpunks.c_prosumatori.simulate one`): post sintetic pe topologia rural3, 630 kVA, cablu torsadat TYIR 50, linii de 1,79 ori mai lungi, 52 de prosumatori cu 346 kWp, priza pe −1 (tensiune ridicată cu 2,5%). Pe 2025: tensiunea maximă 1,168 pu, 280 de zile și 1.777 de ore peste 1,10 pu, 48.411 kWh fotovoltaici pierduți prin oprirea invertoarelor (10,9% din producție). Simularea celor 8.760 de ore a durat 0,2-0,3 s. E un post extrem, ales ca test.
+
+**Atenție, bug găsit la M1:** pandapower 3.x ignoră priza transformatorului dacă `tap_changer_type` nu e declarat, iar SimBench îl lasă gol. Primele cifre de mai sus (din faza 0) erau cu priza ignorată. Acum comutatorul e declarat `Ratio`, cu test (`tests/c/test_powerflow.py::test_tap_changes_lv_voltage`), iar toate simulările au fost refăcute.
 
 ## 6. Literatura despre modele surogat (ce putem afirma)
 

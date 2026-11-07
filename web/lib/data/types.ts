@@ -192,3 +192,31 @@ export interface RunResult {
 
 /** Rezultatul unei acțiuni de server: nu aruncă niciodată spre client. */
 export type ActionResult<T extends object = object> = ({ ok: true } & T) | { ok: false; error: string };
+
+/** Un post de transformare, unitatea comună pentru A (contoare, bilanț) și C (tensiune). Forma din GET /posts. */
+export interface PostSummary {
+  post_id: string;
+  lat: number;
+  lon: number;
+  zone_id?: string | null;
+  label?: string | null;
+  loss_lei_month?: number | null;
+  loss_kwh_day?: number | null;
+  diagnosis?: string | null;
+  bilant_score?: number | null;
+  bilant_work_item_id?: string | null;
+  bilant_decision?: string | null;
+  bilant_rule_id?: string | null;
+  voltage_p90_pu?: number | null;
+  c_work_item_id?: string | null;
+  c_decision?: string | null;
+  c_rule_id?: string | null;
+  meters_flagged?: number;
+  meter_work_item_ids?: string[];
+  synthetic?: boolean;
+  /** verde, galben, roșu sau necunoscut (după lei pierduți pe lună). */
+  color?: string | null;
+  /** Doar la derivare (fără API): de unde vine pierderea estimată. */
+  derived?: boolean;
+  approx_position?: boolean;
+}

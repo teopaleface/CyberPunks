@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { LogoMark } from "@/components/brand/logo";
@@ -5,6 +6,7 @@ import { PlanScreen } from "@/components/plan/plan-screen";
 import { Readouts } from "@/components/plan/readouts";
 import { AppShell } from "@/components/shell/app-shell";
 import { toPlanScreenData } from "@/lib/plan-screen";
+import { getPosts } from "@/lib/data/posts";
 import { loadLocatorGeo } from "@/lib/server/geo";
 import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
 
@@ -19,7 +21,12 @@ export default function PlanPage({ searchParams }: PageProps<"/">) {
 async function Plan({ searchParams }: { searchParams: PageProps<"/">["searchParams"] }) {
   await connection();
   const scenario = await resolveScenario(searchParams);
-  const [{ info, view }, geo, params] = await Promise.all([loadShellInfo(scenario), loadLocatorGeo(), searchParams]);
+  const [{ info, view }, geo, params, posts] = await Promise.all([
+    loadShellInfo(scenario),
+    loadLocatorGeo(),
+    searchParams,
+    getPosts(scenario).catch(() => null),
+  ]);
 
   if (!view.data) {
     return (
@@ -36,6 +43,15 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/">["searchPara
   }
 
   const data = toPlanScreenData(view.data);
+  // aprobarea listei: din jurnal (API) sau, dacă API-ul n-o are încă, din cookie-ul acestui browser
+  const fromAudit = view.data.audit.find((a) => a.actor === "human" && /plan/i.test(a.action) && /aprob|approv/i.test(a.action));
+  const cookie = (await cookies()).get(`aprobat_${scenario}`)?.value;
+  const [cookiePlan, cookieAt] = cookie ? cookie.split("|") : [];
+  const approval = fromAudit
+    ? { at: fromAudit.ts, local: false }
+    : cookiePlan === data.planId && cookieAt
+      ? { at: cookieAt, local: true }
+      : null;
   const requested = typeof params.lucrare === "string" ? params.lucrare : null;
   const initialSelected = requested && data.items.some((w) => w.work_item_id === requested) ? requested : data.defaultSelected;
 
@@ -48,7 +64,13 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/">["searchPara
         generatedAt={view.data.plan.generated_at}
         crewsTotal={data.crews.length}
       />
-      <PlanScreen data={data} geo={geo} initialSelected={initialSelected} />
+      <PlanScreen
+        data={data}
+        geo={geo}
+        initialSelected={initialSelected}
+        postsInfo={posts ? { posts: posts.data, derived: posts.derived, lossCostNote: posts.lossCost?.note ?? null } : undefined}
+        approval={approval}
+      />
     </AppShell>
   );
 }

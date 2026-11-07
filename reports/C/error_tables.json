@@ -1,0 +1,495 @@
+{
+  "pe_topologie": [
+    {
+      "topologie": "rural1",
+      "zile_post": 54000,
+      "mae_model": 0.0044,
+      "mae_baseline": 0.02,
+      "eroare_medie_semn": 0.0006,
+      "rata_depasiri": 0.0,
+      "acoperire_p10_p90": 0.877
+    },
+    {
+      "topologie": "rural2",
+      "zile_post": 54000,
+      "mae_model": 0.0061,
+      "mae_baseline": 0.0269,
+      "eroare_medie_semn": 0.0,
+      "rata_depasiri": 0.269,
+      "acoperire_p10_p90": 0.8,
+      "pr_auc": 0.978,
+      "recall": 0.932
+    },
+    {
+      "topologie": "rural3",
+      "zile_post": 54000,
+      "mae_model": 0.0064,
+      "mae_baseline": 0.0254,
+      "eroare_medie_semn": -0.0009,
+      "rata_depasiri": 0.164,
+      "acoperire_p10_p90": 0.732,
+      "pr_auc": 0.939,
+      "recall": 0.812
+    },
+    {
+      "topologie": "semiurb4",
+      "zile_post": 54000,
+      "mae_model": 0.0047,
+      "mae_baseline": 0.0216,
+      "eroare_medie_semn": -0.0017,
+      "rata_depasiri": 0.018,
+      "acoperire_p10_p90": 0.883,
+      "pr_auc": 0.852,
+      "recall": 0.31
+    },
+    {
+      "topologie": "semiurb5",
+      "zile_post": 54000,
+      "mae_model": 0.0061,
+      "mae_baseline": 0.0214,
+      "eroare_medie_semn": -0.0024,
+      "rata_depasiri": 0.036,
+      "acoperire_p10_p90": 0.735,
+      "pr_auc": 0.881,
+      "recall": 0.885
+    },
+    {
+      "topologie": "urban6",
+      "zile_post": 54000,
+      "mae_model": 0.0048,
+      "mae_baseline": 0.0211,
+      "eroare_medie_semn": 0.0014,
+      "rata_depasiri": 0.0,
+      "acoperire_p10_p90": 0.829
+    }
+  ],
+  "pe_conductor": [
+    {
+      "conductor": "AL_35_vechi",
+      "zile_post": 22950,
+      "mae_model": 0.0058,
+      "mae_baseline": 0.0232,
+      "eroare_medie_semn": 0.0001,
+      "rata_depasiri": 0.164,
+      "acoperire_p10_p90": 0.795,
+      "pr_auc": 0.959,
+      "recall": 0.916
+    },
+    {
+      "conductor": "NAYY_4x150",
+      "zile_post": 79650,
+      "mae_model": 0.005,
+      "mae_baseline": 0.0209,
+      "eroare_medie_semn": 0.0005,
+      "rata_depasiri": 0.016,
+      "acoperire_p10_p90": 0.832,
+      "pr_auc": 0.801,
+      "recall": 0.717
+    },
+    {
+      "conductor": "NAYY_4x95",
+      "zile_post": 54000,
+      "mae_model": 0.0054,
+      "mae_baseline": 0.0204,
+      "eroare_medie_semn": -0.0012,
+      "rata_depasiri": 0.005,
+      "acoperire_p10_p90": 0.787,
+      "pr_auc": 0.738,
+      "recall": 0.788
+    },
+    {
+      "conductor": "TYIR_50",
+      "zile_post": 72900,
+      "mae_model": 0.0055,
+      "mae_baseline": 0.026,
+      "eroare_medie_semn": -0.0012,
+      "rata_depasiri": 0.184,
+      "acoperire_p10_p90": 0.822,
+      "pr_auc": 0.979,
+      "recall": 0.902
+    },
+    {
+      "conductor": "TYIR_70",
+      "zile_post": 94500,
+      "mae_model": 0.0056,
+      "mae_baseline": 0.0231,
+      "eroare_medie_semn": -0.0005,
+      "rata_depasiri": 0.081,
+      "acoperire_p10_p90": 0.796,
+      "pr_auc": 0.912,
+      "recall": 0.802
+    }
+  ],
+  "pe_lungime": [
+    {
+      "drum_maxim": "scurt",
+      "zile_post": 81000,
+      "mae_model": 0.0045,
+      "mae_baseline": 0.0213,
+      "eroare_medie_semn": 0.0002,
+      "rata_depasiri": 0.012,
+      "acoperire_p10_p90": 0.861,
+      "pr_auc": 0.842,
+      "recall": 0.31
+    },
+    {
+      "drum_maxim": "mediu",
+      "zile_post": 81000,
+      "mae_model": 0.0052,
+      "mae_baseline": 0.0207,
+      "eroare_medie_semn": -0.0005,
+      "rata_depasiri": 0.003,
+      "acoperire_p10_p90": 0.827,
+      "pr_auc": 0.587,
+      "recall": 0.818
+    },
+    {
+      "drum_maxim": "lung",
+      "zile_post": 81000,
+      "mae_model": 0.0057,
+      "mae_baseline": 0.0223,
+      "eroare_medie_semn": -0.0006,
+      "rata_depasiri": 0.057,
+      "acoperire_p10_p90": 0.779,
+      "pr_auc": 0.878,
+      "recall": 0.805
+    },
+    {
+      "drum_maxim": "foarte lung",
+      "zile_post": 81000,
+      "mae_model": 0.0063,
+      "mae_baseline": 0.0267,
+      "eroare_medie_semn": -0.001,
+      "rata_depasiri": 0.252,
+      "acoperire_p10_p90": 0.771,
+      "pr_auc": 0.972,
+      "recall": 0.906
+    }
+  ],
+  "pe_nori_zile_cu_soare": [
+    {
+      "nori_la_pranz": "senin",
+      "zile_post": 94080,
+      "mae_model": 0.0058,
+      "mae_baseline": 0.0238,
+      "eroare_medie_semn": -0.0006,
+      "rata_depasiri": 0.125,
+      "acoperire_p10_p90": 0.786,
+      "pr_auc": 0.959,
+      "recall": 0.885
+    },
+    {
+      "nori_la_pranz": "puțini nori",
+      "zile_post": 59520,
+      "mae_model": 0.0057,
+      "mae_baseline": 0.0236,
+      "eroare_medie_semn": -0.0007,
+      "rata_depasiri": 0.118,
+      "acoperire_p10_p90": 0.786,
+      "pr_auc": 0.955,
+      "recall": 0.868
+    },
+    {
+      "nori_la_pranz": "parțial noros",
+      "zile_post": 49440,
+      "mae_model": 0.0057,
+      "mae_baseline": 0.0231,
+      "eroare_medie_semn": -0.0005,
+      "rata_depasiri": 0.094,
+      "acoperire_p10_p90": 0.793,
+      "pr_auc": 0.942,
+      "recall": 0.851
+    },
+    {
+      "nori_la_pranz": "noros",
+      "zile_post": 35040,
+      "mae_model": 0.0057,
+      "mae_baseline": 0.0226,
+      "eroare_medie_semn": -0.0003,
+      "rata_depasiri": 0.072,
+      "acoperire_p10_p90": 0.797,
+      "pr_auc": 0.927,
+      "recall": 0.815
+    }
+  ],
+  "pe_partea_difuza": [
+    {
+      "radiatie_difuza": "sub 20%",
+      "zile_post": 84000,
+      "mae_model": 0.0058,
+      "mae_baseline": 0.0241,
+      "eroare_medie_semn": -0.0007,
+      "rata_depasiri": 0.141,
+      "acoperire_p10_p90": 0.784,
+      "pr_auc": 0.963,
+      "recall": 0.892
+    },
+    {
+      "radiatie_difuza": "20-35%",
+      "zile_post": 92160,
+      "mae_model": 0.0058,
+      "mae_baseline": 0.0233,
+      "eroare_medie_semn": -0.0006,
+      "rata_depasiri": 0.105,
+      "acoperire_p10_p90": 0.787,
+      "pr_auc": 0.949,
+      "recall": 0.861
+    },
+    {
+      "radiatie_difuza": "35-50%",
+      "zile_post": 32640,
+      "mae_model": 0.0058,
+      "mae_baseline": 0.0228,
+      "eroare_medie_semn": -0.0004,
+      "rata_depasiri": 0.08,
+      "acoperire_p10_p90": 0.794,
+      "pr_auc": 0.93,
+      "recall": 0.824
+    },
+    {
+      "radiatie_difuza": "peste 50%",
+      "zile_post": 29280,
+      "mae_model": 0.0056,
+      "mae_baseline": 0.0224,
+      "eroare_medie_semn": -0.0003,
+      "rata_depasiri": 0.061,
+      "acoperire_p10_p90": 0.805,
+      "pr_auc": 0.917,
+      "recall": 0.797
+    }
+  ],
+  "pe_baterii": [
+    {
+      "panouri_cu_baterie": "fără",
+      "zile_post": 81000,
+      "mae_model": 0.0046,
+      "mae_baseline": 0.0219,
+      "eroare_medie_semn": -0.0003,
+      "rata_depasiri": 0.015,
+      "acoperire_p10_p90": 0.867,
+      "pr_auc": 0.841,
+      "recall": 0.861
+    },
+    {
+      "panouri_cu_baterie": "sub 25%",
+      "zile_post": 93150,
+      "mae_model": 0.0055,
+      "mae_baseline": 0.0232,
+      "eroare_medie_semn": -0.0007,
+      "rata_depasiri": 0.113,
+      "acoperire_p10_p90": 0.804,
+      "pr_auc": 0.961,
+      "recall": 0.861
+    },
+    {
+      "panouri_cu_baterie": "25-50%",
+      "zile_post": 80325,
+      "mae_model": 0.0059,
+      "mae_baseline": 0.0234,
+      "eroare_medie_semn": -0.0007,
+      "rata_depasiri": 0.111,
+      "acoperire_p10_p90": 0.771,
+      "pr_auc": 0.962,
+      "recall": 0.871
+    },
+    {
+      "panouri_cu_baterie": "peste 50%",
+      "zile_post": 69525,
+      "mae_model": 0.0058,
+      "mae_baseline": 0.0224,
+      "eroare_medie_semn": -0.0002,
+      "rata_depasiri": 0.081,
+      "acoperire_p10_p90": 0.793,
+      "pr_auc": 0.933,
+      "recall": 0.865
+    }
+  ],
+  "pe_luna": [
+    {
+      "luna": "1",
+      "zile_post": 29760,
+      "mae_model": 0.0053,
+      "mae_baseline": 0.0217,
+      "eroare_medie_semn": -0.0,
+      "rata_depasiri": 0.021,
+      "acoperire_p10_p90": 0.826,
+      "pr_auc": 0.864,
+      "recall": 0.785
+    },
+    {
+      "luna": "2",
+      "zile_post": 26880,
+      "mae_model": 0.0053,
+      "mae_baseline": 0.022,
+      "eroare_medie_semn": -0.0001,
+      "rata_depasiri": 0.038,
+      "acoperire_p10_p90": 0.825,
+      "pr_auc": 0.929,
+      "recall": 0.824
+    },
+    {
+      "luna": "3",
+      "zile_post": 29760,
+      "mae_model": 0.0057,
+      "mae_baseline": 0.0225,
+      "eroare_medie_semn": -0.0002,
+      "rata_depasiri": 0.068,
+      "acoperire_p10_p90": 0.798,
+      "pr_auc": 0.934,
+      "recall": 0.841
+    },
+    {
+      "luna": "4",
+      "zile_post": 28800,
+      "mae_model": 0.0056,
+      "mae_baseline": 0.0231,
+      "eroare_medie_semn": -0.0006,
+      "rata_depasiri": 0.099,
+      "acoperire_p10_p90": 0.798,
+      "pr_auc": 0.954,
+      "recall": 0.877
+    },
+    {
+      "luna": "5",
+      "zile_post": 29760,
+      "mae_model": 0.0056,
+      "mae_baseline": 0.0231,
+      "eroare_medie_semn": -0.0007,
+      "rata_depasiri": 0.101,
+      "acoperire_p10_p90": 0.8,
+      "pr_auc": 0.955,
+      "recall": 0.873
+    },
+    {
+      "luna": "6",
+      "zile_post": 28800,
+      "mae_model": 0.0056,
+      "mae_baseline": 0.0239,
+      "eroare_medie_semn": -0.0006,
+      "rata_depasiri": 0.132,
+      "acoperire_p10_p90": 0.791,
+      "pr_auc": 0.96,
+      "recall": 0.886
+    },
+    {
+      "luna": "7",
+      "zile_post": 29760,
+      "mae_model": 0.0056,
+      "mae_baseline": 0.0238,
+      "eroare_medie_semn": -0.0008,
+      "rata_depasiri": 0.131,
+      "acoperire_p10_p90": 0.793,
+      "pr_auc": 0.96,
+      "recall": 0.882
+    },
+    {
+      "luna": "8",
+      "zile_post": 29760,
+      "mae_model": 0.0056,
+      "mae_baseline": 0.0239,
+      "eroare_medie_semn": -0.0009,
+      "rata_depasiri": 0.136,
+      "acoperire_p10_p90": 0.791,
+      "pr_auc": 0.965,
+      "recall": 0.884
+    },
+    {
+      "luna": "9",
+      "zile_post": 28800,
+      "mae_model": 0.0055,
+      "mae_baseline": 0.0232,
+      "eroare_medie_semn": -0.0007,
+      "rata_depasiri": 0.104,
+      "acoperire_p10_p90": 0.795,
+      "pr_auc": 0.948,
+      "recall": 0.85
+    },
+    {
+      "luna": "10",
+      "zile_post": 29760,
+      "mae_model": 0.0051,
+      "mae_baseline": 0.022,
+      "eroare_medie_semn": -0.0006,
+      "rata_depasiri": 0.057,
+      "acoperire_p10_p90": 0.827,
+      "pr_auc": 0.94,
+      "recall": 0.837
+    },
+    {
+      "luna": "11",
+      "zile_post": 17280,
+      "mae_model": 0.0047,
+      "mae_baseline": 0.021,
+      "eroare_medie_semn": -0.0002,
+      "rata_depasiri": 0.014,
+      "acoperire_p10_p90": 0.861,
+      "pr_auc": 0.864,
+      "recall": 0.731
+    },
+    {
+      "luna": "12",
+      "zile_post": 14880,
+      "mae_model": 0.0049,
+      "mae_baseline": 0.0214,
+      "eroare_medie_semn": 0.0,
+      "rata_depasiri": 0.008,
+      "acoperire_p10_p90": 0.849,
+      "pr_auc": 0.844,
+      "recall": 0.777
+    }
+  ],
+  "pe_zi": [
+    {
+      "zi": "liberă",
+      "zile_post": 102240,
+      "mae_model": 0.0054,
+      "mae_baseline": 0.0227,
+      "eroare_medie_semn": -0.0005,
+      "rata_depasiri": 0.079,
+      "acoperire_p10_p90": 0.816,
+      "pr_auc": 0.956,
+      "recall": 0.861
+    },
+    {
+      "zi": "lucrătoare",
+      "zile_post": 221760,
+      "mae_model": 0.0055,
+      "mae_baseline": 0.0228,
+      "eroare_medie_semn": -0.0005,
+      "rata_depasiri": 0.082,
+      "acoperire_p10_p90": 0.806,
+      "pr_auc": 0.949,
+      "recall": 0.867
+    }
+  ],
+  "langa_prag": {
+    "zile_post_intre_1_09_si_1_11": 19165,
+    "parte_din_test": 0.0592,
+    "acuratete_clasificare_langa_prag": 0.685,
+    "ratari_fn": 3547,
+    "fn_tensiune_mediana_reala": 1.1041,
+    "fn_parte_sub_1_115": 0.973,
+    "alarme_false_fp": 3432,
+    "fp_tensiune_mediana_reala": 1.0952,
+    "fp_parte_peste_1_09": 0.835
+  },
+  "cele_mai_mari_200_erori": {
+    "eroare_medie_absoluta": 0.0356,
+    "parte_subestimari": 0.625,
+    "topologii": {
+      "rural2": 101,
+      "rural3": 99
+    },
+    "conductori": {
+      "TYIR_50": 101,
+      "AL_35_vechi": 66,
+      "TYIR_70": 32,
+      "NAYY_4x150": 1
+    },
+    "nori_median": 24.9,
+    "nori_median_test": 55.3,
+    "baterii_median": 0.411,
+    "sens_pv_median": 0.2111,
+    "sens_pv_median_test": 0.0293
+  }
+}
