@@ -1,6 +1,6 @@
 # Status: Teo-A-contoare
-Actualizat: 2026-11-07 15:30
-Milestone curent: M3 gata (15:25); M4 în lucru (verificarea dintr-o clonă curată rulează)
+Actualizat: 2026-11-07 15:19
+Milestone curent: M3 gata (15:18); M4 în lucru (verificarea dintr-o clonă curată rulează)
 Gata de merge: da (commit f01a8f2)
 
 ## Făcut
@@ -23,8 +23,8 @@ Gata de merge: da (commit f01a8f2)
 - 14:10 `reports/A/error_analysis.md` și `reports/A/model_card.md`, generate de `make a-report` din cifrele scripturilor (nicio cifră scrisă de mână); `select_features.py` arată alegerea features pe calibrare.
 - 14:00-14:14 Review independent (Codex, gpt-6.1-sol): 12 probleme găsite, toate tratate (commit f77f935). Cele mai importante: referința vecinilor SGCC calcula și din clienții de test (acum doar antrenare); conformal se potrivea pe scorul deja calibrat (acum pe scorul brut, garanția e validă); cuantila conformal cu o poziție prea sus; acoperirea mulțimii era numită „recunoaștere sigură”; unitatea suspectă se repara în tăcere (acum merge la om); oprirea timpurie amesteca gospodăriile. Runda 2 (14:16-14:22): 9 din 12 confirmate, 3 completate (commit f4aee2e). Features se aleg acum pe o validare din antrenare, nu pe calibrare. Acoperirea conformal e descrisă ca empirică, pentru că ferestrele de calibrare repetă gospodăriile. Împărțirile sunt doar pe gospodării. Furtul sigur nu mai cade din listă.
 
-- 15:20 M3: figurile pentru prezentare în `reports/A/figures/`. `headline_precision.png`: furt real 0,81 față de 0,04 / 0,11, probleme subtile 0,61 față de 0,06 / 0,02. `ranking_at_k.png`: precizie și recall pe toată lista. `false_alarms_by_consumption.png`: pe SGCC, regula simplă trimite echipa la 19,4% dintre consumatorii foarte mici fără problemă, modelul la 0,4%. Paleta e validată cu scriptul dataviz.
-- 15:25 Verificarea fuziunii cu bilanțul pe testul A (`fusion_check.py`, `reports/A/fusion_check.json`, `error_analysis.md` secțiunea 9); observațiile sunt mai jos, la „Cereri către orchestrator”.
+- 15:12 M3: figurile pentru prezentare în `reports/A/figures/`. `headline_precision.png`: furt real 0,81 față de 0,04 / 0,11, probleme subtile 0,61 față de 0,06 / 0,02. `ranking_at_k.png`: precizie și recall pe toată lista. `false_alarms_by_consumption.png`: pe SGCC, regula simplă trimite echipa la 19,4% dintre consumatorii foarte mici fără problemă, modelul la 0,4%. Paleta e validată cu scriptul dataviz.
+- 15:18 Verificarea fuziunii cu bilanțul pe testul A (`fusion_check.py`, `reports/A/fusion_check.json`, `error_analysis.md` secțiunea 9); observațiile sunt mai jos, la „Cereri către orchestrator”.
 - 15:16 Clonă curată (de pe GitHub): `uv sync` în 25 s; `make a-predict` dă aceleași 524 / 563 de lucrări din pachetul din git; `make a-test` trece (89 de teste). `make a-all` de la zero rulează.
 
 ## Urmează (M3-M4)
