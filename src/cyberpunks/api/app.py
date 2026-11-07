@@ -98,6 +98,9 @@ def health(scenario: str = DEFAULT_SCENARIO) -> dict[str, Any]:
         "scenario": scenario,
         "mode": view.mode,
         "sources_status": plan.get("sources_status", {}),
+        "plan_id": plan.get("plan_id"),
+        "plan_date": plan.get("plan_date"),
+        "generated_at": plan.get("generated_at"),
     }
 
 
@@ -249,6 +252,129 @@ def report(scenario: str = DEFAULT_SCENARIO) -> str:
     if text is None:
         raise HTTPException(404, "raportul zilei nu există încă pentru acest scenariu")
     return text
+
+
+# ---- extinderea din 7 nov.: posturi (bilanț), aprobarea listei, verdictul de după vizită, reguli, scara C ----
+
+
+class ApproveRequest(BaseModel):
+    reviewer: str = Field(default="dispecer", min_length=1, max_length=100)
+    note: str | None = Field(default=None, max_length=2000)
+
+
+class VerdictRequest(BaseModel):
+    outcome: Literal["confirmed", "not_found", "other_problem", "no_access"]
+    reviewer: str = Field(default="echipa", min_length=1, max_length=100)
+    note: str | None = Field(default=None, max_length=2000)
+
+
+_POST_RE = re.compile(r"^[A-Za-z0-9_.-]{1,64}$")
+
+
+@api.get("/posts")
+def posts(scenario: str = DEFAULT_SCENARIO) -> list[dict[str, Any]]:
+    """Posturile pentru hartă: lei pierduți pe lună (bilanț), culoarea, diagnosticul, tensiunea (C), contoarele marcate (A)."""
+    from cyberpunks.planner import posts as posts_mod
+
+    view = store.view(_scenario(scenario))
+    return posts_mod.overview(view.plan(), view.work_items(), Settings.load())
+
+
+@api.get("/posts/{post_id}")
+def post_detail(post_id: str, scenario: str = DEFAULT_SCENARIO) -> dict[str, Any]:
+    """Pagina postului: rezumatul plus toate lucrările legate de post (bilanț, contoare, tensiune), cu deciziile lor."""
+    from cyberpunks.planner import posts as posts_mod
+
+    if not _POST_RE.match(post_id):
+        raise HTTPException(422, f"post invalid: {post_id!r}")
+    view = store.view(_scenario(scenario))
+    found = posts_mod.detail(post_id, view.plan(), view.work_items(), Settings.load())
+    if found is None:
+        raise HTTPException(404, f"postul {post_id} nu apare în lucrările scenariului {scenario!r}")
+    return found
+
+
+@api.post("/routes/{crew_id}/approve")
+def approve_route(crew_id: str, req: ApproveRequest, scenario: str = Query(DEFAULT_SCENARIO)) -> dict[str, Any]:
+    """Omul aprobă lista unei echipe: câte un AuditRecord (actor human, route_approve) pentru fiecare oprire."""
+    from cyberpunks.planner import feedback
+
+    if not _CREW_RE.match(crew_id):
+        raise HTTPException(422, f"echipă invalidă: {crew_id!r}")
+    if store.view(_scenario(scenario)).mode != "live":
+        raise HTTPException(409, "aprobarea cere o rulare a agentului (POST /api/run)")
+    if not _run_lock.acquire(timeout=30):
+        raise HTTPException(409, "agentul rulează; încearcă din nou")
+    try:
+        return feedback.approve_route(scenario, crew_id, req.reviewer, req.note, out_root=store.outputs)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    finally:
+        _run_lock.release()
+
+
+@api.get("/approvals")
+def approvals(scenario: str = DEFAULT_SCENARIO) -> list[dict[str, Any]]:
+    from cyberpunks.planner import feedback
+
+    return feedback.approvals(_scenario(scenario), out_root=store.outputs)
+
+
+@api.post("/verdict/{work_item_id}")
+def verdict(work_item_id: str, req: VerdictRequest, scenario: str = Query(DEFAULT_SCENARIO)) -> dict[str, Any]:
+    """Verdictul echipei după vizită: în jurnal (field_verdict) și în labels.jsonl, ca etichetă pentru reantrenare."""
+    from cyberpunks.planner import feedback
+
+    _item_id(work_item_id)
+    if store.view(_scenario(scenario)).mode != "live":
+        raise HTTPException(409, "verdictul cere o rulare a agentului (POST /api/run)")
+    if not _run_lock.acquire(timeout=30):
+        raise HTTPException(409, "agentul rulează; încearcă din nou")
+    try:
+        record, label = feedback.record_verdict(scenario, work_item_id, req.outcome, req.reviewer, req.note, out_root=store.outputs)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    finally:
+        _run_lock.release()
+    return {"audit": record.model_dump(mode="json"), "label": label}
+
+
+@api.get("/labels")
+def labels(scenario: str = DEFAULT_SCENARIO) -> list[dict[str, Any]]:
+    from cyberpunks.planner import feedback
+
+    return feedback.labels(_scenario(scenario), out_root=store.outputs)
+
+
+@api.get("/rules")
+def rules() -> dict[str, Any]:
+    """Regulile stratului de decizie (rule_id → ce înseamnă) și pragurile curente din config."""
+    from cyberpunks.planner.decide import RULE_CATALOG
+
+    s = Settings.load()
+    return {"rules": RULE_CATALOG, "thresholds": s.planner, "economics": s.economics}
+
+
+@api.get("/run-info")
+def run_info(scenario: str = DEFAULT_SCENARIO) -> dict[str, Any]:
+    """Ultima rulare a agentului: timpii pe pași (Perceive, Estimate, Decide, Act), sursele, solverul, fuziunea."""
+    from cyberpunks.api.store import read_json
+
+    view = store.view(_scenario(scenario))
+    meta = read_json(view.plan_dir / "run.json") if view.mode != "fixtures" else None
+    if meta is None:
+        raise HTTPException(404, "nu există încă o rulare a agentului pentru acest scenariu")
+    keys = ("plan_id", "scenario", "plan_date", "as_of", "generated_at", "planner_version", "mode", "timings", "sources", "solver", "fusion", "overrides")
+    return {k: meta.get(k) for k in keys} | {"data_mode": view.mode}
+
+
+@api.get("/remedies")
+def remedies(scenario: str = DEFAULT_SCENARIO) -> list[dict[str, Any]]:
+    """Scara de soluții pentru tensiune: varianta aleasă pe fiecare post, costul, P90 înainte și după, de ce nu una mai ieftină."""
+    view = store.view(_scenario(scenario))
+    from cyberpunks.api.store import read_json
+
+    return read_json(view.plan_dir / "remedies.json") or [] if view.mode != "fixtures" else []
 
 
 app.include_router(api)

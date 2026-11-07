@@ -101,6 +101,7 @@ class Proposal:
     crew_size: int | None = None
     lei_per_hour: float | None = None  # valoarea netă pe oră de lucru (durata + drumul estimat): ordinea listei pe echipe
     ladder: dict[str, Any] | None = None  # scara de soluții C: varianta aleasă și de ce
+    skills_required: frozenset[str] | None = None  # combinații de trepte: echipa trebuie să aibă toate abilitățile
 
     @property
     def wi(self) -> WorkItem:
@@ -181,13 +182,13 @@ def action_cost(ctx: Context, wi: WorkItem, action: str) -> float:
     if action == "grid_inspection":
         return s.econ("bilant", "grid_inspection_cost_lei", 486.0)
     if action == "phase_rebalance":
-        return s.econ("remedies", "phase_rebalance_cost_lei", 300.0)
+        return s.econ("voltage", "phase_rebalance_cost_lei", 350.0)
     if action == "offer_battery":
-        return s.econ("remedies", "battery_offer_cost_lei_per_customer", 2.0) * max(1, wi.impact.customers_affected)
+        return s.econ("voltage", "battery_offer_cost_lei_per_customer", 2.0) * max(1, wi.impact.customers_affected)
     if action == "export_limit":
-        return s.econ("remedies", "export_limit_cost_lei", 50.0)
+        return s.econ("voltage", "export_limit_cost_lei", 150.0)
     if action == "transformer_upgrade":
-        return s.econ("remedies", "transformer_upgrade_cost_lei", 80000.0)
+        return s.econ("voltage", "transformer_upgrade_cost_lei", 120000.0)
     return 0.0
 
 
@@ -234,11 +235,21 @@ def _label(wi: WorkItem) -> str:
     return wi.location.label or wi.asset_id
 
 
+def is_free_day(d: date) -> bool:
+    """Weekend sau sărbătoare legală (calendarul firului C, dacă există; altfel doar weekendul)."""
+    try:
+        from cyberpunks.c_prosumatori.profiles import is_free_day as c_free_day
+
+        return bool(c_free_day(d))
+    except (ImportError, AttributeError):
+        return d.weekday() >= 5
+
+
 def working_days_between(d0: date, d1: date) -> int:
-    """Zile lucrătoare (luni-vineri) strict între d0 și d1. Sărbătorile legale nu sunt încă în calcul."""
+    """Zile lucrătoare (fără weekend și sărbători legale) strict între d0 și d1."""
     n, d = 0, d0 + timedelta(days=1)
     while d < d1:
-        if d.weekday() < 5:
+        if not is_free_day(d):
             n += 1
         d += timedelta(days=1)
     return n
@@ -247,7 +258,7 @@ def working_days_between(d0: date, d1: date) -> int:
 def earliest_outage_date(announce: date, notice_days: int) -> date:
     """Prima zi lucrătoare în care se poate face întreruperea, după `notice_days` zile lucrătoare pline de preaviz."""
     d = announce + timedelta(days=1)
-    while working_days_between(announce, d) < notice_days or d.weekday() >= 5:
+    while working_days_between(announce, d) < notice_days or is_free_day(d):
         d += timedelta(days=1)
     return d
 
@@ -298,6 +309,12 @@ def _route(ctx: Context, item: Item, rule_id: str, reason: str, action: str, cos
     )
     for k, v in kw.items():
         setattr(p, k, v)
+    if wi.source == Source.A and wi.time_window is not None:
+        # La contoare, fereastra e intervalul în care se poate ajunge la client; la C e intervalul cu risc, nu de lucru.
+        tw_start, tw_end = wi.time_window.start.astimezone(TZ), wi.time_window.end.astimezone(TZ)
+        p.earliest = max(start, tw_start)
+        p.latest = min(end, tw_end) - timedelta(minutes=duration)
+        p.threshold["access_window"] = 1.0
     return p
 
 
@@ -340,18 +357,55 @@ def rule_human_override(ctx: Context, item: Item) -> Proposal | None:
         return _final(item, DecisionType.deferred, "R-HUMAN-REJECT", f"Respins de om ({who}).", "no_action", {"human": 1.0})
     if ov.decision == "defer":
         return _final(item, DecisionType.deferred, "R-HUMAN-DEFER", f"Amânat de om ({who}).", "watchlist", {"human": 1.0})
-    action = {
-        Source.A: "inspect_on_site",
-        Source.B: "preposition_crew",
-        Source.C: "adjust_tap" if _tap_notice_ok(ctx, wi) and wi.recommended_action == RecommendedAction.adjust_tap else "measurement_campaign",
-    }[wi.source]
+    # Aprobarea confirmă decizia agentului (cu acțiunea ei); doar unde agentul nu era sigur, omul aprobă recomandarea modelului.
+    base = propose_rules(ctx, item)
+    if base.route or base.decision != DecisionType.human_review:
+        base.rule_id = "R-HUMAN-APPROVE"
+        base.reason_ro = f"Aprobat de om ({who}). {base.reason_ro}"
+        base.threshold = {**base.threshold, "human": 1.0}
+        if base.route:
+            base.mandatory = True
+            base.priority = max(base.priority or 0.0, round(wi.impact.expected_value_lei, 2))
+            base.fallback = None
+        return base
+    action = _approved_action(ctx, wi)
+    if action in ("office_correction", "remote_reading"):
+        costs = estimate_costs(ctx, wi, action)
+        return _final(item, DecisionType.remote_action, "R-HUMAN-APPROVE", f"Aprobat de om ({who}): {ACTION_RO.get(action, action)}.",
+                      action, {"human": 1.0}, costs=costs)
     costs = estimate_costs(ctx, wi, action)
-    p = _route(ctx, item, "R-HUMAN-APPROVE", f"Aprobat de om ({who}): {ACTION_RO[action]}.", action, costs, {"human": 1.0})
+    p = _route(ctx, item, "R-HUMAN-APPROVE", f"Aprobat de om ({who}): {ACTION_RO.get(action, action)}.", action, costs, {"human": 1.0})
     p.mandatory = True
     p.priority = max(p.priority or 0.0, round(wi.impact.expected_value_lei, 2))
     if wi.source == Source.B:
         _storm_window(ctx, p)
+    if action == "adjust_tap" and notice_mode(ctx, wi) == "announce_now":
+        p.notifications.append(_outage_notice(ctx, wi, wi.target_date))
     return p
+
+
+def _approved_action(ctx: Context, wi: WorkItem) -> str:
+    """Ce face echipa când un om aprobă un caz pe care agentul l-a trimis la el: recomandarea modelului, dacă e o acțiune."""
+    rec = wi.recommended_action.value
+    if wi.source == Source.A and wi.asset_type == AssetType.transformer_post:
+        if rec in ("grid_inspection", "inspect_on_site", "office_correction", "remote_reading"):
+            return rec
+        return "grid_inspection" if wi.effort.crew_skill.value == "lv_grid" else "inspect_on_site"
+    if wi.source == Source.A:
+        return "inspect_on_site"
+    if wi.source == Source.B:
+        return "preposition_crew"
+    return "adjust_tap" if rec == "adjust_tap" and _tap_notice_ok(ctx, wi) else "measurement_campaign"
+
+
+def _strip_unsure(reason: str | None) -> str:
+    """Motivul modelului fără un „nu sunt sigur” repetat la început (îl spune deja regula)."""
+    text = (reason or "").strip().rstrip(".")
+    for prefix in ("nu sunt sigur:", "nu sunt sigur -", "nu sunt sigur,", "nu sunt sigur"):
+        if text.lower().startswith(prefix):
+            text = text[len(prefix):].strip()
+            break
+    return text or "fără motiv dat"
 
 
 def rule_abstain(ctx: Context, item: Item) -> Proposal | None:
@@ -367,7 +421,7 @@ def rule_abstain(ctx: Context, item: Item) -> Proposal | None:
         item,
         DecisionType.human_review,
         "R-ABSTAIN",
-        f"Modelul nu e sigur: {wi.prediction.abstain_reason}. Decide un om.",
+        f"Modelul nu e sigur: {_strip_unsure(wi.prediction.abstain_reason)}. Decide un om.",
         "human_review",
         {"abstain": 1.0},
         alerts=alerts,
@@ -511,15 +565,14 @@ def rule_meters(ctx: Context, item: Item) -> Proposal:
     if not smart and net_visit > min_net and pr.confidence == Confidence.medium:
         reason = f"Contorul nu se poate citi de la distanță; valoarea netă a vizitei e {lei(net_visit)} (încredere medie)."
         return _route(ctx, item, "R-A-VISIT-NO-REMOTE", reason, "inspect_on_site", visit, th)
-    return _final(
-        item,
-        DecisionType.deferred,
-        "R-A-WATCH",
-        f"Scor {pct(pr.score)}: valoarea așteptată ({lei(ev)}) nu justifică acum nici vizita ({lei(visit.total)}), "
-        f"nici citirea la distanță (prag {pct(remote_min)}). Rămâne la urmărire.",
-        "watchlist",
-        {**th, "remote_min_score": remote_min},
-    )
+    if not smart:
+        why = (f"Scor {pct(pr.score)}: valoarea așteptată ({lei(ev)}) nu justifică acum vizita ({lei(visit.total)}), "
+               "iar contorul nu se poate citi de la distanță.")
+    else:
+        why = (f"Scor {pct(pr.score)}: valoarea așteptată ({lei(ev)}) nu justifică acum nici vizita ({lei(visit.total)}), "
+               f"nici citirea la distanță (prag {pct(remote_min)}).")
+    return _final(item, DecisionType.deferred, "R-A-WATCH", f"{why} Rămâne la urmărire.", "watchlist",
+                  {**th, "remote_min_score": remote_min, "smart_meter": 1.0 if smart else 0.0})
 
 
 def _fusion_note(wi: WorkItem) -> tuple[str, dict[str, float]]:
@@ -690,12 +743,18 @@ def rule_storm(ctx: Context, item: Item) -> Proposal:
 # ---- C: tensiune
 
 
-def _tap_notice_ok(ctx: Context, wi: WorkItem) -> bool:
+def notice_mode(ctx: Context, wi: WorkItem) -> str:
+    """Preavizul ANRE pentru o întrerupere planificată: "notified" (anunțată deja), "announce_now" (mai e timp să o
+    anunțăm azi, cu preavizul legal) sau "too_late" (nu se mai poate face la data lucrării)."""
     if wi.extra.get("planned_outage_notified"):
-        return True
+        return "notified"
     level = ctx.settings.rule("voltage", "outage_voltage_level", default="lv")
     notice = int(ctx.settings.econ("outages", f"planned_notice_working_days_{level}", 2))
-    return working_days_between(ctx.as_of.date(), wi.target_date) >= notice
+    return "announce_now" if working_days_between(ctx.as_of.date(), wi.target_date) >= notice else "too_late"
+
+
+def _tap_notice_ok(ctx: Context, wi: WorkItem) -> bool:
+    return notice_mode(ctx, wi) != "too_late"
 
 
 def _prosumer_message(ctx: Context, wi: WorkItem) -> NotificationSpec:
@@ -844,10 +903,18 @@ def rule_remedy_ladder(ctx: Context, item: Item, th: dict[str, float]) -> Propos
     costs = estimate_costs(ctx, wi, primary.action.value)
     costs.action, costs.action_cost, costs.outage_cost = "remedy", cost, 0.0
     duration = sum(o.duration_min for o in crew) or wi.effort.duration_min
-    skill = (primary.crew_skill.value if primary.crew_skill else wi.effort.crew_skill.value)
-    reason = f"{_factors(wi)}. {chosen_txt}{why_txt} Întreruperea a fost anunțată la timp; echipa merge mâine."
+    skills = frozenset(o.crew_skill.value if o.crew_skill else wi.effort.crew_skill.value for o in crew)
+    if any(o.action.value in needs_notice for o in crew):
+        if notice_mode(ctx, wi) == "notified":
+            when = " Întreruperea a fost anunțată deja; echipa merge mâine."
+        else:
+            when = " Anunț întreruperea azi, cu preavizul cerut de Ord. ANRE 46/2021; echipa merge la data lucrării."
+            notes = notes + [_outage_notice(ctx, wi, wi.target_date)]
+    else:
+        when = " Fără întrerupere; echipa merge mâine."
+    reason = f"{_factors(wi)}. {chosen_txt}{why_txt}{when}"
     p = _route(ctx, item, "R-REMEDY-LADDER", reason, primary.action.value, costs, th, notifications=notes, ladder=ladder,
-               duration_min=duration, skill=skill)
+               duration_min=duration, skills_required=skills)
     p.fallback = _final(item, DecisionType.notify, "R-REMEDY-LADDER", reason.replace("echipa merge mâine", "echipele sunt pline mâine: doar mesajele"),
                         "notify_customers", th, notifications=notes, costs=notify_costs, ladder=ladder)
     return p
@@ -897,12 +964,19 @@ def rule_voltage(ctx: Context, item: Item) -> Proposal:
         notice = int(s.econ("outages", f"planned_notice_working_days_{level}", 2))
         th["planned_notice_working_days"] = float(notice)
         th["net_tap_value_lei"] = round(net_tap, 2)
-        if _tap_notice_ok(ctx, wi):
+        mode = notice_mode(ctx, wi)
+        if mode != "too_late":
+            notices = [prosumers]
+            if mode == "notified":
+                when = "Întreruperea a fost anunțată deja"
+            else:
+                when = f"Anunț întreruperea azi, cu {notice} zile lucrătoare înainte, cum cere Ord. ANRE 46/2021"
+                notices.append(_outage_notice(ctx, wi, wi.target_date))
             reason = (
-                f"{_factors(wi)}; {vtxt} față de limita {num(limit, 2)}. Întreruperea a fost anunțată la timp; "
+                f"{_factors(wi)}; {vtxt} față de limita {num(limit, 2)}. {when}; "
                 f"valoarea netă a schimbării prizei e {lei(net_tap)} ({tap.explain()})."
             )
-            return _route(ctx, item, "R-C-TAP", reason, "adjust_tap", tap, th, notifications=[prosumers])
+            return _route(ctx, item, "R-C-TAP", reason, "adjust_tap", tap, th, notifications=notices)
         on = earliest_outage_date(ctx.as_of.date(), notice)
         outage = _outage_notice(ctx, wi, on)
         base = (
@@ -938,11 +1012,13 @@ def check_crews(ctx: Context, p: Proposal) -> Proposal:
     if not p.route:
         return p
     wi = p.wi
-    skill, size = p.skill or wi.effort.crew_skill.value, p.crew_size or wi.effort.crew_size
-    crews = ctx.eligible_crews(skill, size)
+    size = p.crew_size or wi.effort.crew_size
+    required = p.skills_required or frozenset({p.skill or wi.effort.crew_skill.value})
+    crews = [c for c in ctx.settings.crews if required <= c.skills and c.size >= size]
     if crews:
         return p
-    reason = f"Nicio echipă cu abilitatea {SKILL_RO.get(skill, skill)} și cel puțin {size} oameni."
+    skill = " + ".join(SKILL_RO.get(s, s) for s in sorted(required))
+    reason = f"Nicio echipă cu abilitatea {skill} și cel puțin {size} oameni."
     alerts = [AlertSpec("warning", f"Fără echipă potrivită: {_label(wi)}", reason)]
     if p.fallback is not None:
         p.fallback.alerts += alerts
@@ -951,32 +1027,72 @@ def check_crews(ctx: Context, p: Proposal) -> Proposal:
     return _final(p.item, DecisionType.human_review if p.mandatory else DecisionType.deferred, "R-NO-CREW", reason, p.action, p.threshold, alerts=p.alerts + alerts)
 
 
+def _drop_unreachable_storms(ctx: Context, proposals: list[Proposal]) -> None:
+    """O furtună la care nicio echipă potrivită nu poate ajunge înainte de ora limită nu ocupă plafonul regional."""
+    start, _ = ctx.shift()
+    for i, p in enumerate(proposals):
+        if not (p.route and p.action == "preposition_crew" and p.latest is not None):
+            continue
+        wi = p.wi
+        crews = ctx.eligible_crews(wi.effort.crew_skill.value, wi.effort.crew_size)
+        if not crews:
+            continue
+        fastest = min(ctx.travel.minutes(ctx.travel.road_km(ctx.settings.depots[c.depot_id].lat, ctx.settings.depots[c.depot_id].lon,
+                                                               wi.location.lat, wi.location.lon)) for c in crews)
+        if start + timedelta(minutes=fastest) > p.latest:
+            proposals[i] = _final(
+                p.item, DecisionType.deferred, "R-B-TOO-LATE",
+                f"{p.reason_ro} Dar nicio echipă potrivită nu poate ajunge până la {hhmm(p.latest.astimezone(TZ))} "
+                f"(cel mai scurt drum: {round(fastest)} min de la plecarea de la {hhmm(start)}).",
+                "watchlist", p.threshold, alerts=p.alerts, priority=p.priority,
+            )
+
+
 def cap_storm_per_region(ctx: Context, proposals: list[Proposal]) -> None:
     """Cel mult `max_crews_per_region` echipe trimise din timp într-o regiune; restul rămân pentru lucrările curente."""
+    _drop_unreachable_storms(ctx, proposals)
     cap = int(ctx.settings.rule("storm", "max_crews_per_region", default=2))
     by_region: dict[str, list[int]] = {}
     for i, p in enumerate(proposals):
         if p.route and p.action == "preposition_crew" and not p.mandatory:
-            region = ctx.settings.region_of_county(p.wi.location.county) or "necunoscută"
+            rid = ctx.settings.region_of_county(p.wi.location.county) or ""
+            region = (ctx.settings.regions.get(rid) or {}).get("label_ro", "zona necunoscută")
             by_region.setdefault(region, []).append(i)
     for region, idxs in by_region.items():
         idxs.sort(key=lambda i: proposals[i].priority or 0.0, reverse=True)
         for i in idxs[cap:]:
             p = proposals[i]
+            # Valoare peste cost, dar plafonul regional e atins: agentul nu amână în tăcere, cere întăriri și lasă decizia
+            # dispecerului (aprobarea face lucrarea obligatorie și o trimite cu prima echipă liberă).
             proposals[i] = _final(
                 p.item,
-                DecisionType.deferred,
+                DecisionType.human_review,
                 "R-B-REGION-CAP",
-                f"{p.reason_ro} Dar în regiunea {region} sunt deja {cap} echipe trimise din timp (plafonul din config); rămâne în alertă.",
-                "watchlist",
+                f"{p.reason_ro} Dar în regiunea {region} sunt deja {cap} echipe trimise din timp (plafonul din config): "
+                "cer întăriri (echipe din alte regiuni sau contractori); decide dispecerul.",
+                "human_review",
                 {**p.threshold, "max_crews_per_region": float(cap)},
                 alerts=p.alerts,
+                priority=p.priority,
             )
 
 
 # ------------------------------------------------------------------ intrarea principală
 
 RULES = [rule_human_override, rule_abstain, rule_data_quality, rule_uncertain, rule_safety]
+
+
+def propose_rules(ctx: Context, item: Item) -> Proposal:
+    """Decizia agentului fără suprascrierea omului (folosită și la aprobare, ca omul să aprobe exact decizia agentului)."""
+    for rule in RULES[1:]:
+        p = rule(ctx, item)
+        if p is not None:
+            return check_crews(ctx, p)
+    wi = item.wi
+    if is_bilant_post(wi):
+        return check_crews(ctx, rule_bilant(ctx, item))
+    by_source = {Source.A: rule_meters_fused, Source.B: rule_storm, Source.C: rule_voltage}
+    return check_crews(ctx, by_source[wi.source](ctx, item))
 
 
 def propose(ctx: Context, item: Item) -> Proposal:

@@ -29,14 +29,21 @@ OUT = DATA_PROCESSED / "C"
 HOURLY_COLS = ["vmax", "vmin", "n_over", "lost_kwh", "pv_kw", "load_kw", "export_kw", "loading"]
 
 
-def battery_dispatch(surplus: np.ndarray, cap_kwh: np.ndarray, p_kw: np.ndarray, eta: float = 0.95) -> np.ndarray:
-    """Autoconsum: bateria se încarcă din surplusul PV și se descarcă când casa consumă. >0 = încărcare (kW)."""
+def battery_dispatch(
+    surplus: np.ndarray, cap_kwh: np.ndarray, p_kw: np.ndarray, eta: float = 0.95, allow_charge: np.ndarray | None = None
+) -> np.ndarray:
+    """Autoconsum: bateria se încarcă din surplusul PV și se descarcă când casa consumă. >0 = încărcare (kW).
+
+    allow_charge (T,): orele în care bateria are voie să se încarce (de exemplu doar la prânz, ca să nu fie
+    deja plină când tensiunea e maximă). Implicit: oricând.
+    """
     n, T = surplus.shape
     soc = cap_kwh * 0.3
     out = np.empty((n, T))
+    allow = np.ones(T, dtype=bool) if allow_charge is None else np.asarray(allow_charge, dtype=bool)
     for t in range(T):
         s = surplus[:, t]
-        ch = np.minimum(np.minimum(np.maximum(s, 0.0), p_kw), (cap_kwh - soc) / eta)
+        ch = np.minimum(np.minimum(np.maximum(s, 0.0), p_kw), (cap_kwh - soc) / eta) if allow[t] else np.zeros(n)
         dis = np.minimum(np.minimum(np.maximum(-s, 0.0), p_kw), soc * eta)
         soc = soc + ch * eta - dis / eta
         out[:, t] = ch - dis
@@ -55,23 +62,53 @@ def mv_voltage(spec: grids.PostSpec, pvk: np.ndarray, sysload: np.ndarray, seed:
     return spec.vm_mv + spec.mv_pv_coef * (pvk / 0.85) - spec.mv_load_coef * sysload + ar
 
 
-def simulate_post(post: grids.Post, wx: pd.DataFrame, shapes: pd.DataFrame, sysload: np.ndarray) -> pd.DataFrame:
-    """Simularea orară a unui post. Întoarce un tabel orar (index UTC) cu coloanele din HOURLY_COLS."""
+def simulate_post(
+    post: grids.Post,
+    wx: pd.DataFrame,
+    shapes: pd.DataFrame,
+    sysload: np.ndarray,
+    *,
+    extra_load: np.ndarray | None = None,
+    bat_kwh: np.ndarray | None = None,
+    bat_kw: np.ndarray | None = None,
+    bat_allow_charge: np.ndarray | None = None,
+    export_cap_kw: np.ndarray | None = None,
+    vm: np.ndarray | None = None,
+    detail: bool = False,
+):
+    """Simularea orară a unui post. Întoarce un tabel orar (index UTC) cu coloanele din HOURLY_COLS.
+
+    Parametrii opționali servesc scara de soluții (efectul fiecărei trepte, calculat, nu ghicit):
+    extra_load (n_consumatori, T) kW adăugați consumului (mesaje „consumă la prânz”), bat_kwh / bat_kw pe panou
+    (baterii noi), bat_allow_charge (T,) orele în care bateriile se încarcă, export_cap_kw pe panou (limită de
+    export), vm tensiunea pe MT (aceeași pentru toate variantele comparate). Cu detail=True întoarce și opririle
+    invertoarelor și energia tăiată, pe oră.
+    """
     m = post.model
     T = len(wx)
     pvk = weather.pv_per_kwp(wx["gti"].to_numpy(), wx["temp"].to_numpy())
     pv = np.minimum(post.pv_kwp[:, None] * post.pv_orient[:, None] * pvk[None, :], post.pv_ac_kw[:, None])
     load = post.load_annual_kwh[:, None] * shapes[list(post.load_profile)].to_numpy().T  # kW (kWh pe oră)
+    if extra_load is not None:
+        load = np.maximum(load + extra_load, 0.0)
+    bkwh = post.bat_kwh if bat_kwh is None else np.asarray(bat_kwh, dtype=float)
+    bkw = post.bat_kw if bat_kw is None else np.asarray(bat_kw, dtype=float)
     bat = np.zeros_like(pv)
-    has = post.bat_kwh > 0
+    has = bkwh > 0
     if has.any():
-        bat[has] = battery_dispatch(pv[has] - load[post.pv_load[has]], post.bat_kwh[has], post.bat_kw[has])
+        bat[has] = battery_dispatch(pv[has] - load[post.pv_load[has]], bkwh[has], bkw[has], allow_charge=bat_allow_charge)
+    curtailed = np.zeros_like(pv)
+    if export_cap_kw is not None and len(pv):
+        net = pv - bat - load[post.pv_load]
+        curtailed = np.clip(net - np.asarray(export_cap_kw, dtype=float)[:, None], 0.0, pv)
+        pv = pv - curtailed
     A_pv = m.incidence(post.pv_bus)
     A_ld = m.incidence(post.load_bus)
     s_load = A_ld @ ((load / 1000) * (1 + 1j * post.load_tanphi[:, None]))
     inj_pv = pv - bat
     S = A_pv @ (inj_pv / 1000) - s_load
-    vm = mv_voltage(post.spec, pvk, sysload, post.spec.seed + 1)
+    if vm is None:
+        vm = mv_voltage(post.spec, pvk, sysload, post.spec.seed + 1)
     V, _ = m.solve(S, vm)
     Vlv = np.abs(V[m.lv_pos])
     vmax = Vlv.max(axis=0)
@@ -80,6 +117,7 @@ def simulate_post(post: grids.Post, wx: pd.DataFrame, shapes: pd.DataFrame, sysl
 
     # cascada de opriri ale invertoarelor în orele cu depășiri
     lost = np.zeros(T)
+    trips = np.zeros(T)
     if len(post.pv_bus):
         lv_index = {int(b): i for i, b in enumerate(m.lv_bus)}
         pv_lv = np.array([lv_index[int(b)] for b in post.pv_bus])
@@ -101,6 +139,7 @@ def simulate_post(post: grids.Post, wx: pd.DataFrame, shapes: pd.DataFrame, sysl
                 Vc, _ = m.solve(Sh, vm[hours])
                 Vh = np.abs(Vc[m.lv_pos])
             lost[hours] = (pv[:, hours] * tripped).sum(axis=0)
+            trips[hours] = tripped.sum(axis=0)
 
     s_slack = m.slack_power_mva(V, vm)
     out = pd.DataFrame(
@@ -116,7 +155,11 @@ def simulate_post(post: grids.Post, wx: pd.DataFrame, shapes: pd.DataFrame, sysl
         },
         index=wx.index,
     )
-    return out.astype("float32")
+    out = out.astype("float32")
+    if detail:
+        return {"hourly": out, "trips": trips, "curtailed_kwh": curtailed.sum(axis=0), "vlv": Vlv, "vm": vm, "pv": pv, "load": load,
+                "bat": bat}
+    return out
 
 
 def daily(h: pd.DataFrame) -> pd.DataFrame:

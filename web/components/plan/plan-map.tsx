@@ -14,8 +14,10 @@ export interface MapItem {
   kind: MarkerKind;
   title: string;
   sub?: string;
-  /** Eticheta stă mereu vizibilă (lucrări din trasee și cele care așteaptă un om). */
+  /** Eticheta stă vizibilă când harta e apropiată (opririle din trasee). */
   pinned: boolean;
+  /** Marker cu literă (DOM); celelalte lucrări sunt puncte într-un strat al hărții. */
+  prominent: boolean;
   attention?: boolean;
 }
 
@@ -33,6 +35,17 @@ export interface MapDepot {
 }
 
 export type Bounds = [number, number, number, number];
+
+export interface MapPost {
+  id: string;
+  lat: number;
+  lon: number;
+  color: string;
+  title: string;
+  sub: string;
+  /** 0–1, mărimea cercului (pierderea relativă). */
+  weight: number;
+}
 
 const WORKER_URL = "/maplibre/maplibre-gl-worker.mjs";
 
@@ -74,6 +87,35 @@ const PALETTE = {
   light: { bg: "#e4e7e6", water: "#cdd5d8", waterLine: "#c3cdd1", build: "#dadedd", green: "#dfe3e2", land: "#dce0df", road: "#f6f7f5", casing: "#d3d8d8", rail: "#d2d7d7", admin: "#a9b1b3", city: "#3e4952", text: "#6a747c" },
   dark: { bg: "#0a1521", water: "#0d2133", waterLine: "#13304a", build: "#101e2c", green: "#0c1a27", land: "#0c1926", road: "#1b2c3e", casing: "#14243a", rail: "#16263a", admin: "#3a4f66", city: "#c9d3dc", text: "#7f91a3" },
 } as const;
+
+const LAYER_COLORS = {
+  light: { A: "#2c6fd9", B: "#a23c9e", C: "#d99100", att: "#d4430f", panel: "#f2f3f1", ink: "#13202a", verde: "#2f8f5b", galben: "#d9a400", rosu: "#c8321e", gri: "#9aa4a9" },
+  dark: { A: "#3b82f0", B: "#b84fc0", C: "#c4880a", att: "#ff6a3d", panel: "#0f1d2b", ink: "#e9eef2", verde: "#4fb57a", galben: "#e0b52a", rosu: "#ff6b5e", gri: "#5d6f81" },
+} as const;
+
+function postsGeoJSON(posts: MapPost[]) {
+  return {
+    type: "FeatureCollection" as const,
+    features: posts.map((p) => ({
+      type: "Feature" as const,
+      properties: { id: p.id, color: p.color, title: p.title, sub: p.sub, weight: p.weight },
+      geometry: { type: "Point" as const, coordinates: [p.lon, p.lat] },
+    })),
+  };
+}
+
+function itemsGeoJSON(items: MapItem[]) {
+  return {
+    type: "FeatureCollection" as const,
+    features: items
+      .filter((i) => !i.prominent)
+      .map((i) => ({
+        type: "Feature" as const,
+        properties: { id: i.id, source: i.source, kind: i.kind, title: i.title, sub: i.sub ?? "" },
+        geometry: { type: "Point" as const, coordinates: [i.lon, i.lat] },
+      })),
+  };
+}
 
 const HIDE_SYMBOLS = /highway|road|shield|poi|airport|aeroway|label_other|village|town|water_name_line|waterway|housenum|transit|rail|park/;
 
@@ -134,6 +176,9 @@ export function PlanMap({
   bounds,
   selectedId,
   onSelect,
+  posts = [],
+  mode = "items",
+  onPostClick,
   theme = "light",
   className,
 }: {
@@ -143,6 +188,9 @@ export function PlanMap({
   bounds: Bounds;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  posts?: MapPost[];
+  mode?: "items" | "posts";
+  onPostClick?: (id: string) => void;
   theme?: "light" | "dark";
   className?: string;
 }) {
@@ -151,15 +199,17 @@ export function PlanMap({
   const markersRef = useRef(new Map<string, { marker: MLMarker; el: HTMLDivElement; item: MapItem }>());
   const depotMarkersRef = useRef<MLMarker[]>([]);
   const onSelectRef = useRef(onSelect);
+  const onPostRef = useRef(onPostClick);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
-  const latest = useRef({ items, routes, depots, bounds, selectedId });
+  const latest = useRef({ items, routes, depots, bounds, selectedId, posts, mode });
 
   useEffect(() => {
     onSelectRef.current = onSelect;
+    onPostRef.current = onPostClick;
   });
   useEffect(() => {
-    latest.current = { items, routes, depots, bounds, selectedId };
+    latest.current = { items, routes, depots, bounds, selectedId, posts, mode };
   });
 
   // creează harta o singură dată
@@ -198,9 +248,6 @@ export function PlanMap({
           // dalele lipsă nu opresc harta; doar stilul lipsă e o problemă reală
           if (!m.isStyleLoaded() && String(e?.error?.message ?? "").includes("style")) setFailed(true);
         });
-        m.on("zoom", () => {
-          containerRef.current?.toggleAttribute("data-far", m.getZoom() < 8.2);
-        });
         m.on("load", () => {
           quiet(m, theme);
           m.addSource("routes", { type: "geojson", data: routesGeoJSON(latest.current.routes) });
@@ -209,7 +256,94 @@ export function PlanMap({
           m.addLayer({ id: "r-case", type: "line", source: "routes", paint: { "line-color": bg, "line-width": 6.5 }, layout: { "line-cap": "round", "line-join": "round" } });
           m.addLayer({ id: "r-out", type: "line", source: "routes", filter: ["!", ["get", "ret"]], paint: { "line-color": ink, "line-width": 2.4 }, layout: { "line-cap": "round" } });
           m.addLayer({ id: "r-ret", type: "line", source: "routes", filter: ["get", "ret"], paint: { "line-color": ink, "line-width": 1.8, "line-dasharray": [2, 1.6] } });
-          containerRef.current?.toggleAttribute("data-far", m.getZoom() < 8.2);
+          const C = LAYER_COLORS[theme];
+          const srcColor = ["match", ["get", "source"], "A", C.A, "B", C.B, C.C] as unknown as string;
+          m.addSource("items", { type: "geojson", data: itemsGeoJSON(latest.current.items) });
+          m.addLayer({
+            id: "items-quiet",
+            type: "circle",
+            source: "items",
+            filter: ["!=", ["get", "kind"], "human"],
+            paint: {
+              "circle-radius": ["interpolate", ["linear"], ["zoom"], 6, 2.2, 9, 3.4, 12, 5, 14, 6.5],
+              "circle-color": ["case", ["==", ["get", "kind"], "pending"], C.panel, srcColor] as unknown as string,
+              "circle-stroke-color": ["case", ["==", ["get", "kind"], "pending"], srcColor, C.panel] as unknown as string,
+              "circle-stroke-width": ["case", ["==", ["get", "kind"], "pending"], 1.6, 1] as unknown as number,
+              "circle-opacity": 0.92,
+            },
+          });
+          m.addLayer({
+            id: "items-human",
+            type: "circle",
+            source: "items",
+            filter: ["==", ["get", "kind"], "human"],
+            paint: {
+              "circle-radius": ["interpolate", ["linear"], ["zoom"], 6, 3.4, 9, 4.6, 12, 6.5, 14, 8],
+              "circle-color": srcColor,
+              "circle-stroke-color": C.att,
+              "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 6, 1.6, 12, 2.6] as unknown as number,
+            },
+          });
+          m.addSource("posts", { type: "geojson", data: postsGeoJSON(latest.current.posts) });
+          m.addLayer({
+            id: "posts",
+            type: "circle",
+            source: "posts",
+            layout: { visibility: latest.current.mode === "posts" ? "visible" : "none" },
+            paint: {
+              "circle-radius": ["interpolate", ["linear"], ["zoom"], 6, ["+", 3, ["*", 4, ["get", "weight"]]], 11, ["+", 6, ["*", 9, ["get", "weight"]]], 14, ["+", 9, ["*", 12, ["get", "weight"]]]] as unknown as number,
+              "circle-color": ["match", ["get", "color"], "verde", C.verde, "galben", C.galben, "roșu", C.rosu, C.gri] as unknown as string,
+              "circle-stroke-color": C.panel,
+              "circle-stroke-width": 1.4,
+              "circle-opacity": 0.9,
+            },
+          });
+          const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 10, className: "plan-pop", maxWidth: "320px" });
+          m.on("mouseenter", "posts", (e) => {
+            m.getCanvas().style.cursor = "pointer";
+            const f = e.features?.[0];
+            if (!f) return;
+            const pr = f.properties as { title: string; sub: string };
+            popup
+              .setLngLat((f.geometry as unknown as { coordinates: [number, number] }).coordinates)
+              .setHTML(`<span class="t">${pr.title}</span><span class="s">${pr.sub}</span>`)
+              .addTo(m);
+          });
+          m.on("mouseleave", "posts", () => {
+            m.getCanvas().style.cursor = "";
+            popup.remove();
+          });
+          m.on("click", "posts", (e) => {
+            const id = e.features?.[0]?.properties?.id;
+            if (typeof id === "string") onPostRef.current?.(id);
+          });
+          for (const layer of ["items-quiet", "items-human"]) {
+            m.on("mouseenter", layer, (e) => {
+              m.getCanvas().style.cursor = "pointer";
+              const f = e.features?.[0];
+              if (!f) return;
+              const pr = f.properties as { title: string; sub: string; kind: string };
+              popup
+                .setLngLat((f.geometry as unknown as { coordinates: [number, number] }).coordinates)
+                .setHTML(`<span class="t">${pr.title}</span>${pr.sub ? `<span class="s${pr.kind === "human" ? " att" : ""}">${pr.sub}</span>` : ""}`)
+                .addTo(m);
+            });
+            m.on("mouseleave", layer, () => {
+              m.getCanvas().style.cursor = "";
+              popup.remove();
+            });
+            m.on("click", layer, (e) => {
+              const id = e.features?.[0]?.properties?.id;
+              if (typeof id === "string") onSelectRef.current(id);
+            });
+          }
+          const zoomAttrs = () => {
+            const z = m.getZoom();
+            containerRef.current?.toggleAttribute("data-far", z < 8.2);
+            containerRef.current?.toggleAttribute("data-near", z >= 11.4);
+          };
+          m.on("zoom", zoomAttrs);
+          zoomAttrs();
           setReady(true);
         });
       } catch {
@@ -237,6 +371,7 @@ export function PlanMap({
       const maplibregl = await import("maplibre-gl");
       if (cancelled) return;
       (map.getSource("routes") as { setData?: (d: unknown) => void } | undefined)?.setData?.(routesGeoJSON(routes));
+      (map.getSource("items") as { setData?: (d: unknown) => void } | undefined)?.setData?.(itemsGeoJSON(items));
 
       depotMarkersRef.current.forEach((m) => m.remove());
       depotMarkersRef.current = depots.map((d) => {
@@ -248,7 +383,9 @@ export function PlanMap({
 
       markersRef.current.forEach((m) => m.marker.remove());
       markersRef.current.clear();
+      const sel = latest.current.selectedId;
       for (const item of items) {
+        if (!item.prominent && item.id !== sel) continue;
         const el = document.createElement("div");
         el.className = "mk item";
         el.dataset.pinned = item.pinned ? "1" : "0";
@@ -275,9 +412,33 @@ export function PlanMap({
     };
   }, [ready, items, routes, depots]);
 
-  // selecția: doar markerii afectați se redesenează
+  // selecția: doar markerii afectați se redesenează; lucrarea selectată primește marker cu literă
   useEffect(() => {
-    if (!ready) return;
+    const map = mapRef.current;
+    if (!ready || !map) return;
+    let cancelled = false;
+    const selItem = items.find((i) => i.id === selectedId);
+    // markerii temporari ai selecțiilor vechi (lucrări fără traseu) dispar
+    markersRef.current.forEach(({ marker, item }, id) => {
+      if (!item.prominent && id !== selectedId) {
+        marker.remove();
+        markersRef.current.delete(id);
+      }
+    });
+    if (selItem && !markersRef.current.has(selItem.id)) {
+      (async () => {
+        const maplibregl = await import("maplibre-gl");
+        if (cancelled) return;
+        const el = document.createElement("div");
+        el.className = "mk item";
+        el.dataset.pinned = "0";
+        el.dataset.selected = "1";
+        el.innerHTML = markerSvg({ source: selItem.source, kind: selItem.kind, selected: true }) + labelHtml(selItem);
+        el.style.zIndex = "5";
+        const marker = new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([selItem.lon, selItem.lat]).addTo(map);
+        markersRef.current.set(selItem.id, { marker, el, item: selItem });
+      })();
+    }
     markersRef.current.forEach(({ el, item }, id) => {
       const sel = id === selectedId;
       if (el.dataset.selected === (sel ? "1" : "0")) return;
@@ -285,7 +446,21 @@ export function PlanMap({
       el.innerHTML = markerSvg({ source: item.source, kind: item.kind, selected: sel }) + labelHtml(item);
       el.style.zIndex = sel ? "5" : "";
     });
+    return () => {
+      cancelled = true;
+    };
   }, [ready, selectedId, items]);
+
+  // modul hărții: lucrări sau posturi
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map) return;
+    (map.getSource("posts") as { setData?: (d: unknown) => void } | undefined)?.setData?.(postsGeoJSON(posts));
+    const showPosts = mode === "posts";
+    for (const id of ["items-quiet", "items-human"]) if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", showPosts ? "none" : "visible");
+    if (map.getLayer("posts")) map.setLayoutProperty("posts", "visibility", showPosts ? "visible" : "none");
+    containerRef.current?.toggleAttribute("data-posts", showPosts);
+  }, [ready, mode, posts]);
 
   // vederea (regiunea aleasă)
   useEffect(() => {

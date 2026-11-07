@@ -244,17 +244,33 @@ def load_hourly_sample(pool: str = "train", day_frac: float = 0.12, night_frac: 
 class HourlyModel:
     features: list[str]
     models: dict = field(default_factory=dict)
+    cqr_margin: float = 0.0  # lărgirea conformală a intervalului P10-P90, din predicții pe topologii nevăzute
 
-    def fit(self, df: pd.DataFrame) -> HourlyModel:
+    def fit(self, df: pd.DataFrame, calib_frac: float = 0.3) -> HourlyModel:
         X, y = df[self.features], df["vmax"].to_numpy()
         for q in QUANTILES:
             self.models[q] = fit_quantile(X, y, q, monotone=False, n_estimators=400)
+        self.cqr_margin = hourly_logo_margin(df.sample(frac=calib_frac, random_state=3), self.features)
         return self
 
     def predict(self, df: pd.DataFrame) -> dict[str, np.ndarray]:
         X = df[self.features]
         q = {a: self.models[a].predict(X) for a in QUANTILES}
-        return {"q10": np.minimum(q[0.1], q[0.5]), "q50": q[0.5], "q90": np.maximum(q[0.9], q[0.5])}
+        m = getattr(self, "cqr_margin", 0.0)
+        return {"q10": np.minimum(q[0.1], q[0.5]) - m, "q50": q[0.5], "q90": np.maximum(q[0.9], q[0.5]) + m}
+
+
+def hourly_logo_margin(df: pd.DataFrame, feats: list[str], level: float = 0.8) -> float:
+    """Marginea conformală pentru modelul orar: reziduuri out-of-fold pe topologii lăsate deoparte."""
+    errs = []
+    for t in sorted(df["topology"].unique()):
+        tr, te = df[df.topology != t], df[df.topology == t]
+        lo = fit_quantile(tr[feats], tr["vmax"].to_numpy(), 0.1, n_estimators=300).predict(te[feats])
+        hi = fit_quantile(tr[feats], tr["vmax"].to_numpy(), 0.9, n_estimators=300).predict(te[feats])
+        y = te["vmax"].to_numpy()
+        errs.append(np.maximum(lo - y, y - hi))
+    e = np.concatenate(errs)
+    return float(np.quantile(e, min(1.0, np.ceil((len(e) + 1) * level) / len(e))))
 
 
 # ------------------------------------------------------------------------------------------------
@@ -297,7 +313,8 @@ def train_final(exclude_dates: list[str] | None = None, oof_frac: float = 0.35) 
                            "excluded_dates": exclude_dates or [], "seconds": round(time.perf_counter() - t0, 1)})
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     joblib.dump(b, MODEL_DIR / "bundle.joblib", compress=3)
-    (MODEL_DIR / "bundle.json").write_text(json.dumps({"version": version, "cqr_margin": daily.cqr_margin, **b.trained_on}, indent=2))
+    (MODEL_DIR / "bundle.json").write_text(json.dumps({"version": version, "cqr_margin": daily.cqr_margin,
+                                                        "cqr_margin_hourly": hourly.cqr_margin, **b.trained_on}, indent=2))
     return b
 
 

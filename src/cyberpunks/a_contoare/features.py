@@ -278,12 +278,30 @@ INTRADAY_FEATURES = [
 ALL_FEATURES = DAILY_FEATURES + INTRADAY_FEATURES
 
 
+RATIO_CAP = 10.0  # rapoartele "față de istoric / vecini" se plafonează (un istoric aproape gol dă rapoarte absurde)
+CAP_LABELS = {  # textul pentru rapoartele ajunse la plafon
+    "recent_vs_base": "consumul a crescut de peste 10 ori față de propriul istoric",
+    "peer_ratio_recent": "de peste 10 ori mediana vecinilor de pe post",
+    "peer_ratio_change": "față de vecini, consumul a crescut de peste 10 ori",
+    "half_ratio": "ultimele 3 luni: de peste 10 ori consumul primelor 3",
+    "night_share_change": "consumul de noapte a crescut de peste 10 ori față de istoric",
+    "intraday_cv_ratio": "variația în cursul zilei e de peste 10 ori cea obișnuită",
+}
+RATIO_FEATURES = tuple(CAP_LABELS)
+
+
 def label_ro(feature: str, value: float | None) -> str:
-    """Explicația unui feature, în cuvinte simple, cu valoarea lui."""
+    """Explicația unui feature, în cuvinte simple, cu valoarea lui (virgulă zecimală, ca în română)."""
+    import re
+
     info = FEATURE_INFO.get(feature)
     if info is None or value is None or (isinstance(value, float) and not np.isfinite(value)):
         return f"{feature}: fără valoare"
-    return info.label(float(value))
+    if feature in CAP_LABELS and value >= RATIO_CAP:
+        text = CAP_LABELS[feature]
+    else:
+        text = info.label(float(value))
+    return re.sub(r"(\d)\.(\d)", r"\1,\2", text)
 
 
 # --------------------------------------------------------------------------------------------
@@ -522,6 +540,9 @@ def daily_features(x: np.ndarray, peer: np.ndarray | None = None, recent: int = 
     out["q10_over_median"] = _safe_ratio(q10, np.abs(med_all) + 0.1)
     out["q90_over_median"] = _safe_ratio(q90, np.abs(med_all) + 0.1)
     out["weekly_autocorr"] = _row_corr(x[:, 7:], x[:, :-7]) if w > 21 else np.full(n, np.nan)
+    for k in ("recent_vs_base", "peer_ratio_recent", "peer_ratio_change", "half_ratio"):
+        out[k] = np.clip(out[k], 0.0, RATIO_CAP)
+    out["max_over_median"] = np.clip(out["max_over_median"], 0.0, 1000.0)
     df = pd.DataFrame(out, columns=DAILY_FEATURES)
     return df.astype("float32")
 
@@ -612,5 +633,12 @@ def intraday_features(recent: np.ndarray, base: np.ndarray) -> pd.DataFrame:
     same = (flat_r[:, 1:] == flat_r[:, :-1]) & (flat_r[:, 1:] != 0)
     out["flat_slot_share_recent"] = same.sum(axis=1) / n_valid
 
+    # fără istoric de profil (sub 14 zile cu date în fereastra de bază), comparațiile cu istoricul nu au sens
+    base_days = (np.isfinite(base).sum(axis=2) >= 40).sum(axis=1)
+    weak = base_days < 14
+    for k in ("night_share_change", "intraday_cv_ratio", "profile_corr", "peak_shift", "profile_lag", "profile_lag_gain"):
+        out[k] = np.where(weak, np.nan, out[k])
+    for k in ("night_share_change", "intraday_cv_ratio"):
+        out[k] = np.clip(out[k], 0.0, RATIO_CAP)
     df = pd.DataFrame(out, columns=INTRADAY_FEATURES)
     return df.astype("float32")

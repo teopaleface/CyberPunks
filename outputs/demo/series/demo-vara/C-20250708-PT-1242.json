@@ -1,0 +1,211 @@
+{
+ "work_item_id": "C-20250708-PT-1242",
+ "source": "C",
+ "title_ro": "Tensiunea maximă pe PT-1242, oră cu oră (P10-P90)",
+ "unit": "pu",
+ "points": [
+  {
+   "t": "2025-07-08T00:00:00+03:00",
+   "value": null,
+   "expected": 1.0117,
+   "low": 1.0105,
+   "high": 1.015,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T01:00:00+03:00",
+   "value": null,
+   "expected": 1.0126,
+   "low": 1.0113,
+   "high": 1.0161,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T02:00:00+03:00",
+   "value": null,
+   "expected": 1.0126,
+   "low": 1.0113,
+   "high": 1.0161,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T03:00:00+03:00",
+   "value": null,
+   "expected": 1.0127,
+   "low": 1.0118,
+   "high": 1.0164,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T04:00:00+03:00",
+   "value": null,
+   "expected": 1.0126,
+   "low": 1.0113,
+   "high": 1.0161,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T05:00:00+03:00",
+   "value": null,
+   "expected": 1.0125,
+   "low": 1.0114,
+   "high": 1.0161,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T06:00:00+03:00",
+   "value": null,
+   "expected": 1.0114,
+   "low": 1.0098,
+   "high": 1.0152,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T07:00:00+03:00",
+   "value": null,
+   "expected": 1.0126,
+   "low": 1.0111,
+   "high": 1.0173,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T08:00:00+03:00",
+   "value": null,
+   "expected": 1.0252,
+   "low": 1.0231,
+   "high": 1.032,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T09:00:00+03:00",
+   "value": null,
+   "expected": 1.0451,
+   "low": 1.0369,
+   "high": 1.0507,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T10:00:00+03:00",
+   "value": null,
+   "expected": 1.0647,
+   "low": 1.0607,
+   "high": 1.0677,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T11:00:00+03:00",
+   "value": null,
+   "expected": 1.0746,
+   "low": 1.0716,
+   "high": 1.0812,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T12:00:00+03:00",
+   "value": null,
+   "expected": 1.0737,
+   "low": 1.0693,
+   "high": 1.0821,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T13:00:00+03:00",
+   "value": null,
+   "expected": 1.0812,
+   "low": 1.0772,
+   "high": 1.0892,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T14:00:00+03:00",
+   "value": null,
+   "expected": 1.0771,
+   "low": 1.0741,
+   "high": 1.0836,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T15:00:00+03:00",
+   "value": null,
+   "expected": 1.0649,
+   "low": 1.0623,
+   "high": 1.0679,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T16:00:00+03:00",
+   "value": null,
+   "expected": 1.0568,
+   "low": 1.0533,
+   "high": 1.0601,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T17:00:00+03:00",
+   "value": null,
+   "expected": 1.0456,
+   "low": 1.043,
+   "high": 1.0494,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T18:00:00+03:00",
+   "value": null,
+   "expected": 1.0289,
+   "low": 1.0258,
+   "high": 1.0315,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T19:00:00+03:00",
+   "value": null,
+   "expected": 1.0103,
+   "low": 1.0088,
+   "high": 1.0131,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T20:00:00+03:00",
+   "value": null,
+   "expected": 1.0102,
+   "low": 1.0081,
+   "high": 1.0131,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T21:00:00+03:00",
+   "value": null,
+   "expected": 1.0099,
+   "low": 1.0082,
+   "high": 1.0131,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T22:00:00+03:00",
+   "value": null,
+   "expected": 1.0109,
+   "low": 1.0082,
+   "high": 1.0134,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T23:00:00+03:00",
+   "value": null,
+   "expected": 1.0112,
+   "low": 1.0104,
+   "high": 1.0144,
+   "flag": null
+  }
+ ],
+ "thresholds": {
+  "limita_tensiune_pu": 1.1,
+  "limita_calitate_95_pu": 1.05
+ },
+ "annotations": [
+  {
+   "t": "2025-07-08T13:00:00+03:00",
+   "label_ro": "vârful estimat: 1,081 pu"
+  }
+ ],
+ "synthetic": true
+}

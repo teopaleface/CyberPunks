@@ -7,6 +7,7 @@ import { fmtDec, hhmm, parseHHMM } from "@/lib/format";
 import { markerSvg } from "@/lib/marker-svg";
 import { crewTimeline, timelineRange, workItemWindow, type CrewTimeline } from "@/lib/plan-derive";
 import type { QuarantineEntry } from "@/lib/plan-screen";
+import { ApproveList } from "./approve-list";
 
 /**
  * Linia de timp a echipelor, desenată ca o schemă monofilară: fiecare bază e o bară groasă, fiecare echipă
@@ -20,8 +21,8 @@ const LEFT = 300;
 const RIGHT_PAD = 28;
 const SRC_FILL = { A: "var(--src-a)", B: "var(--src-b)", C: "var(--src-c)" } as const;
 
-function placeName(w: WorkItem): string {
-  if (w.asset_type === "meter") return w.asset_id;
+function placeName(w: WorkItem, short = false): string {
+  if (w.asset_type === "meter") return short ? w.asset_id.replace(/^MTR-/, "") : w.asset_id;
   const z = w.location.zone_id.split("-").slice(1).join(" ");
   const local = z ? z.charAt(0) + z.slice(1).toLowerCase() : "";
   return w.asset_type === "zone" ? `Zona ${local || w.asset_id}` : `${w.asset_id}${local ? `, ${local}` : ""}`;
@@ -37,7 +38,15 @@ export function Feeders({
   quarantine,
   selectedId,
   onSelect,
+  scenario,
+  planId,
+  approval,
+  highlight = false,
 }: {
+  highlight?: boolean;
+  scenario: string;
+  planId: string;
+  approval: { at: string; local: boolean } | null;
   routes: ResolvedRoute[];
   itemsById: Record<string, WorkItem>;
   decisions: Record<string, Decision>;
@@ -60,15 +69,8 @@ export function Feeders({
 
   const model = useMemo(() => {
     const timelines = routes.map((r) => ({ route: r, tl: crewTimeline(r, shift?.start ?? "08:00") }));
-    const windows: { start: number; end: number }[] = [];
-    for (const { tl } of timelines) {
-      windows.push({ start: tl.depart, end: tl.back });
-      for (const b of tl.blocks) {
-        const w = itemsById[b.workItemId];
-        const win = w ? workItemWindow(w) : null;
-        if (win) windows.push(win);
-      }
-    }
+    // axa acoperă tura și orele echipelor; ferestrele mai lungi se taie la margine
+    const windows: { start: number; end: number }[] = timelines.map(({ tl }) => ({ start: tl.depart, end: tl.back }));
     const range = timelineRange(shift, windows);
     // grupăm echipele pe baze, în ordinea bazelor din config
     const order = new Map(depots.map((d, i) => [d.depot_id, i]));
@@ -81,7 +83,7 @@ export function Feeders({
       groups.set(t.route.depot_id, g);
     }
     return { range, groups: [...groups.entries()] };
-  }, [routes, itemsById, shift, depots]);
+  }, [routes, shift, depots]);
 
   const { range, groups } = model;
   const x = (m: number) => +(LEFT + ((m - range.start) / (range.end - range.start)) * (width - LEFT - RIGHT_PAD)).toFixed(1);
@@ -116,7 +118,7 @@ export function Feeders({
   for (let h = Math.ceil(range.start / 60) * 60; h <= range.end; h += 60) hours.push(h);
 
   return (
-    <section aria-label="Ziua echipelor" className="flex shrink-0 flex-col border-t border-rule bg-panel">
+    <section aria-label="Ziua echipelor" className={"flex shrink-0 flex-col border-t border-rule bg-panel" + (highlight ? " spot" : "")}>
       <div ref={boxRef} className="max-h-[244px] overflow-y-auto">
         {routes.length === 0 ? (
           <p className="px-7 py-6 text-[15px] text-muted-foreground">
@@ -146,6 +148,7 @@ export function Feeders({
                 <rect x={LEFT - 56} y={busTop} width={7} height={Math.max(20, busBottom - busTop)} style={{ fill: "var(--ink)" }} />
                 {groupRows.map(({ route, tl, cy }) => (
                   <CrewRow
+                    scenario={scenario}
                     key={route.crew_id}
                     route={route}
                     tl={tl}
@@ -196,12 +199,15 @@ export function Feeders({
             </span>
           </>
         ) : null}
+        <span className="flex-1" />
+        <ApproveList scenario={scenario} planId={planId} approvedAt={approval?.at ?? null} approvedLocal={approval?.local ?? false} />
       </div>
     </section>
   );
 }
 
 function CrewRow({
+  scenario,
   route,
   tl,
   cy,
@@ -212,6 +218,7 @@ function CrewRow({
   selectedId,
   onSelect,
 }: {
+  scenario: string;
   route: ResolvedRoute;
   tl: CrewTimeline;
   cy: number;
@@ -224,6 +231,7 @@ function CrewRow({
 }) {
   const busX = LEFT - 56 + 7;
   const stops = tl.blocks.length;
+  const sel0 = (id: string) => id === selectedId;
   return (
     <g>
       {/* ferestrele lucrărilor, în spatele rândului */}
@@ -249,10 +257,15 @@ function CrewRow({
         );
       })}
 
-      {/* eticheta echipei */}
-      <text x={28} y={cy - 4} fontSize={18} fontWeight={650} style={{ fill: "var(--ink)" }}>
-        {route.crew_id}
-      </text>
+      {/* eticheta echipei: deschide ordinul de lucru (PDF) */}
+      <a href={`/ordine/${encodeURIComponent(route.crew_id)}?scenariu=${encodeURIComponent(scenario)}`} target="_blank" rel="noreferrer" aria-label={`Ordinul de lucru al echipei ${route.crew_id}, PDF`}>
+        <text x={28} y={cy - 4} fontSize={18} fontWeight={650} style={{ fill: "var(--ink)", textDecoration: "underline", textDecorationColor: "var(--rule)" }}>
+          {route.crew_id}
+        </text>
+        <text x={28 + route.crew_id.length * 11.2 + 8} y={cy - 5} fontSize={12.5} style={{ fill: "var(--muted-foreground)" }}>
+          ordin PDF
+        </text>
+      </a>
       <text x={28} y={cy + 15} fontSize={13.5} style={{ fill: "var(--muted-foreground)" }}>
         {stops === 1 ? "1 oprire" : `${stops} opriri`}, {fmtDec(tl.totalKm, 1)} km, {tl.totalWorkMin} min lucru
       </text>
@@ -297,15 +310,20 @@ function CrewRow({
         const xa = x(b.start);
         const xb = x(b.end);
         const wide = xb - xa > 190;
+        // numele și orele apar doar unde încap; altfel rămân în informațiile de la trecerea mouse-ului
+        const full = placeName(w);
+        // lățimea estimată a textului (Archivo îngust, 14,5 px): ~7,4 px pe caracter; contoarele pierd prefixul când e strâmt
+        const name = full.length * 7.4 <= xb - xa - 2 ? full : placeName(w, true);
+        const showName = name.length * 7.4 <= xb - xa - 2 || sel0(b.workItemId);
+        const showTime = xb - xa >= 84 || sel0(b.workItemId);
         const sel = b.workItemId === selectedId;
         const d = decisions[b.workItemId];
-        const name = placeName(w);
         return (
           <g
             key={`blk-${b.workItemId}`}
             role="button"
             tabIndex={0}
-            aria-label={`${name}, ${hhmm(b.start)}–${hhmm(b.end)}, echipa ${route.crew_id}`}
+            aria-label={`${full}, ${hhmm(b.start)}–${hhmm(b.end)}, echipa ${route.crew_id}`}
             aria-pressed={sel}
             onClick={() => onSelect(b.workItemId)}
             onKeyDown={(e) => {
@@ -316,7 +334,7 @@ function CrewRow({
             }}
             className="cursor-pointer outline-none [&:focus-visible>.focus]:opacity-100"
           >
-            <title>{`${name}: ${hhmm(b.start)}–${hhmm(b.end)}${d ? `, ${d.reason_ro}` : ""}`}</title>
+            <title>{`${full}: ${hhmm(b.start)}–${hhmm(b.end)}${d ? `, ${d.reason_ro}` : ""}`}</title>
             <rect x={xa - 18} y={cy - 26} width={xb - xa + 26} height={52} fill="transparent" />
             <rect className="focus opacity-0" x={xa - 20} y={cy - 17} width={xb - xa + 26} height={34} rx={4} fill="none" style={{ stroke: "var(--ring)" }} strokeWidth={2} />
             {sel ? <rect x={xa - 16} y={cy - 15} width={xb - xa + 22} height={30} rx={3} fill="none" style={{ stroke: "var(--ink)" }} strokeWidth={1.5} /> : null}
@@ -329,12 +347,16 @@ function CrewRow({
               strokeWidth={w.source === "C" ? 1.5 : 0}
             />
             <g transform={`translate(${xa - 18},${cy - 18})`} dangerouslySetInnerHTML={{ __html: markerSvg({ source: w.source }).replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "") }} />
-            <text x={wide ? xa + 18 : (xa + xb) / 2} y={cy - 19} textAnchor={wide ? "start" : "middle"} fontSize={14.5} fontWeight={600} style={{ fill: "var(--ink)", fontStretch: "88%" }}>
-              {name}
-            </text>
-            <text x={wide ? xa + 18 : (xa + xb) / 2} y={cy + 25} textAnchor={wide ? "start" : "middle"} fontSize={14} style={{ fill: "var(--ink)", fontStretch: "88%" }}>
-              {hhmm(b.start)}–{hhmm(b.end)}
-            </text>
+            {showName ? (
+              <text x={wide ? xa + 18 : (xa + xb) / 2} y={cy - 19} textAnchor={wide ? "start" : "middle"} fontSize={14.5} fontWeight={600} style={{ fill: "var(--ink)", fontStretch: "88%" }}>
+                {name}
+              </text>
+            ) : null}
+            {showTime ? (
+              <text x={wide ? xa + 18 : (xa + xb) / 2} y={cy + 25} textAnchor={wide ? "start" : "middle"} fontSize={14} style={{ fill: "var(--ink)", fontStretch: "88%" }}>
+                {hhmm(b.start)}–{hhmm(b.end)}
+              </text>
+            ) : null}
             {w.effort.requires_planned_outage ? (
               <g transform={`translate(${xa + 116},${cy + 20})`}>
                 <g transform="scale(1.25)" style={{ stroke: "var(--ink)" }} strokeWidth={1.7} fill="none" strokeLinecap="round">

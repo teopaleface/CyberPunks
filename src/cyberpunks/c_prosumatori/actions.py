@@ -157,6 +157,39 @@ def decide(
     return None
 
 
+# Efortul pentru acțiunea principală aleasă din scara de soluții: (minute, oameni, cere întrerupere planificată, abilitate)
+LADDER_EFFORT = {
+    "phase_rebalance": (90, 3, True, "lv_grid"),  # cele 3 case mutate rămân fără curent cel mult o jumătate de oră
+    "adjust_tap": (120, 3, True, "lv_grid"),
+    "export_limit": (30, 1, False, "lv_grid"),  # setare la invertoare, de la distanță sau cu o vizită scurtă
+    "notify_customers": (5, 1, False, "lv_grid"),
+    "offer_battery": (5, 1, False, "lv_grid"),
+    "transformer_upgrade": (720, 4, True, "mv_grid"),
+    "measurement_campaign": (60, 2, False, "lv_grid"),
+}
+
+
+def needs_ladder(dec: Decision | None, q90: float) -> bool:
+    """Scara se calculează pentru posturile la care o echipă ar avea de lucru: depășire probabilă sau P90 peste limită."""
+    return dec is not None and not dec.abstain and q90 > LIMIT_PU and dec.action in ("adjust_tap", "measurement_campaign")
+
+
+def from_ladder(dec: Decision, ladder) -> Decision:
+    """Acțiunea principală din scara de soluții (cea mai ieftină combinație care aduce P90 sub 1,10 pu)."""
+    act = ladder.principal
+    minutes, crew, outage, _ = LADDER_EFFORT.get(act, LADDER_EFFORT["measurement_campaign"])
+    return Decision(
+        action=act,
+        rule_id="C-R10-SCARA-SOLUTII",
+        reason_ro=ladder.reason_ro,
+        value_if_true_lei=dec.value_if_true_lei,
+        duration_min=minutes,
+        crew_size=crew,
+        requires_outage=outage,
+        investment_flag=(not ladder.reaches_target) or "transformer_upgrade" in ladder.choice,
+    )
+
+
 def outage_notice(post_label: str, d_tap: date) -> str:
     """Anunțul întreruperii planificate pentru schimbarea prizei (doar demo: nu se trimite nimic)."""
     return (f"Rețele Electrice: pe {d_tap.day}.{d_tap.month:02d}.{d_tap.year}, între 10:00 și 11:00, alimentarea din postul "

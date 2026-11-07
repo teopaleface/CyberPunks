@@ -21,6 +21,7 @@ import {
   readDemoMetrics,
   readDemoPlan,
   readDemoSeries,
+  readFixtureSeries,
   readDemoWorkItems,
   readFixtureAudit,
   readFixtureInvalidWorkItems,
@@ -170,7 +171,8 @@ export function getSeries(id: string, scenario: string, options: ResolveOptions 
         try {
           return ok(await apiSeries(id, scenario), { detail: url });
         } catch (err) {
-          if (isApiRequestError(err) && err.status === 404) return absent(url);
+          // API-ul n-are seria: încercăm instantaneul demo, apoi exemplul din fixture-uri
+          if (isApiRequestError(err) && err.status === 404) return missing(`API-ul n-are seria lui ${id}`);
           throw err;
         }
       },
@@ -180,7 +182,12 @@ export function getSeries(id: string, scenario: string, options: ResolveOptions 
           ? ok(read.data, { detail: filesDetail(read.files) })
           : missing(`nu există seria lui ${id} în instantaneul demo`);
       },
-      fixtures: async () => absent("contracts/fixtures nu are serii"),
+      fixtures: async () => {
+        const read = await readFixtureSeries(id);
+        return read
+          ? ok(read.data, { detail: filesDetail(read.files), showing: "exemplul de test din contracts/fixtures" })
+          : absent(`nu există serie pentru ${id}`);
+      },
     },
     null,
     { ...options, scenario },

@@ -35,6 +35,12 @@ def add_gust_climate(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def add_gust_tail(df: pd.DataFrame) -> pd.DataFrame:
+    """Cât trece rafala peste 60 km/h (0 sub prag): o variabilă dedicată cozii, unde modelul subestima."""
+    df["gust_excess60"] = (df["gust_max"] - 60).clip(lower=0)
+    return df
+
+
 def add_precip_extra(df: pd.DataFrame) -> pd.DataFrame:
     df = df.sort_values(["fips", "date"])
     df["precip_intensity"] = df["precip"] / df["precip_hours"].clip(lower=1)
@@ -72,9 +78,13 @@ def experiments() -> list[tuple[str, str, Callable[[pd.DataFrame], dict]]]:
     no_lags = [(f, m) for f, m in base if f not in ("gust_prev", "gust_max_2d", "precip_7d", "snow_3d")]
     weather_only = [(f, m) for f, m in base if f not in ("log_customers", "log_density")]
     clim = base + [("gust_anom", 1), ("gust_ratio_p95", 1)]
+    tail = base + [("gust_excess60", 1)]
+    with_temp = base + [("tmax", 0), ("tmin", 0), ("t_range", 0), ("srad", 0)]
+    lean = [(f, m) for f, m in base if f not in ("precip_hours", "wind_max", "doy_cos")]
     extra = base + [("precip_intensity", 1), ("precip_30d", 0)]
     return [
-        ("baza", "features-urile din features.py, constrângeri monotone", lambda d: run_variant(d, base)),
+        ("baza", "modelul livrat: vânt, ploaie, zăpadă, polei, sezon, mărimea zonei; constrângeri monotone",
+         lambda d: run_variant(d, base)),
         ("fara_monotonie", "fără constrângeri monotone", lambda d: run_variant(d, base, monotone=False)),
         ("fara_intarzieri", "fără vremea din zilele precedente", lambda d: run_variant(d, no_lags)),
         ("doar_vreme", "fără mărimea și densitatea zonei", lambda d: run_variant(d, weather_only)),
@@ -87,6 +97,10 @@ def experiments() -> list[tuple[str, str, Callable[[pd.DataFrame], dict]]]:
          lambda d: run_variant(d.assign(ev5=(d["pct_out_max"] >= 0.05).astype(int)), base, event_col="ev5")),
         ("arbori_mai_mari", "num_leaves 31, min_data_in_leaf 20",
          lambda d: run_variant(d, base, params_over={"num_leaves": 31, "min_data_in_leaf": 20})),
+        ("coada_rafalei", "+ cât trece rafala peste 60 km/h", lambda d: run_variant(d, tail)),
+        ("cu_temperaturi", "+ temperaturile și radiația (scoase din model: trimiteau echipe la caniculă în România)",
+         lambda d: run_variant(d, with_temp)),
+        ("mai_putine_variabile", "fără orele de ploaie, vântul mediu și sezonul (cos)", lambda d: run_variant(d, lean)),
     ]
 
 
@@ -94,7 +108,7 @@ def main() -> int:
     df = pd.read_parquet(dataset.OUT)
     df["date"] = pd.to_datetime(df["date"])
     df = df[~df["wx_missing"]]
-    df = add_precip_extra(add_gust_climate(df))
+    df = add_gust_tail(add_precip_extra(add_gust_climate(df)))
     rows = []
     for name, desc, fn in experiments():
         r = fn(df)

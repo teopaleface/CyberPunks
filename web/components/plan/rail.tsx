@@ -37,11 +37,13 @@ export function QueuePanel({
   itemsById,
   scenario,
   onSelect,
+  recovered,
 }: {
   queue: Decision[];
   itemsById: Record<string, WorkItem>;
   scenario: string;
   onSelect: (id: string) => void;
+  recovered?: { count: number; lei: number };
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -53,7 +55,7 @@ export function QueuePanel({
     if (!first) return;
     setActing(decision);
     startTransition(async () => {
-      const result = await submitReview(first.work_item_id, decision, "");
+      const result = await submitReview(first.work_item_id, decision, "", scenario);
       setActing(null);
       if (result.ok) {
         toast.success(`${REVIEW_DONE[decision]} ${first.work_item_id}`, {
@@ -77,7 +79,16 @@ export function QueuePanel({
             {queue.length}
           </span>
         ) : null}
-        {first ? <span className="ml-auto truncate text-[14px] text-muted-foreground">regula {first.rule_id}</span> : null}
+        <span className="ml-auto truncate text-[14px] text-muted-foreground">
+          {recovered && recovered.count > 0 ? (
+            <>
+              confirmate de om: <b className="font-[620] text-ink tabular-nums">{recovered.count}</b>, cca{" "}
+              <b className="font-[620] text-ink tabular-nums">{fmtLei(recovered.lei)}</b> recuperați
+            </>
+          ) : first ? (
+            `regula ${first.rule_id}`
+          ) : null}
+        </span>
       </div>
       {!first || !w ? (
         <p className="mt-2 text-[15px] text-muted-foreground">
@@ -199,6 +210,7 @@ export function AlertsPanel({ alerts, onSelect }: { alerts: Alert[]; onSelect: (
 // --------------------------------------------------------------------------------------------
 function costOf(d: Decision | null | undefined): { cost: number; label: string } | null {
   const t = d?.threshold ?? {};
+  if (typeof t.cost_lei === "number") return { cost: t.cost_lei, label: "cost" };
   if (typeof t.visit_cost_lei === "number") return { cost: t.visit_cost_lei, label: "costul vizitei" };
   if (typeof t.preposition_cost_lei === "number") return { cost: t.preposition_cost_lei, label: "costul echipei trimise din timp" };
   if (typeof t.tap_change_visit_cost_lei === "number") return { cost: t.tap_change_visit_cost_lei, label: "costul schimbării prizei" };
@@ -224,7 +236,9 @@ export function WorkItemPeek({
   decision,
   crewInfo,
   scenario,
+  highlight = false,
 }: {
+  highlight?: boolean;
   w: WorkItem | null;
   decision: Decision | null;
   crewInfo: { crewId: string; seq: number; start: string; end: string } | null;
@@ -246,7 +260,7 @@ export function WorkItemPeek({
   const scoreMin = typeof decision?.threshold?.score_min === "number" ? decision.threshold.score_min : null;
   const ruleText = ruleRo(decision?.rule_id);
   return (
-    <section aria-labelledby="peek-title" className="min-h-0 flex-1 overflow-y-auto px-7 pt-3.5 pb-5">
+    <section aria-labelledby="peek-title" className={"min-h-0 flex-1 overflow-y-auto px-7 pt-3.5 pb-5" + (highlight ? " spot" : "")}>
       <div className="grid grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-x-3">
         <Marker w={w} decision={decision} selected />
         <div className="min-w-0">
