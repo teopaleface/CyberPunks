@@ -46,7 +46,7 @@ const CAUSE_ICON: Record<string, typeof Zap> = {
   contor_bilant_setat: Gauge,
 };
 const BAND_TONE: Record<string, Tone> = { Likely: "blue", Possible: "violet", Unlikely: "grey" };
-const PIN_TEXT = { verde: "text-[#4ade80]", galben: "text-[#facc15]", roșu: "text-[#f87171]", necunoscut: "text-ink-soft" } as const;
+const PIN_TEXT = { verde: "text-ok-ink", galben: "text-src-c-ink", roșu: "text-red-700 dark:text-red-300", necunoscut: "text-ink-soft" } as const;
 
 const clean = (t: string) => { const x = englishText(t).replace(/\.\s*$/, "").trim(); return x.charAt(0).toUpperCase() + x.slice(1); };
 const short = (t: string) => clean(t.replace(/\s*\([^)]*\)/g, ""));
