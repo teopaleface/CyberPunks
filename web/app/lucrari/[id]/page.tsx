@@ -376,7 +376,7 @@ function DecisionBlock({ w, decision }: { w: WorkItem; decision: Decision | null
       <h2 id="dec-title" className="text-[18px] font-[650]">
         Decizia agentului
       </h2>
-      <p className="mt-1.5 text-[16.5px] leading-relaxed">{decision.reason_ro}</p>
+      <p className="mt-1.5 text-[16.5px] leading-relaxed">{decision.reason_ro.charAt(0).toLocaleUpperCase("ro-RO") + decision.reason_ro.slice(1)}</p>
       <div className="mt-3 flex flex-wrap items-baseline gap-x-3">
         <span className="code-id text-[16px]">{decision.rule_id}</span>
         <span className="text-[15px] text-muted-foreground">

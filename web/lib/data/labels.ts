@@ -182,6 +182,11 @@ const THRESHOLD_RO: Record<string, string> = {
   human: "trimis la om",
   visit_min_score: "scor minim pentru vizită",
   medium_confidence_margin_lei: "marja cerută la încredere medie",
+  p90_before_pu: "tensiunea P90 fără soluție",
+  p90_after_pu: "tensiunea P90 după soluție",
+  remedy_cost_lei: "costul soluției alese",
+  remedy_steps: "trepte combinate",
+  remedy_options_checked: "variante verificate",
 };
 
 const FLAG_KEYS = new Set(["safety_flag", "smart_meter", "abstain", "human"]);
