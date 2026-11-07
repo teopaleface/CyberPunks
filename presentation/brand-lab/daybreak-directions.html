@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daybreak: direcții de culoare și logo</title>
+<style>
+  @font-face {
+    font-family: "Archivo";
+    font-weight: 100 900;
+    font-stretch: 62% 125%;
+    font-display: block;
+    src: url("../video/assets/fonts/Archivo-wdth62_125-wght100_900-latin.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Archivo";
+    font-weight: 100 900;
+    font-stretch: 62% 125%;
+    font-display: block;
+    src: url("../video/assets/fonts/Archivo-wdth62_125-wght100_900-latin-ext.woff2") format("woff2");
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+0218-021B;
+  }
+  :root { --page: #ECEEF2; --text: #151821; --muted: #5C6372; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--page); color: var(--text); font-family: "Archivo", system-ui, sans-serif; padding: 48px clamp(16px, 4vw, 64px) 96px; }
+  header { max-width: 1400px; margin: 0 auto 40px; }
+  header h1 { font-size: clamp(28px, 3.4vw, 48px); font-weight: 760; font-stretch: 108%; letter-spacing: -0.02em; }
+  header p { margin-top: 10px; color: var(--muted); font-size: 17px; max-width: 70ch; line-height: 1.5; }
+
+  .direction { max-width: 1400px; margin: 0 auto 56px; }
+  .direction-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 20px; margin-bottom: 14px; }
+  .direction-head h2 { font-size: 26px; font-weight: 740; font-stretch: 106%; letter-spacing: -0.015em; }
+  .direction-head p { color: var(--muted); font-size: 16px; line-height: 1.45; max-width: 80ch; }
+  .swatches { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .swatch { display: flex; align-items: center; gap: 8px; background: #fff; border-radius: 999px; padding: 5px 12px 5px 5px; font-size: 13px; color: var(--muted); }
+  .swatch i { width: 22px; height: 22px; border-radius: 50%; display: block; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+  .swatch b { color: var(--text); font-weight: 600; }
+
+  .frames { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 900px) { .frames { grid-template-columns: 1fr; } }
+  figure { margin: 0; }
+  figcaption { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .frame { position: relative; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; container-type: inline-size; isolation: isolate; }
+  .frame .center { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+
+  /* Title frame */
+  .lockup { display: flex; align-items: center; gap: 1.6cqw; }
+  .lockup svg { width: 18cqw; height: 18cqw; overflow: visible; }
+  .wordmark { font-size: 10cqw; font-weight: 780; font-stretch: 112%; letter-spacing: -0.035em; line-height: 1; }
+  .tagline { font-size: 2.9cqw; font-weight: 500; letter-spacing: -0.005em; margin-top: 3cqw; opacity: .82; }
+  .stack { display: flex; flex-direction: column; align-items: center; }
+
+  /* Hook frame */
+  .hook { display: flex; flex-direction: column; align-items: center; gap: 1.2cqw; }
+  .hook span { font-size: 7.6cqw; font-weight: 760; font-stretch: 104%; letter-spacing: -0.03em; line-height: 1; }
+  .chips { display: flex; gap: 2cqw; margin-bottom: 2.6cqw; }
+  .chip { width: 9cqw; height: 9cqw; border-radius: 2.6cqw; display: grid; place-items: center; }
+  .chip svg { width: 5.4cqw; height: 5.4cqw; }
+
+  /* Map frame */
+  .map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .pill { position: absolute; left: 50%; bottom: 6cqw; transform: translateX(-50%); white-space: nowrap; font-size: 3.1cqw; font-weight: 640; letter-spacing: -0.01em; padding: 1.3cqw 2.8cqw; border-radius: 999px; }
+
+  /* Motion: one orchestrated loop per frame */
+  .route { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 6s cubic-bezier(.65,0,.35,1) infinite; }
+  .route.r2 { animation-delay: .35s; } .route.r3 { animation-delay: .7s; }
+  .stop { transform-box: fill-box; transform-origin: center; animation: pop 6s cubic-bezier(.34,1.56,.64,1) infinite; opacity: 0; }
+  .sun { transform-box: fill-box; animation: rise 6s cubic-bezier(.22,1,.36,1) infinite; }
+  .reveal { animation: reveal 6s cubic-bezier(.22,1,.36,1) infinite; }
+  .reveal.late { animation-delay: .25s; }
+  .word { display: inline-block; animation: word 6s cubic-bezier(.22,1,.36,1) infinite; }
+  .word:nth-child(2) { animation-delay: .5s; } .word:nth-child(3) { animation-delay: 1s; }
+  .pulse { transform-box: fill-box; transform-origin: center; animation: pulse 2s ease-out infinite; }
+  @keyframes draw { 0%, 12% { stroke-dashoffset: 1; } 45%, 88% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+  @keyframes pop { 0%, 30% { opacity: 0; transform: scale(.2); } 42%, 88% { opacity: 1; transform: scale(1); } 100% { opacity: 0; } }
+  @keyframes rise { 0%, 8% { transform: translateY(70%); } 40%, 90% { transform: translateY(0); } 100% { transform: translateY(0); opacity: 0; } }
+  @keyframes reveal { 0%, 18% { opacity: 0; transform: translateY(1.5cqw); filter: blur(1.2cqw); } 42%, 90% { opacity: 1; transform: none; filter: blur(0); } 100% { opacity: 0; } }
+  @keyframes word { 0%, 8% { opacity: 0; transform: scale(.6); filter: blur(1cqw); } 22%, 90% { opacity: 1; transform: none; filter: blur(0); } 100% { opacity: 0; } }
+  @keyframes pulse { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(3.2); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    .route, .stop, .sun, .reveal, .word, .pulse { animation: none !important; opacity: 1; stroke-dashoffset: 0; transform: none; filter: none; }
+  }
+
+  /* Direction A: First light */
+  .a-title { background: linear-gradient(180deg, #0E1236 0%, #2B2378 38%, #8B3FB0 62%, #FF6B5B 84%, #FFB23F 100%); color: #fff; }
+  .a-hook { background: radial-gradient(120% 90% at 50% 120%, #5B3FD9 0%, #1B1C5C 45%, #0E1236 80%); color: #fff; }
+  .a-map { background: linear-gradient(160deg, #1B1C5C 0%, #4B2F9E 55%, #FF7A5C 120%); }
+  .a-map .pill { background: rgba(255,255,255,.16); color: #fff; backdrop-filter: blur(12px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); }
+
+  /* Direction B: Signal colors */
+  .b-title { background: #FFC531; color: #10131A; }
+  .b-hook { background: #A23C9E; color: #fff; }
+  .b-map { background: #2C6FD9; }
+  .b-map .pill { background: #fff; color: #10131A; }
+
+  /* Direction C: Live wire */
+  .c-title { background: radial-gradient(70% 60% at 50% 105%, rgba(255,178,63,.55) 0%, rgba(255,107,91,.18) 40%, rgba(6,9,20,0) 70%), #060914; color: #F4F7FF; }
+  .c-hook { background: radial-gradient(90% 80% at 50% 50%, #121A33 0%, #060914 75%); color: #F4F7FF; }
+  .c-map { background: #060914; }
+  .c-map .pill { background: rgba(79,209,255,.12); color: #F4F7FF; box-shadow: inset 0 0 0 1px rgba(79,209,255,.4), 0 0 3cqw rgba(79,209,255,.25); }
+  .glow { filter: drop-shadow(0 0 1.2cqw rgba(255,178,63,.8)); }
+
+  /* Logo section */
+  .logos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 900px) { .logos { grid-template-columns: 1fr; } }
+  .logo-card { background: #fff; border-radius: 14px; padding: 18px; }
+  .logo-card h3 { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+  .logo-card p { color: var(--muted); font-size: 14px; line-height: 1.45; margin-top: 6px; min-height: 3em; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+  .tile { aspect-ratio: 4 / 3; border-radius: 10px; display: grid; place-items: center; container-type: inline-size; }
+  .tile.light { background: #F6F7FA; color: #10131A; }
+  .tile.dark { background: #0E1236; color: #fff; }
+  .tile .lockup svg { width: 26cqw; height: 26cqw; }
+  .tile .wordmark { font-size: 13cqw; }
+  .small-row { display: flex; gap: 14px; align-items: center; margin-top: 10px; color: var(--muted); font-size: 12px; }
+  .small-row svg { width: 24px; height: 24px; }
+  .small-row svg.s16 { width: 16px; height: 16px; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="sunA" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FF6B5B"/><stop offset="1" stop-color="#FFB23F"/></linearGradient>
+    <linearGradient id="sunB" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#F28C0C"/><stop offset="1" stop-color="#FFC531"/></linearGradient>
+    <clipPath id="aboveHorizon"><rect x="0" y="0" width="64" height="48"/></clipPath>
+    <clipPath id="aboveHorizon2"><rect x="0" y="0" width="64" height="42"/></clipPath>
+    <filter id="bloom" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Logo L1: sunrise on the route (refined current logo) -->
+    <symbol id="L1" viewBox="0 0 64 64">
+      <g clip-path="url(#aboveHorizon2)"><path class="sun" d="M17 42a15 15 0 0 1 30 0Z" style="fill:var(--sun, url(#sunA))"/></g>
+      <path d="M10 46h14l9-7h21" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <g fill="currentColor"><circle cx="10" cy="46" r="4"/><circle cx="33" cy="39" r="4"/><circle cx="54" cy="39" r="4"/></g>
+    </symbol>
+    <!-- Logo L2: the D that rises (half sun on a horizon = a D turned on its back) -->
+    <symbol id="L2" viewBox="0 0 64 64">
+      <g clip-path="url(#aboveHorizon)"><path class="sun" d="M13 45a19 19 0 0 1 38 0Z" style="fill:var(--sun, url(#sunA))"/></g>
+      <rect x="7" y="47" width="50" height="5.5" rx="2.75" fill="currentColor"/>
+    </symbol>
+    <!-- Logo L3: rays are routes (crews leave the base at sunrise) -->
+    <symbol id="L3" viewBox="0 0 64 64">
+      <g clip-path="url(#aboveHorizon)"><path class="sun" d="M22 48a10 10 0 0 1 20 0Z" style="fill:var(--sun, url(#sunA))"/></g>
+      <g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round">
+        <path d="M22.1 38.1 L12.8 28.8"/><path d="M32 34 V19"/><path d="M41.9 38.1 L51.2 28.8"/>
+      </g>
+      <g fill="currentColor"><circle cx="11" cy="27" r="4"/><circle cx="32" cy="16.5" r="4"/><circle cx="53" cy="27" r="4"/></g>
+      <rect x="7" y="49.5" width="50" height="4.5" rx="2.25" fill="currentColor"/>
+    </symbol>
+    <!-- Hook glyphs -->
+    <symbol id="g-storm" viewBox="0 0 24 24"><path d="M7 16a4.5 4.5 0 1 1 1.2-8.8A5.5 5.5 0 0 1 18.6 9 3.6 3.6 0 0 1 18 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12.5 13 10 18h3l-1.5 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="g-meter" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3.5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="7.5" y="7" width="9" height="5" rx="1.2" fill="currentColor"/><circle cx="12" cy="16.5" r="1.6" fill="currentColor"/></symbol>
+    <symbol id="g-volt" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></g></symbol>
+    <!-- Map illustration, routes colored per direction via CSS variables -->
+    <symbol id="map" viewBox="0 0 160 90">
+      <g fill="none" stroke-width=".6" style="stroke:var(--road)">
+        <path d="M0 22 C40 26 70 18 160 28"/><path d="M0 48 C50 44 110 52 160 46"/><path d="M30 0 C34 30 26 60 36 90"/><path d="M118 0 C112 34 124 58 116 90"/><path d="M60 0 L96 90"/>
+      </g>
+      <path d="M0 74 C30 66 52 82 84 73 S132 62 160 69" fill="none" stroke-width="3.2" stroke-linecap="round" style="stroke:var(--water)"/>
+      <g fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="filter:var(--routefx, none)">
+        <path class="route" pathLength="1" d="M78 46 L61 35 L45 31 L30 19" style="stroke:var(--r1)"/>
+        <path class="route r2" pathLength="1" d="M78 46 L95 31 L112 27 L128 16" style="stroke:var(--r2)"/>
+        <path class="route r3" pathLength="1" d="M78 46 L90 58 L110 62 L132 55" style="stroke:var(--r3)"/>
+      </g>
+      <g stroke-width="1" style="stroke:var(--stopring)">
+        <circle class="stop" style="fill:var(--r1);animation-delay:.9s" cx="61" cy="35" r="2.4"/><circle class="stop" style="fill:var(--r1);animation-delay:1.2s" cx="45" cy="31" r="2.4"/><circle class="stop" style="fill:var(--r1);animation-delay:1.5s" cx="30" cy="19" r="2.4"/>
+        <circle class="stop" style="fill:var(--r2);animation-delay:1.1s" cx="95" cy="31" r="2.4"/><circle class="stop" style="fill:var(--r2);animation-delay:1.4s" cx="112" cy="27" r="2.4"/><circle class="stop" style="fill:var(--r2);animation-delay:1.7s" cx="128" cy="16" r="2.4"/>
+        <circle class="stop" style="fill:var(--r3);animation-delay:1.3s" cx="90" cy="58" r="2.4"/><circle class="stop" style="fill:var(--r3);animation-delay:1.6s" cx="110" cy="62" r="2.4"/><circle class="stop" style="fill:var(--r3);animation-delay:1.9s" cx="132" cy="55" r="2.4"/>
+      </g>
+      <circle class="pulse" cx="78" cy="46" r="3.6" style="fill:var(--base)"/>
+      <circle cx="78" cy="46" r="3.6" stroke-width="1.2" style="fill:var(--base);stroke:var(--stopring)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header>
+  <h1>Daybreak: alege direcția de culoare</h1>
+  <p>Aceleași trei cadre (titlul, cârligul și harta), desenate în trei palete. Textele din cadre sunt în engleză, ca în film. Mișcarea din planșă e doar o mostră: în film va fi mult mai bogată. Alege o direcție, apoi un logo de mai jos.</p>
+</header>
+
+<!-- A -->
+<section class="direction">
+  <div class="direction-head">
+    <h2>A. First light</h2>
+    <p>Cerul de dinaintea zorilor. Fundalurile trec de la noapte la răsărit pe parcursul filmului, ca povestea: de la problema din timpul nopții la planul gata dimineața. Cartonașele produsului stau pe sticlă mată.</p>
+  </div>
+  <div class="swatches">
+    <span class="swatch"><i style="background:#0E1236"></i><b>Night</b> #0E1236</span>
+    <span class="swatch"><i style="background:#5B3FD9"></i><b>Dusk</b> #5B3FD9</span>
+    <span class="swatch"><i style="background:#FF6B5B"></i><b>Coral</b> #FF6B5B</span>
+    <span class="swatch"><i style="background:#FFB23F"></i><b>Sun</b> #FFB23F</span>
+    <span class="swatch"><i style="background:#9CC8FF"></i><b>Sky</b> #9CC8FF</span>
+    <span class="swatch"><i style="background:#FFFFFF"></i><b>White</b> #FFFFFF</span>
+  </div>
+  <div class="frames">
+    <figure><div class="frame a-title"><div class="center"><div class="stack">
+      <div class="lockup"><svg style="color:#fff"><use href="#L1"/></svg><span class="wordmark reveal">Daybreak</span></div>
+      <div class="tagline reveal late">Tomorrow's crews, planned by sunrise.</div>
+    </div></div></div><figcaption>Titlul</figcaption></figure>
+    <figure><div class="frame a-hook"><div class="center"><div class="hook">
+      <div class="chips">
+        <span class="chip" style="background:rgba(169,139,255,.22);color:#C9B8FF"><svg><use href="#g-storm"/></svg></span>
+        <span class="chip" style="background:rgba(156,200,255,.22);color:#9CC8FF"><svg><use href="#g-meter"/></svg></span>
+        <span class="chip" style="background:rgba(255,178,63,.22);color:#FFB23F"><svg><use href="#g-volt"/></svg></span>
+      </div>
+      <span class="word">Storms.</span><span class="word">Broken meters.</span><span class="word">Overvoltage.</span>
+    </div></div></div><figcaption>Cârligul</figcaption></figure>
+    <figure><div class="frame map a-map" style="--road:rgba(255,255,255,.14);--water:rgba(156,200,255,.35);--r1:#9CC8FF;--r2:#FFB23F;--r3:#FF8A7A;--stopring:#fff;--base:#fff">
+      <svg><use href="#map"/></svg><span class="pill">Every crew knows where to go.</span>
+    </div><figcaption>Harta: 3 echipe, 3 trasee</figcaption></figure>
+  </div>
+</section>
+
+<!-- B -->
+<section class="direction">
+  <div class="direction-head">
+    <h2>B. Signal colors</h2>
+    <p>Fiecare scenă are culoarea ei, plină, pe tot ecranul, ca în reclamele Apple pentru iPhone și iPod. Culorile vin din consolă: albastru pentru contoare, prună pentru furtuni, galben pentru soare și tensiune, verde pentru „aprobat”.</p>
+  </div>
+  <div class="swatches">
+    <span class="swatch"><i style="background:#2C6FD9"></i><b>Cobalt</b> #2C6FD9</span>
+    <span class="swatch"><i style="background:#A23C9E"></i><b>Plum</b> #A23C9E</span>
+    <span class="swatch"><i style="background:#FFC531"></i><b>Sun</b> #FFC531</span>
+    <span class="swatch"><i style="background:#22B07D"></i><b>Mint</b> #22B07D</span>
+    <span class="swatch"><i style="background:#10131A"></i><b>Ink</b> #10131A</span>
+    <span class="swatch"><i style="background:#FFFFFF"></i><b>White</b> #FFFFFF</span>
+  </div>
+  <div class="frames">
+    <figure><div class="frame b-title" style="--sun:#10131A"><div class="center"><div class="stack">
+      <div class="lockup"><svg style="color:#10131A;--sun:#fff"><use href="#L1"/></svg><span class="wordmark reveal">Daybreak</span></div>
+      <div class="tagline reveal late">Tomorrow's crews, planned by sunrise.</div>
+    </div></div></div><figcaption>Titlul</figcaption></figure>
+    <figure><div class="frame b-hook"><div class="center"><div class="hook">
+      <div class="chips">
+        <span class="chip" style="background:#fff;color:#A23C9E"><svg><use href="#g-storm"/></svg></span>
+        <span class="chip" style="background:rgba(255,255,255,.18);color:#fff"><svg><use href="#g-meter"/></svg></span>
+        <span class="chip" style="background:rgba(255,255,255,.18);color:#fff"><svg><use href="#g-volt"/></svg></span>
+      </div>
+      <span class="word">Storms.</span><span class="word" style="opacity:.55">Broken meters.</span><span class="word" style="opacity:.55">Overvoltage.</span>
+    </div></div></div><figcaption>Cârligul (scena furtunii e prună, a contoarelor albastră)</figcaption></figure>
+    <figure><div class="frame map b-map" style="--road:rgba(255,255,255,.18);--water:rgba(255,255,255,.35);--r1:#fff;--r2:#FFC531;--r3:#7CF0C2;--stopring:#2C6FD9;--base:#10131A">
+      <svg><use href="#map"/></svg><span class="pill">Every crew knows where to go.</span>
+    </div><figcaption>Harta</figcaption></figure>
+  </div>
+</section>
+
+<!-- C -->
+<section class="direction">
+  <div class="direction-head">
+    <h2>C. Live wire</h2>
+    <p>Lumină în întuneric: traseele și liniile electrice strălucesc pe un fundal de noapte, cu bloom, sticlă și particule. Seamănă cel mai mult cu un film făcut în After Effects, dar trebuie dozat cu grijă, ca să nu pară încărcat.</p>
+  </div>
+  <div class="swatches">
+    <span class="swatch"><i style="background:#060914"></i><b>Midnight</b> #060914</span>
+    <span class="swatch"><i style="background:#121A33"></i><b>Deep</b> #121A33</span>
+    <span class="swatch"><i style="background:#4FD1FF"></i><b>Current</b> #4FD1FF</span>
+    <span class="swatch"><i style="background:#FFB23F"></i><b>Sun</b> #FFB23F</span>
+    <span class="swatch"><i style="background:#C66BFF"></i><b>Plasma</b> #C66BFF</span>
+    <span class="swatch"><i style="background:#F4F7FF"></i><b>White</b> #F4F7FF</span>
+  </div>
+  <div class="frames">
+    <figure><div class="frame c-title"><div class="center"><div class="stack">
+      <div class="lockup"><svg class="glow" style="color:#F4F7FF;--sun:#FFB23F"><use href="#L1"/></svg><span class="wordmark reveal">Daybreak</span></div>
+      <div class="tagline reveal late">Tomorrow's crews, planned by sunrise.</div>
+    </div></div></div><figcaption>Titlul</figcaption></figure>
+    <figure><div class="frame c-hook"><div class="center"><div class="hook">
+      <div class="chips">
+        <span class="chip" style="background:rgba(198,107,255,.14);color:#D9A2FF;box-shadow:0 0 3cqw rgba(198,107,255,.45)"><svg><use href="#g-storm"/></svg></span>
+        <span class="chip" style="background:rgba(79,209,255,.14);color:#4FD1FF;box-shadow:0 0 3cqw rgba(79,209,255,.45)"><svg><use href="#g-meter"/></svg></span>
+        <span class="chip" style="background:rgba(255,178,63,.14);color:#FFB23F;box-shadow:0 0 3cqw rgba(255,178,63,.45)"><svg><use href="#g-volt"/></svg></span>
+      </div>
+      <span class="word">Storms.</span><span class="word">Broken meters.</span><span class="word">Overvoltage.</span>
+    </div></div></div><figcaption>Cârligul</figcaption></figure>
+    <figure><div class="frame map c-map" style="--road:rgba(79,209,255,.10);--water:rgba(79,209,255,.22);--r1:#4FD1FF;--r2:#FFB23F;--r3:#C66BFF;--stopring:#060914;--base:#F4F7FF;--routefx:url(#bloom)">
+      <svg><use href="#map"/></svg><span class="pill">Every crew knows where to go.</span>
+    </div><figcaption>Harta</figcaption></figure>
+  </div>
+</section>
+
+<!-- Logos -->
+<section class="direction">
+  <div class="direction-head">
+    <h2>Logoul Daybreak: 3 variante</h2>
+    <p>Toate pornesc de la soarele care răsare, ca logoul de acum. Le arăt pe fundal deschis și închis, cu numele alături, și jos la mărimile mici din consolă (24 și 16 px). Culorile se adaptează la direcția aleasă.</p>
+  </div>
+  <div class="logos">
+    <div class="logo-card">
+      <h3>1. Răsărit pe traseu</h3>
+      <p>Logoul de acum, curățat: soarele răsare în spatele unui traseu cu trei opriri. Continuitate cu consola.</p>
+      <div class="tiles">
+        <div class="tile light"><div class="lockup"><svg><use href="#L1"/></svg><span class="wordmark">Daybreak</span></div></div>
+        <div class="tile dark"><div class="lockup"><svg style="color:#fff"><use href="#L1"/></svg><span class="wordmark">Daybreak</span></div></div>
+      </div>
+      <div class="small-row"><svg><use href="#L1"/></svg><svg class="s16"><use href="#L1"/></svg> 24 px și 16 px</div>
+    </div>
+    <div class="logo-card">
+      <h3>2. D-ul care răsare</h3>
+      <p>Un semicerc pe o linie de orizont: e soarele și, culcat, litera D. În film, D-ul se rotește și devine răsăritul.</p>
+      <div class="tiles">
+        <div class="tile light"><div class="lockup"><svg><use href="#L2"/></svg><span class="wordmark">Daybreak</span></div></div>
+        <div class="tile dark"><div class="lockup"><svg style="color:#fff"><use href="#L2"/></svg><span class="wordmark">Daybreak</span></div></div>
+      </div>
+      <div class="small-row"><svg><use href="#L2"/></svg><svg class="s16"><use href="#L2"/></svg> 24 px și 16 px</div>
+    </div>
+    <div class="logo-card">
+      <h3>3. Razele sunt trasee</h3>
+      <p>Soarele e baza, iar razele sunt traseele echipelor care pleacă dimineața, fiecare cu oprirea ei.</p>
+      <div class="tiles">
+        <div class="tile light"><div class="lockup"><svg><use href="#L3"/></svg><span class="wordmark">Daybreak</span></div></div>
+        <div class="tile dark"><div class="lockup"><svg style="color:#fff"><use href="#L3"/></svg><span class="wordmark">Daybreak</span></div></div>
+      </div>
+      <div class="small-row"><svg><use href="#L3"/></svg><svg class="s16"><use href="#L3"/></svg> 24 px și 16 px</div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
