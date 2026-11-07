@@ -24,6 +24,7 @@ from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+import httpx
 import numpy as np
 import pandas as pd
 
@@ -350,10 +351,18 @@ def run(scenario: str, date: str | None = None) -> Path:
     created = decision_time(target, mode)
 
     openmeteo.STALE_NOTES.clear()
-    wx, wx_issues = romania.weather_daily(zones, target, mode)
-    hourly = romania.weather_hourly(zones, target, mode)
+    try:
+        wx, wx_issues = romania.weather_daily(zones, target, mode)
+        hourly = romania.weather_hourly(zones, target, mode)
+    except (httpx.HTTPError, RuntimeError, OSError, ValueError, KeyError) as exc:  # rețea, cotă (429), format
+        wx, hourly = pd.DataFrame(), pd.DataFrame()
+        wx_issues = [f"vremea indisponibilă ({type(exc).__name__}) și nicio copie salvată: toate zonele merg la om"]
     feats = target_features(zones, wx, target)
-    lo, hi, unc_source = uncertainty(model, zones, feats, target, mode)
+    if wx.empty:
+        lo = hi = None
+        unc_source = "fără vreme: incertitudinea nu se poate estima"
+    else:
+        lo, hi, unc_source = uncertainty(model, zones, feats, target, mode)
     wx_issues = list(wx_issues) + sorted(set(openmeteo.STALE_NOTES))
     items, series = build_items(model, zones, feats, hourly, target, mode, created, econ, scenario, lo, hi,
                                 unc_source, wx_issues)

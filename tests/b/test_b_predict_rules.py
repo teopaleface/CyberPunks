@@ -149,3 +149,21 @@ def test_target_features_keeps_zone_without_weather():
     assert len(f) == 3
     assert f["gust_max"].isna().all()
     assert set(FEATURES) <= set(f.columns)
+
+
+def test_run_without_weather_still_writes_valid_items(tmp_path, monkeypatch):
+    """Open-Meteo picat și fără cache: B scrie totuși 26 de lucrări valide, toate la om, cu motivul spus."""
+    from cyberpunks.b_furtuna import openmeteo
+
+    def down(*a, **k):
+        raise openmeteo.RateLimited("Daily API request limit exceeded")
+
+    monkeypatch.setattr(openmeteo, "get", down)
+    monkeypatch.setattr(predict, "OUTPUTS", tmp_path)
+    monkeypatch.setattr(predict, "work_items_path", lambda s, src: tmp_path / "work_items" / s / f"{src}.jsonl")
+    out = predict.run("demo-vara", None)
+    lines = out.read_text(encoding="utf-8").splitlines()
+    assert len(lines) == 26
+    items = [WorkItem.model_validate_json(x) for x in lines]
+    assert all(it.recommended_action == "human_review" for it in items)
+    assert all(any("vremea indisponibilă" in s for s in it.data_quality.input_issues) for it in items)
