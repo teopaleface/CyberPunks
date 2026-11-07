@@ -53,20 +53,24 @@ DESC = {
 def load() -> pd.DataFrame:
     df = more_years.load_all()  # tabelul livrat 2023-2025, plus 2021-2022 dacă au fost construite
     df = df[~df["wx_missing"]]
+    if not extra_weather.OUT.exists():  # fără variabilele noi: doar tabelul livrat
+        return df
     ex = pd.read_parquet(extra_weather.OUT)
     ex["date"] = pd.to_datetime(ex["date"])
     return df.merge(ex, on=["fips", "date"], how="left")
 
 
-def fit_predict(df: pd.DataFrame, spec: list[tuple[str, int]], train_years: tuple[int, ...]) -> tuple[np.ndarray, pd.DataFrame]:
+def fit_predict(df: pd.DataFrame, spec: list[tuple[str, int]], train_years: tuple[int, ...],
+                params_over: dict | None = None) -> tuple[np.ndarray, pd.DataFrame]:
     feats = [f for f, _ in spec]
-    params = {**bm.CLF_PARAMS, "monotone_constraints": [m for _, m in spec]}
+    params = {**bm.CLF_PARAMS, **(params_over or {}), "monotone_constraints": [m for _, m in spec]}
+    rounds = int(params.pop("rounds", bm.CLF_ROUNDS))
     tr = df[df["year"].isin(train_years)].reset_index(drop=True)
     te = df[df["year"] == TEST_YEAR].reset_index(drop=True)
     y_tr = tr["event"].to_numpy()
 
     def fit(X: pd.DataFrame, y: np.ndarray) -> lgb.Booster:
-        return lgb.train(params, lgb.Dataset(X[feats], label=y), num_boost_round=bm.CLF_ROUNDS)
+        return lgb.train(params, lgb.Dataset(X[feats], label=y), num_boost_round=rounds)
 
     oof = np.zeros(len(tr))
     for a, b in GroupKFold(5).split(tr, y_tr, bm.week_groups(tr["date"])):

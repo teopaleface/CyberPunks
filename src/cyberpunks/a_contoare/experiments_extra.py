@@ -165,9 +165,10 @@ def extra_train_samples(temp: pd.Series) -> pd.DataFrame:
 # antrenare și evaluare, pe același test
 # ------------------------------------------------------------------------------------------
 
-def fit_eval(train: pd.DataFrame, cal: pd.DataFrame, test: pd.DataFrame, feats: list[str]) -> dict:
+def fit_eval(train: pd.DataFrame, cal: pd.DataFrame, test: pd.DataFrame, feats: list[str], params: dict | None = None) -> dict:
     y = train["family"].map(FAMILY_TO_Y).to_numpy()
-    m = MeterModel("a-lgbm-exp", feats, LCL_CLASSES).fit(train, y, params=DETERMINISTIC, groups=train["household"].to_numpy())
+    m = MeterModel("a-lgbm-exp", feats, LCL_CLASSES).fit(train, y, params={**DETERMINISTIC, **(params or {})},
+                                                          groups=train["household"].to_numpy())
     m.calibrate(cal, cal["problem"].to_numpy(), alpha_normal=ALPHA_NORMAL, alpha_problem=ALPHA_PROBLEM)
     s = m.predict(test)["score"].to_numpy()
     y_te = test["problem"].to_numpy()
