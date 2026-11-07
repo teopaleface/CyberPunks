@@ -7,7 +7,7 @@ from pathlib import Path
 from cyberpunks.planner import agent
 from cyberpunks.planner.settings import Settings
 
-from .conftest import DATE, SCENARIO, fixture_items, variant, write_items
+from .conftest import DATE, SCENARIO, confirmed_by_bilant, fixture_items, variant, write_items
 from .test_extension import _c_with_ladder, _opt
 
 
@@ -53,11 +53,16 @@ def test_human_queue_is_capped_by_value(out_root: Path) -> None:
 def test_weak_safety_signal_is_not_mandatory(out_root: Path) -> None:
     a = fixture_items("A")[0]  # tamper, safety_flag
     weak = variant(a, "MTR-Q201", **{"prediction.score": 0.55, "prediction.confidence": "medium"})
-    strong = variant(a, "MTR-Q202", **{"prediction.score": 0.9, "prediction.confidence": "high"})
-    write_items(out_root, "A", [weak, strong])
+    strong = confirmed_by_bilant(variant(a, "MTR-Q202", **{"prediction.score": 0.9, "prediction.confidence": "high"}))
+    alone = confirmed_by_bilant(variant(a, "MTR-Q203", **{"prediction.score": 0.9, "prediction.confidence": "high"}), confirmed=False)
+    write_items(out_root, "A", [weak, strong, alone])
     d = _decisions(agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root))
-    assert d[strong["work_item_id"]].rule_id == "R-SAFETY"
+    assert d[strong["work_item_id"]].rule_id == "R-SAFETY" and "confirmat de bilanțul postului" in d[strong["work_item_id"]].reason_ro
     assert d[weak["work_item_id"]].rule_id != "R-SAFETY"
+    # QA 17:55: manipularea fără energie lipsă la post nu e tratată ca risc pentru oameni
+    lone = d[alone["work_item_id"]]
+    assert lone.rule_id != "R-SAFETY" and "bilanțul postului nu arată energie lipsă" in lone.reason_ro
+    assert lone.threshold["safety_flag_unconfirmed"] == 1.0
 
 
 def test_ladder_starts_from_phase_adjusted_p90(out_root: Path) -> None:
@@ -84,8 +89,8 @@ def test_storm_below_model_threshold_is_not_prepositioned(out_root: Path) -> Non
 def test_mandatory_safety_has_a_daily_quota(out_root: Path) -> None:
     cap = int(Settings.load().rule("global", "safety_max_mandatory_per_day"))
     a = fixture_items("A")[0]  # tamper cu safety_flag
-    rows = [variant(a, f"MTR-S{i:03d}", **{"prediction.score": 0.9 + i / 1000, "prediction.confidence": "high",
-                                          "location.lat": 44.40 + 0.003 * i}) for i in range(cap + 5)]
+    rows = [confirmed_by_bilant(variant(a, f"MTR-S{i:03d}", **{"prediction.score": 0.9 + i / 1000, "prediction.confidence": "high",
+                                                             "location.lat": 44.40 + 0.003 * i})) for i in range(cap + 5)]
     write_items(out_root, "A", rows)
     d = _decisions(agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root))
     over = [x for x in d.values() if x.rule_id == "R-SAFETY-OVER-CAP"]

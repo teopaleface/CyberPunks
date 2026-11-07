@@ -11,7 +11,9 @@ global:
   max_missing_ratio: 0.4            # peste 40% date lipsă la intrare, scorul nu e de încredere
   safety_priority_multiplier: 3.0   # riscul pentru oameni triplează prioritatea și intră primul în traseu
   safety_mandatory: true            # un caz cu risc pentru oameni intră în traseu oricare ar fi valoarea (siguranța înainte de bani); costul regulii e în evaluare
-  safety_min_score: 0.7             # sub acest scor, semnalul de siguranță e prea slab ca să treacă peste cost: prioritate triplă, fără obligativitate
+  safety_min_score: 0.7             # sub acest scor, semnalul de siguranță e prea slab: regulile obișnuite, fără regim de siguranță
+  safety_unconfirmed_min_score: 0.95  # contor semnalat fără bilanț pentru post: regim de siguranță doar de la acest scor, cu încredere mare
+                                    # (cu bilanț, decide bilanțul: manipularea fără energie lipsă la post nu dovedește o legătură ilegală)
   safety_max_mandatory_per_day: 12  # IPOTEZĂ: cota zilei pentru siguranță, ~jumătate din capacitatea echipelor de contorizare; restul cazurilor au prioritate triplă
   degraded_invalid_share: 0.2       # peste 20% linii respinse, sursa e "degraded"
 

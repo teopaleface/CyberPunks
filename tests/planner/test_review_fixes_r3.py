@@ -12,7 +12,7 @@ from cyberpunks.common.contracts import WorkItem
 from cyberpunks.planner import agent
 from cyberpunks.planner.settings import TZ, Settings
 
-from .conftest import DATE, SCENARIO, fixture_items, variant, write_items
+from .conftest import DATE, SCENARIO, confirmed_by_bilant, fixture_items, variant, write_items
 from .test_extension import EARLY, _c_with_ladder, _opt
 
 D = datetime(2026, 11, 9, tzinfo=TZ)
@@ -36,7 +36,7 @@ def test_r3_1_combined_remedy_keeps_every_crew_step(out_root: Path) -> None:
 
 def test_r3_2_no_remote_reading_without_smart_meter(out_root: Path) -> None:
     a = fixture_items("A")[0]  # siguranță
-    dumb = variant(a, "MTR-R302", **{"effort.duration_min": 720, "extra": {"smart_meter": False}})
+    dumb = confirmed_by_bilant(variant(a, "MTR-R302", **{"effort.duration_min": 720, "extra": {"smart_meter": False}}))
     write_items(out_root, "A", [dumb])
     res = agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root)
     d = {x.work_item_id: x for x in res.plan.decisions}[dumb["work_item_id"]]
