@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<title>Tura de mâine, direcția „Panou”</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>
+<script src="./data_film.js"></script>
+<style>
+:root{
+  --canvas:#E4E7E6; --panel:#F2F3F1; --ink:#13202A; --muted:#56616B; --rule:#C3C9C9;
+  --a:#2364D2; --b:#A23C9E; --c:#D99100; --att:#D4430F; --att-ink:#A8360B;
+  --grid:#DCE0DF; --travel:#56616B; --idle:#9AA4A9;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden}
+body{
+  background:var(--canvas);color:var(--ink);
+  font-family:'Archivo',system-ui,sans-serif;font-stretch:100%;font-weight:420;
+  font-size:15px;line-height:1.35;font-variant-numeric:tabular-nums;
+  -webkit-font-smoothing:antialiased;
+  display:grid;grid-template-rows:64px 92px 664px 260px;grid-template-columns:1188px 732px;
+}
+button{font:inherit;font-stretch:100%;cursor:pointer}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.muted{color:var(--muted)}
+.dense{font-stretch:88%}
+.id{font-stretch:88%;font-weight:600;letter-spacing:.005em}
+
+/* ---------- header ---------- */
+header{grid-column:1/-1;display:flex;align-items:center;gap:28px;padding:0 28px;background:var(--panel);border-bottom:1px solid var(--rule)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .name{font-size:21px;font-weight:650;letter-spacing:-.005em}
+.vrule{width:1px;height:28px;background:var(--rule)}
+.when{display:flex;align-items:baseline;gap:14px}
+.when .date{font-size:17px;font-weight:560}
+.when .shift{font-size:17px;color:var(--muted)}
+.gen{font-size:14px;color:var(--muted)}
+.spacer{flex:1}
+.prov{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:520;padding:6px 12px;border:1px solid var(--ink)}
+.btn-primary{background:var(--ink);color:#F2F3F1;border:1px solid var(--ink);border-radius:4px;padding:9px 18px;font-size:15px;font-weight:600}
+.btn{background:transparent;color:var(--ink);border:1px solid #8B959C;border-radius:4px;padding:8px 16px;font-size:15px;font-weight:560}
+
+/* ---------- readouts ---------- */
+.readouts{grid-column:1/-1;display:flex;border-bottom:1px solid var(--rule)}
+.ro{flex:1 1 auto;display:flex;align-items:center;gap:14px;padding:0 24px;border-left:1px solid var(--rule)}
+.ro:first-child{border-left:0;padding-left:28px}
+.ro .v{font-stretch:122%;font-weight:600;font-size:46px;line-height:1;letter-spacing:-.01em;white-space:nowrap}
+.ro .v small{font-size:21px;font-weight:520;font-stretch:110%;color:var(--muted);margin-left:5px;letter-spacing:0}
+.ro .l{font-size:14.5px;line-height:1.3;color:var(--muted);white-space:nowrap}
+.ro .l b{color:var(--ink);font-weight:560}
+.ro .v.att{color:var(--att)}
+
+/* ---------- map ---------- */
+.mapwrap{position:relative;overflow:hidden;border-right:1px solid var(--rule)}
+#map{position:absolute;inset:0}
+.legend{position:absolute;left:16px;top:16px;background:var(--panel);border:1px solid var(--rule);padding:12px 14px 12px;font-size:14px;display:grid;grid-template-columns:auto auto;gap:7px 18px;align-items:center}
+.legend .it{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.legend .wide{grid-column:1/-1}
+.locator{position:absolute;right:16px;bottom:34px;width:340px;background:var(--panel);border:1px solid var(--rule)}
+.locator .lt{display:flex;justify-content:space-between;align-items:baseline;padding:8px 12px 7px;font-size:14px;border-bottom:1px solid var(--rule)}
+.locator .lt b{font-weight:600}
+#inset{width:338px;height:178px;position:relative}
+.ilabel{font-size:13px;font-weight:560;color:var(--ink);white-space:nowrap;pointer-events:none}
+.ilabel.reg{font-weight:450;color:var(--muted);font-stretch:110%}
+.mk{position:relative;width:0;height:0}
+.mk svg{position:absolute;left:-18px;top:-18px;overflow:visible}
+.mk .lab{position:absolute;white-space:nowrap;background:rgba(242,243,241,.92);padding:2px 6px 3px;line-height:1.2;font-size:13.5px}
+.mk .lab .id{font-size:14px}
+.mk .lab .s{display:block;color:var(--muted);font-size:13px}
+.mk .lab .s.att{color:var(--att-ink);font-weight:560}
+.maplibregl-ctrl-attrib.maplibregl-compact{display:none}
+.maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib{background:rgba(242,243,241,.92);font-size:12.5px;line-height:1.3;padding:2px 8px;color:var(--muted);margin:0}
+.maplibregl-ctrl-attrib a{color:var(--muted)}
+
+/* ---------- rail ---------- */
+.rail{background:var(--panel);display:flex;flex-direction:column;min-height:0}
+.sec{padding:15px 28px;border-bottom:1px solid var(--rule)}
+.sec:last-child{border-bottom:0}
+.sh{display:flex;align-items:center;gap:10px}
+.sh h2{font-size:20px;font-weight:650;letter-spacing:-.005em}
+.badge{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 7px;background:var(--att);color:#fff;font-weight:700;font-size:14.5px;border-radius:12px}
+.sh .note{margin-left:auto;color:var(--muted);font-size:14.5px}
+.qi{margin-top:9px;display:grid;grid-template-columns:36px 1fr auto;column-gap:12px;row-gap:10px;align-items:center}
+.qi .who .id{font-size:16px}
+.qi .who .muted{font-size:14.5px}
+.score{font-stretch:120%;font-weight:600;font-size:34px;line-height:1}
+.qi .why{grid-column:2/3;font-size:15.5px;font-weight:520}
+.qi .scl{grid-column:3/4;justify-self:end;display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
+.qi .actions{grid-column:2/-1;display:flex;gap:10px}
+.al .sh h3{font-size:17px;font-weight:620}
+.al p{margin-top:6px;font-size:15.5px}
+.al p.muted{margin-top:4px;font-size:14px}
+.fp{flex:1;padding-top:14px}
+.fph{display:grid;grid-template-columns:36px 1fr auto;column-gap:12px;align-items:center}
+.fph .id{font-size:18px}
+.fph .crew{text-align:right;font-size:14px;color:var(--muted);line-height:1.3}
+.fph .crew b{color:var(--ink);font-weight:560}
+dl{margin-top:10px;display:grid;grid-template-columns:108px 1fr;column-gap:16px}
+dt{font-size:14px;color:var(--muted);padding:8px 0;border-top:1px solid var(--rule)}
+dd{padding:7px 0;border-top:1px solid var(--rule);font-size:15px}
+.scorerow{display:flex;align-items:center;gap:16px}
+.scorerow .score{font-size:38px}
+.scorerow .meta{font-size:14px;color:var(--muted);line-height:1.3;white-space:nowrap}
+.flag{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:14px;font-weight:560;white-space:nowrap}
+.fac{display:grid;grid-template-columns:1fr 150px 46px;column-gap:12px;align-items:center;font-size:15px}
+.fac + .fac{margin-top:5px}
+.fac .bar{height:10px;background:#DDE1E0;position:relative}
+.fac .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--ink)}
+.fac .val{text-align:right;font-weight:600}
+.rule-row{display:flex;align-items:center;gap:14px}
+.trace{font-size:14px;color:var(--muted)}
+.trace b{color:var(--ink);font-weight:500;font-stretch:88%}
+
+/* ---------- feeders ---------- */
+.feeders{grid-column:1/-1;position:relative;background:var(--panel);border-top:1px solid var(--rule)}
+#feed{position:absolute;left:0;top:0;font-family:'Archivo',sans-serif;font-variant-numeric:tabular-nums}
+.f-axis{font-size:13px;fill:var(--muted)}
+.f-crew{font-size:18px;font-weight:650;fill:var(--ink)}
+.f-stat{font-size:14px;fill:var(--muted)}
+.f-id{font-size:15px;font-weight:600;font-stretch:88%;fill:var(--ink)}
+.f-t{font-size:14px;fill:var(--ink)}
+.f-km{font-size:13px;fill:var(--muted)}
+.f-note{font-size:14px;fill:var(--ink)}
+.f-band{font-size:13px;fill:var(--muted)}
+.fbottom{position:absolute;left:0;right:0;top:207px;height:52px;border-top:1px solid var(--rule);display:flex;align-items:center;padding:0 28px;gap:28px;font-size:15px}
+.fbottom .grp{display:flex;align-items:center;gap:7px;white-space:nowrap}
+.fbottom svg{flex:none}
+.fbottom .grp .muted{margin-right:4px}
+.fbottom .sep{width:1px;height:26px;background:var(--rule)}
+.fbottom b{font-weight:620}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16a7 7 0 0 1 14 0z" fill="#13202A"/><rect x="1.5" y="18" width="21" height="2.2" fill="#13202A"/></svg>
+    <span class="name">Tura de mâine</span>
+  </div>
+  <span class="vrule"></span>
+  <div class="when"><span class="date">Marți, 8 iulie 2025</span><span class="shift" id="shift"></span></div>
+  <span class="gen" id="gen"></span>
+  <span class="spacer"></span>
+  <span class="prov"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><defs><pattern id="h" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="1.6" height="4" fill="#13202A"/></pattern></defs><rect x=".5" y=".5" width="15" height="15" fill="url(#h)" stroke="#13202A"/></svg>Date sintetice (exemple de test)</span>
+  <button class="btn-primary" type="button">Rulează agentul</button>
+</header>
+
+<section class="readouts" id="readouts"></section>
+
+<main class="mapwrap">
+  <div id="map"></div>
+  <div class="legend" id="legend"></div>
+  <div class="locator">
+    <div class="lt"><b>Zona Rețele Electrice</b><span class="muted">Banatul e în afara hărții</span></div>
+    <div id="inset"></div>
+  </div>
+</main>
+
+<aside class="rail" id="rail"></aside>
+
+<section class="feeders">
+  <svg id="feed" width="1920" height="208" viewBox="0 0 1920 208"></svg>
+  <div class="fbottom" id="fbottom"></div>
+</section>
+
+<script>
+const T = window.TURA, P = T.plan, S = P.summary;
+const W = Object.fromEntries(T.work_items.map(w => [w.work_item_id, w]));
+const SRC = {
+  A:{c:'#2364D2', t:'#FFFFFF', name:'Contoare'},
+  B:{c:'#A23C9E', t:'#FFFFFF', name:'Furtună'},
+  C:{c:'#D99100', t:'#13202A', name:'Tensiune', outline:true}
+};
+const INK = '#13202A', ATT = '#D4430F', PANEL = '#F2F3F1';
+// număr în format românesc: 2.741 / 0,87 / 31,4
+function ro(n, d = 0){ const [i, f] = Number(n).toFixed(d).split('.'); const g = i.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); return f ? g + ',' + f : g; }
+const toMin = s => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
+const hhmm = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+const etaMin = iso => toMin(iso.slice(11, 16));
+
+/* marker SVG: source letter always present */
+function marker({src, kind = 'assigned', selected = false, r = 10}){
+  const s = SRC[src], c = 18; let p = '';
+  if (selected) p += `<circle cx="${c}" cy="${c}" r="${r + 6}" fill="none" stroke="${INK}" stroke-width="2"/>`;
+  if (kind === 'human') p += `<circle cx="${c}" cy="${c}" r="${r + 5.5}" fill="${PANEL}" stroke="${ATT}" stroke-width="3.2"/>`;
+  let letterFill = s.t;
+  if (kind === 'unplanned'){
+    p += `<circle cx="${c}" cy="${c}" r="${r}" fill="${PANEL}" stroke="${s.c}" stroke-width="2.6" stroke-dasharray="3.4 2.3"/>`;
+    if (s.outline) p += `<circle cx="${c}" cy="${c}" r="${r + 2}" fill="none" stroke="${INK}" stroke-width=".8"/>`;
+    letterFill = s.outline ? INK : s.c;
+  } else {
+    p += `<circle cx="${c}" cy="${c}" r="${r + 1.6}" fill="${PANEL}"/>`;
+    p += `<circle cx="${c}" cy="${c}" r="${r}" fill="${s.c}"${s.outline ? ` stroke="${INK}" stroke-width="1.5"` : ''}/>`;
+  }
+  p += `<text x="${c}" y="${c + 4.6}" text-anchor="middle" font-family="Archivo" font-size="${r > 9 ? 13 : 11.5}" font-weight="700" fill="${letterFill}">${src}</text>`;
+  return `<svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true">${p}</svg>`;
+}
+function depotGlyph(){ return `<svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><rect x="14.5" y="7" width="7" height="22" fill="${INK}" stroke="${PANEL}" stroke-width="1.5"/></svg>`; }
+
+/* ---------- header + readouts ---------- */
+document.getElementById('shift').textContent = `tura ${T.shift.start}–${T.shift.end}`;
+document.getElementById('gen').textContent = 'Plan generat luni, 7 iulie, la 22:00';
+const crewsTotal = T.crews.length;
+const RO = [
+  {v: S.items_in, l: `<b>lucrări intrate</b><br>${S.items_valid} valide, ${S.items_invalid} în carantină`},
+  {v: S.assigned, l: `<b>alocate</b><br>echipelor`},
+  {v: S.human_review, l: `<b>la om</b><br>decide dispecerul`, att: true},
+  {v: S.notifications, l: `<b>notificare</b><br>pentru prosumatori`},
+  {v: `${ro(S.expected_value_lei)}<small>lei</small>`, l: `<b>valoare</b><br>așteptată`},
+  {v: `${ro(S.total_km, 1)}<small>km</small>`, l: `<b>de parcurs</b><br>pe trasee`},
+  {v: `${S.crews_used}<small>din ${crewsTotal}</small>`, l: `<b>echipe</b><br>folosite`},
+];
+document.getElementById('readouts').innerHTML = RO.map(r => `<div class="ro"><span class="v${r.att ? ' att' : ''}">${r.v}</span><span class="l">${r.l}</span></div>`).join('');
+
+/* ---------- legend ---------- */
+const sm = (o) => marker(Object.assign({r: 9}, o)).replace('width="36" height="36"', 'width="26" height="26"').replace('viewBox="0 0 36 36"', 'viewBox="5 5 26 26"');
+document.getElementById('legend').innerHTML = `
+  <span class="it">${sm({src:'A'})}Contoare</span><span class="it">${sm({src:'A', kind:'human'})}La om</span>
+  <span class="it">${sm({src:'B'})}Furtună</span><span class="it">${sm({src:'C', kind:'unplanned'})}Neplanificată</span>
+  <span class="it">${sm({src:'C'})}Tensiune</span><span class="it"><svg width="26" height="26" viewBox="5 5 26 26"><rect x="14.5" y="8" width="7" height="20" fill="${INK}"/></svg>Bază operativă</span>
+  <span class="it wide"><svg width="26" height="12" viewBox="0 0 26 12"><path d="M1 9 Q13 0 25 9" fill="none" stroke="${INK}" stroke-width="2.2"/></svg>Traseu: ordinea opririlor, nu drumul exact</span>
+  <span class="it wide"><svg width="26" height="12" viewBox="0 0 26 12"><path d="M1 9 Q13 0 25 9" fill="none" stroke="${INK}" stroke-width="1.8" stroke-dasharray="4 3"/></svg>Întoarcerea la bază</span>`;
+
+/* ---------- rail ---------- */
+const H = W['A-20250708-MTR-027710'], HD = P.decisions.find(d => d.decision === 'human_review');
+const SEL = W['A-20250708-MTR-004217'], SELD = P.decisions.find(d => d.work_item_id === SEL.work_item_id);
+const AL = P.alerts[0], ALW = W[AL.work_item_ids[0]];
+const selRoute = P.routes.find(r => r.stops.some(s => s.work_item_id === SEL.work_item_id));
+const selStop = selRoute.stops.find(s => s.work_item_id === SEL.work_item_id);
+const sector = z => 'sectorul ' + z.replace('B-S', '');
+const conf = {high:'încredere mare', medium:'încredere medie', low:'încredere scăzută'};
+const label = {tamper:'suspect de manipulare', faulty:'suspect de defect'};
+const outcome = {furt_confirmat:'furt confirmat'};
+function scale(p, lo, hi, w = 150, color = INK){
+  const X = v => 1 + v * (w - 2);
+  return `<svg width="${w}" height="20" viewBox="0 0 ${w} 20" aria-hidden="true">
+    <line x1="1" x2="${w - 1}" y1="10" y2="10" stroke="#B9C0C1" stroke-width="2"/>
+    <line x1="1" x2="1" y1="6" y2="14" stroke="#B9C0C1" stroke-width="1.5"/><line x1="${w - 1}" x2="${w - 1}" y1="6" y2="14" stroke="#B9C0C1" stroke-width="1.5"/>
+    <rect x="${X(lo)}" y="5" width="${X(hi) - X(lo)}" height="10" fill="#C9CFD0"/>
+    <rect x="${X(p) - 1.5}" y="1" width="3" height="18" fill="${color}"/></svg>`;
+}
+const cost = 180; // ipoteză din config/economics.yaml (cost vizită), citată în BRIEF
+const ev = SEL.impact.expected_value_lei;
+const rmax = 1300, rw = 230;
+const tri = `<svg width="22" height="20" viewBox="0 0 22 20" aria-hidden="true"><path d="M11 1.5 L21 18.5 H1 Z" fill="${ATT}"/><rect x="10" y="7" width="2" height="6" fill="#fff"/><rect x="10" y="14.5" width="2" height="2" fill="#fff"/></svg>`;
+const shield = `<svg width="16" height="18" viewBox="0 0 16 18" aria-hidden="true"><path d="M8 1 L15 3.5 V8.5 C15 12.8 12 15.8 8 17 C4 15.8 1 12.8 1 8.5 V3.5 Z" fill="none" stroke="${INK}" stroke-width="1.6"/><path d="M8.8 4.5 L5.5 9.6 H8 L7.2 13.5 L10.5 8.4 H8 Z" fill="${INK}"/></svg>`;
+document.getElementById('rail').innerHTML = `
+<section class="sec q">
+  <div class="sh"><h2>Nu sunt sigur</h2><span class="badge">${S.human_review}</span><span class="note">${HD.reason_ro}</span></div>
+  <div class="qi">
+    ${marker({src:'A', kind:'human'})}
+    <div class="who"><div class="id">${H.work_item_id}</div><div class="muted">Contor ${H.asset_id}, ${H.location.county}, ${sector(H.location.zone_id)}</div></div>
+    <div class="score" style="color:var(--ink)">${ro(H.prediction.score, 2)}</div>
+    <div class="why">${H.prediction.abstain_reason.replace(/^./, c => c.toUpperCase())}.</div>
+    <div class="scl">${scale(H.prediction.score, H.prediction.interval_low, H.prediction.interval_high, 120)}<span>${ro(H.prediction.interval_low, 2)}–${ro(H.prediction.interval_high, 2)}, ${conf[H.prediction.confidence]}</span></div>
+    <div class="actions"><button class="btn-primary" type="button">Aprobă</button><button class="btn" type="button">Respinge</button><button class="btn" type="button">Amână</button></div>
+  </div>
+</section>
+<section class="sec al">
+  <div class="sh">${tri}<h3>${AL.title_ro}</h3><span class="note">${ALW.work_item_id}</span></div>
+  <p>${AL.body_ro}</p>
+  <p class="muted">Estimare: ${ro(ALW.prediction.point_estimate)} de clienți fără curent la vârf (interval ${ro(ALW.prediction.point_interval[0])}–${ro(ALW.prediction.point_interval[1])}). Nicio echipă alocată în zonă.</p>
+</section>
+<section class="sec fp">
+  <div class="fph">
+    ${marker({src:'A', selected:true})}
+    <div><div class="id">${SEL.work_item_id}</div><div class="muted">Contor din ${SEL.location.county}, ${sector(SEL.location.zone_id)}, ${label[SEL.prediction.label]}</div></div>
+    <div class="crew"><b>${selRoute.crew_id}, oprirea ${selStop.seq}</b><br>${hhmm(etaMin(selStop.eta))}–${hhmm(etaMin(selStop.eta) + selStop.duration_min)}</div>
+  </div>
+  <dl>
+    <dt>Scor</dt>
+    <dd><div class="scorerow"><span class="score">${ro(SEL.prediction.score, 2)}</span>${scale(SEL.prediction.score, SEL.prediction.interval_low, SEL.prediction.interval_high, 120)}<span class="meta">interval ${ro(SEL.prediction.interval_low, 2)}–${ro(SEL.prediction.interval_high, 2)}<br>${conf[SEL.prediction.confidence]}</span>${SEL.impact.safety_flag ? `<span class="flag">${shield}Semnal de siguranță</span>` : ''}</div></dd>
+    <dt>De ce</dt>
+    <dd>${SEL.explanation.top_factors.map(f => `<div class="fac"><span>${f.label_ro.replace(/^./, c => c.toUpperCase())}</span><span class="bar"><i style="width:${(f.contribution / 0.4 * 100).toFixed(1)}%"></i></span><span class="val">+${ro(f.contribution, 2)}</span></div>`).join('')}</dd>
+    <dt>Caz similar</dt>
+    <dd>${SEL.explanation.similar_cases.map(c => `<span class="id">${c.case_id}</span>, ${outcome[c.outcome] || c.outcome}, similaritate ${ro(c.similarity, 2)}`).join('')}</dd>
+    <dt>Regula</dt>
+    <dd><div class="rule-row"><span class="id">${SELD.rule_id}</span>
+      <svg width="${rw + 90}" height="24" viewBox="0 0 ${rw + 90} 24" aria-hidden="true" style="font-family:Archivo;font-size:13px">
+        <rect x="0" y="2" width="${(ev / rmax * rw).toFixed(1)}" height="8" fill="${INK}"/><text x="${(ev / rmax * rw + 8).toFixed(1)}" y="10.5" fill="${INK}">valoare</text>
+        <rect x="0" y="14" width="${(cost / rmax * rw).toFixed(1)}" height="8" fill="#8B959C"/><text x="${(cost / rmax * rw + 8).toFixed(1)}" y="22.5" fill="#56616B">cost</text></svg></div>
+      <div style="margin-top:4px">Valoarea așteptată, <b style="font-weight:600">${ro(ev, 2)} lei</b>, depășește costul vizitei, <b style="font-weight:600">${cost} lei</b> <span class="muted">(ipoteză din config/economics.yaml)</span>.</div></dd>
+    <dt>Urmărire</dt>
+    <dd class="trace">predicția <b>${SEL.prediction.prediction_id.slice(0, 8)}…</b>, modelul <b>${SEL.prediction.model_version}</b></dd>
+  </dl>
+</section>`;
+
+/* ---------- feeders (single-line timeline) ---------- */
+(function feeders(){
+  const X0 = 344, PPM = 3.2, S0 = toMin(T.shift.start), S1 = toMin(T.shift.end);
+  const x = m => +(X0 + (m - S0) * PPM).toFixed(1);
+  const ROW = {'E-BV-2': 90, 'E-BV-3': 164};
+  // plecările reies din cifrele planului (BRIEF): E-BV-2 la 08:00, E-BV-3 la 10:53
+  const DEP = {'E-BV-2': '08:00', 'E-BV-3': '10:53'};
+  const depot = T.depots.find(d => d.depot_id === P.routes[0].depot_id);
+  let g = '';
+  for (let h = S0; h <= S1; h += 60){
+    g += `<line x1="${x(h)}" x2="${x(h)}" y1="36" y2="198" stroke="#DCE0DF" stroke-width="1"/>`;
+    g += `<text class="f-axis" x="${x(h)}" y="25" text-anchor="middle">${hhmm(h)}</text>`;
+  }
+  g += `<text class="f-axis" x="28" y="25" style="fill:#13202A;font-weight:560">${depot.label_ro.replace(' (simulată)', '')}</text>`;
+  // C time window band behind E-BV-3
+  const cw = W['C-20250708-PT-1432'].time_window;
+  const cw0 = etaMin(cw.start), cw1 = etaMin(cw.end);
+  g += `<rect x="${x(cw0)}" y="${ROW['E-BV-3'] - 24}" width="${x(cw1) - x(cw0)}" height="48" fill="#E4E7E6"/>`;
+  g += `<text class="f-band" x="${x(cw1) - 10}" y="${ROW['E-BV-3'] - 9}" text-anchor="end">fereastra de tensiune ${hhmm(cw0)}–${hhmm(cw1)}</text>`;
+  // busbar
+  g += `<rect x="288" y="62" width="7" height="${ROW['E-BV-3'] - 62 + 28}" fill="${INK}"/>`;
+
+  P.routes.forEach(r => {
+    const y = ROW[r.crew_id], dep = toMin(DEP[r.crew_id]);
+    const stops = [...r.stops].sort((a, b) => a.seq - b.seq);
+    // left labels
+    g += `<text class="f-crew" x="28" y="${y - 6}">${r.crew_id}</text>`;
+    g += `<text class="f-stat" x="28" y="${y + 13}">${stops.length} ${stops.length === 1 ? 'oprire' : 'opriri'}, ${ro(r.total_km, 1)} km</text>`;
+    g += `<text class="f-stat" x="28" y="${y + 31}">${r.total_work_min} min lucru, ${r.total_travel_min} min drum</text>`;
+    // breaker (closed) + stub
+    g += `<line x1="295" x2="${X0}" y1="${y}" y2="${y}" stroke="${INK}" stroke-width="2"/>`;
+    g += `<rect x="304" y="${y - 6}" width="12" height="12" fill="${INK}"/>`;
+    // idle at depot before departure
+    if (dep > S0) g += `<line x1="${X0}" x2="${x(dep)}" y1="${y}" y2="${y}" stroke="#9AA4A9" stroke-width="2" stroke-dasharray="1 5" stroke-linecap="round"/>`;
+    let t = dep, legKm = [], travelUsed = 0, kmUsed = 0;
+    const blocks = [];
+    stops.forEach((s, i) => {
+      const a = etaMin(s.eta), b = a + s.duration_min;
+      blocks.push({s, a, b, from: t});
+      travelUsed += a - t; kmUsed += s.travel_km; t = b;
+    });
+    const ret = r.total_travel_min - travelUsed, back = t + ret, retKm = +(r.total_km - kmUsed).toFixed(1);
+    // travel legs
+    blocks.forEach((bk, i) => {
+      g += `<line x1="${x(bk.from)}" x2="${x(bk.a)}" y1="${y}" y2="${y}" stroke="#56616B" stroke-width="2"/>`;
+      const span = x(bk.a) - x(bk.from);
+      if (span > 60) g += `<text class="f-km" x="${(x(bk.from) + x(bk.a)) / 2}" y="${y - 10}" text-anchor="middle">${ro(bk.s.travel_km, 1)} km</text>`;
+      else g += `<text class="f-km" x="${x(bk.from) - 8}" y="${y - 10}" text-anchor="end">${ro(bk.s.travel_km, 1)} km</text>`;
+    });
+    g += `<line x1="${x(t)}" x2="${x(back)}" y1="${y}" y2="${y}" stroke="#56616B" stroke-width="2"/>`;
+    const rspan = x(back) - x(t);
+    g += `<text class="f-km" x="${rspan > 60 ? (x(t) + x(back)) / 2 : x(back) + 8}" y="${y - 10}" text-anchor="${rspan > 60 ? 'middle' : 'start'}">${ro(retKm, 1)} km</text>`;
+    // idle after return
+    g += `<line x1="${x(back)}" x2="${x(S1)}" y1="${y}" y2="${y}" stroke="#9AA4A9" stroke-width="2" stroke-dasharray="1 5" stroke-linecap="round"/>`;
+    // departure + return nodes
+    g += `<circle cx="${x(dep)}" cy="${y}" r="4" fill="${INK}"/>`;
+    g += `<text class="f-km" x="${dep === S0 ? x(dep) - 14 : x(dep) - 8}" y="${y + 24}" text-anchor="${dep === S0 ? 'start' : 'end'}">pleacă ${hhmm(dep)}</text>`;
+    g += `<rect x="${x(back) - 5}" y="${y - 5}" width="10" height="10" fill="${PANEL}" stroke="${INK}" stroke-width="2"/>`;
+    g += `<text class="f-km" x="${x(back) + 10}" y="${y + 24}">revine ${hhmm(back)}</text>`;
+    // work blocks
+    blocks.forEach(bk => {
+      const w = W[bk.s.work_item_id], sc = SRC[w.source];
+      const xa = x(bk.a), xb = x(bk.b), long = xb - xa > 200;
+      if (w.work_item_id === SEL.work_item_id) g += `<rect x="${xa - 16}" y="${y - 15}" width="${xb - xa + 20}" height="30" fill="none" stroke="${INK}" stroke-width="1.5" rx="3"/>`;
+      g += `<rect x="${xa}" y="${y - 7}" width="${xb - xa}" height="14" fill="${sc.c}"${sc.outline ? ` stroke="${INK}" stroke-width="1.5"` : ''}/>`;
+      g += `<g transform="translate(${xa - 18},${y - 18})">${marker({src: w.source}).replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '')}</g>`;
+      const name = w.asset_type === 'meter' ? w.asset_id : `${w.asset_id}, ${w.location.zone_id.split('-')[1].charAt(0) + w.location.zone_id.split('-')[1].slice(1).toLowerCase()}`;
+      g += `<text class="f-id" x="${long ? xa + 18 : (xa + xb) / 2}" y="${y - 20}" text-anchor="${long ? 'start' : 'middle'}">${name}</text>`;
+      g += `<text class="f-t" x="${long ? xa + 18 : (xa + xb) / 2}" y="${y + 26}" text-anchor="${long ? 'start' : 'middle'}">${hhmm(bk.a)}–${hhmm(bk.b)}</text>`;
+      if (w.effort.requires_planned_outage){
+        // open-switch glyph (single-line diagram disconnector, open)
+        const sx = xa + 112, sy = y + 21;
+        g += `<g transform="translate(${sx},${sy}) scale(1.3)" stroke="${INK}" stroke-width="1.7" fill="none" stroke-linecap="round">
+          <line x1="0" y1="0" x2="7" y2="0"/><circle cx="8.5" cy="0" r="1.8" fill="${INK}"/><line x1="8.5" y1="0" x2="22" y2="-8"/><line x1="24" y1="-4" x2="24" y2="4"/><line x1="24" y1="0" x2="31" y2="0"/></g>`;
+        g += `<text class="f-note" x="${sx + 50}" y="${y + 26}">cere întrerupere planificată</text>`;
+      }
+    });
+  });
+  document.getElementById('feed').innerHTML = g;
+
+  // free crews + quarantine
+  const used = new Set(P.routes.map(r => r.crew_id));
+  const free = T.crews.filter(c => !used.has(c.crew_id));
+  const depName = id => ({'D-BUC-V':'București Vest','D-BUC-E':'București Est','D-CTA':'Constanța','D-TM':'Timișoara'})[id];
+  const groups = {};
+  free.forEach(c => (groups[c.depot_id] = groups[c.depot_id] || []).push(c.crew_id));
+  const openBrk = `<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><rect x="1" y="1" width="10" height="10" fill="none" stroke="${INK}" stroke-width="1.6"/></svg>`;
+  const bad = T.invalid_items[0];
+  const qGlyph = `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="14" height="14" fill="none" stroke="${INK}" stroke-width="1.6"/><line x1="3.5" y1="12.5" x2="12.5" y2="3.5" stroke="${INK}" stroke-width="1.6"/></svg>`;
+  document.getElementById('fbottom').innerHTML =
+    `<span class="grp"><b>${free.length} echipe libere</b></span>` +
+    Object.entries(groups).map(([d, ids]) => `<span class="grp"><span class="muted">${depName(d)}</span>${ids.map(i => `${openBrk}<span class="dense" style="font-weight:560">${i}</span>`).join(' ')}</span>`).join('') +
+    `<span class="sep"></span><span class="grp">${qGlyph}<span><b>Carantină:</b> ${S.items_invalid} lucrare respinsă la intrare, <span class="id">${bad.work_item_id}</span>: latitudine ${ro(bad.location.lat, 1)} (în afara României) și scor ${ro(bad.prediction.score, 1)} (imposibil)</span></span>`;
+})();
+
+/* ---------- maps ---------- */
+const STYLE = 'https://tiles.openfreemap.org/styles/positron';
+function quiet(map, {hideAllLabels = false} = {}){
+  for (const l of map.getStyle().layers){
+    const id = l.id;
+    try {
+      if (l.type === 'background') map.setPaintProperty(id, 'background-color', '#E4E7E6');
+      else if (l.type === 'fill'){
+        if (/water/.test(id)) map.setPaintProperty(id, 'fill-color', hideAllLabels ? '#C4CED3' : '#CDD5D8');
+        else if (/building/.test(id)) { map.setPaintProperty(id, 'fill-color', '#DADEDD'); }
+        else if (/park|wood|landcover|landuse|grass|ice|glacier/.test(id)) { map.setPaintProperty(id, 'fill-color', '#DFE3E2'); }
+        else map.setPaintProperty(id, 'fill-color', '#DCE0DF');
+      } else if (l.type === 'line'){
+        if (/water/.test(id)) map.setPaintProperty(id, 'line-color', '#C3CDD1');
+        else if (/boundary|admin/.test(id)) { map.setPaintProperty(id, 'line-color', hideAllLabels ? '#7F8A8F' : '#A9B1B3'); if (hideAllLabels) map.setPaintProperty(id, 'line-width', 1.1); }
+        else if (/rail/.test(id)) map.setPaintProperty(id, 'line-color', '#D2D7D7');
+        else if (/casing/.test(id)) map.setPaintProperty(id, 'line-color', '#D3D8D8');
+        else map.setPaintProperty(id, 'line-color', '#F6F7F5');
+      } else if (l.type === 'symbol'){
+        const hide = hideAllLabels || /highway|road|shield|poi|airport|aeroway|label_other|village|town|water_name_line|waterway|housenum|transit|rail/.test(id);
+        if (hide) { map.setLayoutProperty(id, 'visibility', 'none'); continue; }
+        if (map.getLayoutProperty(id, 'text-field') !== undefined) map.setLayoutProperty(id, 'text-field', ['get', 'name']);
+        map.setPaintProperty(id, 'text-color', /city|capital/.test(id) ? '#3E4952' : '#6A747C');
+        map.setPaintProperty(id, 'text-halo-color', '#E4E7E6');
+        map.setPaintProperty(id, 'text-halo-width', 1.4);
+        if (/city|capital/.test(id)) map.setLayoutProperty(id, 'text-offset', [0, 1.5]);
+      }
+    } catch (e) { /* stratul nu are proprietatea: îl lăsăm */ }
+  }
+}
+function arc(a, b, bend = 0.2, n = 40){
+  const A = maplibregl.MercatorCoordinate.fromLngLat(a), B = maplibregl.MercatorCoordinate.fromLngLat(b);
+  const dx = B.x - A.x, dy = B.y - A.y;
+  const cx = (A.x + B.x) / 2 - dy * bend, cy = (A.y + B.y) / 2 + dx * bend; // curbat spre dreapta sensului de mers
+  const out = [];
+  for (let i = 0; i <= n; i++){
+    const t = i / n, u = 1 - t;
+    const ll = new maplibregl.MercatorCoordinate(u*u*A.x + 2*u*t*cx + t*t*B.x, u*u*A.y + 2*u*t*cy + t*t*B.y, 0).toLngLat();
+    out.push([ll.lng, ll.lat]);
+  }
+  return out;
+}
+const DEPOT = Object.fromEntries(T.depots.map(d => [d.depot_id, d]));
+const ll = o => o.location ? [o.location.lon, o.location.lat] : [o.lon, o.lat];
+
+const mainItems = T.work_items.filter(w => w.location.county !== 'Constanța');
+const mainPts = [...mainItems.map(ll), ll(DEPOT['D-BUC-V']), ll(DEPOT['D-BUC-E'])];
+const bounds = mainPts.reduce((b, p) => [[Math.min(b[0][0], p[0]), Math.min(b[0][1], p[1])], [Math.max(b[1][0], p[0]), Math.max(b[1][1], p[1])]], [[180, 90], [-180, -90]]);
+
+const map = new maplibregl.Map({
+  container: 'map', style: STYLE, bounds, fitBoundsOptions: {padding: {top: 56, bottom: 48, left: 300, right: 420}},
+  attributionControl: false, interactive: false, fadeDuration: 0,
+  canvasContextAttributes: {preserveDrawingBuffer: true}
+});
+map.addControl(new maplibregl.AttributionControl({compact: false}), 'bottom-right');
+
+const inset = new maplibregl.Map({
+  container: 'inset', style: STYLE, bounds: [[20.55, 43.45], [29.45, 46.35]], fitBoundsOptions: {padding: 6},
+  attributionControl: false, interactive: false, fadeDuration: 0,
+  canvasContextAttributes: {preserveDrawingBuffer: true}
+});
+
+const decisionOf = id => P.decisions.find(d => d.work_item_id === id);
+const routeStop = id => { for (const r of P.routes){ const s = r.stops.find(s => s.work_item_id === id); if (s) return {r, s}; } return null; };
+
+function addMarker(m, html, lngLat){ const el = document.createElement('div'); el.className = 'mk'; el.innerHTML = html; new maplibregl.Marker({element: el, anchor: 'center'}).setLngLat(lngLat).addTo(m); }
+function lab(pos, inner){
+  const P = {
+    s: 'left:50%;top:15px;transform:translateX(-50%);text-align:center',
+    e: 'left:17px;top:0;transform:translateY(-50%)',
+    w: 'right:17px;top:0;transform:translateY(-50%);text-align:right',
+    nw: 'right:6px;bottom:6px;text-align:right'
+  }[pos];
+  return `<div class="lab" style="${P}">${inner}</div>`;
+}
+
+const mainReady = new Promise(res => map.on('load', () => {
+  quiet(map);
+  // routes: base -> stops by seq -> base, curved arcs
+  const feats = [];
+  P.routes.forEach(r => {
+    const d = ll(DEPOT[r.depot_id]);
+    const pts = [d, ...[...r.stops].sort((a, b) => a.seq - b.seq).map(s => ll(W[s.work_item_id])), d];
+    for (let i = 0; i < pts.length - 1; i++) feats.push({type: 'Feature', properties: {ret: i === pts.length - 2}, geometry: {type: 'LineString', coordinates: arc(pts[i], pts[i + 1])}});
+  });
+  map.addSource('routes', {type: 'geojson', data: {type: 'FeatureCollection', features: feats}});
+  map.addLayer({id: 'r-case', type: 'line', source: 'routes', paint: {'line-color': '#E4E7E6', 'line-width': 6.5}, layout: {'line-cap': 'round', 'line-join': 'round'}});
+  map.addLayer({id: 'r-out', type: 'line', source: 'routes', filter: ['!', ['get', 'ret']], paint: {'line-color': INK, 'line-width': 2.4}, layout: {'line-cap': 'round'}});
+  map.addLayer({id: 'r-ret', type: 'line', source: 'routes', filter: ['get', 'ret'], paint: {'line-color': INK, 'line-width': 1.8, 'line-dasharray': [2, 1.6]}});
+
+  // depots in frame
+  addMarker(map, depotGlyph() + lab('nw', `<b style="font-weight:600">Baza Vest</b>`), ll(DEPOT['D-BUC-V']));
+  addMarker(map, depotGlyph() + lab('e', `<b style="font-weight:600">Baza Est</b>`), ll(DEPOT['D-BUC-E']));
+
+  // work items
+  mainItems.forEach(w => {
+    const d = decisionOf(w.work_item_id), rs = routeStop(w.work_item_id);
+    let kind = 'unplanned';
+    if (d && d.decision === 'assigned') kind = 'assigned';
+    if (d && d.decision === 'human_review') kind = 'human';
+    const sel = w.work_item_id === SEL.work_item_id;
+    const name = w.asset_type === 'zone' ? 'Zona ' + w.location.zone_id.split('-')[1].charAt(0) + w.location.zone_id.split('-')[1].slice(1).toLowerCase()
+               : w.asset_type === 'meter' ? w.asset_id
+               : `${w.asset_id}, ${w.location.zone_id.split('-')[1].charAt(0) + w.location.zone_id.split('-')[1].slice(1).toLowerCase()}`;
+    let sub = '';
+    if (kind === 'assigned') sub = `<span class="s">${rs.r.crew_id}, ${hhmm(etaMin(rs.s.eta))}</span>`;
+    else if (kind === 'human') sub = `<span class="s att">la om, decide dispecerul</span>`;
+    else sub = `<span class="s">neplanificată</span>`;
+    const pos = {'A-20250708-MTR-004217': 's', 'C-20250708-PT-1432': 'w'}[w.work_item_id] || 'e';
+    addMarker(map, marker({src: w.source, kind, selected: sel}) + lab(pos, `<span class="id">${name}</span>${sub}`), ll(w));
+  });
+  map.once('idle', res);
+}));
+
+const insetReady = new Promise(res => inset.on('load', () => {
+  quiet(inset, {hideAllLabels: true});
+  // storm zone around Medgidia (circle, ~30 km), B source
+  const c = ll(ALW), R = 30, ring = [];
+  for (let i = 0; i <= 64; i++){ const a = i / 64 * 2 * Math.PI; ring.push([c[0] + (R / (111.32 * Math.cos(c[1] * Math.PI / 180))) * Math.cos(a), c[1] + (R / 110.57) * Math.sin(a)]); }
+  inset.addSource('storm', {type: 'geojson', data: {type: 'Feature', geometry: {type: 'Polygon', coordinates: [ring]}}});
+  inset.addLayer({id: 'storm-f', type: 'fill', source: 'storm', paint: {'fill-color': '#A23C9E', 'fill-opacity': .18}});
+  inset.addLayer({id: 'storm-l', type: 'line', source: 'storm', paint: {'line-color': '#A23C9E', 'line-width': 1.4}});
+  // frame of the main map
+  const b = map.getBounds();
+  inset.addSource('frame', {type: 'geojson', data: {type: 'Feature', geometry: {type: 'LineString', coordinates: [[b.getWest(), b.getSouth()], [b.getEast(), b.getSouth()], [b.getEast(), b.getNorth()], [b.getWest(), b.getNorth()], [b.getWest(), b.getSouth()]]}}});
+  inset.addLayer({id: 'frame', type: 'line', source: 'frame', paint: {'line-color': INK, 'line-width': 1.4}});
+  // depots
+  T.depots.forEach(d => { const el = document.createElement('div'); el.innerHTML = `<svg width="8" height="12" viewBox="0 0 8 12"><rect x="1" y="1" width="5" height="10" fill="${INK}"/></svg>`; new maplibregl.Marker({element: el}).setLngLat(ll(d)).addTo(inset); });
+  const txt = (t, lngLat, off, cls = 'ilabel reg', anchor = 'left') => { const el = document.createElement('div'); el.className = cls; el.innerHTML = t; new maplibregl.Marker({element: el, anchor, offset: off}).setLngLat(lngLat).addTo(inset); };
+  txt(T.regions.banat.label_ro, ll(DEPOT['D-TM']), [8, 0]);
+  txt(T.regions.muntenia_sud.label_ro, ll(DEPOT['D-BUC-V']), [-22, 0], 'ilabel reg', 'right');
+  txt(T.regions.dobrogea.label_ro, ll(DEPOT['D-CTA']), [-6, -34], 'ilabel reg', 'center');
+  // Medgidia work item marker (B, no crew)
+  const el = document.createElement('div'); el.className = 'mk'; el.innerHTML = marker({src: 'B', kind: 'unplanned', r: 8});
+  new maplibregl.Marker({element: el, anchor: 'center'}).setLngLat(c).addTo(inset);
+  txt('Reșița, vijelie', c, [-30, 12], 'ilabel', 'top');
+  inset.once('idle', res);
+}));
+
+Promise.all([document.fonts.ready, mainReady, insetReady]).then(() => { window.__ready = true; });
+setTimeout(() => { window.__ready = true; }, 20000); // plasă de siguranță dacă nu vin dalele
+</script>
+</body>
+</html>
