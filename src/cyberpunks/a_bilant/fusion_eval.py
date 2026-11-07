@@ -187,3 +187,39 @@ def invisible_energy(daily: pd.DataFrame, day: int, window: int = 14) -> dict:
     moved = w["true_moved_out_kwh"].abs().sum()  # energia contată la postul greșit (prosumatorii pot avea net negativ)
     tot = meter + theft + tech + moved
     return {"share_invisible_to_meters": float((theft + tech + moved) / tot) if tot else 0.0, "lost_kwh_day_meters": float(meter / window), "lost_kwh_day_theft": float(theft / window), "lost_kwh_day_technical": float(tech / window), "lost_kwh_day_wrong_post": float(moved / window)}
+
+
+POST_CAUSES = ("furt_inainte_contor", "pierdere_tehnica", "contor_bilant_setat", "client_post_gresit")
+
+
+def post_causes(win: pd.DataFrame, price_lei_kwh: float) -> dict:
+    """Cauzele pe care contoarele clienților nu le văd: ce găsește bilanțul (A găsește 0 prin construcție).
+
+    `win`: ferestrele de test cu decizia (`label`, `p_problem`, `abstain`). „Găsit” = aceeași regulă ca la lucrări
+    (probabilitate de problemă ≥ 0,5 și lipsa peste incertitudinea normalului); „cauza corectă” = și clasa e cea reală.
+    Energia: lipsa reală (kWh/zi) din ferestrele găsite; pentru contorul postului setat greșit lipsa e doar pe hârtie,
+    deci se numără posturile, nu energia.
+    """
+    half = win["width_kwh"] / 2.56
+    found = (win["p_problem"] >= 0.5) & (win["r_mean_kwh"].abs() > half)
+    out = {}
+    tot_k, tot_f = 0.0, 0.0
+    for c in POST_CAUSES:
+        m = win["true_class"] == c
+        if not m.any():
+            continue
+        out[f"{c}_windows"] = float(m.sum())
+        out[f"{c}_found"] = float((found & m).mean() / m.mean())
+        out[f"{c}_right_cause"] = float((found & m & (win["label"] == c)).sum() / m.sum())
+        if c != "contor_bilant_setat":
+            ex = win.loc[m, "true_excess_kwh"].abs()
+            fx = win.loc[m & found, "true_excess_kwh"].abs()
+            out[f"{c}_energy_found_share"] = float(fx.sum() / ex.sum()) if ex.sum() else 0.0
+            tot_k += float(ex.sum())
+            tot_f += float(fx.sum())
+    days = win["day"].nunique()
+    out["energy_found_share"] = tot_f / tot_k if tot_k else 0.0
+    out["lei_per_month_found"] = tot_f / days * 30 * price_lei_kwh
+    fp = found & (win["true_class"] == "normal")
+    out["false_alarm_share_of_found"] = float(fp.sum() / max(found.sum(), 1))
+    return out

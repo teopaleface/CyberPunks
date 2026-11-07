@@ -94,3 +94,23 @@ def test_suspect_meter_prefers_clear_signs():
     cd[3, 100:] = cd[3, 99]  # contor blocat pe ultima valoare
     i, why, _ = suspect_meter(cd, 119, excess=0.5)
     assert i == 3 and "blocat" in why
+
+
+def test_pair_consistency_links_donor_to_receiver():
+    from cyberpunks.a_bilant.diagnose import pair_consistency
+
+    win = pd.DataFrame(
+        {
+            "post_id": ["PT-X", "PT-Y", "PT-Z"],
+            "day": [10, 10, 10],
+            "mirror_post": ["PT-Y", "PT-X", "PT-Y"],
+            "neigh_mirror_corr": [-0.8, -0.8, -0.2],
+            "neigh_mirror_match": [0.9, 0.9, 0.9],
+            "r_mean_kwh": [6.0, -5.8, 6.0],
+        }
+    )
+    dec = pd.DataFrame({"label": ["contor_client", "client_post_gresit", "furt_inainte_contor"], "abstain": [True, False, False], "abstain_reason": ["x", "", ""]})
+    out = pair_consistency(win, dec)
+    assert out["label"].tolist() == ["client_post_gresit", "client_post_gresit", "furt_inainte_contor"]
+    assert out["pair_linked"].tolist() == [True, False, False]
+    assert not out["abstain"].iloc[0]

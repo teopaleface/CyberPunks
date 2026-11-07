@@ -109,3 +109,27 @@ def rules(win: pd.DataFrame) -> pd.Series:
         else:
             out.append("normal")
     return pd.Series(out, index=win.index)
+
+
+PAIR_MIRROR_CORR = -0.5
+PAIR_MATCH = 0.5
+
+
+def pair_consistency(win: pd.DataFrame, dec: pd.DataFrame) -> pd.DataFrame:
+    """Leagă cele două capete ale unui client mutat în bază: dacă vecinul-oglindă (reziduuri în oglindă, corelație
+    sub −0,5) are diagnosticul „client la postul greșit” cu surplus, iar postul are lipsă de aceeași mărime
+    (potrivire ≥ 0,5), postul e donatorul aceleiași perechi: clasa devine `client_post_gresit`."""
+    out = dec.copy()
+    key = {(p, d): lab for p, d, lab in zip(win["post_id"], win["day"], dec["label"], strict=True)}
+    rmean = {(p, d): r for p, d, r in zip(win["post_id"], win["day"], win["r_mean_kwh"], strict=True)}
+    flip = np.zeros(len(win), dtype=bool)
+    for i, (p, d, q, c, m, r) in enumerate(zip(win["post_id"], win["day"], win.get("mirror_post", pd.Series([""] * len(win))), win["neigh_mirror_corr"], win["neigh_mirror_match"], win["r_mean_kwh"], strict=True)):
+        if not q or c > PAIR_MIRROR_CORR or m < PAIR_MATCH or r <= 0:
+            continue
+        if key.get((q, d)) == "client_post_gresit" and rmean.get((q, d), 0.0) < 0 and out["label"].iat[i] != "contor_bilant_setat":
+            flip[i] = True
+    out.loc[flip, "label"] = "client_post_gresit"
+    out.loc[flip, "abstain"] = False
+    out.loc[flip, "abstain_reason"] = ""
+    out["pair_linked"] = flip
+    return out
