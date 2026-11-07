@@ -8,192 +8,192 @@
    "t": "2025-07-08T00:00:00+03:00",
    "value": null,
    "expected": 1.013,
-   "low": 1.0102,
-   "high": 1.0149,
+   "low": 1.0065,
+   "high": 1.0187,
    "flag": null
   },
   {
    "t": "2025-07-08T01:00:00+03:00",
    "value": null,
    "expected": 1.0144,
-   "low": 1.0111,
-   "high": 1.0153,
+   "low": 1.0074,
+   "high": 1.019,
    "flag": null
   },
   {
    "t": "2025-07-08T02:00:00+03:00",
    "value": null,
    "expected": 1.0144,
-   "low": 1.0111,
-   "high": 1.0153,
+   "low": 1.0074,
+   "high": 1.019,
    "flag": null
   },
   {
    "t": "2025-07-08T03:00:00+03:00",
    "value": null,
    "expected": 1.015,
-   "low": 1.0111,
-   "high": 1.0157,
+   "low": 1.0073,
+   "high": 1.0194,
    "flag": null
   },
   {
    "t": "2025-07-08T04:00:00+03:00",
    "value": null,
    "expected": 1.0144,
-   "low": 1.011,
-   "high": 1.0153,
+   "low": 1.0073,
+   "high": 1.019,
    "flag": null
   },
   {
    "t": "2025-07-08T05:00:00+03:00",
    "value": null,
    "expected": 1.014,
-   "low": 1.0106,
-   "high": 1.015,
+   "low": 1.0069,
+   "high": 1.0188,
    "flag": null
   },
   {
    "t": "2025-07-08T06:00:00+03:00",
    "value": null,
    "expected": 1.0128,
-   "low": 1.0097,
-   "high": 1.0138,
+   "low": 1.0059,
+   "high": 1.0176,
    "flag": null
   },
   {
    "t": "2025-07-08T07:00:00+03:00",
    "value": null,
    "expected": 1.014,
-   "low": 1.0099,
-   "high": 1.0154,
+   "low": 1.0061,
+   "high": 1.0192,
    "flag": null
   },
   {
    "t": "2025-07-08T08:00:00+03:00",
    "value": null,
    "expected": 1.0258,
-   "low": 1.0228,
-   "high": 1.0355,
+   "low": 1.019,
+   "high": 1.0392,
    "flag": null
   },
   {
    "t": "2025-07-08T09:00:00+03:00",
    "value": null,
    "expected": 1.0549,
-   "low": 1.0491,
-   "high": 1.0612,
+   "low": 1.0454,
+   "high": 1.065,
    "flag": null
   },
   {
    "t": "2025-07-08T10:00:00+03:00",
    "value": null,
    "expected": 1.0793,
-   "low": 1.0733,
-   "high": 1.0795,
+   "low": 1.0695,
+   "high": 1.0833,
    "flag": null
   },
   {
    "t": "2025-07-08T11:00:00+03:00",
    "value": null,
    "expected": 1.0997,
-   "low": 1.0948,
-   "high": 1.102,
+   "low": 1.091,
+   "high": 1.1058,
    "flag": "risc"
   },
   {
    "t": "2025-07-08T12:00:00+03:00",
    "value": null,
    "expected": 1.0939,
-   "low": 1.0881,
-   "high": 1.0994,
-   "flag": null
+   "low": 1.0843,
+   "high": 1.1031,
+   "flag": "risc"
   },
   {
    "t": "2025-07-08T13:00:00+03:00",
    "value": null,
    "expected": 1.1015,
-   "low": 1.0962,
-   "high": 1.1056,
+   "low": 1.0924,
+   "high": 1.1094,
    "flag": "peste_limita"
   },
   {
    "t": "2025-07-08T14:00:00+03:00",
    "value": null,
    "expected": 1.0991,
-   "low": 1.0956,
-   "high": 1.1028,
+   "low": 1.0919,
+   "high": 1.1065,
    "flag": "risc"
   },
   {
    "t": "2025-07-08T15:00:00+03:00",
    "value": null,
    "expected": 1.0798,
-   "low": 1.0769,
-   "high": 1.0825,
+   "low": 1.0732,
+   "high": 1.0863,
    "flag": null
   },
   {
    "t": "2025-07-08T16:00:00+03:00",
    "value": null,
    "expected": 1.0707,
-   "low": 1.0666,
-   "high": 1.0738,
+   "low": 1.0628,
+   "high": 1.0776,
    "flag": null
   },
   {
    "t": "2025-07-08T17:00:00+03:00",
    "value": null,
    "expected": 1.0566,
-   "low": 1.0532,
-   "high": 1.0614,
+   "low": 1.0495,
+   "high": 1.0651,
    "flag": null
   },
   {
    "t": "2025-07-08T18:00:00+03:00",
    "value": null,
    "expected": 1.0334,
-   "low": 1.0291,
-   "high": 1.038,
+   "low": 1.0253,
+   "high": 1.0418,
    "flag": null
   },
   {
    "t": "2025-07-08T19:00:00+03:00",
    "value": null,
    "expected": 1.0118,
-   "low": 1.0072,
-   "high": 1.0134,
+   "low": 1.0035,
+   "high": 1.0171,
    "flag": null
   },
   {
    "t": "2025-07-08T20:00:00+03:00",
    "value": null,
    "expected": 1.0123,
-   "low": 1.0084,
-   "high": 1.0138,
+   "low": 1.0046,
+   "high": 1.0176,
    "flag": null
   },
   {
    "t": "2025-07-08T21:00:00+03:00",
    "value": null,
    "expected": 1.011,
-   "low": 1.0073,
-   "high": 1.0142,
+   "low": 1.0036,
+   "high": 1.018,
    "flag": null
   },
   {
    "t": "2025-07-08T22:00:00+03:00",
    "value": null,
    "expected": 1.0121,
-   "low": 1.0075,
-   "high": 1.0139,
+   "low": 1.0038,
+   "high": 1.0176,
    "flag": null
   },
   {
    "t": "2025-07-08T23:00:00+03:00",
    "value": null,
    "expected": 1.0132,
-   "low": 1.009,
-   "high": 1.0146,
+   "low": 1.0053,
+   "high": 1.0183,
    "flag": null
   }
  ],

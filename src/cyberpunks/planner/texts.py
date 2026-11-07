@@ -40,5 +40,12 @@ ACTION_RO = {
     "measurement_campaign": "analizor de calitate a energiei montat la post",
     "notify_customers": "mesaj către prosumatori",
     "no_action": "nicio acțiune",
+    "office_correction": "corecție în birou",
+    "grid_inspection": "inspecție de rețea",
+    "phase_rebalance": "mutarea unor case pe altă fază",
+    "offer_battery": "ofertă de baterii",
+    "export_limit": "limită de injecție",
+    "transformer_upgrade": "transformator nou",
+    "remedy": "treptele alese",
 }
 SKILL_RO = {"metering": "contorizare", "lv_grid": "joasă tensiune", "mv_grid": "medie tensiune"}

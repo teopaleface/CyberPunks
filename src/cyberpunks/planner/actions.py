@@ -24,7 +24,7 @@ from cyberpunks.common.contracts import (
     Route,
     Stop,
 )
-from cyberpunks.planner.decide import AlertSpec, Context, NotificationSpec, Proposal, _final
+from cyberpunks.planner.decide import AlertSpec, Context, NotificationSpec, Proposal, _final, outage_message
 from cyberpunks.planner.ingest import Quarantined, SourceLoad
 from cyberpunks.planner.routing import RoutingResult, at_minutes
 from cyberpunks.planner.settings import TZ
@@ -52,6 +52,18 @@ class Outcome:
     notifications: list[Notification]
     routes: list[Route]
     final: dict[str, Proposal] = field(default_factory=dict)
+
+
+def _outage_at_eta(spec: NotificationSpec, eta: datetime, p: Proposal, plan_date, asset_id: str) -> NotificationSpec:
+    """Anunțul de întrerupere pentru mâine spune orele reale ale echipei: sosirea rotunjită în jos la jumătate de oră,
+    sfârșitul (sosire + durata lucrării, cel puțin durata întreruperii) rotunjit în sus la jumătate de oră."""
+    start = eta.replace(minute=0 if eta.minute < 30 else 30, second=0, microsecond=0)
+    minutes = max(int((spec.outage_hours or 1.0) * 60), p.duration_min or p.wi.effort.duration_min)
+    end = eta + timedelta(minutes=minutes)
+    extra = (30 - end.minute % 30) % 30
+    end = (end + timedelta(minutes=extra)).replace(second=0, microsecond=0)
+    text = outage_message(spec.outage_label or asset_id, plan_date, hhmm(start), hhmm(end))
+    return NotificationSpec(spec.audience, text, spec.scheduled_for, spec.outage_on, spec.outage_label, spec.outage_hours)
 
 
 def _f(d: dict[str, Any]) -> dict[str, float]:
@@ -98,11 +110,15 @@ def finalize(
             continue
         why = routing.dropped.get(p.id, "capacity")
         if p.mandatory:
+            # Obligatorie, dar nu încape: verificare de la distanță acum (la contoare și posturi), prima în planul următor,
+            # și o singură alertă critică de întăriri pentru dispecer (nu câte o decizie pe fiecare caz).
+            remote_ok = p.wi.source.value == "A"
             final[p.id] = _final(
-                p.item, DecisionType.human_review, "R-SAFETY-NO-CREW",
-                f"{p.reason_ro} Nicio echipă potrivită nu poate ajunge mâine: decide dispecerul azi (de exemplu ore suplimentare).",
-                p.action, p.threshold, alerts=p.alerts + [AlertSpec("critical", f"Caz fără echipă: {p.wi.location.label or p.wi.asset_id}", "Lucrare obligatorie (siguranță sau aprobată de om) care nu încape în turele de mâine.")],
-                priority=p.priority,
+                p.item, DecisionType.remote_action if remote_ok else DecisionType.deferred, "R-SAFETY-NO-CREW",
+                f"{p.reason_ro} Nicio echipă potrivită nu are loc mâine: "
+                + ("citire la distanță acum (evenimente, consum), " if remote_ok else "")
+                + "prima în planul următor; dispecerul primește cererea de întăriri.",
+                "remote_reading" if remote_ok else p.action, p.threshold, alerts=p.alerts, priority=p.priority,
             )
             continue
         if p.fallback is not None:
@@ -173,6 +189,8 @@ def finalize(
         for spec in p.alerts:
             pending_alerts.append((spec, p))
         for spec in p.notifications:
+            if spec.outage_on == plan_date and p.decision == DecisionType.assigned and p.id in eta_of:
+                spec = _outage_at_eta(spec, eta_of[p.id], p, plan_date, wi.asset_id)
             add_notification(spec, wi.asset_id, p.id)
         if p.decision == DecisionType.assigned and p.action == "preposition_crew" and crew:
             eta = eta_of.get(p.id)
@@ -278,6 +296,12 @@ def _global_alerts(ctx: Context, final: dict[str, Proposal], loads: dict[str, So
     invalid = [q.work_item_id for load in loads.values() for q in load.quarantined]
     if invalid:
         add_alert(AlertSpec("warning", f"{len(invalid)} intrări greșite în carantină", "Nu intră în plan; motivele sunt în jurnal și în lista de carantină."), invalid)
+    no_crew = [p for p in final.values() if p.rule_id == "R-SAFETY-NO-CREW"]
+    if no_crew:
+        names = ", ".join((p.wi.location.label or p.wi.asset_id) for p in no_crew[:5]) + (f" și încă {len(no_crew) - 5}" if len(no_crew) > 5 else "")
+        add_alert(AlertSpec("critical", f"Întăriri necesare: {len(no_crew)} cazuri de siguranță nu încap în turele de mâine",
+                            f"Au primit o citire la distanță și trec primele în planul următor. Propun ore suplimentare sau echipe din alte baze: {names}."),
+                  [p.id for p in no_crew])
     capped = [p for p in final.values() if p.rule_id == "R-B-REGION-CAP"]
     if capped:
         regions = sorted({(ctx.settings.regions.get(ctx.settings.region_of_county(p.wi.location.county) or "", {}) or {}).get("label_ro", "zona necunoscută")

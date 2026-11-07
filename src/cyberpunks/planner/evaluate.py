@@ -86,7 +86,7 @@ def _travel_cost(settings: Settings, routes: list, crews_size: dict[str, int]) -
     return km, cost
 
 
-def _visit_outcome(res: DayResult, ctx: Context, it: Item, action: str, truth: bool) -> None:
+def _visit_outcome(res: DayResult, ctx: Context, it: Item, action: str, truth: bool, true_value: float | None = None) -> None:
     wi = it.wi
     res.visits += 1
     res.by_source_visits[wi.source.value] += 1
@@ -101,8 +101,9 @@ def _visit_outcome(res: DayResult, ctx: Context, it: Item, action: str, truth: b
     if truth:
         res.useful_visits += 1
         if captures:
-            res.value_captured_lei += wi.impact.value_if_true_lei
-            res.by_source_value[wi.source.value] += wi.impact.value_if_true_lei
+            value = wi.impact.value_if_true_lei if true_value is None else true_value  # valoarea reală, dacă o știm
+            res.value_captured_lei += value
+            res.by_source_value[wi.source.value] += value
     else:
         res.useless_visits += 1
         res.by_source_useless[wi.source.value] += 1
@@ -135,7 +136,7 @@ def run_agent(day: SimDay, settings: Settings) -> DayResult:
         if it.wi.source.value == "B" and truth:
             res.storms_true += 1
         if p.decision == DecisionType.assigned:
-            _visit_outcome(res, ctx, it, p.action, truth)
+            _visit_outcome(res, ctx, it, p.action, truth, (day.meta.get("true_value_lei") or {}).get(wid))
             if it.wi.source.value == "B" and truth:
                 res.storms_covered += 1
         else:
@@ -204,8 +205,12 @@ def run_baseline(day: SimDay, settings: Settings, strategy: str, seed: int) -> D
         terminal = action == "preposition_crew"
         latest = end - timedelta(minutes=wi.effort.duration_min)
         onset = storm_onset(wi) if terminal else None
+        earliest = start
         if onset is not None:
             latest = onset.astimezone(TZ) - timedelta(minutes=before)
+        elif wi.source.value == "A" and wi.time_window is not None:  # aceeași fereastră de acces ca la agent
+            earliest = max(start, wi.time_window.start.astimezone(TZ))
+            latest = min(end, wi.time_window.end.astimezone(TZ)) - timedelta(minutes=wi.effort.duration_min)
         allowed = [
             v
             for v, veh in enumerate(vehicles)
@@ -220,7 +225,7 @@ def run_baseline(day: SimDay, settings: Settings, strategy: str, seed: int) -> D
                 wi.effort.duration_min,
                 wi.effort.crew_skill.value,
                 wi.effort.crew_size,
-                minutes_of(start, ctx.plan_date),
+                minutes_of(earliest, ctx.plan_date),
                 minutes_of(latest, ctx.plan_date),
                 terminal,
                 n - rank,
@@ -241,7 +246,7 @@ def run_baseline(day: SimDay, settings: Settings, strategy: str, seed: int) -> D
         if it.wi.source.value == "B" and truth:
             res.storms_true += 1
         if it.id in rr.assigned:
-            _visit_outcome(res, ctx, it, action_of[it.id], truth)
+            _visit_outcome(res, ctx, it, action_of[it.id], truth, (day.meta.get("true_value_lei") or {}).get(it.id))
             if it.wi.source.value == "B" and truth:
                 res.storms_covered += 1
         else:
@@ -312,6 +317,48 @@ def evaluate(
         "strategies": summary,
         "per_day_net_value_lei": {s: [round(d.net_value_lei, 2) for d in r] for s, r in per_strategy.items()},
         "worlds": worlds,
+    }
+
+
+def evaluate_demo_day(scenario: str = "demo-vara", out_root: Path | None = None, settings: Settings | None = None) -> dict[str, Any] | None:
+    """A doua evaluare: pe ziua demo, cu lucrările reale ale modelului A și adevărul injectat de firul A
+    (outputs/work_items/<s>/A_ground_truth.csv). Valoarea capturată e valoarea REALĂ a problemei (true_value_lei),
+    nu estimarea modelului. Doar sursa A (pentru B și C nu avem adevărul zilei)."""
+    import csv
+
+    from cyberpunks.common.paths import OUTPUTS
+    from cyberpunks.planner.ingest import infer_plan_date, load_source
+
+    settings = settings or Settings.load()
+    root = out_root or OUTPUTS
+    items_path = root / "work_items" / scenario / "A.jsonl"
+    truth_path = root / "work_items" / scenario / "A_ground_truth.csv"
+    if not items_path.exists() or not truth_path.exists():
+        return None
+    plan_date = infer_plan_date([items_path])
+    load = load_source("A", items_path, "model", plan_date, set())
+    with open(truth_path, encoding="utf-8") as fh:
+        truth_rows = {row["meter_id"]: row for row in csv.DictReader(fh)}
+    raws, truth, values = [], {}, {}
+    for it in load.items:
+        row = truth_rows.get(it.wi.asset_id)
+        if row is None:
+            continue
+        raws.append(it.wi.model_dump(mode="json"))
+        truth[it.id] = row.get("true_problem") in ("1", "True", "true")
+        values[it.id] = float(row.get("true_value_lei") or 0.0)
+    day = SimDay(plan_date, raws, truth, {"true_value_lei": values, "source": "A, ziua demo"})
+    out = {"agent": _summary([run_agent(day, settings)])}
+    for name in ("top_k_scor", "primul_venit", "aleator"):
+        out[name] = _summary([run_baseline(day, settings, name, 7)])
+    relaxed = Settings.load()
+    relaxed.planner.setdefault("global", {})["safety_mandatory"] = False
+    out["agent_fara_siguranta_obligatorie"] = _summary([run_agent(day, relaxed)])
+    return {
+        "scenario": scenario, "plan_date": plan_date.isoformat() if plan_date else None, "work_items": len(raws),
+        "true_problems": sum(truth.values()), "true_value_lei_total": round(sum(v for k, v in values.items() if truth[k]), 2),
+        "truth_source": str(truth_path.relative_to(root.parent)) if truth_path.is_relative_to(root.parent) else str(truth_path),
+        "strategies": out,
     }
 
 
@@ -435,6 +482,26 @@ def render_markdown(report: dict[str, Any]) -> str:
                   f"| Agentul complet | {_fmt(a['net_value_lei_per_day'])} | {_fmt(a['km_per_day'])} | {_fmt(100 * a['useless_visit_rate'], 1)}% |"]
         for v in report["ablations"].values():
             lines.append(f"| {v['label_ro']} | {_fmt(v['net_value_lei_per_day'])} | {_fmt(v['km_per_day'])} | {_fmt(100 * v['useless_visit_rate'], 1)}% |")
+    if report.get("demo_day"):
+        dd = report["demo_day"]
+        ds = dd["strategies"]
+        lines += ["", f"## Ziua demo ({dd['plan_date']}): lucrările reale ale modelului A, cu adevărul injectat", "",
+                  (f"{dd['work_items']} lucrări A, din care {dd['true_problems']} probleme reale (valoare reală {_fmt(dd['true_value_lei_total'])} lei). "
+                   "Valoarea capturată e valoarea reală a problemei, nu estimarea modelului. Adevărul vine de la firul A (`A_ground_truth.csv`)."), "",
+                  "| Strategie | Valoare netă (lei) | Vizite | Probleme reale găsite | Vizite fără problemă | Cazuri reale de siguranță vizitate | Km |",
+                  "|---|---|---|---|---|---|---|"]
+        names = {**NAMES_RO, "agent_fara_siguranta_obligatorie": "Agentul fără siguranța obligatorie (ablație)"}
+        for name in ("agent", "agent_fara_siguranta_obligatorie", "top_k_scor", "primul_venit", "aleator"):
+            r = ds[name]
+            safety = f"{r['urgent_total'] - r['urgent_missed_total']} din {r['urgent_total']}"
+            lines.append(f"| {names[name]} | {_fmt(r['net_value_lei_total'])} | {r['visits_total']} | {r['visits_total'] - r['useless_visits_total']} "
+                         f"| {r['useless_visits_total']} | {safety} | {_fmt(r['km_total'])} |")
+        a = ds["agent"]
+        lines.append(f"\nAgentul a trimis în plus {a['remote_readings_total']} citiri la distanță (din care {a['remote_readings_true']} pe probleme reale) "
+                     f"și {a['human_review_total']} cazuri la om (din care {a['human_review_true']} reale). "
+                     "„Primul venit” urmează aici ordinea din fișierul modelului A, care e deja clasamentul lui după valoare. "
+                     "Agentul trimite întâi toate cazurile cu risc pentru oameni (regula R-SAFETY), chiar dacă valorează puțin în lei; "
+                     "ablația arată cât costă regula și câte cazuri de siguranță ar rămâne nevizitate fără ea.")
     if "sensitivity" in report:
         lines += ["", "## Sensibilitate la ipotezele fără sursă", "", "| Parametru | Valoare | Agentul (lei/zi) | Top-K (lei/zi) | Avantajul agentului |", "|---|---|---|---|---|"]
         for row in report["sensitivity"]:
@@ -524,6 +591,9 @@ def main(argv: list[str] | None = None) -> int:
         )
         report["ablations"] = ablations(args.days, args.seed, args.meters)
         report["sensitivity"] = sensitivity(args.days, args.seed, args.meters)
+    demo_day = evaluate_demo_day("demo-vara", settings=settings)
+    if demo_day is not None:
+        report["demo_day"] = demo_day
     report["runtime_s"] = round(time.perf_counter() - t0, 1)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
