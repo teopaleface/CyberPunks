@@ -33,7 +33,7 @@ from sklearn.metrics import precision_recall_curve
 
 from cyberpunks.a_contoare import lcl, sgcc
 from cyberpunks.a_contoare import metrics as M
-from cyberpunks.a_contoare.baselines import IForestBaseline, rule_score
+from cyberpunks.a_contoare.baselines import IForestBaseline, rule_score, tune_vee, vee_full_score
 from cyberpunks.a_contoare.features import ALL_FEATURES, DAILY_FEATURES
 from cyberpunks.a_contoare.inject import BENIGN_KINDS, FAULT_KINDS, KIND_LABEL_RO, TAMPER_KINDS
 from cyberpunks.a_contoare.model import MeterModel
@@ -46,8 +46,14 @@ FIG = REPORTS_A / "figures"
 TZ = ZoneInfo("Europe/Bucharest")
 N_BOOT = 300
 BUDGETS = [0.0025, 0.005, 0.01, 0.02, 0.05, 0.10]
-COLORS = {"model": "#1f5fbf", "rule": "#c2410c", "iforest": "#6b7280"}
-NAMES_RO = {"model": "LightGBM (al nostru)", "rule": "Regula simplă (VEE)", "iforest": "IsolationForest"}
+COLORS = {"model": "#1f5fbf", "rule": "#c2410c", "vee": "#d97706", "iforest": "#6b7280"}
+NAMES_RO = {
+    "model": "LightGBM (al nostru)",
+    "rule": "Regula simplă (zero / scădere)",
+    "vee": "Regula VEE completă",
+    "iforest": "IsolationForest",
+}
+OBVIOUS_KINDS = ("zero", "stuck", "negative", "gaps")  # le prinde orice verificare VEE
 
 
 def _r(x: float, nd: int = 4) -> float:
@@ -179,7 +185,7 @@ def fig_pr(panels: list[tuple[str, np.ndarray, dict[str, np.ndarray]]]) -> None:
         ax.legend(fontsize=8, loc="upper right")
         ax.grid(alpha=0.25)
     fig.tight_layout()
-    fig.savefig(FIG / "pr_curves.png", dpi=140)
+    fig.savefig(FIG / "pr_curves.png", dpi=140, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -197,7 +203,7 @@ def fig_budget(panels: list[tuple[str, np.ndarray, dict[str, np.ndarray]]]) -> N
         ax.legend(fontsize=8)
         ax.grid(alpha=0.25)
     fig.tight_layout()
-    fig.savefig(FIG / "precision_at_budget.png", dpi=140)
+    fig.savefig(FIG / "precision_at_budget.png", dpi=140, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -217,7 +223,7 @@ def fig_calibration(panels: list[tuple[str, np.ndarray, np.ndarray]]) -> None:
         ax.set_ylim(0, hi)
         ax.grid(alpha=0.25)
     fig.tight_layout()
-    fig.savefig(FIG / "calibration.png", dpi=140)
+    fig.savefig(FIG / "calibration.png", dpi=140, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -228,12 +234,12 @@ def fig_kinds(rows: list[dict]) -> None:
     labels = [f"{r['label_ro']} (n={r['n']})" for r in rows]
     ax.barh(labels, [r["flagged_share_at_5pct"] for r in rows], color=[colors[r["family"]] for r in rows])
     ax.invert_yaxis()
-    ax.set_xlabel("Ce parte ajunge în primele 5% (gri: schimbări normale = alarme false)")
+    ax.set_xlabel("Ce parte ajunge în primele 5% din clasament\n(gri: schimbări normale, deci alarme false)")
     ax.set_xlim(0, 1)
-    ax.set_title("Detecția pe tipuri (Londra, test; albastru defect, roșu manipulare)")
+    ax.set_title("Detecția pe tipuri, Londra (test)\nalbastru: defect, roșu: manipulare")
     ax.grid(axis="x", alpha=0.25)
     fig.tight_layout()
-    fig.savefig(FIG / "detection_by_kind.png", dpi=140)
+    fig.savefig(FIG / "detection_by_kind.png", dpi=140, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -247,12 +253,14 @@ def run(retrain: bool = False) -> dict:
 
     # SGCC: etichete reale
     f = sgcc.build_features()
-    s_tr, s_te = (f[f.split == x].reset_index(drop=True) for x in ("train", "test"))
+    s_tr, s_ca, s_te = (f[f.split == x].reset_index(drop=True) for x in ("train", "cal", "test"))
+    vee_s = tune_vee(s_ca, s_ca["label"].to_numpy(), M.k_for(len(s_ca)), window_wide=True)
     m_sgcc = train_sgcc(f) if retrain else _load_or_train("a-lgbm-sgcc", lambda: train_sgcc(f))
     y_s = s_te["label"].to_numpy()
     sc_s = {
         "model": m_sgcc.predict(s_te)["score"].to_numpy(),
         "rule": rule_score(s_te, zero_col="longest_zero_run", drop_col="max_drop"),
+        "vee": vee_full_score(s_te, window_wide=True, **vee_s),
         "iforest": IForestBaseline(DAILY_FEATURES).fit(s_tr).score(s_te),
     }
     k_s = M.k_for(len(y_s))
@@ -263,13 +271,15 @@ def run(retrain: bool = False) -> dict:
 
     # Londra: probleme injectate (etichete sintetice), gospodării nevăzute și perioadă ulterioară
     smp = lcl.build_samples()
-    l_tr, l_te = (smp[smp.split == x].reset_index(drop=True) for x in ("train", "test"))
+    l_tr, l_ca, l_te = (smp[smp.split == x].reset_index(drop=True) for x in ("train", "cal", "test"))
+    vee_l = tune_vee(l_ca, l_ca["problem"].to_numpy(), M.k_for(len(l_ca)))
     m_lcl = train_lcl(smp) if retrain else _load_or_train("a-lgbm", lambda: train_lcl(smp))
     pred = m_lcl.predict(l_te)
     y_l = l_te["problem"].to_numpy()
     sc_l = {
         "model": pred["score"].to_numpy(),
         "rule": rule_score(l_te),
+        "vee": vee_full_score(l_te, **vee_l),
         "iforest": IForestBaseline(ALL_FEATURES).fit(l_tr).score(l_te),
     }
     k_l = M.k_for(len(y_l))
@@ -280,7 +290,15 @@ def run(retrain: bool = False) -> dict:
     res_l["calibration"] = {"brier": _r(M.brier(y_l, sc_l["model"])), "ece": _r(M.ece(y_l, sc_l["model"])),
                             "reliability": M.reliability_table(y_l, sc_l["model"])}
     res_l["conformal"] = {kk: _r(v) for kk, v in m_lcl.conformal.coverage(sc_l["model"], y_l).items()}
+    # problemele subtile: fără cele evidente pe care le prinde orice verificare VEE (zero, blocat, negative, goluri)
+    subtle = ~(l_te["kind"].isin(OBVIOUS_KINDS) & (l_te["problem"] == 1)).to_numpy()
+    res_l["subtle_only"] = evaluate_set(
+        "Londra, doar problemele subtile", y_l[subtle], {m_: v[subtle] for m_, v in sc_l.items()},
+        M.k_for(int(subtle.sum())), groups=l_te["household"].to_numpy()[subtle],
+        value_true=l_te["value_true_lei"].to_numpy()[subtle],
+    )
     res_l["per_kind_model"] = per_kind(l_te, sc_l["model"])
+    res_l["per_kind_vee"] = per_kind(l_te, sc_l["vee"])
     res_l["per_kind_rule"] = per_kind(l_te, sc_l["rule"])
     res_l["type_accuracy"] = type_accuracy(l_te, pred)
     res_l["false_alarms_by_level"] = false_alarms_by_level(l_te["level_kwh"].to_numpy(), y_l, sc_l["model"])
@@ -295,6 +313,7 @@ def run(retrain: bool = False) -> dict:
     full = {
         "created_at": now.isoformat(),
         "budget_share": M.BUDGET_SHARE,
+        "vee_thresholds_from_calibration": {"sgcc": vee_s, "lcl": vee_l},
         "models": {"a-lgbm": m_lcl.version, "a-lgbm-sgcc": m_sgcc.version},
         "sgcc_real_labels": res_s,
         "lcl_injected": res_l,
@@ -311,9 +330,14 @@ def run(retrain: bool = False) -> dict:
                     "ece": res_l["calibration"]["ece"]})
     metrics.update({f"sgcc_{kk}": res_s["model"][kk] for kk in keys})
     metrics.update({f"iforest_{kk}": res_l["iforest"][kk] for kk in keys})
+    metrics.update({f"vee_{kk}": res_l["vee"][kk] for kk in keys})
+    metrics.update({f"subtle_{kk}": res_l["subtle_only"]["model"][kk] for kk in keys})
+    metrics.update({f"subtle_vee_{kk}": res_l["subtle_only"]["vee"][kk] for kk in keys})
+    metrics.update({f"sgcc_vee_{kk}": res_s["vee"][kk] for kk in keys})
     metrics.update({f"sgcc_iforest_{kk}": res_s["iforest"][kk] for kk in keys})
     baseline = {kk: res_l["rule"][kk] for kk in keys}
     baseline["value_at_k_lei"] = res_l["rule"]["value_at_k_lei"]
+    baseline.update({f"subtle_{kk}": res_l["subtle_only"]["rule"][kk] for kk in keys})
     baseline.update({f"sgcc_{kk}": res_s["rule"][kk] for kk in keys})
     report = ModelReport(
         source="A",

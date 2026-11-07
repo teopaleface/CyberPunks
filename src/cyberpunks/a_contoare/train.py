@@ -24,10 +24,12 @@ from cyberpunks.a_contoare.model import MeterModel
 LCL_CLASSES = ["normal", "faulty", "tamper"]
 FAMILY_TO_Y = {"normal": 0, "faulty": 1, "tamper": 2}
 DETERMINISTIC = {"deterministic": True, "force_col_wise": True}
-# Pragurile conformal: alpha mic pentru "normal" (rar declarăm normal un contor cu problemă reală),
-# alpha mai mare pentru "problemă" (acceptăm să ratăm o parte, ca să nu trimitem totul la om).
-ALPHA_NORMAL = 0.05
-ALPHA_PROBLEM = 0.20
+# Pragurile conformal (alese pe calibrare, verificate pe test și pe demo; vezi reports/A/error_analysis.md):
+# - alpha_normal = 1%: cel mult ~1% din contoarele normale ajung la echipă sau la om (timpul lor e resursa rară);
+# - alpha_problem = 30%: cel puțin ~70% din problemele reale sunt recunoscute sigur.
+# Între cele două praguri (ambele clase în mulțime) modelul spune "nu sunt sigur" și decide un om.
+ALPHA_NORMAL = 0.01
+ALPHA_PROBLEM = 0.30
 
 
 def train_lcl(samples: pd.DataFrame | None = None) -> MeterModel:
