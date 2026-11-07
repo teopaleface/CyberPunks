@@ -217,8 +217,10 @@ def conformal_offset(ev_df: pd.DataFrame, coverage: float = 0.8, n_splits: int =
     return float(max(np.quantile(scores, level), 0.0))
 
 
-CASE_FEATURES = ["gust_max", "gust_prev", "precip_48h", "precip_7d", "snow_3d", "ice_proxy", "tmax", "srad",
-                 "doy_sin", "doy_cos"]
+# Zilele asemănătoare se caută după aceleași pericole ca modelul (vânt, ploaie, zăpadă, polei) și sezon; fără temperatură.
+CASE_FEATURES = ["gust_max", "gust_prev", "precip_48h", "precip_7d", "snow_3d", "ice_proxy", "doy_sin", "doy_cos"]
+CASE_WEIGHTS = {"gust_max": 2.0, "gust_prev": 1.0, "precip_48h": 1.5, "precip_7d": 0.7, "snow_3d": 1.0, "ice_proxy": 1.0,
+                "doy_sin": 0.7, "doy_cos": 0.7}
 
 
 def case_library(df: pd.DataFrame, n_calm: int = 4000, seed: int = 42) -> tuple[pd.DataFrame, dict]:

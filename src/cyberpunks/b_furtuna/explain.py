@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from cyberpunks.b_furtuna.features import label_ro
-from cyberpunks.b_furtuna.model import CASE_FEATURES, BModel, shap_values
+from cyberpunks.b_furtuna.model import CASE_FEATURES, CASE_WEIGHTS, BModel, shap_values
 from cyberpunks.common.contracts import Factor, SimilarCase
 
 
@@ -50,7 +50,7 @@ def similar_cases(model: BModel, rows: pd.DataFrame, k: int = 3) -> list[list[Si
     sd = np.array([model.case_scale[f][1] for f in CASE_FEATURES])
     L = (lib[CASE_FEATURES].to_numpy(dtype=float) - mu) / sd
     L = np.nan_to_num(L)
-    w = np.array([2.0, 1.0, 1.5, 0.7, 1.0, 1.0, 0.7, 0.5, 0.7, 0.7])  # rafala și ploaia contează cel mai mult
+    w = np.array([CASE_WEIGHTS[f] for f in CASE_FEATURES])  # rafala și ploaia contează cel mai mult
     out = []
     for _, row in rows.iterrows():
         x = np.nan_to_num((row[CASE_FEATURES].to_numpy(dtype=float) - mu) / sd)
