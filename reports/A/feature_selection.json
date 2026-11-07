@@ -2,76 +2,76 @@
   "note": "toate cifrele sunt pe o validare din setul de antrenare (20% din clienți / gospodării, ținute deoparte); K = 1%; 'în primele 5%' = ce parte ajunge în top 5%",
   "sgcc": {
     "vechi": {
-      "pr_auc": 0.3834,
-      "roc_auc": 0.8156,
+      "pr_auc": 0.3749,
+      "roc_auc": 0.8127,
       "precision_at_k": 0.7647,
       "recall_at_k": 0.0899,
       "n_features": 19
     },
     "nou": {
-      "pr_auc": 0.4267,
+      "pr_auc": 0.4174,
       "roc_auc": 0.8382,
-      "precision_at_k": 0.7451,
-      "recall_at_k": 0.0876,
+      "precision_at_k": 0.7059,
+      "recall_at_k": 0.0829,
       "n_features": 27
     }
   },
   "lcl": {
     "vechi": {
-      "pr_auc": 0.8952,
-      "roc_auc": 0.8888,
+      "pr_auc": 0.8964,
+      "roc_auc": 0.8896,
       "precision_at_k": 1.0,
       "recall_at_k": 0.0229,
       "n_features": 30,
       "auc_by_kind": {
-        "clock_drift": 0.6041,
-        "drift": 0.7426,
-        "bypass": 0.8179,
-        "h1": 0.8869,
-        "night": 0.8064,
-        "h6": 0.9094
+        "clock_drift": 0.6023,
+        "drift": 0.7477,
+        "bypass": 0.8217,
+        "h1": 0.8868,
+        "night": 0.8139,
+        "h6": 0.9071
       },
       "auc_benign_vs_normal": {
-        "vacation": 0.4781,
-        "occupancy_change": 0.619
+        "vacation": 0.4714,
+        "occupancy_change": 0.6188
       }
     },
     "nou": {
-      "pr_auc": 0.9022,
-      "roc_auc": 0.8956,
+      "pr_auc": 0.9015,
+      "roc_auc": 0.8945,
       "precision_at_k": 1.0,
       "recall_at_k": 0.0229,
       "n_features": 40,
       "auc_by_kind": {
-        "clock_drift": 0.6307,
-        "drift": 0.7659,
-        "bypass": 0.8237,
-        "h1": 0.8923,
-        "night": 0.8148,
-        "h6": 0.9038
+        "clock_drift": 0.6261,
+        "drift": 0.7646,
+        "bypass": 0.823,
+        "h1": 0.8899,
+        "night": 0.8202,
+        "h6": 0.9037
       },
       "auc_benign_vs_normal": {
-        "vacation": 0.5369,
-        "occupancy_change": 0.6459
+        "vacation": 0.5241,
+        "occupancy_change": 0.6502
       }
     },
     "nou_fara_sezoniere_brute": {
-      "pr_auc": 0.8978,
-      "roc_auc": 0.8892,
+      "pr_auc": 0.8976,
+      "roc_auc": 0.8891,
       "precision_at_k": 1.0,
       "recall_at_k": 0.0229,
       "n_features": 36,
       "auc_by_kind": {
-        "clock_drift": 0.6111,
-        "drift": 0.7464,
-        "bypass": 0.809,
-        "h1": 0.878,
+        "clock_drift": 0.6096,
+        "drift": 0.7466,
+        "bypass": 0.8179,
+        "h1": 0.8778,
         "night": 0.8063,
-        "h6": 0.9028
+        "h6": 0.9016
       },
       "auc_benign_vs_normal": {
-        "vacation": 0.5136,
-        "occupancy_change": 0.6501
+        "vacation": 0.5152,
+        "occupancy_change": 0.6444
       }
     }
   }

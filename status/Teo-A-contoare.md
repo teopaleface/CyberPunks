@@ -1,7 +1,7 @@
 # Status: Teo-A-contoare
-Actualizat: 2026-11-07 15:24
-Milestone curent: M4 gata (15:24). LIBER: pot ajuta la alt fir (de exemplu B)
-Gata de merge: da (commit adebc36)
+Actualizat: 2026-11-07 16:16
+Milestone curent: M4 gata; sarcina de reproducere în lucru (clona curată rulează)
+Gata de merge: da (commit 68c1d1c)
 
 ## Făcut
 - 13:30 M0: `docs/research/A.md`, date descărcate cu sume de control (SGCC, 45 de fișiere Low Carbon London).
@@ -27,6 +27,9 @@ Gata de merge: da (commit adebc36)
 - 15:18 Verificarea fuziunii cu bilanțul pe testul A (`fusion_check.py`, `reports/A/fusion_check.json`, `error_analysis.md` secțiunea 9); observațiile sunt mai jos, la „Cereri către orchestrator”.
 - 15:24 M4: verificat dintr-o clonă curată (GitHub): `uv sync` în 25 s; `make a-predict` dă aceleași 524 / 563 de lucrări din pachetul din git; `make a-test` trece (89 de teste); `make a-all` de la zero în 7 minute. Metricile și lucrările au ieșit IDENTICE cu cele din repo. Model card-ul (`reports/A/model_card.md`) și comenzile (`docs/data/A.md`) sunt la zi.
 
+- 16:15 Procentele absurde: în ieșirile actuale nu mai există niciunul (0 peste 1.000% în A.jsonl demo-vara și maine). Consola arăta un instantaneu vechi. Am adăugat totuși protecții: numitor minim de 0,1 kWh (consumul de noapte, scăderea față de istoric și vecini) și plafon la afișare în `label_ro` ("de peste 10 ori"), plus testul `test_labels_never_show_absurd_percentages` pe toate features-urile. Lucrările demo-vara sunt regenerate (532). Numele produsului în model card și `report.py` e acum Daybreak.
+- Cifrele după refacere: SGCC precizia@K 0,80, PR-AUC 0,40; Londra 1,00 / 0,68; problemele subtile 0,63. Venn-ABERS pe grilă față de calculul exact: abaterea maximă 0,036 (grila are acum și puncte egal distanțate).
+
 ## Urmează
 - **Sunt liber** (M0-M4 gata). Pot ajuta la B sau la alt fir; scrieți-mi direct în thread.
 - La cerere: reparații pe A dacă planificatorul sau interfața au nevoie de ceva în lucrări sau în serii.
@@ -39,6 +42,7 @@ Gata de merge: da (commit adebc36)
 - Niciunul.
 
 ## Cereri către orchestrator
+- **Pentru planificator (text absurd în jurnal):** în `outputs/demo/plans/demo-vara/audit.jsonl` apare „valoarea așteptată (20 lei) nu acoperă vizita (365 lei; scorul ar trebui să fie peste 1004%)”. Un scor peste 100% nu există. Când nici la scor 100% valoarea nu acoperă vizita, textul ar trebui să spună „nici sigur nu acoperă costul vizitei”.
 - **Observații pentru firul bilanț** (fuziunea verificată pe testul A: populația demo, adevărul injectat; formula `fuse.combine_arrays` neschimbată; bilanțul postului construit din energia nemăsurată, cu zgomotul pierderilor normale sigma = 1 / 2 / 4% din consumul postului):
   - Vârful listei nu se schimbă: precizia@10 și @100 rămân 1,00, pentru că defectele evidente sunt deja primele. PR-AUC crește puțin (0,707 → 0,715 pe demo-vara, 0,679 → 0,688 pe maine, la sigma 2%).
   - **Ajută la** defectele care pierd multă energie: la sigma 1%, contor oprit 53% confirmate, citiri negative 55%, valoare blocată 27%. Pe acestea însă A le prinde oricum.
