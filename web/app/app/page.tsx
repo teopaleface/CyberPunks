@@ -1,3 +1,4 @@
+import { requireConsole } from "@/lib/server/operations";
 import { englishText } from "@/lib/english";
 import { ArrowRight } from "lucide-react";
 import { cookies } from "next/headers";
@@ -45,6 +46,9 @@ function topAlert(alerts: Alert[]): { id: string; lead: string; text: string } |
 }
 
 async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchParams"] }) {
+  const entry = await searchParams;
+  if (entry.console !== "1") redirect("/workspace");
+  await requireConsole();
   await connection();
   const scenario = await resolveScenario(searchParams);
   const [{ info, view }, params] = await Promise.all([loadShellInfo(scenario), searchParams]);

@@ -1,5 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { membershipOf, unboundCustomer, type Membership } from "@/lib/operations/policy";
 
 /**
  * Conturile site-ului (/intra) și aprobările lor, în Cloudflare KV (legătura CONTURI; local, KV-ul simulat de
@@ -22,6 +23,8 @@ export interface StoredUser {
   hash: string;
   iter: number;
   created_at: string;
+  membership?: Membership;
+  synthetic_demo?: boolean;
 }
 export interface PublicUser {
   id: string;
@@ -33,7 +36,7 @@ export interface Profile {
   team: string | null;
 }
 
-export const COOKIE = "daybreak_sesiune";
+export const COOKIE = process.env.DAYBREAK_COOKIE_NAME ?? "daybreak_sesiune";
 const SESSION_DAYS = 30;
 // iterațiile PBKDF2: puține cât să încapă în limita de procesor a planului gratuit Workers (10 ms)
 const ITER = 10_000;
@@ -107,6 +110,7 @@ export async function signUp(emailRaw: string, password: string, fullName: strin
     email,
     full_name: fullName.trim().slice(0, 120) || null,
     team: null,
+    membership: unboundCustomer(),
     salt,
     hash: await hashPassword(password, salt),
     iter: ITER,
@@ -162,4 +166,34 @@ export async function readApprovals(userId: string): Promise<ApprovalRow[]> {
 
 export async function writeApprovals(userId: string, rows: ApprovalRow[]): Promise<void> {
   await (await kv()).put(`a:${userId}`, JSON.stringify(rows.slice(0, 2000)));
+}
+
+/** Profil sigur pentru aplicație; apartenența nu se editează prin profil. */
+export const toMembership = (user: StoredUser) => membershipOf(user);
+
+export interface DemoAccountInput { email: string; password: string; membership: Membership }
+/** Numai ruta locală, explicit activată, poate apela această procedură. Nu modifică conturi existente. */
+export async function provisionDemoAccounts(inputs: DemoAccountInput[]) {
+  const store = await kv();
+  if (inputs.length !== 3 || new Set(inputs.map(x => x.membership.role)).size !== 3) throw new Error("Supply exactly three demo accounts.");
+  const emails = inputs.map(x => normEmail(x.email));
+  if (new Set(emails).size !== 3 || inputs.some((x, i) => !EMAIL_RE.test(emails[i]) || x.password.length < 12) || new Set(inputs.map(x => x.password)).size !== 3) throw new Error("Use three unique emails and independently supplied passwords of at least 12 characters.");
+  const existingIds = await Promise.all(emails.map(email => store.get(`u:email:${email}`)));
+  if (existingIds.some(Boolean)) {
+    const existing = await Promise.all(existingIds.map(id => id ? readUser(store, id) : null));
+    for (let i = 0; i < existing.length; i++) {
+      const user = existing[i];
+      if (!user || !user.synthetic_demo || JSON.stringify(membershipOf(user)) !== JSON.stringify(inputs[i].membership) || !sameText(await hashPassword(inputs[i].password, user.salt, user.iter), user.hash)) throw new Error("An account already exists. Existing accounts are never overwritten.");
+    }
+    return existing.map(u => ({ ...toPublic(u!), membership: toMembership(u!), synthetic: true, already_ready: true }));
+  }
+  const users = await Promise.all(inputs.map(async (x, i): Promise<StoredUser> => {
+    const salt = randomHex(16);
+    return { id: crypto.randomUUID(), email: emails[i], full_name: `Demo ${x.membership.role}`, team: null, membership: x.membership, synthetic_demo: true, salt, hash: await hashPassword(x.password, salt), iter: ITER, created_at: new Date().toISOString() };
+  }));
+  for (const u of users) {
+    await store.put(`u:${u.id}`, JSON.stringify(u));
+    await store.put(`u:email:${u.email}`, u.id);
+  }
+  return users.map(u => ({ ...toPublic(u), membership: toMembership(u), synthetic: true }));
 }

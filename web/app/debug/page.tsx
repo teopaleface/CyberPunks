@@ -1,3 +1,4 @@
+import { requireConsole } from "@/lib/server/operations";
 import { englishText } from "@/lib/english";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -43,6 +44,7 @@ function count(result: Sourced<unknown>): string {
 }
 
 async function DebugInfo() {
+  await requireConsole();
   await connection();
   const config = getConfig();
   const probe = await probeApi({ force: true });

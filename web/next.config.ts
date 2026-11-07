@@ -9,6 +9,7 @@ initOpenNextCloudflareForDev();
 const onCloudflare = process.env.CF_BUILD === "1";
 
 const nextConfig: NextConfig = {
+  distDir: process.env.DAYBREAK_NEXT_DIST ?? ".next",
   cacheComponents: !onCloudflare,
   // fără insigna de dezvoltare în colț: apare în capturi și în înregistrări
   devIndicators: false,

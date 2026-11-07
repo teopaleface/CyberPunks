@@ -1,3 +1,4 @@
+import { requireConsole } from "@/lib/server/operations";
 import { englishText } from "@/lib/english";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -77,6 +78,7 @@ const METRIC_NAME: Record<string, string> = {
 };
 
 async function Run({ searchParams }: { searchParams: PageProps<"/rulare">["searchParams"] }) {
+  await requireConsole();
   await connection();
   const scenario = await resolveScenario(searchParams);
   const [{ info, view }, metrics, run, params] = await Promise.all([

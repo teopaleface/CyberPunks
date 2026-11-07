@@ -1,3 +1,4 @@
+import { requireConsole } from "@/lib/server/operations";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -30,6 +31,7 @@ export default function OrdersPage({ searchParams }: PageProps<"/lucrari">) {
 }
 
 async function Orders({ searchParams }: { searchParams: PageProps<"/lucrari">["searchParams"] }) {
+  await requireConsole();
   await connection();
   const scenario = await resolveScenario(searchParams);
   const [{ info }, view, params] = await Promise.all([loadShellInfo(scenario), loadPlanView(scenario), searchParams]);

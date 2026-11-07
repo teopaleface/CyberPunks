@@ -1,3 +1,4 @@
+import { requireConsole } from "@/lib/server/operations";
 import { englishText } from "@/lib/english";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
@@ -25,6 +26,7 @@ export default function MapPage({ searchParams }: PageProps<"/harta">) {
 }
 
 async function Plan({ searchParams }: { searchParams: PageProps<"/harta">["searchParams"] }) {
+  await requireConsole();
   await connection();
   const scenario = await resolveScenario(searchParams);
   const [{ info, view }, geo, params, posts] = await Promise.all([

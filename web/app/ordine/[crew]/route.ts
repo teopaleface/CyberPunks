@@ -1,3 +1,4 @@
+import { consoleDenied } from "@/lib/server/operations";
 import { readBytes } from "@/lib/server/read-file";
 import path from "node:path";
 import { connection } from "next/server";
@@ -12,6 +13,8 @@ import { demoDir } from "@/lib/data/files";
 const CREW_RE = /^[A-Z]{1,3}-[A-Z0-9]{1,4}-\d{1,3}$/;
 
 export async function GET(request: Request, ctx: RouteContext<"/ordine/[crew]">) {
+  const denied = await consoleDenied();
+  if (denied) return denied;
   await connection();
   let crew: string;
   try {
@@ -28,6 +31,7 @@ export async function GET(request: Request, ctx: RouteContext<"/ordine/[crew]">)
   if (getConfig().dataSource !== "demo") try {
     const res = await fetch(`${API_BASE}/work-orders/${encodeURIComponent(crew)}.pdf?scenario=${encodeURIComponent(scenario)}`, {
       signal: AbortSignal.timeout(4000),
+      headers: process.env.DAYBREAK_INTERNAL_TOKEN ? { authorization: `Bearer ${process.env.DAYBREAK_INTERNAL_TOKEN}` } : {},
       cache: "no-store",
     });
     if (res.ok && res.headers.get("content-type")?.includes("pdf")) {

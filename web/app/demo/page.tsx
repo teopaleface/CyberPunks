@@ -1,3 +1,4 @@
+import { requireConsole } from "@/lib/server/operations";
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -18,6 +19,7 @@ export default function DemoPage({ searchParams }: PageProps<"/demo">) {
 }
 
 async function Demo({ searchParams }: { searchParams: PageProps<"/demo">["searchParams"] }) {
+  await requireConsole();
   await connection();
   const scenario = await resolveScenario(searchParams);
   const [view, params] = await Promise.all([loadPlanView(scenario), searchParams]);

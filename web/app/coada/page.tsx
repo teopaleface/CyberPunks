@@ -1,3 +1,4 @@
+import { requireConsole } from "@/lib/server/operations";
 import { englishText } from "@/lib/english";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -78,6 +79,7 @@ const CAT_TONE: Record<Category["tone"], Tone> = { blue: "blue", violet: "violet
 const SRC_VAR = { A: "var(--src-a)", B: "var(--src-b)", C: "var(--src-c)" } as const;
 
 async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["searchParams"] }) {
+  await requireConsole();
   await connection();
   const scenario = await resolveScenario(searchParams);
   const [{ info, view }, params] = await Promise.all([loadShellInfo(scenario), searchParams]);

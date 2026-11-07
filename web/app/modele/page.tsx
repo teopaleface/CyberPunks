@@ -1,3 +1,4 @@
+import { requireConsole } from "@/lib/server/operations";
 import { englishText } from "@/lib/english";
 import { readText } from "@/lib/server/read-file";
 import path from "node:path";
@@ -40,6 +41,7 @@ async function readErrorAnalysis(source: Source): Promise<string | null> {
 }
 
 async function Models({ searchParams }: { searchParams: PageProps<"/modele">["searchParams"] }) {
+  await requireConsole();
   await connection();
   const scenario = await resolveScenario(searchParams);
   const [{ info }, metrics, ...analyses] = await Promise.all([loadShellInfo(scenario), getMetrics(), ...SOURCE_ORDER.map(readErrorAnalysis)]);

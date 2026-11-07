@@ -1,3 +1,4 @@
+import { requireConsole } from "@/lib/server/operations";
 import { englishText } from "@/lib/english";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -26,6 +27,7 @@ export default function AlertsPage({ searchParams }: { searchParams: SearchParam
 }
 
 async function Alerts({ searchParams }: { searchParams: SearchParams }) {
+  await requireConsole();
   await connection();
   const scenario = await resolveScenario(searchParams);
   const [{ info, view }, remedies] = await Promise.all([loadShellInfo(scenario), getRemedies(scenario).catch(() => null)]);

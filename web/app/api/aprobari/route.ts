@@ -1,35 +1,16 @@
-import { currentUser, readApprovals, writeApprovals, type ApprovalRow } from "@/lib/server/accounts";
-
-const VERDICTS = new Set(["approved", "deferred", "rejected"]);
-
-/** Deciziile contului conectat pe cazurile „decide un om” din site. */
+import { consoleDenied } from "@/lib/server/operations";
+import { originFailure } from "@/lib/operations/policy";
+/** Alegerile personale istorice nu sunt aprobări operaționale. */
 export async function GET() {
-  const user = await currentUser();
-  if (!user) return Response.json({ error: "Intră în cont." }, { status: 401 });
-  return Response.json({ rows: await readApprovals(user.id) }, { headers: { "cache-control": "no-store" } });
+  const denied = await consoleDenied();
+  if (denied) return denied;
+  return Response.json({ rows: [], legacy: true, message: "Personal selections are retired. Use the shared workspace to review and confirm operations." }, { headers: { "cache-control": "private, no-store" } });
 }
-
-/** Un caz: { post_id, decision | null, crew_id? } (decision null șterge decizia). */
-export async function PUT(request: Request) {
-  const user = await currentUser();
-  if (!user) return Response.json({ error: "Intră în cont." }, { status: 401 });
-  const b = (await request.json().catch(() => ({}))) as { post_id?: string; decision?: string | null; crew_id?: string | null };
-  const postId = String(b.post_id ?? "").slice(0, 80);
-  if (!postId) return Response.json({ error: "Lipsește cazul." }, { status: 400 });
-  const rows = (await readApprovals(user.id)).filter((r) => r.post_id !== postId);
-  if (b.decision && VERDICTS.has(b.decision)) {
-    rows.push({ post_id: postId, decision: b.decision as ApprovalRow["decision"], crew_id: b.decision === "approved" ? (b.crew_id ?? null) : null });
-  }
-  await writeApprovals(user.id, rows);
-  return Response.json({ rows });
+async function retired(request: Request) {
+  const rejected = originFailure(request);
+  if (rejected) return rejected;
+  const denied = await consoleDenied();
+  return denied ?? Response.json({ error: "Prepare and confirm the action in the shared workspace.", workspace: "/workspace" }, { status: 409 });
 }
-
-/** Toată lista: { ids } aprobate, restul șterse. */
-export async function POST(request: Request) {
-  const user = await currentUser();
-  if (!user) return Response.json({ error: "Intră în cont." }, { status: 401 });
-  const b = (await request.json().catch(() => ({}))) as { ids?: string[] };
-  const rows: ApprovalRow[] = (b.ids ?? []).map((id) => ({ post_id: String(id).slice(0, 80), decision: "approved", crew_id: null }));
-  await writeApprovals(user.id, rows);
-  return Response.json({ rows });
-}
+export const POST = retired;
+export const PUT = retired;

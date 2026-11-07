@@ -1,3 +1,4 @@
+import { requireConsole } from "@/lib/server/operations";
 import { englishText } from "@/lib/english";
 import { BookOpenIcon } from "lucide-react";
 import { connection } from "next/server";
@@ -25,6 +26,7 @@ export default function JournalPage({ searchParams }: { searchParams: SearchPara
 }
 
 async function Journal({ searchParams }: { searchParams: SearchParams }) {
+  await requireConsole();
   await connection();
   const scenario = await resolveScenario(searchParams);
   const [{ info, view }, audit] = await Promise.all([loadShellInfo(scenario), getAudit(scenario)]);

@@ -1,3 +1,4 @@
+import { requireConsole } from "@/lib/server/operations";
 import { englishText } from "@/lib/english";
 import type { Metadata } from "next";
 import { UtilityPole } from "lucide-react";
@@ -25,6 +26,7 @@ export default function PostsPage({ searchParams }: PageProps<"/posturi">) {
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 
 async function Posts({ searchParams }: { searchParams: PageProps<"/posturi">["searchParams"] }) {
+  await requireConsole();
   await connection();
   const sp = await searchParams;
   const scenario = await resolveScenario(searchParams);

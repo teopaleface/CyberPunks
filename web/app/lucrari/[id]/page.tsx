@@ -1,3 +1,4 @@
+import { requireConsole } from "@/lib/server/operations";
 import { englishText } from "@/lib/english";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -41,6 +42,7 @@ export default function WorkItemPage({ params, searchParams }: PageProps<"/lucra
 }
 
 async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">, "params" | "searchParams">) {
+  await requireConsole();
   await connection();
   const id = safeDecode((await params).id);
   const scenario = await resolveScenario(searchParams);

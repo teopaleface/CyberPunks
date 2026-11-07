@@ -1,3 +1,4 @@
+import { requireConsole } from "@/lib/server/operations";
 import { englishText } from "@/lib/english";
 import { ClipboardList, HardHat, Layers, ChevronRight, Gauge, ScrollText, Search, UtilityPole, Waypoints, Zap, Network, SlidersHorizontal, Link2, MapPin, TrendingUp } from "lucide-react";
 import Link from "next/link";
@@ -52,6 +53,7 @@ const clean = (t: string) => { const x = englishText(t).replace(/\.\s*$/, "").tr
 const short = (t: string) => clean(t.replace(/\s*\([^)]*\)/g, ""));
 
 async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "params" | "searchParams">) {
+  await requireConsole();
   await connection();
   const id = safeDecode((await params).id);
   const sp = await searchParams;
