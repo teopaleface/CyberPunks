@@ -1,5 +1,5 @@
 """Regresie logistică (multinomială) vs LightGBM pentru diagnosticul cauzei din bilanțul pe post.
-# Rulare (din rădăcina repo-ului, pe main): uv run python reports/lr_vs_lgbm/compare_a.py [sgcc|london|all]
+# Rulare (din rădăcina repo-ului, pe main): uv run python reports/lr_vs_lgbm/compare_bilant.py
 # Cere datele A (make a-data) sau, pentru bilanț, ferestrele din make bilant-data bilant-eval.
 
 Folosește ferestrele salvate de `cyberpunks.a_bilant.evaluate` (antrenare: lotul train; test: lotul pop, rețele
