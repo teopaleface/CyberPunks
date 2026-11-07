@@ -7,7 +7,7 @@
  * ca aproximative („cca”). Dacă planificatorul începe să trimită `depart_at`/`return_at`, le folosim pe acelea.
  */
 import type { Route, Stop, WorkItem } from "@/lib/contracts";
-import { minutesOfDay, parseHHMM } from "@/lib/format";
+import { minutesOfDay, minutesOfPlanDay, parseHHMM } from "@/lib/format";
 
 export interface TimelineBlock {
   stop: Stop;
@@ -40,7 +40,8 @@ type RouteLike = Pick<Route, "crew_id" | "depot_id" | "total_km" | "total_work_m
   return_at?: string | null;
 };
 
-export function crewTimeline(route: RouteLike, shiftStart = "08:00"): CrewTimeline {
+export function crewTimeline(route: RouteLike, shiftStart = "08:00", planDate?: string): CrewTimeline {
+  const mins = (iso: string) => (planDate ? minutesOfPlanDay(iso, planDate) : minutesOfDay(iso));
   const stops = route.stops.toSorted((a, b) => a.seq - b.seq);
   const shift0 = parseHHMM(shiftStart);
   const legKm = stops.reduce((s, x) => s + x.travel_km, 0);
@@ -51,10 +52,10 @@ export function crewTimeline(route: RouteLike, shiftStart = "08:00"): CrewTimeli
   let depart: number;
   let departApprox = true;
   if (route.depart_at) {
-    depart = minutesOfDay(route.depart_at);
+    depart = mins(route.depart_at);
     departApprox = false;
   } else if (stops.length) {
-    depart = Math.max(shift0, minutesOfDay(stops[0].eta) - Math.round(stops[0].travel_km * minPerKm));
+    depart = Math.max(shift0, mins(stops[0].eta) - Math.round(stops[0].travel_km * minPerKm));
   } else {
     depart = shift0;
   }
@@ -62,7 +63,7 @@ export function crewTimeline(route: RouteLike, shiftStart = "08:00"): CrewTimeli
   const blocks: TimelineBlock[] = [];
   let t = depart;
   for (const s of stops) {
-    const start = minutesOfDay(s.eta);
+    const start = mins(s.eta);
     const end = start + s.duration_min;
     blocks.push({ stop: s, workItemId: s.work_item_id, start, end, from: t, travelKm: s.travel_km });
     t = end;
@@ -71,7 +72,7 @@ export function crewTimeline(route: RouteLike, shiftStart = "08:00"): CrewTimeli
   let back: number;
   let backApprox = true;
   if (route.return_at) {
-    back = minutesOfDay(route.return_at);
+    back = mins(route.return_at);
     backApprox = false;
   } else {
     back = t + Math.round(returnKm * minPerKm);
@@ -93,10 +94,14 @@ export function crewTimeline(route: RouteLike, shiftStart = "08:00"): CrewTimeli
 }
 
 /** Fereastra de timp a unei lucrări, în minutele zilei (B: înainte și în timpul furtunii; C: la prânz). */
-export function workItemWindow(w: Pick<WorkItem, "time_window">): { start: number; end: number; endsNextDay: boolean } | null {
+export function workItemWindow(
+  w: Pick<WorkItem, "time_window">,
+  planDate?: string,
+): { start: number; end: number; endsNextDay: boolean } | null {
   if (!w.time_window) return null;
-  const start = minutesOfDay(w.time_window.start);
-  let end = minutesOfDay(w.time_window.end);
+  const mins = (iso: string) => (planDate ? minutesOfPlanDay(iso, planDate) : minutesOfDay(iso));
+  const start = mins(w.time_window.start);
+  let end = mins(w.time_window.end);
   const endsNextDay = end <= start;
   if (endsNextDay) end += 1440;
   return { start, end, endsNextDay };
@@ -118,5 +123,5 @@ export function timelineRange(
   // rotunjim la ora întreagă, cu o jumătate de oră de aer la capete
   start = Math.floor((start - 30) / 60) * 60;
   end = Math.ceil((end + 30) / 60) * 60;
-  return { start: Math.max(0, start), end: Math.min(24 * 60, end) };
+  return { start: Math.max(0, start), end: Math.min(30 * 60, end) };
 }

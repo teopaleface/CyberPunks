@@ -17,7 +17,7 @@ async function firstIds(): Promise<{ item: string | null; post: string | null; c
 }
 
 const ids = await firstIds();
-const routes = ["/", "/coada", "/alerte", "/jurnal", "/modele", "/demo", "/demo?scena=4", "/debug", "/?harta=posturi"];
+const routes = ["/", "/coada", "/alerte", "/jurnal", "/modele", "/posturi", "/demo", "/demo?scena=4", "/debug", "/?harta=posturi", "/?scenariu=maine"];
 if (ids.item) routes.push(`/lucrari/${ids.item}`);
 if (ids.post) routes.push(`/posturi/${ids.post}`);
 routes.push("/lucrari/A-20991231-NU-EXISTA");

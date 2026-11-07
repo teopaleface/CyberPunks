@@ -86,8 +86,8 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
     <AppShell info={info}>
       <section className="border-b border-rule bg-panel">
         <div className="mx-auto flex max-w-[1760px] flex-wrap items-center gap-x-6 gap-y-3 px-7 py-5">
-          <Link href="/" className="text-[15px] text-muted-foreground underline decoration-rule underline-offset-4 hover:text-ink">
-            Planul de mâine
+          <Link href="/posturi" className="text-[15px] text-muted-foreground underline decoration-rule underline-offset-4 hover:text-ink">
+            Toate posturile
           </Link>
           <span className="h-6 w-px bg-rule" aria-hidden="true" />
           <span className="size-7 shrink-0 rounded-full border-2 border-panel" style={{ background: status.color }} aria-hidden="true" />

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "cn";
 
 interface Tab {
@@ -17,6 +17,8 @@ interface Tab {
 /** Ecranele consolei. Contorul de la „Nu sunt sigur” e portocaliu: acolo așteaptă un om. */
 export function NavTabs({ review, alerts }: { review: number; alerts: number }) {
   const pathname = usePathname();
+  const scenario = useSearchParams().get("scenariu");
+  const withScenario = (href: string) => (scenario ? `${href}?scenariu=${encodeURIComponent(scenario)}` : href);
   const tabs: Tab[] = [
     { href: "/", label: "Planul de mâine", match: (p) => p === "/" || p.startsWith("/lucrari") },
     { href: "/coada", label: "Nu sunt sigur", count: review, attention: review > 0, match: (p) => p.startsWith("/coada") },
@@ -31,7 +33,7 @@ export function NavTabs({ review, alerts }: { review: number; alerts: number }) 
         return (
           <Link
             key={t.href}
-            href={t.href}
+            href={withScenario(t.href)}
             aria-current={active ? "page" : undefined}
             className={cn(
               "relative flex items-center gap-2 px-3.5 text-[15px] whitespace-nowrap transition-colors duration-150 max-[1600px]:px-2.5 max-[1600px]:text-[14.5px]",
@@ -51,7 +53,7 @@ export function NavTabs({ review, alerts }: { review: number; alerts: number }) 
               <span
                 className={cn(
                   "inline-grid h-[22px] min-w-[22px] place-items-center rounded-full px-1.5 text-[13px] font-[700] tabular-nums",
-                  t.attention ? "bg-att text-white" : "bg-muted text-ink",
+                  t.attention ? "bg-att text-on-att" : "bg-muted text-ink",
                 )}
               >
                 {t.count}

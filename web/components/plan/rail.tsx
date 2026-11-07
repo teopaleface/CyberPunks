@@ -75,7 +75,7 @@ export function QueuePanel({
           Nu sunt sigur
         </h2>
         {queue.length ? (
-          <span className="inline-grid h-6 min-w-6 place-items-center rounded-full bg-att px-1.5 text-[14px] font-[700] text-white">
+          <span className="inline-grid h-6 min-w-6 place-items-center rounded-full bg-att px-1.5 text-[14px] font-[700] text-on-att">
             {queue.length}
           </span>
         ) : null}
@@ -237,8 +237,12 @@ export function WorkItemPeek({
   crewInfo,
   scenario,
   highlight = false,
+  detailError = null,
+  onRetry,
 }: {
   highlight?: boolean;
+  detailError?: string | null;
+  onRetry?: () => void;
   w: WorkItem | null;
   decision: Decision | null;
   crewInfo: { crewId: string; seq: number; start: string; end: string } | null;
@@ -319,8 +323,18 @@ export function WorkItemPeek({
         </dd>
 
         <dt>De ce</dt>
-        <dd className="space-y-1.5" aria-busy={slim}>
-          {slim
+        <dd className="space-y-1.5" aria-busy={slim && !detailError}>
+          {slim && detailError ? (
+            <div role="alert" className="text-[14.5px]">
+              <p>Detaliile nu s-au încărcat: {detailError}</p>
+              {onRetry ? (
+                <button type="button" onClick={onRetry} className="mt-1 font-[600] underline decoration-rule underline-offset-4 hover:decoration-ink">
+                  Reîncearcă
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+          {slim && !detailError
             ? [0, 1, 2].map((i) => (
                 <div key={i} className="grid grid-cols-[minmax(0,1fr)_140px_48px] items-center gap-x-3" aria-hidden="true">
                   <span className="h-3.5 animate-pulse rounded-[2px] bg-muted" style={{ width: `${78 - i * 14}%` }} />

@@ -171,11 +171,15 @@ export function toPlanScreenData(view: PlanView, fullIds: string[] = []): PlanSc
   }
 
   // lei recuperați (estimat): valoarea așteptată a lucrărilor aprobate de om, câte o dată
-  const approved = new Set<string>();
+  const lastHuman = new Map<string, { ts: string; approve: boolean }>();
   for (const a of view.audit ?? []) {
+    if (a.actor !== "human" || !a.work_item_id) continue;
     const act = (a.action ?? "").toLowerCase();
-    if (a.actor === "human" && a.work_item_id && (act.includes("approve") || act === "aprob" || a.rule_id === "R-HUMAN-APPROVE")) approved.add(a.work_item_id);
+    const approve = act.includes("approve") || act === "aprob" || a.rule_id === "R-HUMAN-APPROVE";
+    const prev = lastHuman.get(a.work_item_id);
+    if (!prev || a.ts >= prev.ts) lastHuman.set(a.work_item_id, { ts: a.ts, approve });
   }
+  const approved = new Set([...lastHuman].filter(([, v]) => v.approve).map(([id]) => id));
   const recovered = {
     count: approved.size,
     lei: [...approved].reduce((sum, id) => sum + (view.workItemsById[id]?.impact.expected_value_lei ?? 0), 0),
@@ -190,7 +194,10 @@ export function toPlanScreenData(view: PlanView, fullIds: string[] = []): PlanSc
     summary: plan.summary,
     items: view.workItems.map((w) => (fullIds.includes(w.work_item_id) ? w : slimItem(w))),
     decisions,
-    routes: view.routes,
+    routes: view.routes.map((r) => ({
+      ...r,
+      stops: r.stops.map((s) => ({ ...s, workItem: null, decision: null })),
+    })),
     depots: view.depots,
     crews: view.crews,
     alerts: plan.alerts ?? [],

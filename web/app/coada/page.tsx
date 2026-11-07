@@ -70,7 +70,7 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
         <div className="flex items-center gap-3">
           <h1 className="text-[30px] leading-tight font-[650]">Nu sunt sigur</h1>
           {waiting.length ? (
-            <span className="inline-grid h-8 min-w-8 place-items-center rounded-full bg-att px-2.5 text-[17px] font-[700] text-white tabular-nums">
+            <span className="inline-grid h-8 min-w-8 place-items-center rounded-full bg-att px-2.5 text-[17px] font-[700] text-on-att tabular-nums">
               {waiting.length}
               <span className="sr-only"> {waiting.length === 1 ? "lucrare așteaptă" : "lucrări așteaptă"} un om</span>
             </span>

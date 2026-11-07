@@ -9,6 +9,8 @@ import { toPlanScreenData } from "@/lib/plan-screen";
 import { getPosts } from "@/lib/data/posts";
 import { loadLocatorGeo } from "@/lib/server/geo";
 import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
+import { DEFAULT_SCENARIO } from "@/lib/data";
+import { RunAgentButton } from "@/components/shell/run-agent";
 
 export default function PlanPage({ searchParams }: PageProps<"/">) {
   return (
@@ -28,15 +30,20 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/">["searchPara
     getPosts(scenario).catch(() => null),
   ]);
 
-  if (!view.data) {
+  // fixture-urile țin locul doar scenariului implicit; alt scenariu fără plan primește o stare goală cinstită
+  if (!view.data || (view.source === "fixtures" && scenario !== DEFAULT_SCENARIO)) {
+    const label = info.scenarios.find((s) => s.id === scenario)?.label ?? scenario;
     return (
       <AppShell info={info}>
-        <div className="mx-auto max-w-[640px] px-7 py-20">
-          <h1 className="text-[26px] font-[650]">Nu există încă un plan pentru „{scenario}”</h1>
+        <div className="mx-auto max-w-[680px] px-7 py-20">
+          <h1 className="text-[26px] font-[650]">Nu există încă un plan pentru „{label}”</h1>
           <p className="mt-3 text-[16px] leading-relaxed text-muted-foreground">
-            {view.degradedReason ?? "Agentul n-a rulat încă pentru acest scenariu."} Apasă „Rulează agentul” ca să-l
-            calculeze acum, sau alege alt scenariu din antet.
+            Agentul n-a rulat încă pentru acest scenariu{view.degradedReason ? ` (${view.degradedReason})` : ""}. Pornește-l acum sau
+            alege alt scenariu din antet.
           </p>
+          <div className="mt-6">
+            <RunAgentButton scenario={scenario} scenarioLabel={label} />
+          </div>
         </div>
       </AppShell>
     );
@@ -49,7 +56,13 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/">["searchPara
   // lucrarea selectată la început vine întreagă (fără așteptare); restul se încarcă la cerere
   const data = initialSelected ? toPlanScreenData(view.data, [initialSelected]) : slimData;
   // aprobarea listei: din jurnal (API) sau, dacă API-ul n-o are încă, din cookie-ul acestui browser
-  const fromAudit = view.data.audit.find((a) => a.actor === "human" && /plan/i.test(a.action) && /aprob|approv/i.test(a.action));
+  const fromAudit = view.data.audit.find(
+    (a) =>
+      a.actor === "human" &&
+      /plan/i.test(a.action) &&
+      /aprob|approv/i.test(a.action) &&
+      Date.parse(a.ts) >= Date.parse(view.data!.plan.generated_at),
+  );
   const cookie = (await cookies()).get(`aprobat_${scenario}`)?.value;
   const [cookiePlan, cookieAt] = cookie ? cookie.split("|") : [];
   const approval = fromAudit
@@ -68,6 +81,7 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/">["searchPara
         crewsTotal={data.crews.length}
       />
       <PlanScreen
+        key={`${scenario}:${data.planId}`}
         data={data}
         geo={geo}
         initialSelected={initialSelected}

@@ -24,7 +24,7 @@ export function markerKind(decision: DecisionType | null | undefined): MarkerKin
 }
 
 const COLOR: Record<Source, string> = { A: "var(--src-a)", B: "var(--src-b)", C: "var(--src-c)" };
-const ON: Record<Source, string> = { A: "#fff", B: "#fff", C: "var(--ink)" };
+const ON: Record<Source, string> = { A: "var(--on-src)", B: "var(--on-src)", C: "var(--ink)" };
 const OUTLINE: Record<Source, boolean> = { A: false, B: false, C: true };
 
 export interface MarkerOpts {

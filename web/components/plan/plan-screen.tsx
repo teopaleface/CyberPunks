@@ -1,13 +1,14 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { cn } from "cn";
 import type { WorkItem } from "@/lib/contracts";
 import { DECISION_LABEL_RO } from "@/lib/data/labels";
 import type { PostSummary } from "@/lib/data/types";
-import { fmtDec, fmtInt, hhmm, minutesOfDay } from "@/lib/format";
+import { fmtDec, fmtInt, hhmm, minutesOfPlanDay } from "@/lib/format";
 import { markerKind, markerSvg } from "@/lib/marker-svg";
 import { loadWorkItemDetail } from "@/lib/data/actions";
 import { RE_BOUNDS, isSlim, itemTitle, type PlanScreenData } from "@/lib/plan-screen";
@@ -66,12 +67,12 @@ export function PlanScreen({
     const m = new Map<string, { crewId: string; seq: number; start: number; end: number }>();
     for (const r of data.routes) {
       for (const s of r.stops) {
-        const start = minutesOfDay(s.eta);
+        const start = minutesOfPlanDay(s.eta, data.planDate);
         m.set(s.work_item_id, { crewId: r.crew_id, seq: s.seq, start, end: start + s.duration_min });
       }
     }
     return m;
-  }, [data.routes]);
+  }, [data.routes, data.planDate]);
 
   const [selected, setSelected] = useState<string | null>(initialSelected);
   const [region, setRegionState] = useState<string>(() => {
@@ -188,20 +189,36 @@ export function PlanScreen({
   );
   // detaliile lucrării selectate (factori, cazuri similare) se încarcă la cerere și rămân în cache
   const [details, setDetails] = useState<Record<string, WorkItem>>({});
+  const [detailErrors, setDetailErrors] = useState<Record<string, string>>({});
+  const [retry, setRetry] = useState(0);
   const [, startDetail] = useTransition();
   const selectedBase = selected ? itemsById[selected] : undefined;
-  const needsDetail = Boolean(selected && selectedBase && isSlim(selectedBase) && !details[selected]);
+  const needsDetail = Boolean(selected && selectedBase && isSlim(selectedBase) && !details[selected] && !detailErrors[selected]);
   useEffect(() => {
     if (!needsDetail || !selected) return;
     let cancelled = false;
     startDetail(async () => {
-      const r = await loadWorkItemDetail(selected, data.scenario);
-      if (!cancelled && r.ok) setDetails((d) => ({ ...d, [selected]: r.workItem }));
+      try {
+        const r = await loadWorkItemDetail(selected, data.scenario);
+        if (cancelled) return;
+        if (r.ok) setDetails((d) => ({ ...d, [selected]: r.workItem }));
+        else setDetailErrors((e) => ({ ...e, [selected]: r.error }));
+      } catch {
+        if (!cancelled) setDetailErrors((e) => ({ ...e, [selected]: "Consola nu a putut cere detaliile (serverul nu răspunde)." }));
+      }
     });
     return () => {
       cancelled = true;
     };
-  }, [needsDetail, selected, data.scenario]);
+  }, [needsDetail, selected, data.scenario, retry]);
+  const retryDetail = useCallback((id: string) => {
+    setDetailErrors((e) => {
+      const next = { ...e };
+      delete next[id];
+      return next;
+    });
+    setRetry((n) => n + 1);
+  }, []);
   const selItem = selected ? (details[selected] ?? itemsById[selected] ?? null) : null;
   const selStop = selected ? stopInfo.get(selected) : undefined;
 
@@ -249,6 +266,8 @@ export function PlanScreen({
           <AlertsPanel alerts={data.alerts} onSelect={select} />
           <WorkItemPeek
             highlight={spotlight === "peek"}
+            detailError={selected ? (detailErrors[selected] ?? null) : null}
+            onRetry={selected ? () => retryDetail(selected) : undefined}
             w={selItem}
             decision={selected ? (data.decisions[selected] ?? null) : null}
             crewInfo={selStop ? { crewId: selStop.crewId, seq: selStop.seq, start: hhmm(selStop.start), end: hhmm(selStop.end) } : null}
@@ -269,6 +288,7 @@ export function PlanScreen({
         onSelect={select}
         scenario={data.scenario}
         planId={data.planId}
+        planDate={data.planDate}
         approval={approval ?? null}
       />
     </>
@@ -452,6 +472,9 @@ function PostsLegend({ derived, note }: { derived: boolean; note: string | null 
         <span className="flex items-center gap-1.5">{dot("#c8321e")}peste 600</span>
         <span className="flex items-center gap-1.5">{dot("#9aa4a9")}necunoscut</span>
         <span className="text-muted-foreground">cercul mai mare, pierdere mai mare; clic pe un post pentru pagina lui</span>
+        <Link href="/posturi" className="font-[560] underline decoration-rule underline-offset-4 hover:decoration-ink">
+          Lista posturilor
+        </Link>
       </div>
       <p className="mt-1 text-[12.5px] text-muted-foreground">
         {derived

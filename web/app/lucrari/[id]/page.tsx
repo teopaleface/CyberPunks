@@ -112,7 +112,7 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
             <span
               className={
                 "rounded-[4px] px-3 py-1.5 text-[15px] font-[600] " +
-                (decision.decision === "human_review" ? "bg-att text-white" : "bg-ink text-panel")
+                (decision.decision === "human_review" ? "bg-att text-on-att" : "bg-ink text-panel")
               }
             >
               {sentence(DECISION_LABEL_RO[decision.decision]).replace(/\.$/, "")}
