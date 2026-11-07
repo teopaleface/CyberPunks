@@ -16,8 +16,10 @@ from cyberpunks.planner.settings import Settings
 def _post_of(wi: dict[str, Any]) -> str | None:
     if wi.get("asset_type") == "transformer_post":
         return wi.get("asset_id")
-    extra = wi.get("extra") or {}
-    return extra.get("post_id") or (extra.get("fusion") or {}).get("post_id")
+    extra = wi.get("extra") if isinstance(wi.get("extra"), dict) else {}
+    fusion = extra.get("fusion") if isinstance(extra.get("fusion"), dict) else {}
+    post = extra.get("post_id") or fusion.get("post_id")
+    return str(post) if isinstance(post, (str, int)) and str(post) else None
 
 
 def _color(loss: float | None, settings: Settings) -> str:
@@ -61,7 +63,7 @@ def overview(plan: dict[str, Any] | None, items: list[dict[str, Any]], settings:
         e = entry(pid)
         d = decisions.get(wi["work_item_id"]) or {}
         loc = wi.get("location") or {}
-        extra = wi.get("extra") or {}
+        extra = wi.get("extra") if isinstance(wi.get("extra"), dict) else {}
         e["synthetic"] = e["synthetic"] and bool((wi.get("data_quality") or {}).get("synthetic", True))
         if wi.get("asset_type") == "transformer_post" and e["lat"] is None:
             e.update(lat=loc.get("lat"), lon=loc.get("lon"), zone_id=loc.get("zone_id"), label=loc.get("label") or pid)
@@ -80,7 +82,7 @@ def overview(plan: dict[str, Any] | None, items: list[dict[str, Any]], settings:
         elif wi["source"] == "A":
             e["meters_flagged"] += 1
             e["meter_work_item_ids"].append(wi["work_item_id"])
-            fusion = extra.get("fusion") or {}
+            fusion = extra.get("fusion") if isinstance(extra.get("fusion"), dict) else {}
             if e["loss_lei_month"] is None and isinstance(fusion.get("post_excess_loss_lei_month"), (int, float)):
                 e["loss_lei_month"] = float(fusion["post_excess_loss_lei_month"])
             if e["lat"] is None:

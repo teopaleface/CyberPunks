@@ -151,12 +151,39 @@ def build_routing(ctx: Context, proposals: list) -> Any:
 
 
 def _unique_quarantine_ids(loads: dict[str, SourceLoad]) -> None:
-    """O linie respinsă nu are voie să aibă același ID cu o lucrare validă (de exemplu varianta corectată, mai jos în fișier)."""
-    valid = {it.id for load in loads.values() for it in load.items}
-    for load in loads.values():
+    """Fiecare decizie are un ID unic: o linie respinsă nu ia ID-ul unei lucrări valide sau al altei linii respinse,
+    nici din alt fișier (A.jsonl și A_bilant.jsonl au aceeași sursă)."""
+    used = {it.id for load in loads.values() for it in load.items}
+    for key, load in loads.items():
         for q in load.quarantined:
-            if q.work_item_id in valid:
-                q.work_item_id = f"{q.work_item_id}~linia{q.line}"
+            qid = q.work_item_id
+            if qid in used:
+                base = qid.split("~", 1)[0]
+                qid = f"{base}~{key}-linia{q.line}"
+                n = 2
+                while qid in used:
+                    qid, n = f"{base}~{key}-linia{q.line}-{n}", n + 1
+            q.work_item_id = qid
+            used.add(qid)
+
+
+def replay_fusion(items: list[Item], path: Path) -> tuple[list[Item], list[tuple[Item, BilantFusion]], dict[str, Any]]:
+    """Fuziunea salvată la rulare, aplicată din nou la replanificare (aceleași intrări → aceleași decizii)."""
+    saved = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            row = json.loads(line)
+            saved[row["work_item_id"]] = row
+    out, events = [], []
+    for it in items:
+        row = saved.get(it.id)
+        if row is None or row.get("sha256") != it.sha256:
+            out.append(it)
+            continue
+        fused = Item(WorkItem.model_validate(row["item"]), it.sha256, it.line_no, it.origin)
+        out.append(fused)
+        events.append((fused, BilantFusion.model_validate(row["fusion"])))
+    return out, events, {"status": "ok (reluată din rulare)", "fused": len(events), "rejected": 0}
 
 
 def _module_available(name: str) -> bool:
@@ -246,7 +273,13 @@ def _decide_and_act(
     ctx = Context.build(settings, plan_date, as_of=as_of, overrides=overrides)
     _unique_quarantine_ids(loads)
     items = [it for key in loads for it in loads[key].items]
-    items, fusion_events, fusion_meta = apply_fusion(items, scenario, plan_date)
+    plan_dir.mkdir(parents=True, exist_ok=True)
+    if append_audit and (plan_dir / "fusion.jsonl").exists():
+        items, fusion_events, fusion_meta = replay_fusion(items, plan_dir / "fusion.jsonl")  # replanificarea refolosește fuziunea rulării
+    else:
+        items, fusion_events, fusion_meta = apply_fusion(items, scenario, plan_date)
+        write_jsonl(plan_dir / "fusion.jsonl", [{"work_item_id": it.id, "sha256": it.sha256, "item": it.wi.model_dump(mode="json"),
+                                                 "fusion": f.model_dump(mode="json")} for it, f in fusion_events])
     proposals = decide(ctx, items)
     pb = build_routing(ctx, proposals)
     rr = solve(
@@ -308,10 +341,12 @@ def _decide_and_act(
         }
     )
     write_json(plan_dir / "remedies.json", meta["remedies"])
+    actions = {wid: p.action for wid, p in outcome.final.items()}
+    write_json(plan_dir / "actions.json", actions)
     try:
         from cyberpunks.planner.workorders import write_work_orders
 
-        meta["work_orders"] = [p.name for p in write_work_orders(plan, items, plan_dir, settings)]
+        meta["work_orders"] = [p.name for p in write_work_orders(plan, items, plan_dir, settings, actions=actions)]
     except ImportError:
         meta["work_orders"] = []
     try:

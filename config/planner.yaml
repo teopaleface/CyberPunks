@@ -9,6 +9,7 @@ global:
   max_interval_width: 0.5           # interval de încredere mai larg de 0,5 = modelul nu e sigur, chiar dacă nu s-a abținut
   max_missing_ratio: 0.4            # peste 40% date lipsă la intrare, scorul nu e de încredere
   safety_priority_multiplier: 3.0   # riscul pentru oameni triplează prioritatea și intră primul în traseu
+  safety_mandatory: true            # un caz cu risc pentru oameni intră în traseu oricare ar fi valoarea (siguranța înainte de bani); costul regulii e în evaluare
   degraded_invalid_share: 0.2       # peste 20% linii respinse, sursa e "degraded"
 
 meters:                             # A

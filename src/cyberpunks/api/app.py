@@ -168,7 +168,10 @@ def work_item(work_item_id: str, scenario: str = DEFAULT_SCENARIO) -> dict[str, 
         raise HTTPException(404, f"lucrarea {work_item_id} nu există în scenariul {scenario!r}")
     plan = view.plan() or {}
     decision = next((d for d in plan.get("decisions", []) if d.get("work_item_id") == work_item_id), None)
-    return {**item, "decision": decision}
+    from cyberpunks.api.store import read_json
+
+    actions = (read_json(view.plan_dir / "actions.json") or {}) if view.mode != "fixtures" else {}
+    return {**item, "decision": decision, "action": actions.get(work_item_id)}
 
 
 @api.get("/series/{work_item_id}")
@@ -317,7 +320,8 @@ def approve_route(crew_id: str, req: ApproveRequest, scenario: str = Query(DEFAU
 def approvals(scenario: str = DEFAULT_SCENARIO) -> list[dict[str, Any]]:
     from cyberpunks.planner import feedback
 
-    return feedback.approvals(_scenario(scenario), out_root=store.outputs)
+    view = store.view(_scenario(scenario))
+    return [] if view.mode == "fixtures" else feedback.approvals(scenario, out_root=view.root)
 
 
 @api.post("/verdict/{work_item_id}")
@@ -343,7 +347,8 @@ def verdict(work_item_id: str, req: VerdictRequest, scenario: str = Query(DEFAUL
 def labels(scenario: str = DEFAULT_SCENARIO) -> list[dict[str, Any]]:
     from cyberpunks.planner import feedback
 
-    return feedback.labels(_scenario(scenario), out_root=store.outputs)
+    view = store.view(_scenario(scenario))
+    return [] if view.mode == "fixtures" else feedback.labels(scenario, out_root=view.root)
 
 
 @api.get("/rules")

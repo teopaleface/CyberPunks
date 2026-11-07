@@ -24,7 +24,7 @@ from cyberpunks.common.contracts import (
     Route,
     Stop,
 )
-from cyberpunks.planner.decide import AlertSpec, Context, NotificationSpec, Proposal, _final
+from cyberpunks.planner.decide import AlertSpec, Context, NotificationSpec, Proposal, _final, outage_message
 from cyberpunks.planner.ingest import Quarantined, SourceLoad
 from cyberpunks.planner.routing import RoutingResult, at_minutes
 from cyberpunks.planner.settings import TZ
@@ -52,6 +52,18 @@ class Outcome:
     notifications: list[Notification]
     routes: list[Route]
     final: dict[str, Proposal] = field(default_factory=dict)
+
+
+def _outage_at_eta(spec: NotificationSpec, eta: datetime, p: Proposal, plan_date, asset_id: str) -> NotificationSpec:
+    """Anunțul de întrerupere pentru mâine spune orele reale ale echipei: sosirea rotunjită în jos la jumătate de oră,
+    sfârșitul (sosire + durata lucrării, cel puțin durata întreruperii) rotunjit în sus la jumătate de oră."""
+    start = eta.replace(minute=0 if eta.minute < 30 else 30, second=0, microsecond=0)
+    minutes = max(int((spec.outage_hours or 1.0) * 60), p.duration_min or p.wi.effort.duration_min)
+    end = eta + timedelta(minutes=minutes)
+    extra = (30 - end.minute % 30) % 30
+    end = (end + timedelta(minutes=extra)).replace(second=0, microsecond=0)
+    text = outage_message(spec.outage_label or asset_id, plan_date, hhmm(start), hhmm(end))
+    return NotificationSpec(spec.audience, text, spec.scheduled_for, spec.outage_on, spec.outage_label, spec.outage_hours)
 
 
 def _f(d: dict[str, Any]) -> dict[str, float]:
@@ -173,6 +185,8 @@ def finalize(
         for spec in p.alerts:
             pending_alerts.append((spec, p))
         for spec in p.notifications:
+            if spec.outage_on == plan_date and p.decision == DecisionType.assigned and p.id in eta_of:
+                spec = _outage_at_eta(spec, eta_of[p.id], p, plan_date, wi.asset_id)
             add_notification(spec, wi.asset_id, p.id)
         if p.decision == DecisionType.assigned and p.action == "preposition_crew" and crew:
             eta = eta_of.get(p.id)

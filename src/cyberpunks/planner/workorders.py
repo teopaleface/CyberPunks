@@ -32,17 +32,28 @@ def _t(dt: datetime) -> datetime:
     return dt.astimezone(TZ)
 
 
+_ACTION: dict[str, str] = {}  # work_item_id -> acțiunea aleasă de agent (setat de write_work_orders)
+
+LABELS = {
+    "inspect_on_site": "Verificare contor",
+    "preposition_crew": "Echipă trimisă din timp (furtună)",
+    "adjust_tap": "Schimbare priză transformator",
+    "measurement_campaign": "Montare analizor de calitate",
+    "grid_inspection": "Inspecție de rețea la post (bilanț)",
+    "phase_rebalance": "Mutarea unor case pe altă fază",
+}
+
+
+def _action(wi: WorkItem) -> str:
+    """Acțiunea aleasă de agent pentru lucrare (din plan); dacă lipsește, recomandarea modelului."""
+    return _ACTION.get(wi.work_item_id) or wi.recommended_action.value
+
+
 def _kind_label(wi: WorkItem) -> str:
-    a = wi.recommended_action.value
-    if wi.source.value == "A":
-        return "Verificare contor"
-    if wi.source.value == "B":
-        return "Echipă trimisă din timp (furtună)"
-    if a == "adjust_tap":
-        return "Schimbare priză transformator"
-    if a == "measurement_campaign":
-        return "Montare analizor de calitate"
-    return ACTION_RO.get(a, a).capitalize()
+    a = _action(wi)
+    if a == "inspect_on_site" and wi.asset_type.value == "transformer_post":
+        return "Verificare contor de bilanț la post"
+    return LABELS.get(a) or ACTION_RO.get(a, a).capitalize()
 
 
 class _Pdf(FPDF):
@@ -141,7 +152,26 @@ class _Pdf(FPDF):
 
 
 def _steps(wi: WorkItem) -> list[str]:
-    src, act = wi.source.value, wi.recommended_action.value
+    src, act = wi.source.value, _action(wi)
+    if act == "grid_inspection":
+        return [
+            "Verificați postul și plecările de joasă tensiune: conexiuni încălzite, cabluri, încărcarea pe faze.",
+            "Măsurați curenții pe faze la ora de vârf; notați dezechilibrul.",
+            "Căutați legături neautorizate înainte de contoare pe plecările cu pierderi.",
+            "Nu lucrați sub tensiune; separarea după foaia de manevră.",
+        ]
+    if act == "phase_rebalance":
+        return [
+            "Întrerupere planificată scurtă doar pentru casele mutate: confirmați cu dispeceratul ora anunțată.",
+            "Mutați branșamentele indicate de dispecer de pe faza încărcată pe faza cea mai puțin încărcată.",
+            "Măsurați tensiunile pe faze înainte și după mutare și notați-le mai jos.",
+        ]
+    if src == "A" and wi.asset_type.value == "transformer_post":
+        return [
+            "Verificați contorul de bilanț al postului: constanta de transformare, conexiunile, sigiliile.",
+            "Comparați indexul cu citirea de la distanță din sistem și notați diferența.",
+            "Nu atingeți părți aflate sub tensiune.",
+        ]
     if src == "A":
         return [
             "Citiți indexul contorului și verificați sigiliile.",
@@ -174,10 +204,11 @@ def _steps(wi: WorkItem) -> list[str]:
 
 
 def _safety_form(wi: WorkItem) -> str:
-    if wi.source.value == "A":
-        return "Dispoziție verbală (DV) sau atribuții de serviciu (AS); fără lucru sub tensiune."
-    if wi.source.value == "C" and wi.recommended_action.value == "adjust_tap":
+    act = _action(wi)
+    if act in ("adjust_tap", "phase_rebalance"):
         return "Autorizație de lucru (AL) necesară; foaie de manevră nr. ______; întrerupere planificată anunțată."
+    if wi.source.value == "A" and act == "inspect_on_site":
+        return "Dispoziție verbală (DV) sau atribuții de serviciu (AS); fără lucru sub tensiune."
     return "Autorizație de lucru (AL) la intervenție."
 
 
@@ -449,10 +480,12 @@ def _heading_style():
     return FontFace(emphasis="BOLD", color=(255, 255, 255), fill_color=NAVY)
 
 
-def write_work_orders(plan: Plan, items: list[Item], plan_dir: Path, settings: Settings) -> list[Path]:
+def write_work_orders(plan: Plan, items: list[Item], plan_dir: Path, settings: Settings, actions: dict[str, str] | None = None) -> list[Path]:
     """Writes plan_dir/work_orders/<crew_id>.pdf for every route in plan.routes; deletes stale PDFs of crews no longer in the plan; returns the written paths."""
     out = Path(plan_dir) / "work_orders"
     out.mkdir(parents=True, exist_ok=True)
+    _ACTION.clear()
+    _ACTION.update(actions or {})
     by_id = {i.id: i.wi for i in items}
     decs = {d.work_item_id: d for d in plan.decisions}
     crews = {c.crew_id: c for c in settings.crews}

@@ -119,7 +119,7 @@ def test_9_invalid_then_valid_same_id_gets_one_decision_each(out_root: Path) -> 
     ids = [x.work_item_id for x in res.plan.decisions]
     assert len(ids) == len(set(ids)) == 2
     assert _decisions(res)[good["work_item_id"]].decision.value != "rejected_invalid"
-    assert f"{good['work_item_id']}~linia1" in ids
+    assert f"{good['work_item_id']}~A-linia1" in ids
 
 
 def test_10_unreachable_storms_do_not_use_the_region_cap(out_root: Path) -> None:

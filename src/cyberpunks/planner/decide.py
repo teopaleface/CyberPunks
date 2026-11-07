@@ -53,6 +53,9 @@ class NotificationSpec:
     audience: str  # prosumatori | clienti_zona | echipa
     message_ro: str
     scheduled_for: datetime
+    outage_on: date | None = None  # anunț de întrerupere planificată: ziua; orele se pun după traseu, dacă e mâine
+    outage_label: str | None = None
+    outage_hours: float | None = None
 
 
 @dataclass
@@ -462,7 +465,7 @@ def rule_safety(ctx: Context, item: Item) -> Proposal | None:
     mult = float(ctx.g("safety_priority_multiplier", 3.0))
     reason = f"Risc pentru siguranța oamenilor ({_factors(wi, 1)}, scor {pct(wi.prediction.score)}): intră primul în traseu, oricare ar fi costul."
     p = _route(ctx, item, "R-SAFETY", reason, action, costs, {"safety_flag": 1.0, "safety_priority_multiplier": mult})
-    p.mandatory = True
+    p.mandatory = bool(ctx.g("safety_mandatory", True))  # siguranța înainte de bani (config: global.safety_mandatory)
     p.priority = max(p.priority or 0.0, round(wi.impact.expected_value_lei * mult, 2))
     p.alerts.append(
         AlertSpec(
@@ -770,14 +773,20 @@ def _prosumer_message(ctx: Context, wi: WorkItem) -> NotificationSpec:
     return NotificationSpec("prosumatori", msg, _send_time(ctx))
 
 
-def _outage_notice(ctx: Context, wi: WorkItem, on: date) -> NotificationSpec:
-    hours = ctx.settings.econ("voltage", "planned_outage_hours", 1.0)
-    end_h = 9 + round(hours)
-    msg = (
-        f"Rețele Electrice: {zi(on)}, între 09:00 și {end_h:02d}:00, alimentarea cu energie electrică va fi întreruptă "
-        f"în zona postului de transformare {_label(wi)}, pentru lucrări de reglaj al tensiunii. Ne cerem scuze pentru neplăcere."
+def outage_message(label: str, on: date, start: str, end: str) -> str:
+    return (
+        f"Rețele Electrice: {zi(on)}, între {start} și {end}, alimentarea cu energie electrică va fi întreruptă "
+        f"în zona postului de transformare {label}, pentru lucrări de reglaj al tensiunii. Ne cerem scuze pentru neplăcere."
     )
-    return NotificationSpec("clienti_zona", msg, _send_time(ctx))
+
+
+def _outage_notice(ctx: Context, wi: WorkItem, on: date) -> NotificationSpec:
+    """Anunțul unei întreruperi planificate. Pentru o zi viitoare, intervalul e cel standard (09:00 plus durata);
+    pentru lucrările din traseul de mâine, orele se înlocuiesc după ora de sosire a echipei (actions.finalize)."""
+    hours = ctx.settings.econ("voltage", "planned_outage_hours", 1.0)
+    end = (datetime.combine(on, datetime.min.time()) + timedelta(hours=9 + hours)).strftime("%H:%M")
+    return NotificationSpec("clienti_zona", outage_message(_label(wi), on, "09:00", end), _send_time(ctx),
+                            outage_on=on, outage_label=_label(wi), outage_hours=hours)
 
 
 REMEDY_RO = {
@@ -823,6 +832,18 @@ def _ladder_notifications(ctx: Context, wi: WorkItem, combo: tuple[RemedyOption,
     return out
 
 
+def _one_scenario_per_message(ctx: Context, opts: list[RemedyOption]) -> list[RemedyOption]:
+    """Mesajele către clienți vin de la C pe mai multe scenarii de participare (10/20/30%). Sunt scenarii ale aceleiași
+    trepte, nu intervenții separate: agentul decide pe scenariul central din config, nu pe cel optimist."""
+    notes = [o for o in opts if o.action == RecommendedAction.notify_customers and o.participation_rate is not None]
+    if len(notes) <= 1:
+        return opts
+    rates = [float(r) for r in (ctx.settings.economics.get("voltage", {}).get("notify_participation_rates") or [0.1, 0.2, 0.3])]
+    central = sorted(rates)[len(rates) // 2]
+    keep = min(notes, key=lambda o: (abs(float(o.participation_rate) - central), -float(o.participation_rate)))
+    return [o for o in opts if o not in notes or o is keep]
+
+
 def rule_remedy_ladder(ctx: Context, item: Item, th: dict[str, float]) -> Proposal | None:
     """Scara de soluții (R-REMEDY-LADDER): cea mai ieftină combinație de trepte care aduce P90 sub limită.
     Efectele treptelor combinate se adună (P90 = P90 inițial + suma efectelor); o treaptă singură folosește p90_after_pu."""
@@ -844,11 +865,14 @@ def rule_remedy_ladder(ctx: Context, item: Item, th: dict[str, float]) -> Propos
     base = pr.point_interval[1] if pr.point_interval else (pr.point_estimate if pr.point_estimate is not None else max(o.p90_after_pu - o.effect_pu for o in opts))
     max_k = int(s.rule("remedy", "max_combination", default=3))
     upgrade = RecommendedAction.transformer_upgrade
+    opts = _one_scenario_per_message(ctx, opts)
     cands: list[tuple[tuple[RemedyOption, ...], float, float]] = []
     for k in range(1, min(max_k, len(opts)) + 1):
         for combo in itertools.combinations(opts, k):
             if k > 1 and (not all(o.combinable for o in combo) or any(o.action == upgrade for o in combo)):
                 continue
+            if len({o.action for o in combo}) < len(combo):
+                continue  # variante ale aceleiași trepte (de exemplu baterii de 5, 10, 15 kWh) sunt alternative, nu se adună
             p90 = combo[0].p90_after_pu if k == 1 else base + sum(o.effect_pu for o in combo)
             cands.append((combo, round(p90, 4), round(sum(o.cost_lei for o in combo), 2)))
     conf = {"high": 0, "medium": 1, "low": 2}
