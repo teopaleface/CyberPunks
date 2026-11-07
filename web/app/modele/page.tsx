@@ -2,6 +2,8 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { PageTitle } from "@/components/ds";
+import { Disclosure } from "@/components/simple/disclosure";
 import { AppShell } from "@/components/shell/app-shell";
 import type { Source } from "@/lib/contracts";
 import { REPO_ROOT, getMetrics } from "@/lib/data";
@@ -9,9 +11,12 @@ import { SOURCE_LABEL_RO } from "@/lib/data/labels";
 import { sentence } from "@/lib/format";
 import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
 import { SOURCE_ORDER } from "@/lib/sources";
+import { ModelsBoard } from "./_components/board";
 import { ErrorAnalysis } from "./_components/error-analysis";
 import { ModelColumn } from "./_components/model-column";
 import { PlannerSection } from "./_components/planner-section";
+
+const WRAP = "mx-auto w-full max-w-[1520px] px-8 pt-7 pb-14 max-md:px-4";
 
 export default function ModelsPage({ searchParams }: PageProps<"/modele">) {
   return (
@@ -43,13 +48,14 @@ async function Models({ searchParams }: { searchParams: PageProps<"/modele">["se
 
   return (
     <AppShell info={info}>
-      <div className="mx-auto max-w-[1760px] px-7 pt-7 pb-16">
-        <h1 className="text-[30px] leading-tight font-[650]">Modelele</h1>
-        <p className="mt-2 max-w-[92ch] text-[16.5px] leading-relaxed">
-          Trei modele antrenate de echipă. Fiecare e evaluat pe un set de test separat, pe care nu l-a văzut la antrenare, și comparat cu un baseline
-          simplu. Orice cifră de pe pagină vine dintr-un script pe care îl poți rula din nou: comanda stă lângă fiecare raport.
-        </p>
-        <p className="mt-1.5 text-[14px] text-muted-foreground">
+      <div className={WRAP}>
+        <PageTitle
+          title="Modele vs. reguli simple."
+          subtitle="Compară performanța modelelor cu reguli simple, arată câștigul agentului, analizează erorile și spune cum refaci cifrele."
+        />
+        <ModelsBoard bundle={bundle} planner={bundle.planner} analysisBy={analysisBy} />
+
+        <p className="mt-5 text-[13.5px] text-muted-foreground">
           {published.length === 3
             ? "Toate cele trei rapoarte sunt publicate"
             : published.length
@@ -59,45 +65,43 @@ async function Models({ searchParams }: { searchParams: PageProps<"/modele">["se
           {metrics.degradedReason ? `. ${sentence(metrics.degradedReason).replace(/\.$/, "")}` : ""}.
         </p>
 
-        <div className="mt-7 grid grid-cols-1 gap-y-10 xl:grid-cols-3 xl:gap-x-0 xl:divide-x xl:divide-rule">
-          {SOURCE_ORDER.map((s, i) => (
-            <div key={s} className={i === 0 ? "min-w-0 xl:pr-9" : i === 2 ? "min-w-0 xl:pl-9" : "min-w-0 xl:px-9"}>
-              <ModelColumn source={s} report={bundle[s]} hasAnalysis={Boolean(analysisBy[s])} />
+        <div className="mt-6">
+          <Disclosure title="Detaliile fiecărui model" hint="Setul de test, baseline-ul, toate metricile, sursele de date">
+            <div className="grid grid-cols-1 gap-y-10 xl:grid-cols-3 xl:gap-x-0 xl:divide-x xl:divide-rule">
+              {SOURCE_ORDER.map((s, i) => (
+                <div key={s} className={i === 0 ? "min-w-0 xl:pr-9" : i === 2 ? "min-w-0 xl:pl-9" : "min-w-0 xl:px-9"}>
+                  <ModelColumn source={s} report={bundle[s]} hasAnalysis={Boolean(analysisBy[s])} />
+                </div>
+              ))}
             </div>
-          ))}
+          </Disclosure>
+          <Disclosure title="Analiza erorilor, pe larg" hint="Textul din rapoarte, fără schimbări">
+            {SOURCE_ORDER.some((s) => analysisBy[s]) ? (
+              <div className="space-y-8">
+                {SOURCE_ORDER.map((s) => {
+                  const md = analysisBy[s];
+                  return md ? <ErrorAnalysis key={s} source={s} md={md} /> : null;
+                })}
+                {SOURCE_ORDER.some((s) => !analysisBy[s]) ? (
+                  <p className="text-[14.5px] text-muted-foreground">
+                    Încă nepublicate:{" "}
+                    {SOURCE_ORDER.filter((s) => !analysisBy[s])
+                      .map((s) => `reports/${s}/error_analysis.md`)
+                      .join(", ")}
+                    .
+                  </p>
+                ) : null}
+              </div>
+            ) : (
+              <p className="text-[15px] text-muted-foreground">
+                Nicio analiză a erorilor nu e publicată încă. Fișierele așteptate: <span className="dense">reports/&lt;A|B|C&gt;/error_analysis.md</span>.
+              </p>
+            )}
+          </Disclosure>
+          <Disclosure title="Agentul față de strategii simple, pe larg" hint="Toate strategiile, robustețea, ipotezele">
+            <PlannerSection planner={bundle.planner} />
+          </Disclosure>
         </div>
-
-        <section aria-labelledby="erori-title" className="mt-12 border-t border-rule pt-6">
-          <h2 id="erori-title" className="text-[24px] font-[650]">
-            Unde greșește modelul
-          </h2>
-          <p className="mt-1.5 max-w-[92ch] text-[15.5px] leading-relaxed text-muted-foreground">
-            Analiza erorilor pe setul de test: unde scade calitatea și ce cazuri scapă. Textul vine neschimbat din raportul fiecărui model.
-          </p>
-          {SOURCE_ORDER.some((s) => analysisBy[s]) ? (
-            <div className="mt-5 space-y-8">
-              {SOURCE_ORDER.map((s) => {
-                const md = analysisBy[s];
-                return md ? <ErrorAnalysis key={s} source={s} md={md} /> : null;
-              })}
-              {SOURCE_ORDER.some((s) => !analysisBy[s]) ? (
-                <p className="text-[14.5px] text-muted-foreground">
-                  Încă nepublicate:{" "}
-                  {SOURCE_ORDER.filter((s) => !analysisBy[s])
-                    .map((s) => `reports/${s}/error_analysis.md`)
-                    .join(", ")}
-                  .
-                </p>
-              ) : null}
-            </div>
-          ) : (
-            <p className="mt-4 text-[15px] text-muted-foreground">
-              Nicio analiză a erorilor nu e publicată încă. Fișierele așteptate: <span className="dense">reports/&lt;A|B|C&gt;/error_analysis.md</span>.
-            </p>
-          )}
-        </section>
-
-        <PlannerSection planner={bundle.planner} />
       </div>
     </AppShell>
   );

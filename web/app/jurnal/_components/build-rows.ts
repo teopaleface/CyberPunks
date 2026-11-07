@@ -4,7 +4,8 @@
  */
 import type { AuditRecord, DecisionType, WorkItem } from "@/lib/contracts";
 import { DECISION_LABEL_RO, ruleRo, thresholdLabelRo, thresholdValueRo } from "@/lib/data/labels";
-import { fmtMoment, fmtScore, fmtTime, plural } from "@/lib/format";
+import { fmtLei, fmtMoment, fmtScore, fmtTime, plural } from "@/lib/format";
+import { roundPct } from "@/lib/human";
 import { markerKind, type MarkerKind } from "@/lib/marker-svg";
 import { itemPlace, itemTitle } from "@/lib/plan-screen";
 import { sourceOf } from "@/lib/sources";
@@ -105,6 +106,32 @@ function thresholds(t: AuditRecord["threshold"]): JournalThreshold[] {
     .map(([key, v]) => ({ key, label: EXTRA_THRESHOLD_RO[key] ?? thresholdLabelRo(key), value: thresholdValue(key, v) }));
 }
 
+/** Un singur prag, cel care a hotărât, în cuvinte: „3.528 lei > 310 lei”, „266 V > 253 V”. */
+export function mainThreshold(t: AuditRecord["threshold"]): string | null {
+  const v = (k: string) => (typeof t?.[k] === "number" && Number.isFinite(t[k]) ? t[k] : null);
+  const cmp = (a: number, b: number, fa: (n: number) => string, fb = fa) => `${fa(a)} ${a >= b ? ">" : "<"} ${fb(b)}`;
+  const volt = (pu: number) => `${Math.round(pu * 230)} V`;
+  const vmax = v("vmax_p90_pu");
+  const lim = v("overvoltage_limit_pu");
+  if (vmax !== null && lim !== null) return cmp(vmax, lim, volt);
+  const ev = v("expected_value_lei");
+  for (const k of ["visit_cost_lei", "preposition_cost_lei", "human_review_min_ev_lei"]) {
+    const c = v(k);
+    if (ev !== null && c !== null) return cmp(ev, c, (n) => fmtLei(n));
+  }
+  const score = v("score");
+  for (const k of ["min_score", "alert_min_score", "remote_min_score"]) {
+    const m = v(k);
+    if (score !== null && m !== null) return `${roundPct(score)} ${score >= m ? "≥" : "<"} ${roundPct(m)}`;
+  }
+  const comb = v("combined_score");
+  if (comb !== null && score === null) return `scor combinat ${roundPct(comb)}`;
+  if (v("safety_flag")) return "risc pentru oameni";
+  if (v("abstain")) return "modelul nu e sigur";
+  if (ev !== null) return fmtLei(ev);
+  return null;
+}
+
 function kindOf(r: AuditRecord): JournalKind {
   if (RUN_ACTIONS.has(r.action)) return "run";
   return r.actor === "human" ? "review" : "decision";
@@ -172,6 +199,9 @@ export function buildRows(records: AuditRecord[], workItemsById: Record<string, 
       actionLabel: actionLabel(r.action),
       attention: r.action === "human_review",
       workItemId: id,
+      assetId: id ? id.replace(/^[A-Z]+-\d{8}-/, "") : null,
+      score: r.threshold?.score ?? r.threshold?.a_score ?? w?.prediction.score ?? null,
+      mainThreshold: mainThreshold(r.threshold),
       source: id ? sourceOf(id) : null,
       marker: markerOf(r),
       itemTitle: w ? shortTitle(w) : null,
