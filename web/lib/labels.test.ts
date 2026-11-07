@@ -105,3 +105,16 @@ describe("alertele, față de decizii", () => {
     expect(alertOutcomeRo(["x", "y"], decisions)).toBeNull();
   });
 });
+
+describe("jurnalul real, în cuvinte", () => {
+  test("acțiunea de fuziune, pragurile noi, valorile da/nu", () => {
+    expect(auditActionRo("fusion")).toBe("verificat cu bilanțul");
+    expect(thresholdLabelRo("a_score")).toBe("scorul modelului A");
+    expect(thresholdValueRo("fusion_confirmed", true)).toBe("da");
+    expect(thresholdValueRo("smart_meter", false)).toBe("nu");
+    expect(thresholdValueRo("post_excess_loss_lei_month", 5019.34)).toBe("5.019 lei pe lună");
+    expect(thresholdValueRo("post_excess_loss_kwh_day", 239.02)).toBe("239,0 kWh/zi");
+    expect(thresholdValueRo("participation_rate", 0.1)).toBe("10%");
+    expect(thresholdValueRo("fusion_a_score", 0.981)).toBe("0,98");
+  });
+});

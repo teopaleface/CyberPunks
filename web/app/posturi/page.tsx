@@ -4,10 +4,10 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { SyntheticGlyph } from "@/components/shell/provenance";
 import { AppShell } from "@/components/shell/app-shell";
-import { getPosts } from "@/lib/data/posts";
+import { getPosts, withBilantLoss } from "@/lib/data/posts";
 import { BILANT_LABEL } from "@/lib/extras";
 import { fmtDec, fmtInt, fmtLei } from "@/lib/format";
-import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
+import { loadPlanView, loadShellInfo, resolveScenario } from "@/lib/server/queries";
 
 export const metadata: Metadata = { title: "Posturile de transformare" };
 
@@ -25,8 +25,8 @@ export default function PostsPage({ searchParams }: PageProps<"/posturi">) {
 async function Posts({ searchParams }: { searchParams: PageProps<"/posturi">["searchParams"] }) {
   await connection();
   const scenario = await resolveScenario(searchParams);
-  const [{ info }, posts] = await Promise.all([loadShellInfo(scenario), getPosts(scenario)]);
-  const rows = posts.data.toSorted((a, b) => (b.loss_lei_month ?? -1) - (a.loss_lei_month ?? -1) || (b.meters_flagged ?? 0) - (a.meters_flagged ?? 0));
+  const [{ info }, posts, view] = await Promise.all([loadShellInfo(scenario), getPosts(scenario), loadPlanView(scenario)]);
+  const rows = withBilantLoss(posts.data, view.data?.workItemsById ?? {}).toSorted((a, b) => (b.loss_lei_month ?? -1) - (a.loss_lei_month ?? -1) || (b.meters_flagged ?? 0) - (a.meters_flagged ?? 0));
   const total = rows.reduce((s, p) => s + (p.loss_lei_month ?? 0), 0);
   const byColor = rows.reduce<Record<string, number>>((acc, p) => ((acc[p.color ?? "necunoscut"] = (acc[p.color ?? "necunoscut"] ?? 0) + 1), acc), {});
   return (
@@ -84,7 +84,7 @@ async function Posts({ searchParams }: { searchParams: PageProps<"/posturi">["se
                   </span>
                 </td>
                 <td className="py-2 pr-4 text-right font-[600] tabular-nums">{p.loss_lei_month != null ? fmtInt(p.loss_lei_month) : "–"}</td>
-                <td className="py-2 pr-4 text-right tabular-nums">{p.loss_kwh_day != null ? `${fmtDec(p.loss_kwh_day, 1)} kWh` : "–"}</td>
+                <td className="py-2 pr-4 text-right tabular-nums">{p.loss_kwh_day == null ? "–" : p.loss_kwh_day >= 0 ? `${fmtDec(p.loss_kwh_day, 1)} kWh` : "surplus"}</td>
                 <td className="py-2 pr-4">{p.diagnosis ?? <span className="text-muted-foreground">{p.derived ? "estimat din contoarele A" : "–"}</span>}</td>
                 <td className="py-2 pr-4 text-right tabular-nums">{fmtInt(p.meters_flagged ?? 0)}</td>
                 <td className="py-2 text-right tabular-nums">{p.voltage_p90_pu != null ? `${fmtDec(p.voltage_p90_pu, 3)} pu` : "–"}</td>

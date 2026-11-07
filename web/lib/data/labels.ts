@@ -133,7 +133,15 @@ const RULE_RO: Record<string, string> = {
   "R-BILANT-GRID": "bilanțul arată pierdere tehnică: echipa de rețea",
   "R-BILANT-METER": "bilanțul arată contor defect: echipa de contoare",
   "R-BILANT-OFFICE": "corecție în bază, fără deplasare",
-  "R-FUSION-BILANT": "contorul e confirmat de bilanțul postului",
+  // neutru: regula se aplică și când bilanțul nu confirmă (pragul `fusion_confirmed` spune care e cazul)
+  "R-FUSION-BILANT": "contorul verificat cu bilanțul postului",
+  "R-BILANT-REMOTE": "bilanț: întâi verificări de la distanță",
+  "R-BILANT-WATCH": "bilanț: valoarea nu acoperă deplasarea, urmărire",
+  "R-SAFETY-OVER-CAP": "caz de siguranță peste cota zilei: prioritate triplă, fără obligație",
+  "R-ABSTAIN-DATA": "date de intrare greșite: corectare în biroul de date",
+  "R-ABSTAIN-WATCH": "modelul nu e sigur, dar valoarea e mică: urmărire",
+  "R-HUMAN-QUEUE-FULL": "coada dispecerului e plină: revine în planul următor",
+  "R-B-BELOW-THRESHOLD": "furtună sub pragul modelului: nu se mută echipe",
 };
 
 export function ruleRo(ruleId: string | null | undefined): string | null {
@@ -144,6 +152,18 @@ export function ruleRo(ruleId: string | null | undefined): string | null {
 /** Pragurile și cifrele din `Decision.threshold`, în cuvinte simple, cu unitatea potrivită. */
 const THRESHOLD_RO: Record<string, string> = {
   score: "scorul lucrării",
+  a_score: "scorul modelului A",
+  combined_score: "scorul combinat (A și bilanțul)",
+  fusion_a_score: "scorul A, înainte de bilanț",
+  fusion_combined_score: "scorul combinat",
+  fusion_post_loss_lei_month: "pierderea postului, din bilanț",
+  fusion_confirmed: "confirmat de bilanț",
+  post_excess_loss_lei_month: "pierderea postului peste normal",
+  post_excess_loss_kwh_day: "lipsa postului peste normal",
+  safety_max_mandatory_per_day: "cazuri de siguranță obligatorii pe zi",
+  human_review_max_per_day: "locuri pe zi în coada dispecerului",
+  preposition_min_score: "scor minim pentru o echipă trimisă din timp",
+  participation_rate: "participarea simulată",
   score_min: "scor minim",
   min_score: "scor minim",
   remote_min_score: "scor minim pentru citire la distanță",
@@ -189,13 +209,14 @@ const THRESHOLD_RO: Record<string, string> = {
   remedy_options_checked: "variante verificate",
 };
 
-const FLAG_KEYS = new Set(["safety_flag", "smart_meter", "abstain", "human"]);
+const FLAG_KEYS = new Set(["safety_flag", "smart_meter", "abstain", "human", "fusion_confirmed"]);
 
 export function thresholdLabelRo(key: string): string {
   return THRESHOLD_RO[key] ?? key.replaceAll("_", " ");
 }
 
 export function thresholdValueRo(key: string, v: unknown): string {
+  if (typeof v === "boolean") return v ? "da" : "nu";
   if (typeof v !== "number") return String(v);
   const ro = (n: number, d: number) =>
     new Intl.NumberFormat("ro-RO", { minimumFractionDigits: d, maximumFractionDigits: d }).format(n);
@@ -203,6 +224,9 @@ export function thresholdValueRo(key: string, v: unknown): string {
   // scorurile întâi: „score_min” e un scor, nu minute
   if (key.includes("score") || key === "confidence_low") return ro(v, 2);
   if (key.endsWith("_lei")) return `${ro(v, Math.abs(v) >= 100 || Number.isInteger(v) ? 0 : 2)} lei`;
+  if (key.endsWith("_lei_month")) return `${ro(v, 0)} lei pe lună`;
+  if (key.endsWith("_kwh_day")) return `${ro(v, 1)} kWh/zi`;
+  if (key.endsWith("_rate")) return `${ro(v * 100, 0)}%`;
   if (key.endsWith("_pu")) return `${ro(v, 3).replace(/0$/, "")} pu`;
   if (key.endsWith("_days")) return `${ro(v, 0)} zile`;
   if (key.endsWith("_min")) return `${ro(v, 0)} min`;
@@ -272,6 +296,7 @@ export function alertOutcomeRo(ids: string[] | undefined, decisions: Record<stri
 /** Acțiunile din jurnal (AuditRecord.action), în cuvinte. */
 const AUDIT_ACTION_RO: Record<string, string> = {
   run: "agentul a făcut planul",
+  fusion: "verificat cu bilanțul",
   replan: "agentul a refăcut planul",
   review_approve: "omul a aprobat",
   review_reject: "omul a respins",

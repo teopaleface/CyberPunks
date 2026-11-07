@@ -275,3 +275,17 @@ describe("posturile din planificator", () => {
     expect(postDiagnosisRo(null)).toBeNull();
   });
 });
+
+describe("planul fără dubluri", () => {
+  test("lucrările repetate într-o alertă apar o singură dată, în ordine", async () => {
+    const { dedupePlan } = await import("./index");
+    const plan = {
+      alerts: [
+        { alert_id: "AL-1", severity: "critical", title_ro: "t", body_ro: "b", channel: "dispecerat", created_at: "2025-07-08T08:00:00+03:00", work_item_ids: ["a", "b", "a", "c", "b"] },
+      ],
+    } as unknown as import("@/lib/contracts").Plan;
+    expect(dedupePlan(plan).alerts?.[0].work_item_ids).toEqual(["a", "b", "c"]);
+    const clean = { alerts: [{ ...plan.alerts![0], work_item_ids: ["a"] }] } as unknown as import("@/lib/contracts").Plan;
+    expect(dedupePlan(clean)).toBe(clean);
+  });
+});
