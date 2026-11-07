@@ -1,7 +1,7 @@
 # Status: Teo-A-contoare
 Actualizat: 2026-11-07 15:24
 Milestone curent: M4 gata (15:24). LIBER: pot ajuta la alt fir (de exemplu B)
-Gata de merge: da (commit f01a8f2)
+Gata de merge: da (commit adebc36)
 
 ## Făcut
 - 13:30 M0: `docs/research/A.md`, date descărcate cu sume de control (SGCC, 45 de fișiere Low Carbon London).
