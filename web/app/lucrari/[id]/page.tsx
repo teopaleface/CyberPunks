@@ -10,7 +10,7 @@ import { SyntheticGlyph } from "@/components/shell/provenance";
 import { AppShell } from "@/components/shell/app-shell";
 import type { AuditRecord, Decision, WorkItem } from "@/lib/contracts";
 import { getSeries, getWorkItem } from "@/lib/data";
-import { factorLabelRo,
+import { auditActionRo, factorLabelRo,
   ACTION_RO,
   CONFIDENCE_RO,
   DECISION_LABEL_RO,
@@ -434,7 +434,7 @@ function AuditTrail({ audit }: { audit: AuditRecord[] }) {
       {sorted.map((a) => (
         <li key={a.audit_id} className="text-[14.5px]">
           <span className="font-[600]">{a.actor === "human" ? "Om" : "Agent"}</span>, {fmtMoment(a.ts)}:{" "}
-          {(DECISION_LABEL_RO as Record<string, string>)[a.action] ?? a.action}
+          {auditActionRo(a.action)}
           {a.rule_id ? <span className="dense text-muted-foreground"> ({a.rule_id})</span> : null}
           {a.note ? <span className="block text-muted-foreground">„{a.note}”</span> : null}
         </li>

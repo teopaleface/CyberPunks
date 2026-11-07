@@ -1,7 +1,7 @@
 import { cn } from "cn";
 import type { Alert, Decision, WorkItem } from "@/lib/contracts";
 import { fmtInt, fmtMoment, fmtTime, plural } from "@/lib/format";
-import { CountPill, DemoStamp, SEVERITY_ORDER, SEVERITY_RO, SeverityIcon, WorkItemRef, type Severity } from "./parts";
+import { CountPill, DemoStamp, SEVERITY_RO, SeverityIcon, WorkItemRef, type Severity } from "./parts";
 
 const CHANNEL_RO: Record<Alert["channel"], string> = {
   dispecerat: "către dispecerat",
@@ -15,17 +15,23 @@ const TONE: Record<Severity, string> = {
   info: "text-ink",
 };
 
+/** Bara din stânga: roșu pentru critic, portocaliu pentru avertisment; informarea rămâne gri. */
 const BAR: Record<Severity, string | null> = {
-  critical: "shadow-[inset_3px_0_0_var(--destructive)] bg-[color-mix(in_oklab,var(--destructive)_5%,var(--panel))]",
+  critical: "shadow-[inset_3px_0_0_var(--destructive)]",
   warning: "shadow-[inset_3px_0_0_var(--att)]",
   info: null,
 };
 
-const COUNT_RO: Record<Severity, [string, string]> = {
-  critical: ["critică", "critice"],
-  warning: ["avertisment", "avertismente"],
-  info: ["informare", "informări"],
-};
+const GROUPS: { severity: Severity; title: string; count: [string, string] }[] = [
+  { severity: "critical", title: "Critice", count: ["alertă critică", "alerte critice"] },
+  { severity: "warning", title: "Avertismente", count: ["avertisment", "avertismente"] },
+  { severity: "info", title: "Informări", count: ["informare", "informări"] },
+];
+
+/** Câte alerte se văd din fiecare grup; restul stau sub „Încă N”. */
+const SHOW_PER_GROUP = 4;
+/** Câte lucrări legate se arată întregi; restul stau sub „Încă N lucrări”. */
+const SHOW_LINKED = 3;
 
 function safeTime(iso: string, fn: (s: string) => string): string {
   try {
@@ -35,21 +41,14 @@ function safeTime(iso: string, fn: (s: string) => string): string {
   }
 }
 
-/** Câte lucrări legate se arată întregi; restul stau sub „Încă N lucrări”. */
-const SHOW_LINKED = 3;
-
-/** Lucrările legate de o alertă. O alertă poate strânge sute de lucrări, așa că primele trei se văd întregi, restul la cerere. */
-function LinkedItems({
-  ids,
-  workItemsById,
-  decisionsByWorkItemId,
-  scenario,
-}: {
-  ids: string[];
+interface Lookups {
   workItemsById: Record<string, WorkItem>;
   decisionsByWorkItemId: Record<string, Decision>;
   scenario: string;
-}) {
+}
+
+/** Lucrările legate de o alertă. O alertă poate strânge sute de lucrări, așa că primele trei se văd întregi, restul la cerere. */
+function LinkedItems({ ids, workItemsById, decisionsByWorkItemId, scenario }: { ids: string[] } & Lookups) {
   const first = ids.slice(0, SHOW_LINKED);
   const rest = ids.slice(SHOW_LINKED);
   return (
@@ -80,22 +79,39 @@ function LinkedItems({
   );
 }
 
-/** Alertele planului, cele mai grave primele. Gravitatea se vede din formă, cuvânt și culoare, niciodată doar din culoare. */
-export function AlertList({
-  alerts,
-  workItemsById,
-  decisionsByWorkItemId,
-  scenario,
-}: {
-  alerts: Alert[];
-  workItemsById: Record<string, WorkItem>;
-  decisionsByWorkItemId: Record<string, Decision>;
-  scenario: string;
-}) {
-  const sorted = alerts.toSorted((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);
-  const counts = (["critical", "warning", "info"] as const)
-    .map((s) => ({ s, n: alerts.filter((a) => a.severity === s).length }))
-    .filter((c) => c.n > 0);
+function AlertItem({ a, ...lookups }: { a: Alert } & Lookups) {
+  const ids = a.work_item_ids ?? [];
+  return (
+    <li className={cn("grid grid-cols-[152px_minmax(0,1fr)] gap-x-5 py-4 pr-7 pl-7", BAR[a.severity])}>
+      <div className="text-[14.5px] leading-snug">
+        <span className={cn("flex items-center gap-2 text-[16px] font-[650]", TONE[a.severity])}>
+          <SeverityIcon severity={a.severity} />
+          {SEVERITY_RO[a.severity]}
+        </span>
+        <span className="mt-1.5 block text-muted-foreground">
+          <time dateTime={a.created_at} title={safeTime(a.created_at, fmtMoment)} className="tabular-nums">
+            {safeTime(a.created_at, fmtTime)}
+          </time>
+          , {CHANNEL_RO[a.channel] ?? a.channel}
+        </span>
+      </div>
+      <div className="min-w-0">
+        <h4 className="text-[18px] leading-snug font-[620]">{a.title_ro}</h4>
+        <p className="mt-1 max-w-[82ch] text-[16px] leading-relaxed">{a.body_ro}</p>
+        {ids.length ? <LinkedItems ids={ids} {...lookups} /> : null}
+        {a.channel === "clienti" ? (
+          <div className="mt-2.5">
+            <DemoStamp />
+          </div>
+        ) : null}
+      </div>
+    </li>
+  );
+}
+
+/** Alertele planului, pe gravitate, cele mai grave primele. Gravitatea se vede din formă, cuvânt și culoare, niciodată doar din culoare. */
+export function AlertList({ alerts, ...lookups }: { alerts: Alert[] } & Lookups) {
+  const groups = GROUPS.map((g) => ({ ...g, items: alerts.filter((a) => a.severity === g.severity) })).filter((g) => g.items.length);
 
   return (
     <section aria-labelledby="alerte-titlu" className="min-w-0">
@@ -106,57 +122,50 @@ export function AlertList({
           </h2>
           <p className="mt-0.5 text-[15px] text-muted-foreground">Pentru dispecerat și echipe, cele mai grave primele.</p>
         </div>
-        {counts.length ? (
+        {groups.length ? (
           <ul aria-label="Alerte după gravitate" className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[15px]">
-            {counts.map(({ s, n }) => (
-              <li key={s} className="flex items-center gap-2">
-                <SeverityIcon severity={s} size={18} />
-                <span className={cn("font-[600] tabular-nums", TONE[s])}>{plural(n, ...COUNT_RO[s])}</span>
+            {groups.map((g) => (
+              <li key={g.severity} className="flex items-center gap-2">
+                <SeverityIcon severity={g.severity} size={18} />
+                <span className={cn("font-[600] tabular-nums", TONE[g.severity])}>{plural(g.items.length, ...g.count)}</span>
               </li>
             ))}
           </ul>
         ) : null}
       </div>
 
-      {sorted.length ? (
-        <ol className="divide-y divide-rule border-y border-rule bg-panel">
-          {sorted.map((a) => {
-            const ids = a.work_item_ids ?? [];
-            return (
-              <li key={a.alert_id} className={cn("grid grid-cols-[152px_minmax(0,1fr)] gap-x-5 py-4 pr-7 pl-7", BAR[a.severity])}>
-                <div className="text-[14.5px] leading-snug">
-                  <span className={cn("flex items-center gap-2 text-[16px] font-[650]", TONE[a.severity])}>
-                    <SeverityIcon severity={a.severity} />
-                    {SEVERITY_RO[a.severity]}
-                  </span>
-                  <span className="mt-1.5 block text-muted-foreground">
-                    <time dateTime={a.created_at} title={safeTime(a.created_at, fmtMoment)} className="tabular-nums">
-                      {safeTime(a.created_at, fmtTime)}
-                    </time>
-                    , {CHANNEL_RO[a.channel] ?? a.channel}
-                  </span>
-                </div>
-                <div className="min-w-0">
-                  <h3 className="text-[18px] leading-snug font-[620]">{a.title_ro}</h3>
-                  <p className="mt-1 max-w-[82ch] text-[16px] leading-relaxed">{a.body_ro}</p>
-                  {ids.length ? (
-                    <LinkedItems
-                      ids={ids}
-                      workItemsById={workItemsById}
-                      decisionsByWorkItemId={decisionsByWorkItemId}
-                      scenario={scenario}
-                    />
-                  ) : null}
-                  {a.channel === "clienti" ? (
-                    <div className="mt-2.5">
-                      <DemoStamp />
-                    </div>
-                  ) : null}
-                </div>
-              </li>
-            );
-          })}
-        </ol>
+      {groups.length ? (
+        <div className="border-t border-rule">
+          {groups.map((g) => (
+            <section key={g.severity} aria-label={`${g.title}, ${plural(g.items.length, ...g.count)}`}>
+              <h3 className="flex items-center gap-2 border-b border-rule bg-canvas px-7 py-2 text-[15.5px] font-[620]">
+                <SeverityIcon severity={g.severity} size={16} />
+                {g.title}
+                <span className="font-[500] text-muted-foreground tabular-nums">{g.items.length}</span>
+              </h3>
+              <ol className="divide-y divide-rule border-b border-rule bg-panel">
+                {g.items.slice(0, SHOW_PER_GROUP).map((a) => (
+                  <AlertItem key={a.alert_id} a={a} {...lookups} />
+                ))}
+              </ol>
+              {g.items.length > SHOW_PER_GROUP ? (
+                <details className="group border-b border-rule bg-panel">
+                  <summary className="flex cursor-pointer list-none items-center px-7 py-3 text-[15px] font-[600] hover:bg-muted [&::-webkit-details-marker]:hidden">
+                    <span className="underline decoration-rule underline-offset-4 group-open:hidden">
+                      Încă {plural(g.items.length - SHOW_PER_GROUP, ...g.count)}
+                    </span>
+                    <span className="hidden underline decoration-rule underline-offset-4 group-open:inline">Ascunde alertele de mai jos</span>
+                  </summary>
+                  <ol className="divide-y divide-rule border-t border-rule">
+                    {g.items.slice(SHOW_PER_GROUP).map((a) => (
+                      <AlertItem key={a.alert_id} a={a} {...lookups} />
+                    ))}
+                  </ol>
+                </details>
+              ) : null}
+            </section>
+          ))}
+        </div>
       ) : (
         <div className="border-y border-rule bg-panel px-7 py-10">
           <p className="text-[17px] font-[600]">Nicio alertă pentru planul acesta.</p>

@@ -183,16 +183,34 @@ export function toPlanScreenData(view: PlanView): PlanScreenData {
   };
 }
 
+/** Eticheta din date, fără marcajul „(sintetic)” (transparența o arată pătratul hașurat). */
+function cleanLabel(w: WorkItem): string | null {
+  const l = w.location.label?.replace(/\s*\(sintetic\)\s*$/i, "").trim();
+  return l || null;
+}
+
 export function itemTitle(w: WorkItem): string {
   if (w.asset_type === "meter") return `Contor ${w.asset_id}`;
   if (w.asset_type === "transformer_post") return w.asset_id;
-  return w.location.label?.replace(/^Zona\s+/, "Zona ") ?? w.asset_id;
+  const l = cleanLabel(w);
+  return l ? l.replace(/\s*\([^)]*\)\s*$/, "") : w.asset_id;
 }
 
-/** Locul, în cuvinte: „București, sectorul 6”, „Chiajna, Ilfov”, „Medgidia, Constanța”. */
+/** Locul, în cuvinte, cu diacriticele din date: „PT-1208, Chiajna”, „Afumați, Ilfov”, „Ilfov”. */
 export function itemPlace(w: WorkItem): string {
-  const z = w.location.zone_id;
   const county = w.location.county ?? "";
+  const l = cleanLabel(w);
+  if (l) {
+    const parts = l.split(",").map((x) => x.trim()).filter(Boolean);
+    if (w.asset_type === "meter" && parts.length >= 2) return parts.slice(1).join(", ");
+    if (w.asset_type === "transformer_post" && parts.length >= 2) {
+      const place = parts.slice(1).join(", ");
+      return county && !place.includes(county) ? `${place}, ${county}` : place;
+    }
+    if (w.asset_type === "zone") return county || l;
+  }
+  // rezervă: din zone_id (fără diacritice)
+  const z = w.location.zone_id;
   const sector = /^B-S(\d)$/.exec(z);
   if (sector) return `București, sectorul ${sector[1]}`;
   const local = z.includes("-") ? z.split("-").slice(1).join(" ") : "";
