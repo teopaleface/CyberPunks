@@ -13,17 +13,28 @@ Prioritatea (premiul în trasee) = expected_value_lei − costul acțiunii (× 3
 
 from __future__ import annotations
 
+import itertools
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from typing import Any
 
-from cyberpunks.common.contracts import Confidence, DecisionType, RecommendedAction, Source, WorkItem
+from pydantic import ValidationError
+
+from cyberpunks.common.contracts import (
+    AssetType,
+    Confidence,
+    DecisionType,
+    RecommendedAction,
+    RemedyOption,
+    Source,
+    WorkItem,
+)
 from cyberpunks.planner.geo import TravelModel
 from cyberpunks.planner.ingest import Item
 from cyberpunks.planner.settings import TZ, Crew, Settings
 from cyberpunks.planner.texts import ACTION_RO, SKILL_RO, hhmm, lei, num, pct, zi
 
-CREW_ACTIONS = {"inspect_on_site", "preposition_crew", "adjust_tap", "measurement_campaign"}
+CREW_ACTIONS = {"inspect_on_site", "preposition_crew", "adjust_tap", "measurement_campaign", "grid_inspection", "phase_rebalance"}
 
 
 # ------------------------------------------------------------------ ce produce stratul de decizie
@@ -85,6 +96,11 @@ class Proposal:
     alerts: list[AlertSpec] = field(default_factory=list)
     notifications: list[NotificationSpec] = field(default_factory=list)
     fallback: Proposal | None = None  # ce se face dacă nu încape în trasee
+    duration_min: int | None = None  # dacă diferă de effort.duration_min (de exemplu treptele alese din scara C)
+    skill: str | None = None
+    crew_size: int | None = None
+    lei_per_hour: float | None = None  # valoarea netă pe oră de lucru (durata + drumul estimat): ordinea listei pe echipe
+    ladder: dict[str, Any] | None = None  # scara de soluții C: varianta aleasă și de ce
 
     @property
     def wi(self) -> WorkItem:
@@ -160,6 +176,18 @@ def action_cost(ctx: Context, wi: WorkItem, action: str) -> float:
         return s.econ("voltage", "measurement_campaign_cost_lei")
     if action == "notify_customers":
         return s.econ("voltage", "notification_cost_lei_per_customer", 0.0) * max(1, wi.impact.customers_affected)
+    if action == "office_correction":
+        return s.econ("bilant", "office_correction_cost_lei", 15.0)
+    if action == "grid_inspection":
+        return s.econ("bilant", "grid_inspection_cost_lei", 486.0)
+    if action == "phase_rebalance":
+        return s.econ("remedies", "phase_rebalance_cost_lei", 300.0)
+    if action == "offer_battery":
+        return s.econ("remedies", "battery_offer_cost_lei_per_customer", 2.0) * max(1, wi.impact.customers_affected)
+    if action == "export_limit":
+        return s.econ("remedies", "export_limit_cost_lei", 50.0)
+    if action == "transformer_upgrade":
+        return s.econ("remedies", "transformer_upgrade_cost_lei", 80000.0)
     return 0.0
 
 
@@ -250,6 +278,10 @@ def _route(ctx: Context, item: Item, rule_id: str, reason: str, action: str, cos
     wi = item.wi
     start, end = ctx.shift()
     threshold = {**threshold, **_cost_keys(costs)}
+    duration = int(kw.get("duration_min") or wi.effort.duration_min)
+    value = max(0.0, wi.impact.expected_value_lei - costs.action_cost - costs.outage_cost)
+    hours = max(0.25, (duration + costs.travel_min) / 60.0)
+    threshold["lei_per_work_hour"] = round(value / hours, 2)
     p = Proposal(
         item=item,
         decision=DecisionType.assigned,
@@ -261,7 +293,8 @@ def _route(ctx: Context, item: Item, rule_id: str, reason: str, action: str, cos
         priority=priority_of(ctx, wi, costs),
         route=True,
         earliest=start,
-        latest=end - timedelta(minutes=wi.effort.duration_min),
+        latest=end - timedelta(minutes=duration),
+        lei_per_hour=round(value / hours, 2),
     )
     for k, v in kw.items():
         setattr(p, k, v)
@@ -489,6 +522,92 @@ def rule_meters(ctx: Context, item: Item) -> Proposal:
     )
 
 
+def _fusion_note(wi: WorkItem) -> tuple[str, dict[str, float]]:
+    """Textul și pragurile pentru un contor confirmat de bilanțul postului (extra["fusion"], contractul BilantFusion)."""
+    f = wi.extra.get("fusion")
+    if not isinstance(f, dict):
+        return "", {}
+    try:
+        a, c = float(f["a_score"]), float(f["combined_score"])
+        loss = float(f.get("post_excess_loss_lei_month", 0.0))
+        post = str(f.get("post_id", "?"))
+    except (KeyError, TypeError, ValueError):
+        return "", {}
+    text = f"Confirmat de bilanțul postului {post}: lipsă peste normal de ~{lei(loss)} pe lună; scorul a urcat de la {pct(a)} la {pct(c)}. "
+    return text, {"fusion_a_score": a, "fusion_combined_score": c, "fusion_post_loss_lei_month": round(loss, 2)}
+
+
+def rule_meters_fused(ctx: Context, item: Item) -> Proposal:
+    p = rule_meters(ctx, item)
+    text, th = _fusion_note(item.wi)
+    if text:
+        for q in (p, p.fallback):
+            if q is not None:
+                q.reason_ro = text + q.reason_ro
+                q.threshold.update(th)
+    return p
+
+
+# ---- A: bilanț pe post (lucrări la nivel de post, din A_bilant.jsonl)
+
+DIAG_RO = {
+    "contor_defect": "contor defect sub post",
+    "furt_inainte_de_contor": "furt înainte de contor",
+    "pierdere_tehnica": "pierdere tehnică (cabluri, faze dezechilibrate)",
+    "post_gresit": "client trecut la postul greșit în bază",
+    "contor_post_x2": "contorul de bilanț al postului setat greșit",
+}
+
+
+def is_bilant_post(wi: WorkItem) -> bool:
+    return wi.source == Source.A and (wi.asset_type == AssetType.transformer_post or wi.prediction.model_id.startswith("bilant-"))
+
+
+def rule_bilant(ctx: Context, item: Item) -> Proposal:
+    wi = item.wi
+    if wi.asset_type != AssetType.transformer_post:
+        return rule_meters_fused(ctx, item)  # contor găsit de bilanț: aceleași reguli ca la A (și pragul etic)
+    pr = wi.prediction
+    min_net = float(ctx.g("min_net_value_lei", 0))
+    ev = wi.impact.expected_value_lei
+    loss = wi.extra.get("post_excess_loss_lei_month")
+    diag = DIAG_RO.get(pr.label, pr.label.replace("_", " "))
+    head = f"Bilanțul postului {wi.asset_id}: {diag} (probabilitate {pct(pr.score)})"
+    if isinstance(loss, (int, float)):
+        head += f", lipsă peste normal ~{lei(float(loss))} pe lună"
+    head += "."
+    th: dict[str, float] = {"score": pr.score, "expected_value_lei": round(ev, 2), "min_net_value_lei": min_net}
+    if isinstance(loss, (int, float)):
+        th["post_excess_loss_lei_month"] = round(float(loss), 2)
+    rec = wi.recommended_action
+    if rec == RecommendedAction.office_correction:
+        costs = estimate_costs(ctx, wi, "office_correction")
+        return _final(item, DecisionType.remote_action, "R-BILANT-OFFICE",
+                      f"{head} Corecție în baza de date (clientul la postul corect), fără deplasare ({lei(costs.total)}): intră în coada biroului de date.",
+                      "office_correction", th, costs=costs)
+    if rec == RecommendedAction.remote_reading:
+        costs = estimate_costs(ctx, wi, "remote_reading")
+        return _final(item, DecisionType.remote_action, "R-BILANT-REMOTE",
+                      f"{head} Întâi verificări de la distanță ({lei(costs.total)}): recitirea contoarelor de sub post și jurnalul lor de evenimente; echipa doar dacă se confirmă.",
+                      "remote_reading", th, costs=costs)
+    if rec in (RecommendedAction.grid_inspection, RecommendedAction.inspect_on_site):
+        action = rec.value
+        costs = estimate_costs(ctx, wi, action)
+        net = ev - costs.total
+        th["net_value_lei"] = round(net, 2)
+        if net > min_net:
+            rule_id = "R-BILANT-GRID" if action == "grid_inspection" else "R-BILANT-VISIT"
+            who = "echipa de rețea (joasă tensiune)" if action == "grid_inspection" else "echipa de contoare"
+            reason = f"{head} Merge {who}: valoarea așteptată {lei(ev)} depășește costul ({costs.explain()} = {lei(costs.total)}) cu {lei(net)}."
+            return _route(ctx, item, rule_id, reason, action, costs, th)
+        return _final(item, DecisionType.deferred, "R-BILANT-WATCH",
+                      f"{head} Valoarea așteptată ({lei(ev)}) nu acoperă deplasarea ({lei(costs.total)}): postul rămâne la urmărire.",
+                      "watchlist", th, costs=costs)
+    if rec == RecommendedAction.human_review:
+        return _final(item, DecisionType.human_review, "R-BILANT-REVIEW", f"{head} Cauza nu e clară: decide un om.", "human_review", th)
+    return _final(item, DecisionType.deferred, "R-BILANT-WATCH", f"{head} Postul rămâne la urmărire.", "watchlist", th)
+
+
 # ---- B: furtună
 
 
@@ -602,6 +721,138 @@ def _outage_notice(ctx: Context, wi: WorkItem, on: date) -> NotificationSpec:
     return NotificationSpec("clienti_zona", msg, _send_time(ctx))
 
 
+REMEDY_RO = {
+    "phase_rebalance": "mutarea a câteva case pe altă fază",
+    "adjust_tap": "coborârea prizei transformatorului",
+    "notify_customers": "mesajele către clienții Ore Smart",
+    "offer_battery": "oferta de baterii",
+    "export_limit": "limita de injecție pe oră",
+    "transformer_upgrade": "transformatorul nou",
+}
+
+
+def _combo_ro(combo: tuple[RemedyOption, ...]) -> str:
+    names = [REMEDY_RO.get(o.action.value, o.action.value) for o in combo]
+    text = names[0] if len(names) == 1 else ", ".join(names[:-1]) + " și " + names[-1]
+    if len(combo) == 1 and combo[0].action == RecommendedAction.notify_customers:
+        text += " singure"
+    elif len(combo) == 1 and combo[0].action == RecommendedAction.offer_battery:
+        text += " singură"
+    rates = [o.participation_rate for o in combo if o.participation_rate is not None]
+    return text + (f" (la {pct(rates[0])} participare)" if rates else "")
+
+
+def _ladder_notifications(ctx: Context, wi: WorkItem, combo: tuple[RemedyOption, ...]) -> list[NotificationSpec]:
+    out = []
+    for o in combo:
+        hours = ", ".join(o.risk_hours) if o.risk_hours else None
+        if o.action == RecommendedAction.notify_customers:
+            msg = o.message_preview_ro or _prosumer_message(ctx, wi).message_ro
+            out.append(NotificationSpec("prosumatori", msg, _send_time(ctx)))
+        elif o.action == RecommendedAction.offer_battery:
+            kwh = f"{num(o.battery_kwh_total)} kWh de baterii pe post" if o.battery_kwh_total else "baterii"
+            payback = f", recuperare în ~{num(o.payback_years, 1)} ani" if o.payback_years else ""
+            msg = (o.message_preview_ro or
+                   f"PPC Energie: pentru prosumatorii din zona {_label(wi)}, o baterie ar păstra energia de la prânz pentru seară "
+                   f"și ar opri deconectările invertorului. Propunere: {kwh}{payback}. Detalii în magazinele PPC.")
+            out.append(NotificationSpec("prosumatori", msg, _send_time(ctx)))
+        elif o.action == RecommendedAction.export_limit:
+            msg = o.message_preview_ro or (
+                f"Rețele Electrice: propunem prosumatorilor din zona {_label(wi)} o limită de injecție în rețea"
+                + (f" în orele {hours}" if hours else " la prânz") + ", ca tensiunea să rămână sub 253 V și invertoarele să nu se oprească.")
+            out.append(NotificationSpec("prosumatori", msg, _send_time(ctx)))
+    return out
+
+
+def rule_remedy_ladder(ctx: Context, item: Item, th: dict[str, float]) -> Proposal | None:
+    """Scara de soluții (R-REMEDY-LADDER): cea mai ieftină combinație de trepte care aduce P90 sub limită.
+    Efectele treptelor combinate se adună (P90 = P90 inițial + suma efectelor); o treaptă singură folosește p90_after_pu."""
+    wi = item.wi
+    raw = wi.extra.get("remedy_options")
+    if not isinstance(raw, list) or not raw:
+        return None
+    opts: list[RemedyOption] = []
+    for o in raw:
+        try:
+            opts.append(RemedyOption.model_validate(o))
+        except ValidationError:
+            continue
+    if not opts:
+        return None
+    s = ctx.settings
+    pr = wi.prediction
+    limit = s.econ("voltage", "overvoltage_limit_pu", 1.10)
+    base = pr.point_interval[1] if pr.point_interval else (pr.point_estimate if pr.point_estimate is not None else max(o.p90_after_pu - o.effect_pu for o in opts))
+    max_k = int(s.rule("remedy", "max_combination", default=3))
+    upgrade = RecommendedAction.transformer_upgrade
+    cands: list[tuple[tuple[RemedyOption, ...], float, float]] = []
+    for k in range(1, min(max_k, len(opts)) + 1):
+        for combo in itertools.combinations(opts, k):
+            if k > 1 and (not all(o.combinable for o in combo) or any(o.action == upgrade for o in combo)):
+                continue
+            p90 = combo[0].p90_after_pu if k == 1 else base + sum(o.effect_pu for o in combo)
+            cands.append((combo, round(p90, 4), round(sum(o.cost_lei for o in combo), 2)))
+    conf = {"high": 0, "medium": 1, "low": 2}
+    feasible = [c for c in cands if c[1] < limit]
+    if feasible:
+        combo, p90_after, cost = min(feasible, key=lambda c: (c[2], len(c[0]), max(conf[o.confidence.value] for o in c[0]), c[1]))
+    else:
+        combo, p90_after, cost = min(cands, key=lambda c: (c[1], c[2]))
+    cheaper = sorted({(c[2], c[1], _combo_ro(c[0])) for c in cands if c[2] < cost})
+    why_not = [f"{name} ({lei(c_cost)}) scade tensiunea doar până la {num(c_p90, 3)} pu" for c_cost, c_p90, name in cheaper[:3]]
+    th = {**th, "p90_before_pu": round(base, 4), "p90_after_pu": p90_after, "remedy_cost_lei": cost, "remedy_steps": float(len(combo)),
+          "remedy_options_checked": float(len(cands))}
+    rates = [o.participation_rate for o in combo if o.participation_rate is not None]
+    if rates:
+        th["participation_rate"] = float(rates[0])
+    chosen_txt = f"Aleg {_combo_ro(combo)} ({lei(cost)}): P90 scade de la {num(base, 3)} la {num(p90_after, 3)} pu, sub limita de {num(limit, 2)}."
+    why_txt = (" N-am ales o variantă mai ieftină: " + "; ".join(why_not) + ".") if why_not else " E cea mai ieftină treaptă din scară."
+    battery = next((o for o in combo if o.action == RecommendedAction.offer_battery), None)
+    ladder = {
+        "post_id": wi.asset_id, "work_item_id": wi.work_item_id, "label": _label(wi), "feasible": bool(feasible),
+        "chosen": [o.action.value for o in combo], "cost_lei": cost, "p90_before_pu": round(base, 4), "p90_after_pu": p90_after,
+        "why_not_cheaper": why_not, "invest": any(o.action == upgrade for o in combo),
+        "battery": None if battery is None else {"battery_kwh_total": battery.battery_kwh_total, "revenue_lei": battery.revenue_lei,
+                                                  "payback_years": battery.payback_years, "customers_targeted": battery.customers_targeted},
+        "inverter_trips_avoided": sum(o.inverter_trips_avoided or 0.0 for o in combo),
+    }
+    notes = _ladder_notifications(ctx, wi, combo)
+    notify_costs = Costs(action="notify_customers", action_cost=sum(o.cost_lei for o in combo if not o.needs_crew))
+    if not feasible:
+        reason = (f"{_factors(wi)}. Nicio combinație de cel mult {max_k} trepte nu aduce P90 sub {num(limit, 2)} pu "
+                  f"(cel mai bun: {_combo_ro(combo)}, {num(p90_after, 3)} pu). Decide un om; probabil e nevoie de investiție.")
+        return _final(item, DecisionType.human_review, "R-REMEDY-LADDER", reason, "human_review", th, notifications=notes, ladder=ladder)
+    if ladder["invest"]:
+        reason = (f"{_factors(wi)}. {chosen_txt}{why_txt} E o investiție: intră în raportul de investiții, nu în traseele de mâine.")
+        return _final(item, DecisionType.deferred, "R-REMEDY-LADDER", reason, "transformer_upgrade", th, ladder=ladder)
+    crew = [o for o in combo if o.needs_crew]
+    if not crew:
+        reason = f"{_factors(wi)}. {chosen_txt}{why_txt} Fără echipă: mesajele și ofertele pleacă din sistem (demo, nu se trimite nimic)."
+        return _final(item, DecisionType.notify, "R-REMEDY-LADDER", reason, "notify_customers", th, notifications=notes, costs=notify_costs, ladder=ladder)
+    needs_notice = {str(a) for a in (s.rule("remedy", "crew_steps_need_notice", default=["adjust_tap", "phase_rebalance"]) or [])}
+    if any(o.action.value in needs_notice for o in crew) and not _tap_notice_ok(ctx, wi):
+        level = s.rule("voltage", "outage_voltage_level", default="lv")
+        notice = int(s.econ("outages", f"planned_notice_working_days_{level}", 2))
+        on = earliest_outage_date(ctx.as_of.date(), notice)
+        th["planned_notice_working_days"] = float(notice)
+        reason = (f"{_factors(wi)}. {chosen_txt}{why_txt} Treptele cu echipă cer o întrerupere planificată, anunțată cu cel puțin "
+                  f"{notice} zile lucrătoare înainte (Ord. ANRE 46/2021, art. 12): le programez pe {zi(on)}."
+                  + (" Până atunci: mesajele de mai jos." if notes else ""))
+        return _final(item, DecisionType.notify, "R-REMEDY-LADDER", reason, "notify_customers", th,
+                      notifications=notes + [_outage_notice(ctx, wi, on)], costs=notify_costs, ladder=ladder)
+    primary = crew[0]
+    costs = estimate_costs(ctx, wi, primary.action.value)
+    costs.action, costs.action_cost, costs.outage_cost = "remedy", cost, 0.0
+    duration = sum(o.duration_min for o in crew) or wi.effort.duration_min
+    skill = (primary.crew_skill.value if primary.crew_skill else wi.effort.crew_skill.value)
+    reason = f"{_factors(wi)}. {chosen_txt}{why_txt} Întreruperea a fost anunțată la timp; echipa merge mâine."
+    p = _route(ctx, item, "R-REMEDY-LADDER", reason, primary.action.value, costs, th, notifications=notes, ladder=ladder,
+               duration_min=duration, skill=skill)
+    p.fallback = _final(item, DecisionType.notify, "R-REMEDY-LADDER", reason.replace("echipa merge mâine", "echipele sunt pline mâine: doar mesajele"),
+                        "notify_customers", th, notifications=notes, costs=notify_costs, ladder=ladder)
+    return p
+
+
 def rule_voltage(ctx: Context, item: Item) -> Proposal:
     wi = item.wi
     pr = wi.prediction
@@ -619,6 +870,9 @@ def rule_voltage(ctx: Context, item: Item) -> Proposal:
         why = f"scorul {pct(pr.score)} e sub pragul {pct(min_score)}" if pr.score < min_score else f"chiar și în scenariul pesimist (P90) tensiunea rămâne sub {num(limit, 2)} pu"
         return _final(item, DecisionType.deferred, "R-C-WATCH", f"{vtxt.capitalize()}; {why}. Postul rămâne la urmărire.", "watchlist", th)
 
+    ladder = rule_remedy_ladder(ctx, item, th)
+    if ladder is not None:
+        return ladder
     tap = estimate_costs(ctx, wi, "adjust_tap")
     measure = estimate_costs(ctx, wi, "measurement_campaign")
     notify = estimate_costs(ctx, wi, "notify_customers")
@@ -684,10 +938,11 @@ def check_crews(ctx: Context, p: Proposal) -> Proposal:
     if not p.route:
         return p
     wi = p.wi
-    crews = ctx.eligible_crews(wi.effort.crew_skill.value, wi.effort.crew_size)
+    skill, size = p.skill or wi.effort.crew_skill.value, p.crew_size or wi.effort.crew_size
+    crews = ctx.eligible_crews(skill, size)
     if crews:
         return p
-    reason = f"Nicio echipă cu abilitatea {SKILL_RO[wi.effort.crew_skill.value]} și cel puțin {wi.effort.crew_size} oameni."
+    reason = f"Nicio echipă cu abilitatea {SKILL_RO.get(skill, skill)} și cel puțin {size} oameni."
     alerts = [AlertSpec("warning", f"Fără echipă potrivită: {_label(wi)}", reason)]
     if p.fallback is not None:
         p.fallback.alerts += alerts
@@ -729,8 +984,11 @@ def propose(ctx: Context, item: Item) -> Proposal:
         p = rule(ctx, item)
         if p is not None:
             return check_crews(ctx, p)
-    by_source = {Source.A: rule_meters, Source.B: rule_storm, Source.C: rule_voltage}
-    return check_crews(ctx, by_source[item.wi.source](ctx, item))
+    wi = item.wi
+    if is_bilant_post(wi):
+        return check_crews(ctx, rule_bilant(ctx, item))
+    by_source = {Source.A: rule_meters_fused, Source.B: rule_storm, Source.C: rule_voltage}
+    return check_crews(ctx, by_source[wi.source](ctx, item))
 
 
 def decide(ctx: Context, items: list[Item]) -> list[Proposal]:
@@ -770,4 +1028,12 @@ RULE_CATALOG: dict[str, str] = {
     "R-NOT-WORTH-TRIP": "Nici singură în traseu lucrarea nu acoperă drumul dus-întors: fără deplasare dedicată.",
     "R-NO-CREW": "Nicio echipă cu abilitatea și mărimea cerute.",
     "R-SAFETY-NO-CREW": "Caz de siguranță fără echipă disponibilă: decide dispecerul azi.",
+    "R-FUSION-BILANT": "Contor marcat de A confirmat de bilanțul postului: scorul combinat înlocuiește scorul A (în jurnal).",
+    "R-BILANT-OFFICE": "Bilanț: client la postul greșit în bază, corecție în birou fără deplasare.",
+    "R-BILANT-REMOTE": "Bilanț: întâi verificări de la distanță (recitire, jurnal de evenimente).",
+    "R-BILANT-GRID": "Bilanț: pierdere tehnică; echipa de rețea, dacă valoarea acoperă deplasarea.",
+    "R-BILANT-VISIT": "Bilanț: echipa de contoare la post (de exemplu contorul de bilanț setat greșit).",
+    "R-BILANT-WATCH": "Bilanț: valoarea nu acoperă deplasarea, postul rămâne la urmărire.",
+    "R-BILANT-REVIEW": "Bilanț: cauza nu e clară, decide un om.",
+    "R-REMEDY-LADDER": "Tensiune: cea mai ieftină combinație de trepte care aduce P90 sub 1,10 pu; explică de ce nu una mai ieftină.",
 }
