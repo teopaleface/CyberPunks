@@ -123,7 +123,7 @@ export function QueuePanel({
             <Button size="panel" variant="outline" onClick={() => act("defer")} disabled={pending}>
               {acting === "defer" ? "Se trimite…" : "Amână"}
             </Button>
-            <span className="ml-auto text-[14px] text-muted-foreground tabular-nums">
+            <span className="ml-auto text-[14px] text-muted-foreground tabular-nums [@media(max-height:950px)]:hidden">
               interval {fmtScore(w.prediction.interval_low ?? w.prediction.score)}–{fmtScore(w.prediction.interval_high ?? w.prediction.score)},{" "}
               {CONFIDENCE_RO[w.prediction.confidence]}
             </span>
@@ -172,7 +172,7 @@ export function AlertsPanel({ alerts, onSelect }: { alerts: Alert[]; onSelect: (
   const sorted = alerts.toSorted((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);
   const shown = sorted.slice(0, 1);
   return (
-    <section aria-label="Alerte" className="border-b border-rule px-7 py-3">
+    <section aria-label="Alerte" className="border-b border-rule px-7 py-3 [@media(max-height:950px)]:hidden">
       <ul className="space-y-3">
         {shown.map((a) => (
           <li key={a.alert_id}>

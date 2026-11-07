@@ -119,7 +119,7 @@ export function Feeders({
 
   return (
     <section aria-label="Ziua echipelor" className={"flex shrink-0 flex-col border-t border-rule bg-panel" + (highlight ? " spot" : "")}>
-      <div ref={boxRef} className="max-h-[244px] overflow-y-auto">
+      <div ref={boxRef} className="max-h-[244px] overflow-y-auto [@media(max-height:950px)]:max-h-[184px]">
         {routes.length === 0 ? (
           <p className="px-7 py-6 text-[15px] text-muted-foreground">
             Nicio echipă nu are lucrări mâine. Dacă există lucrări, sunt amânate sau așteaptă un om.

@@ -324,14 +324,14 @@ function Legend() {
     [markerSvg({ source: "B", kind: "pending", r: 9 }), "Amânată"],
   ];
   return (
-    <div className="absolute bottom-7 left-4 flex items-center gap-4 rounded-[4px] border border-rule bg-panel/95 px-3 py-1.5 text-[13.5px]">
+    <div className="absolute bottom-7 left-4 flex items-center gap-4 rounded-[4px] border border-rule bg-panel/95 px-3 py-1.5 text-[13.5px] max-[1500px]:gap-2.5 max-[1500px]:text-[13px]">
       {items.map(([html, label]) => (
         <span key={label} className="flex items-center gap-1.5 whitespace-nowrap">
           {sm(html)}
           {label}
         </span>
       ))}
-      <span className="flex items-center gap-1.5 whitespace-nowrap text-muted-foreground">
+      <span className="flex items-center gap-1.5 whitespace-nowrap text-muted-foreground max-[1500px]:hidden">
         <svg width="22" height="10" viewBox="0 0 26 12" aria-hidden="true">
           <path d="M1 9 Q13 0 25 9" fill="none" style={{ stroke: "var(--ink)" }} strokeWidth="2.2" />
         </svg>
@@ -362,7 +362,7 @@ function Locator({
   const label = region === ALL ? "Toată zona Rețele Electrice" : `Harta arată: ${data.regions.find((r) => r.id === region)?.label ?? region}`;
   const items = Object.values(itemsById);
   return (
-    <div className="absolute top-4 right-4 w-[292px] rounded-[4px] border border-rule bg-panel/95">
+    <div className="absolute top-4 right-4 w-[292px] rounded-[4px] border border-rule bg-panel/95 max-[1500px]:hidden">
       <div className="flex items-baseline justify-between border-b border-rule px-3 pt-2 pb-1.5 text-[14px]">
         <b className="font-[600]">Zona Rețele Electrice</b>
         <span className="text-muted-foreground">{label.replace("Harta arată: ", "")}</span>
