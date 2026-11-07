@@ -18,3 +18,5 @@ plates_v3/up/
 plates_v3/cut/
 plates_v3/raw/*.png
 audio/local/
+plates_v3/attempts/
+**/__pycache__/
