@@ -279,3 +279,31 @@ def test_deterministic_plan(out_root: Path, tmp_path: Path) -> None:
     assert [(r.crew_id, [s.work_item_id for s in r.stops]) for r in r1.plan.routes] == [
         (r.crew_id, [s.work_item_id for s in r.stops]) for r in r2.plan.routes
     ]
+
+
+def test_slow_model_output_is_reused_when_fresh(out_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """În modul auto, un model lent (bilanțul) nu se mai rulează dacă are o ieșire proaspătă pentru aceeași zi."""
+    import sys
+    import types
+
+    calls = {"n": 0}
+
+    def run(scenario, date):
+        calls["n"] += 1
+        raise RuntimeError("nu trebuia rulat")
+
+    mod = types.ModuleType("cyberpunks.a_bilant.predict")
+    mod.run = run
+    monkeypatch.setitem(sys.modules, "cyberpunks.a_bilant", types.ModuleType("cyberpunks.a_bilant"))
+    monkeypatch.setitem(sys.modules, "cyberpunks.a_bilant.predict", mod)
+    for name in ("cyberpunks.a_contoare.predict", "cyberpunks.b_furtuna.predict", "cyberpunks.c_prosumatori.predict"):
+        other = types.ModuleType(name)
+        other.run = lambda scenario, date: (_ for _ in ()).throw(SystemExit(f"scenariu necunoscut: {scenario}"))
+        monkeypatch.setitem(sys.modules, name, other)  # modelele reale nu rulează în test; cad ca B cu un scenariu necunoscut
+    from .test_extension import _bilant_post
+
+    write_items(out_root, "A_bilant", [_bilant_post("PT-RE01", "remote_reading")])
+    res = agent.run(SCENARIO, date=DATE, mode="auto", out_root=out_root)
+    assert calls["n"] == 0 and res.meta["sources"]["A_bilant"]["origin"] == "model"
+    assert "refolosit" in res.meta["sources"]["A_bilant"]["note"]
+    assert "SystemExit" in res.meta["sources"]["B"]["note"]  # un model care se oprește cu SystemExit nu oprește planul

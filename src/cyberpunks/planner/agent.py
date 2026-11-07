@@ -84,13 +84,31 @@ def _fixture_date() -> Date | None:
     return infer_plan_date(list(FIXTURES.values()))
 
 
-def estimate(scenario: str, plan_date: Date | None, mode: Mode, out_root: Path) -> dict[str, SourcePick]:
+def _fresh_output(path: Path, plan_date: Date | None, max_age_hours: float) -> bool:
+    """O ieșire existentă e refolosibilă dacă e pentru aceeași zi și nu e mai veche de `max_age_hours`."""
+    if plan_date is None or not path.exists():
+        return False
+    if time.time() - path.stat().st_mtime > max_age_hours * 3600:
+        return False
+    return infer_plan_date([path]) == plan_date
+
+
+def estimate(scenario: str, plan_date: Date | None, mode: Mode, out_root: Path, settings: Settings | None = None) -> dict[str, SourcePick]:
     picks: dict[str, SourcePick] = {}
     fixture_date = _fixture_date()
+    settings = settings or Settings.load()
+    slow = set(settings.rule("estimate", "reuse_fresh_output", default=[]) or [])
+    max_age = float(settings.rule("estimate", "max_age_hours", default=12))
     for src, module in PREDICTORS.items():
         existing = _work_items_file(out_root, scenario, src)
         t0 = time.perf_counter()
         note = ""
+        if mode == "auto" and src in slow and _fresh_output(existing, plan_date, max_age):
+            # Model lent (de exemplu bilanțul, ~4 minute): ieșirea lui pentru aceeași zi, din ultimele ore, se refolosește.
+            ran_at = datetime.fromtimestamp(existing.stat().st_mtime, TZ).strftime("%H:%M")
+            picks[src] = SourcePick(existing, "model", f"ieșirea modelului {src} pentru aceeași zi, rulată la {ran_at} (model lent, refolosit)",
+                                    time.perf_counter() - t0)
+            continue
         if mode == "auto" and plan_date is not None:
             try:
                 mod = importlib.import_module(module)
@@ -102,7 +120,7 @@ def estimate(scenario: str, plan_date: Date | None, mode: Mode, out_root: Path) 
                     path = Path(runner(scenario, plan_date.isoformat()))
                     picks[src] = SourcePick(path, "model", f"rulat {module}.run", time.perf_counter() - t0)
                     continue
-                except Exception as exc:  # noqa: BLE001 - un model căzut nu oprește planul
+                except (Exception, SystemExit) as exc:  # noqa: BLE001 - un model căzut (chiar cu SystemExit) nu oprește planul
                     note = f"modelul {src} a dat eroare: {type(exc).__name__}: {str(exc)[:200]}"
         if mode != "fixtures" and existing.exists():
             origin: Origin = "stale" if note and "eroare" in note else "model"
@@ -405,7 +423,7 @@ def run(
     timings["perceive"] = round(time.perf_counter() - t0, 3)
 
     t1 = time.perf_counter()
-    picks = estimate(scenario, plan_date, mode, out_root)
+    picks = estimate(scenario, plan_date, mode, out_root, settings)
     fixture_date = _fixture_date()
     if mode == "auto" and date is None and fixture_date and fixture_date != plan_date and all(picks[k].origin == "missing" for k in "ABC"):
         # Niciun model nu are încă ieșiri pentru data scenariului: planul rulează pe exemple, marcat clar (surse "degraded").

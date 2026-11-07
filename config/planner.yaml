@@ -44,6 +44,10 @@ posts:                              # harta posturilor din interfață, după le
   yellow_lei_month: 200             # IPOTEZĂ: de aici postul e galben
   red_lei_month: 600                # exemplul din conceptul lui Teo ("aproximativ 600 lei pe lună"): de aici postul e roșu
 
+estimate:                           # pasul Estimate în modul auto
+  reuse_fresh_output: [A_bilant]    # modele lente (bilanțul rulează ~4 minute): ieșirea lor pentru aceeași zi se refolosește
+  max_age_hours: 12                 # cât de veche poate fi ieșirea refolosită
+
 alerts:
   max_per_kind: 3                   # peste atâtea alerte de același fel (de exemplu siguranță), se strâng într-una singură
 
