@@ -1,0 +1,109 @@
+{
+  "what": "Calcul vectorizat Z-bus pe matricea de admitanțe pandapower, comparat cu pandapower.runpp",
+  "pandapower_numba": false,
+  "machine_note": "MacBook M5 Max, mașină împărțită cu alte 5 fire; timpii variază",
+  "topologies": {
+    "rural1": {
+      "lv_buses": 14,
+      "pv_kw": 0.0,
+      "snapshots": 100,
+      "max_abs_diff_pu": 5.284359616553047e-10,
+      "pandapower_ms_per_snapshot_median": 8.090479001111817,
+      "vectorized_ms_per_snapshot": 0.0012195800081826746,
+      "iterations": 4,
+      "vmax_range_pu": [
+        1.0195177787605305,
+        1.0596045205924398
+      ],
+      "year_hours": 8760,
+      "vectorized_s_per_year": 0.0023,
+      "pandapower_s_per_year_est": 70.9,
+      "iterations_year": 4
+    },
+    "rural2": {
+      "lv_buses": 96,
+      "pv_kw": 213.0,
+      "snapshots": 100,
+      "max_abs_diff_pu": 5.158758442647127e-08,
+      "pandapower_ms_per_snapshot_median": 8.809104001556989,
+      "vectorized_ms_per_snapshot": 0.004907080001430586,
+      "iterations": 7,
+      "vmax_range_pu": [
+        1.0110165609142996,
+        1.0829105382825213
+      ],
+      "year_hours": 8760,
+      "vectorized_s_per_year": 0.0568,
+      "pandapower_s_per_year_est": 77.2,
+      "iterations_year": 8
+    },
+    "rural3": {
+      "lv_buses": 128,
+      "pv_kw": 0.0,
+      "snapshots": 100,
+      "max_abs_diff_pu": 1.0780752734973476e-08,
+      "pandapower_ms_per_snapshot_median": 8.152375005010981,
+      "vectorized_ms_per_snapshot": 0.005277079908410087,
+      "iterations": 5,
+      "vmax_range_pu": [
+        1.0113266600239648,
+        1.050652212666799
+      ],
+      "year_hours": 8760,
+      "vectorized_s_per_year": 0.0473,
+      "pandapower_s_per_year_est": 71.4,
+      "iterations_year": 5
+    },
+    "semiurb4": {
+      "lv_buses": 43,
+      "pv_kw": 176.0,
+      "snapshots": 100,
+      "max_abs_diff_pu": 1.685933481709867e-08,
+      "pandapower_ms_per_snapshot_median": 10.820124494784977,
+      "vectorized_ms_per_snapshot": 0.002033749915426597,
+      "iterations": 6,
+      "vmax_range_pu": [
+        1.0178969903551465,
+        1.0646831880873047
+      ],
+      "year_hours": 8760,
+      "vectorized_s_per_year": 0.0172,
+      "pandapower_s_per_year_est": 94.8,
+      "iterations_year": 7
+    },
+    "semiurb5": {
+      "lv_buses": 110,
+      "pv_kw": 226.0,
+      "snapshots": 100,
+      "max_abs_diff_pu": 4.2101055974796964e-10,
+      "pandapower_ms_per_snapshot_median": 9.100020506593864,
+      "vectorized_ms_per_snapshot": 0.006381669954862446,
+      "iterations": 8,
+      "vmax_range_pu": [
+        1.0143775713217897,
+        1.0844978728037526
+      ],
+      "year_hours": 8760,
+      "vectorized_s_per_year": 0.061,
+      "pandapower_s_per_year_est": 79.7,
+      "iterations_year": 8
+    },
+    "urban6": {
+      "lv_buses": 58,
+      "pv_kw": 137.0,
+      "snapshots": 100,
+      "max_abs_diff_pu": 6.9218923925973286e-09,
+      "pandapower_ms_per_snapshot_median": 8.12627149571199,
+      "vectorized_ms_per_snapshot": 0.0026304199127480388,
+      "iterations": 5,
+      "vmax_range_pu": [
+        1.0027394068845459,
+        1.0479541520326396
+      ],
+      "year_hours": 8760,
+      "vectorized_s_per_year": 0.017,
+      "pandapower_s_per_year_est": 71.2,
+      "iterations_year": 6
+    }
+  }
+}
