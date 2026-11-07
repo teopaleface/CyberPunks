@@ -1,12 +1,7 @@
 import { useReducedMotion } from "motion/react"
 
-/**
- * Whether the site obeys the OS "reduce motion" setting.
- * Off for the hackathon demo: on Windows with "Animation effects" turned
- * off, the browser reports reduced motion and every animation (beam,
- * reveals, smooth scroll) would stop. Turn on for a public launch.
- */
-export const HONOR_REDUCED_MOTION = false
+/** Respect the operating system's reduced-motion preference throughout the site. */
+export const HONOR_REDUCED_MOTION = true
 
 export function prefersReducedMotion(): boolean {
   if (!HONOR_REDUCED_MOTION || typeof window === "undefined") return false

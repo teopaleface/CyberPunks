@@ -4,15 +4,15 @@ import { BalanceExplorer } from "@/components/balance-explorer"
 
 export function Balance() {
   return (
-    <Screen id="bilant" label="Bilanțul unui post">
+    <Screen id="bilant" label="Transformer energy balance">
       <div className="container-page">
         <div className="grid gap-6 lg:grid-cols-12 lg:items-end">
           <Reveal className="lg:col-span-6">
-            <h2 className="h-section">Bilanțul pe post</h2>
+            <h2 className="h-section">Transformer energy balance</h2>
           </Reveal>
           <Reveal delay={0.06} className="lg:col-span-6">
             <p className="text-white/90 lg:text-lg">
-              Cât lipsește dintr-un post, de ce, și ce facem. Alege un post.
+              Select a transformer to see its excess loss, likely cause and planned action.
             </p>
           </Reveal>
         </div>

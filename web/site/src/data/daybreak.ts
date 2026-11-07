@@ -5,6 +5,7 @@
  * synthetic, placed on the real map; weather and days are real.
  */
 import raw from "./daybreak.json"
+import { CASE_COPY_EN, EVALUATION_NAMES_EN } from "./daybreak-copy"
 
 export type SourceKey = "A" | "B" | "C"
 export type Decision = "assigned" | "remote_action" | "human_review" | "deferred" | "notify"
@@ -168,9 +169,9 @@ export interface Crew {
 }
 
 export const SKILL_RO: Record<string, string> = {
-  metering: "contoare",
-  lv_grid: "rețea JT",
-  mv_grid: "rețea MT",
+  metering: "metering",
+  lv_grid: "LV grid",
+  mv_grid: "MV grid",
 }
 
 export interface ModelCard {
@@ -237,36 +238,56 @@ export interface Item {
   series: Series | null
 }
 
-export const DB = raw as unknown as Data
 
 /** Source names and colours from the team's console (checked for colour blindness). */
 export const SOURCES: Record<SourceKey, { name: string; long: string; color: string }> = {
-  A: { name: "Contoare", long: "Contoare defecte sau manipulate, și bilanțul pe post", color: "#3b82f0" },
-  B: { name: "Furtună", long: "Unde vor fi avarii în următoarele 24 de ore", color: "#ff5cff" },
-  C: { name: "Tensiune", long: "Posturi unde panourile solare urcă tensiunea peste 1,10 pu", color: "#ffc502" },
+  A: { name: "Meters", long: "Faulty or tampered meters and transformer energy balance", color: "#3b82f0" },
+  B: { name: "Storms", long: "Outage risk over the next 24 hours", color: "#ff5cff" },
+  C: { name: "Voltage", long: "Transformers where solar export raises voltage above 1.10 pu", color: "#ffc502" },
 }
 
 export const DECISION_RO: Record<Decision, string> = {
-  assigned: "Echipă trimisă",
-  remote_action: "Verificare de la distanță",
-  human_review: "Decide un om",
-  deferred: "Amânat",
-  notify: "Notificare",
+  assigned: "Crew assigned",
+  remote_action: "Remote check",
+  human_review: "Human review",
+  deferred: "Deferred",
+  notify: "Notification",
 }
 
 export const DIAGNOSIS_RO: Record<string, string> = {
-  contor_client: "Contor defect la un client",
-  furt_inainte_contor: "Furt înainte de contor",
-  pierdere_tehnica: "Pierdere tehnică (cablu, faze)",
-  client_post_gresit: "Client la postul greșit",
-  contor_bilant_setat: "Contorul de post setat greșit",
-  normal: "În regulă",
+  contor_client: "Faulty customer meter",
+  furt_inainte_contor: "Theft upstream of the meter",
+  pierdere_tehnica: "Technical loss in cables or phases",
+  client_post_gresit: "Customer mapped to the wrong transformer",
+  contor_bilant_setat: "Misconfigured transformer meter",
+  normal: "Normal",
 }
 
 export const STATUS_OF_COLOR = { verde: "ok", galben: "watch", rosu: "bad" } as const
 
-const months = ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"]
-/** "8 iulie 2025" */
+// Only presentation fields are localised. The source run and its contracts stay intact.
+const sourceData = raw as unknown as Data
+export const DB: Data = {
+  ...sourceData,
+  cases: sourceData.cases.map((c) => {
+    const copy = CASE_COPY_EN[c.post]
+    return {
+      ...c,
+      label: c.label.replace(" (sintetic)", " (synthetic)"),
+      diagnosisRo: DIAGNOSIS_RO[c.diagnosis],
+      decisionRo: DECISION_RO[c.decision],
+      reason: copy.reason,
+      factors: c.factors.map((f, i) => ({ ...f, label: copy.factors[i] })),
+    }
+  }),
+  evaluation: {
+    ...sourceData.evaluation,
+    rows: sourceData.evaluation.rows.map((r) => ({ ...r, name: EVALUATION_NAMES_EN[r.key] })),
+  },
+}
+
+const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+/** "8 July 2025" */
 export function dateRo(iso: string) {
   const [y, m, d] = iso.slice(0, 10).split("-").map(Number)
   return `${d} ${months[m - 1]} ${y}`
@@ -275,5 +296,5 @@ export function dateRo(iso: string) {
 export const PLAN_DATE_RO = dateRo(DB.planDate)
 
 /** Shown wherever data appears, as the team requires. */
-export const SYNTHETIC_NOTE = "Date sintetice: contoarele, posturile și echipele sunt sintetice, puse pe harta reală; vremea și ziua sunt reale."
-export const BILANT_NOTE = "Simulare pe date publice, gândită pentru datele PPC"
+export const SYNTHETIC_NOTE = "Synthetic meters, transformers and crews on a real map. Weather and dates are real."
+export const BILANT_NOTE = "Simulation using public data, designed for future validation with PPC data"

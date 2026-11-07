@@ -19,7 +19,7 @@ const CLASS_ORDER = ["normal", "contor_client", "furt_inainte_contor", "pierdere
 /** How sure the model is of each cause: the six classes as bars. */
 export function DiagnosisBars({ c }: { c: Case }) {
   return (
-    <ul className="space-y-2.5" aria-label="Probabilitatea fiecărei cauze">
+    <ul className="space-y-2.5" aria-label="Probability of each cause">
       {CLASS_ORDER.map((k) => {
         const v = c.proba[k] ?? 0
         const top = k === c.diagnosis
@@ -80,7 +80,7 @@ export function CasePicker({
   dense?: boolean
 }) {
   return (
-    <ul className="flex flex-col gap-1.5" aria-label="Posturi de transformare">
+    <ul className="flex flex-col gap-1.5" aria-label="Transformers">
       {cases.map((c) => {
         const active = c.id === value
         return (
@@ -103,12 +103,12 @@ export function CasePicker({
                 />
               )}
               <span className="min-w-0 flex-1">
-                <span className="block truncate font-medium">{c.label.replace(" (sintetic)", "")}</span>
+                <span className="block truncate font-medium">{c.label.replace(" (synthetic)", "")}</span>
                 <span className="block truncate text-sm text-white/65">{c.diagnosisRo}</span>
               </span>
               <span className="tabular shrink-0 text-right font-medium">
                 {c.lossLeiMonth ? lei(c.lossLeiMonth) : "0 lei"}
-                <span className="block text-xs font-normal text-white/60">pe lună</span>
+                <span className="block text-xs font-normal text-white/60">per month</span>
               </span>
             </button>
           </li>
@@ -119,9 +119,9 @@ export function CasePicker({
 }
 
 const SKILL_RO: Record<string, string> = {
-  metering: "echipa de contoare",
-  lv_grid: "echipa de rețea (joasă tensiune)",
-  mv_grid: "echipa de rețea (medie tensiune)",
+  metering: "metering crew",
+  lv_grid: "low-voltage grid crew",
+  mv_grid: "medium-voltage grid crew",
 }
 
 const ITEMS_BY_ID = new Map(DB.items.map((i) => [i.id, i]))
@@ -133,37 +133,37 @@ export function outcomeOf(c: Case) {
   const cost = t.cost_lei ?? t.action_cost_lei ?? null
   const value = t.expected_value_lei ?? c.expectedValueLei
   const net = t.net_value_lei ?? (cost !== null && value ? value - cost : null)
-  const team = it?.effort ? SKILL_RO[it.effort.crew_skill] ?? "o echipă" : "o echipă"
+  const team = it?.effort ? SKILL_RO[it.effort.crew_skill] ?? "a crew" : "a crew"
   switch (c.decision) {
     case "assigned":
       return {
-        title: `Trimitem echipa ${c.crew} mâine`,
-        body: `Merge ${team}${it?.effort ? `, ${it.effort.crew_size} oameni, ${it.effort.duration_min} min` : ""}.`,
+        title: `Crew ${c.crew} is assigned for tomorrow`,
+        body: `Assigned to the ${team}${it?.effort ? `, ${it.effort.crew_size} people, ${it.effort.duration_min} min` : ""}.`,
         cost,
         value,
         net,
       }
     case "remote_action":
       return {
-        title: "Verificăm de la distanță, fără deplasare",
+        title: "Remote checks before a site visit",
         body:
           cost !== null && cost <= 10
-            ? `Recitim contoarele și jurnalul lor de evenimente. Trimitem ${team} doar dacă se confirmă.`
-            : `Întâi o verificare de la distanță; dacă se confirmă, merge ${team}.`,
+            ? `Re-read the meters and their event logs. Send the ${team} only if the issue is confirmed.`
+            : `Check remotely first. Send the ${team} if the issue is confirmed.`,
         cost: cost !== null && cost <= 10 ? cost : 2,
         value,
         net: value ? value - (cost !== null && cost <= 10 ? cost : 2) : null,
       }
     case "deferred":
       return {
-        title: "Amânat, nu merită încă o deplasare",
-        body: "Rămâne pe listă; agentul îl reevaluează mâine, cu datele noi.",
+        title: "Deferred under the current planning rules",
+        body: "Stays on the list for reassessment with new data in the next run.",
         cost,
         value,
         net: null,
       }
     case "human_review":
-      return { title: "Decide un om", body: "Modelul nu e destul de sigur; cazul ajunge la dispecer.", cost, value, net: null }
+      return { title: "Human review", body: "The model is uncertain. A dispatcher reviews this case.", cost, value, net: null }
     default:
       return { title: c.decisionRo, body: "", cost, value, net }
   }
@@ -189,23 +189,23 @@ export function CaseDetail({ c, full = false }: { c: Case; full?: boolean }) {
           </div>
           <div className="tabular text-right">
             <div className="text-[clamp(1.8rem,2.8vw,2.6rem)] leading-none font-semibold text-amber">{fmt(c.score * 100)}%</div>
-            <div className="mt-1 text-sm text-white/65">cât de sigur e modelul</div>
+            <div className="mt-1 text-sm text-white/65">model confidence</div>
           </div>
         </div>
 
         <p className="mt-4 text-[17px] text-white/90">
           {c.lossLeiMonth ? (
             <>
-              Se pierd <span className="tabular font-semibold text-white">{lei(c.lossLeiMonth)}</span> pe lună peste pierderea normală
+              Excess loss is <span className="tabular font-semibold text-white">{lei(c.lossLeiMonth)}</span> per month above normal loss
               {c.excessKwhDay !== null ? (
                 <>
-                  , adică <span className="tabular font-semibold text-white">{fmt(c.excessKwhDay, 1)} kWh</span> pe zi
+                  , equivalent to <span className="tabular font-semibold text-white">{fmt(c.excessKwhDay, 1)} kWh</span> per day
                 </>
               ) : null}
               .
             </>
           ) : (
-            "Nu se pierd bani: e o eroare de măsură, care blochează bilanțul până se corectează."
+            "No monetary loss is attributed to this case. A measurement error prevents a reliable energy balance until corrected."
           )}
         </p>
 
@@ -214,16 +214,16 @@ export function CaseDetail({ c, full = false }: { c: Case; full?: boolean }) {
           {o.body && <p className="mt-1 text-white/85">{o.body}</p>}
           <dl className="tabular mt-4 grid grid-cols-3 gap-4">
             <div>
-              <dd className="text-xl font-semibold">{o.cost !== null ? lei(o.cost) : "fără"}</dd>
-              <dt className="text-sm text-white/65">costul acțiunii</dt>
+              <dd className="text-xl font-semibold">{o.cost !== null ? lei(o.cost) : "none"}</dd>
+              <dt className="text-sm text-white/65">action cost</dt>
             </div>
             <div>
-              <dd className="text-xl font-semibold">{o.value ? lei(o.value) : "fără"}</dd>
-              <dt className="text-sm text-white/65">valoarea așteptată</dt>
+              <dd className="text-xl font-semibold">{o.value ? lei(o.value) : "none"}</dd>
+              <dt className="text-sm text-white/65">expected value</dt>
             </div>
             <div>
-              <dd className="text-xl font-semibold text-amber">{o.net !== null ? lei(o.net) : "nu încă"}</dd>
-              <dt className="text-sm text-white/65">câștig net</dt>
+              <dd className="text-xl font-semibold text-amber">{o.net !== null ? lei(o.net) : "pending"}</dd>
+              <dt className="text-sm text-white/65">net value</dt>
             </div>
           </dl>
         </div>
@@ -235,7 +235,7 @@ export function CaseDetail({ c, full = false }: { c: Case; full?: boolean }) {
           className="group mt-4 inline-flex cursor-pointer items-center gap-2 text-white/80 transition-colors duration-150 hover:text-white"
         >
           <ChevronDown className={cn("size-4 transition-transform duration-200", why && "rotate-180")} aria-hidden />
-          {why ? "Ascunde motivele" : "De ce crede modelul asta?"}
+          {why ? "Hide evidence" : "Show model evidence"}
         </button>
         <AnimatePresence initial={false}>
           {why && (
@@ -248,18 +248,18 @@ export function CaseDetail({ c, full = false }: { c: Case; full?: boolean }) {
             >
               <div className="grid gap-8 pt-4 md:grid-cols-2">
                 <div>
-                  <h4 className="mb-3 font-sans text-sm font-medium text-white/70">Factorii</h4>
+                  <h4 className="mb-3 font-sans text-sm font-medium text-white/70">Contributing factors</h4>
                   <Factors c={c} />
                 </div>
                 <div>
-                  <h4 className="mb-3 font-sans text-sm font-medium text-white/70">Toate cauzele posibile</h4>
+                  <h4 className="mb-3 font-sans text-sm font-medium text-white/70">Possible causes</h4>
                   <DiagnosisBars c={c} />
                 </div>
               </div>
               {full && c.reason && <p className="mt-4 text-white/80">{c.reason}</p>}
               {full && (
                 <p className="mt-2 text-sm text-white/55">
-                  Regula {c.rule}, modelul {c.model}
+                  Rule {c.rule}, model {c.model}
                 </p>
               )}
             </motion.div>
@@ -284,7 +284,7 @@ export function BalanceExplorer({ compact = false, full = false }: { compact?: b
           <CaseDetail c={c} full={full} />
         </div>
       </div>
-      <p className="mt-3 text-sm text-white/55">{BILANT_NOTE}. Posturi și contoare sintetice.</p>
+      <p className="mt-3 text-sm text-white/55">{BILANT_NOTE}. Synthetic transformers and meters.</p>
     </div>
   )
 }

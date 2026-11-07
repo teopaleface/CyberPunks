@@ -7,12 +7,12 @@ import { fmt } from "@/lib/utils"
 const S = DB.summary
 
 export const PLAN_FIGURES = [
-  { n: fmt(S.items_in), t: "lucrări intrate din cele trei surse" },
-  { n: fmt(S.remote_actions), t: "verificări de la distanță, fără deplasare" },
-  { n: fmt(S.assigned), t: "lucrări trimise la echipe" },
-  { n: fmt(S.human_review), t: "cazuri pe care decide un om" },
-  { n: `${fmt(S.total_km, 0)} km`, t: `de drum pentru ${S.crews_used} echipe` },
-  { n: fmt(S.notifications), t: "notificări pentru echipe și clienți" },
+  { n: fmt(S.items_in), t: "jobs across the three sources" },
+  { n: fmt(S.remote_actions), t: "remote checks without a site visit" },
+  { n: fmt(S.assigned), t: "jobs assigned to crews" },
+  { n: fmt(S.human_review), t: "cases for human review" },
+  { n: `${fmt(S.total_km, 0)} km`, t: `travelled by ${S.crews_used} crews` },
+  { n: fmt(S.notifications), t: "crew and customer notifications" },
 ]
 
 /** The day's plan in numbers, straight from the agent's run. */
@@ -31,15 +31,15 @@ export function PlanFigures() {
 
 export function Plan() {
   return (
-    <Screen id="plan" label="Planul de mâine">
+    <Screen id="plan" label="Tomorrow's plan">
       <div className="container-page grid gap-10 lg:grid-cols-12 lg:items-center">
         <div className="lg:col-span-5">
           <Reveal>
-            <h2 className="h-section">Planul pentru {PLAN_DATE_RO}</h2>
+            <h2 className="h-section">Plan for {PLAN_DATE_RO}</h2>
           </Reveal>
           <Reveal delay={0.06}>
             <p className="mt-5 max-w-[44ch] text-white/90 lg:text-lg">
-              O rulare reală a agentului, pe o zi reală de vară. Valoarea așteptată a planului:
+              An actual agent run for a historical summer day. Expected plan value:
             </p>
           </Reveal>
           <Reveal delay={0.1}>
@@ -52,7 +52,7 @@ export function Plan() {
               <div key={s} className="flex items-center justify-between gap-6">
                 <SourceTag s={s} />
                 <span className="tabular text-white/85">
-                  {fmt(DB.perSource[s]?.total ?? 0)} lucrări, {SOURCES[s].long.toLowerCase()}
+                  {fmt(DB.perSource[s]?.total ?? 0)} jobs, {SOURCES[s].long.toLowerCase()}
                 </span>
               </div>
             ))}

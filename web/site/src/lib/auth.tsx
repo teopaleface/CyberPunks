@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const sendReset = useCallback(
-    async () => "Resetarea pe email nu e disponibilă. Cere-i administratorului o parolă nouă sau fă-ți alt cont.",
+    async () => "Email password recovery is unavailable. Ask the administrator for help or create a new account.",
     []
   )
 
@@ -113,5 +113,5 @@ export function useAuth() {
 
 /** The name to greet someone by: profile name, else the part of the email before @. */
 export function displayName(user: User | null, profile: Profile | null) {
-  return profile?.full_name?.trim() || user?.email?.split("@")[0] || "cont"
+  return profile?.full_name?.trim() || user?.email?.split("@")[0] || "account"
 }

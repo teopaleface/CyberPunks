@@ -101,7 +101,7 @@ export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className
 
   return (
     <nav
-      aria-label="Navigare principală"
+      aria-label="Main navigation"
       className={cn(
         "relative flex items-center gap-1 rounded-full p-1.5 pl-4",
         "bg-white/[0.06] backdrop-blur-2xl backdrop-saturate-150",
@@ -198,13 +198,12 @@ export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className
               <Icon
                 aria-hidden
                 className={cn(
-                  "size-4 shrink-0 transition-transform duration-500 ease-[var(--ease-out)]",
+                  "hidden size-4 shrink-0 sm:block transition-transform duration-500 ease-[var(--ease-out)]",
                   "group-hover/item:-rotate-12 group-hover/item:scale-110",
                   active && "text-white"
                 )}
               />
-              <span className="hidden lg:inline">{item.label}</span>
-              <span className="sr-only lg:hidden">{item.label}</span>
+              <span>{item.label}</span>
             </a>
           )
         })}

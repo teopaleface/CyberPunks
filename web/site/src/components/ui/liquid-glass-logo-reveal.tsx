@@ -85,7 +85,7 @@ export function LiquidGlassLogoReveal({ className }: { className?: string }) {
       ref={scope}
       type="button"
       onClick={play}
-      aria-label="Reia animația siglei"
+      aria-label="Replay logo animation"
       className={cn("group relative grid aspect-square cursor-pointer place-items-center outline-none", className)}
     >
       <svg aria-hidden className="absolute h-0 w-0">

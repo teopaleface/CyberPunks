@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import { prefersReducedMotion } from "@/lib/motion"
+import { useReduced } from "@/lib/motion"
 import { cn } from "@/lib/utils"
 
 /**
@@ -86,6 +86,7 @@ void main(){
 
 export function EnergyBeamShader({ className }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const reduce = useReduced()
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -117,7 +118,6 @@ export function EnergyBeamShader({ className }: { className?: string }) {
     const uTime = gl.getUniformLocation(prog, "uTime")
     const uMouse = gl.getUniformLocation(prog, "uMouse")
 
-    const reduce = prefersReducedMotion()
     const mouse = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5 }
     let visible = true
     let raf = 0
@@ -166,8 +166,10 @@ export function EnergyBeamShader({ className }: { className?: string }) {
       ro.disconnect()
       io.disconnect()
       window.removeEventListener("pointermove", onMove)
+      gl.deleteBuffer(buf)
+      gl.deleteProgram(prog)
     }
-  }, [])
+  }, [reduce])
 
   return <canvas ref={canvasRef} aria-hidden className={cn("block h-full w-full bg-black", className)} />
 }

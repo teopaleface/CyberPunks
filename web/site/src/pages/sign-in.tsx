@@ -2,20 +2,20 @@ import { CheckCircle2, Loader2 } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useId, useState, type FormEvent, type ReactNode } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
-import { NetworkGlobe } from "@/components/network-globe"
 import { GlassButton } from "@/components/ui/liquid-glass-button"
 import { displayName, useAuth } from "@/lib/auth"
 import { ROUTES } from "@/lib/site"
 import { supabaseReady } from "@/lib/supabase"
+import { accountErrorMessage } from "@/lib/account-errors"
 import { cn } from "@/lib/utils"
 
 type Mode = "intra" | "cont-nou" | "resetare"
 
 const TITLES: Record<Mode | "parola-noua", string> = {
-  intra: "Intră în cont",
-  "cont-nou": "Cont nou",
-  resetare: "Resetează parola",
-  "parola-noua": "Parolă nouă",
+  intra: "Sign in",
+  "cont-nou": "Create account",
+  resetare: "Password help",
+  "parola-noua": "New password",
 }
 
 function Field({
@@ -113,9 +113,9 @@ export default function SignInPage() {
 
   const setMode = (m: Mode) => setParams(m === "intra" ? {} : { mod: m })
 
-  const emailErr = touched && !emailOk(email) ? "Scrie un email valid, de forma nume@domeniu.ro." : null
-  const passErr = touched && password.length < 6 ? "Parola trebuie să aibă cel puțin 6 caractere." : null
-  const nameErr = touched && view === "cont-nou" && !name.trim() ? "Scrie-ți numele, ca să știe echipa cine a aprobat." : null
+  const emailErr = touched && !emailOk(email) ? "Enter a valid email, such as name@example.com." : null
+  const passErr = touched && password.length < 6 ? "Use at least 6 characters." : null
+  const nameErr = touched && view === "cont-nou" && !name.trim() ? "Enter your name so the team can identify your approvals." : null
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -126,47 +126,43 @@ export default function SignInPage() {
       setBusy(true)
       const err = await auth.setNewPassword(password)
       setBusy(false)
-      if (err) setError(err)
+      if (err) setError(accountErrorMessage(err))
       else navigate(ROUTES.app)
       return
     }
+    if (view === "resetare") return
     if (!emailOk(email)) return
-    if (view !== "resetare" && password.length < 6) return
+    if (password.length < 6) return
     if (view === "cont-nou" && !name.trim()) return
     setBusy(true)
     if (view === "intra") {
       const err = await auth.signIn(email.trim(), password)
       setBusy(false)
-      if (err) setError(err)
+      if (err) setError(accountErrorMessage(err))
       else navigate(ROUTES.app)
     } else if (view === "cont-nou") {
       const res = await auth.signUp(email.trim(), password, name.trim())
       setBusy(false)
-      if (res.error) setError(res.error)
+      if (res.error) setError(accountErrorMessage(res.error))
       else if (res.needsConfirmation)
-        setDone(`Ți-am trimis un email la ${email.trim()}. Deschide linkul din el ca să-ți activezi contul.`)
+        setDone(`Check your email at ${email.trim()} for the account confirmation link.`)
       else navigate(ROUTES.app)
-    } else {
-      const err = await auth.sendReset(email.trim())
-      setBusy(false)
-      if (err) setError(err)
-      else setDone(`Dacă există un cont pe ${email.trim()}, ai primit un link pentru parolă nouă.`)
     }
   }
 
   // Already signed in: say who, offer the way in or out.
   if (auth.user && !auth.recovering) {
     return (
-      <Shell title="Ești conectat">
+      <Shell title="You are signed in">
         <p className="text-white/90">
-          Ești conectat ca <span className="font-medium">{displayName(auth.user, auth.profile)}</span> ({auth.user.email}).
+          Signed in as <span className="font-medium">{displayName(auth.user, auth.profile)}</span> ({auth.user.email}).
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-4">
           <GlassButton size="lg" variant="signal" onClick={() => navigate(ROUTES.app)}>
-            Deschide aplicația
+            Open console
           </GlassButton>
           <button type="button" onClick={() => auth.signOut()} className="cursor-pointer text-white/80 underline-offset-4 hover:text-white hover:underline">
-            Ieși din cont
+            Sign out
           </button>
         </div>
       </Shell>
@@ -176,20 +172,19 @@ export default function SignInPage() {
   return (
     <Shell title={TITLES[view]}>
       {view !== "parola-noua" && view !== "resetare" && (
-        <div role="tablist" aria-label="Alege" className="mb-8 inline-flex rounded-full bg-surface-2 p-1">
+        <div role="group" aria-label="Account access" className="mb-8 inline-flex rounded-full bg-surface-2 p-1">
           {(["intra", "cont-nou"] as Mode[]).map((m) => (
             <button
               key={m}
-              role="tab"
               type="button"
-              aria-selected={view === m}
+              aria-pressed={view === m}
               onClick={() => setMode(m)}
               className={cn(
                 "h-10 cursor-pointer rounded-full px-5 text-sm font-medium transition-colors duration-200",
                 view === m ? "bg-white text-black" : "text-white/80 hover:text-white"
               )}
             >
-              {m === "intra" ? "Am cont" : "Cont nou"}
+              {m === "intra" ? "Sign in" : "Create account"}
             </button>
           ))}
         </div>
@@ -197,8 +192,7 @@ export default function SignInPage() {
 
       {!supabaseReady && (
         <Notice tone="error">
-          Conturile nu sunt configurate pe acest server (lipsesc cheile Supabase din .env.local). Poți folosi aplicația
-          fără cont.
+          Accounts are unavailable on this server. You can still explore the demo without an account.
         </Notice>
       )}
 
@@ -218,23 +212,23 @@ export default function SignInPage() {
           ) : (
             <>
               {view === "resetare" && (
-                <p className="text-white/85">Scrie emailul contului. Îți trimitem un link pentru o parolă nouă.</p>
+                <p className="text-white/85">Email password recovery is unavailable. Ask the administrator for help or create a new account.</p>
               )}
               {view === "cont-nou" && (
-                <Field label="Nume" value={name} onChange={setName} autoComplete="name" error={nameErr} disabled={busy} />
+                <Field label="Name" value={name} onChange={setName} autoComplete="name" error={nameErr} disabled={busy} />
               )}
-              {view !== "parola-noua" && (
+              {view !== "parola-noua" && view !== "resetare" && (
                 <Field label="Email" type="email" value={email} onChange={setEmail} autoComplete="email" error={emailErr} disabled={busy} />
               )}
               {view !== "resetare" && (
                 <Field
-                  label={view === "parola-noua" ? "Parola nouă" : "Parolă"}
+                  label={view === "parola-noua" ? "New password" : "Password"}
                   type="password"
                   value={password}
                   onChange={setPassword}
                   autoComplete={view === "intra" ? "current-password" : "new-password"}
                   error={passErr}
-                  hint={view !== "intra" ? "Cel puțin 6 caractere." : undefined}
+                  hint={view !== "intra" ? "At least 6 characters." : undefined}
                   disabled={busy}
                 />
               )}
@@ -242,32 +236,28 @@ export default function SignInPage() {
               {error && <Notice tone="error">{error}</Notice>}
 
               <div className="flex flex-wrap items-center gap-x-6 gap-y-4 pt-2">
-                <GlassButton type="submit" size="lg" variant="signal" disabled={busy || !supabaseReady} aria-busy={busy}>
+                {view !== "resetare" && <GlassButton type="submit" size="lg" variant="signal" disabled={busy || !supabaseReady} aria-busy={busy}>
                   {busy && <Loader2 className="size-4 animate-spin" aria-hidden />}
                   {view === "intra"
                     ? busy
-                      ? "Se verifică…"
-                      : "Intră în cont"
+                      ? "Signing in…"
+                      : "Sign in"
                     : view === "cont-nou"
                       ? busy
-                        ? "Se creează contul…"
-                        : "Creează contul"
-                      : view === "resetare"
-                        ? busy
-                          ? "Se trimite…"
-                          : "Trimite linkul"
-                        : busy
-                          ? "Se salvează…"
-                          : "Salvează parola"}
-                </GlassButton>
+                        ? "Creating account…"
+                        : "Create account"
+                      : busy
+                        ? "Saving…"
+                        : "Save password"}
+                </GlassButton>}
                 {view === "intra" && (
                   <button type="button" onClick={() => setMode("resetare")} className="cursor-pointer text-white/80 underline-offset-4 hover:text-white hover:underline">
-                    Ai uitat parola?
+                    Forgot password?
                   </button>
                 )}
                 {view === "resetare" && (
                   <button type="button" onClick={() => setMode("intra")} className="cursor-pointer text-white/80 underline-offset-4 hover:text-white hover:underline">
-                    Înapoi la intrare
+                    Back to sign in
                   </button>
                 )}
               </div>
@@ -277,11 +267,11 @@ export default function SignInPage() {
       </AnimatePresence>
 
       <p className="mt-12 text-white/70">
-        Totul e public deocamdată.{" "}
+        The demo is public.{" "}
         <Link to={ROUTES.app} className="text-white underline underline-offset-4 hover:text-ember-soft">
-          Continuă fără cont
+          Continue without an account
         </Link>
-        . Contul păstrează aprobările și profilul tău.
+        . Sign in to save your approvals and profile.
       </p>
     </Shell>
   )
@@ -293,11 +283,9 @@ function Shell({ title, children }: { title: string; children: ReactNode }) {
       <div className="grid w-full items-center gap-12 lg:grid-cols-12">
         <div className="lg:col-span-6">
           <h1 className="text-[clamp(2.2rem,min(4.2vw,7.5vh),3.9rem)] leading-[1.02] font-semibold tracking-[-0.03em]">
-            Un singur cont pentru orice problemă
+            Save your decisions
           </h1>
-          <div className="mt-[clamp(16px,4vh,40px)] hidden lg:block">
-            <NetworkGlobe className="max-w-[min(520px,52vh)]" />
-          </div>
+          <p className="mt-6 max-w-[40ch] text-lg text-white/80">Use an account to keep your approvals and profile. You can explore the plan without signing in.</p>
         </div>
         <div className="lg:col-span-6">
           <div className="rounded-2xl bg-surface p-[clamp(24px,3vw,40px)]">

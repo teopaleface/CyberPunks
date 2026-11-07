@@ -1,4 +1,4 @@
-import { LogIn, UserPlus, UserRound } from "lucide-react"
+import { LogIn, UserRound } from "lucide-react"
 import { motion } from "motion/react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { GlassLink } from "@/components/ui/liquid-glass-button"
@@ -8,7 +8,7 @@ import { NAV_ITEMS, ROUTES, SITE } from "@/lib/site"
 
 /**
  * The account lives in the top-right corner, apart from the navbar:
- * "Intră în cont" and "Cont nou" when signed out, "Contul meu" when signed in.
+ * "Sign in" when signed out, "My account" when signed in.
  * Hidden while the auth state loads, so the wrong buttons never flash.
  */
 function AccountCorner() {
@@ -22,23 +22,19 @@ function AccountCorner() {
   return (
     <div className="flex items-center gap-2">
       {user ? (
-        <GlassLink href={ROUTES.app} size="sm" variant="signal" title={`Conectat ca ${displayName(user, profile)}`} onClick={go(ROUTES.app)}>
+        <GlassLink href={ROUTES.app} size="sm" variant="signal" title={`Signed in as ${displayName(user, profile)}`} onClick={go(ROUTES.app)}>
           <UserRound className="size-4" aria-hidden />
-          <span className="hidden min-[1400px]:inline">Contul meu</span>
-          <span className="sr-only min-[1400px]:hidden">Contul meu</span>
+          <span className="inline">My account</span>
+
         </GlassLink>
       ) : (
         <>
           <GlassLink href={ROUTES.signIn} size="sm" variant="signal" onClick={go(ROUTES.signIn)}>
             <LogIn className="size-4" aria-hidden />
-            <span className="hidden min-[1400px]:inline">Intră în cont</span>
-            <span className="sr-only min-[1400px]:hidden">Intră în cont</span>
+            <span className="inline">Sign in</span>
+
           </GlassLink>
-          <GlassLink href={`${ROUTES.signIn}?mod=cont-nou`} size="sm" variant="frost" onClick={go(`${ROUTES.signIn}?mod=cont-nou`)}>
-            <UserPlus className="size-4" aria-hidden />
-            <span className="hidden min-[1400px]:inline">Cont nou</span>
-            <span className="sr-only min-[1400px]:hidden">Cont nou</span>
-          </GlassLink>
+
         </>
       )}
     </div>
@@ -69,11 +65,11 @@ export function SiteNav() {
                 onClick={(e) => {
                   if (pathname === ROUTES.home) {
                     e.preventDefault()
-                    window.scrollTo({ top: 0, behavior: "smooth" })
+                    window.scrollTo({ top: 0, behavior: "auto" })
                   }
                 }}
                 className="rounded-md font-display text-[15px] font-semibold tracking-[-0.02em] focus-visible:outline-offset-4"
-                aria-label={`${SITE.name}, începutul primei pagini`}
+                aria-label={`${SITE.name}, home`}
               >
                 {SITE.name}
               </Link>
@@ -85,7 +81,7 @@ export function SiteNav() {
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed top-[84px] right-4 z-50 md:top-[22px] lg:right-6"
+        className="fixed top-[84px] right-4 z-50 min-[1100px]:top-[22px] lg:right-6"
       >
         <AccountCorner />
       </motion.div>

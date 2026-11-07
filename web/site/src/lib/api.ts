@@ -8,9 +8,9 @@ export async function api<T>(path: string, init?: { method?: string; body?: unkn
       body: init?.body !== undefined ? JSON.stringify(init.body) : undefined,
     })
     const json = (await res.json().catch(() => ({}))) as T & { error?: string }
-    if (!res.ok) return { error: json.error ?? "Ceva n-a mers. Încearcă din nou." }
+    if (!res.ok) return { error: json.error ?? "Something went wrong. Try again." }
     return { data: json }
   } catch {
-    return { error: "Nu ne-am putut conecta la server. Verifică internetul și încearcă din nou." }
+    return { error: "Could not connect to the server. Check your connection and try again." }
   }
 }

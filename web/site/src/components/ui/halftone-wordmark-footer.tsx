@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import { prefersReducedMotion } from "@/lib/motion"
+import { useReduced } from "@/lib/motion"
 import { cn } from "@/lib/utils"
 
 interface HalftoneWordmarkProps {
@@ -39,6 +39,7 @@ export function HalftoneWordmark({
   rest = REST,
   hot = HOT,
 }: HalftoneWordmarkProps) {
+  const reduce = useReduced()
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -47,7 +48,6 @@ export function HalftoneWordmark({
     const canvas = canvasRef.current
     if (!wrap || !canvas) return
     const ctx = canvas.getContext("2d")!
-    const reduce = prefersReducedMotion()
 
     let dots: Dot[] = []
     let W = 0,
@@ -213,7 +213,7 @@ export function HalftoneWordmark({
       }
     })
     ro.observe(wrap)
-    raf = requestAnimationFrame(tick)
+    if (!reduce) raf = requestAnimationFrame(tick)
 
     return () => {
       cancelAnimationFrame(raf)
@@ -223,7 +223,7 @@ export function HalftoneWordmark({
       canvas.removeEventListener("pointerleave", onLeave)
       canvas.removeEventListener("pointerdown", onDown)
     }
-  }, [word, crop, rest, hot])
+  }, [word, crop, rest, hot, reduce])
 
   return (
     <div ref={wrapRef} className={cn("relative w-full", className)}>

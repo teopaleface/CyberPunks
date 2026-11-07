@@ -4,9 +4,9 @@ import { Activity, Bot, CalendarClock, ScanSearch, type LucideIcon } from "lucid
 export const SITE = {
   name: "Daybreak",
   fullName: "Daybreak",
-  tagline: "Unde merg mâine echipele",
+  tagline: "Where crews go tomorrow",
   /** One sentence for the footer and meta tags. */
-  pitch: "Un agent care decide unde merg mâine echipele de teren Rețele Electrice și explică fiecare decizie.",
+  pitch: "An agent that plans field work for Rețele Electrice and explains every decision.",
   team: "CyberPunks",
 }
 
@@ -23,9 +23,9 @@ export interface NavItem {
  * the right leads to the workspace, where the services live in a sidebar.
  */
 export const NAV_ITEMS: NavItem[] = [
-  { id: "plan", label: "Planul de mâine", href: "/plan", icon: CalendarClock },
-  { id: "bilant", label: "Bilanț", href: "/bilant", icon: Activity },
-  { id: "diagnostic", label: "Diagnostic", href: "/diagnostic", icon: ScanSearch },
+  { id: "plan", label: "Plan", href: "/plan", icon: CalendarClock },
+  { id: "bilant", label: "Losses", href: "/bilant", icon: Activity },
+  { id: "diagnostic", label: "Causes", href: "/diagnostic", icon: ScanSearch },
   { id: "agent", label: "Agent", href: "/agent", icon: Bot },
 ]
 
