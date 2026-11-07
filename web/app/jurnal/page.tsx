@@ -1,3 +1,5 @@
+import { requireConsole } from "@/lib/server/operations";
+import { englishText } from "@/lib/english";
 import { BookOpenIcon } from "lucide-react";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -24,6 +26,7 @@ export default function JournalPage({ searchParams }: { searchParams: SearchPara
 }
 
 async function Journal({ searchParams }: { searchParams: SearchParams }) {
+  await requireConsole();
   await connection();
   const scenario = await resolveScenario(searchParams);
   const [{ info, view }, audit] = await Promise.all([loadShellInfo(scenario), getAudit(scenario)]);
@@ -35,29 +38,28 @@ async function Journal({ searchParams }: { searchParams: SearchParams }) {
       <div className={WRAP}>
         <PageTitle
           icon={BookOpenIcon}
-          title="Jurnalul deciziilor"
-          subtitle="Istoricul deciziilor modelului, al oamenilor și al acțiunilor aplicate, cu trasabilitate către lucrări, reguli și versiuni de model."
+          title="Decision history"
+          subtitle="Decisions and actions with their supporting rules and evidence."
         />
         <div className="mt-6">
           {rows.length ? (
             <JournalTable rows={rows} options={actionOptions(rows)} scenario={scenario} />
           ) : (
             <div className="max-w-[720px] rounded-[18px] border border-rule bg-panel p-8">
-              <h2 className="text-[24px] font-[650]">Jurnalul e gol pentru „{scenarioLabel}”</h2>
+              <h2 className="text-[24px] font-[650]">No history for &quot;{englishText(scenarioLabel)}&quot;</h2>
               <p className="mt-3 text-[16.5px] leading-relaxed text-ink-soft">
-                Rulează agentul ca să apară primele decizii. Fiecare decizie, a agentului sau a ta, intră aici împreună cu predicția,
-                regula și pragurile care au produs-o.
+                Run the agent to record its first decisions and supporting evidence.
               </p>
               <div className="mt-5">
-                <RunAgentButton scenario={scenario} scenarioLabel={scenarioLabel} />
+                <RunAgentButton scenario={scenario} scenarioLabel={englishText(scenarioLabel)} />
               </div>
             </div>
           )}
         </div>
         <p className="pt-4 text-[13.5px] text-muted-foreground">
-          Jurnalul vine din: {SOURCE_LABEL_RO[audit.source]}
-          {audit.degradedReason ? `. ${sentence(audit.degradedReason)}` : "."}
-          {audit.parseErrors?.length ? ` ${audit.parseErrors.length} rânduri n-au putut fi citite și lipsesc din tabel.` : ""}
+          History source: {englishText(SOURCE_LABEL_RO[audit.source])}
+          {audit.degradedReason ? `. ${englishText(sentence(audit.degradedReason))}` : "."}
+          {audit.parseErrors?.length ? ` ${audit.parseErrors.length} rows could not be read and are missing from the table.` : ""}
         </p>
       </div>
     </AppShell>
@@ -67,7 +69,7 @@ async function Journal({ searchParams }: { searchParams: SearchParams }) {
 /** Aceleași înălțimi ca ecranul real, ca nimic să nu sară când vin datele. */
 function JournalSkeleton() {
   return (
-    <div role="status" className="min-h-dvh bg-canvas" aria-busy="true" aria-label="Se încarcă jurnalul deciziilor…">
+    <div role="status" className="min-h-dvh bg-canvas" aria-busy="true" aria-label="Loading decision history…">
       <div className="h-16 border-b border-rule bg-panel" />
       <div className={WRAP}>
         <div className="h-[72px]" />

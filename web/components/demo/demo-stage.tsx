@@ -34,7 +34,7 @@ interface Scene {
 }
 
 function shortDepot(label: string): string {
-  return label.replace(/^Bază operativă\s*/i, "Baza ").replace(/\s*\(simulată\)/i, "").replace(/^Baza București /, "Baza ");
+  return label.replace(/^Bază operativă\s*/i, "Depot ").replace(/\s*\(simulată\)/i, "").replace(/^Baza București /, "Depot ");
 }
 
 /**
@@ -60,33 +60,33 @@ export function DemoStage({
       .toSorted((a, b) => (data.regionOf[a.work_item_id] === "banat" ? -1 : 0) - (data.regionOf[b.work_item_id] === "banat" ? -1 : 0))[0];
     return [
       {
-        title: "Planul de mâine",
-        headline: "Planul de mâine. Unde merg echipele și de ce.",
-        text: "Unde merg echipele mâine și de ce, din trei modele antrenate de noi: contoare, furtună, tensiune.",
+        title: "Tomorrow's plan",
+        headline: "Where crews go tomorrow, and why.",
+        text: "Crew assignments based on our meter, storm and voltage models.",
         region: ALL,
         item: data.defaultSelected,
       },
       {
-        title: "Nu sunt sigur: decide un om",
-        text: "Ce nu poate decide singur, agentul trimite la dispecer, cu motivul în cuvinte simple.",
+        title: "Needs your decision",
+        text: "The agent sends uncertain cases to the dispatcher with its reason.",
         region: ALL,
         item: human?.work_item_id ?? data.defaultSelected,
       },
       {
-        title: "De ce a decis agentul așa",
-        text: "Scorul, intervalul, factorii, cazul asemănător și regula, până la predicția și versiunea modelului.",
+        title: "Why the agent chose this action",
+        text: "Review the score, range, factors, similar case and decision rule, with the model version.",
         region: (top ? data.regionOf[top.work_item_id] : null) ?? data.defaultRegion,
         item: top?.work_item_id ?? data.defaultSelected,
       },
       {
-        title: "Echipa ajunge înainte de furtună",
-        text: "Unde vine furtuna, echipa e trimisă din timp, înainte de fereastra de risc.",
+        title: "Arrive before the storm",
+        text: "Crews are positioned before the storm risk window.",
         region: (storm ? data.regionOf[storm.work_item_id] : null) ?? data.defaultRegion,
         item: storm?.work_item_id ?? null,
       },
       {
-        title: "Ziua echipelor",
-        text: "Traseele devin ordine de lucru; dispecerul aprobă lista pentru mâine.",
+        title: "Crew schedule",
+        text: "The dispatcher approves tomorrow's assignments and work orders.",
         region: data.defaultRegion,
         item: data.defaultSelected,
       },
@@ -171,7 +171,7 @@ export function DemoStage({
           lon: w.location.lon,
           kind,
           title: w.asset_type === "meter" ? w.asset_id : itemTitle(w),
-          sub: stop ? `${stop.crewId}, ${fmtTime(stop.eta)}` : d ? DECISION_LABEL_RO[d.decision] : "fără decizie",
+          sub: stop ? `${stop.crewId}, ${fmtTime(stop.eta)}` : d ? DECISION_LABEL_RO[d.decision] : "No decision",
           pinned: Boolean(stop),
           prominent: Boolean(stop),
           attention: kind === "human",
@@ -190,42 +190,42 @@ export function DemoStage({
     <span className="block size-[22px] shrink-0 [&>svg]:block" dangerouslySetInnerHTML={{ __html: html.replace('width="36" height="36"', 'width="22" height="22"').replace('viewBox="0 0 36 36"', 'viewBox="5 5 26 26"') }} />
   );
   const legend: [string, string][] = [
-    [markerSvg({ source: "A", r: 9 }), "Contoare"],
-    [markerSvg({ source: "B", r: 9 }), "Furtună"],
-    [markerSvg({ source: "C", r: 9 }), "Tensiune"],
-    [markerSvg({ source: "A", kind: "human", r: 9 }), "Decide un om"],
+    [markerSvg({ source: "A", r: 9 }), "Meters"],
+    [markerSvg({ source: "B", r: 9 }), "Storm"],
+    [markerSvg({ source: "C", r: 9 }), "Voltage"],
+    [markerSvg({ source: "A", kind: "human", r: 9 }), "Human review"],
   ];
-  const regionChips = [{ id: ALL, label: "Toate regiunile" }, ...data.regions.map((r) => ({ id: r.id, label: r.label }))];
+  const regionChips = [{ id: ALL, label: "All regions" }, ...data.regions.map((r) => ({ id: r.id, label: r.label }))];
   const planned = decision?.decision === "assigned";
   const stopOf = route?.stops ?? [];
 
   return (
     <div className="dark flex min-h-dvh flex-col bg-canvas text-ink [color-scheme:dark] lg:h-dvh lg:overflow-hidden">
-      <header className="flex h-[60px] shrink-0 items-center gap-6 border-b border-[#152133] px-7 max-md:px-4">
+      <header className="flex h-[60px] shrink-0 items-center gap-6 border-b border-rule px-7 max-md:px-4">
         <Wordmark />
-        <span className="text-[16px] text-muted-foreground max-md:hidden">Prezentare, planul pentru {fmtDateLong(data.planDate).toLowerCase()}</span>
+        <span className="text-[16px] text-muted-foreground max-md:hidden">Presentation, plan for {fmtDateLong(data.planDate).toLowerCase()}</span>
         <span className="flex-1" />
-        <span className="flex items-center gap-2 rounded-full border border-[#2a3a52] px-3 py-1 text-[14px] font-[520] max-md:hidden">
-          <SyntheticGlyph /> Date sintetice pe hartă reală
+        <span className="flex items-center gap-2 rounded-full border border-rule px-3 py-1 text-[14px] font-[520] max-md:hidden">
+          <SyntheticGlyph />  Synthetic data on a real map
         </span>
         {auto ? (
           <button
             type="button"
             aria-pressed={autoOn}
             onClick={() => setAutoOn((v) => !v)}
-            className="rounded-[10px] border border-[#2a3a52] px-3 py-1.5 text-[14px] font-[560] text-ink hover:bg-[#0f1a2b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            className="rounded-[10px] border border-rule px-3 py-1.5 text-[14px] font-[560] text-ink hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
-            {autoOn ? "Pauză" : "Pornește"}
+            {autoOn ? "Pause" : "Play"}
           </button>
         ) : null}
-        <nav aria-label="Scenele prezentării" className="flex items-center">
+        <nav aria-label="Presentation scenes" className="flex items-center">
           {scenes.map((sc, i) => (
             <button
               key={sc.title}
               type="button"
               onClick={() => go(i)}
               aria-current={i === index ? "step" : undefined}
-              aria-label={`Scena ${i + 1}: ${sc.title}`}
+              aria-label={`Scene ${i + 1}: ${sc.title}`}
               className="group grid h-9 place-items-center rounded-[4px] px-1 focus-visible:outline-2 focus-visible:outline-ring"
             >
               <span aria-hidden="true" className={"block h-2.5 rounded-full transition-[width,background-color] duration-300 " + (i === index ? "w-7 bg-ink" : "w-2.5 bg-idle group-hover:bg-ink-soft")} />
@@ -235,15 +235,16 @@ export function DemoStage({
       </header>
       {/* regiunea anunțată rămâne montată */}
       <p role="status" className="sr-only">
-        Scena {index + 1} din {scenes.length}
+
+        Scene {index + 1}  of {scenes.length}
       </p>
 
       <div className="mx-auto flex min-h-0 w-full max-w-[1760px] flex-1 flex-col gap-3 px-6 pt-4 pb-4 max-md:px-4">
         <div className="grid grid-cols-6 gap-4 max-xl:grid-cols-3 max-md:grid-cols-2">
-          <Kpi icon={Layers} tone="blue" value={fmtInt(s.items_in)} label="primite" />
-          <Kpi icon={Waypoints} tone="violet" value={fmtInt(s.assigned)} label="în trasee" />
-          <Kpi icon={MapPin} tone="amber" value={fmtInt(s.remote_actions)} label="la distanță" />
-          <Kpi icon={UserRound} tone="blue" value={fmtInt(s.human_review)} label="la om" />
+          <Kpi icon={Layers} tone="blue" value={fmtInt(s.items_in)} label="received" />
+          <Kpi icon={Waypoints} tone="violet" value={fmtInt(s.assigned)} label="Assigned" />
+          <Kpi icon={MapPin} tone="amber" value={fmtInt(s.remote_actions)} label="Remote" />
+          <Kpi icon={UserRound} tone="blue" value={fmtInt(s.human_review)} label="Human review" />
           <Kpi icon={Coins} tone="violet" value={fmtLei(s.expected_value_lei)} />
           <Kpi icon={RouteIcon} tone="amber" value={fmtDec(s.total_km, 0)} unit="km" />
         </div>
@@ -257,7 +258,7 @@ export function DemoStage({
           {regionChips.map((c) => {
             const on = c.id === scene.region;
             return (
-              <span key={c.id} className={"inline-flex h-9 items-center rounded-full border px-4 text-[14.5px] font-[520] " + (on ? "border-[#e6e8eb] bg-[#e6e8eb] text-[#0b1322]" : "border-[#2a3a52] text-ink")}>
+              <span key={c.id} className={"inline-flex h-9 items-center rounded-full border px-4 text-[14.5px] font-[520] " + (on ? "border-[#e6e8eb] bg-[#e6e8eb] text-[#0b1322]" : "border-rule text-ink")}>
                 {c.label}
               </span>
             );
@@ -266,7 +267,7 @@ export function DemoStage({
 
         <div className="grid min-h-[460px] flex-1 lg:min-h-0 grid-cols-[minmax(0,1.55fr)_minmax(380px,1fr)] gap-4 max-lg:grid-cols-1">
           <Card
-            title="România: regiuni și trasee"
+            title="Romania: regions and routes"
             icon={MapIcon}
             iconTone="violet"
             className="relative flex min-h-[420px] flex-col"
@@ -283,7 +284,7 @@ export function DemoStage({
             }
           >
             <div className="absolute inset-x-0 top-3 bottom-0 overflow-hidden rounded-b-[14px]">
-              <PlanMap className="absolute inset-0" items={mapItems} routes={mapRoutes} depots={mapDepots} bounds={bounds} selectedId={scene.item} onSelect={noop} theme="dark" padding={MAP_PADDING} />
+              <PlanMap className="absolute inset-0" items={mapItems} routes={mapRoutes} depots={mapDepots} bounds={bounds} selectedId={scene.item} onSelect={noop} padding={MAP_PADDING} />
             </div>
           </Card>
 
@@ -293,39 +294,39 @@ export function DemoStage({
                 title={itemTitle(item) === item.asset_id ? itemPlace(item) : itemTitle(item)}
                 icon={MapPin}
                 iconTone="blue"
-                action={<Pill tone="green">Date sintetice</Pill>}
+                action={<Pill tone="green">Synthetic data</Pill>}
               >
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 max-sm:grid-cols-1">
                   <div className="flex flex-col items-center gap-1">
                     <p className="flex items-center gap-2 text-[16px] font-[600]">
                       {human ? <UserRound aria-hidden="true" size={20} className="text-att-ink" /> : <Waypoints aria-hidden="true" size={20} className="text-ok-ink" />}
-                      {decision ? DECISION_LABEL_RO[decision.decision] : "Fără decizie"}
+                      {decision ? DECISION_LABEL_RO[decision.decision] : "No decision"}
                     </p>
                     {score != null ? <Gauge value={score} label={<span className="text-[26px] whitespace-nowrap">{roundPct(score)}</span>} sub={predictionLabelRo(item.prediction.label)} tone={human ? "violet" : "blue"} size={150} /> : null}
                   </div>
                   <span aria-hidden="true" className="h-24 w-px bg-rule max-sm:hidden" />
                   <ul className="space-y-2 text-[16px]">
-                    <li className="flex items-center gap-3"><Layers aria-hidden="true" size={19} className="text-violet" />{fmtInt(s.items_in)} primite</li>
-                    <li className="flex items-center gap-3"><Waypoints aria-hidden="true" size={19} className="text-violet" />{fmtInt(s.assigned)} în trasee</li>
+                    <li className="flex items-center gap-3"><Layers aria-hidden="true" size={19} className="text-violet" />{fmtInt(s.items_in)}  received</li>
+                    <li className="flex items-center gap-3"><Waypoints aria-hidden="true" size={19} className="text-violet" />{fmtInt(s.assigned)}  Assigned</li>
                     <li className="flex items-center gap-3"><RouteIcon aria-hidden="true" size={19} className="text-violet" />{fmtDec(s.total_km, 0)} km</li>
                     <li className="flex items-center gap-3"><Coins aria-hidden="true" size={19} className="text-violet" />{fmtLei(s.expected_value_lei)}</li>
                   </ul>
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-3 max-sm:grid-cols-1">
-                  <span className={"flex h-11 items-center justify-center gap-2 rounded-[10px] text-[15.5px] font-[600] " + (planned ? "bg-[#0b2a18] text-ok-ink" : "bg-[#121e30] text-ink-soft")}>
-                    {planned ? `Echipa ${decision?.crew_id ?? ""}${stopInfo.get(scene.item ?? "") ? `, ${fmtTime(stopInfo.get(scene.item ?? "")?.eta ?? "")}` : ""}` : human ? "Fără echipă trimisă" : (ACTION_RO[item.recommended_action] ?? "").replace(/^./, (c) => c.toUpperCase())}
+                  <span className={"flex h-11 items-center justify-center gap-2 rounded-[10px] text-[15.5px] font-[600] " + (planned ? "bg-[#0b2a18] text-ok-ink" : "bg-surface-2 text-ink-soft")}>
+                    {planned ? `Crew ${decision?.crew_id ?? ""}${stopInfo.get(scene.item ?? "") ? `, ${fmtTime(stopInfo.get(scene.item ?? "")?.eta ?? "")}` : ""}` : human ? "No crew dispatched" : (ACTION_RO[item.recommended_action] ?? "").replace(/^./, (c) => c.toUpperCase())}
                   </span>
                   <span className={"flex h-11 items-center justify-center gap-2 rounded-[10px] text-[15.5px] font-[600] " + (human ? "bg-[#d03c0c] text-white" : "bg-[#0f2547] text-[#8db8ff]")}>
-                    {human ? "Necesită o persoană" : decision ? DECISION_LABEL_RO[decision.decision] : "—"}
+                    {human ? "Human review required" : decision ? DECISION_LABEL_RO[decision.decision] : "—"}
                   </span>
                 </div>
               </Card>
             ) : null}
 
             {route ? (
-              <Card title={`Cronologia traseului – ${route.crew_id}`} icon={Waypoints} iconTone="violet" bodyClassName="pt-1" className="shrink-0">
+              <Card title={`Route timeline, ${route.crew_id}`} icon={Waypoints} iconTone="violet" bodyClassName="pt-1" className="shrink-0">
                 <ol>
-                  <TimelineRow time={route.depart_at ? fmtTime(route.depart_at) : "—"} label={`Plecare – ${route.depot ? shortDepot(route.depot.label_ro) : route.depot_id}`} dot="filled" badge={<Pill tone="violet" size="sm"><span translate="no">{route.crew_id}</span></Pill>} />
+                  <TimelineRow time={route.depart_at ? fmtTime(route.depart_at) : "—"} label={`Departure, ${route.depot ? shortDepot(route.depot.label_ro) : route.depot_id}`} dot="filled" badge={<Pill tone="violet" size="sm"><span translate="no">{route.crew_id}</span></Pill>} />
                   {stopOf.map((st) => {
                     const w = itemsById[st.work_item_id];
                     return (
@@ -334,7 +335,7 @@ export function DemoStage({
                         time={fmtTime(st.eta)}
                         label={
                           <>
-                            <span translate="no">{w?.asset_id ?? st.work_item_id}</span> – {w ? (ACTION_RO[w.recommended_action] ?? "intervenție") : "intervenție"}
+                            <span translate="no">{w?.asset_id ?? st.work_item_id}</span> – {w ? (ACTION_RO[w.recommended_action] ?? "Work") : "Work"}
                           </>
                         }
                         dot={st.work_item_id === scene.item ? "current" : "empty"}
@@ -342,22 +343,22 @@ export function DemoStage({
                       />
                     );
                   })}
-                  <TimelineRow time={route.return_at ? fmtTime(route.return_at) : "—"} label={`Întoarcere – ${route.depot ? shortDepot(route.depot.label_ro) : route.depot_id}`} dot="empty" last />
+                  <TimelineRow time={route.return_at ? fmtTime(route.return_at) : "—"} label={`Return, ${route.depot ? shortDepot(route.depot.label_ro) : route.depot_id}`} dot="empty" last />
                 </ol>
               </Card>
             ) : null}
           </div>
         </div>
 
-        <nav aria-label="Paginile prezentării" className="flex justify-center gap-3 pt-1">
+        <nav aria-label="Presentation pages" className="flex justify-center gap-3 pt-1">
           {scenes.map((sc, i) => (
             <button
               key={sc.title}
               type="button"
               onClick={() => go(i)}
               aria-current={i === index ? "step" : undefined}
-              aria-label={`Scena ${i + 1}: ${sc.title}`}
-              className={"grid size-10 place-items-center rounded-full border text-[15px] font-[600] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring " + (i === index ? "border-action bg-action text-white" : "border-[#2a3a52] bg-panel text-ink hover:border-[#3d5170]")}
+              aria-label={`Scene ${i + 1}: ${sc.title}`}
+              className={"grid size-10 place-items-center rounded-full border text-[15px] font-[600] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring " + (i === index ? "border-action bg-action text-primary-foreground" : "border-rule bg-panel text-ink hover:border-ink-soft")}
             >
               {i + 1}
             </button>

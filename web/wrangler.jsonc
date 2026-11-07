@@ -12,6 +12,8 @@
     "html_handling": "none"
   },
   "observability": { "enabled": true },
+  // conturile site-ului (/intra) și aprobările lor; lib/server/accounts.ts
+  "kv_namespaces": [{ "binding": "CONTURI", "id": "17f40409baaf4aed941cf04a11a3b8d4" }],
   "vars": {
     // fără API-ul agentului (Python, local): consola citește planul salvat din git
     "DATA_SOURCE": "demo",

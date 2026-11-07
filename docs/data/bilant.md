@@ -20,6 +20,17 @@ make bilant-predict     # outputs/work_items/demo-vara/A_bilant.jsonl, seriile, 
 make bilant-test        # testele firului (tests/bilant/)
 ```
 
+Varianta v2 (7 nov., 22:10-23:00; v1 rămâne rezervă și nu se șterge):
+
+```bash
+make bilant-v2          # 2 loturi mari de ~3.000 de posturi (trainL: diagnostic; trainLA: fuziune, cu defectele de
+                        # contor ca la A, apărute în ultimele 60 de zile), căutarea Optuna; ~30 de minute, 8 procese
+make bilant-eval        # folosește v2 dacă există reports/bilant/v2_params.json și lotul trainL, altfel v1
+make bilant-predict
+```
+
+Ce intră în git din v2: doar setările (`reports/bilant/v2_params.json`, `reports/bilant/fusion_v2_params.json`) și comparațiile (`v2_comparison.json`, `fusion_v2_comparison_*.json`). Modelul de diagnostic v2 are ~34 MB și loturile mari ~1 GB: rămân în afara git (regula de 5 MB) și se refac din comenzi.
+
 Validare: `uv run cyberpunks validate reports/bilant/metrics.json outputs/work_items/demo-vara/A_bilant.jsonl`.
 
 `cyberpunks.a_bilant.predict.run(scenario, date)` reface singur lotul și modelele dacă lipsesc (așa îl apelează planificatorul).

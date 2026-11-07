@@ -8,7 +8,7 @@ describe("categoryOf", () => {
   });
   test("încredere mică și siguranță", () => {
     expect(categoryOf("R-WIDE-INTERVAL").id).toBe("incredere");
-    expect(categoryOf("R-SAFETY-NO-CREW").label).toBe("Risc pentru oameni");
+    expect(categoryOf("R-SAFETY-NO-CREW").label).toBe("Safety risk");
   });
   test("restul au eticheta regulii", () => {
     expect(categoryOf("R-NO-CREW").label.length).toBeGreaterThan(3);

@@ -8,6 +8,8 @@ Stare: în lucru, vezi [`status/ACUM.md`](status/ACUM.md). Planul: [`docs/PLAN.m
 
 Ghidul pentru echipă, cu pornirea demo-ului într-o singură comandă (`make demo`) și ce verifici pe fiecare ecran: [`docs/TESTARE.md`](docs/TESTARE.md).
 
+Pentru cele trei conturi, conversația prin Codex, vocea ElevenLabs și WhatsApp: [`docs/operations/RUNBOOK.md`](docs/operations/RUNBOOK.md). Această integrare rulează separat, local, fără publicarea site-ului.
+
 ## Pornire rapidă
 
 ```bash

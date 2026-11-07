@@ -27,9 +27,9 @@ describe("posts-view", () => {
     expect(b[3]).toBeGreaterThan(45);
   });
   test("cauzele", () => {
-    expect(causeBand(0.99)).toBe("Probabil");
-    expect(causeBand(0.3)).toBe("Posibil");
-    expect(causeBand(0.01)).toBe("Puțin probabil");
+    expect(causeBand(0.99)).toBe("Likely");
+    expect(causeBand(0.3)).toBe("Possible");
+    expect(causeBand(0.01)).toBe("Unlikely");
     expect(causeProbs({ diagnosis_proba: { a: 0.1, b: 0.8 } }).map((c) => c.key)).toEqual(["b", "a"]);
     expect(causeProbs({})).toEqual([]);
   });

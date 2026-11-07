@@ -1,3 +1,5 @@
+import { requireConsole } from "@/lib/server/operations";
+import { englishText } from "@/lib/english";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
@@ -13,7 +15,7 @@ import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
 import { DEFAULT_SCENARIO } from "@/lib/data";
 import { RunAgentButton } from "@/components/shell/run-agent";
 
-export const metadata: Metadata = { title: "Harta și linia de timp" };
+export const metadata: Metadata = { title: "Map and timeline" };
 
 export default function MapPage({ searchParams }: PageProps<"/harta">) {
   return (
@@ -24,6 +26,7 @@ export default function MapPage({ searchParams }: PageProps<"/harta">) {
 }
 
 async function Plan({ searchParams }: { searchParams: PageProps<"/harta">["searchParams"] }) {
+  await requireConsole();
   await connection();
   const scenario = await resolveScenario(searchParams);
   const [{ info, view }, geo, params, posts] = await Promise.all([
@@ -39,13 +42,12 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/harta">["searc
     return (
       <AppShell info={info}>
         <div className="mx-auto max-w-[680px] px-7 py-20">
-          <h1 className="text-[26px] font-[650]">Nu există încă un plan pentru „{label}”</h1>
+          <h1 className="text-[26px] font-[650]">No plan yet for &quot;{englishText(label)}&quot;</h1>
           <p className="mt-3 text-[16px] leading-relaxed text-muted-foreground">
-            Agentul n-a rulat încă pentru acest scenariu{view.degradedReason ? ` (${view.degradedReason})` : ""}. Pornește-l acum sau
-            alege alt scenariu din antet.
+            The agent has not run for this scenario yet{view.degradedReason ? ` (${englishText(view.degradedReason)})` : ""}. Run the agent or select another scenario in the menu.
           </p>
           <div className="mt-6">
-            <RunAgentButton scenario={scenario} scenarioLabel={label} />
+            <RunAgentButton scenario={scenario} scenarioLabel={englishText(label)} />
           </div>
         </div>
       </AppShell>
@@ -100,7 +102,7 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/harta">["searc
 /** Aceleași înălțimi ca ecranul real, ca nimic să nu sară când vin datele. */
 function PlanSkeleton() {
   return (
-    <div role="status" className="flex h-dvh min-h-[720px] flex-col overflow-hidden" aria-busy="true" aria-label="Se încarcă planul de mâine…">
+    <div role="status" className="flex h-dvh min-h-[720px] flex-col overflow-hidden" aria-busy="true" aria-label="Loading tomorrow's plan…">
       <div className="flex h-16 shrink-0 items-center gap-3 border-b border-rule bg-panel px-7">
         <Wordmark />
       </div>

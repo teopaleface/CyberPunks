@@ -1,5 +1,6 @@
 "use client";
 
+import { englishText } from "@/lib/english";
 import {
   Area,
   CartesianGrid,
@@ -75,7 +76,7 @@ function ConsumptionChart({ series }: { series: Series }) {
             x2={z1}
             fill="color-mix(in oklab, var(--att) 14%, var(--panel))"
             stroke="none"
-            label={{ value: `${zeroDays.length} ${zeroDays.length === 1 ? "zi" : "zile"} cu consum zero`, position: "insideTop", fontSize: 13, fill: "var(--att-ink)", fontWeight: 600 }}
+            label={{ value: `${zeroDays.length} ${zeroDays.length === 1 ? "day" : "days"} with zero consumption`, position: "insideTop", fontSize: 13, fill: "var(--att-ink)", fontWeight: 600 }}
           />
         ) : null}
         <Line dataKey="expected" name="normal" type="monotone" stroke="var(--idle)" strokeWidth={2} strokeDasharray="5 4" dot={false} isAnimationActive={false} />
@@ -90,7 +91,7 @@ function ConsumptionChart({ series }: { series: Series }) {
               <TooltipBox
                 title={dayLabel(String(r.t))}
                 rows={[
-                  ["consum", r.value == null ? "lipsă" : `${fmtDec(Number(r.value), 2)} kWh`],
+                  ["consum", r.value == null ? "missing" : `${fmtDec(Number(r.value), 2)} kWh`],
                   ["normal", r.expected == null ? "–" : `${fmtDec(Number(r.expected), 2)} kWh`],
                 ]}
               />
@@ -105,9 +106,9 @@ function ConsumptionChart({ series }: { series: Series }) {
 // ------------------------------------------------------------------ B: furtună
 // pragurile de rafale din serie (B): începutul furtunii și rafalele periculoase; `rafala_prag_kmh` e forma veche
 const GUST_LINES: { key: string; label: string; stroke: string }[] = [
-  { key: "rafala_inceput_furtuna_kmh", label: "începe furtuna", stroke: "var(--ink)" },
-  { key: "rafala_prag_kmh", label: "pragul de rafale", stroke: "var(--ink)" },
-  { key: "rafala_periculoasa_kmh", label: "rafale periculoase", stroke: "var(--att)" },
+  { key: "rafala_inceput_furtuna_kmh", label: "storm starts", stroke: "var(--ink)" },
+  { key: "rafala_prag_kmh", label: "gust threshold", stroke: "var(--ink)" },
+  { key: "rafala_periculoasa_kmh", label: "dangerous gusts", stroke: "var(--att)" },
 ];
 
 function gustThresholds(series: Series): { value: number; label: string; stroke: string }[] {
@@ -130,7 +131,7 @@ function StormCharts({ series, w }: { series: Series; w: WorkItem }) {
   const firstIn = data.find((r) => inWindow(String(r.t)))?.t as string | undefined;
   const lastIn = data.toReversed().find((r) => inWindow(String(r.t)))?.t as string | undefined;
   const tick = (t: string) => (isDay(t) ? dayLabel(t) : fmtTime(t));
-  const winLabel = win ? `furtuna, ${hhmm(minutesOfDay(win.start))}–${hhmm(minutesOfDay(win.end))}` : "";
+  const winLabel = win ? `storm, ${hhmm(minutesOfDay(win.start))}–${hhmm(minutesOfDay(win.end))}` : "";
   // adnotările (echipa pe poziție, începutul furtunii), doar cele care cad pe un punct al seriei
   const times = new Set(data.map((r) => String(r.t)));
   const notes = (series.annotations ?? []).filter((a) => times.has(String(a.t)));
@@ -150,15 +151,15 @@ function StormCharts({ series, w }: { series: Series; w: WorkItem }) {
       content={({ active, payload }) => {
         if (!active || !payload?.length) return null;
         const r = payload[0].payload as Row;
-        const rows: [string, string][] = [["rafale", r.gust == null ? "lipsă" : `${fmtInt(Number(r.gust))} km/h`]];
-        if (withRisk) rows.push(["risc de avarii", r.risk == null ? "–" : fmtScore(Number(r.risk))]);
+        const rows: [string, string][] = [["gusts", r.gust == null ? "missing" : `${fmtInt(Number(r.gust))} km/h`]];
+        if (withRisk) rows.push(["outage risk", r.risk == null ? "–" : fmtScore(Number(r.risk))]);
         return <TooltipBox title={`${dayLabel(String(r.t))}, ${fmtTime(String(r.t))}`} rows={rows} />;
       }}
     />
   );
   return (
     <div className="space-y-1">
-      <p className="text-[14px] text-muted-foreground">Rafale de vânt, km/h</p>
+      <p className="text-[14px] text-muted-foreground">Wind gusts, km/h</p>
       <ResponsiveContainer width="100%" height={withRisk ? 200 : 300}>
         <ComposedChart data={data} syncId="storm" margin={{ top: 16, right: 18, bottom: withRisk ? 0 : 4, left: 4 }}>
           <CartesianGrid vertical={false} stroke={GRID} />
@@ -184,7 +185,7 @@ function StormCharts({ series, w }: { series: Series; w: WorkItem }) {
       </ResponsiveContainer>
       {withRisk ? (
         <>
-          <p className="pt-2 text-[14px] text-muted-foreground">Riscul de avarii estimat de model (probabilitate)</p>
+          <p className="pt-2 text-[14px] text-muted-foreground">Model-estimated outage probability</p>
           <ResponsiveContainer width="100%" height={160}>
             <ComposedChart data={data} syncId="storm" margin={{ top: 8, right: 18, bottom: 4, left: 4 }}>
               <CartesianGrid vertical={false} stroke={GRID} />
@@ -227,7 +228,7 @@ function VoltageChart({ series }: { series: Series }) {
           y={limit}
           stroke="var(--att)"
           strokeWidth={1.8}
-          label={{ value: `limita ${fmtDec(limit, 2)} pu (EN 50160)`, position: "insideTopRight", fontSize: 13, fill: "var(--att-ink)", fontWeight: 600 }}
+          label={{ value: `limit ${fmtDec(limit, 2)} pu (EN 50160)`, position: "insideTopRight", fontSize: 13, fill: "var(--att-ink)", fontWeight: 600 }}
         />
         <Line dataKey="p50" type="monotone" stroke="var(--src-c-ink)" strokeWidth={2.2} dot={false} isAnimationActive={false} />
         <Line dataKey="value" type="monotone" stroke="var(--ink)" strokeWidth={2} dot={false} isAnimationActive={false} />
@@ -238,9 +239,9 @@ function VoltageChart({ series }: { series: Series }) {
             if (!active || !payload?.length) return null;
             const r = payload[0].payload as Row;
             const rows: [string, string][] = [];
-            if (r.p50 != null) rows.push(["estimat (P50)", `${fmtDec(Number(r.p50), 3)} pu`]);
-            if (r.low != null && r.high != null) rows.push(["interval P10–P90", `${fmtDec(Number(r.low), 3)}–${fmtDec(Number(r.high), 3)}`]);
-            if (r.value != null) rows.push(["măsurat", `${fmtDec(Number(r.value), 3)} pu`]);
+            if (r.p50 != null) rows.push(["estimated (P50)", `${fmtDec(Number(r.p50), 3)} pu`]);
+            if (r.low != null && r.high != null) rows.push(["P10–P90 range", `${fmtDec(Number(r.low), 3)}–${fmtDec(Number(r.high), 3)}`]);
+            if (r.value != null) rows.push(["measured", `${fmtDec(Number(r.value), 3)} pu`]);
             return <TooltipBox title={fmtTime(String(r.t))} rows={rows} />;
           }}
         />
@@ -319,17 +320,17 @@ function BilantChart({ series }: { series: Series }) {
               if (!active || !payload?.length) return null;
               const hovered = payload[0].payload as BilantRow;
               const r = hovered.ref ?? hovered;
-              const kwh = (v: number | null) => (v == null ? "lipsă" : `${fmtDec(v, 1)} ${unit}`);
+              const kwh = (v: number | null) => (v == null ? "missing" : `${fmtDec(v, 1)} ${unit}`);
               const rowsTip: [string, string][] = [
-                ["ieșit din post", kwh(r.out)],
-                ["suma clienților", kwh(r.sum)],
-                ["diferența", r.out != null && r.sum != null ? kwh(r.out - r.sum) : "–"],
+                ["substation output", kwh(r.out)],
+                ["customer total", kwh(r.sum)],
+                ["difference", r.out != null && r.sum != null ? kwh(r.out - r.sum) : "–"],
               ];
               if (r.low != null && r.high != null && r.sum != null) {
-                rowsTip.push(["pierderea normală", `${fmtDec(r.low - r.sum, 1)}–${fmtDec(r.high - r.sum, 1)} ${unit}`]);
+                rowsTip.push(["normal loss", `${fmtDec(r.low - r.sum, 1)}–${fmtDec(r.high - r.sum, 1)} ${unit}`]);
               }
-              if (r.out != null && r.high != null && r.out > r.high) rowsTip.push(["lipsă peste normal", kwh(r.out - r.high)]);
-              if (r.out != null && r.low != null && r.out < r.low) rowsTip.push(["surplus sub normal", kwh(r.low - r.out)]);
+              if (r.out != null && r.high != null && r.out > r.high) rowsTip.push(["excess loss", kwh(r.out - r.high)]);
+              if (r.out != null && r.low != null && r.out < r.low) rowsTip.push(["surplus below normal", kwh(r.low - r.out)]);
               return <TooltipBox title={tick(seriesTimeMs(r.t))} rows={rowsTip} />;
             }}
           />
@@ -337,8 +338,8 @@ function BilantChart({ series }: { series: Series }) {
       </ResponsiveContainer>
       {negative ? (
         <p className="mt-1 text-[13.5px] text-muted-foreground">
-          Sub zero sunt zilele în care panourile clienților au dat energie înapoi în rețea, prin post. Lipsa se citește la fel: cât
-          trece linia neagră peste banda gri.
+
+          Negative values mean customer panels exported energy through the substation. Excess loss is where the black line exceeds the grey band.
         </p>
       ) : null}
     </>
@@ -351,22 +352,22 @@ export function chartSummaryRo(series: Series): string {
   const first = pts[0] ? String(pts[0].t) : "";
   const last = pts.length ? String(pts[pts.length - 1].t) : "";
   const when = (t: string) => (isWholeDay(t) ? fmtDayMonth(t) : fmtTime(t));
-  const span = first && last ? `, de la ${when(first)} la ${when(last)}` : "";
-  const title = series.title_ro.replace(/\.$/, "");
+  const span = first && last ? `, from ${when(first)} at ${when(last)}` : "";
+  const title = englishText(series.title_ro).replace(/\.$/, "");
   if (isBilantSeries(series)) {
     const over = pts.filter((p) => p.value != null && p.high != null && p.value > p.high).length;
     const under = pts.filter((p) => p.value != null && p.low != null && p.value < p.low).length;
     const negative = pts.some((p) => (p.value ?? 0) < 0 || (p.expected ?? 0) < 0);
-    return `${title}${span}. Lipsă peste normal în ${over} din ${pts.length} zile${under ? `, surplus sub normal în ${under}` : ""}.${negative ? " Sub zero sunt zilele în care panourile clienților au dat energie înapoi în rețea, prin post." : ""}`;
+    return `${title}${span}. Excess loss in ${over} of ${pts.length} days${under ? `, surplus below normal in ${under}` : ""}.${negative ? " Negative values mean customer panels exported energy through the substation." : ""}`;
   }
   if (series.source === "A") {
     const zero = pts.filter((p) => p.flag === "zero").length;
-    return `${title}${span}. ${zero ? `${zero} zile cu consum zero.` : "Fără zile cu consum zero."}`;
+    return `${title}${span}. ${zero ? `${zero} days with zero consumption.` : "No days with zero consumption."}`;
   }
   if (series.source === "C") {
     const top = Math.max(...pts.map((p) => p.high ?? p.value ?? Number.NEGATIVE_INFINITY));
     const limit = series.thresholds?.limita_tensiune_pu ?? 1.1;
-    return `${title}${span}. ${Number.isFinite(top) ? `Maximul P90 ${fmtDec(top, 3)} pu, limita ${fmtDec(limit, 2)} pu.` : ""}`;
+    return `${title}${span}. ${Number.isFinite(top) ? `Maximum P90 ${fmtDec(top, 3)} pu, limit ${fmtDec(limit, 2)} pu.` : ""}`;
   }
   return `${title}${span}.`;
 }
@@ -398,32 +399,32 @@ export function SeriesLegend({ source, bilant = false, series }: { source: Serie
   const box = (color: string) => <span className="inline-block h-3 w-5" style={{ background: color }} aria-hidden="true" />;
   const items: [React.ReactNode, string][] = bilant
     ? [
-        [line("var(--ink)"), "ieșit din post"],
-        [line("var(--src-a)"), "suma clienților"],
-        [box(BAND_FILL), "banda pierderii normale"],
-        [box(OVER_FILL), "lipsă peste normal"],
+        [line("var(--ink)"), "substation output"],
+        [line("var(--src-a)"), "customer total"],
+        [box(BAND_FILL), "normal loss band"],
+        [box(OVER_FILL), "excess loss"],
         ...(series?.points.some((p) => p.value != null && p.low != null && p.value < p.low)
-          ? ([[box(UNDER_FILL), "surplus sub normal"]] as [React.ReactNode, string][])
+          ? ([[box(UNDER_FILL), "surplus below normal"]] as [React.ReactNode, string][])
           : []),
       ]
     : source === "A"
       ? [
-          [line("var(--src-a)"), "consumul zilnic"],
-          [line("var(--idle)", true), "ce ar fi fost normal"],
-          [box("color-mix(in oklab, var(--att) 14%, var(--panel))"), "zile cu consum zero"],
+          [line("var(--src-a)"), "daily consumption"],
+          [line("var(--idle)", true), "expected normal level"],
+          [box("color-mix(in oklab, var(--att) 14%, var(--panel))"), "days with zero consumption"],
         ]
       : source === "B"
         ? [
-            [line("var(--src-b)"), series && !hasStormRisk(series) ? "rafale" : "rafale și risc"],
-            [box("color-mix(in oklab, var(--src-b) 12%, var(--panel))"), "fereastra furtunii"],
+            [line("var(--src-b)"), series && !hasStormRisk(series) ? "gusts" : "gusts and risk"],
+            [box("color-mix(in oklab, var(--src-b) 12%, var(--panel))"), "storm window"],
             ...(series && gustThresholds(series).length
               ? gustThresholds(series).map((l) => [line(l.stroke, true), l.label] as [React.ReactNode, string])
-              : ([[line("var(--ink)", true), "pragul de rafale"]] as [React.ReactNode, string][])),
+              : ([[line("var(--ink)", true), "gust threshold"]] as [React.ReactNode, string][])),
           ]
         : [
-            [line("var(--src-c-ink)"), "tensiunea estimată (P50)"],
-            [box("color-mix(in oklab, var(--src-c) 30%, transparent)"), "interval P10–P90"],
-            [line("var(--att)"), "limita 1,10 pu"],
+            [line("var(--src-c-ink)"), "estimated voltage (P50)"],
+            [box("color-mix(in oklab, var(--src-c) 30%, transparent)"), "P10–P90 range"],
+            [line("var(--att)"), "1.10 pu limit"],
           ];
   return (
     <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[14px] text-muted-foreground">

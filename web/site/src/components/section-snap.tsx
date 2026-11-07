@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useRef, type ReactNode } from "react"
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from "react"
 import { prefersReducedMotion } from "@/lib/motion"
 
 /**
@@ -27,7 +27,7 @@ const GESTURE_GAP = 240 // ms of quiet that ends one wheel gesture
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
 
 function enabledFor(w: number, h: number) {
-  return w >= 1024 && h >= 600
+  return w >= 1024 && h >= 600 && !prefersReducedMotion() && window.matchMedia("(hover: hover) and (pointer: fine)").matches
 }
 
 export function SectionSnap({ children }: { children: ReactNode }) {
@@ -71,6 +71,7 @@ export function SectionSnap({ children }: { children: ReactNode }) {
 
   const animateTo = useCallback((y: number) => {
     cancelAnimationFrame(raf.current)
+    animating.current = false
     const from = window.scrollY
     const dist = y - from
     if (Math.abs(dist) < 1) return
@@ -93,6 +94,7 @@ export function SectionSnap({ children }: { children: ReactNode }) {
     (dir: 1 | -1) => {
       const { s, i } = nearest()
       // If we sit between stops (after a resize), first settle on the closest one.
+      if (!s.length) return
       const atStop = Math.abs(s[i].y - window.scrollY) < 4
       const target = atStop ? Math.max(0, Math.min(s.length - 1, i + dir)) : i
       animateTo(s[target].y)
@@ -112,13 +114,12 @@ export function SectionSnap({ children }: { children: ReactNode }) {
     let active = enabledFor(window.innerWidth, window.innerHeight)
     let lastWheel = 0
     let gestureUsed = false
-    let touchY: number | null = null
 
     const onWheel = (e: WheelEvent) => {
-      if (!active || e.ctrlKey) return
+      if (!active || e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return
       // Let inner scrollable areas (a long table, a map) keep their wheel.
       const t = e.target
-      if (t instanceof Element && t.closest("[data-snap-ignore]")) return
+      if (t instanceof Element && t.closest("[data-snap-ignore], [data-lenis-prevent], input, textarea, select, [role=dialog], .leaflet-container")) return
       e.preventDefault()
       const now = performance.now()
       const gap = now - lastWheel
@@ -130,9 +131,9 @@ export function SectionSnap({ children }: { children: ReactNode }) {
     }
 
     const onKey = (e: KeyboardEvent) => {
-      if (!active) return
+      if (!active || e.altKey || e.ctrlKey || e.metaKey) return
       const el = document.activeElement as HTMLElement | null
-      if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return
+      if (el && (el.isContentEditable || el.closest("[data-snap-ignore], [role=dialog], [role=listbox], [role=slider]") || /^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(el.tagName))) return
       const down = ["ArrowDown", "PageDown"].includes(e.key) || (e.key === " " && !e.shiftKey && el?.tagName !== "BUTTON")
       const up = ["ArrowUp", "PageUp"].includes(e.key) || (e.key === " " && e.shiftKey)
       if (down || up) {
@@ -141,48 +142,35 @@ export function SectionSnap({ children }: { children: ReactNode }) {
       } else if (e.key === "Home" || e.key === "End") {
         e.preventDefault()
         const s = stops()
-        animateTo(e.key === "Home" ? s[0].y : s[s.length - 1].y)
+        if (s.length) animateTo(e.key === "Home" ? s[0].y : s[s.length - 1].y)
       }
-    }
-
-    const onTouchStart = (e: TouchEvent) => {
-      touchY = e.touches[0].clientY
-    }
-    const onTouchMove = (e: TouchEvent) => {
-      if (active && touchY !== null) e.preventDefault()
-    }
-    const onTouchEnd = (e: TouchEvent) => {
-      if (!active || touchY === null) return
-      const dy = touchY - e.changedTouches[0].clientY
-      touchY = null
-      if (Math.abs(dy) > 40 && !animating.current) move(dy > 0 ? 1 : -1)
     }
 
     let resizeTimer = 0
     const onResize = () => {
+      cancelAnimationFrame(raf.current)
+      animating.current = false
       active = enabledFor(window.innerWidth, window.innerHeight)
       window.clearTimeout(resizeTimer)
       resizeTimer = window.setTimeout(() => {
         if (!active) return
         const { s, i } = nearest()
-        window.scrollTo(0, s[i].y)
+        if (s.length) window.scrollTo(0, s[i].y)
       }, 150)
     }
 
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)")
+    preference.addEventListener("change", onResize)
     window.addEventListener("wheel", onWheel, { passive: false })
     window.addEventListener("keydown", onKey)
-    window.addEventListener("touchstart", onTouchStart, { passive: true })
-    window.addEventListener("touchmove", onTouchMove, { passive: false })
-    window.addEventListener("touchend", onTouchEnd)
     window.addEventListener("resize", onResize)
     return () => {
+      preference.removeEventListener("change", onResize)
+      animating.current = false
       cancelAnimationFrame(raf.current)
       window.clearTimeout(resizeTimer)
       window.removeEventListener("wheel", onWheel)
       window.removeEventListener("keydown", onKey)
-      window.removeEventListener("touchstart", onTouchStart)
-      window.removeEventListener("touchmove", onTouchMove)
-      window.removeEventListener("touchend", onTouchEnd)
       window.removeEventListener("resize", onResize)
     }
   }, [move, nearest, stops, animateTo])
@@ -197,12 +185,9 @@ export function SectionSnap({ children }: { children: ReactNode }) {
     [animateTo]
   )
 
-  const api = useRef<SnapApi>({ goTo, goToStep, next: () => move(1) })
-  api.current.goTo = goTo
-  api.current.goToStep = goToStep
-  api.current.next = () => move(1)
+  const api = useMemo<SnapApi>(() => ({ goTo, goToStep, next: () => move(1) }), [goTo, goToStep, move])
 
-  return <SnapContext.Provider value={api.current}>{children}</SnapContext.Provider>
+  return <SnapContext.Provider value={api}>{children}</SnapContext.Provider>
 }
 
 /**

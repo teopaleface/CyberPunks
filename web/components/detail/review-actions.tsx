@@ -1,5 +1,6 @@
 "use client";
 
+import { englishText } from "@/lib/english";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -10,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { submitReview } from "@/lib/data/actions";
 import type { ReviewDecision } from "@/lib/data/types";
 
-const DONE: Record<ReviewDecision, string> = { approve: "Ai aprobat", reject: "Ai respins", defer: "Ai amânat" };
+const DONE: Record<ReviewDecision, string> = { approve: "Approved", reject: "Rejected", defer: "Deferred" };
 
 /** Decizia omului: aprobă, respinge sau amână, cu o notă. Se scrie în jurnal cu actor „om”. */
 export function ReviewActions({ workItemId, scenario, layout = "default" }: { workItemId: string; scenario?: string; layout?: "default" | "card" }) {
@@ -28,10 +29,10 @@ export function ReviewActions({ workItemId, scenario, layout = "default" }: { wo
     if (d === "approve") return send(d);
     setUndoing(d);
     const toastId = toast(`${DONE[d]} ${workItemId}`, {
-      description: "Se trimite în 5 secunde.",
+      description: "Sends in 5 seconds.",
       duration: 5000,
       action: {
-        label: "Anulează",
+        label: "Undo",
         onClick: () => {
           if (undoTimer.current) clearTimeout(undoTimer.current);
           undoTimer.current = null;
@@ -52,12 +53,12 @@ export function ReviewActions({ workItemId, scenario, layout = "default" }: { wo
       const r = await submitReview(workItemId, d, note, scenario);
       setActing(null);
       if (r.ok) {
-        toast.success(`${DONE[d]} ${workItemId}`, { description: "Decizia ta a intrat în jurnal, iar planul se recalculează." });
+        toast.success(`${DONE[d]} ${workItemId}`, { description: "Your decision was recorded. The plan is being recalculated." });
         setNote("");
         setNoteOpen(false);
         router.refresh();
       } else {
-        toast.error("Decizia nu s-a salvat", { description: r.error });
+        toast.error("Decision was not saved", { description: englishText(r.error) });
       }
     });
   };
@@ -80,22 +81,22 @@ export function ReviewActions({ workItemId, scenario, layout = "default" }: { wo
             value={note}
             onChange={(e) => setNote(e.target.value)}
             maxLength={2000}
-            placeholder="Adaugă o notă…"
-            className="min-h-[68px] rounded-[10px] border-[#2a3a52] bg-surface-2 px-4 py-3 text-[15.5px]"
+            placeholder="Add a note…"
+            className="min-h-[68px] rounded-[10px] border-rule bg-surface-2 px-4 py-3 text-[15.5px]"
           />
         </div>
         <div className="grid grid-cols-3 gap-3 max-sm:grid-cols-1">
           <button type="button" className={btn("primary", "lg")} onClick={() => act("approve")} disabled={pending || undoing !== null} aria-describedby={itemId}>
             <Check aria-hidden="true" size={22} strokeWidth={2.2} />
-            {acting === "approve" ? "Se trimite…" : "Aprobă"}
+            {acting === "approve" ? "Sending…" : "Approve"}
           </button>
           <button type="button" className={btn("danger", "lg")} onClick={() => act("reject")} disabled={pending || undoing !== null} aria-describedby={itemId}>
             <X aria-hidden="true" size={22} strokeWidth={2.2} />
-            {acting === "reject" || undoing === "reject" ? "Se trimite…" : "Respinge"}
+            {acting === "reject" || undoing === "reject" ? "Sending…" : "Reject"}
           </button>
           <button type="button" className={btn("outline", "lg")} onClick={() => act("defer")} disabled={pending || undoing !== null} aria-describedby={itemId}>
             <Clock aria-hidden="true" size={22} strokeWidth={1.9} />
-            {acting === "defer" || undoing === "defer" ? "Se trimite…" : "Amână"}
+            {acting === "defer" || undoing === "defer" ? "Sending…" : "Defer"}
           </button>
         </div>
       </div>
@@ -108,19 +109,20 @@ export function ReviewActions({ workItemId, scenario, layout = "default" }: { wo
       </span>
       <div className="flex flex-wrap items-center gap-3">
         <Button size="panel" className="min-w-[116px] text-[17px]" onClick={() => act("approve")} disabled={pending || undoing !== null} aria-describedby={itemId}>
-          {acting === "approve" ? "Se trimite…" : "Aprobă"}
+          {acting === "approve" ? "Sending…" : "Approve"}
         </Button>
         <Button size="panel" variant="outline" className="text-[17px]" onClick={() => act("reject")} disabled={pending || undoing !== null} aria-describedby={itemId}>
-          {acting === "reject" || undoing === "reject" ? "Se trimite…" : "Respinge"}
+          {acting === "reject" || undoing === "reject" ? "Sending…" : "Reject"}
         </Button>
         <Button size="panel" variant="outline" className="text-[17px]" onClick={() => act("defer")} disabled={pending || undoing !== null} aria-describedby={itemId}>
-          {acting === "defer" || undoing === "defer" ? "Se trimite…" : "Amână"}
+          {acting === "defer" || undoing === "defer" ? "Sending…" : "Defer"}
         </Button>
       </div>
       {noteOpen ? (
         <div className="space-y-2">
           <label className="block text-[15px] text-muted-foreground" htmlFor={noteId}>
-            Nota ta (opțional, intră în jurnal)
+
+            Your note (optional, recorded in the audit log)
           </label>
           <Textarea
             id={noteId}
@@ -131,7 +133,7 @@ export function ReviewActions({ workItemId, scenario, layout = "default" }: { wo
             value={note}
             onChange={(e) => setNote(e.target.value)}
             maxLength={2000}
-            placeholder="De exemplu: am sunat clientul, contorul a fost înlocuit acum două săptămâni…"
+            placeholder="For example: called the customer; the meter was replaced two weeks ago…"
             className="min-h-[84px] rounded-[4px] bg-panel text-[16px]"
           />
         </div>
@@ -143,7 +145,7 @@ export function ReviewActions({ workItemId, scenario, layout = "default" }: { wo
           aria-describedby={itemId}
           className="text-[16px] text-muted-foreground underline decoration-rule underline-offset-4 transition-colors hover:text-ink hover:decoration-ink"
         >
-          {note.trim() ? "Arată nota" : "Adaugă o notă"}
+          {note.trim() ? "Show note" : "Add a note"}
         </button>
       )}
     </div>

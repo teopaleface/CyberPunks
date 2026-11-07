@@ -1,8 +1,8 @@
 # Daybreak: consola dispecerului (`web/`)
 
-Numele produsului e Daybreak (decizia lui Teo, 7 nov., 15:30). Interfața rămâne în română. Până la noua identitate, aleasă separat, antetul arată doar cuvântul „Daybreak”, fără semn grafic; logourile cu soarele au fost respinse și stau în `design/brand-respins/`, ca istoric, nefolosite.
+Numele produsului e Daybreak (decizia lui Teo, 7 nov., 15:30). Interfața este în engleză, la cererea lui Teo. Câmpurile sursă cu sufixul `_ro` rămân neschimbate în contracte; textul afișat se traduce în interfață. Până la noua identitate, aleasă separat, antetul arată doar cuvântul „Daybreak”, fără semn grafic; logourile cu soarele au fost respinse și stau în `design/brand-respins/`, ca istoric, nefolosite.
 
-Consola în care dispecerul Rețele Electrice vede planul de mâine făcut de agent, înțelege fiecare decizie și decide ce agentul n-a putut decide singur. Proiectată pentru proiector 1920×1080, în română.
+Consola în care dispecerul Rețele Electrice vede planul de mâine făcut de agent, înțelege fiecare decizie și decide ce agentul n-a putut decide singur. Proiectată pentru proiector 1920×1080, cu interfață în engleză.
 
 Stack: Next.js 16 (App Router, Turbopack, Cache Components), React 19, Tailwind 4, shadcn/ui, MapLibre GL 6 cu hărți OpenFreeMap (fără cheie), Recharts 3. Pachetele se instalează cu bun (merge și `npm install`).
 

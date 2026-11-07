@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 /** Comanda care refăce cifrele, pe un rând, cu buton de copiere. */
-export function CopyCommand({ cmd, label = "Copiază comanda" }: { cmd: string; label?: string }) {
+export function CopyCommand({ cmd, label = "Copy command" }: { cmd: string; label?: string }) {
   const [state, setState] = useState<"idle" | "done" | "failed">("idle");
   const codeRef = useRef<HTMLElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -43,11 +43,11 @@ export function CopyCommand({ cmd, label = "Copiază comanda" }: { cmd: string; 
         className="shrink-0 border-l border-rule px-3 text-[14px] font-[560] whitespace-nowrap transition-colors duration-150 hover:bg-muted focus-visible:outline-2 focus-visible:outline-ink"
         aria-label={label}
       >
-        {state === "done" ? "Copiat" : state === "failed" ? "Selectată, copiaz-o" : "Copiază"}
+        {state === "done" ? "Copied" : state === "failed" ? "Selected, copy manually" : "Copy"}
       </button>
       {/* anunțul stă în afara butonului: numele butonului nu-l mai acoperă */}
       <span role="status" className="sr-only">
-        {state === "done" ? "Comanda e copiată." : state === "failed" ? "Clipboard indisponibil; comanda e selectată, copiaz-o." : ""}
+        {state === "done" ? "Command copied." : state === "failed" ? "Clipboard unavailable. The command is selected for manual copying." : ""}
       </span>
     </div>
   );

@@ -1,72 +1,73 @@
 /** Etichete în română pentru valorile din contracte. Fără cod de server: se pot folosi și în client. */
+import { englishText } from "@/lib/english";
 import type { Confidence, CrewSkill, DecisionType, RecommendedAction } from "@/lib/contracts";
 import type { DataSource } from "./types";
 
 export const SOURCE_LABEL_RO: Record<DataSource, string> = {
-  api: "API (în direct)",
-  demo: "instantaneu demo",
-  fixtures: "date de test (fixtures)",
+  api: "API (live)",
+  demo: "demo snapshot",
+  fixtures: "test fixtures",
 };
 
 /** Eticheta scurtă a provenienței, pentru antet. */
 export const PROVENANCE_SHORT_RO: Record<DataSource, string> = {
-  api: "Agentul, în direct",
-  demo: "Ultimul plan salvat",
-  fixtures: "Date de test",
+  api: "Live agent",
+  demo: "Last saved plan",
+  fixtures: "Test data",
 };
 
 export const DECISION_LABEL_RO: Record<DecisionType, string> = {
-  assigned: "în traseu",
-  deferred: "amânată",
-  human_review: "decide un om",
-  remote_action: "acțiune la distanță",
-  notify: "mesaj către clienți",
-  rejected_invalid: "respinsă (date greșite)",
+  assigned: "assigned",
+  deferred: "deferred",
+  human_review: "human review",
+  remote_action: "remote action",
+  notify: "customer message",
+  rejected_invalid: "rejected (invalid data)",
 };
 
 export const CONFIDENCE_RO: Record<Confidence, string> = {
-  high: "încredere mare",
-  medium: "încredere medie",
-  low: "încredere scăzută",
+  high: "high confidence",
+  medium: "medium confidence",
+  low: "low confidence",
 };
 
 export const ACTION_RO: Record<RecommendedAction, string> = {
-  inspect_on_site: "verificare la fața locului",
-  remote_reading: "citire la distanță",
-  watchlist: "urmărire, fără vizită",
-  human_review: "decide un om",
-  preposition_crew: "echipă trimisă din timp în zonă",
-  adjust_tap: "schimbarea prizei transformatorului",
-  measurement_campaign: "analizor de calitate montat la post",
-  notify_customers: "mesaj către prosumatori",
-  office_correction: "corecție în bază, fără deplasare",
-  grid_inspection: "inspecția rețelei de joasă tensiune",
-  phase_rebalance: "reechilibrarea fazelor",
-  offer_battery: "ofertă de baterii pentru prosumatori",
-  export_limit: "limitarea injecției în rețea",
-  transformer_upgrade: "transformator mai mare",
-  no_action: "nicio acțiune",
+  inspect_on_site: "on-site inspection",
+  remote_reading: "remote reading",
+  watchlist: "monitor, no visit",
+  human_review: "human review",
+  preposition_crew: "crew prepositioning",
+  adjust_tap: "transformer tap adjustment",
+  measurement_campaign: "install a power quality analyser at the substation",
+  notify_customers: "message to solar customers",
+  office_correction: "office data correction, no visit",
+  grid_inspection: "low-voltage grid inspection",
+  phase_rebalance: "phase rebalancing",
+  offer_battery: "battery offer for solar customers",
+  export_limit: "limit exports to the grid",
+  transformer_upgrade: "larger transformer",
+  no_action: "no action",
 };
 
 export const SKILL_RO: Record<CrewSkill, string> = {
-  metering: "contorizare",
-  lv_grid: "joasă tensiune",
-  mv_grid: "medie tensiune",
+  metering: "metering",
+  lv_grid: "low voltage",
+  mv_grid: "medium voltage",
 };
 
 /** Ce estimează modelul (prediction.label). Necunoscutele rămân lizibile. */
 const PREDICTION_LABEL_RO: Record<string, string> = {
-  tamper: "suspect de manipulare",
-  faulty: "suspect de defect",
-  outage_risk: "risc de avarii",
-  overvoltage: "tensiune peste limită",
+  tamper: "suspected tampering",
+  faulty: "suspected fault",
+  outage_risk: "outage risk",
+  overvoltage: "overvoltage",
   // bilanțul pe post: cauza probabilă a lipsei
-  normal: "pierderi normale",
-  contor_client: "contor defect la un client",
-  furt_inainte_contor: "furt înainte de contor",
-  pierdere_tehnica: "pierdere tehnică (cablu, faze dezechilibrate)",
-  client_post_gresit: "client trecut la postul greșit în bază",
-  contor_bilant_setat: "contorul de bilanț setat greșit",
+  normal: "normal losses",
+  contor_client: "faulty customer meter",
+  furt_inainte_contor: "theft before the meter",
+  pierdere_tehnica: "technical loss (cable, unbalanced phases)",
+  client_post_gresit: "customer assigned to the wrong substation",
+  contor_bilant_setat: "incorrectly configured balance meter",
 };
 
 export function predictionLabelRo(label: string): string {
@@ -75,14 +76,14 @@ export function predictionLabelRo(label: string): string {
 
 /** Ce s-a confirmat în cazurile similare (similar_cases.outcome). */
 const OUTCOME_RO: Record<string, string> = {
-  furt_confirmat: "furt confirmat",
-  contor_blocat: "contor blocat",
-  contor_defect: "contor defect",
-  fals_pozitiv: "fals pozitiv, totul în regulă",
-  avarii_extinse: "avarii extinse",
-  furtuna_confirmata: "furtună confirmată",
-  fara_avarii: "fără avarii",
-  supratensiune_confirmata: "supratensiune confirmată",
+  furt_confirmat: "confirmed theft",
+  contor_blocat: "stuck meter",
+  contor_defect: "faulty meter",
+  fals_pozitiv: "false positive, no fault found",
+  avarii_extinse: "widespread outages",
+  furtuna_confirmata: "confirmed storm",
+  fara_avarii: "no outages",
+  supratensiune_confirmata: "confirmed overvoltage",
 };
 
 export function outcomeRo(outcome: string): string {
@@ -91,57 +92,57 @@ export function outcomeRo(outcome: string): string {
 
 /** Regulile din stratul de decizie, explicate pe scurt (rule_id → frază). Necunoscutele se afișează ca atare. */
 const RULE_RO: Record<string, string> = {
-  "R-VALUE-OVER-COST": "valoarea așteptată depășește costul vizitei",
-  "R-ABSTAIN": "modelul nu e sigur, decide un om",
-  "R-SAFETY-FIRST": "risc pentru oameni, prioritate maximă",
-  "R-LOW-CONFIDENCE": "încredere prea mică pentru o echipă",
-  "R-CHEAP-ACTION": "o acțiune ieftină ajunge",
-  "R-NO-CAPACITY": "nu mai e capacitate în ture",
-  "R-INVALID-INPUT": "date de intrare greșite, puse în carantină",
-  "R-STORM-PREPOSITION": "echipă trimisă înainte de furtună",
-  "R-PLANNED-OUTAGE-NOTICE": "întreruperea planificată cere anunțarea clienților",
-  "R-BELOW-THRESHOLD": "riscul e sub prag, zona rămâne urmărită",
-  "R-QUARANTINE": "date de intrare greșite, puse în carantină",
-  "R-REMEDY-LADDER": "cea mai ieftină soluție care aduce tensiunea sub 1,10",
-  "R-SAFETY": "risc pentru oameni: intră primul în traseu",
-  "R-SAFETY-NO-CREW": "risc pentru oameni, dar nicio echipă liberă: alertă la dispecerat",
-  "R-NO-CREW": "nicio echipă potrivită liberă",
-  "R-CAPACITY": "turele sunt pline",
-  "R-CAPACITY-REMOTE": "turele sunt pline: citire la distanță în loc de vizită",
-  "R-TIME-WINDOW": "echipa nu ajunge în fereastra în care contează",
-  "R-WIDE-INTERVAL": "intervalul de încredere e prea larg",
-  "R-NOT-WORTH-TRIP": "drumul costă mai mult decât câștigul",
-  "R-DATA-QUALITY": "prea multe date lipsă",
-  "R-HUMAN-APPROVE": "aprobat de dispecer",
-  "R-HUMAN-REJECT": "respins de dispecer",
-  "R-HUMAN-DEFER": "amânat de dispecer",
-  "R-A-VISIT": "valoarea așteptată depășește costul vizitei",
-  "R-A-VISIT-NO-REMOTE": "contorul nu răspunde la distanță: vizită",
-  "R-A-REMOTE-FIRST": "întâi citire la distanță, aproape gratuită",
-  "R-A-WATCH": "scor sub prag: urmărire, fără vizită",
-  "R-B-PREPOSITION": "echipă trimisă înainte de furtună",
-  "R-B-BELOW-COST": "riscul nu acoperă costul unei echipe trimise din timp",
-  "R-B-REGION-CAP": "limita de echipe pe regiune",
-  "R-B-TOO-LATE": "echipa n-ar ajunge înainte de furtună",
-  "R-C-TAP": "schimbarea prizei se justifică",
-  "R-C-TAP-NOTICE": "schimbarea prizei cere anunțarea clienților din timp",
-  "R-C-NOTIFY": "mesaj către prosumatori în loc de echipă",
-  "R-C-MEASURE": "întâi măsurători la post",
-  "R-C-MEASURE-THEN-TAP": "măsurători, apoi schimbarea prizei",
-  "R-C-WATCH": "depășire puțin probabilă: urmărire",
-  "R-A-VISIT-MEDIUM": "încredere medie: vizită doar dacă marja de valoare e mare",
-  "R-BILANT-GRID": "bilanțul arată pierdere tehnică: echipa de rețea",
-  "R-BILANT-METER": "bilanțul arată contor defect: echipa de contoare",
-  "R-BILANT-OFFICE": "corecție în bază, fără deplasare",
+  "R-VALUE-OVER-COST": "expected value exceeds visit cost",
+  "R-ABSTAIN": "model is uncertain, human decision required",
+  "R-SAFETY-FIRST": "safety risk, highest priority",
+  "R-LOW-CONFIDENCE": "confidence too low to dispatch a crew",
+  "R-CHEAP-ACTION": "a low-cost action is sufficient",
+  "R-NO-CAPACITY": "no shift capacity left",
+  "R-INVALID-INPUT": "invalid input, quarantined",
+  "R-STORM-PREPOSITION": "crew positioned before the storm",
+  "R-PLANNED-OUTAGE-NOTICE": "planned outage requires customer notice",
+  "R-BELOW-THRESHOLD": "risk below threshold, continue monitoring",
+  "R-QUARANTINE": "invalid input, quarantined",
+  "R-REMEDY-LADDER": "cheapest remedy that brings voltage below 1.10 pu",
+  "R-SAFETY": "safety risk, first stop on the route",
+  "R-SAFETY-NO-CREW": "safety risk but no available crew, dispatcher alerted",
+  "R-NO-CREW": "no suitable crew available",
+  "R-CAPACITY": "shifts are full",
+  "R-CAPACITY-REMOTE": "shifts are full, remote reading instead of a visit",
+  "R-TIME-WINDOW": "crew cannot arrive within the required window",
+  "R-WIDE-INTERVAL": "confidence interval is too wide",
+  "R-NOT-WORTH-TRIP": "travel costs exceed the benefit",
+  "R-DATA-QUALITY": "too much missing data",
+  "R-HUMAN-APPROVE": "approved by dispatcher",
+  "R-HUMAN-REJECT": "rejected by dispatcher",
+  "R-HUMAN-DEFER": "deferred by dispatcher",
+  "R-A-VISIT": "expected value exceeds visit cost",
+  "R-A-VISIT-NO-REMOTE": "meter does not respond remotely, visit required",
+  "R-A-REMOTE-FIRST": "remote reading first, at near-zero cost",
+  "R-A-WATCH": "score below threshold, monitor without a visit",
+  "R-B-PREPOSITION": "crew positioned before the storm",
+  "R-B-BELOW-COST": "risk does not cover crew prepositioning cost",
+  "R-B-REGION-CAP": "regional crew limit",
+  "R-B-TOO-LATE": "crew cannot arrive before the storm",
+  "R-C-TAP": "tap adjustment is justified",
+  "R-C-TAP-NOTICE": "tap adjustment requires advance customer notice",
+  "R-C-NOTIFY": "message to solar customers instead of a crew",
+  "R-C-MEASURE": "measure at the substation first",
+  "R-C-MEASURE-THEN-TAP": "measurements, then tap adjustment",
+  "R-C-WATCH": "exceedance unlikely, continue monitoring",
+  "R-A-VISIT-MEDIUM": "medium confidence, visit only with a large value margin",
+  "R-BILANT-GRID": "energy balance indicates technical loss, grid crew required",
+  "R-BILANT-METER": "energy balance indicates a faulty meter, metering crew required",
+  "R-BILANT-OFFICE": "office data correction, no visit",
   // neutru: regula se aplică și când bilanțul nu confirmă (pragul `fusion_confirmed` spune care e cazul)
-  "R-FUSION-BILANT": "contorul verificat cu bilanțul postului",
-  "R-BILANT-REMOTE": "bilanț: întâi verificări de la distanță",
-  "R-BILANT-WATCH": "bilanț: valoarea nu acoperă deplasarea, urmărire",
-  "R-SAFETY-OVER-CAP": "caz de siguranță peste cota zilei: prioritate triplă, fără obligație",
-  "R-ABSTAIN-DATA": "date de intrare greșite: corectare în biroul de date",
-  "R-ABSTAIN-WATCH": "modelul nu e sigur, dar valoarea e mică: urmărire",
-  "R-HUMAN-QUEUE-FULL": "coada dispecerului e plină: revine în planul următor",
-  "R-B-BELOW-THRESHOLD": "furtună sub pragul modelului: nu se mută echipe",
+  "R-FUSION-BILANT": "meter checked against the substation energy balance",
+  "R-BILANT-REMOTE": "energy balance, remote checks first",
+  "R-BILANT-WATCH": "energy balance, value does not cover travel, continue monitoring",
+  "R-SAFETY-OVER-CAP": "safety case above daily quota, triple priority without mandatory dispatch",
+  "R-ABSTAIN-DATA": "invalid input, office data correction",
+  "R-ABSTAIN-WATCH": "model is uncertain but value is low, continue monitoring",
+  "R-HUMAN-QUEUE-FULL": "dispatcher's queue is full, carry over to the next plan",
+  "R-B-BELOW-THRESHOLD": "storm below model threshold, no crew moved",
 };
 
 export function ruleRo(ruleId: string | null | undefined): string | null {
@@ -151,62 +152,62 @@ export function ruleRo(ruleId: string | null | undefined): string | null {
 
 /** Pragurile și cifrele din `Decision.threshold`, în cuvinte simple, cu unitatea potrivită. */
 const THRESHOLD_RO: Record<string, string> = {
-  score: "scorul lucrării",
-  a_score: "scorul modelului A",
-  combined_score: "scorul combinat (A și bilanțul)",
-  fusion_a_score: "scorul A, înainte de bilanț",
-  fusion_combined_score: "scorul combinat",
-  fusion_post_loss_lei_month: "pierderea postului, din bilanț",
-  fusion_confirmed: "confirmat de bilanț",
-  post_excess_loss_lei_month: "pierderea postului peste normal",
-  post_excess_loss_kwh_day: "lipsa postului peste normal",
-  safety_max_mandatory_per_day: "cazuri de siguranță obligatorii pe zi",
-  human_review_max_per_day: "locuri pe zi în coada dispecerului",
-  preposition_min_score: "scor minim pentru o echipă trimisă din timp",
-  participation_rate: "participarea simulată",
-  score_min: "scor minim",
-  min_score: "scor minim",
-  remote_min_score: "scor minim pentru citire la distanță",
-  alert_min_score: "scor minim pentru alertă",
-  breakeven_score: "scorul de la care merită",
-  confidence_low: "încredere scăzută",
-  min_net_value_lei: "valoare netă minimă",
-  net_value_lei: "valoare netă",
-  expected_value_lei: "valoare așteptată",
-  human_review_min_ev_lei: "valoare minimă pentru a întreba un om",
-  visit_cost_lei: "costul vizitei",
-  cost_lei: "cost total",
-  action_cost_lei: "costul acțiunii",
-  travel_cost_lei: "costul drumului",
-  travel_km_est: "km estimați",
-  lei_per_work_hour: "lei pe oră de lucru",
-  preposition_cost_lei: "costul echipei trimise din timp",
-  tap_cost_lei: "costul schimbării prizei",
-  tap_change_visit_cost_lei: "costul schimbării prizei",
-  measurement_cost_lei: "costul măsurătorilor",
-  net_tap_value_lei: "valoarea netă a schimbării prizei",
-  chosen_cost_lei: "costul soluției alese",
-  overvoltage_limit_pu: "limita de tensiune",
-  vmax_p90_pu: "tensiunea maximă P90",
-  interval_width: "lățimea intervalului",
-  max_interval_width: "lățime maximă acceptată",
-  missing_ratio: "date lipsă",
-  max_missing_ratio: "date lipsă acceptate",
-  max_crews_per_region: "echipe maxime pe regiune",
-  arrive_before_start_min: "ajunge înainte de furtună cu",
-  safety_flag: "risc pentru oameni",
-  safety_priority_multiplier: "prioritate înmulțită pentru siguranță",
-  smart_meter: "contor inteligent",
-  planned_notice_working_days: "zile lucrătoare de anunț pentru întrerupere",
-  abstain: "modelul s-a abținut",
-  human: "trimis la om",
-  visit_min_score: "scor minim pentru vizită",
-  medium_confidence_margin_lei: "marja cerută la încredere medie",
-  p90_before_pu: "tensiunea P90 fără soluție",
-  p90_after_pu: "tensiunea P90 după soluție",
-  remedy_cost_lei: "costul soluției alese",
-  remedy_steps: "trepte combinate",
-  remedy_options_checked: "variante verificate",
+  score: "work item score",
+  a_score: "model A score",
+  combined_score: "combined score (A and energy balance)",
+  fusion_a_score: "A score before energy balance",
+  fusion_combined_score: "combined score",
+  fusion_post_loss_lei_month: "substation loss from energy balance",
+  fusion_confirmed: "confirmed by energy balance",
+  post_excess_loss_lei_month: "excess substation loss",
+  post_excess_loss_kwh_day: "excess substation energy deficit",
+  safety_max_mandatory_per_day: "mandatory safety cases per day",
+  human_review_max_per_day: "daily dispatcher queue capacity",
+  preposition_min_score: "minimum score for crew prepositioning",
+  participation_rate: "simulated participation",
+  score_min: "minimum score",
+  min_score: "minimum score",
+  remote_min_score: "minimum score for remote reading",
+  alert_min_score: "minimum score for an alert",
+  breakeven_score: "break-even score",
+  confidence_low: "low confidence",
+  min_net_value_lei: "minimum net value",
+  net_value_lei: "net value",
+  expected_value_lei: "expected value",
+  human_review_min_ev_lei: "minimum value for human review",
+  visit_cost_lei: "visit cost",
+  cost_lei: "total cost",
+  action_cost_lei: "action cost",
+  travel_cost_lei: "travel cost",
+  travel_km_est: "estimated km",
+  lei_per_work_hour: "RON per work hour",
+  preposition_cost_lei: "crew prepositioning cost",
+  tap_cost_lei: "tap adjustment cost",
+  tap_change_visit_cost_lei: "tap adjustment cost",
+  measurement_cost_lei: "measurement cost",
+  net_tap_value_lei: "net value of tap adjustment",
+  chosen_cost_lei: "chosen remedy cost",
+  overvoltage_limit_pu: "voltage limit",
+  vmax_p90_pu: "maximum P90 voltage",
+  interval_width: "interval width",
+  max_interval_width: "maximum accepted width",
+  missing_ratio: "missing data",
+  max_missing_ratio: "accepted missing data",
+  max_crews_per_region: "maximum crews per region",
+  arrive_before_start_min: "arrival ahead of storm by",
+  safety_flag: "safety risk",
+  safety_priority_multiplier: "safety priority multiplier",
+  smart_meter: "smart meter",
+  planned_notice_working_days: "working days of planned outage notice",
+  abstain: "model abstained",
+  human: "referred to human review",
+  visit_min_score: "minimum visit score",
+  medium_confidence_margin_lei: "required margin at medium confidence",
+  p90_before_pu: "P90 voltage before remedy",
+  p90_after_pu: "P90 voltage after remedy",
+  remedy_cost_lei: "chosen remedy cost",
+  remedy_steps: "combined steps",
+  remedy_options_checked: "options checked",
 };
 
 const FLAG_KEYS = new Set(["safety_flag", "smart_meter", "abstain", "human", "fusion_confirmed"]);
@@ -216,19 +217,19 @@ export function thresholdLabelRo(key: string): string {
 }
 
 export function thresholdValueRo(key: string, v: unknown): string {
-  if (typeof v === "boolean") return v ? "da" : "nu";
+  if (typeof v === "boolean") return v ? "yes" : "no";
   if (typeof v !== "number") return String(v);
   const ro = (n: number, d: number) =>
-    new Intl.NumberFormat("ro-RO", { minimumFractionDigits: d, maximumFractionDigits: d }).format(n);
-  if (FLAG_KEYS.has(key)) return v ? "da" : "nu";
+    new Intl.NumberFormat("en-GB", { minimumFractionDigits: d, maximumFractionDigits: d }).format(n);
+  if (FLAG_KEYS.has(key)) return v ? "yes" : "no";
   // scorurile întâi: „score_min” e un scor, nu minute
   if (key.includes("score") || key === "confidence_low") return ro(v, 2);
-  if (key.endsWith("_lei")) return `${ro(v, Math.abs(v) >= 100 || Number.isInteger(v) ? 0 : 2)} lei`;
-  if (key.endsWith("_lei_month")) return `${ro(v, 0)} lei pe lună`;
-  if (key.endsWith("_kwh_day")) return `${ro(v, 1)} kWh/zi`;
+  if (key.endsWith("_lei")) return `${ro(v, Math.abs(v) >= 100 || Number.isInteger(v) ? 0 : 2)} RON`;
+  if (key.endsWith("_lei_month")) return `${ro(v, 0)} RON per month`;
+  if (key.endsWith("_kwh_day")) return `${ro(v, 1)} kWh/day`;
   if (key.endsWith("_rate")) return `${ro(v * 100, 0)}%`;
   if (key.endsWith("_pu")) return `${ro(v, 3).replace(/0$/, "")} pu`;
-  if (key.endsWith("_days")) return `${ro(v, 0)} zile`;
+  if (key.endsWith("_days")) return `${ro(v, 0)} days`;
   if (key.endsWith("_min")) return `${ro(v, 0)} min`;
   if (key.startsWith("travel_km")) return `${ro(v, 1)} km`;
   if (key.includes("ratio") || key.includes("width")) return ro(v, 2);
@@ -251,10 +252,11 @@ function percentValue(n: string): number {
  * „a crescut de peste 10 ori”. Datele originale rămân neatinse; e doar o protecție la afișare.
  */
 export function clampPercentRo(text: string): string {
-  return text
+  const guarded = text
     .replace(PERCENT, (m, n: string) => (percentValue(n) > 999 ? "de peste 10 ori" : m))
     // o probabilitate de 100% sună a certitudine: „peste 99%” (cererea din QA)
     .replace(/(probabilit\p{L}*(?:\s+\p{L}+)?\s+(?:de\s+)?)100\s?%/giu, "$1peste 99%");
+  return englishText(guarded);
 }
 
 /**
@@ -262,9 +264,9 @@ export function clampPercentRo(text: string): string {
  * zecimalele cu punct devin virgulă („0.46” → „0,46”), prima literă e mare, fără punct la final.
  */
 export function factorLabelRo(label: string): string {
-  const out = clampPercentRo(label).replace(/(\d)\.(\d)/g, "$1,$2").trim();
+  const out = clampPercentRo(label).trim();
   if (!out) return out;
-  return (out.charAt(0).toLocaleUpperCase("ro-RO") + out.slice(1)).replace(/\.$/, "");
+  return (out.charAt(0).toLocaleUpperCase("en-GB") + out.slice(1)).replace(/\.$/, "");
 }
 
 /**
@@ -280,34 +282,34 @@ export function alertOutcomeRo(ids: string[] | undefined, decisions: Record<stri
     if (d) counts.set(d, (counts.get(d) ?? 0) + 1);
   }
   if (!counts.size) return null;
-  const n = (v: number) => new Intl.NumberFormat("ro-RO").format(v);
+  const n = (v: number) => new Intl.NumberFormat("en-GB").format(v);
   const phrase: Record<string, (v: number) => string> = {
-    assigned: (v) => (v === 1 ? "1 în traseu" : `${n(v)} în trasee`),
-    remote_action: (v) => (v === 1 ? "1 verificată de la distanță" : `${n(v)} verificate de la distanță`),
-    human_review: (v) => `${n(v)} la om`,
-    notify: (v) => `${n(v)} cu mesaj către clienți`,
-    deferred: (v) => (v === 1 ? "1 amânată" : `${n(v)} amânate`),
-    rejected_invalid: (v) => (v === 1 ? "1 respinsă la intrare" : `${n(v)} respinse la intrare`),
+    assigned: (v) => (v === 1 ? "1 assigned" : `${n(v)} Assigned`),
+    remote_action: (v) => (v === 1 ? "1 checked remotely" : `${n(v)} checked remotely`),
+    human_review: (v) => `${n(v)} Human review`,
+    notify: (v) => `${n(v)} with customer message`,
+    deferred: (v) => (v === 1 ? "1 deferred" : `${n(v)} deferred`),
+    rejected_invalid: (v) => (v === 1 ? "1 rejected at intake" : `${n(v)} rejected at intake`),
   };
   const order = ["assigned", "human_review", "remote_action", "notify", "deferred", "rejected_invalid"];
   const parts = order.filter((k) => counts.get(k)).map((k) => phrase[k](counts.get(k)!));
   const known = [...counts.values()].reduce((a, b) => a + b, 0);
-  if (known < ids.length) parts.push(`${n(ids.length - known)} fără decizie`);
+  if (known < ids.length) parts.push(`${n(ids.length - known)} without a decision`);
   return parts.join(", ");
 }
 
 /** Acțiunile din jurnal (AuditRecord.action), în cuvinte. */
 const AUDIT_ACTION_RO: Record<string, string> = {
-  run: "agentul a făcut planul",
-  fusion: "verificat cu bilanțul",
-  replan: "agentul a refăcut planul",
-  review_approve: "omul a aprobat",
-  review_reject: "omul a respins",
-  review_defer: "omul a amânat",
-  approve: "omul a aprobat",
-  reject: "omul a respins",
-  defer: "omul a amânat",
-  plan_approved: "omul a aprobat lista echipelor",
+  run: "agent generated the plan",
+  fusion: "checked against the energy balance",
+  replan: "agent recalculated the plan",
+  review_approve: "human approved",
+  review_reject: "human rejected",
+  review_defer: "human deferred",
+  approve: "human approved",
+  reject: "human rejected",
+  defer: "human deferred",
+  plan_approved: "human approved crew assignments",
 };
 
 export function auditActionRo(action: string): string {

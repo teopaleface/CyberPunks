@@ -1,3 +1,4 @@
+import { consoleDenied } from "@/lib/server/operations";
 import { connection, type NextRequest } from "next/server";
 import { getAudit } from "@/lib/data";
 import { resolveScenario } from "@/lib/server/queries";
@@ -7,6 +8,8 @@ import { resolveScenario } from "@/lib/server/queries";
  * câte o linie AuditRecord pe rând (JSON Lines), exact cum l-a scris agentul.
  */
 export async function GET(request: NextRequest) {
+  const denied = await consoleDenied();
+  if (denied) return denied;
   await connection();
   const scenario = await resolveScenario(Promise.resolve(Object.fromEntries(request.nextUrl.searchParams.entries())));
   const audit = await getAudit(scenario);

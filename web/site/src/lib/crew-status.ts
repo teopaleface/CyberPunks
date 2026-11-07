@@ -9,13 +9,13 @@ import { DB } from "@/data/daybreak"
 export type CrewPhase = "programata" | "tranzit" | "diagnosticare" | "lucru" | "finalizare" | "retragere" | "incheiata"
 
 export const PHASE_RO: Record<CrewPhase, string> = {
-  programata: "Programată",
-  tranzit: "În tranzit",
-  diagnosticare: "Diagnosticare",
-  lucru: "În lucru",
-  finalizare: "Finalizare",
-  retragere: "Se retrage",
-  incheiata: "Încheiată",
+  programata: "Scheduled",
+  tranzit: "In transit",
+  diagnosticare: "Diagnosing",
+  lucru: "Working",
+  finalizare: "Finishing",
+  retragere: "Leaving",
+  incheiata: "Completed",
 }
 
 export interface CrewStatus {
@@ -89,25 +89,25 @@ export function statusAt(id: string, now: number): CrewStatus | null {
   let note: string
   if (now < w.setOff) {
     phase = "programata"
-    note = w.seq === 1 ? `Echipa pleacă de la bază la ${hhmm(w.depart)}.` : `Echipa e la o lucrare dinainte; ajunge pe la ${hhmm(w.arrive)}.`
+    note = w.seq === 1 ? `Crew leaves the depot at ${hhmm(w.depart)}.` : `Crew is at an earlier job; expected arrival ${hhmm(w.arrive)}.`
   } else if (now < w.arrive) {
     phase = "tranzit"
-    note = `Pe drum, ajunge pe la ${hhmm(w.arrive)}.`
+    note = `Travelling; expected arrival ${hhmm(w.arrive)}.`
   } else if (now < diagEnd) {
     phase = "diagnosticare"
-    note = `A ajuns la ${hhmm(w.arrive)} și caută cauza.`
+    note = `Arrived at ${hhmm(w.arrive)} and is investigating the cause.`
   } else if (now < finStart) {
     phase = "lucru"
-    note = `Repară; termină pe la ${hhmm(w.leave)}.`
+    note = `Working; expected finish ${hhmm(w.leave)}.`
   } else if (now < w.leave) {
     phase = "finalizare"
-    note = `Verifică și închide lucrarea până la ${hhmm(w.leave)}.`
+    note = `Checks and closes the job by ${hhmm(w.leave)}.`
   } else if (now < w.clear) {
     phase = "retragere"
-    note = w.last ? "Se întoarce la bază." : "A plecat spre următoarea oprire."
+    note = w.last ? "Returning to the depot." : "Travelling to the next stop."
   } else {
     phase = "incheiata"
-    note = `Lucrare închisă la ${hhmm(w.leave)}.`
+    note = `Job closed at ${hhmm(w.leave)}.`
   }
   return { crew: w.crew, phase, seq: w.seq, stops: w.stops, arrive: hhmm(w.arrive), leave: hhmm(w.leave), note }
 }
@@ -130,4 +130,18 @@ export function useSimClock() {
     return () => window.clearInterval(t)
   }, [])
   return { now, label: hhmm(now) }
+}
+
+export const SHIFT = { start: SHIFT_START, end: SHIFT_END }
+export { hhmm }
+
+/** One crew's day: when it leaves, when it is back, and its time on site at each stop. */
+export function crewDay(crew: string) {
+  const r = DB.routes.find((x) => x.crew === crew)!
+  const stops = DB.routeStops
+    .filter((s) => s.crew === crew)
+    .sort((a, b) => a.seq - b.seq)
+    .map((s) => WINDOWS.get(s.id)!)
+    .map((w) => ({ arrive: w.arrive, leave: Math.min(w.leave, r.back ? toMin(r.back) : SHIFT_END) }))
+  return { depart: toMin(r.depart), back: r.back ? toMin(r.back) : SHIFT_END, open: !r.back, stops }
 }

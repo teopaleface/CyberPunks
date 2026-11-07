@@ -1,0 +1,171 @@
+{
+  "fps": 30,
+  "current": "LEFT",
+  "seams": [
+    {
+      "id": "storm to outage",
+      "cut": 4.88,
+      "technique": "cut-the-curve LEFT",
+      "exit": {
+        "selector": "#w-storm",
+        "axis": "x",
+        "dir": -1
+      },
+      "entry": {
+        "selector": "#w-outage",
+        "axis": "x",
+        "dir": -1
+      }
+    },
+    {
+      "id": "outage to meter",
+      "cut": 8.78,
+      "technique": "cut-the-curve LEFT",
+      "exit": {
+        "selector": "#w-outage",
+        "axis": "x",
+        "dir": -1
+      },
+      "entry": {
+        "selector": "#w-meter",
+        "axis": "x",
+        "dir": -1
+      }
+    },
+    {
+      "id": "meter to solar",
+      "cut": 10.82,
+      "technique": "cut-the-curve LEFT",
+      "exit": {
+        "selector": "#w-meter",
+        "axis": "x",
+        "dir": -1
+      },
+      "entry": {
+        "selector": "#w-solar",
+        "axis": "x",
+        "dir": -1
+      }
+    },
+    {
+      "id": "solar to capacity",
+      "cut": 14.23,
+      "technique": "cut-the-curve LEFT",
+      "exit": {
+        "selector": "#w-solar",
+        "axis": "x",
+        "dir": -1
+      },
+      "entry": {
+        "selector": "#w-capacity",
+        "axis": "x",
+        "dir": -1
+      }
+    },
+    {
+      "id": "capacity to question",
+      "cut": 19.3,
+      "technique": "cut-the-curve LEFT",
+      "exit": {
+        "selector": "#w-capacity",
+        "axis": "x",
+        "dir": -1
+      },
+      "entry": {
+        "selector": "#w-question",
+        "axis": "x",
+        "dir": -1
+      }
+    },
+    {
+      "id": "question to product",
+      "cut": 21.65,
+      "technique": "cut-the-curve LEFT",
+      "exit": {
+        "selector": "#w-question",
+        "axis": "x",
+        "dir": -1
+      },
+      "entry": {
+        "selector": "#w-product",
+        "axis": "x",
+        "dir": -1
+      }
+    },
+    {
+      "id": "product to workflow",
+      "cut": 24.4,
+      "technique": "cut-the-curve LEFT",
+      "exit": {
+        "selector": "#w-product",
+        "axis": "x",
+        "dir": -1
+      },
+      "entry": {
+        "selector": "#w-workflow",
+        "axis": "x",
+        "dir": -1
+      }
+    },
+    {
+      "id": "workflow to review",
+      "cut": 31.0,
+      "technique": "cut-the-curve LEFT",
+      "exit": {
+        "selector": "#w-workflow",
+        "axis": "x",
+        "dir": -1
+      },
+      "entry": {
+        "selector": "#w-review",
+        "axis": "x",
+        "dir": -1
+      }
+    },
+    {
+      "id": "review to dispatch",
+      "cut": 36.88,
+      "technique": "cut-the-curve LEFT",
+      "exit": {
+        "selector": "#w-review",
+        "axis": "x",
+        "dir": -1
+      },
+      "entry": {
+        "selector": "#w-dispatch",
+        "axis": "x",
+        "dir": -1
+      }
+    },
+    {
+      "id": "dispatch to result",
+      "cut": 39.18,
+      "technique": "cut-the-curve LEFT",
+      "exit": {
+        "selector": "#w-dispatch",
+        "axis": "x",
+        "dir": -1
+      },
+      "entry": {
+        "selector": "#w-result",
+        "axis": "x",
+        "dir": -1
+      }
+    },
+    {
+      "id": "result to end",
+      "cut": 43.45,
+      "technique": "cut-the-curve LEFT",
+      "exit": {
+        "selector": "#w-result",
+        "axis": "x",
+        "dir": -1
+      },
+      "entry": {
+        "selector": "#w-end",
+        "axis": "x",
+        "dir": -1
+      }
+    }
+  ]
+}

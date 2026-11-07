@@ -30,9 +30,9 @@ export function ChipGrid({
   const shown = value === "all" ? cards : cards.filter((c) => c.tags.includes(value));
   return (
     <>
-      <Chips label={label} items={[{ id: "all", label: "Toate" }, ...chips]} value={value} onChange={setValue} className="mt-5" />
+      <Chips label={label} items={[{ id: "all", label: "All" }, ...chips]} value={value} onChange={setValue} className="mt-5" />
       <p role="status" className="sr-only">
-        {shown.length} carduri afișate
+        {shown.length}  cards shown
       </p>
       <div className={cn("mt-5 grid grid-cols-1 gap-5", columns)}>
         {shown.length ? (
@@ -42,7 +42,7 @@ export function ChipGrid({
             </div>
           ))
         ) : (
-          <p className="text-[16px] text-ink-soft lg:col-span-6">Nimic de arătat la acest filtru pentru scenariul ales.</p>
+          <p className="text-[16px] text-ink-soft lg:col-span-6">No results for this filter and scenario.</p>
         )}
       </div>
     </>

@@ -47,7 +47,7 @@ export interface Briefing {
 const hhmmOf = (iso: string | null | undefined) => (iso ? iso.slice(11, 16) : null);
 
 function regionLabel(id: string | null, data: PlanScreenData): string {
-  if (!id) return "Alte zone";
+  if (!id) return "Other areas";
   const r = data.regions.find((x) => x.id === id);
   return r?.label ?? id;
 }
@@ -104,10 +104,10 @@ function stormStart(data: PlanScreenData): string | null {
 
 /** De ce decide un om, într-o frază care nu se contrazice: abținere, încredere mică/medie sau motivul regulii. */
 function whyHuman(d: Decision, w: WorkItem, conf: string): string {
-  if (w.prediction.abstain) return "Modelul s-a abținut: nu poate decide singur.";
-  if (w.prediction.confidence !== "high") return `Modelul nu e sigur: ${conf.replace("încredere ", "încrederea e ")}.`;
+  if (w.prediction.abstain) return "The model abstained and needs a human decision.";
+  if (w.prediction.confidence !== "high") return `The model reports ${conf}.`;
   const first = (d.reason_ro ?? "").split(/(?<=\.)\s/)[0]?.trim();
-  return first ? sentence(first) : "Agentul cere decizia unui om.";
+  return first ? sentence(first) : "The agent requests a human decision.";
 }
 
 /** Titlul unui caz, cu locul: „Zona Ineu, Arad”, „PT-1182, Sector 3, București”, „Contor MTR-004149, PT-1081, Sector 3”. */
@@ -128,24 +128,24 @@ export function toBriefing(data: PlanScreenData): Briefing {
   const assigned = s.assigned ?? lines.reduce((n, c) => n + c.stops, 0);
   const crewsUsed = s.crews_used ?? lines.length;
   const first = assigned
-    ? `Mâine: ${plural(assigned, "lucrare", "lucrări")} pentru ${plural(crewsUsed, "echipă", "echipe")}.`
-    : "Mâine nu pleacă nicio echipă.";
+    ? `Tomorrow: ${plural(assigned, "work item", "work items")} for ${plural(crewsUsed, "crew", "crews")}.`
+    : "No crews depart tomorrow.";
   const second = queue.length
-    ? `${plural(queue.length, "caz", "cazuri")} așteaptă decizia ta.`
-    : "Nimic nu așteaptă decizia ta.";
+    ? `${plural(queue.length, "case", "cases")} ${queue.length === 1 ? "awaits" : "await"} your decision.`
+    : "No cases await your decision.";
 
   const stormCrews = lines.filter((c) => c.storm);
   const start = stormStart(data);
   const stormRegions = [...new Set(stormCrews.map((c) => regionLabel(c.region, data)))];
   const subline = stormCrews.length
-    ? `${plural(stormCrews.length, "echipă pleacă", "echipe pleacă")}${stormRegions.length === 1 ? ` în ${stormRegions[0]}` : ""} înainte de furtuna${start ? ` de la ${start}` : ""}.`
+    ? `${plural(stormCrews.length, "crew departs", "crews depart")}${stormRegions.length === 1 ? ` in ${stormRegions[0]}` : ""} before the storm${start ? ` at ${start}` : ""}.`
     : null;
 
   const value = approxNumber(s.expected_value_lei ?? 0);
   const numbers: Briefing["numbers"] = [
-    { value: fmtInt(assigned), label: assigned === 1 ? "lucrare în trasee" : "lucrări în trasee" },
-    { value: fmtInt(queue.length), label: "așteaptă decizia ta", attention: queue.length > 0 },
-    { value: value.value, label: "lei valoare așteptată", approx: value.approx },
+    { value: fmtInt(assigned), label: assigned === 1 ? "work item on routes" : "work items on routes" },
+    { value: fmtInt(queue.length), label: "awaiting your decision", attention: queue.length > 0 },
+    { value: value.value, label: "RON expected value", approx: value.approx },
   ];
 
   // grupuri: întâi echipele obișnuite, pe regiuni, apoi cele de furtună
@@ -163,16 +163,16 @@ export function toBriefing(data: PlanScreenData): Briefing {
       region: label,
       storm: false,
       crews,
-      summary: departs.length && backs.length ? `între ${departs[0]} și ${backs[backs.length - 1]}` : "",
+      summary: departs.length && backs.length ? `between ${departs[0]} and ${backs[backs.length - 1]}` : "",
     });
   }
   if (stormCrews.length) {
     groups.push({
-      label: stormRegions.length === 1 ? `${stormRegions[0]}, pentru furtună` : "Pentru furtună",
+      label: stormRegions.length === 1 ? `${stormRegions[0]}, for the storm` : "For the storm",
       region: stormRegions.length === 1 ? stormRegions[0] : null,
       storm: true,
       crews: stormCrews,
-      summary: start ? `pentru furtuna de la ${start}` : "înainte de furtună",
+      summary: start ? `for the storm at ${start}` : "before the storm",
     });
   }
 

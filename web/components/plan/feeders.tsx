@@ -1,5 +1,6 @@
 "use client";
 
+import { englishText } from "@/lib/english";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Decision, WorkItem } from "@/lib/contracts";
 import type { Crew, Depot, ResolvedRoute } from "@/lib/data/types";
@@ -25,7 +26,7 @@ function placeName(w: WorkItem, short = false): string {
   if (w.asset_type === "meter") return short ? w.asset_id.replace(/^MTR-/, "") : w.asset_id;
   const z = w.location.zone_id.split("-").slice(1).join(" ");
   const local = z ? z.charAt(0) + z.slice(1).toLowerCase() : "";
-  return w.asset_type === "zone" ? `Zona ${local || w.asset_id}` : `${w.asset_id}${local ? `, ${local}` : ""}`;
+  return w.asset_type === "zone" ? `Area ${local || w.asset_id}` : `${w.asset_id}${local ? `, ${local}` : ""}`;
 }
 
 export function Feeders({
@@ -139,11 +140,12 @@ export function Feeders({
   }, [selectedCy]);
 
   return (
-    <section aria-label="Ziua echipelor" className={"flex shrink-0 flex-col border-t border-rule bg-panel" + (highlight ? " spot" : "")}>
+    <section aria-label="Crew schedule" className={"flex shrink-0 flex-col border-t border-rule bg-panel" + (highlight ? " spot" : "")}>
       <div ref={boxRef} className="max-h-[244px] overflow-y-auto [@media(max-height:950px)]:max-h-[184px]">
         {routes.length === 0 ? (
           <p className="px-7 py-6 text-[15px] text-muted-foreground">
-            Nicio echipă nu are lucrări mâine. Dacă există lucrări, sunt amânate sau așteaptă un om.
+
+            No crews have work tomorrow. Existing work items are deferred or awaiting human review.
           </p>
         ) : (
           <>
@@ -162,14 +164,15 @@ export function Feeders({
               height={height}
               viewBox={`0 0 ${width} ${height}`}
               role="group"
-              aria-label="Linia de timp a echipelor pentru mâine"
+              aria-label="Tomorrow's crew timeline"
               className="block font-sans"
               style={{ marginTop: -(AXIS_H - 8) }}
             >
               {/* tura */}
               <rect x={x(s0)} y={AXIS_H - 6} width={x(s1) - x(s0)} height={height - AXIS_H} fill="var(--canvas)" opacity={0.55} />
               <text x={x(s1) - 6} y={AXIS_H + 12} textAnchor="end" fontSize={12.5} style={{ fill: "var(--muted-foreground)" }}>
-                tura {shift?.start ?? "08:00"}–{shift?.end ?? "16:00"}
+
+                shift {shift?.start ?? "08:00"}–{shift?.end ?? "16:00"}
               </text>
               {hours.map((h) => (
                 <line key={h} x1={x(h)} x2={x(h)} y1={AXIS_H} y2={height - 4} style={{ stroke: "var(--grid)" }} strokeWidth={1} />
@@ -178,7 +181,7 @@ export function Feeders({
               {layout.map(({ depotId, top, busTop, busBottom, rows: groupRows }) => (
                 <g key={depotId}>
                   <text x={28} y={top + 15} fontSize={13.5} fontWeight={600} style={{ fill: "var(--ink)" }}>
-                    {depots.find((d) => d.depot_id === depotId)?.label_ro.replace(/\s*\(simulată\)/, "") ?? depotId}
+                    {englishText(depots.find((d) => d.depot_id === depotId)?.label_ro.replace(/\s*\(simulată\)/, "") ?? depotId)}
                   </text>
                   <rect x={LEFT - 56} y={busTop} width={7} height={Math.max(20, busBottom - busTop)} style={{ fill: "var(--ink)" }} />
                   {groupRows.map(({ route, tl, cy }) => (
@@ -205,7 +208,7 @@ export function Feeders({
       </div>
       <div className="flex h-[52px] shrink-0 items-center gap-7 border-t border-rule px-7 text-[15px]">
         <span className="font-[620] whitespace-nowrap">
-          {free.length === 1 ? "1 echipă liberă" : `${free.length} echipe libere`}
+          {free.length === 1 ? "1 available crew" : `${free.length} available crews`}
         </span>
         {[...freeByDepot.entries()].map(([d, ids]) => (
           <span key={d} className="flex items-center gap-2 whitespace-nowrap">
@@ -229,8 +232,8 @@ export function Feeders({
                 <line x1="3.5" y1="12.5" x2="12.5" y2="3.5" style={{ stroke: "var(--ink)" }} strokeWidth={1.6} />
               </svg>
               <span className="truncate">
-                <b className="font-[620]">Carantină:</b>{" "}
-                {quarantine.length === 1 ? "1 lucrare respinsă la intrare" : `${quarantine.length} lucrări respinse la intrare`},{" "}
+                <b className="font-[620]">Quarantine:</b>{" "}
+                {quarantine.length === 1 ? "1 work item rejected at intake" : `${quarantine.length} work items rejected at intake`},{" "}
                 <span translate="no" className="code-id">{quarantine[0].id}</span>: {quarantine[0].reason.replace(/^Intrare greșită:\s*/i, "").replace(/\.$/, "")}
               </span>
             </span>
@@ -279,7 +282,7 @@ function CrewRow({
         const win = w ? workItemWindow(w, planDate) : null;
         if (!w || !win) return null;
         const storm = w.source === "B";
-        const label = storm ? `furtuna ${hhmm(win.start)}–${hhmmDay(win.end)}` : w.source === "C" ? `fereastra de tensiune ${hhmm(win.start)}–${hhmm(win.end)}` : `fereastra ${hhmm(win.start)}–${hhmmDay(win.end)}`;
+        const label = storm ? `furtuna ${hhmm(win.start)}–${hhmmDay(win.end)}` : w.source === "C" ? `voltage window ${hhmm(win.start)}–${hhmm(win.end)}` : `fereastra ${hhmm(win.start)}–${hhmmDay(win.end)}`;
         return (
           <g key={`win-${b.workItemId}`}>
             <rect
@@ -297,16 +300,17 @@ function CrewRow({
       })}
 
       {/* eticheta echipei: deschide ordinul de lucru (PDF) */}
-      <a href={`/ordine/${encodeURIComponent(route.crew_id)}?scenariu=${encodeURIComponent(scenario)}`} target="_blank" rel="noreferrer" aria-label={`Ordinul de lucru al echipei ${route.crew_id}, PDF`}>
+      <a href={`/ordine/${encodeURIComponent(route.crew_id)}?scenariu=${encodeURIComponent(scenario)}`} target="_blank" rel="noreferrer" aria-label={`Crew work order ${route.crew_id}, PDF`}>
         <text x={28} y={cy - 4} fontSize={18} fontWeight={650} style={{ fill: "var(--ink)", textDecoration: "underline", textDecorationColor: "var(--rule)" }}>
           {route.crew_id}
         </text>
         <text x={28 + route.crew_id.length * 11.2 + 8} y={cy - 5} fontSize={12.5} style={{ fill: "var(--muted-foreground)" }}>
-          ordin PDF
+
+          PDF work order
         </text>
       </a>
       <text x={28} y={cy + 15} fontSize={13.5} style={{ fill: "var(--muted-foreground)" }}>
-        {stops === 1 ? "1 oprire" : `${stops} opriri`}, {fmtDec(tl.totalKm, 1)} km, {fmtInt(tl.totalWorkMin)} min lucru
+        {stops === 1 ? "1 stop" : `${stops} stops`}, {fmtDec(tl.totalKm, 1)} km, {fmtInt(tl.totalWorkMin)}  min of work
       </text>
 
       {/* întrerupătorul închis de la bară până la axa timpului */}
@@ -335,7 +339,7 @@ function CrewRow({
       {/* plecare și întoarcere */}
       <circle cx={x(tl.depart)} cy={cy} r={4} style={{ fill: "var(--ink)" }} />
       <text x={x(tl.depart) - 8} y={cy + 23} textAnchor="end" fontSize={12.5} style={{ fill: "var(--muted-foreground)" }}>
-        {tl.departApprox ? "cca " : ""}pleacă {hhmm(tl.depart)}
+        {tl.departApprox ? "about " : ""}departs {hhmm(tl.depart)}
       </text>
       <rect x={x(tl.back) - 5} y={cy - 5} width={10} height={10} style={{ fill: "var(--panel)", stroke: "var(--ink)" }} strokeWidth={2} />
       {/* lângă capătul axei, eticheta se întoarce spre stânga ca să nu iasă din ecran */}
@@ -346,7 +350,7 @@ function CrewRow({
         fontSize={12.5}
         style={{ fill: "var(--muted-foreground)" }}
       >
-        {tl.backApprox ? "cca " : ""}revine {hhmmDay(tl.back)}
+        {tl.backApprox ? "about " : ""}returns {hhmmDay(tl.back)}
       </text>
 
       {/* lucrul */}
@@ -369,7 +373,7 @@ function CrewRow({
             key={`blk-${b.workItemId}`}
             role="button"
             tabIndex={0}
-            aria-label={`${full}, ${hhmm(b.start)}–${hhmm(b.end)}, echipa ${route.crew_id}`}
+            aria-label={`${full}, ${hhmm(b.start)}–${hhmm(b.end)}, crew ${route.crew_id}`}
             aria-pressed={sel}
             onClick={() => onSelect(b.workItemId)}
             onKeyDown={(e) => {
@@ -380,7 +384,7 @@ function CrewRow({
             }}
             className="cursor-pointer outline-none [&:focus-visible>.focus]:opacity-100"
           >
-            <title>{`${full}: ${hhmm(b.start)}–${hhmm(b.end)}${d ? `, ${d.reason_ro}` : ""}`}</title>
+            <title>{`${full}: ${hhmm(b.start)}–${hhmm(b.end)}${d ? `, ${englishText(d.reason_ro)}` : ""}`}</title>
             <rect x={xa - 18} y={cy - 26} width={xb - xa + 26} height={52} fill="transparent" />
             <rect className="focus opacity-0" x={xa - 20} y={cy - 17} width={xb - xa + 26} height={34} rx={4} fill="none" style={{ stroke: "var(--ring)" }} strokeWidth={2} />
             {sel ? <rect x={xa - 16} y={cy - 15} width={xb - xa + 22} height={30} rx={3} fill="none" style={{ stroke: "var(--ink)" }} strokeWidth={1.5} /> : null}
@@ -413,7 +417,8 @@ function CrewRow({
                   <line x1={24} y1={0} x2={31} y2={0} />
                 </g>
                 <text x={48} y={5} fontSize={13.5} style={{ fill: "var(--ink)" }}>
-                  cere întrerupere planificată
+
+                  Requires a planned outage
                 </text>
               </g>
             ) : null}

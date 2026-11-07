@@ -1,0 +1,19 @@
+<template><link rel="stylesheet" href="assets/theme.css"><style>#root{position:absolute;inset:0;overflow:hidden;background:var(--paper)}</style>
+<div id="root" data-composition-id="review" data-width="1920" data-height="1080"><h1 id="review-question" class="headline" style="position:absolute;left:192px;top:105px">Is this meter tampered with?</h1>
+<h1 id="review-answer" class="headline" style="position:absolute;left:192px;top:105px">The dispatcher decides.</h1>
+<div id="review-screen" class="screen" style="left:192px;top:250px;width:1536px;height:690px"><img id="review-image" src="assets/screens/meter-detail.png" alt="Actual meter evidence and human review controls"></div>
+<div id="approved" style="position:absolute;left:1040px;top:675px;width:660px;padding:30px 38px;background:#fff;border:1px solid #dce2e5;border-radius:10px;box-shadow:0 12px 30px rgba(0,15,30,.12)"><div class="body" style="font-size:46px;font-weight:600">Ai aprobat</div><p class="small" style="margin-top:14px">Planul se recalculează.</p></div>
+<p class="small" style="position:absolute;left:192px;top:975px">Animated demo with synthetic meter data.</p>
+<div id="review-cursor" class="cursor" data-layout-ignore><svg viewBox="0 0 24 24"><path d="M5 3 L5 21 L10.5 16 L14.2 23 L17.6 21.2 L13.9 14.4 L21 14 Z" fill="#fff" stroke="#000f1e" stroke-width="1.2" stroke-linejoin="round"/></svg></div></div>
+<script>(function(){const tl=gsap.timeline({paused:true});
+gsap.set('#review-image',{scale:.8});
+gsap.set(['#review-answer','#approved'],{opacity:0});gsap.set('#review-cursor',{x:1200,y:1200});
+tl.to('#review-image',{scale:1.85,x:-2035,y:-274,duration:.75,ease:'power3.inOut'},1.75);
+tl.set('#review-question',{opacity:0},2.5);tl.set('#review-answer',{opacity:1},2.5);
+tl.to('#review-cursor',{x:393,y:764,duration:.8,ease:'power3.out'},3.35);
+tl.to('#review-cursor',{scale:.84,duration:.1,ease:'power2.in'},4.55);
+tl.to('#review-cursor',{scale:1,duration:.22,ease:'power2.out'},4.65);
+tl.fromTo('#approved',{y:35,opacity:0},{y:0,opacity:1,duration:.35,ease:'power3.out'},4.55);
+tl.to('#review-cursor',{x:800,y:1200,duration:.45,ease:'power2.in'},5.05);
+
+window.__timelines=window.__timelines||{};window.__timelines["review"]=tl;})();</script></template>

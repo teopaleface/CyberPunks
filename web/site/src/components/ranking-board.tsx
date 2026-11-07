@@ -41,8 +41,8 @@ export function useApprovedValue() {
 /** The source's icon in its colour, plus its name. */
 export function SourceTag({ s }: { s: keyof typeof SOURCES }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-sm text-white/85">
-      <SourceIcon s={s} size={20} accent={SOURCES[s].color} className="shrink-0 text-white/75" />
+    <span className="inline-flex items-center gap-1.5 text-sm text-foreground/85">
+      <SourceIcon s={s} size={20} accent={`var(--source-${s.toLowerCase()})`} className="shrink-0 text-foreground/75" />
       {SOURCES[s].name}
     </span>
   )
@@ -59,39 +59,39 @@ export function ApprovedCounter() {
     <div className="rounded-2xl bg-surface p-[clamp(20px,2.4vw,32px)]">
       <div className="text-[clamp(2.4rem,min(4.6vw,7.5vh),4.2rem)] leading-none font-semibold tracking-[-0.03em]">
         {status === "loading" ? (
-          <span className="inline-block h-[0.9em] w-48 animate-pulse rounded-2xl bg-white/10 align-middle" aria-label="Se încarcă" />
+          <span className="inline-block h-[0.9em] w-48 animate-pulse rounded-2xl bg-foreground/10 align-middle" aria-label="Loading" />
         ) : (
           <>
             <Counter value={total} /> <span className="text-[0.45em]">lei</span>
           </>
         )}
       </div>
-      <p className="mt-2 text-white/80">valoare așteptată, aprobată de tine</p>
-      <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/10">
+      <p className="mt-2 text-foreground/80">expected value of your approved cases</p>
+      <div className="mt-5 h-2 overflow-hidden rounded-full bg-foreground/10">
         <motion.div
           className="h-full rounded-full bg-ember"
           animate={{ width: `${(total / QUEUE_TOTAL) * 100}%` }}
           transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
         />
       </div>
-      <p className="tabular mt-3 text-sm text-white/70">
-        {yes} aprobate, {later} amânate, {no} respinse, {QUEUE.length - yes - later - no} așteaptă
+      <p className="tabular mt-3 text-sm text-foreground/70">
+        {yes} approved, {later} deferred, {no} rejected, {QUEUE.length - yes - later - no} pending
       </p>
-      <p className="mt-4 text-sm text-white/60">{persisted ? "Deciziile se salvează în contul tău." : "Intră în cont ca să păstrezi deciziile."}</p>
+      <p className="mt-4 text-sm text-foreground/60">{persisted ? "Decisions are saved to your account." : "Sign in to save your decisions."}</p>
     </div>
   )
 }
 
 const VERDICTS = [
-  { v: "approved", label: "Echipaj", done: "Echipaj", icon: Users, on: "bg-ok text-black", text: "text-ok" },
-  { v: "deferred", label: "Amână", done: "Amânat", icon: Clock, on: "bg-amber text-black", text: "text-amber" },
-  { v: "rejected", label: "Respinge", done: "Respins", icon: X, on: "bg-magenta text-black", text: "text-magenta" },
+  { v: "approved", label: "Approve", done: "Approve", icon: Users, on: "bg-ok text-black", text: "text-ok" },
+  { v: "deferred", label: "Defer", done: "Deferred", icon: Clock, on: "bg-amber text-black", text: "text-amber" },
+  { v: "rejected", label: "Reject", done: "Rejected", icon: X, on: "bg-magenta text-black", text: "text-magenta" },
 ] as const
 
 export const VERDICT_TEXT: Record<Verdict, { done: string; text: string }> = {
-  approved: { done: "Aprobat", text: "text-ok" },
-  deferred: { done: "Amânat", text: "text-amber" },
-  rejected: { done: "Respins", text: "text-magenta" },
+  approved: { done: "Approved", text: "text-ok" },
+  deferred: { done: "Deferred", text: "text-amber" },
+  rejected: { done: "Rejected", text: "text-magenta" },
 }
 
 /** Approve, postpone or reject one case. Choosing the current verdict again takes it back. */
@@ -114,12 +114,12 @@ export function VerdictButtons({ id, label, size = "sm" }: { id: string; label: 
             }}
             disabled={busy}
             aria-pressed={active}
-            aria-label={size === "lg" ? undefined : active ? `Retrage: ${done.toLowerCase()}, ${label}` : `${verb}: ${label}`}
+            aria-label={size === "lg" ? undefined : active ? `Undo: ${done.toLowerCase()}, ${label}` : `${verb}: ${label}`}
             title={verb}
             className={cn(
               "inline-flex cursor-pointer items-center justify-center gap-2 rounded-full transition-[background-color,transform] duration-150 active:scale-90 disabled:cursor-wait disabled:opacity-60",
               size === "lg" ? "h-12 px-6 font-semibold" : "size-11",
-              active ? on : "bg-white/[0.08] text-white/80 hover:bg-white/15 hover:text-white"
+              active ? on : "bg-foreground/[0.08] text-foreground/80 hover:bg-foreground/15 hover:text-foreground"
             )}
           >
             {busy && active ? <Loader2 className="size-5 animate-spin" aria-hidden /> : <Icon className="size-5" aria-hidden />}
@@ -139,10 +139,10 @@ export function QueueCard({ q, selected, to, onSelect }: { q: QueueRow; selected
   const body = (
     <div className="flex items-start gap-3">
       <span
-        className="grid size-14 shrink-0 place-items-center rounded-xl bg-white/[0.05]"
+        className="grid size-14 shrink-0 place-items-center rounded-xl bg-foreground/[0.05]"
         title={SOURCES[q.source].name}
       >
-        <SourceIcon s={q.source} size={34} accent={SOURCES[q.source].color} className="text-white/80" />
+        <SourceIcon s={q.source} size={34} accent={SOURCES[q.source].color} className="text-foreground/80" />
       </span>
       <span className="min-w-0 flex-1">
         <span className="block font-medium leading-snug">{q.label}</span>
@@ -152,7 +152,7 @@ export function QueueCard({ q, selected, to, onSelect }: { q: QueueRow; selected
             {v === "approved" && crew ? `, ${crew}` : ""}
           </span>
         ) : (
-          <span className="mt-0.5 block text-sm text-white/55">{SOURCES[q.source].name}</span>
+          <span className="mt-0.5 block text-sm text-foreground/55">{SOURCES[q.source].name}</span>
         )}
       </span>
       <span className="tabular shrink-0 text-right text-xl font-semibold">{lei(q.expectedValueLei)}</span>
@@ -177,7 +177,7 @@ export function QueueCard({ q, selected, to, onSelect }: { q: QueueRow; selected
       )}
       <div className="mt-3 flex items-center justify-between gap-3">
         <VerdictButtons id={q.id} label={q.label} />
-        <span className="tabular text-lg font-medium text-white/85">Risc {fmt(q.score * 100)}%</span>
+        <span className="tabular text-lg font-medium text-foreground/85">Risk {fmt(q.score * 100)}%</span>
       </div>
     </div>
   )
@@ -193,7 +193,7 @@ export function QueueTable({ limit }: { limit?: number; showReason?: boolean }) 
       <div className="rounded-2xl bg-surface p-6" role="alert">
         <p className="font-medium">{error}</p>
         <button type="button" onClick={retry} className="mt-3 cursor-pointer underline underline-offset-4 hover:text-ember-soft">
-          Încearcă din nou
+          Try again
         </button>
       </div>
     )
@@ -201,14 +201,14 @@ export function QueueTable({ limit }: { limit?: number; showReason?: boolean }) 
   if (rows.length === 0) {
     return (
       <div className="rounded-2xl bg-surface p-6">
-        <p className="font-medium">Agentul a decis singur tot planul de mâine.</p>
-        <p className="mt-1 text-white/75">Nimic nu așteaptă un om.</p>
+        <p className="font-medium">The agent completed the plan without human review.</p>
+        <p className="mt-1 text-foreground/75">No cases are awaiting review.</p>
       </div>
     )
   }
   return (
     <div>
-      <ul className="grid gap-2 md:grid-cols-2" aria-label="Cazuri care așteaptă un om">
+      <ul className="grid gap-2 md:grid-cols-2" aria-label="Cases awaiting human review">
         {rows.map((q) => (
           <li key={q.id}>
             <QueueCard q={q} to={`/app/coada/${q.id}`} />

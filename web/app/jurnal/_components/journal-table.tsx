@@ -1,5 +1,7 @@
 "use client";
 
+import { englishText } from "@/lib/english";
+
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Fragment, memo, useCallback, useDeferredValue, useMemo, useState, type ComponentType, type ReactNode, type SVGProps } from "react";
@@ -40,23 +42,46 @@ const SRC_TONE: Record<Source, SolidTone> = { A: "blue", B: "violet", C: "amber"
 
 /** Tonul și textul pastilei „Decizia”. */
 const DECISION: Record<string, { tone: SolidTone; label: string; icon?: ComponentType<SVGProps<SVGSVGElement> & { size?: number | string }> }> = {
-  assigned: { tone: "green", label: "În traseu", icon: CheckIcon },
-  remote_action: { tone: "blue", label: "La distanță" },
-  notify: { tone: "violet", label: "Doar anunț" },
-  fusion: { tone: "violet", label: "Bilanț" },
-  deferred: { tone: "grey", label: "Amânată" },
-  human_review: { tone: "orange", label: "Decide un om", icon: ClockIcon },
-  rejected_invalid: { tone: "red", label: "Date greșite" },
-  review_approve: { tone: "green", label: "Aprobat", icon: CheckIcon },
-  review_reject: { tone: "red", label: "Respins" },
-  review_defer: { tone: "grey", label: "Amânat" },
+  assigned: { tone: "green", label: "On route", icon: CheckIcon },
+  remote_action: { tone: "blue", label: "Remote" },
+  notify: { tone: "violet", label: "Notification only" },
+  fusion: { tone: "violet", label: "Energy balance" },
+  deferred: { tone: "grey", label: "Deferred" },
+  human_review: { tone: "orange", label: "Human review", icon: ClockIcon },
+  rejected_invalid: { tone: "red", label: "Invalid data" },
+  review_approve: { tone: "green", label: "Approved", icon: CheckIcon },
+  review_reject: { tone: "red", label: "Rejected" },
+  review_defer: { tone: "grey", label: "Deferred" },
 };
+
+const JOURNAL_COPY: Record<string, string> = {
+  "aprobată de om": "Approved by reviewer",
+  "respinsă de om": "Rejected by reviewer",
+  "amânată de om": "Deferred by reviewer",
+  "rulare a agentului": "Agent run",
+  "plan refăcut după decizia omului": "Replanned after review",
+  "modelul nu e sigur": "Model is uncertain",
+  "decis de om": "Decided by reviewer",
+  "marja cerută la încredere medie": "Required margin at medium confidence",
+  "scor minim pentru vizită": "Minimum visit score",
+  "contor citit la distanță": "Remotely readable meter",
+  "preaviz pentru clienți": "Customer notice period",
+  "da": "Yes",
+  "nu": "No",
+};
+function journalText(text: string): string {
+  const exact = JOURNAL_COPY[text.trim().toLocaleLowerCase("ro-RO")];
+  if (exact) return exact;
+  const days = /^(\d+) (?:de )?(?:zi lucrătoare|zile lucrătoare)$/.exec(text);
+  if (days) return `${days[1]} working ${days[1] === "1" ? "day" : "days"}`;
+  return englishText(text);
+}
 
 function DecisionPill({ r }: { r: JournalRow }) {
   const d = DECISION[r.action];
   return (
     <SolidPill tone={d?.tone ?? "grey"} icon={d?.icon}>
-      {d?.label ?? r.actionLabel}
+      {journalText(d?.label ?? r.actionLabel)}
     </SolidPill>
   );
 }
@@ -65,7 +90,7 @@ function Dash() {
   return (
     <span className="text-muted-foreground">
       <span aria-hidden="true">—</span>
-      <span className="sr-only">fără valoare</span>
+      <span className="sr-only">no value</span>
     </span>
   );
 }
@@ -83,7 +108,7 @@ function Field({ label, icon: Icon, children }: { label: string; icon: Component
 }
 
 const TRIGGER =
-  "h-11 w-full rounded-[10px] border-[#2a3a52] bg-surface-2 px-4 text-[15.5px] text-ink hover:bg-[#101d30] dark:bg-surface-2 dark:hover:bg-[#101d30]";
+  "h-11 w-full rounded-[10px] border-rule bg-surface-2 px-4 text-[15.5px] text-ink hover:bg-accent";
 
 const th = "border-b border-rule px-2.5 py-3.5 text-left align-middle text-[15px] font-[600] text-ink";
 
@@ -201,15 +226,15 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-5">
       <Card as="section" className="rounded-[18px]" bodyClassName="p-5">
-        <div className="flex flex-wrap items-end gap-x-5 gap-y-4" role="search" aria-label="Filtrele jurnalului">
+        <div className="flex flex-wrap items-end gap-x-5 gap-y-4" role="search" aria-label="History filters">
           <div className="grid min-w-0 flex-1 basis-[560px] grid-cols-2 gap-x-4 gap-y-4 md:grid-cols-4">
-            <Field label="Sursa" icon={LayersIcon}>
+            <Field label="Source" icon={LayersIcon}>
               <Select value={source} onValueChange={(v) => setSource(v as SourceFilter)}>
-                <SelectTrigger aria-label="Sursa lucrării" className={TRIGGER}>
+                <SelectTrigger aria-label="Work source" className={TRIGGER}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Toate sursele</SelectItem>
+                  <SelectItem value="all">All sources</SelectItem>
                   {SOURCE_ORDER.map((s) => (
                     <SelectItem key={s} value={s}>
                       {s} {SOURCES[s].name}
@@ -221,60 +246,60 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
             </Field>
             <Field label="Actor" icon={UserRoundIcon}>
               <Select value={actor} onValueChange={(v) => setActor(v as ActorFilter)}>
-                <SelectTrigger aria-label="Cine a decis" className={TRIGGER}>
+                <SelectTrigger aria-label="Decision maker" className={TRIGGER}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Toți actorii</SelectItem>
+                  <SelectItem value="all">All actors</SelectItem>
                   <SelectItem value="agent">
-                    Agentul
+                    Agent
                     <span className="ml-1 text-muted-foreground tabular-nums">{fmtInt(decisions.filter((r) => r.actor === "agent").length)}</span>
                   </SelectItem>
                   <SelectItem value="human">
-                    Omul
+                    Human
                     <span className="ml-1 text-muted-foreground tabular-nums">{fmtInt(decisions.filter((r) => r.actor === "human").length)}</span>
                   </SelectItem>
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Decizia" icon={GavelIcon}>
+            <Field label="Decision" icon={GavelIcon}>
               <Select value={action} onValueChange={setAction}>
-                <SelectTrigger aria-label="Decizia: tipul deciziei" className={TRIGGER}>
+                <SelectTrigger aria-label="Decision type" className={TRIGGER}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Toate deciziile</SelectItem>
+                  <SelectItem value="all">All decisions</SelectItem>
                   {options.map((o) => (
                     <SelectItem key={o.action} value={o.action}>
-                      {o.label}
+                      {journalText(o.label)}
                       <span className="ml-1 text-muted-foreground tabular-nums">{fmtInt(o.count)}</span>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Lucrarea" icon={SearchIcon}>
+            <Field label="Work item" icon={SearchIcon}>
               <input
                 type="search"
                 name="cauta"
-                aria-label="Caută după ID-ul lucrării"
+                aria-label="Search by work item ID"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="PT-1269…"
                 spellCheck={false}
                 autoComplete="off"
-                className="h-11 w-full rounded-[10px] border border-[#2a3a52] bg-surface-2 px-4 text-[15.5px] placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring"
+                className="h-11 w-full rounded-[10px] border border-rule bg-surface-2 px-4 text-[15.5px] placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring"
               />
             </Field>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <button type="button" onClick={reset} disabled={!active} className={btn("outline")}>
               <RotateCcwIcon size={18} aria-hidden="true" />
-              Resetează filtrele
+              Reset filters
             </button>
             <a href={`/jurnal/descarca?scenariu=${encodeURIComponent(scenario)}`} download={`jurnal-${scenario}.jsonl`} className={btn("primary")}>
               <DownloadIcon size={18} aria-hidden="true" />
-              Descarcă JSONL
+              Download JSONL
             </a>
           </div>
         </div>
@@ -284,7 +309,7 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
         <div className="relative overflow-x-auto">
           <table className="w-full min-w-[1010px] table-fixed border-separate border-spacing-0 text-[15.5px]">
             <caption className="sr-only">
-              Jurnalul deciziilor, cele mai noi primele ({active ? `${fmtInt(shown)} din ${plural(decisions.length, "decizie", "decizii")}` : plural(decisions.length, "decizie", "decizii")})
+              Decision history, newest first ({active ? `${fmtInt(shown)} of ${plural(decisions.length, "decision", "decisions")}` : plural(decisions.length, "decision", "decisions")})
             </caption>
             <colgroup>
               <col className="w-[70px]" />
@@ -300,17 +325,17 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
             <thead>
               <tr>
                 <TH icon={ClockIcon} className="pl-4">
-                  Ora
+                  Time
                 </TH>
-                <TH icon={UserRoundIcon}>Cine</TH>
-                <TH icon={GavelIcon}>Decizia</TH>
-                <TH icon={LayersIcon}>Lucrarea</TH>
-                <TH icon={FileTextIcon}>Regula</TH>
-                <TH icon={TargetIcon}>Pragul</TH>
-                <TH icon={TrendingUpIcon}>Predicția</TH>
-                <TH icon={CpuIcon}>Versiunea modelului</TH>
+                <TH icon={UserRoundIcon}>Actor</TH>
+                <TH icon={GavelIcon}>Decision</TH>
+                <TH icon={LayersIcon}>Work item</TH>
+                <TH icon={FileTextIcon}>Rule</TH>
+                <TH icon={TargetIcon}>Threshold</TH>
+                <TH icon={TrendingUpIcon}>Prediction</TH>
+                <TH icon={CpuIcon}>Model version</TH>
                 <th scope="col" className={cn(th, "pr-4")}>
-                  <span className="sr-only">Tot rândul</span>
+                  <span className="sr-only">Full record</span>
                 </th>
               </tr>
             </thead>
@@ -318,10 +343,10 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={COLS} className="px-7 py-14 text-center">
-                    <p className="text-[17px] font-[600]">Niciun rând nu se potrivește cu filtrele alese.</p>
-                    <p className="mt-1 text-[15px] text-ink-soft">Schimbă un filtru sau arată din nou tot jurnalul.</p>
+                    <p className="text-[17px] font-[600]">No records match these filters.</p>
+                    <p className="mt-1 text-[15px] text-ink-soft">Change a filter or reset to see all records.</p>
                     <button type="button" className={cn(btn("outline"), "mt-4")} onClick={reset}>
-                      Arată tot jurnalul
+                      Show all history
                     </button>
                   </td>
                 </tr>
@@ -340,13 +365,13 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
         {hidden > 0 ? (
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-rule px-5 py-4">
             <span className="text-[15px] text-ink-soft">
-              Se văd primele {plural(visible.length, "rând", "rânduri")} din {fmtInt(filtered.length)}, cele mai noi.
+              Showing the first {plural(visible.length, "record", "records")} of {fmtInt(filtered.length)}, newest first.
             </span>
             <button type="button" className={btn("outline", "sm")} onClick={() => setLimit((n) => n + PAGE)}>
-              Arată încă {fmtInt(Math.min(PAGE, hidden))}
+              Show another {fmtInt(Math.min(PAGE, hidden))}
             </button>
             <button type="button" className={btn("ghost", "sm")} onClick={() => setLimit(filtered.length)}>
-              Arată toate cele {fmtInt(filtered.length)}
+              Show all {fmtInt(filtered.length)}
             </button>
           </div>
         ) : null}
@@ -362,7 +387,7 @@ function RunRow({ r }: { r: JournalRow }) {
         <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[15px]">
           <BotIcon size={18} aria-hidden="true" className="shrink-0 text-violet" />
           <span className="shrink-0 font-[620]">
-            {r.action === "replan" ? "Agentul a refăcut planul după decizia omului" : "Agentul a făcut planul"}
+            {r.action === "replan" ? "Agent replanned after a human decision" : "Agent created the plan"}
           </span>
           <time dateTime={r.ts} className="shrink-0 text-ink-soft">
             {r.moment}
@@ -370,12 +395,12 @@ function RunRow({ r }: { r: JournalRow }) {
           {r.decisions ? (
             <>
               <span className="h-4 w-px shrink-0 bg-rule" aria-hidden="true" />
-              <span className="shrink-0 text-ink-soft">{plural(r.decisions, "decizie", "decizii")}</span>
+              <span className="shrink-0 text-ink-soft">{plural(r.decisions, "decision", "decisions")}</span>
             </>
           ) : null}
           {r.note ? (
-            <span className="min-w-0 truncate text-[13.5px] text-muted-foreground md:ml-auto md:pl-6" title={r.note}>
-              {r.note}
+            <span className="min-w-0 truncate text-[13.5px] text-muted-foreground md:ml-auto md:pl-6" title={englishText(r.note)}>
+              {englishText(r.note)}
             </span>
           ) : null}
         </div>
@@ -401,7 +426,7 @@ function DecisionRowImpl({
   const href = r.workItemId ? `/lucrari/${encodeURIComponent(r.workItemId)}?scenariu=${encodeURIComponent(scenario)}` : null;
   const detailId = `jurnal-${r.id}`;
   const td = cn("px-2.5 py-2.5 align-middle", expanded ? "border-b-0" : "border-b border-rule");
-  const what = r.workItemId ?? r.actionLabel;
+  const what = r.workItemId ?? englishText(r.actionLabel);
 
   return (
     <>
@@ -414,7 +439,7 @@ function DecisionRowImpl({
         <td className={td}>
           <span className="flex items-center gap-2.5">
             {human ? <UserRoundIcon size={20} aria-hidden="true" className="text-ink-soft" /> : <BotIcon size={20} aria-hidden="true" className="text-ink-soft" />}
-            {human ? "Omul" : "Agentul"}
+            {human ? "Human" : "Agent"}
           </span>
         </td>
         <td className={td}>
@@ -425,8 +450,8 @@ function DecisionRowImpl({
             <Link
               href={href}
               translate="no"
-              title={r.itemTitle ? `${r.workItemId}: ${r.itemTitle}` : r.workItemId ?? undefined}
-              className="inline-flex max-w-full items-center rounded-[8px] border border-[#2a3a52] bg-surface-2 px-2.5 py-1 text-[14px] tabular-nums transition-colors duration-150 hover:border-[#3d5170] hover:bg-[#101d30] focus-visible:outline-2 focus-visible:outline-ring"
+              title={r.itemTitle ? `${r.workItemId}: ${englishText(r.itemTitle)}` : r.workItemId ?? undefined}
+              className="inline-flex max-w-full items-center rounded-[8px] border border-rule bg-surface-2 px-2.5 py-1 text-[14px] tabular-nums transition-colors duration-150 hover:border-ink-soft hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring"
             >
               <span className="truncate">{r.assetId}</span>
             </Link>
@@ -441,8 +466,8 @@ function DecisionRowImpl({
                 {r.ruleId}
               </span>
               {r.ruleText ? (
-                <span className="line-clamp-1 text-[13px] text-muted-foreground" title={r.ruleText}>
-                  {r.ruleText}
+                <span className="line-clamp-1 text-[13px] text-muted-foreground" title={journalText(r.ruleText)}>
+                  {journalText(r.ruleText)}
                 </span>
               ) : null}
             </div>
@@ -451,7 +476,7 @@ function DecisionRowImpl({
           )}
         </td>
         <td className={cn(td, "tabular-nums")}>
-          {r.mainThreshold ? <span className="text-[14.5px]">{r.mainThreshold}</span> : <Dash />}
+          {r.mainThreshold ? <span className="text-[14.5px]">{journalText(r.mainThreshold)}</span> : <Dash />}
         </td>
         <td className={td}>
           {r.score !== null && r.source ? (
@@ -465,15 +490,15 @@ function DecisionRowImpl({
             <Dash />
           )}
         </td>
-        <td className={td}>{r.modelVersion ? <CopyChip text={r.modelVersion} label={`Copiază versiunea modelului ${r.modelVersion}`} /> : <Dash />}</td>
+        <td className={td}>{r.modelVersion ? <CopyChip text={r.modelVersion} label={`Copy model version ${r.modelVersion}`} /> : <Dash />}</td>
         <td className={cn(td, "pr-4 text-right")}>
           <button
             type="button"
             onClick={() => onToggle(r.id)}
             aria-expanded={expanded}
             aria-controls={detailId}
-            aria-label={expanded ? `Ascunde detaliile pentru ${what}` : `Arată tot rândul pentru ${what}`}
-            className="inline-grid size-9 place-items-center rounded-[8px] text-ink-soft transition-colors duration-150 hover:bg-[#0f1a2b] hover:text-ink focus-visible:outline-2 focus-visible:outline-ring"
+            aria-label={expanded ? `Hide details for ${what}` : `Show full record for ${what}`}
+            className="inline-grid size-9 place-items-center rounded-[8px] text-ink-soft transition-colors duration-150 hover:bg-surface-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-ring"
           >
             <ChevronDownIcon className={cn("size-5 transition-transform duration-150", expanded && "rotate-180")} aria-hidden="true" />
           </button>
@@ -484,51 +509,51 @@ function DecisionRowImpl({
           <td colSpan={COLS} className="border-b border-rule bg-surface-2 px-5 pt-3 pb-5">
             <div className="grid grid-cols-1 gap-x-10 gap-y-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.25fr)]">
               <section>
-                <h3 className="text-[15px] font-[620]">Toate pragurile</h3>
+                <h3 className="text-[15px] font-[620]">All thresholds</h3>
                 {r.thresholds.length ? (
                   <dl className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 text-[14.5px] [&>dd]:border-t [&>dd]:border-rule [&>dd]:py-1 [&>dd]:text-right [&>dd]:font-[560] [&>dd]:tabular-nums [&>dt]:border-t [&>dt]:border-rule [&>dt]:py-1 [&>dt]:text-ink-soft">
                     {r.thresholds.map((t) => (
                       <Fragment key={t.key}>
-                        <dt title={t.key}>{t.label}</dt>
-                        <dd>{t.value}</dd>
+                        <dt title={t.key}>{journalText(t.label)}</dt>
+                        <dd>{journalText(t.value)}</dd>
                       </Fragment>
                     ))}
                   </dl>
                 ) : (
-                  <p className="mt-1.5 text-[14.5px] text-ink-soft">Regula n-a folosit praguri numerice.</p>
+                  <p className="mt-1.5 text-[14.5px] text-ink-soft">This rule used no numeric thresholds.</p>
                 )}
               </section>
               <section>
-                <h3 className="text-[15px] font-[620]">Urmărirea completă</h3>
+                <h3 className="text-[15px] font-[620]">Full trace</h3>
                 <dl className="mt-1.5 grid grid-cols-[132px_minmax(0,1fr)] gap-x-4 text-[14.5px] [&>dd]:border-t [&>dd]:border-rule [&>dd]:py-1 [&>dt]:border-t [&>dt]:border-rule [&>dt]:py-1 [&>dt]:text-ink-soft">
-                  <dt>ID decizie</dt>
+                  <dt>Decision ID</dt>
                   <dd translate="no" className="font-[560] break-all">{r.id}</dd>
-                  <dt>ID predicție</dt>
+                  <dt>Prediction ID</dt>
                   <dd translate="no" className="font-[560] break-all">{r.predictionId ?? "–"}</dd>
-                  <dt>Versiunea modelului</dt>
+                  <dt>Model version</dt>
                   <dd translate="no" className="font-[560] break-all">{r.modelVersion ?? "–"}</dd>
-                  <dt>Amprenta intrărilor</dt>
+                  <dt>Input fingerprint</dt>
                   <dd translate="no" className="font-[560] break-all">{r.inputsSha ?? "–"}</dd>
-                  <dt>Momentul</dt>
+                  <dt>Timestamp</dt>
                   <dd>{r.moment}</dd>
                 </dl>
               </section>
               <section>
-                <h3 className="text-[15px] font-[620]">{human ? "Nota omului" : "Motivul agentului"}</h3>
+                <h3 className="text-[15px] font-[620]">{human ? "Reviewer note" : "Agent reason"}</h3>
                 <p className="mt-1.5 max-w-[72ch] text-[15.5px] leading-relaxed">
                   {human ? (
                     <>
-                      <b className="font-[640]">{r.reviewer ?? "Dispecerul"}</b>
-                      {r.note ? `: „${r.note}”` : ", fără notă."}
+                      <b className="font-[640]">{r.reviewer ?? "Dispatcher"}</b>
+                      {r.note ? `: „${r.note}”` : ", without a note."}
                     </>
                   ) : (
-                    (r.note ?? "Agentul n-a scris un motiv pentru această decizie.")
+                    englishText(r.note ?? "The agent did not record a reason for this decision.")
                   )}
                 </p>
-                {r.itemTitle ? <p className="mt-1 text-[14px] text-ink-soft">{r.itemTitle}</p> : null}
+                {r.itemTitle ? <p className="mt-1 text-[14px] text-ink-soft">{englishText(r.itemTitle)}</p> : null}
                 {href ? (
-                  <Link href={href} className="mt-2.5 inline-block text-[15px] font-[600] text-[#8db8ff] underline decoration-rule underline-offset-4 hover:decoration-current">
-                    Deschide lucrarea <span translate="no">{r.workItemId}</span>
+                  <Link href={href} className="mt-2.5 inline-block text-[15px] font-[600] text-src-a underline decoration-rule underline-offset-4 hover:decoration-current">
+                    Open work item <span translate="no">{r.workItemId}</span>
                   </Link>
                 ) : null}
               </section>

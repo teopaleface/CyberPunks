@@ -105,9 +105,7 @@ async function request<T>(
   try {
     res = await fetch(url, {
       method,
-      headers: hasBody
-        ? { accept: "application/json", "content-type": "application/json" }
-        : { accept: "application/json" },
+      headers: { accept: "application/json", ...(hasBody ? { "content-type": "application/json" } : {}), ...(process.env.DAYBREAK_INTERNAL_TOKEN ? { authorization: `Bearer ${process.env.DAYBREAK_INTERNAL_TOKEN}` } : {}) },
       body: hasBody ? JSON.stringify(options.body) : undefined,
       signal: AbortSignal.timeout(timeoutMs),
       cache: "no-store",
@@ -242,6 +240,7 @@ export async function apiMetrics(): Promise<MetricsBundle> {
     A: report(payload.A),
     B: report(payload.B),
     C: report(payload.C),
+    bilant: report(payload.bilant),
     planner: isRecord(payload.planner) ? payload.planner : null,
   };
 }

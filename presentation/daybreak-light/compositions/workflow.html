@@ -1,0 +1,21 @@
+<template><link rel="stylesheet" href="assets/theme.css"><style>#root{position:absolute;inset:0;overflow:hidden;background:var(--paper)}</style>
+<div id="root" data-composition-id="workflow" data-width="1920" data-height="1080"><div id="flow-screen" class="screen" style="left:192px;top:235px;width:1536px;height:760px"><img id="flow-before" src="assets/screens/plan.png" alt="Daybreak's real plan"><img id="flow-after" style="position:absolute;left:0;top:0" src="assets/screens/route.png" alt="A selected crew's actual work plan"></div>
+<h1 id="find" class="headline" style="position:absolute;left:192px;top:105px">Find the problems.</h1>
+<h1 id="urgent" class="headline" style="position:absolute;left:192px;top:105px">Urgent ones first.</h1>
+<h1 id="routes" class="headline" style="position:absolute;left:192px;top:105px">Efficient routes. Every crew.</h1>
+<div id="flow-cursor" class="cursor" data-layout-ignore><svg viewBox="0 0 24 24"><path d="M5 3 L5 21 L10.5 16 L14.2 23 L17.6 21.2 L13.9 14.4 L21 14 Z" fill="#fff" stroke="#000f1e" stroke-width="1.2" stroke-linejoin="round"/></svg></div></div>
+<script>(function(){const tl=gsap.timeline({paused:true});
+gsap.set('#flow-screen img',{scale:.8});
+gsap.set(['#urgent','#routes','#flow-after'],{opacity:0});
+gsap.set('#flow-cursor',{x:950,y:1200});
+tl.to('#flow-screen img',{scale:1.65,x:-1760,y:-640,duration:.65,ease:'power3.inOut'},1.25);
+tl.set('#find',{opacity:0},1.62);tl.set('#urgent',{opacity:1},1.62);
+tl.to('#flow-screen img',{scale:1.8,x:0,y:-1160,duration:.65,ease:'power3.inOut'},3.15);
+tl.set('#urgent',{opacity:0},3.47);tl.set('#routes',{opacity:1},3.47);
+tl.to('#flow-cursor',{x:1032,y:723,duration:.7,ease:'power3.out'},3.55);
+tl.to('#flow-cursor',{scale:.84,duration:.1,ease:'power2.in'},4.25);
+tl.set('#flow-after',{opacity:1},4.25);
+tl.to('#flow-cursor',{scale:1,duration:.22,ease:'power2.out'},4.35);
+tl.to('#flow-cursor',{x:850,y:1200,duration:.5,ease:'power2.in'},4.85);
+
+window.__timelines=window.__timelines||{};window.__timelines["workflow"]=tl;})();</script></template>

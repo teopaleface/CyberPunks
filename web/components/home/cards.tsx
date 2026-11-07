@@ -1,11 +1,12 @@
-import { CalendarDays, Coins, Layers, Map as MapIcon, Route, UserRound, Users, Zap } from "lucide-react";
+import { englishText } from "@/lib/english";
+import { ArrowRight, CalendarDays, ChevronDown, Map as MapIcon, Route, Zap } from "lucide-react";
 import Link from "next/link";
-import { Card, Dot, Gauge, Meter, Pill, TONE, type Tone } from "@/components/ds";
+import { Card, Dot, Gauge, Meter, Pill, type Tone } from "@/components/ds";
 import type { WorkItem } from "@/lib/contracts";
 import type { CrewLine } from "@/lib/briefing";
 import { fmtInt, fmtLei, fmtTime, hhmm, minutesOfPlanDay, plural } from "@/lib/format";
 import type { DotMap, DotRegion } from "@/lib/home-dotmap";
-import { roundPct } from "@/lib/human";
+import { confidenceWord, roundPct } from "@/lib/human";
 import { itemTitle } from "@/lib/plan-screen";
 import type { PlanScreenData } from "@/lib/plan-screen";
 
@@ -22,7 +23,7 @@ const LEGEND: { region: DotRegion; label: string }[] = [
   { region: "muntenia_sud", label: "Muntenia Sud" },
   { region: "dobrogea", label: "Dobrogea" },
   { region: "banat", label: "Banat" },
-  { region: "other", label: "Alte județe" },
+  { region: "other", label: "Other counties" },
 ];
 
 export const withQuery = (path: string, scenario: string) => `${path}?scenariu=${encodeURIComponent(scenario)}`;
@@ -33,12 +34,14 @@ export function RomaniaCard({ map, scenario }: { map: DotMap; scenario: string }
   const pad = map.pitch;
   return (
     <Card
-      title="România"
+      title="Romania"
       icon={MapIcon}
+      iconTone="grey"
       className="h-full"
       action={
         <Link href={withQuery("/harta", scenario)} className="text-[14px] text-ink-soft hover:text-ink hover:underline focus-visible:outline-2 focus-visible:outline-ring">
-          Harta mare
+
+          Open map
         </Link>
       }
     >
@@ -46,7 +49,7 @@ export function RomaniaCard({ map, scenario }: { map: DotMap; scenario: string }
         <svg
           viewBox={`${-pad / 2} ${-pad / 2} ${map.width + pad} ${map.height + pad}`}
           role="img"
-          aria-label="Harta României din puncte, colorată pe regiunile Muntenia Sud, Dobrogea și Banat"
+          aria-label="Map of Romania showing Muntenia Sud, Dobrogea and Banat"
           className="mx-auto h-auto max-h-[300px] w-full min-w-0 flex-1"
         >
           {order.map((r) => (
@@ -80,13 +83,14 @@ export function RomaniaCard({ map, scenario }: { map: DotMap; scenario: string }
 export function CrewsCard({ lines, approved, scenario }: { lines: CrewLine[]; approved: boolean; scenario: string }) {
   return (
     <Card
-      title="Trasee echipe"
+      title="Crew routes"
       icon={Route}
-      iconTone="violet"
+      iconTone="grey"
       className="h-full"
       action={
         <Link href={withQuery("/harta", scenario)} className="text-[14px] text-ink-soft hover:text-ink hover:underline focus-visible:outline-2 focus-visible:outline-ring">
-          Pe hartă
+
+          View map
         </Link>
       }
     >
@@ -98,15 +102,15 @@ export function CrewsCard({ lines, approved, scenario }: { lines: CrewLine[]; ap
               <span className="font-[560]" translate="no">
                 {c.crewId}
               </span>
-              <span className="text-ink-soft tabular-nums">{plural(c.stops, "lucrare", "lucrări")}</span>
+              <span className="text-ink-soft tabular-nums">{plural(c.stops, "work item", "work items")}</span>
               <Pill size="sm" tone={c.storm ? "violet" : approved ? "green" : "grey"} className="min-w-[88px] justify-center">
-                {c.storm ? "Furtună" : approved ? "Aprobat" : "Planificat"}
+                {c.storm ? "Storm" : approved ? "Approved" : "Planned"}
               </Pill>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="text-[15px] text-ink-soft">Mâine nu pleacă nicio echipă.</p>
+        <p className="text-[15px] text-ink-soft">No crews depart tomorrow.</p>
       )}
     </Card>
   );
@@ -138,7 +142,7 @@ export function GanttCard({ data, dateLabel }: { data: PlanScreenData; dateLabel
   const pct = (min: number) => `${(((min - from * 60) / span) * 100).toFixed(3)}%`;
 
   return (
-    <Card title={`Programul echipelor (${dateLabel})`} icon={CalendarDays} className="h-full">
+    <Card title={`Crew schedule (${dateLabel})`} icon={CalendarDays} iconTone="grey" className="h-full">
       <div className="overflow-x-auto">
         <div className="min-w-[640px]">
           <div className="grid grid-cols-[68px_minmax(0,1fr)]">
@@ -183,7 +187,7 @@ export function GanttCard({ data, dateLabel }: { data: PlanScreenData; dateLabel
         {(["A", "B", "C"] as const).map((s) => (
           <li key={s} className="flex items-center gap-2">
             <Dot tone={SOURCE_TONE_OF[s]} />
-            {s === "A" ? "Contoare" : s === "B" ? "Furtună" : "Tensiune"}
+            {s === "A" ? "Meters" : s === "B" ? "Storm" : "Voltage"}
           </li>
         ))}
       </ul>
@@ -193,65 +197,84 @@ export function GanttCard({ data, dateLabel }: { data: PlanScreenData; dateLabel
 
 /** Întrebarea în cuvinte simple, din cazul real. */
 export function questionText(w: WorkItem): string {
-  if (w.source === "B") return `Trimitem o echipă la ${itemTitle(w)} înainte de furtună?`;
-  if (w.source === "C") return `Aplicăm soluția pe postul ${w.asset_id}?`;
-  if (w.asset_type === "meter") return `Trimitem o echipă la contorul ${w.asset_id}?`;
-  if (w.asset_type === "transformer_post") return `Verificăm postul ${w.asset_id}?`;
-  return `Verificăm ${itemTitle(w)}?`;
+  if (w.source === "B") return `Send a crew to ${itemTitle(w)} before the storm?`;
+  if (w.source === "C") return `Apply the remedy at substation ${w.asset_id}?`;
+  if (w.asset_type === "meter") return `Send a crew to meter ${w.asset_id}?`;
+  if (w.asset_type === "transformer_post") return `Inspect substation ${w.asset_id}?`;
+  return `Inspect ${itemTitle(w)}?`;
 }
 
-/** Partea de sus a cardului „Nu sunt sigur.”: întrebarea, scorul modelului, valoarea, fereastra, clienții. */
-export function QuestionBody({ item, scenario }: { item: WorkItem | null; scenario: string }) {
-  const header = (
-    <header className="flex items-center gap-3 px-6 pt-5">
-      <Layers aria-hidden="true" size={26} strokeWidth={1.7} className="text-violet" />
-      <h2 className="text-[22px] font-[700] tracking-[-0.01em]">Nu sunt sigur.</h2>
-    </header>
-  );
+/** Cazul de decis se separă de aprobarea listei; cifrele și scorul se deschid la cerere. */
+export function QuestionBody({ item, scenario, reason, emptyText = "No cases await your decision." }: {
+  item: WorkItem | null;
+  scenario: string;
+  reason?: string;
+  emptyText?: string;
+}) {
   if (!item) {
     return (
       <>
-        {header}
-        <p className="px-6 pt-3 text-[16px] text-ink-soft">Nimic nu așteaptă decizia ta.</p>
+        <h2 className="text-[17px] font-[550]">Next decision</h2>
+        <p className="mt-4 text-[22px] leading-snug font-[550]">{emptyText}</p>
+        <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">You can review work items and routes in the plan details.</p>
       </>
     );
   }
   const score = item.prediction.score;
   const win = item.time_window;
-  const rows: { icon: typeof Coins; text: string; label: string }[] = [];
-  if (Number.isFinite(item.impact.expected_value_lei)) rows.push({ icon: Coins, text: fmtLei(item.impact.expected_value_lei), label: "Valoare așteptată" });
-  if (win?.start && win?.end) rows.push({ icon: CalendarDays, text: `${fmtTime(win.start)}–${fmtTime(win.end)}`, label: "Fereastra de timp" });
-  else if (Number.isFinite(item.impact.urgency_hours)) rows.push({ icon: CalendarDays, text: `în ${fmtInt(item.impact.urgency_hours)} h`, label: "Urgență" });
-  if (typeof item.impact.customers_affected === "number") rows.push({ icon: Users, text: plural(item.impact.customers_affected, "client", "clienți"), label: "Clienți afectați" });
-  const tone: Tone = SOURCE_TONE_OF[item.source];
+  const rows: { text: string; label: string }[] = [];
+  if (Number.isFinite(item.impact.expected_value_lei)) rows.push({ text: fmtLei(item.impact.expected_value_lei), label: "Expected value" });
+  if (win?.start && win?.end) rows.push({ text: `${fmtTime(win.start)}–${fmtTime(win.end)}`, label: "Time window" });
+  else if (Number.isFinite(item.impact.urgency_hours)) rows.push({ text: `in ${fmtInt(item.impact.urgency_hours)} h`, label: "Urgency" });
+  if (typeof item.impact.customers_affected === "number") rows.push({ text: plural(item.impact.customers_affected, "customer", "customers"), label: "Customers affected" });
+  const tone = SOURCE_TONE_OF[item.source];
+  const queueHref = `${withQuery("/coada", scenario)}&caz=${encodeURIComponent(item.work_item_id)}`;
   return (
     <>
-      {header}
-      <p className="px-6 pt-2 text-[16.5px] text-ink-soft">
-        <Link href={withQuery(`/lucrari/${encodeURIComponent(item.work_item_id)}`, scenario)} className="hover:text-ink hover:underline focus-visible:outline-2 focus-visible:outline-ring">
-          {questionText(item)}
-        </Link>
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-[17px] font-[550]">Next decision</h2>
+        <Pill tone={tone} size="sm">
+          {item.source === "A" ? "Meters" : item.source === "B" ? "Storm" : "Voltage"}
+        </Pill>
+      </header>
+      <p className="mt-4 text-[23px] leading-[1.3] font-[550] tracking-[-0.02em]">
+        {questionText(item)}
       </p>
-      <div className="grid grid-cols-1 items-center justify-items-center gap-y-4 px-6 pt-5 @[440px]:grid-cols-[auto_1px_minmax(0,1fr)] @[440px]:justify-items-stretch @[440px]:gap-x-5">
-        <div className="flex flex-col items-center gap-3">
-          <Gauge value={score} label={roundPct(score)} sub="scorul modelului" tone={tone} size={186} />
-          <Pill tone="orange" icon={UserRound} size="md" className="mt-1">
-            Necesită o persoană
-          </Pill>
-        </div>
-        <span aria-hidden="true" className="hidden h-[130px] w-px self-center bg-rule @[440px]:block" />
-        <ul className="flex min-w-0 flex-col gap-3.5">
-          {rows.map((r) => (
-            <li key={r.label} className="flex items-center gap-3 text-[17px] font-[560] tabular-nums" title={r.label}>
-              <r.icon aria-hidden="true" size={24} strokeWidth={1.6} className={TONE[r.icon === Coins ? "amber" : "grey"].text} />
-              <span>
-                {r.text}
-                <span className="sr-only"> ({r.label})</span>
-              </span>
-            </li>
-          ))}
-        </ul>
+      <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
+        {(reason ? englishText(reason) : null) || (item.prediction.abstain
+          ? "The model abstained. This case needs your decision."
+          : `The model has ${confidenceWord(item.prediction.confidence, score)} in this estimate. This case needs your decision.`)}
+      </p>
+      <div className="mt-5 flex flex-wrap items-center gap-3">
+        <Link href={queueHref} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] bg-[#ffc502] px-4 py-2.5 text-[15px] font-[600] text-black transition-colors hover:bg-[#ffdc6b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+
+          Review and decide
+          <ArrowRight aria-hidden="true" size={17} />
+        </Link>
       </div>
+      <details className="group/case mt-5 border-t border-rule pt-4">
+        <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-3 rounded text-[14px] text-ink-soft hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
+
+          Evidence and model score
+          <ChevronDown aria-hidden="true" size={17} className="shrink-0 transition-transform group-open/case:rotate-180" />
+        </summary>
+        <div className="mt-4 flex flex-wrap items-center gap-6">
+          <Gauge value={score} label={roundPct(score)} sub="model score" tone={tone} size={150} />
+          <dl className="min-w-0 flex-1 space-y-3">
+            {rows.map((r) => (
+              <div key={r.label}>
+                <dt className="text-[13px] text-ink-soft">{r.label}</dt>
+                <dd className="mt-0.5 text-[16px] font-[550] tabular-nums">{r.text}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+        <Link href={withQuery(`/lucrari/${encodeURIComponent(item.work_item_id)}`, scenario)} className="mt-4 inline-flex min-h-9 items-center gap-2 text-[14px] text-ink-soft underline underline-offset-4 hover:text-ink focus-visible:outline-2 focus-visible:outline-ring">
+
+          Full work item
+          <ArrowRight aria-hidden="true" size={15} />
+        </Link>
+      </details>
     </>
   );
 }
@@ -260,24 +283,15 @@ export function QuestionBody({ item, scenario }: { item: WorkItem | null; scenar
 export function SelectedMeter({ item, scenario }: { item: WorkItem; scenario: string }) {
   const s = item.prediction.score;
   return (
-    <div className="px-6 pt-5">
-      <div className="border-t border-rule pt-4">
-        <p className="flex items-center gap-2.5 text-[15.5px] text-ink-soft">
-          <Zap aria-hidden="true" size={20} strokeWidth={1.7} className="text-src-a" />
-          Contor selectat
-        </p>
-        <div className="mt-2 flex items-center justify-between gap-3">
-          <Link href={withQuery(`/lucrari/${encodeURIComponent(item.work_item_id)}`, scenario)} translate="no" className="text-[22px] font-[680] tracking-[-0.01em] whitespace-nowrap hover:underline focus-visible:outline-2 focus-visible:outline-ring">
-            {item.asset_id}
-          </Link>
-          <Pill tone="violet" size="md" className="font-[600]">
-            {roundPct(s)} defect
-          </Pill>
-        </div>
-        <div className="mt-3">
-          <Meter value={s} tone="blue" label={`Scor de defect ${roundPct(s)}`} />
-        </div>
+    <Card title="Meter assigned to a route" icon={Zap} iconTone="blue">
+      <Link href={withQuery(`/lucrari/${encodeURIComponent(item.work_item_id)}`, scenario)} translate="no" className="inline-flex min-h-10 items-center gap-2 text-[22px] font-[550] break-all hover:underline focus-visible:outline-2 focus-visible:outline-ring">
+        {item.asset_id}
+        <ArrowRight aria-hidden="true" size={18} className="shrink-0" />
+      </Link>
+      <p className="mt-2 text-[14px] text-ink-soft">Estimated fault score: {roundPct(s)}</p>
+      <div className="mt-3">
+        <Meter value={s} tone="blue" label={`Fault score ${roundPct(s)}`} />
       </div>
-    </div>
+    </Card>
   );
 }

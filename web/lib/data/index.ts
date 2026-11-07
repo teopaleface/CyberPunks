@@ -218,9 +218,9 @@ export function getSeries(id: string, scenario: string, options: ResolveOptions 
   );
 }
 
-/** Metricile modelelor A, B, C și ale planificatorului; `null` pentru fiecare raport care lipsește. */
+/** Metricile celor patru modele și ale planificatorului; `null` pentru rapoartele lipsă. */
 export function getMetrics(options: ResolveOptions = {}): Promise<Sourced<MetricsBundle>> {
-  const empty: MetricsBundle = { A: null, B: null, C: null, planner: null };
+  const empty: MetricsBundle = { A: null, B: null, C: null, bilant: null, planner: null };
   return resolveData<MetricsBundle>(
     {
       api: async () => ok(await apiMetrics(), { detail: apiUrl("/metrics") }),

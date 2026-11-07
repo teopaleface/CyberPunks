@@ -205,7 +205,7 @@ class Store:
     def metrics(self) -> dict[str, Any]:
         """Rapoartele modelelor: întâi reports/<X>/metrics.json, apoi copia din outputs/demo/reports/."""
         out: dict[str, Any] = {}
-        for src in "ABC":
+        for src in ("A", "B", "C", "bilant"):
             out[src] = read_json(self.reports / src / "metrics.json") or read_json(self.demo / "reports" / src / "metrics.json")
         out["planner"] = read_json(self.reports / "planner" / "agent_eval.json") or read_json(
             self.demo / "reports" / "planner" / "agent_eval.json"

@@ -15,13 +15,14 @@ import {
 } from "@/components/ui/dialog";
 import { runAgent } from "@/lib/data/actions";
 import type { RunTimings } from "@/lib/data/types";
+import { englishText } from "@/lib/english";
 import { fmtSeconds } from "@/lib/format";
 
 const STEPS: { key: keyof RunTimings; name: string; what: string }[] = [
-  { key: "perceive", name: "Perceive", what: "Citește datele: consumul contoarelor, prognoza meteo, rețelele." },
-  { key: "estimate", name: "Estimate", what: "Modelele A, B și C estimează riscul pentru fiecare lucrare." },
-  { key: "decide", name: "Decide", what: "Regulile din cod aleg: echipă, acțiune ieftină, amânare sau om." },
-  { key: "act", name: "Act", what: "Trasee, ordine de lucru, alerte, mesaje și jurnalul deciziilor." },
+  { key: "perceive", name: "Perceive", what: "Read meter consumption, weather forecasts and grid data." },
+  { key: "estimate", name: "Estimate", what: "Estimate meter faults, storm risk and voltage limits." },
+  { key: "decide", name: "Decide", what: "Apply rules to dispatch, act remotely, defer or request review." },
+  { key: "act", name: "Act", what: "Create routes, work orders, alerts and decision records." },
 ];
 
 type RunState =
@@ -43,7 +44,7 @@ export function RunAgentButton({ scenario, scenarioLabel }: { scenario: string; 
       if (result.ok) {
         setState({ kind: "done", planId: result.plan_id, timings: result.timings });
         router.refresh();
-        toast.success("Planul de mâine s-a actualizat", { description: `Plan nou: ${result.plan_id}` });
+        toast.success("Plan updated", { description: `New plan: ${result.plan_id}` });
       } else {
         setState({ kind: "error", message: result.error });
       }
@@ -66,15 +67,14 @@ export function RunAgentButton({ scenario, scenarioLabel }: { scenario: string; 
           <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true">
             <path d="M1 1.2v11.6a.6.6 0 0 0 .9.5l9.4-5.8a.6.6 0 0 0 0-1L1.9.7a.6.6 0 0 0-.9.5Z" fill="currentColor" />
           </svg>
-          Rulează agentul
+          Run agent
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-[600px] gap-5 overscroll-contain rounded-[6px] p-7">
         <DialogHeader>
-          <DialogTitle className="text-[22px] font-[650]">Rulează agentul</DialogTitle>
+          <DialogTitle className="text-[22px] font-[650]">Run agent</DialogTitle>
           <DialogDescription className="text-[15px] leading-relaxed">
-            Agentul trece singur prin cei patru pași, pentru scenariul „{scenarioLabel}”. Nimeni nu intervine între
-            pași; la final, ce nu e sigur ajunge la tine, în „Nu sunt sigur”.
+            Generate a new plan for {englishText(scenarioLabel)}. Cases that need human judgment will appear in the review queue.
           </DialogDescription>
         </DialogHeader>
 
@@ -98,7 +98,7 @@ export function RunAgentButton({ scenario, scenarioLabel }: { scenario: string; 
                 </span>
                 <span className="min-w-[72px] text-right text-[16px] font-[600] tabular-nums">
                   {state.kind === "running" ? (
-                    <span role="img" className="inline-block h-1.5 w-12 overflow-hidden rounded-full bg-muted" aria-label="rulează">
+                    <span role="img" className="inline-block h-1.5 w-12 overflow-hidden rounded-full bg-muted" aria-label="Running">
                       <span className="block h-full w-1/2 animate-[runbar_1.1s_ease-in-out_infinite] rounded-full bg-ink" />
                     </span>
                   ) : t !== null && Number.isFinite(t) ? (
@@ -120,28 +120,28 @@ export function RunAgentButton({ scenario, scenarioLabel }: { scenario: string; 
         <div aria-live="polite" aria-atomic="true">
           {state.kind === "done" ? (
             <p className="text-[15px]">
-              Gata în <b className="tabular-nums">{fmtSeconds(total ?? 0)}</b>. Plan nou:{" "}
+              Completed in <b className="tabular-nums">{fmtSeconds(total ?? 0)}</b>. New plan:{" "}
               <span className="code-id" translate="no">
                 {state.planId}
               </span>
-              . Timpii sunt măsurați de agent la fiecare pas.
+              . Timings are measured for each step.
             </p>
           ) : null}
         </div>
         {state.kind === "error" ? (
           <div role="alert" className="border-l-[3px] border-att bg-att-surface px-4 py-3 text-[15px]">
-            <p className="font-[600] text-att-ink">Agentul n-a rulat.</p>
-            <p className="mt-1">{state.message}</p>
-            <p className="mt-1 text-muted-foreground">Planul de pe ecran rămâne cel de dinainte.</p>
+            <p className="font-[600] text-att-ink">The agent did not complete.</p>
+            <p className="mt-1">{englishText(state.message)}</p>
+            <p className="mt-1 text-muted-foreground">The previous plan is unchanged.</p>
           </div>
         ) : null}
 
         <DialogFooter className="gap-2 sm:justify-between">
           <Button variant="outline" size="panel" onClick={() => setOpen(false)}>
-            Închide
+            Close
           </Button>
           <Button size="panel" onClick={start} disabled={pending}>
-            {pending ? "Rulează…" : state.kind === "done" || state.kind === "error" ? "Rulează din nou" : "Pornește agentul"}
+            {pending ? "Running…" : state.kind === "done" || state.kind === "error" ? "Run again" : "Start run"}
           </Button>
         </DialogFooter>
       </DialogContent>

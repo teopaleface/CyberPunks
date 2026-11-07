@@ -3,6 +3,7 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Map as MLMap, Marker as MLMarker, StyleSpecification } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "next-themes";
 import type { Source } from "@/lib/contracts";
 import { depotSvg, markerSvg, type MarkerKind } from "@/lib/marker-svg";
 
@@ -208,7 +209,14 @@ export interface MapPadding {
 // sus: butoanele de regiune; dreapta: harta mică a zonei
 const DEFAULT_PADDING: MapPadding = { top: 76, bottom: 64, left: 56, right: 330 };
 
-export function PlanMap({
+export function PlanMap(props: Parameters<typeof ThemedPlanMap>[0]) {
+  const { resolvedTheme } = useTheme();
+  const theme = props.theme ?? (resolvedTheme === "light" ? "light" : "dark");
+  // Remount the map and its markers together when the base style changes.
+  return <ThemedPlanMap key={theme} {...props} theme={theme} />;
+}
+
+function ThemedPlanMap({
   items,
   routes,
   depots,
@@ -501,12 +509,12 @@ export function PlanMap({
 
   return (
     <div className={className}>
-      <div ref={containerRef} className="plan-map h-full w-full" aria-label="Harta planului" role="region" />
+      <div ref={containerRef} className="plan-map h-full w-full" aria-label="Plan map" role="region" />
       {failed ? (
         <div role="alert" className="absolute inset-0 grid place-items-center bg-canvas/80 p-8 text-center text-[15px]">
           <p>
-            Harta nu s-a putut încărca (dalele OpenFreeMap nu răspund). Planul e întreg în linia de timp și în lista din
-            dreapta.
+
+            Map tiles could not load from OpenFreeMap. The full plan remains available in the timeline and list.
           </p>
         </div>
       ) : null}

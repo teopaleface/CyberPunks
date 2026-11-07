@@ -1,5 +1,8 @@
-import { Bell } from "lucide-react";
+import { requireConsole } from "@/lib/server/operations";
+import { englishText } from "@/lib/english";
+import { ArrowRight } from "lucide-react";
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -9,7 +12,7 @@ import { ApproveButton } from "@/components/home/approve-button";
 import { CrewsCard, GanttCard, QuestionBody, RomaniaCard, SelectedMeter } from "@/components/home/cards";
 import { HOME_FILTERS, type HomeFilter } from "@/components/home/filters";
 import { HomeBoard } from "@/components/home/home-board";
-import { KpiRow } from "@/components/home/kpis";
+import { KpiRow, PlanFigures } from "@/components/home/kpis";
 import { AppShell } from "@/components/shell/app-shell";
 import { RunAgentButton } from "@/components/shell/run-agent";
 import { toBriefing, crewLines } from "@/lib/briefing";
@@ -36,13 +39,16 @@ function topAlert(alerts: Alert[]): { id: string; lead: string; text: string } |
   if (storms[0]) {
     const a = storms[0];
     const win = /fereastra (\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/.exec(a.body_ro);
-    return { id: a.alert_id, lead: "Avertizare de furtună", text: `${clean(a.title_ro)}${win ? `, ${win[1]}–${win[2]}` : ""}.` };
+    return { id: a.alert_id, lead: "Storm warning", text: `${englishText(clean(a.title_ro))}${win ? `, ${win[1]}–${win[2]}` : ""}.` };
   }
   const crit = alerts.find((a) => a.severity === "critical");
-  return crit ? { id: crit.alert_id, lead: "Atenție", text: `${clean(crit.title_ro)}.` } : null;
+  return crit ? { id: crit.alert_id, lead: "Warning", text: `${englishText(clean(crit.title_ro))}.` } : null;
 }
 
 async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchParams"] }) {
+  const entry = await searchParams;
+  if (entry.console !== "1") redirect("/workspace");
+  await requireConsole();
   await connection();
   const scenario = await resolveScenario(searchParams);
   const [{ info, view }, params] = await Promise.all([loadShellInfo(scenario), searchParams]);
@@ -60,13 +66,12 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchP
     return (
       <AppShell info={info}>
         <div className="mx-auto max-w-[680px] px-7 py-20">
-          <h1 className="text-[30px] font-[620]">Nu există încă un plan pentru „{label}”</h1>
+          <h1 className="text-[30px] font-[620]">No plan yet for &quot;{englishText(label)}&quot;</h1>
           <p className="mt-3 text-[18px] leading-relaxed text-muted-foreground">
-            Agentul n-a rulat încă pentru acest scenariu{view.degradedReason ? ` (${view.degradedReason})` : ""}. Pornește-l acum sau
-            alege alt scenariu din antet.
+            The agent has not run for this scenario yet{view.degradedReason ? ` (${englishText(view.degradedReason)})` : ""}. Run the agent or select another scenario in the menu.
           </p>
           <div className="mt-6">
-            <RunAgentButton scenario={scenario} scenarioLabel={label} />
+            <RunAgentButton scenario={scenario} scenarioLabel={englishText(label)} />
           </div>
         </div>
       </AppShell>
@@ -77,7 +82,6 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchP
   const briefing = toBriefing(data);
   const lines = crewLines(data);
   const dots = await getRomaniaDots();
-  const scenarioLabel = info.scenarios.find((s) => s.id === scenario)?.label ?? scenario;
 
   // aprobarea listei: din jurnal (API) sau, dacă API-ul n-o are încă, din cookie-ul acestui browser
   const fromAudit = view.data.audit.find(
@@ -118,52 +122,59 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchP
   const suffix = `?scenariu=${encodeURIComponent(scenario)}`;
 
   const alerts = (
-    <Card title="Alerte" icon={Bell} iconTone="red">
+    <Card title="Alerts">
       <ul className="divide-y divide-rule">
         {data.alerts.slice(0, 6).map((a) => (
           <li key={a.alert_id} className="flex items-center gap-3 py-2.5 text-[15px]">
             <Pill size="sm" tone={a.severity === "critical" ? "red" : a.severity === "warning" ? "amber" : "grey"}>
-              {a.severity === "critical" ? "Critică" : a.severity === "warning" ? "Atenție" : "Info"}
+              {a.severity === "critical" ? "Critical" : a.severity === "warning" ? "Warning" : "Info"}
             </Pill>
-            <span className="min-w-0 flex-1">{a.title_ro}</span>
+            <span className="min-w-0 flex-1">{englishText(a.title_ro)}</span>
           </li>
         ))}
-        {data.alerts.length === 0 ? <li className="py-2 text-ink-soft">Nicio alertă.</li> : null}
+        {data.alerts.length === 0 ? <li className="py-2 text-ink-soft">No alerts.</li> : null}
       </ul>
     </Card>
   );
 
   return (
     <AppShell info={info}>
-      <div className="mx-auto w-full max-w-[1520px] px-8 pt-5 pb-14 max-md:px-4">
+      <div className="mx-auto w-full max-w-[1440px] px-8 pt-7 pb-14 max-md:px-4">
         {banner ? <AlertBanner key={banner.id} id={`${scenario}:${banner.id}`} lead={banner.lead} text={banner.text} /> : null}
-        <PageTitle title="Planul de mâine." subtitle={`${dateLong} (sintetic).`} />
+        <PageTitle title="Plan" subtitle={`${dateLong}.${info.provenance.syntheticItems ? " Includes synthetic data." : ""}`} />
         <HomeBoard
           key={`${scenario}:${data.planId}`}
           initial={initial}
           suffix={suffix}
           kpis={<KpiRow s={data.summary} />}
+          figures={<PlanFigures s={data.summary} />}
+          plan={
+            <>
+              <h2 className="text-[23px] leading-[1.3] font-[550] tracking-[-0.02em]">Crew assignments</h2>
+              <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
+                {data.routes.filter((r) => r.stops.length > 0).length} crew routes ready. Approval covers crew assignments only; review cases separately.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Link href={`/harta${suffix}`} className="inline-flex min-h-11 items-center gap-2 rounded-[10px] border border-rule bg-surface-2 px-4 py-2.5 text-[14px] text-ink hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                  Review routes
+                  <ArrowRight aria-hidden="true" size={16} />
+                </Link>
+              </div>
+              <div className="mt-5 border-t border-rule pt-5">
+                <ApproveButton scenario={scenario} planId={data.planId} approvedAt={approval?.at ?? null} approvedLocal={approval?.local ?? false} />
+              </div>
+
+            </>
+          }
           map={<RomaniaCard map={dots} scenario={scenario} />}
           crews={<CrewsCard lines={lines} approved={Boolean(approval)} scenario={scenario} />}
           gantt={<GanttCard data={data} dateLabel={dateLong.charAt(0).toLowerCase() + dateLong.slice(1)} />}
           alerts={alerts}
+          meter={meter ? <SelectedMeter item={meter} scenario={scenario} /> : null}
           question={{
-            bodies: {
-              default: <QuestionBody item={first} scenario={scenario} />,
-              storm: storm ? <QuestionBody item={storm} scenario={scenario} /> : null,
-              voltage: voltage ? <QuestionBody item={voltage} scenario={scenario} /> : null,
-            },
-            rest: (
-              <>
-                {meter ? <SelectedMeter item={meter} scenario={scenario} /> : null}
-                <div className="mt-auto flex flex-col gap-3 px-6 pt-6 pb-5 @[460px]:flex-row">
-                  <div className="@[460px]:flex-1 max-md:[&_button]:bg-action max-md:[&_button]:text-white [&_button]:h-12 [&_button]:w-full [&_button]:rounded-[10px] [&_button]:text-[16px] @[460px]:[&_button]:h-full @[460px]:[&_button]:min-h-[58px]">
-                    <RunAgentButton scenario={scenario} scenarioLabel={scenarioLabel} />
-                  </div>
-                  <ApproveButton scenario={scenario} planId={data.planId} approvedAt={approval?.at ?? null} approvedLocal={approval?.local ?? false} />
-                </div>
-</>
-            ),
+            default: <QuestionBody item={first} scenario={scenario} reason={briefing.next?.what ? englishText(briefing.next.what) : undefined} />,
+            storm: <QuestionBody item={storm} scenario={scenario} emptyText="No storm cases need your decision." />,
+            voltage: <QuestionBody item={voltage} scenario={scenario} emptyText="No voltage cases need your decision." />,
           }}
         />
       </div>
@@ -174,23 +185,22 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchP
 /** Aceeași așezare ca ecranul, ca nimic să nu sară când vin datele. */
 function PlanSkeleton() {
   return (
-    <div role="status" className="flex min-h-dvh flex-col" aria-busy="true" aria-label="Se încarcă planul de mâine…">
+    <div role="status" className="flex min-h-dvh flex-col" aria-busy="true" aria-label="Loading tomorrow's plan…">
       <div className="h-16 shrink-0 border-b border-rule bg-panel" />
-      <div className="mx-auto w-full max-w-[1520px] px-8 pt-5 max-md:px-4">
+      <div className="mx-auto w-full max-w-[1440px] px-8 pt-7 max-md:px-4">
         <div className="h-[58px] animate-pulse rounded-[14px] bg-panel motion-reduce:animate-none" />
-        <div className="mt-6 h-9 w-72 animate-pulse rounded-[6px] bg-muted motion-reduce:animate-none" />
-        <div className="mt-3 h-5 w-56 rounded-[6px] bg-muted" />
-        <div className="mt-6 grid grid-cols-2 gap-3.5 min-[1100px]:grid-cols-6">
-          {Array.from({ length: 6 }, (_, i) => (
-            <div key={i} className="h-[84px] rounded-[14px] bg-panel" />
+        <div className="mt-6 h-9 w-72 max-w-full animate-pulse rounded-[6px] bg-muted motion-reduce:animate-none" />
+        <div className="mt-4 h-5 w-full max-w-xl rounded-[6px] bg-muted" />
+        <div className="mt-7 grid gap-5 rounded-2xl border border-rule bg-panel p-6 sm:grid-cols-3">
+          {Array.from({ length: 3 }, (_, i) => (
+            <div key={i} className="h-16 rounded-lg bg-muted" />
           ))}
         </div>
-        <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_0.9fr_1fr]">
-          <div className="h-[260px] rounded-[14px] bg-panel" />
-          <div className="h-[260px] rounded-[14px] bg-panel" />
-          <div className="h-[520px] rounded-[14px] bg-panel lg:row-span-2" />
-          <div className="h-[260px] rounded-[14px] bg-panel lg:col-span-2" />
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <div className="h-[360px] rounded-2xl border border-rule bg-panel" />
+          <div className="h-[360px] rounded-2xl border border-rule bg-panel" />
         </div>
+        <div className="mt-7 h-24 rounded-2xl border border-rule bg-panel" />
       </div>
     </div>
   );

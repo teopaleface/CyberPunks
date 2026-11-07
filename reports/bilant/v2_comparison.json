@@ -1,0 +1,58 @@
+{
+  "test": "cele 300 de posturi din registrul C (rețele nevăzute), ferestre de 14 zile, model + regula de pereche + regula martorului",
+  "test_windows": 13200,
+  "train_posts_v1": 300,
+  "train_windows_v2": 132000,
+  "train_posts_v2": 3000,
+  "v1": {
+    "macro_f1": 0.7037286680932953,
+    "f1_normal": 0.9123230204509701,
+    "f1_contor_client": 0.38408304498269896,
+    "f1_furt_inainte_contor": 0.6693933197000682,
+    "f1_pierdere_tehnica": 0.5053475935828877,
+    "f1_client_post_gresit": 0.7580743449116393,
+    "f1_contor_bilant_setat": 0.9931506849315068
+  },
+  "doar_mai_multe_posturi": {
+    "macro_f1": 0.7174914834127651,
+    "f1_normal": 0.8697169227305982,
+    "f1_contor_client": 0.3672541216600341,
+    "f1_furt_inainte_contor": 0.759020618556701,
+    "f1_pierdere_tehnica": 0.44234404536862004,
+    "f1_client_post_gresit": 0.8717413972888426,
+    "f1_contor_bilant_setat": 0.9948717948717949
+  },
+  "mai_multe_posturi_si_trasaturi_noi": {
+    "macro_f1": 0.7354481843313926,
+    "f1_normal": 0.9084723797181273,
+    "f1_contor_client": 0.445985401459854,
+    "f1_furt_inainte_contor": 0.7616645649432535,
+    "f1_pierdere_tehnica": 0.4293785310734463,
+    "f1_client_post_gresit": 0.8706128863279203,
+    "f1_contor_bilant_setat": 0.9965753424657534
+  },
+  "v2_cautare_optuna": {
+    "macro_f1": 0.7535206988304596,
+    "f1_normal": 0.9270173215040135,
+    "f1_contor_client": 0.47210626185958254,
+    "f1_furt_inainte_contor": 0.7709570957095709,
+    "f1_pierdere_tehnica": 0.48824188129899215,
+    "f1_client_post_gresit": 0.871319520174482,
+    "f1_contor_bilant_setat": 0.9914821124361158
+  },
+  "validation_macro_f1_v2": 0.7684603061640579,
+  "validation_macro_f1_v1_settings": 0.75170714133401,
+  "best_params": {
+    "n_estimators": 600,
+    "learning_rate": 0.023379700105659262,
+    "num_leaves": 95,
+    "min_child_samples": 116,
+    "subsample": 0.8647695240175775,
+    "colsample_bytree": 0.8672955114137956,
+    "reg_lambda": 0.0832853409304417,
+    "class_weight_power": 0.8823401530393645
+  },
+  "trials": 40,
+  "v2_kept": true,
+  "seconds": 1272.1
+}

@@ -50,3 +50,6 @@ next-env.d.ts
 /public/_data/
 /.open-next/
 /.wrangler/
+
+# Rulare operațională locală, separată de serverul existent
+.next-operations*/

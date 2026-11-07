@@ -19,19 +19,19 @@ export function AlertBanner({ id, lead, text }: { id: string; lead: string; text
   );
   if (dismissed) return null;
   return (
-    <div role="status" className="mb-5 flex items-center gap-3.5 rounded-[14px] border border-[#6a3fb0] bg-[#1b0f33] px-5 py-3.5 max-md:items-start max-md:px-4">
+    <div role="status" className="mb-6 flex items-center gap-3.5 rounded-[14px] border border-rule bg-panel px-5 py-3.5 max-md:items-start max-md:px-4">
       {/* furtuna are norul cu fulger; celelalte avertizări, triunghiul */}
       {/furtun/i.test(lead) ? (
         <CloudLightning aria-hidden="true" size={30} strokeWidth={1.5} className="shrink-0 text-violet max-md:mt-0.5" />
       ) : (
         <TriangleAlert aria-hidden="true" size={28} strokeWidth={1.6} className="shrink-0 text-violet max-md:mt-0.5" />
       )}
-      <p className="min-w-0 flex-1 text-[17px] text-ink-soft max-md:text-[15px]">
-        <b className="font-[620] text-ink">{lead}</b> — {text}
+      <p className="min-w-0 flex-1 text-[15px] leading-relaxed text-ink-soft">
+        <b className="font-[550] text-ink">{lead}.</b> {text}
       </p>
       <button
         type="button"
-        aria-label="Închide avertizarea"
+        aria-label="Dismiss warning"
         onClick={() => {
           sessionStorage.setItem(key, "1");
           window.dispatchEvent(new Event(EVENT));

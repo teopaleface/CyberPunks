@@ -1,0 +1,10 @@
+<template><link rel="stylesheet" href="assets/theme.css"><style>#root{position:absolute;inset:0;overflow:hidden;background:var(--paper)}</style>
+<div id="root" data-composition-id="product" data-width="1920" data-height="1080"><h1 id="product-name" class="title" style="position:absolute;left:192px;top:340px;font-size:200px;width:1536px;text-align:center">Daybreak</h1>
+<div id="product-screen" class="screen" style="left:192px;top:230px;width:1536px;height:780px"><img src="assets/screens/plan.png" alt="Actual Daybreak console"></div></div>
+<script>(function(){const tl=gsap.timeline({paused:true});
+gsap.set('#product-screen img',{scale:.8});
+tl.fromTo('#product-name',{scale:.9},{scale:1,duration:.65,ease:'power3.out'},0);
+tl.to('#product-name',{y:-275,scale:.48,transformOrigin:'50% 50%',duration:.65,ease:'power3.inOut'},.7);
+tl.fromTo('#product-screen',{scale:.68,y:470,opacity:0},{scale:1,y:0,opacity:1,duration:.8,ease:'power3.out'},.7);
+
+window.__timelines=window.__timelines||{};window.__timelines["product"]=tl;})();</script></template>

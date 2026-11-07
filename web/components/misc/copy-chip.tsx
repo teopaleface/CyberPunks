@@ -31,20 +31,20 @@ export function CopyChip({ text, label, className }: { text: string; label: stri
     }, 1800);
   };
   return (
-    <span className={cn("inline-flex max-w-full items-center gap-2 rounded-[8px] border border-[#2a3a52] bg-surface-2 py-1 pr-1 pl-2.5 text-[14px]", className)}>
+    <span className={cn("inline-flex max-w-full items-center gap-2 rounded-[8px] border border-rule bg-surface-2 py-1 pr-1 pl-2.5 text-[14px]", className)}>
       <span translate="no" className="min-w-0 truncate tabular-nums" title={text}>
         {text}
       </span>
       <button
         type="button"
         onClick={copy}
-        aria-label={done ? `${label}: copiat` : label}
-        className="inline-grid size-7 shrink-0 place-items-center rounded-[6px] text-ink-soft transition-colors duration-150 hover:bg-[#16243a] hover:text-ink focus-visible:outline-2 focus-visible:outline-ring"
+        aria-label={done ? `${label}: copied` : label}
+        className="inline-grid size-7 shrink-0 place-items-center rounded-[6px] text-ink-soft transition-colors duration-150 hover:bg-accent hover:text-ink focus-visible:outline-2 focus-visible:outline-ring"
       >
         {done ? <CheckIcon size={15} aria-hidden="true" className="text-ok-ink" /> : <CopyIcon size={15} aria-hidden="true" />}
       </button>
       <span role="status" className="sr-only">
-        {done ? "Copiat." : failed ? "Copierea nu a reușit." : ""}
+        {done ? "Copied." : failed ? "Copy failed." : ""}
       </span>
     </span>
   );

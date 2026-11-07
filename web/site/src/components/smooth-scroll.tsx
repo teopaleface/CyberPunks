@@ -1,6 +1,6 @@
 import Lenis from "lenis"
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
-import { prefersReducedMotion } from "@/lib/motion"
+import { useReduced } from "@/lib/motion"
 
 const LenisContext = createContext<Lenis | null>(null)
 export const useLenis = () => useContext(LenisContext)
@@ -10,10 +10,11 @@ export const useLenis = () => useContext(LenisContext)
  * off (`enabled={false}`) because it moves screen by screen instead.
  */
 export function SmoothScroll({ children, enabled = true }: { children: ReactNode; enabled?: boolean }) {
+  const reduce = useReduced()
   const [lenis, setLenis] = useState<Lenis | null>(null)
 
   useEffect(() => {
-    if (!enabled || prefersReducedMotion()) return
+    if (!enabled || reduce) return
     const instance = new Lenis({
       duration: 1.1,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -31,7 +32,7 @@ export function SmoothScroll({ children, enabled = true }: { children: ReactNode
       instance.destroy()
       setLenis(null)
     }
-  }, [enabled])
+  }, [enabled, reduce])
 
   return <LenisContext.Provider value={lenis}>{children}</LenisContext.Provider>
 }

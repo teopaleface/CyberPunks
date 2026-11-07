@@ -278,7 +278,7 @@ export interface DemoCandidates {
   quarantine: string[];
   workItems: (source: WorkItemSource) => string[];
   series: (workItemId: string) => string[];
-  metrics: (source: WorkItemSource | "planner") => string[];
+  metrics: (source: WorkItemSource | "bilant" | "planner") => string[];
 }
 
 /**
@@ -290,8 +290,8 @@ export interface DemoCandidates {
  *   3. plat: outputs/demo/plan.json etc., doar dacă planul plat e al scenariului cerut
  *      (`plan.scenario`) sau dacă e cerut scenariul implicit (DEFAULT_SCENARIO)
  * Seriile au și o ultimă variantă: outputs/series/<scenariu>/<id>.json din checkout (ieșirea directă a modelelor).
- * Metricile: outputs/demo/metrics/<A|B|C>.json, apoi reports/<A|B|C>/metrics.json (în git);
- * pentru planificator: outputs/demo/metrics/planner.json, apoi reports/planner/agent_eval.json.
+ * Metricile: reports/<A|B|C|bilant>/metrics.json, apoi copia din instantaneu;
+ * pentru planificator: reports/planner/agent_eval.json, apoi copia din instantaneu. Aceeași ordine ca API-ul Python.
  */
 export async function demoCandidates(scenario: string): Promise<DemoCandidates> {
   const base = demoDir();
@@ -350,14 +350,14 @@ export async function demoCandidates(scenario: string): Promise<DemoCandidates> 
     metrics: (source) =>
       source === "planner"
         ? [
+            repoPath("reports", "planner", "agent_eval.json"),
             path.join(base, "reports", "planner", "agent_eval.json"),
             path.join(base, "metrics", "planner.json"),
-            repoPath("reports", "planner", "agent_eval.json"),
           ]
         : [
+            repoPath("reports", source, "metrics.json"),
             path.join(base, "reports", source, "metrics.json"),
             path.join(base, "metrics", `${source}.json`),
-            repoPath("reports", source, "metrics.json"),
           ],
   };
 }
@@ -479,14 +479,15 @@ export async function readDemoMetrics(): Promise<FileRead<MetricsBundle> | null>
     if (result) files.push(...result.files);
     return result?.data ?? null;
   };
-  const [A, B, C, planner] = await Promise.all([
+  const [A, B, C, bilant, planner] = await Promise.all([
     read<ModelReport>(candidates.metrics("A")),
     read<ModelReport>(candidates.metrics("B")),
     read<ModelReport>(candidates.metrics("C")),
+    read<ModelReport>(candidates.metrics("bilant")),
     read<Record<string, unknown>>(candidates.metrics("planner")),
   ]);
   if (!files.length) return null;
-  return { data: { A, B, C, planner }, files: files.sort() };
+  return { data: { A, B, C, bilant, planner }, files: files.sort() };
 }
 
 // ---------------------------------------------------------------------------------------------

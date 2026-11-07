@@ -1,0 +1,8 @@
+<template><link rel="stylesheet" href="assets/theme.css"><style>#root{position:absolute;inset:0;overflow:hidden;background:var(--paper)}</style>
+<div id="root" data-composition-id="solar" data-width="1920" data-height="1080"><div class="side" style="top:290px"><h1 class="title">Voltage<br>rises.</h1><p id="solar-detail" class="body">Rooftop solar can overload<br>local lines.</p></div><img id="object" class="object" src="assets/objects/solar/hero.png" alt="solar" style="" /></div>
+<script>(function(){const tl=gsap.timeline({paused:true});
+tl.fromTo('#object',{rotation:10,x:130},{rotation:0,x:0,duration:.7,ease:'power3.out'},0);
+tl.fromTo('#solar-detail',{opacity:0,y:25},{opacity:1,y:0,duration:.5,ease:'power3.out'},.75);
+tl.to('#object',{scale:1.08,duration:.8,ease:'power2.inOut'},1.6);
+
+window.__timelines=window.__timelines||{};window.__timelines["solar"]=tl;})();</script></template>

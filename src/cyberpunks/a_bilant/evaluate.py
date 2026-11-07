@@ -110,10 +110,10 @@ def value_at_k(win: pd.DataFrame, score: np.ndarray, k: int = 10) -> float:
     return float(np.mean(vals))
 
 
-def eval_diagnosis(wtr: pd.DataFrame, wte: pd.DataFrame) -> tuple[dict, dict, G.Diagnoser, pd.DataFrame]:
+def eval_diagnosis(wtr: pd.DataFrame | None, wte: pd.DataFrame, diag: G.Diagnoser | None = None) -> tuple[dict, dict, G.Diagnoser, pd.DataFrame]:
     from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
 
-    diag = G.fit(wtr)
+    diag = diag or G.fit(wtr)
     proba = diag.proba(wte)
     dec0 = G.pair_consistency(wte, G.decide(proba, wte))
     dec = G.apply_martor_rule(wte, dec0)
@@ -250,6 +250,28 @@ def fig_fusion_k(fw: dict, fwo: dict, fs: dict, fso: dict) -> None:
     plt.close(fig)
 
 
+def v2_diagnoser(models: dict) -> G.Diagnoser | None:
+    """Diagnosticul v2, reantrenat din setările salvate (`reports/bilant/v2_params.json`) pe ferestrele lotului `trainL`.
+    Fără setări sau fără lotul mare, întoarce None și rămâne v1."""
+    from cyberpunks.common.paths import DATA_PROCESSED
+
+    pp = OUT / "v2_params.json"
+    base = DATA_PROCESSED / "bilant"
+    if not pp.exists() or not (base / "trainL" / "daily.parquet").exists():
+        print("bilanț: diagnosticul rămâne v1 (lipsesc v2_params.json sau lotul trainL: make bilant-v2)")
+        return None
+    cfg = json.loads(pp.read_text())
+    wl_path = base / "windows_trainL.parquet"
+    wl = pd.read_parquet(wl_path) if wl_path.exists() else None
+    if wl is None or not set(cfg["features"]) <= set(wl.columns):
+        d = F.load_pool("trainL")
+        wl = W.build_windows_parallel(d, W.predict_normal(models, d), "trainL", workers=8)
+        wl.to_parquet(wl_path)
+    diag = G.fit(wl, features=cfg["features"], params=cfg["params"], n_jobs=8)
+    diag.save("diagnose_v2", params=cfg["params"])
+    return diag
+
+
 def main() -> None:
     tr = F.load_pool("train")
     te = F.load_pool("pop")
@@ -266,12 +288,21 @@ def main() -> None:
 
     wtr.to_parquet(DATA_PROCESSED / "bilant" / "windows_train.parquet")
     md, bd, diag, cm = eval_diagnosis(wtr, wte)
+    diag.save("diagnose")  # v1: rezerva, neschimbată
+    # v2 (dacă există setările și lotul mare): ~3.000 de posturi, trăsături noi, setări căutate automat (`v2.py`)
+    diag2 = v2_diagnoser(models)
+    if diag2 is not None:
+        md2, _, _, cm = eval_diagnosis(None, wte, diag2)
+        metrics.update({k.replace("diagnoza_", "diagnoza_v1_", 1): v for k, v in md.items()})
+        md, diag = md2, diag2
+        metrics["diagnoza_varianta_v2"] = 1.0
+    else:
+        metrics["diagnoza_varianta_v2"] = 0.0
     proba = diag.proba(wte)
     dec_te = G.apply_martor_rule(wte, G.pair_consistency(wte, G.decide(proba, wte)))
     wdec = wte.join(dec_te).join(proba.add_prefix("p_")).assign(rule=G.rules(wte))
     wdec.to_parquet(DATA_PROCESSED / "bilant" / "windows_pop.parquet")
     tec.to_parquet(DATA_PROCESSED / "bilant" / "normal_test_pop.parquet")
-    diag.save()
     fig_confusion(cm)
     metrics.update(md)
     baseline.update(bd)
@@ -298,6 +329,20 @@ def main() -> None:
     # (b) ziua demo, scorurile REALE ale lui A pe cele ~15.850 de contoare
     real = FE.evaluate_real_a(wte, sig["delta"], price, horizon)
     metrics.update({f"fuziune_a_real_{k}": v for k, v in real.items()})
+    # (b2) harta de test, cu defectele lui A: A singur, regula v1 (rezervă), regula v2 (reglată, dacă există)
+    from cyberpunks.a_bilant import fusion_v2 as FV2
+    from cyberpunks.a_bilant.fuse import V1_PARAMS, fusion_params
+
+    wmap = wte.join(diag.proba(wte).add_prefix("p_"))
+    rules = {"v1": dict(V1_PARAMS), "v2": fusion_params()}
+    sim_map, real_map = FV2.test_on_map(wmap, sig["delta"], price, rules)
+    for name, r in sim_map.items():
+        metrics.update({f"fuziune_harta_{name}_{k}": v for k, v in r.items()})
+    for name, r in real_map.items():
+        metrics.update({f"fuziune_harta_real_{name}_{k}": v for k, v in r.items()})
+    for K in (10, 20, 50, 100):
+        metrics[f"fuziune_harta_v2_wasted_trips_avoided_per_day_at_{K}"] = sim_map["A_singur"][f"wasted_trips_per_day_at_{K}"] - sim_map["v2"][f"wasted_trips_per_day_at_{K}"]
+        baseline[f"fuziune_harta_v2_precision_at_{K}"] = sim_map["A_singur"][f"precision_at_{K}"]
     # (c) energia pe care contoarele nu o văd (doar bilanțul o vede), ziua demo
     metrics.update({f"invizibil_{k}": v for k, v in FE.invisible_energy(te, int(te["day"].max())).items()})
     # (d) cauzele de post: ce găsește bilanțul acolo unde A are 0 prin construcție
@@ -316,9 +361,9 @@ def main() -> None:
         dataset=DATASET,
         split="antrenare: 300 de posturi sintetice noi (lotul train); test: cele 300 de posturi din registrul C (rețele nevăzute). Pierderea normală: zilele fără probleme, cu cel puțin 21 de zile de istoric (test_size). Diagnosticul: ferestre de 14 zile, la 7 zile. Fuziunea: contoarele lotului de test, problemele apărute în ultimele 2-12 zile, K contoare verificate pe zi; scorurile A sunt simulate la ROC-AUC 0,907 (cel raportat de A)",
         test_size=int(metrics["normal_test_days"]),
-        primary_metric="fuziune_precision_at_10",
+        primary_metric="fuziune_harta_v2_precision_at_10",
         metrics={k: round(float(v), 4) for k, v in metrics.items()},
-        baseline_id="fuziune_*: doar scorul A, fără bilanț; normal_*: formula fizică I²R (a·ΣP²·R/U² + b·nr. contoare); diagnoza_*: tabelul de reguli din concept; procent_fix_*: în metrics, al doilea reper pentru normal",
+        baseline_id="fuziune_harta_v2_* (testul principal, harta cu defectele lui A, scoruri A simulate): doar scorul A; fuziune_*: idem pe lotul train; normal_*: formula fizică I²R (a·ΣP²·R/U² + b·nr. contoare); diagnoza_*: tabelul de reguli din concept; procent_fix_*: în metrics, al doilea reper pentru normal",
         baseline_metrics={k: round(float(v), 4) for k, v in baseline.items()},
         synthetic_share=1.0,
         created_at=datetime.now(ZoneInfo("Europe/Bucharest")).replace(microsecond=0),

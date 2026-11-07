@@ -92,12 +92,12 @@ export function SeriesChart({ series, source, height = 260 }: { series: Series; 
     <figure>
       <figcaption className="mb-3 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
         <span className="font-medium">{series.title}</span>
-        <span className="flex flex-wrap gap-x-4 text-sm text-white/70">
+        <span className="flex flex-wrap gap-x-4 text-sm text-foreground/70">
           <span className="flex items-center gap-1.5">
             <span className="h-0.5 w-4 rounded-full" style={{ background: color }} aria-hidden /> măsurat
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-4 border-t border-dashed border-white/70" aria-hidden /> așteptat
+            <span className="w-4 border-t border-dashed border-foreground/70" aria-hidden /> așteptat
           </span>
           <span className="flex items-center gap-1.5">
             <span className="h-2.5 w-4 rounded-[3px]" style={{ background: `${color}40` }} aria-hidden /> interval P10–P90
@@ -191,7 +191,7 @@ export function SeriesChart({ series, source, height = 260 }: { series: Series; 
               <div className="mb-1 font-medium">{label(h[0], hourly)}</div>
               {h[1] !== null && (
                 <div className="tabular flex justify-between">
-                  <span className="text-white/75">Măsurat</span>
+                  <span className="text-foreground/75">Măsurat</span>
                   <span>
                     {fmt(h[1], digits)} {series.unit}
                   </span>
@@ -199,14 +199,14 @@ export function SeriesChart({ series, source, height = 260 }: { series: Series; 
               )}
               {h[2] !== null && (
                 <div className="tabular flex justify-between">
-                  <span className="text-white/75">Așteptat</span>
+                  <span className="text-foreground/75">Așteptat</span>
                   <span>
                     {fmt(h[2], digits)} {series.unit}
                   </span>
                 </div>
               )}
               {h[3] !== null && h[4] !== null && (
-                <div className="tabular flex justify-between text-white/70">
+                <div className="tabular flex justify-between text-foreground/70">
                   <span>Interval</span>
                   <span>
                     {fmt(h[3], digits)}–{fmt(h[4], digits)}
@@ -218,7 +218,7 @@ export function SeriesChart({ series, source, height = 260 }: { series: Series; 
         </AnimatePresence>
       </div>
       {annIdx.length > 0 && (
-        <ul className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-white/70">
+        <ul className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-foreground/70">
           {annIdx.map((a) => (
             <li key={a.t}>
               {label(a.t, hourly)}: {a.label}

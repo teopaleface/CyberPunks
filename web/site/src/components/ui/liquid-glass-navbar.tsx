@@ -1,5 +1,6 @@
 import { animate, motion, useMotionValue, useSpring, useTransform } from "motion/react"
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useReduced } from "@/lib/motion"
 import { cn } from "@/lib/utils"
 import type { NavItem } from "@/lib/site"
 
@@ -22,6 +23,7 @@ interface LiquidNavbarProps {
  * The options never change from page to page; only the marker moves.
  */
 export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className }: LiquidNavbarProps) {
+  const reduce = useReduced()
   const trackRef = useRef<HTMLDivElement>(null)
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([])
   const [hover, setHover] = useState<number | null>(null)
@@ -74,7 +76,7 @@ export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className
       return
     }
     const first = lastIndex.current === -1
-    if (first) {
+    if (first || reduce) {
       // Appear in place, no travel.
       tx.jump(r.x)
       tw.jump(r.w)
@@ -86,8 +88,9 @@ export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className
       tx.set(r.x)
       tw.set(r.w)
     }
-    visible.set(1)
-    if (lastIndex.current !== activeIndex) {
+    if (reduce) visible.jump(1)
+    else visible.set(1)
+    if (!reduce && lastIndex.current !== activeIndex) {
       const t = setTimeout(() => {
         ripple.set(0)
         animate(ripple, 1, { duration: 0.9, ease: [0.22, 1, 0.36, 1] })
@@ -95,18 +98,17 @@ export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className
       lastIndex.current = activeIndex
       return () => clearTimeout(t)
     }
-  }, [activeIndex, rects, tx, tw, headX, headW, tailX, tailW, visible, ripple])
+  }, [reduce, activeIndex, rects, tx, tw, headX, headW, tailX, tailW, visible, ripple])
 
   const hoverRect = hover !== null ? rects[hover] : null
 
   return (
     <nav
-      aria-label="Navigare principală"
+      aria-label="Main navigation"
       className={cn(
-        "relative flex items-center gap-1 rounded-full p-1.5 pl-4",
-        "bg-white/[0.06] backdrop-blur-2xl backdrop-saturate-150",
-        "shadow-[inset_0_1px_0_rgba(255,255,255,.28),inset_0_-1px_0_rgba(255,255,255,.06),0_10px_40px_-12px_rgba(0,0,0,.9)]",
-        "ring-1 ring-white/10",
+        "site-glass relative flex items-center gap-1 rounded-full p-1.5 pl-3 sm:pl-4",
+        "backdrop-blur-2xl backdrop-saturate-150",
+        "ring-1 ring-foreground/10",
         className
       )}
     >
@@ -126,19 +128,19 @@ export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className
         </defs>
       </svg>
 
-      <div className="mr-2 shrink-0">{logo}</div>
+      <div className="mr-1 shrink-0 sm:mr-2">{logo}</div>
 
       <div ref={trackRef} className="relative flex items-center" onMouseLeave={() => setHover(null)}>
         {/* hover meniscus */}
         <motion.span
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 rounded-full bg-white/[0.07]"
+          className="pointer-events-none absolute inset-y-0 rounded-full bg-foreground/[0.07]"
           animate={{
             x: hoverRect?.x ?? 0,
             width: hoverRect?.w ?? 0,
             opacity: hoverRect && hover !== activeIndex ? 1 : 0,
           }}
-          transition={{ type: "spring", stiffness: 400, damping: 32 }}
+          transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 400, damping: 32 }}
         />
 
         {/* the drop */}
@@ -191,20 +193,19 @@ export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className
                 onNavigate(item.href)
               }}
               className={cn(
-                "group/item relative z-10 flex h-10 items-center gap-2 rounded-full px-3 text-sm transition-colors duration-300 md:px-4",
-                active ? "text-white" : "text-white/70 hover:text-white"
+                "group/item relative z-10 flex h-11 min-w-11 items-center justify-center gap-2 rounded-full px-1.5 text-xs transition-colors duration-300 sm:h-10 sm:px-3 sm:text-sm md:px-4",
+                active ? "text-foreground" : "text-foreground/70 hover:text-foreground"
               )}
             >
               <Icon
                 aria-hidden
                 className={cn(
-                  "size-4 shrink-0 transition-transform duration-500 ease-[var(--ease-out)]",
+                  "hidden size-4 shrink-0 sm:block transition-transform duration-500 ease-[var(--ease-out)]",
                   "group-hover/item:-rotate-12 group-hover/item:scale-110",
-                  active && "text-white"
+                  active && "text-foreground"
                 )}
               />
-              <span className="hidden lg:inline">{item.label}</span>
-              <span className="sr-only lg:hidden">{item.label}</span>
+              <span>{item.label}</span>
             </a>
           )
         })}

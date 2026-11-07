@@ -1,37 +1,41 @@
-import { Coins, MapPin, Network, ClipboardCheck, Layers, UserRound } from "lucide-react";
-import type { ComponentType, SVGProps } from "react";
-import { TONE, type Tone } from "@/components/ds";
-import { fmtInt } from "@/lib/format";
 import type { PlanSummary } from "@/lib/contracts";
+import { fmtInt, plural } from "@/lib/format";
 
-type Icon = ComponentType<SVGProps<SVGSVGElement> & { size?: number | string; strokeWidth?: number | string }>;
-
-function Tile({ icon: I, tone, value, label, unit }: { icon: Icon; tone: Tone; value: string; label?: string; unit?: string }) {
-  return (
-    <div className={`flex min-w-0 items-center gap-3 rounded-[14px] border border-rule bg-panel px-4 py-4 max-md:px-3.5 max-md:py-3 min-[1700px]:gap-3.5 min-[1700px]:px-5`}>
-      <I aria-hidden="true" size={36} strokeWidth={1.4} className={`shrink-0 max-md:size-8 max-[1500px]:size-8 ${TONE[tone].text}`} />
-      <div className="min-w-0">
-        <p className="text-[27px] leading-tight font-[700] tracking-[-0.02em] whitespace-nowrap tabular-nums max-[1500px]:text-[23px] max-md:text-[22px]">
-          {value}
-          {unit ? <span className="ml-1.5">{unit}</span> : null}
-        </p>
-        {label ? <p className="truncate text-[15px] text-ink-soft max-md:text-[14px]">{label}</p> : null}
-      </div>
-    </div>
-  );
-}
-
-/** Cele șase cifre ale zilei, din rezumatul planului. */
+/** Cele trei cifre principale; restul rezumatului rămâne în detaliile planului. */
 export function KpiRow({ s }: { s: PlanSummary }) {
+  const figures = [
+    { value: fmtInt(s.assigned), label: "Work items on routes" },
+    { value: fmtInt(s.human_review), label: "Cases awaiting your decision" },
+    { value: fmtInt(Math.round(s.expected_value_lei)), unit: "RON", label: "Expected plan value" },
+  ];
   return (
-    <div className="grid grid-cols-2 gap-3.5 min-[768px]:grid-cols-3 min-[1340px]:grid-cols-6">
-      <Tile icon={ClipboardCheck} tone="blue" value={fmtInt(s.items_in)} label="lucrări primite" />
-      <Tile icon={Network} tone="violet" value={fmtInt(s.assigned)} label="în trasee" />
-      <Tile icon={Layers} tone="blue" value={fmtInt(s.remote_actions)} label="la distanță" />
-      <Tile icon={UserRound} tone="amber" value={fmtInt(s.human_review)} label="la om" />
-      <Tile icon={MapPin} tone="blue" value={fmtInt(Math.round(s.total_km))} unit="km" />
-      <Tile icon={Coins} tone="amber" value={fmtInt(Math.round(s.expected_value_lei))} unit="lei" />
-    </div>
+    <dl aria-label="Plan summary" className="grid gap-5 rounded-2xl border border-rule bg-panel p-6 sm:grid-cols-3 sm:gap-6">
+      {figures.map((f) => (
+        <div key={f.label} className="min-w-0">
+          <dt className="text-[14px] leading-relaxed text-ink-soft">{f.label}</dt>
+          <dd className="mt-2 text-[32px] leading-tight font-[650] tracking-[-0.03em] tabular-nums sm:text-[36px]">
+            {f.value}
+            {f.unit ? <span className="ml-2 text-[18px] font-[450] text-ink-soft">{f.unit}</span> : null}
+          </dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
+export function PlanFigures({ s }: { s: PlanSummary }) {
+  return (
+    <dl aria-label="Other plan figures" className="grid gap-5 rounded-2xl border border-rule bg-panel p-6 sm:grid-cols-3">
+      {[
+        { value: plural(s.items_in, "work item received", "work items received"), label: "Data reviewed by the agent" },
+        { value: plural(s.remote_actions, "remote check", "remote checks"), label: "No crew visit" },
+        { value: `${fmtInt(Math.round(s.total_km))} km`, label: "Total route distance" },
+      ].map((f) => (
+        <div key={f.label} className="min-w-0">
+          <dt className="text-[14px] text-ink-soft">{f.label}</dt>
+          <dd className="mt-2 text-[18px] font-[550] tabular-nums">{f.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}

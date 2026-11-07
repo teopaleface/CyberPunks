@@ -11,6 +11,10 @@ const site = path.join(web, "site");
 const out = path.join(web, "public", "landing");
 const stamp = path.join(out, ".built-from");
 
+// Include plan/report changes even when none of the site's source files changed.
+const extraction = spawnSync("python3", ["-I", path.join(site, "scripts", "extract-daybreak.py"), path.resolve(web, "../outputs/demo"), path.join(site, "src/data/daybreak.json"), path.resolve(web, "../reports")], { cwd: site, stdio: "inherit" });
+if (extraction.status !== 0) process.exit(extraction.status ?? 1);
+
 function newest(dir: string): number {
   let t = 0;
   for (const name of readdirSync(dir)) {

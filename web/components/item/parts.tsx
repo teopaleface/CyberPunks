@@ -1,3 +1,4 @@
+import { englishText } from "@/lib/english";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { BarChart3, ChevronRight, Database, ScrollText, Layers } from "lucide-react";
@@ -43,12 +44,13 @@ export function itemHref(id: string, scenario: string, tag?: Tag | null) {
 /** Filtrele din capul paginii: link-uri (adresa păstrează alegerea), doar cele care au carduri. */
 export function ItemChips({ id, scenario, active, tags }: { id: string; scenario: string; active: Tag | null; tags: Set<Tag> }) {
   const base = "inline-flex h-9 items-center gap-2 rounded-full border px-4 text-[14.5px] font-[520] whitespace-nowrap transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
-  const off = "border-[#2a3a52] text-ink hover:border-[#3d5170] hover:bg-[#0f1a2b]";
+  const off = "border-rule text-ink hover:border-ink-soft hover:bg-surface-2";
   const on = "border-[#e6e8eb] bg-[#e6e8eb] text-[#0b1322]";
   return (
-    <nav aria-label="Filtrează cardurile" className="flex flex-wrap gap-2.5">
+    <nav aria-label="Filter cards" className="flex flex-wrap gap-2.5">
       <Link href={itemHref(id, scenario)} scroll={false} replace aria-current={!active ? "true" : undefined} className={cn(base, !active ? on : off)}>
-        Toate
+
+        All
       </Link>
       {TAG_CHIPS.filter((c) => tags.has(c.id)).map((c) => (
         <Link key={c.id} href={itemHref(id, scenario, c.id)} scroll={false} replace aria-current={active === c.id ? "true" : undefined} className={cn(base, active === c.id ? on : off)}>
@@ -83,8 +85,8 @@ export const DECISION_TONE: Record<Decision["decision"], Tone> = {
 };
 
 export function DecisionPill({ decision, size }: { decision: Decision | null; size?: "sm" | "md" | "lg" }) {
-  if (!decision) return <Pill size={size}>Fără decizie în plan</Pill>;
-  const text = decision.decision === "human_review" ? "Necesită decizia umană" : sentence(DECISION_LABEL_RO[decision.decision]).replace(/\.$/, "");
+  if (!decision) return <Pill size={size}>No decision in the plan</Pill>;
+  const text = decision.decision === "human_review" ? "Needs human decision" : sentence(DECISION_LABEL_RO[decision.decision]).replace(/\.$/, "");
   return (
     <Pill tone={DECISION_TONE[decision.decision]} size={size}>
       {text}
@@ -125,7 +127,7 @@ export function ModelCard({ ctx, className }: { ctx: ItemCtx; className?: string
 export function SimilarCard({ w, className }: { w: WorkItem; className?: string }) {
   const cases = w.explanation.similar_cases ?? [];
   return (
-    <Card title="Cazuri similare" icon={Layers} iconTone="violet" className={className}>
+    <Card title="Similar cases" icon={Layers} iconTone="violet" className={className}>
       {cases.length ? (
         <ul className="space-y-2">
           {cases.map((c) => (
@@ -145,7 +147,7 @@ export function SimilarCard({ w, className }: { w: WorkItem; className?: string 
           ))}
         </ul>
       ) : (
-        <p className="py-6 text-center text-[16px] text-ink-soft">Fără cazuri similare</p>
+        <p className="py-6 text-center text-[16px] text-ink-soft">No similar cases</p>
       )}
     </Card>
   );
@@ -154,20 +156,21 @@ export function SimilarCard({ w, className }: { w: WorkItem; className?: string 
 /** „Detalii date”: lipsa, sursele, problemele de intrare, sintetic. */
 export function DataCard({ w, className }: { w: WorkItem; className?: string }) {
   const q = w.data_quality;
-  const pill = (t: ReactNode) => <span className="inline-block min-w-16 rounded-full bg-[#121e30] px-3 py-1 text-center text-[14px] ring-1 ring-[#2a3a52]">{t}</span>;
+  const pill = (t: ReactNode) => <span className="inline-block min-w-16 rounded-full bg-surface-2 px-3 py-1 text-center text-[14px] ring-1 ring-[#2a3a52]">{t}</span>;
   return (
-    <Card title="Detalii date" icon={Database} iconTone="blue" className={className}>
-      <KV k="Lipsă date" v={pill(fmtPercent(q.missing_ratio, 1))} />
-      <KV k="Surse" v={pill(q.data_sources.length)} />
-      <KV k="Probleme de intrare" v={pill(q.input_issues?.length ? q.input_issues.length : "niciuna")} />
-      <KV k="Date sintetice" v={pill(q.synthetic ? "da" : "nu")} />
+    <Card title="Data quality" icon={Database} iconTone="blue" className={className}>
+      <KV k="Missing data" v={pill(fmtPercent(q.missing_ratio, 1))} />
+      <KV k="Sources" v={pill(q.data_sources.length)} />
+      <KV k="Input issues" v={pill(q.input_issues?.length ? q.input_issues.length : "none")} />
+      <KV k="Synthetic data" v={pill(q.synthetic ? "yes" : "no")} />
       <details className="group mt-2 text-[14px] text-ink-soft">
         <summary className="cursor-pointer list-none rounded-[6px] py-1 underline decoration-rule underline-offset-4 hover:text-ink focus-visible:outline-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
-          Arată sursele și problemele
+
+          Show sources and issues
         </summary>
         <ul className="mt-2 list-disc space-y-1 pl-5">
-          {q.data_sources.map((s) => <li key={s}>{s}</li>)}
-          {q.input_issues?.map((s) => <li key={s} className="text-att-ink">{s}</li>)}
+          {q.data_sources.map((s) => <li key={s}>{englishText(s)}</li>)}
+          {q.input_issues?.map((s) => <li key={s} className="text-att-ink">{englishText(s)}</li>)}
         </ul>
       </details>
     </Card>
@@ -179,15 +182,15 @@ export function ScoresCard({ source, report, className }: { source: Source; repo
   const rows = metricRows(source, report);
   const tone = SOURCE_TONE[source];
   return (
-    <Card title="Scoruri" icon={BarChart3} iconTone="blue" className={className}>
+    <Card title="Scores" icon={BarChart3} iconTone="blue" className={className}>
       {rows.length ? (
         <>
           <table className="w-full text-[15px]">
             <thead>
               <tr className="text-[14px] text-ink-soft">
-                <th scope="col" className="pb-2 text-left font-[500]">Metrica</th>
-                <th scope="col" className="pb-2 text-center font-[500]">Acest model</th>
-                <th scope="col" className="pb-2 text-center font-[500]">Bază</th>
+                <th scope="col" className="pb-2 text-left font-[500]">Metric</th>
+                <th scope="col" className="pb-2 text-center font-[500]">This model</th>
+                <th scope="col" className="pb-2 text-center font-[500]">Baseline</th>
               </tr>
             </thead>
             <tbody>
@@ -200,10 +203,10 @@ export function ScoresCard({ source, report, className }: { source: Source; repo
               ))}
             </tbody>
           </table>
-          {report?.baseline_id ? <p className="mt-2 text-[13px] text-ink-soft">Bază: {report.baseline_id}.</p> : null}
+          {report?.baseline_id ? <p className="mt-2 text-[13px] text-ink-soft">Baseline: {englishText(report.baseline_id)}.</p> : null}
         </>
       ) : (
-        <p className="py-6 text-center text-[16px] text-ink-soft">Raportul de evaluare nu e disponibil.</p>
+        <p className="py-6 text-center text-[16px] text-ink-soft">Evaluation report unavailable.</p>
       )}
     </Card>
   );
@@ -214,7 +217,7 @@ export function TrailCard({ ctx, className }: { ctx: ItemCtx; className?: string
   const { decision, audit } = ctx;
   const recent = audit.toSorted((a, b) => b.ts.localeCompare(a.ts)).slice(0, 3);
   return (
-    <Card title="Urme de decizie" icon={ScrollText} iconTone="amber" className={className}>
+    <Card title="Decision trace" icon={ScrollText} iconTone="amber" className={className}>
       {decision ? (
         <>
           <Headline className="text-[19px]">{sentence(ruleRo(decision.rule_id) ?? DECISION_LABEL_RO[decision.decision])}</Headline>
@@ -222,14 +225,14 @@ export function TrailCard({ ctx, className }: { ctx: ItemCtx; className?: string
           <p className="mt-3 line-clamp-6 text-[15px] text-ink-soft">{sentence(clampPercentRo(decision.reason_ro))}</p>
         </>
       ) : (
-        <p className="text-[16px] text-ink-soft">Lucrarea nu are încă o decizie în planul curent.</p>
+        <p className="text-[16px] text-ink-soft">This work item has no decision in the current plan.</p>
       )}
       {recent.length ? (
         <ol className="mt-3 space-y-1.5 border-t border-rule pt-3 text-[14px]">
           {recent.map((a) => (
             <li key={a.audit_id}>
-              <span className="font-[600]">{a.actor === "human" ? "Om" : "Agent"}</span>, {fmtMoment(a.ts)}: {auditActionRo(a.action)}
-              {a.note && a.note !== decision?.reason_ro ? <span className="line-clamp-2 block text-ink-soft">„{a.note}”</span> : null}
+              <span className="font-[600]">{a.actor === "human" ? "Human" : "Agent"}</span>, {fmtMoment(a.ts)}: {auditActionRo(a.action)}
+              {a.note && a.note !== decision?.reason_ro ? <span className="line-clamp-2 block text-ink-soft">„{englishText(a.note)}”</span> : null}
             </li>
           ))}
         </ol>

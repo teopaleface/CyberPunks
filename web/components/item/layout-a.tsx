@@ -1,3 +1,4 @@
+import { englishText } from "@/lib/english";
 import Link from "next/link";
 import { Activity, CalendarDays, ChartColumn, Clock, ClipboardList, Cpu, MapPin, TrendingUp, Wrench } from "lucide-react";
 import { ReviewActions } from "@/components/detail/review-actions";
@@ -28,15 +29,15 @@ function ConsumptionCard({ ctx }: { ctx: ItemCtx }) {
   const interval = intervalText(p.interval_low, p.interval_high);
   const headline = bilant
     ? p.point_estimate != null
-      ? `Lipsesc ${fmtDec(p.point_estimate, 0)} kWh pe zi peste normal.`
-      : "Bilanțul postului arată pierderi peste normal."
+      ? `Missing ${fmtDec(p.point_estimate, 0)} kWh per day above normal.`
+      : "The substation energy balance shows excess losses."
     : s.headline;
   const detail = bilant
-    ? (series?.points.length ? `Bilanț pe ${series.points.length} zile, ieșit din post față de suma clienților.` : null)
-    : [interval ? `Scor de defect ${fmtScore(p.score) === "1,00" ? "peste 0,99" : fmtScore(p.score)}, interval ${interval}` : null, s.detail].filter(Boolean).join(". ") || null;
+    ? (series?.points.length ? `Energy balance over ${series.points.length} days, comparing substation output with the customer total.` : null)
+    : [interval ? `Fault score ${fmtScore(p.score) === "1,00" ? "above 0.99" : fmtScore(p.score)}, interval ${interval}` : null, s.detail].filter(Boolean).join(". ") || null;
   const bil = series ? isBilantSeries(series) : false;
   return (
-    <Card title={bilant ? "Bilanț" : "Consum"} icon={TrendingUp} iconTone="blue" className="w-full">
+    <Card title={bilant ? "Energy balance" : "Consumption"} icon={TrendingUp} iconTone="blue" className="w-full">
       <Headline>{headline}</Headline>
       {detail ? <p className="mt-1.5 text-[15px] text-ink-soft">{detail}</p> : null}
       <div className="mt-3">
@@ -45,14 +46,14 @@ function ConsumptionCard({ ctx }: { ctx: ItemCtx }) {
             points={series.points}
             unit={series.unit}
             color="var(--src-a)"
-            label={series.title_ro}
+            label={englishText(series.title_ro)}
             height={bil ? 200 : 180}
           />
         ) : (
-          <p className="py-8 text-center text-[15px] text-ink-soft">Seria pentru grafic nu e disponibilă.</p>
+          <p className="py-8 text-center text-[15px] text-ink-soft">Chart data is unavailable.</p>
         )}
       </div>
-      {series ? <p className="mt-1 text-[13px] text-ink-soft">{series.synthetic ? "Date sintetice. " : ""}Linia continuă e valoarea, cea întreruptă e ce ar fi fost normal{bil ? " (suma clienților)" : ""}.</p> : null}
+      {series ? <p className="mt-1 text-[13px] text-ink-soft">{series.synthetic ? "Synthetic data. " : ""}The solid line shows the value; the dashed line shows the normal level{bil ? " (customer total)" : ""}.</p> : null}
     </Card>
   );
 }
@@ -64,7 +65,7 @@ function ShapCard({ ctx }: { ctx: ItemCtx }) {
     .slice(0, 3);
   return (
     <Card title="SHAP" icon={Cpu} iconTone="violet" className="w-full">
-      <Headline>Ce a cântărit cel mai mult.</Headline>
+      <Headline>Main contributing factors</Headline>
       <ul className="mt-3 divide-y divide-rule border-t border-rule">
         {top.map((f) => {
           const Icon = factorIcon(f.feature);
@@ -72,7 +73,7 @@ function ShapCard({ ctx }: { ctx: ItemCtx }) {
             <li key={f.feature} className="flex items-start gap-3 py-3">
               <Icon aria-hidden="true" size={22} strokeWidth={1.6} className="mt-0.5 shrink-0 text-violet" />
               <span className="min-w-0 flex-1 text-[16px] leading-snug">{factorLabelRo(f.label_ro)}</span>
-              <span className="shrink-0 text-[14.5px] font-[600] text-ink-soft tabular-nums" title="contribuția la scor (SHAP, log-odds)">
+              <span className="shrink-0 text-[14.5px] font-[600] text-ink-soft tabular-nums" title="Score contribution (SHAP, log-odds)">
                 {f.contribution >= 0 ? "+" : "−"}
                 {fmtDec(Math.abs(f.contribution), 2)}
               </span>
@@ -88,8 +89,8 @@ function RuleCard({ ctx }: { ctx: ItemCtx }) {
   const { w, decision, stop, scenario } = ctx;
   if (!decision) {
     return (
-      <Card title="Regula" icon={Wrench} iconTone="blue" className="w-full">
-        <p className="text-[16px] text-ink-soft">Lucrarea nu are încă o decizie în planul curent.</p>
+      <Card title="Rule" icon={Wrench} iconTone="blue" className="w-full">
+        <p className="text-[16px] text-ink-soft">This work item has no decision in the current plan.</p>
       </Card>
     );
   }
@@ -105,10 +106,10 @@ function RuleCard({ ctx }: { ctx: ItemCtx }) {
         <Headline>{fmtLei(ev)}</Headline>
       )}
       <p className="mt-1.5 text-[15px] text-ink-soft">
-        {cost != null ? "Valoarea așteptată față de costul acțiunii. " : "Valoarea așteptată. "}
+        {cost != null ? "Expected value compared with action cost. " : "Expected value. "}
         {ruleRo(decision.rule_id) ? sentence(ruleRo(decision.rule_id) as string) : ""}
       </p>
-      {stop ? <p className="mt-1 text-[15px]">Deplasare: {fmtKm(stop.travel_km)}.</p> : null}
+      {stop ? <p className="mt-1 text-[15px]">Travel: {fmtKm(stop.travel_km)}.</p> : null}
       <div className="mt-4 flex flex-wrap gap-3">
         {decision.decision === "human_review" ? (
           <div className="w-full">
@@ -117,7 +118,8 @@ function RuleCard({ ctx }: { ctx: ItemCtx }) {
         ) : (
           <Link href={`/harta?lucrare=${encodeURIComponent(w.work_item_id)}&scenariu=${encodeURIComponent(scenario)}`} className={btn("outline")}>
             <MapPin aria-hidden="true" size={18} />
-            Vezi pe hartă
+
+            View on map
           </Link>
         )}
       </div>
@@ -129,20 +131,20 @@ function TeamCard({ ctx }: { ctx: ItemCtx }) {
   const { decision, stop } = ctx;
   const auditId = decision?.audit_id;
   return (
-    <Card title={stop?.crew_id ? <span translate="no">{stop.crew_id}</span> : "Echipa"} icon={MapPin} iconTone="blue" className="w-full">
+    <Card title={stop?.crew_id ? <span translate="no">{stop.crew_id}</span> : "Crew"} icon={MapPin} iconTone="blue" className="w-full">
       {stop ? (
         <>
-          <Headline>Oprirea {stop.seq}</Headline>
+          <Headline>Stop {stop.seq}</Headline>
           <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-[15px]">
-            <span className="flex items-center gap-2"><Clock aria-hidden="true" size={20} className="text-ink-soft" />Sosire: <b className="font-[650] tabular-nums">{fmtTime(stop.eta)}</b></span>
+            <span className="flex items-center gap-2"><Clock aria-hidden="true" size={20} className="text-ink-soft" />Arrival: <b className="font-[650] tabular-nums">{fmtTime(stop.eta)}</b></span>
             {auditId ? <span className="flex items-center gap-2"><ClipboardList aria-hidden="true" size={20} className="text-ink-soft" />Audit: <b translate="no" className="font-[650]" title={auditId}>{auditId.slice(0, 8)}…</b></span> : null}
           </div>
-          <div className="mt-4"><Pill tone="green" size="lg" className="w-full justify-center">În traseu</Pill></div>
+          <div className="mt-4"><Pill tone="green" size="lg" className="w-full justify-center">Assigned</Pill></div>
         </>
       ) : (
         <>
-          <Headline>Fără echipă în traseu</Headline>
-          <p className="mt-2 line-clamp-4 text-[15px] text-ink-soft">{decision ? sentence(decision.reason_ro) : "Lucrarea nu e în niciun traseu."}</p>
+          <Headline>No crew assigned</Headline>
+          <p className="mt-2 line-clamp-4 text-[15px] text-ink-soft">{decision ? sentence(decision.reason_ro) : "This work item is not on a route."}</p>
           {auditId ? <p className="mt-3 flex items-center gap-2 text-[15px]"><ClipboardList aria-hidden="true" size={20} className="text-ink-soft" />Audit: <b translate="no" className="font-[650]" title={auditId}>{auditId.slice(0, 8)}…</b></p> : null}
           <div className="mt-3"><DecisionPill decision={decision} size="lg" /></div>
         </>

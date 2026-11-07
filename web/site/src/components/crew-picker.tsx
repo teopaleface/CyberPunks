@@ -67,7 +67,7 @@ export function CrewPicker({ item }: { item: Item }) {
   return (
     <div className="mt-6">
       <h3 className="font-sans text-base font-semibold">Alege echipajul</h3>
-      {need && <p className="mt-1 text-sm text-white/65">Lucrarea cere {SKILL_RO[need] ?? need}.</p>}
+      {need && <p className="mt-1 text-sm text-foreground/65">Lucrarea cere {SKILL_RO[need] ?? need}.</p>}
       <ul role="radiogroup" aria-label="Echipaje" className="mt-3 grid gap-2 sm:grid-cols-2 2xl:grid-cols-3">
         {rows.map(({ c, s, fits, dist }) => {
           const on = chosen === c.id
@@ -82,7 +82,7 @@ export function CrewPicker({ item }: { item: Item }) {
                 onClick={() => assign(item.id, c.id)}
                 className={cn(
                   "relative w-full cursor-pointer rounded-2xl p-3.5 text-left transition-[background-color,box-shadow,opacity] duration-150 disabled:cursor-wait",
-                  on ? "bg-surface-2 ring-2 ring-[rgb(24,65,232)] ring-inset" : "bg-white/[0.04] hover:bg-white/[0.08]",
+                  on ? "bg-surface-2 ring-2 ring-[rgb(24,65,232)] ring-inset" : "bg-foreground/[0.04] hover:bg-foreground/[0.08]",
                   !fits && !on && "opacity-55"
                 )}
               >
@@ -97,15 +97,15 @@ export function CrewPicker({ item }: { item: Item }) {
                     <span className="text-sm font-medium text-amber">Recomandat</span>
                   ) : null}
                 </div>
-                <div className="mt-0.5 text-sm text-white/70">
+                <div className="mt-0.5 text-sm text-foreground/70">
                   {c.depotRo}, la ~{fmt(dist)} km, {c.size} oameni, {c.skills.map((k) => SKILL_RO[k] ?? k).join(" și ")}
                 </div>
                 <div className="mt-2 flex items-center gap-2 text-sm">
                   <span className={cn("size-2 shrink-0 rounded-full", s.busy ? "bg-amber" : "bg-ok")} aria-hidden />
-                  <span className="text-white/85">{s.text}</span>
+                  <span className="text-foreground/85">{s.text}</span>
                 </div>
-                {mine > 0 && <div className="mt-1 text-sm text-white/60">+{mine} alocate de tine</div>}
-                {!fits && <div className="mt-1 text-sm text-white/55">Nu are {SKILL_RO[need!] ?? need}</div>}
+                {mine > 0 && <div className="mt-1 text-sm text-foreground/60">+{mine} alocate de tine</div>}
+                {!fits && <div className="mt-1 text-sm text-foreground/55">Nu are {SKILL_RO[need!] ?? need}</div>}
               </button>
             </li>
           )

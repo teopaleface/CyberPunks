@@ -1,12 +1,8 @@
 import { SectionSnap } from "@/components/section-snap"
-import { Balance } from "@/sections/balance"
-import { Demo } from "@/sections/demo"
 import { Footer } from "@/sections/footer"
-import { Global } from "@/sections/global"
 import { Hero } from "@/sections/hero"
 import { HowItWorks } from "@/sections/how-it-works"
 import { Plan } from "@/sections/plan"
-import { Screens } from "@/sections/screens"
 
 export default function Landing() {
   return (
@@ -15,10 +11,6 @@ export default function Landing() {
         <Hero />
         <Plan />
         <HowItWorks />
-        <Balance />
-        <Screens />
-        <Demo />
-        <Global />
       </main>
       <Footer screen />
     </SectionSnap>

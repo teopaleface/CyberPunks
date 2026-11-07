@@ -1,3 +1,5 @@
+import { requireConsole } from "@/lib/server/operations";
+import { englishText } from "@/lib/english";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -16,18 +18,18 @@ import {
 } from "@/lib/data";
 import { SOURCE_LABEL_RO } from "@/lib/data/labels";
 
-export const metadata = { title: "Diagnostic · Consola dispecerului" };
+export const metadata = { title: "Diagnostics · Dispatcher console" };
 
 export default function DebugPage() {
   return (
     <main className="mx-auto w-full max-w-5xl space-y-6 p-6 text-sm">
       <header>
-        <h1 className="text-xl font-semibold">Diagnostic</h1>
+        <h1 className="text-xl font-semibold">Diagnostics</h1>
         <p>
-          Configurarea, starea API-ului și sursa folosită de fiecare funcție. <Link href="/app">Înapoi</Link>
+          API health and data sources. <Link href="/app">Back</Link>
         </p>
       </header>
-      <Suspense fallback={<p>Verific sursele…</p>}>
+      <Suspense fallback={<p>Checking sources…</p>}>
         <DebugInfo />
       </Suspense>
     </main>
@@ -36,12 +38,13 @@ export default function DebugPage() {
 
 function count(result: Sourced<unknown>): string {
   const data = result.data;
-  if (data === null || data === undefined) return "nimic";
-  if (Array.isArray(data)) return `${data.length} înregistrări`;
-  return "da";
+  if (data === null || data === undefined) return "none";
+  if (Array.isArray(data)) return `${data.length} records`;
+  return "yes";
 }
 
 async function DebugInfo() {
+  await requireConsole();
   await connection();
   const config = getConfig();
   const probe = await probeApi({ force: true });
@@ -74,20 +77,20 @@ async function DebugInfo() {
   return (
     <>
       <section>
-        <h2 className="font-semibold">Configurare</h2>
+        <h2 className="font-semibold">Configuration</h2>
         <dl className="grid grid-cols-[max-content_1fr] gap-x-4">
           <dt>API_BASE</dt>
           <dd>{config.apiBase}</dd>
           <dt>DATA_SOURCE</dt>
           <dd>
             {config.dataSource}
-            {config.invalidDataSource ? ` (valoarea „${config.invalidDataSource}” nu e cunoscută)` : ""}
+            {config.invalidDataSource ? ` (unknown value "${config.invalidDataSource}")` : ""}
           </dd>
           <dt>REPO_ROOT</dt>
           <dd>{config.repoRoot}</dd>
           <dt>DEFAULT_SCENARIO</dt>
           <dd>{config.defaultScenario}</dd>
-          <dt>Sursa aleasă acum</dt>
+          <dt>Current data source</dt>
           <dd data-source={health.data.resolvedSource}>{health.data.resolvedSource}</dd>
         </dl>
       </section>
@@ -95,36 +98,36 @@ async function DebugInfo() {
       <section>
         <h2 className="font-semibold">API</h2>
         <p>
-          {probe.ok ? "Răspunde" : "Nu răspunde"} ({probe.latencyMs} ms, verificat la {probe.checkedAt})
-          {probe.error ? ` · ${probe.error}` : ""}
+          {probe.ok ? "Responding" : "Not responding"} ({probe.latencyMs} ms, checked at {probe.checkedAt})
+          {probe.error ? ` · ${englishText(probe.error)}` : ""}
         </p>
         {probe.health ? <pre>{JSON.stringify(probe.health, null, 2)}</pre> : null}
         <p>
-          Instantaneu demo pentru „{scenario}”: {health.data.demoAvailable ? "da" : "nu"} · Fixtures:{" "}
-          {health.data.fixturesAvailable ? "da" : "nu"}
+          Demo snapshot for &quot;{scenario}&quot;: {health.data.demoAvailable ? "yes" : "no"} · Fixtures:{" "}
+          {health.data.fixturesAvailable ? "yes" : "no"}
         </p>
       </section>
 
       <section>
-        <h2 className="font-semibold">Sursa fiecărei funcții</h2>
+        <h2 className="font-semibold">Data source by function</h2>
         <table className="w-full text-left">
           <thead>
             <tr>
-              <th>Funcția</th>
-              <th>Sursa</th>
-              <th>Date</th>
-              <th>Motiv</th>
-              <th>Detalii</th>
+              <th>Function</th>
+              <th>Source</th>
+              <th>Data</th>
+              <th>Reason</th>
+              <th>Details</th>
             </tr>
           </thead>
           <tbody>
             {rows.map(([name, result]) => (
               <tr key={name} className="align-top">
                 <td>{name}</td>
-                <td data-source={result?.source}>{result ? SOURCE_LABEL_RO[result.source] : "—"}</td>
+                <td data-source={result?.source}>{result ? englishText(SOURCE_LABEL_RO[result.source]) : "—"}</td>
                 <td>{result ? count(result) : "—"}</td>
-                <td>{result?.degradedReason ?? ""}</td>
-                <td className="break-all">{result?.detail ?? ""}</td>
+                <td>{englishText(result?.degradedReason ?? "")}</td>
+                <td className="break-all">{englishText(result?.detail ?? "")}</td>
               </tr>
             ))}
           </tbody>

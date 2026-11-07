@@ -87,5 +87,16 @@ Pe 17 iulie, Slobozia a fost pe locul 1 din 26 de zone după risc, la egalitate 
 | 27.11.2023 | 0.41 | 9 din 10 | 54 | 0.05 | CT-CONSTANTA 0.85, CT-MANGALIA 0.58, TL-TULCEA 0.49 |
 | 28.11.2023 | 0.18 | 4 din 10 | 75 | 0.12 | CS-RESITA 0.58, CT-CONSTANTA 0.43, CT-MANGALIA 0.43 |
 
+## Ordin de mărime, cu cifrele oficiale din România
+
+- Furtuna din 7-9 iulie 2025 a afectat circa 40.000 de consumatori (prefectul Timișului), adică 4,1% din cei 967.682 de utilizatori Rețele Electrice Banat.
+  - Dacă întreruperea a durat în medie 4 ore (IPOTEZĂ), furtuna adaugă circa 10 minute la SAIDI-ul anual al Banatului.
+  - Dacă întreruperea a durat în medie 8 ore (IPOTEZĂ), furtuna adaugă circa 20 de minute la SAIDI-ul anual al Banatului.
+  - Dacă întreruperea a durat în medie 12 ore (IPOTEZĂ), furtuna adaugă circa 30 de minute la SAIDI-ul anual al Banatului.
+- Rețele Electrice Banat, 2025, SAIDI din condiții meteorologice deosebite: 92,87 de minute în mediul rural la JT și 16,94 în mediul urban la JT (https://www.reteleelectrice.ro/wp-content/uploads/banat-anexa-2-2025.pdf). O singură furtună ca aceasta are, deci, același ordin de mărime cu minutele anuale din cauza vremii: cifrele din presă și cele oficiale se potrivesc ca mărime.
+- Modelul: suma vârfurilor așteptate pe zonele din Banat pe 7-8 iulie e de circa 15.710 de clienți (P × P50), același ordin de mărime cu cei circa 40.000 de consumatori cumulați în trei zile.
+- Pentru context: ANRE 2025 (prin Economica): 236 de minute de întrerupere pe client la nivel național, din care 91,41 neplanificate, https://www.economica.net/romanii-au-stat-fara-electricitate-in-medie-patru-ore-in-2025-situatie-putin-mai-proasta-fata-de-anul-precedent_961648.html. Cifrele ANRE sunt anuale, deci servesc doar la verificare, nu la antrenare.
+
+
 Pe 26-27 noiembrie, riscul mediu în Dobrogea a fost 0.64, față de 0.07 în Muntenia și Banat. Zona lovită iese în față și iarna.
 

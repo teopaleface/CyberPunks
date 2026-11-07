@@ -88,7 +88,7 @@ export function ThemedSelect<T extends string>({
   return (
     <div ref={wrap} className={cn("relative inline-flex items-center gap-2", className)}>
       {label && (
-        <span id={labelId} className="text-white/80">
+        <span id={labelId} className="text-foreground/80">
           {label}
         </span>
       )}
@@ -103,13 +103,13 @@ export function ThemedSelect<T extends string>({
         onClick={() => setOpen((o) => !o)}
         onKeyDown={onKey}
         className={cn(
-          "inline-flex h-10 min-w-36 cursor-pointer items-center justify-between gap-3 rounded-xl bg-surface-2 px-3.5 text-left text-white transition-colors duration-150",
-          "hover:bg-white/[0.1] focus-visible:ring-2 focus-visible:ring-[rgb(24,65,232)] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60",
-          open && "bg-white/[0.1]"
+          "inline-flex h-10 min-w-36 cursor-pointer items-center justify-between gap-3 rounded-xl bg-surface-2 px-3.5 text-left text-foreground transition-colors duration-150",
+          "hover:bg-foreground/[0.1] focus-visible:ring-2 focus-visible:ring-[rgb(24,65,232)] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60",
+          open && "bg-foreground/[0.1]"
         )}
       >
         <span id={`${listId}-v`}>{current?.label}</span>
-        <ChevronDown className={cn("size-4 text-white/60 transition-transform duration-200", open && "rotate-180")} aria-hidden />
+        <ChevronDown className={cn("size-4 text-foreground/60 transition-transform duration-200", open && "rotate-180")} aria-hidden />
       </button>
       <AnimatePresence>
         {open && (
@@ -121,7 +121,7 @@ export function ThemedSelect<T extends string>({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.12 }}
-            className="absolute top-[calc(100%+6px)] right-0 z-[1000] min-w-full overflow-hidden rounded-xl bg-[#1b1b1f] p-1 shadow-[0_16px_40px_-8px_rgba(0,0,0,.9)] ring-1 ring-white/10"
+            className="absolute top-[calc(100%+6px)] right-0 z-[1000] min-w-full overflow-hidden rounded-xl bg-surface-2 p-1 shadow-[0_16px_40px_-8px_rgba(0,0,0,.9)] ring-1 ring-foreground/10"
           >
             {options.map((o, i) => {
               const sel = o.value === value
@@ -138,11 +138,11 @@ export function ThemedSelect<T extends string>({
                   }}
                   className={cn(
                     "flex cursor-pointer items-center justify-between gap-6 rounded-lg px-3 py-2 whitespace-nowrap",
-                    i === active ? "bg-white/[0.08] text-white" : "text-white/80"
+                    i === active ? "bg-foreground/[0.08] text-foreground" : "text-foreground/80"
                   )}
                 >
                   {o.label}
-                  {sel && <Check className="size-4 text-amber" aria-hidden />}
+                  {sel && <Check className="size-4 text-accent-ink" aria-hidden />}
                 </li>
               )
             })}
