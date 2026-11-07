@@ -107,7 +107,7 @@ export function CasePicker({
                 <span className="block truncate text-sm text-foreground/65">{c.diagnosisRo}</span>
               </span>
               <span className="tabular shrink-0 text-right font-medium">
-                {c.lossLeiMonth ? lei(c.lossLeiMonth) : "0 lei"}
+                {c.lossLeiMonth === null ? "Unavailable" : lei(c.lossLeiMonth)}
                 <span className="block max-w-32 text-xs font-normal text-muted-foreground">{c.diagnosis === "contor_bilant_setat" && c.lossLeiMonth === 0 ? "measurement error, no physical loss" : "per month"}</span>
               </span>
             </button>
@@ -189,7 +189,7 @@ export function CaseDetail({ c, full = false }: { c: Case; full?: boolean }) {
           </div>
           <div className="tabular text-right">
             <div className="text-[clamp(1.8rem,2.8vw,2.6rem)] leading-none font-semibold text-accent-ink">{fmt(c.score * 100)}%</div>
-            <div className="mt-1 text-sm text-foreground/65">model confidence</div>
+            <div className="mt-1 text-sm text-foreground/65">probability of a problem</div>
           </div>
         </div>
 

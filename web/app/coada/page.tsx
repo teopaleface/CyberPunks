@@ -32,6 +32,7 @@ import { roundPct } from "@/lib/human";
 import { caseFacts, categoryOf, pageList, questionFor, whenText, type Category, type Fact } from "@/lib/queue-model";
 import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
 import { itemPlace } from "@/lib/plan-screen";
+import { causeConfidence } from "@/lib/prediction-confidence";
 
 export const metadata: Metadata = { title: "Needs review" };
 
@@ -180,13 +181,14 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
                       <th scope="col" className="w-9 py-2 pl-2 font-[450]">#</th>
                       <th scope="col" className="py-2 font-[450]">Substation / location</th>
                       <th scope="col" className="w-[22%] py-2 font-[450] max-sm:hidden">Reason</th>
-                      <th scope="col" className="w-[18%] py-2 text-right font-[450] max-[1600px]:hidden">Model score</th>
+                      <th scope="col" className="w-[18%] py-2 text-right font-[450] max-[1600px]:hidden" title="Cause confidence for energy-balance cases; event probability for other models">Cause / event</th>
                       <th scope="col" className="w-[20%] py-2 pr-1 text-right font-[450]">Impact</th><th scope="col" className="w-8"><span className="sr-only">Open case</span></th>
                     </tr>
                   </thead>
                   <tbody>
                     {rows.map((x, i) => {
                       const on = x.w.work_item_id === selected?.w.work_item_id;
+                      const probability = causeConfidence(x.w)?.top.probability ?? (x.w.prediction.model_id.startsWith("bilant") ? null : x.w.prediction.score);
                       return (
                         <tr key={x.w.work_item_id} className={cn("relative border-b border-rule/60 last:border-b-0", on && "bg-surface-2 outline outline-1 -outline-offset-1 outline-ink-soft")}>
                           <td className="py-2.5 pl-2 tabular-nums">{(page - 1) * PER_PAGE + i + 1}</td>
@@ -207,7 +209,7 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
                               <span className="truncate">{englishText(x.cat.label)}</span>
                             </Pill>
                           </td>
-                          <td className="py-2.5 pl-2 text-right font-[560] whitespace-nowrap tabular-nums max-[1600px]:hidden">{roundPct(x.w.prediction.score)}</td>
+                          <td className="py-2.5 pl-2 text-right font-[560] whitespace-nowrap tabular-nums max-[1600px]:hidden">{probability === null ? "Unavailable" : roundPct(probability)}</td>
                           <td className="py-2.5 pr-2 text-right font-[560] whitespace-nowrap tabular-nums">
                             {fmtLei(x.w.impact.expected_value_lei)}
                           </td>
@@ -312,6 +314,7 @@ function chartData(series: Series | null): { data: CasePoint[]; limit: number | 
 function Approval({ sel, scenario, series }: { sel: Waiting; scenario: string; series: Series | null }) {
   const { w, cat } = sel;
   const p = w.prediction;
+  const causes = causeConfidence(w);
   const place = itemPlace(w);
   const q = questionFor(w, place);
   const { data, limit } = chartData(series);
@@ -339,6 +342,16 @@ function Approval({ sel, scenario, series }: { sel: Waiting; scenario: string; s
       </h2>
       <p className="mt-3 text-[16px] leading-relaxed text-ink-soft">{englishText(sel.decision.reason_ro)}</p>
 
+      {causes ? (
+        <div className="mt-4 rounded-xl border border-rule bg-surface-2 p-4 text-[15px]" aria-label="Confidence in the cause">
+          <p className="font-medium">Possible causes</p>
+          <p className="mt-1">{causes.top.label}: {fmtInt(causes.top.probability * 100)}%. {causes.second.label}: {fmtInt(causes.second.probability * 100)}%.</p>
+          <p className="mt-1 text-ink-soft">Gap: {(causes.margin * 100).toFixed(1)} percentage points. Probability of a problem: {roundPct(p.score)}.</p>
+        </div>
+      ) : p.model_id.startsWith("bilant") && p.abstain ? (
+        <p className="mt-3 text-[15px] text-ink-soft">Cause probabilities are unavailable. The problem score below does not express confidence in its cause.</p>
+      ) : null}
+
       <details className="group/info mt-5 rounded-xl border border-rule bg-surface-2 p-4">
         <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-medium [&::-webkit-details-marker]:hidden">
           Evidence and model explanation
@@ -346,7 +359,7 @@ function Approval({ sel, scenario, series }: { sel: Waiting; scenario: string; s
         </summary>
       <div className="mt-4 grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)] items-center gap-x-4 gap-y-3 rounded-[12px] border border-rule bg-surface-2 px-4 py-4 max-md:grid-cols-1 max-md:justify-items-start">
         <div className="shrink-0">
-          <Gauge value={p.score} label={roundPct(p.score)} sub="model score" tone={srcTone} size={150} />
+          <Gauge value={p.score} label={roundPct(p.score)} sub={p.model_id.startsWith("bilant") ? "probability of a problem" : "event probability"} tone={srcTone} size={150} />
         </div>
         <div className="flex min-w-0 flex-col gap-3.5 border-l border-rule pl-4 max-md:border-l-0 max-md:pl-0">
           <div className="flex min-w-0 items-center gap-3">
