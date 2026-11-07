@@ -22,6 +22,20 @@ OUT = REPORTS / "B" / "error_analysis.md"
 EXPERIMENTS = REPORTS / "B" / "experiments.json"
 
 
+# Evenimente reale cunoscute din eșantion, ca verificare a lanțului de date (oră UTC -> zi locală, agregare, vreme).
+KNOWN_EVENTS = [
+    ("26075", "2023-02-22", "Furtuna de iarnă din februarie 2023, cu gheață: cel puțin 811.000 de întreruperi în Michigan",
+     "https://en.wikipedia.org/wiki/February_2023_North_American_winter_storm"),
+    ("17033", "2023-03-31", "Valul de tornade din 31 martie - 1 aprilie 2023",
+     "https://en.wikipedia.org/wiki/Tornado_outbreak_of_March_31_%E2%80%93_April_1,_2023"),
+    ("21005", "2024-09-27", "Resturile uraganului Helene", "https://en.wikipedia.org/wiki/Hurricane_Helene"),
+    ("36031", "2023-03-14", "Furtuna de zăpadă din martie 2023 (nor'easter)",
+     "https://en.wikipedia.org/wiki/2022%E2%80%9323_North_American_winter"),
+    ("21005", "2025-11-12", ("Posibil artefact de date: două comitate vecine (Anderson și Clark, KY) peste 60%, fără vânt "
+     "sau ploaie semnificative"), ""),
+]
+
+
 def weather_type(df: pd.DataFrame) -> pd.Series:
     """Tipul de vreme al zilei, după reguli simple (ordinea contează)."""
     t = pd.Series("fără semnal meteo puternic", index=df.index)
@@ -126,6 +140,29 @@ def run() -> str:
             date=fp["date"].dt.date, pct_out_max=fp["pct_out_max"].round(4), p=fp["p"].round(3))),
         "",
     ]
+    known_rows = []
+    for fips, day, what, url in KNOWN_EVENTS:
+        r = df[(df["fips"] == fips) & (df["date"] == pd.Timestamp(day))]
+        if r.empty:
+            continue
+        r = r.iloc[0]
+        in_test = int(r["year"]) == TEST_YEAR
+        p_txt = f"{float(model.predict_proba(r.to_frame().T.astype({f: float for f in model.features}))[0]):.2f}" \
+            if in_test else "an de antrenare"
+        known_rows.append({"eveniment": what + (f" ({url})" if url else ""), "comitat": f"{r['county']}, {r['state']}",
+                           "ziua": day, "vârf": f"{r['pct_out_max']:.0%}", "rafală": round(float(r["gust_max"])),
+                           "ploaie 48 h": round(float(r["precip_48h"]), 1), "ploaie la sub 0 °C": round(float(r["ice_proxy"]), 1),
+                           "zăpadă 3 zile": round(float(r["snow_3d"]), 1), "P model": p_txt})
+    if known_rows:
+        parts += [
+            "## Verificare pe evenimente cunoscute",
+            "",
+            ("Zilele din anii de antrenare arată doar că datele sunt citite corect (ora, ziua, vremea). Nu sunt o evaluare: "
+             "modelul le-a văzut."),
+            "",
+            md(pd.DataFrame(known_rows)),
+            "",
+        ]
     ev = te[te["event"] == 1]
     inside = ((ev["pct_out_max"] >= ev["q10"]) & (ev["pct_out_max"] <= ev["q90"])).mean()
     above = (ev["pct_out_max"] > ev["q90"]).mean()

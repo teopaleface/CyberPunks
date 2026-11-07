@@ -295,6 +295,24 @@ def figures(te: pd.DataFrame, p: dict[str, np.ndarray], model: BModel) -> list[s
     fig.savefig(OUT_DIR / "fig_reliability.png", dpi=130)
     plt.close(fig)
     files.append("fig_reliability.png")
+    # rata evenimentelor pe intervale de rafală, față de probabilitatea medie prezisă
+    bins = pd.cut(te["gust_max"], GUST_BINS, right=False)
+    g = pd.DataFrame({"bin": bins, "y": y, "p": p["model"]}).groupby("bin", observed=True).agg(
+        rata=("y", "mean"), p=("p", "mean"), n=("y", "size"))
+    g = g[g["n"] >= 20]
+    fig, ax = plt.subplots(figsize=(6.5, 4))
+    xs = np.arange(len(g))
+    ax.bar(xs - 0.2, g["rata"], width=0.4, label="Frecvența reală a avariilor", color="#c8553d")
+    ax.bar(xs + 0.2, g["p"], width=0.4, label="Probabilitatea medie prezisă", color="#2f6db5")
+    ax.set_xticks(xs, [f"{int(b.left)}-{int(b.right) if b.right < 1000 else '+'}" for b in g.index], fontsize=8)
+    ax.set_xlabel("Rafala maximă a zilei (km/h)")
+    ax.set_ylabel("Zile cu vârf ≥ 1% din clienți")
+    ax.set_title(f"Test {TEST_YEAR}: avarii după rafală (n ≥ 20 zile pe interval)")
+    ax.legend(fontsize=8)
+    fig.tight_layout()
+    fig.savefig(OUT_DIR / "fig_gust_bins.png", dpi=130)
+    plt.close(fig)
+    files.append("fig_gust_bins.png")
     # importanța SHAP
     sv = shap_values(model, te)[:, :-1]
     imp = pd.Series(np.abs(sv).mean(axis=0), index=model.features).sort_values()
