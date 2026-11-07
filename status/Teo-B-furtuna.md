@@ -1,7 +1,7 @@
 # Status: Teo-B-furtuna
-Actualizat: 2026-11-07 16:15
+Actualizat: 2026-11-07 16:50
 Milestone curent: M1 și M2 gata; testele de robustețe din M3 gata. **LIBER până la 02:00** (atunci adaug vremea 2021-2022)
-Gata de merge: da (commit 1012811): teste de robustețe cap-coadă și regula pentru zone în afara antrenării
+Gata de merge: da (commit 0d15900): `docs/QA-JURIU.md` și al treilea caz în backtest (viscolul din Dobrogea)
 
 ## Făcut
 - 12:44 Citit memoria, tema, planul, contractele, fixture-urile. `uv sync` și `make check` trec.
@@ -25,8 +25,12 @@ Gata de merge: da (commit 1012811): teste de robustețe cap-coadă și regula pe
   - (2) `maine` pe prognoza reală (8 nov. 2026): zi liniștită, rafale de 7-27 km/h, fără ploaie; risc de 1-6% pe toate cele 26 de zone; 0 echipe recomandate. Fraza nouă: „Vreme liniștită: rafale de până la X km/h, fără ploaie. Echipele rămân la lucrările obișnuite.”
   - Schimbare de regulă găsită la (2): Bucureștiul mergea la om în fiecare zi doar pentru că e mai mare decât orice comitat din antrenare. Acum o zonă în afara antrenării merge la om doar pe vreme periculoasă (rafale ≥ 50 km/h în 2 zile, ploaie ≥ 15 mm în 48 h, zăpadă ≥ 3 cm sau polei). Vremea în afara antrenării merge la om mereu. Rezultat: `maine` are 0 zone la om (înainte 1), `demo-vara` are 0 la om și 12 echipe, toate în Banat.
 
+- 16:35 **Al treilea caz în backtest, de iarnă: viscolul din Dobrogea, 26-27 nov. 2023.** ANM a dat cod portocaliu de viscol, cu rafale de 75-85 km/h, iar Rețele Electrice Dobrogea a raportat circa 61.000 de clienți din 99 de localități fără curent la o actualizare. Pe 26 noiembrie, riscul mediu e 0,87 în Dobrogea față de 0,09 în rest, iar toate cele 10 zone din Dobrogea primesc echipă. Scorurile din lucrări sunt plafonate la 0,99: calibrarea dădea 1,00, iar un model nu e niciodată sigur.
+- 16:45 **`docs/QA-JURIU.md` (sarcina de echipă de la 16:20):** 30 de întrebări probabile ale juriului, fiecare cu un răspuns de 2-3 propoziții, cu cifra și fișierul din care vine. Acoperă datele, train/test, metodele simple, precizia@K a lui A, transferul SUA-România, intervalele, agentul, bilanțul, etica, costurile și ce trebuie confirmat cu PPC. Fișierul se încheie cu „Puncte slabe”, 9 puncte de reparat: integrarea cu S3, Spark și NiFi nedescrisă; valoarea netă a agentului pe ziua demo; cifrele care nu se potrivesc între fișierele lui A; textul „False” din `reports/bilant/demo_posts.md` etc. Cifrele celorlalte fire au fost verificate direct în fișiere.
+- Planificatorul a preluat cererile 9 și 10: `storm.customers_helped_per_crew_shift: 500` și `storm.preposition_min_score: 0.15`. B folosește deja plafonul: la Timișoara, pe 8 iulie, valoarea dacă se produce avaria e 15.000 lei.
+
 ## Urmează
-- **Liber până la 02:00.** Dacă orchestratorul are ceva pentru B sau altă sarcină, o iau.
+- **Liber până la 02:00** (Q&A gata). Dacă orchestratorul are altă sarcină, o iau. Descărcarea vremii pentru 2021-2022 pornește singură la 02:05 (proces în fundal, jurnal în `data/raw/B/logs/openmeteo_us_2021_2022.log`) și se oprește singură dacă cota nu s-a refăcut.
 - 02:00: vremea pentru 2021-2022 la aceleași 80 de comitate (circa 4.200 de apeluri, în ritm lent). Reantrenez pe 2021-2024 și testez pe același 2025. Modelul nou rămâne doar dacă e mai bun pe același test (PR-AUC și Brier, plus statele nevăzute); altfel rămâne cel de acum, iar rezultatul intră în „Ce am încercat”.
 - M4 (08:00): model card și `docs/data/B.md` refăcute din cifrele finale, curățenie.
 
