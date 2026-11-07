@@ -98,7 +98,9 @@ export function DemoStage({
     const onKey = (e: KeyboardEvent) => {
       if (e.defaultPrevented) return;
       const el = e.target instanceof HTMLElement ? e.target : null;
-      if (el && (/^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/i.test(el.tagName) || el.closest('[role="button"]'))) return;
+      if (el && (/^(INPUT|TEXTAREA|SELECT)$/i.test(el.tagName) || el.isContentEditable)) return;
+      // pe butoane și linkuri, Space și Enter le apasă pe ele; săgețile și cifrele schimbă scena
+      if (el && (e.key === " " || e.key === "Enter") && (/^(BUTTON|A)$/i.test(el.tagName) || el.closest('[role="button"]'))) return;
       setAutoOn(false); // orice tastă oprește derularea automată
       if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
         e.preventDefault();

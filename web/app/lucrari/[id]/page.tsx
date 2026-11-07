@@ -91,6 +91,13 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
   const choice = remedies?.data.find((r) => r.work_item_id === w.work_item_id);
   const verdict = verdictRo(w, decision, { chosen: chosenCombo, costLei: choice?.cost_lei ?? null });
   const fusion = bilantFusion(w);
+  // confirmarea vine din pragurile deciziei (fusion_confirmed); altfel din nota bilanțului
+  const fusionConfirmed =
+    typeof decision?.threshold?.fusion_confirmed === "boolean"
+      ? (decision.threshold.fusion_confirmed as boolean)
+      : fusion && /nu confirmă/i.test(fusion.note_ro)
+        ? false
+        : null;
   const summary = clampPercentRo(w.explanation.summary_ro);
   const summaryShort = summary.length <= 220;
   const chartTitle = series.data?.title_ro ?? "Ce vede modelul";
@@ -102,7 +109,7 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
       {/* antetul, subțire: înapoi, codul lucrării, locul */}
       <section className="border-b border-rule bg-panel">
         <div className="mx-auto flex max-w-[1100px] flex-wrap items-center gap-x-5 gap-y-2 px-7 py-3.5">
-          <Link href={`/?lucrare=${encodeURIComponent(w.work_item_id)}`} className="text-[15px] text-muted-foreground underline decoration-rule underline-offset-4 hover:text-ink">
+          <Link href={`/?scenariu=${encodeURIComponent(scenario)}`} className="text-[15px] text-muted-foreground underline decoration-rule underline-offset-4 hover:text-ink">
             Planul de mâine
           </Link>
           <span className="h-5 w-px bg-rule" aria-hidden="true" />
@@ -116,16 +123,14 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
         <VerdictBlock verdict={verdict}>
           {invalid ? (
             <span className="inline-block rounded-[4px] border border-att px-3 py-1.5 text-[16px] font-[600] text-att-ink">Respinsă la intrare: date greșite</span>
-          ) : decision ? (
+          ) : decision && chosenCombo.length > 1 ? null : decision ? (
             <span
               className={
                 "inline-block rounded-[4px] px-3 py-1.5 text-[16px] font-[600] " +
                 (decision.decision === "human_review" ? "bg-att text-on-att" : "bg-ink text-panel")
               }
             >
-              {chosenCombo.length > 1
-                ? sentence(chosenCombo.map((a) => ACTION_RO[a as keyof typeof ACTION_RO] ?? a.replaceAll("_", " ")).join(" + "))
-                : sentence(DECISION_LABEL_RO[decision.decision]).replace(/\.$/, "")}
+              {sentence(DECISION_LABEL_RO[decision.decision]).replace(/\.$/, "")}
               {decision.crew_id ? `, ${decision.crew_id}` : ""}
             </span>
           ) : (
@@ -209,7 +214,10 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
           ) : null}
 
           {fusion ? (
-            <Disclosure title={`Confirmat de bilanțul postului ${fusion.post_id}`} hint="două surse independente">
+            <Disclosure
+              title={`Verificat cu bilanțul postului ${fusion.post_id}`}
+              hint={fusionConfirmed === true ? "bilanțul confirmă" : fusionConfirmed === false ? "bilanțul nu confirmă; scorul rămâne al modelului A" : "a doua sursă, independentă"}
+            >
               <p className="max-w-[72ch] text-[16px]">{fusion.note_ro}</p>
               <p className="mt-2 text-[15.5px]">
                 Scorul contorului: {fmtScore(fusion.a_score)} → {fmtScore(fusion.combined_score)} după confirmare. La post lipsesc{" "}
@@ -313,7 +321,7 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
           </Disclosure>
 
           <Disclosure title="Urmărirea până la model" hint="ID-uri, model, jurnalul deciziei">
-            <dl className="grid grid-cols-[150px_minmax(0,1fr)] gap-x-4 text-[15px] [&>dd]:border-t [&>dd]:border-rule [&>dd]:py-1.5 [&>dt]:border-t [&>dt]:border-rule [&>dt]:py-1.5 [&>dt]:text-muted-foreground">
+            <dl className="grid grid-cols-[150px_minmax(0,1fr)] gap-x-4 text-[15px] [&_dd]:border-t [&_dd]:border-rule [&_dd]:py-1.5 [&_dt]:border-t [&_dt]:border-rule [&_dt]:py-1.5 [&_dt]:text-muted-foreground">
               <dt>ID predicție</dt>
               <dd className="dense font-[560] break-all">{p.prediction_id}</dd>
               <dt>Model</dt>
@@ -398,7 +406,7 @@ function DecisionBlock({ w, decision }: { w: WorkItem; decision: Decision | null
         </span>
       </div>
       {Object.keys(t).length ? (
-        <dl className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 text-[15px] [&>dd]:border-t [&>dd]:border-rule [&>dd]:py-1.5 [&>dd]:text-right [&>dd]:tabular-nums [&>dt]:border-t [&>dt]:border-rule [&>dt]:py-1.5 [&>dt]:text-muted-foreground">
+        <dl className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 text-[15px] [&_dd]:border-t [&_dd]:border-rule [&_dd]:py-1.5 [&_dd]:text-right [&_dd]:tabular-nums [&_dt]:border-t [&_dt]:border-rule [&_dt]:py-1.5 [&_dt]:text-muted-foreground">
           {Object.entries(t).map(([k, v]) => (
             <div key={k} className="contents">
               <dt title={k}>{thresholdLabelRo(k)}</dt>
@@ -423,7 +431,7 @@ function DecisionBlock({ w, decision }: { w: WorkItem; decision: Decision | null
           </p>
         </div>
       ) : null}
-      <dl className="mt-4 grid grid-cols-[150px_minmax(0,1fr)] gap-x-4 text-[15px] [&>dd]:py-1 [&>dt]:py-1 [&>dt]:text-muted-foreground">
+      <dl className="mt-4 grid grid-cols-[150px_minmax(0,1fr)] gap-x-4 text-[15px] [&_dd]:py-1 [&_dt]:py-1 [&_dt]:text-muted-foreground">
         <dt>Recomandarea modelului</dt>
         <dd>{ACTION_RO[w.recommended_action]}</dd>
         <dt>Efort</dt>

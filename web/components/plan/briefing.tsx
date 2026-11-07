@@ -83,7 +83,10 @@ export function Briefing({
           {b.numbers.map((n) => (
             <div key={n.label} className="flex flex-col-reverse">
               <dt className="mt-1 text-[17px] text-muted-foreground">{n.label}</dt>
-              <dd className={cn("num-wide text-[56px] leading-none max-[1500px]:text-[46px]", n.attention && "text-att")}>{n.value}</dd>
+              <dd className={cn("num-wide text-[56px] leading-none max-[1500px]:text-[46px]", n.attention && "text-att")}>
+                {n.approx ? <span className="mr-2 align-middle font-sans text-[18px] font-[500] tracking-normal text-muted-foreground">circa</span> : null}
+                {n.value}
+              </dd>
             </div>
           ))}
         </dl>
@@ -121,7 +124,7 @@ function NextCase({ briefing: b, scenario, highlight = false }: { briefing: Brie
       const result = await submitReview(next.decision.work_item_id, decision, "", scenario);
       setActing(null);
       if (result.ok) {
-        toast.success(`${REVIEW_DONE[decision]} ${next.decision.work_item_id}`, { description: "Decizia ta a intrat în jurnal, iar planul se recalculează." });
+        toast.success(`${REVIEW_DONE[decision]}: ${next.place}`, { description: "Decizia ta a intrat în jurnal, iar planul se recalculează." });
         router.refresh();
       } else {
         toast.error("Decizia nu s-a salvat", { description: result.error });
@@ -141,13 +144,13 @@ function NextCase({ briefing: b, scenario, highlight = false }: { briefing: Brie
       </h2>
       <p className="mt-2 max-w-[40ch] text-[19px] leading-[1.45] text-ink-soft">{next.what}</p>
       <div className="mt-6 flex flex-wrap gap-2.5">
-        <Button size="panel" onClick={() => act("approve")} disabled={pending} className="active:scale-[0.98]">
+        <Button size="panel" onClick={() => act("approve")} disabled={pending} aria-describedby="caz" className="active:scale-[0.98]">
           {acting === "approve" ? "Se trimite…" : "Aprobă"}
         </Button>
-        <Button size="panel" variant="outline" onClick={() => act("reject")} disabled={pending} className="active:scale-[0.98]">
+        <Button size="panel" variant="outline" onClick={() => act("reject")} disabled={pending} aria-describedby="caz" className="active:scale-[0.98]">
           {acting === "reject" ? "Se trimite…" : "Respinge"}
         </Button>
-        <Button size="panel" variant="outline" onClick={() => act("defer")} disabled={pending} className="active:scale-[0.98]">
+        <Button size="panel" variant="outline" onClick={() => act("defer")} disabled={pending} aria-describedby="caz" className="active:scale-[0.98]">
           {acting === "defer" ? "Se trimite…" : "Amână"}
         </Button>
       </div>
@@ -217,7 +220,7 @@ function CrewsDialog({ groups, crewsUsed, crewsTotal, primary = false }: { group
         </DialogHeader>
         <div className="mt-2 space-y-8">
           {groups.map((g) => (
-            <section key={g.label} aria-label={g.label}>
+            <section key={g.label}>
               <h3 className="text-[17px] font-[600] text-muted-foreground">{g.label}</h3>
               <ul className="mt-2 divide-y divide-rule border-y border-rule">
                 {g.crews.map((c) => (
@@ -362,7 +365,8 @@ function MapCard({ data, theme = "light" }: { data: PlanScreenData; theme?: "lig
         />
       </div>
       <p className="mt-3 text-[16.5px] leading-snug text-ink-soft">
-        Doar traseele {region ? `din ${region.label}` : ""}.{outside ? ` ${plural(outside, "echipă e", "echipe sunt")} în alte regiuni.` : ""} Restul lucrărilor apar pe harta mare.
+        {region ? `Doar traseele din ${region.label}.` : "Doar traseele."}
+        {outside ? ` ${plural(outside, "echipă e", "echipe sunt")} în alte regiuni.` : ""} Restul lucrărilor apar pe harta mare.
       </p>
       <Link href={`/harta?scenariu=${encodeURIComponent(data.scenario)}`} className="mt-2 inline-block text-[17px] underline decoration-rule underline-offset-[5px] hover:decoration-ink">
         Deschide harta mare

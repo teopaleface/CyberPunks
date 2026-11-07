@@ -86,7 +86,7 @@ function PlanSkeleton() {
         <div className="h-5 w-80 animate-pulse rounded-[3px] bg-muted motion-reduce:animate-none" />
         <div className="mt-4 h-[110px] w-[min(880px,70%)] animate-pulse rounded-[4px] bg-muted motion-reduce:animate-none" />
         <div className="mt-8 h-12 w-64 rounded-[4px] bg-muted" />
-        <div className="mt-14 grid grid-cols-3 gap-14 max-[1500px]:grid-cols-2">
+        <div className="mt-14 grid grid-cols-2 gap-14 min-[1700px]:grid-cols-3">
           <div className="h-[300px] rounded-[6px] bg-panel" />
           <div className="h-[300px] rounded-[6px] bg-panel/60" />
           <div className="h-[400px] rounded-[6px] bg-panel/60" />

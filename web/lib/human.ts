@@ -37,7 +37,7 @@ export function approxNumber(n: number): { value: string; approx: boolean } {
 
 /** Procente rotunjite la întreg: 0,2178 → „22%”. */
 export function roundPct(ratio: number): string {
-  return `${Math.round(ratio * 100)}%`;
+  return ratio >= 0.995 && ratio < 1.005 ? "peste 99%" : `${Math.round(ratio * 100)}%`;
 }
 
 export type ConfidenceWord = "încredere mare" | "încredere medie" | "încredere mică";

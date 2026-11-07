@@ -110,7 +110,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
     <AppShell info={info}>
       <section className="border-b border-rule bg-panel">
         <div className="mx-auto flex max-w-[1100px] flex-wrap items-center gap-x-5 gap-y-2 px-7 py-3.5">
-          <Link href="/posturi" className="text-[15px] text-muted-foreground underline decoration-rule underline-offset-4 hover:text-ink">
+          <Link href={`/posturi?scenariu=${encodeURIComponent(scenario)}`} className="text-[15px] text-muted-foreground underline decoration-rule underline-offset-4 hover:text-ink">
             Toate posturile
           </Link>
           <span className="h-5 w-px bg-rule" aria-hidden="true" />
@@ -167,7 +167,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
           <h2 id="sum-title" className="text-[20px] font-[620]">
             Pe scurt
           </h2>
-          <dl className="mt-2 grid grid-cols-[minmax(0,15rem)_minmax(0,1fr)] gap-x-6 [&>dd]:border-t [&>dd]:border-rule [&>dd]:py-2 [&>dt]:border-t [&>dt]:border-rule [&>dt]:py-2 [&>dt]:text-muted-foreground">
+          <dl className="mt-2 grid grid-cols-[minmax(0,15rem)_minmax(0,1fr)] gap-x-6 [&_dd]:border-t [&_dd]:border-rule [&_dd]:py-2 [&_dt]:border-t [&_dt]:border-rule [&_dt]:py-2 [&_dt]:text-muted-foreground">
             <dt>Pierderi pe lună</dt>
             <dd>
               {post.loss_lei_month != null ? `${approxLei(post.loss_lei_month)}, ${status.label}` : "necunoscute"}
@@ -224,7 +224,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
                   return (
                     <li key={w.work_item_id} className="grid grid-cols-[36px_minmax(0,1.2fr)_minmax(0,1fr)_110px_minmax(0,1fr)] items-center gap-x-4 py-2.5 text-[15px]">
                       <span className="block size-9" dangerouslySetInnerHTML={{ __html: markerSvg({ source: "A", kind: markerKind(d?.decision) }) }} />
-                      <Link href={`/lucrari/${encodeURIComponent(w.work_item_id)}`} translate="no" className="code-id underline decoration-rule underline-offset-4 hover:decoration-ink">
+                      <Link href={`/lucrari/${encodeURIComponent(w.work_item_id)}?scenariu=${encodeURIComponent(scenario)}`} translate="no" className="code-id underline decoration-rule underline-offset-4 hover:decoration-ink">
                         {w.asset_id}
                       </Link>
                       <span className="text-muted-foreground">{predictionLabelRo(w.prediction.label)}</span>
@@ -259,7 +259,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
                   <SeriesLegend source="C" />
                 </div>
               ) : null}
-              <Link href={`/lucrari/${encodeURIComponent(cItem.work_item_id)}`} className="mt-3 inline-block text-[15px] font-[600] underline decoration-rule underline-offset-4 hover:decoration-ink">
+              <Link href={`/lucrari/${encodeURIComponent(cItem.work_item_id)}?scenariu=${encodeURIComponent(scenario)}`} className="mt-3 inline-block text-[15px] font-[600] underline decoration-rule underline-offset-4 hover:decoration-ink">
                 Deschide lucrarea de tensiune
               </Link>
             </Disclosure>
@@ -278,7 +278,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
           ) : null}
 
           <Disclosure title="Cifrele exacte" hint="lei, kWh, tensiune, culoarea de pe hartă">
-            <dl className="grid grid-cols-[minmax(0,15rem)_minmax(0,1fr)] gap-x-6 text-[15.5px] [&>dd]:border-t [&>dd]:border-rule [&>dd]:py-1.5 [&>dt]:border-t [&>dt]:border-rule [&>dt]:py-1.5 [&>dt]:text-muted-foreground">
+            <dl className="grid grid-cols-[minmax(0,15rem)_minmax(0,1fr)] gap-x-6 text-[15.5px] [&_dd]:border-t [&_dd]:border-rule [&_dd]:py-1.5 [&_dt]:border-t [&_dt]:border-rule [&_dt]:py-1.5 [&_dt]:text-muted-foreground">
               <dt>Pierderi pe lună</dt>
               <dd>{post.loss_lei_month != null ? `${fmtInt(post.loss_lei_month)} lei` : "necunoscute"}</dd>
               <dt>Lipsă pe zi</dt>

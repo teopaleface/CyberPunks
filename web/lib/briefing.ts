@@ -3,7 +3,7 @@
  * Totul vine din PlanScreenData (nicio cifră inventată); funcție pură, fără cod de server.
  */
 import type { Decision, WorkItem } from "@/lib/contracts";
-import { plural, sentence } from "@/lib/format";
+import { fmtInt, plural, sentence } from "@/lib/format";
 import { predictionLabelRo } from "@/lib/data/labels";
 import { approxNumber, confidenceWord } from "@/lib/human";
 import type { PlanScreenData } from "@/lib/plan-screen";
@@ -102,6 +102,14 @@ function stormStart(data: PlanScreenData): string | null {
   return starts.length ? hhmmOf(starts[0]) : null;
 }
 
+/** De ce decide un om, într-o frază care nu se contrazice: abținere, încredere mică/medie sau motivul regulii. */
+function whyHuman(d: Decision, w: WorkItem, conf: string): string {
+  if (w.prediction.abstain) return "Modelul s-a abținut: nu poate decide singur.";
+  if (w.prediction.confidence !== "high") return `Modelul nu e sigur: ${conf.replace("încredere ", "încrederea e ")}.`;
+  const first = (d.reason_ro ?? "").split(/(?<=\.)\s/)[0]?.trim();
+  return first ? sentence(first) : "Agentul cere decizia unui om.";
+}
+
 /** Titlul unui caz, cu locul: „Zona Ineu, Arad”, „PT-1182, Sector 3, București”, „Contor MTR-004149, PT-1081, Sector 3”. */
 export function placeOf(w: WorkItem): string {
   const title = itemTitle(w);
@@ -123,7 +131,7 @@ export function toBriefing(data: PlanScreenData): Briefing {
     ? `Mâine: ${plural(assigned, "lucrare", "lucrări")} pentru ${plural(crewsUsed, "echipă", "echipe")}.`
     : "Mâine nu pleacă nicio echipă.";
   const second = queue.length
-    ? `${plural(queue.length, "caz", "cazuri")} ${queue.length === 1 ? "așteaptă" : "așteaptă"} decizia ta.`
+    ? `${plural(queue.length, "caz", "cazuri")} așteaptă decizia ta.`
     : "Nimic nu așteaptă decizia ta.";
 
   const stormCrews = lines.filter((c) => c.storm);
@@ -135,9 +143,9 @@ export function toBriefing(data: PlanScreenData): Briefing {
 
   const value = approxNumber(s.expected_value_lei ?? 0);
   const numbers: Briefing["numbers"] = [
-    { value: String(assigned), label: assigned === 1 ? "lucrare în trasee" : "lucrări în trasee" },
-    { value: String(queue.length), label: "așteaptă decizia ta", attention: queue.length > 0 },
-    { value: value.value, label: value.approx ? "lei valoare, circa" : "lei valoare", approx: value.approx },
+    { value: fmtInt(assigned), label: assigned === 1 ? "lucrare în trasee" : "lucrări în trasee" },
+    { value: fmtInt(queue.length), label: "așteaptă decizia ta", attention: queue.length > 0 },
+    { value: value.value, label: "lei valoare așteptată", approx: value.approx },
   ];
 
   // grupuri: întâi echipele obișnuite, pe regiuni, apoi cele de furtună
@@ -177,9 +185,7 @@ export function toBriefing(data: PlanScreenData): Briefing {
       decision: d0,
       item: w0,
       place: placeOf(w0),
-      what: `${sentence(predictionLabelRo(w0.prediction.label)).replace(/\.$/, "")}. ${
-        w0.prediction.abstain ? "Modelul s-a abținut: nu poate decide singur." : `Modelul nu e sigur: ${conf.replace("încredere ", "încrederea e ")}.`
-      }`,
+      what: `${sentence(predictionLabelRo(w0.prediction.label)).replace(/\.$/, "")}. ${whyHuman(d0, w0, conf)}`,
       confidence: conf,
     };
   }

@@ -41,7 +41,7 @@ export function NavTabs({ review, alerts }: { review: number; alerts: number }) 
   const scenario = useSearchParams().get("scenariu");
   const withScenario = (href: string) => (scenario ? `${href}?scenariu=${encodeURIComponent(scenario)}` : href);
   const main: Tab[] = [
-    { href: "/", label: "Planul de mâine", match: (p) => p === "/" || p.startsWith("/lucrari") },
+    { href: "/", label: "Planul de mâine", match: (p) => p === "/" || p.startsWith("/harta") || p.startsWith("/lucrari") },
     { href: "/coada", label: "De decis", count: review, attention: review > 0, match: (p) => p.startsWith("/coada") },
     { href: "/posturi", label: "Posturi", match: (p) => p.startsWith("/posturi") },
   ];
