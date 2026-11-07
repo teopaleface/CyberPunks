@@ -1,5 +1,5 @@
 # Status: Teo-prezentare
-Actualizat: 2026-11-07 16:22
+Actualizat: 2026-11-07 17:22
 Milestone curent: filmul e OPRIT (decizia lui Teo): doar cadre statice, până le aprobă. Produsul se numește Daybreak, textele din film sunt în engleză. Aspectul (logo, culori, imagini) se reface în firul lateral; eu țin structura filmului.
 Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul comun)
 
@@ -36,6 +36,8 @@ Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul co
 
 - 16:14 Merge din `Teo` (numele Daybreak în README și plan, cifrele finale pentru M2). Cifra din film rămâne +49%: agentul 1.051.842 lei față de 706.556 lei la „primul venit, primul servit” (30 de zile, sămânța 7), din `reports/planner/agent_eval.json`, finală pentru M2.
 
+- 17:20 Regula lui Teo pentru fișierele grele (17:15): merge din `Teo` (regulile din `.gitignore` și `tests/test_repo_size.py`). Niciun fișier urmărit nu mai cade sub reguli: folderele 3D erau scoase din 9d973f2, iar wav-urile n-au fost niciodată urmărite. Am scos din urmărire și audio-ul mic rămas (3 fișiere m4a și un flac, 1-1,7 MB), cu reguli noi în `presentation/.gitignore`; fișierele rămân pe disc și se refac cu `make music`. `tests/test_repo_size.py` trece. Istoria n-am atins-o: în ea rămân `presentation/assets/3d-sol/3d-sol.zip` (44,9 MB) și randările 3D din 2625d9e, pentru curățarea pe care o decide Teo după înghețare.
+
 ## Urmează
 - Aștept alegerea lui Teo din firul lateral (logoul nou, paleta, cadrele Codex). După "da": scenele HyperFrames după cadrele aprobate, apoi filmul, în două exporturi: local cu "POWER" și versionat cu muzică fără drepturi de autor.
 - Slideurile, cu numele Daybreak.
@@ -46,6 +48,7 @@ Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul co
 - Niciunul.
 
 ## Cereri către orchestrator
+- JURNAL (17:20): în `memory/journal.md` din worktree-ul meu sunt două rânduri scrise de firul lateral și necomise (16:15, cadrele Codex respinse și varianta 2; 17:05, Teo alege stilul „lume în miniatură” în 3D adevărat). Eu nu scriu în `memory/`; vă rog să le treceți în jurnalul din `Teo`.
 - (rezolvat 16:10) NUME NOU (15:30): Teo a schimbat numele produsului în **Daybreak** (în locul lui "Tura de mâine"). De schimbat: interfața (titlul paginii, antetul, `web/public/brand/`), README-ul și slideurile (pe ale mele le schimb eu); decizia intră în `memory/journal.md`. Atenție: logoul cu soarele peste traseu e respins, cu toate variantele lui. Logoul nou îl alege Teo dintre conceptele din `presentation/brand-lab/r2/logos/` (firul lateral), așa că în `web/public/brand/` deocamdată se schimbă doar numele.
 - (rezolvat 16:10) Pentru jurnal (n-am voie în `memory/`): la 14:46 agentul de muzică a compus varianta de 120 BPM (`presentation/music/compose_kinetic.py`, CC0, 30,000 s, -16,0 LUFS); de la 15:10 filmul folosește "POWER" local, iar varianta de 120 BPM rămâne de rezervă.
 - ISTORIE (16:20: Teo păstrează deocamdată fișierele 3D, pentru că se pot folosi la video; la final orchestratorul se asigură că nu intră în git, iar până atunci nu face merge din `Teo-prezentare` în `Teo`. Eu nu mai adaug fișiere mari în commituri): commitul 2625d9e de pe `Teo-prezentare` conține din greșeală `presentation/assets/3d-astra/` și `presentation/assets/3d-sol/` (154 MB, inclusiv `3d-sol.zip` de 47 MB). Le-am scos din urmărire în 9d973f2, dar sunt în istorie. Înainte de repo-ul public (decizia lui Teo de la 11:00): `git filter-repo --path presentation/assets/3d-astra --path presentation/assets/3d-sol --invert-paths` pe ramurile care conțin commitul, apoi force-push (eu n-am voie). Dacă faceți merge din `Teo-prezentare` în `Teo` înainte de curățare, istoria crește cu 154 MB.
@@ -84,3 +87,4 @@ Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul co
 - 15:35 Cadrele se generează cu Codex image (stil Apple, colorate), în firul lateral: `presentation/frames-codex/v1/` (nu scriu acolo).
 - 15:45 "Homes go dark" (fostul "Zeci de mii de case fără curent"): sursa e prefectul Timișului, circa 40.000 de consumatori afectați, cumulat 7-9 iulie 2025 (`docs/research/B.md`). Pe ecran rămâne fără cifră.
 - 16:10 Regulă nouă (orchestratorul): niciun fișier peste 5 MB în git, în afară de exportul final (sub 50 MB). Verificat: de la mine nu e niciunul (cel mai mare e de 1,3 MB).
+- 17:15 Regulă (Teo, prin orchestrator): randările 3D, arhivele, audio-ul și video-urile brute stau doar pe disc. În git intră doar fișiere sub 5 MB și, la final, un singur export al filmului, sub 50 MB. Istoria nu o rescriu eu.
