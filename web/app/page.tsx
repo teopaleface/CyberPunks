@@ -85,7 +85,7 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/">["searchPara
         data={data}
         geo={geo}
         initialSelected={initialSelected}
-        postsInfo={posts ? { posts: posts.data, derived: posts.derived, lossCostNote: posts.lossCost?.note ?? null } : undefined}
+        postsInfo={posts ? { posts: posts.data, derived: posts.derived, lossCostNote: posts.lossCost?.note ?? null, thresholds: posts.thresholds } : undefined}
         approval={approval}
         initialRegion={typeof params.zona === "string" ? params.zona : null}
         initialMode={params.harta === "posturi" ? "posts" : "items"}
@@ -97,7 +97,7 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/">["searchPara
 /** Aceleași înălțimi ca ecranul real, ca nimic să nu sară când vin datele. */
 function PlanSkeleton() {
   return (
-    <div className="flex h-dvh min-h-[720px] flex-col overflow-hidden" aria-busy="true" aria-label="Se încarcă planul de mâine">
+    <div role="status" className="flex h-dvh min-h-[720px] flex-col overflow-hidden" aria-busy="true" aria-label="Se încarcă planul de mâine…">
       <div className="flex h-16 shrink-0 items-center gap-3 border-b border-rule bg-panel px-7">
         <Wordmark />
       </div>

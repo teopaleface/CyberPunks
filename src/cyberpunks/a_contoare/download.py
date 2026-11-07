@@ -121,30 +121,42 @@ LCL_DEFAULT_FILES = range(45)  # ~1.500 de gospodării Std
 LCL_CHECKSUMS = Path(__file__).resolve().parents[3] / "data" / "samples" / "A" / "checksums_lcl.sha256"
 
 
-def _range_get(client: httpx.Client, url: str, start: int | None, end: int, attempts: int = 10) -> bytes:
+RETRYABLE = (200, 429, 500, 502, 503, 504)  # 200 = serverul a ignorat intervalul (se întâmplă sub încărcare)
+
+
+def _range_get(client: httpx.Client, url: str, start: int | None, end: int, attempts: int = 10,
+               sleep=None) -> bytes:
     """Octeții [start, end] (inclusiv) dintr-un fișier de pe server; start=None cere ultimii `end` octeți.
 
-    La HTTP 429 (prea multe cereri) sau 5xx așteaptă și reîncearcă.
+    La HTTP 429 (prea multe cereri), 5xx sau 200 (serverul a ignorat cererea pe interval și ar trimite toată
+    arhiva de 796 MB) închide răspunsul fără să-l citească, așteaptă și reîncearcă. Văzut în reproducerea din
+    clona curată (7 nov., 16:10): după 15 fișiere, serverul din Londra a răspuns cu 200 în loc de 206.
     """
     import time
 
+    sleep = sleep or time.sleep
     spec = f"bytes=-{end}" if start is None else f"bytes={start}-{end}"
+    last = None
     for attempt in range(attempts):
         try:
-            r = client.get(url, headers={"Range": spec})
+            with client.stream("GET", url, headers={"Range": spec}) as r:
+                last = r.status_code
+                if r.status_code == 206:
+                    return r.read()
+                retry_after = r.headers.get("retry-after", "")
         except httpx.TransportError:
             if attempt == attempts - 1:
                 raise
-            time.sleep(2 * (attempt + 1))
+            sleep(2 * (attempt + 1))
             continue
-        if r.status_code == 206:
-            return r.content
-        if r.status_code in (429, 500, 502, 503, 504) and attempt < attempts - 1:
-            retry_after = r.headers.get("retry-after", "")
-            time.sleep(float(retry_after) if retry_after.isdigit() else min(60.0, 3.0 * 2**attempt))
+        if last in RETRYABLE and attempt < attempts - 1:
+            sleep(float(retry_after) if retry_after.isdigit() else min(60.0, 3.0 * 2**attempt))
             continue
-        raise SystemExit(f"Serverul nu a respectat cererea pe interval (HTTP {r.status_code}) pentru {url}")
-    raise AssertionError("unreachable")
+        break
+    raise SystemExit(
+        f"Serverul nu a respectat cererea pe interval (HTTP {last}) pentru {url}, după {attempts} încercări. "
+        "Reîncearcă peste câteva minute: make a-data (fișierele deja descărcate și verificate se păstrează)."
+    )
 
 
 def _zip_directory(client: httpx.Client, url: str) -> dict[str, tuple[int, int, int, int]]:
@@ -212,9 +224,20 @@ def download_lcl(files: range | list[int] = LCL_DEFAULT_FILES, quiet: bool = Fal
                 return path
 
             with ThreadPoolExecutor(max_workers=workers) as pool:
-                for path in pool.map(one, todo):
+                futures = [pool.submit(one, item) for item in todo]
+                errors = []
+                for fut in futures:
+                    try:
+                        path = fut.result()
+                    except (SystemExit, Exception) as exc:  # noqa: BLE001 (raportăm toate eșecurile la final)
+                        errors.append(str(exc))
+                        continue
                     if not quiet:
                         print(f"descărcat: {path.name} ({path.stat().st_size / 1e6:.1f} MB)")
+            if errors:
+                missing = [p.name for _k, p in targets if not p.exists()]
+                raise SystemExit(f"Descărcarea LCL e incompletă: lipsesc {len(missing)} fișiere ({', '.join(missing)}). "
+                                 f"Prima eroare: {errors[0]}")
     # sume de control: verificăm față de manifest; fișierele noi se adaugă în manifest (care intră în git)
     sums = {}
     for _k, path in targets:

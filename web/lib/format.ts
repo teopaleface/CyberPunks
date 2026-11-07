@@ -85,6 +85,20 @@ export function fmtMoment(iso: string): string {
 }
 
 /** Minutul zilei la București (0–1439) pentru un moment ISO. */
+// ziua și luna („10.05”), din partea de dată a textului, fără conversie de fus orar
+const dayMonthFmt = new Intl.DateTimeFormat("ro-RO", { day: "2-digit", month: "2-digit", timeZone: "UTC" });
+
+/** „2025-05-10” sau „2025-05-10T00:00:00” → „10.05”. */
+export function fmtDayMonth(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  return m ? dayMonthFmt.format(new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])))) : iso;
+}
+
+/** Punctele zilnice vin fie ca dată, fie la miezul nopții („…T00:00:00”). */
+export function isWholeDay(iso: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}(?:[T ]00:00(?::00(?:\.0+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/.test(iso);
+}
+
 export function minutesOfDay(iso: string): number {
   const [h, m] = partsFmt.format(new Date(iso)).split(":").map(Number);
   return (h % 24) * 60 + m;

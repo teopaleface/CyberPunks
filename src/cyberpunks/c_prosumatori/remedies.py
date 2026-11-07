@@ -166,8 +166,11 @@ def unbalance_factor(w: np.ndarray, rho: float | None = None) -> float:
     return float(3 * s.max() + 3 * rho * abs(s[0] + s[1] * A3 + s[2] * A3**2))
 
 
-def phase_unbalance(post: grids.Post, base: Sim) -> dict:
-    """Excesul de tensiune din dezechilibru (fazele caselor monofazate atribuite la întâmplare) și după mutarea a 3 case."""
+def phase_unbalance(post: grids.Post, base: Sim, max_share: float | None = None) -> dict:
+    """Excesul de tensiune din dezechilibru și după mutarea a 3 case.
+
+    Fazele caselor monofazate: dacă bilanțul pe post a estimat ce parte din case stă pe faza cea mai încărcată
+    (`max_share`), repartiția o urmează; altfel sunt atribuite la întâmplare (determinist, din seed-ul postului)."""
     k_peak = int(np.argmax(base.vmax_h))
     R, pv_lv, _ = _lv_maps(post)
     det = base.detail
@@ -181,6 +184,11 @@ def phase_unbalance(post: grids.Post, base: Sim) -> dict:
     rng = np.random.default_rng(post.spec.seed + 7)
     phase = rng.integers(0, 3, len(post.pv_bus))
     idx = np.flatnonzero(single & (contrib > 0))
+    if max_share is not None and len(idx) >= 2:
+        order = rng.permutation(idx)
+        n_main = round(float(np.clip(max_share, 1 / 3, 1.0)) * len(order))
+        phase[order[:n_main]] = 0
+        phase[order[n_main:]] = 1 + (np.arange(len(order) - n_main) % 2)
     dv_single = float(contrib[idx].sum())
     if len(idx) < 2 or dv_single <= 0:
         return {"before": 0.0, "after": 0.0, "moved": 0, "n_single": int(single.sum())}
@@ -328,6 +336,7 @@ class Ladder:
     base_trips: float
     battery_offers: pd.DataFrame = field(repr=False, default_factory=pd.DataFrame)
     reaches_target: bool = True
+    bilant_ref: str | None = None  # lucrarea bilanțului care a dat dezechilibrul pe faze
 
 
 def _opt(action: str, cost: float, p90_start: float, effect: float, confidence: str, duration: int, crew: bool, note: str,
@@ -341,14 +350,15 @@ def _opt(action: str, cost: float, p90_start: float, effect: float, confidence: 
     return o
 
 
-def build_ladder(post_id: str, day: Day, p90_model: float, n_customers: int, horizon_days: int) -> Ladder:
+def build_ladder(post_id: str, day: Day, p90_model: float, n_customers: int, horizon_days: int, bilant: dict | None = None) -> Ladder:
+    """bilant: ce a găsit bilanțul pe post (`extra.phase_rebalance_input` + `work_item_id`), dacă există."""
     c = cfg()
     post = get_post(post_id)
     spec = post.spec
     base = run_sim(post, day)
     vm = base.detail["vm"]
     hours = risk_window(base, day)
-    unb = phase_unbalance(post, base)
+    unb = phase_unbalance(post, base, None if not bilant else bilant.get("max_phase_share_est"))
     p90_start = p90_model + unb["before"]
     opts: list[dict] = []
 
@@ -359,7 +369,14 @@ def build_ladder(post_id: str, day: Day, p90_model: float, n_customers: int, hor
             f"faza cea mai încărcată are cu {unb['before']:.4f} pu mai mult decât calculul echilibrat; mutarea a {unb['moved']} case "
             f"îl reduce la {unb['after']:.4f} pu. Aproximare analitică ΔU ≈ (R_fază + R_neutru)·I pe sensibilitatea rețelei; "
             "bilanțul pe post poate confirma fazele reale.")
-    opts.append(_opt("phase_rebalance", cost, p90_start, eff, "low", 90, True, note))
+    conf = "low"
+    if bilant:
+        note = (f"Bilanțul pe post ({bilant.get('work_item_id', 'lucrarea A')}) a găsit dezechilibru: circa "
+                f"{bilant['max_phase_share_est']:.0%} din case pe o fază, pierderi pe cabluri de {bilant.get('loss_ratio_vs_normal', 0):.1f} ori "
+                f"normalul. Pe faza aceea tensiunea e cu {unb['before']:.4f} pu peste calculul echilibrat; mutarea a {unb['moved']} case îl "
+                f"reduce la {unb['after']:.4f} pu (aproximare ΔU ≈ (R_fază + R_neutru)·I, plafonată la 0,02 pu).")
+        conf = "medium"  # dezechilibrul e susținut de datele contoarelor, nu doar presupus
+    opts.append(_opt("phase_rebalance", cost, p90_start, eff, conf, 90, True, note))
 
     # 2. priza (o treaptă), echivalent cu tensiunea pe MT împărțită la raportul treptelor
     if spec.tap_pos < 2:
@@ -450,7 +467,8 @@ def build_ladder(post_id: str, day: Day, p90_model: float, n_customers: int, hor
 
     choice, reason, reaches = choose(opts, p90_start)
     principal = next((a for a in ("adjust_tap", "phase_rebalance", "export_limit", "transformer_upgrade") if a in choice), choice[0])
-    return Ladder(post_id, base.vmax, p90_model, unb, p90_start, opts, choice, principal, reason, hours, base.trips, offers, reaches)
+    return Ladder(post_id, base.vmax, p90_model, unb, p90_start, opts, choice, principal, reason, hours, base.trips, offers, reaches,
+                  bilant_ref=(bilant or {}).get("work_item_id"))
 
 
 ACTION_RO = {

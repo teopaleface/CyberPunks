@@ -56,6 +56,7 @@ STORM_RAIN_MM = 1.0
 SAFETY_GUST_KMH = 75.0  # peste această rafală, lucrul la înălțime e periculos: semnalăm planificatorului
 DISAGREE_WIDTH = 0.35  # lățimea intervalului de probabilitate de la care spunem "nu sunt sigur"
 ZONE_FEATURES = {"log_customers", "log_density"}
+SCORE_MIN, SCORE_MAX = 0.005, 0.99
 # Vreme periculoasă: o zonă în afara antrenării merge la om doar atunci (pe vreme liniștită riscul e oricum mic)
 HAZARD = {"gust_max_2d": 50.0, "precip_48h": 15.0, "snow_3d": 3.0, "ice_proxy": 1.0}
 
@@ -240,10 +241,11 @@ def build_items(model: BModel, zones: list[romania.Zone], feats: pd.DataFrame, h
     fill_cols = list(dict.fromkeys([*cols, *CASE_FEATURES]))
     med = feats[fill_cols].median(numeric_only=True)
     filled[fill_cols] = filled[fill_cols].fillna(med).fillna(0.0)
-    p = model.predict_proba(filled)
+    # Calibrarea izotonică poate da 0 sau 1 la capete; un model nu e niciodată sigur, deci în lucrări folosim [0,005; 0,99].
+    p = np.clip(model.predict_proba(filled), SCORE_MIN, SCORE_MAX)
     q = model.predict_quantiles(filled)
-    lo = p.copy() if lo is None else np.minimum(lo, p)
-    hi = p.copy() if hi is None else np.maximum(hi, p)
+    lo = p.copy() if lo is None else np.clip(np.minimum(lo, p), SCORE_MIN, SCORE_MAX)
+    hi = p.copy() if hi is None else np.clip(np.maximum(hi, p), SCORE_MIN, SCORE_MAX)
     ood = model.out_of_range(feats)
     factors = explain.top_factors(model, filled)
     cases = explain.similar_cases(model, filled)

@@ -71,6 +71,10 @@ export function JournalSummary({ rows }: { rows: JournalRow[] }) {
               i === 3 && "border-l-2 border-l-ink/25",
             )}
           >
+            <dt className="order-2 text-[14px] leading-[1.3] whitespace-nowrap text-muted-foreground">
+              <b className="block font-[560] text-ink">{c.label}</b>
+              <span className="block">{c.hint}</span>
+            </dt>
             <dd
               className={cn(
                 "num-wide order-1 whitespace-nowrap",
@@ -80,10 +84,6 @@ export function JournalSummary({ rows }: { rows: JournalRow[] }) {
             >
               {fmtInt(c.value)}
             </dd>
-            <dt className="order-2 text-[14px] leading-[1.3] whitespace-nowrap text-muted-foreground">
-              <b className="block font-[560] text-ink">{c.label}</b>
-              <span className="block">{c.hint}</span>
-            </dt>
           </div>
         ))}
       </dl>

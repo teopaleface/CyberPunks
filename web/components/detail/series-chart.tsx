@@ -13,8 +13,9 @@ import {
   YAxis,
 } from "recharts";
 import type { Series, WorkItem } from "@/lib/contracts";
-import { fmtDec, fmtInt, fmtScore, fmtTime, hhmm, minutesOfDay } from "@/lib/format";
-import { isBilantSeries } from "@/lib/series-utils";
+import { fmtDayMonth, fmtDec, fmtInt, fmtScore, fmtTime, hhmm, isWholeDay, minutesOfDay } from "@/lib/format";
+import { clampPercentRo, factorLabelRo } from "@/lib/data/labels";
+import { bilantRows, isBilantSeries, seriesTimeMs, type BilantRow } from "@/lib/series-utils";
 
 /**
  * Graficul potrivit sursei:
@@ -34,8 +35,7 @@ function isDay(t: string) {
 }
 
 function dayLabel(t: string) {
-  const [, m, d] = t.slice(0, 10).split("-");
-  return `${Number(d)}.${m}`;
+  return fmtDayMonth(t);
 }
 
 function TooltipBox({ title, rows }: { title: string; rows: [string, string][] }) {
@@ -216,59 +216,145 @@ function VoltageChart({ series }: { series: Series }) {
 
 // ------------------------------------------------------------------ bilanț pe post
 
-function BilantChart({ series }: { series: Series }) {
-  const data: Row[] = series.points.map((p) => ({
-    t: String(p.t),
-    out: p.value ?? null,
-    sum: p.expected ?? null,
-    gap: p.value != null && p.expected != null ? [Math.min(p.value, p.expected), Math.max(p.value, p.expected)] : null,
-    over: p.flag === "lipsa_peste_normal" && p.value != null && p.expected != null ? [Math.min(p.value, p.expected), Math.max(p.value, p.expected)] : null,
-  }));
-  const daily = series.points.every((p) => isDay(String(p.t)));
-  const tick = (t: string) => (daily || isDay(t) ? dayLabel(t) : fmtTime(t));
+const DAY_MS = 86_400_000;
+const OVER_FILL = "color-mix(in oklab, var(--att) 34%, transparent)";
+const UNDER_FILL = "color-mix(in oklab, var(--src-a) 24%, transparent)";
+const BAND_FILL = "color-mix(in oklab, var(--ink) 10%, transparent)";
+
+/** Eticheta adnotării („Lipsa crește de aici”), spre interiorul graficului, lizibilă peste linii. */
+function AnnotationLabel({ viewBox, text, end }: { viewBox?: { x?: number; y?: number }; text: string; end: boolean }) {
+  const x = (viewBox?.x ?? 0) + (end ? -8 : 8);
+  const y = (viewBox?.y ?? 0) + 16;
   return (
-    <ResponsiveContainer width="100%" height={340}>
-      <ComposedChart data={data} margin={{ top: 18, right: 18, bottom: 4, left: 4 }}>
-        <CartesianGrid vertical={false} stroke={GRID} />
-        <XAxis dataKey="t" tickFormatter={tick} tick={AXIS} tickLine={false} axisLine={{ stroke: "var(--rule)" }} minTickGap={32} />
-        <YAxis tick={AXIS} tickLine={false} axisLine={false} width={52} tickFormatter={(v: number) => fmtInt(v)} />
-        <Area dataKey="gap" type="monotone" stroke="none" fill="color-mix(in oklab, var(--ink) 9%, transparent)" isAnimationActive={false} />
-        <Area dataKey="over" type="monotone" stroke="none" fill="color-mix(in oklab, var(--att) 32%, transparent)" isAnimationActive={false} />
-        <Line dataKey="sum" type="monotone" stroke="var(--src-a)" strokeWidth={2.2} dot={false} isAnimationActive={false} />
-        <Line dataKey="out" type="monotone" stroke="var(--ink)" strokeWidth={2.2} dot={false} isAnimationActive={false} />
-        <Tooltip
-          cursor={{ stroke: "var(--ink)", strokeWidth: 1, strokeDasharray: "3 3" }}
-          content={({ active, payload }) => {
-            if (!active || !payload?.length) return null;
-            const r = payload[0].payload as Row;
-            const out = r.out == null ? null : Number(r.out);
-            const sum = r.sum == null ? null : Number(r.sum);
-            return (
-              <TooltipBox
-                title={tick(String(r.t))}
-                rows={[
-                  ["ieșit din post", out == null ? "lipsă" : `${fmtDec(out, 1)} ${series.unit}`],
-                  ["suma clienților", sum == null ? "lipsă" : `${fmtDec(sum, 1)} ${series.unit}`],
-                  ["lipsa", out != null && sum != null ? `${fmtDec(out - sum, 1)} ${series.unit}` : "–"],
-                ]}
-              />
-            );
-          }}
-        />
-      </ComposedChart>
-    </ResponsiveContainer>
+    <text x={x} y={y} textAnchor={end ? "end" : "start"} fontSize={13.5} fontWeight={600} fill="var(--ink)" stroke="var(--panel)" strokeWidth={5} paintOrder="stroke">
+      {text}
+    </text>
   );
 }
 
+function BilantChart({ series }: { series: Series }) {
+  const rows = bilantRows(series);
+  const real = rows.filter((r) => !r.crossing);
+  const first = real[0]?.x ?? 0;
+  const last = real[real.length - 1]?.x ?? 0;
+  const days = Math.max(1, Math.round((last - first) / DAY_MS));
+  const step = days <= 14 ? 2 : days <= 31 ? 4 : days <= 70 ? 7 : 14;
+  const ticks = real.filter((r) => Math.round((r.x - first) / DAY_MS) % step === 0).map((r) => r.x);
+  const tick = (x: number) => dayLabel(new Date(x).toISOString());
+  const negative = real.some((r) => (r.out ?? 0) < 0 || (r.sum ?? 0) < 0);
+  const unit = series.unit;
+  const notes = (series.annotations ?? [])
+    .map((a) => ({ x: seriesTimeMs(String(a.t)), text: factorLabelRo(clampPercentRo(a.label_ro)) }))
+    .filter((a) => Number.isFinite(a.x) && a.x >= first && a.x <= last);
+  return (
+    <>
+      <ResponsiveContainer width="100%" height={340}>
+        <ComposedChart data={rows} margin={{ top: 14, right: 18, bottom: 4, left: 4 }}>
+          <CartesianGrid vertical={false} stroke={GRID} />
+          <XAxis
+            dataKey="x"
+            type="number"
+            scale="time"
+            domain={[first, last]}
+            ticks={ticks}
+            tickFormatter={tick}
+            tick={AXIS}
+            tickLine={false}
+            axisLine={{ stroke: "var(--rule)" }}
+          />
+          <YAxis tick={AXIS} tickLine={false} axisLine={false} width={58} domain={["auto", "auto"]} tickFormatter={(v: number) => fmtInt(v)} />
+          <Area dataKey="band" type="linear" stroke="none" fill={BAND_FILL} isAnimationActive={false} activeDot={false} />
+          <Area dataKey="over" type="linear" stroke="none" fill={OVER_FILL} isAnimationActive={false} activeDot={false} />
+          <Area dataKey="under" type="linear" stroke="none" fill={UNDER_FILL} isAnimationActive={false} activeDot={false} />
+          <Line dataKey="sum" type="linear" stroke="var(--src-a)" strokeWidth={2} dot={false} isAnimationActive={false} />
+          <Line dataKey="out" type="linear" stroke="var(--ink)" strokeWidth={2.4} dot={false} isAnimationActive={false} />
+          {notes.map((a) => (
+            <ReferenceLine
+              key={a.x}
+              x={a.x}
+              stroke="var(--ink)"
+              strokeDasharray="4 4"
+              strokeWidth={1.2}
+              label={<AnnotationLabel text={a.text} end={a.x > first + (last - first) * 0.6} />}
+            />
+          ))}
+          <Tooltip
+            cursor={{ stroke: "var(--ink)", strokeWidth: 1, strokeDasharray: "3 3" }}
+            content={({ active, payload }) => {
+              if (!active || !payload?.length) return null;
+              const hovered = payload[0].payload as BilantRow;
+              const r = hovered.ref ?? hovered;
+              const kwh = (v: number | null) => (v == null ? "lipsă" : `${fmtDec(v, 1)} ${unit}`);
+              const rowsTip: [string, string][] = [
+                ["ieșit din post", kwh(r.out)],
+                ["suma clienților", kwh(r.sum)],
+                ["diferența", r.out != null && r.sum != null ? kwh(r.out - r.sum) : "–"],
+              ];
+              if (r.low != null && r.high != null && r.sum != null) {
+                rowsTip.push(["pierderea normală", `${fmtDec(r.low - r.sum, 1)}–${fmtDec(r.high - r.sum, 1)} ${unit}`]);
+              }
+              if (r.out != null && r.high != null && r.out > r.high) rowsTip.push(["lipsă peste normal", kwh(r.out - r.high)]);
+              if (r.out != null && r.low != null && r.out < r.low) rowsTip.push(["surplus sub normal", kwh(r.low - r.out)]);
+              return <TooltipBox title={tick(seriesTimeMs(r.t))} rows={rowsTip} />;
+            }}
+          />
+        </ComposedChart>
+      </ResponsiveContainer>
+      {negative ? (
+        <p className="mt-1 text-[13.5px] text-muted-foreground">
+          Sub zero sunt zilele în care panourile clienților au dat energie înapoi în rețea, prin post. Lipsa se citește la fel: cât
+          trece linia neagră peste banda gri.
+        </p>
+      ) : null}
+    </>
+  );
+}
+
+/** Ce arată graficul, în cuvinte: numele accesibil al graficului (datele detaliate sunt în tooltip). */
+export function chartSummaryRo(series: Series): string {
+  const pts = series.points;
+  const first = pts[0] ? String(pts[0].t) : "";
+  const last = pts.length ? String(pts[pts.length - 1].t) : "";
+  const when = (t: string) => (isWholeDay(t) ? fmtDayMonth(t) : fmtTime(t));
+  const span = first && last ? `, de la ${when(first)} la ${when(last)}` : "";
+  const title = series.title_ro.replace(/\.$/, "");
+  if (isBilantSeries(series)) {
+    const over = pts.filter((p) => p.value != null && p.high != null && p.value > p.high).length;
+    const under = pts.filter((p) => p.value != null && p.low != null && p.value < p.low).length;
+    const negative = pts.some((p) => (p.value ?? 0) < 0 || (p.expected ?? 0) < 0);
+    return `${title}${span}. Lipsă peste normal în ${over} din ${pts.length} zile${under ? `, surplus sub normal în ${under}` : ""}.${negative ? " Sub zero sunt zilele în care panourile clienților au dat energie înapoi în rețea, prin post." : ""}`;
+  }
+  if (series.source === "A") {
+    const zero = pts.filter((p) => p.flag === "zero").length;
+    return `${title}${span}. ${zero ? `${zero} zile cu consum zero.` : "Fără zile cu consum zero."}`;
+  }
+  if (series.source === "C") {
+    const top = Math.max(...pts.map((p) => p.high ?? p.value ?? Number.NEGATIVE_INFINITY));
+    const limit = series.thresholds?.limita_tensiune_pu ?? 1.1;
+    return `${title}${span}. ${Number.isFinite(top) ? `Maximul P90 ${fmtDec(top, 3)} pu, limita ${fmtDec(limit, 2)} pu.` : ""}`;
+  }
+  return `${title}${span}.`;
+}
+
 export function SeriesChart({ series, workItem }: { series: Series; workItem: WorkItem }) {
-  if (isBilantSeries(series)) return <BilantChart series={series} />;
-  if (series.source === "A") return <ConsumptionChart series={series} />;
-  if (series.source === "B") return <StormCharts series={series} w={workItem} />;
-  return <VoltageChart series={series} />;
+  const chart = isBilantSeries(series) ? (
+    <BilantChart series={series} />
+  ) : series.source === "A" ? (
+    <ConsumptionChart series={series} />
+  ) : series.source === "B" ? (
+    <StormCharts series={series} w={workItem} />
+  ) : (
+    <VoltageChart series={series} />
+  );
+  return (
+    <div role="img" aria-label={chartSummaryRo(series)}>
+      {chart}
+    </div>
+  );
 }
 
 /** Legenda graficului, cu semnele folosite (identitatea nu stă doar în culoare). */
-export function SeriesLegend({ source, bilant = false }: { source: Series["source"]; bilant?: boolean }) {
+export function SeriesLegend({ source, bilant = false, series }: { source: Series["source"]; bilant?: boolean; series?: Series }) {
   const line = (color: string, dashed = false) => (
     <svg width="26" height="10" aria-hidden="true">
       <line x1="1" y1="5" x2="25" y2="5" style={{ stroke: color }} strokeWidth={2.4} strokeDasharray={dashed ? "5 4" : undefined} />
@@ -279,7 +365,11 @@ export function SeriesLegend({ source, bilant = false }: { source: Series["sourc
     ? [
         [line("var(--ink)"), "ieșit din post"],
         [line("var(--src-a)"), "suma clienților"],
-        [box("color-mix(in oklab, var(--att) 32%, transparent)"), "lipsă peste normal"],
+        [box(BAND_FILL), "banda pierderii normale"],
+        [box(OVER_FILL), "lipsă peste normal"],
+        ...(series?.points.some((p) => p.value != null && p.low != null && p.value < p.low)
+          ? ([[box(UNDER_FILL), "surplus sub normal"]] as [React.ReactNode, string][])
+          : []),
       ]
     : source === "A"
       ? [

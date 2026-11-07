@@ -246,3 +246,48 @@ describe("instantaneul demo", () => {
     expect(plan.source).toBe("fixtures");
   });
 });
+
+describe("posturile din planificator", () => {
+  test("culorile fără diacritice devin culorile interfeței; lipsă, din pierdere", async () => {
+    const { normalizePostColor, colorFor } = await import("./posts");
+    expect(normalizePostColor("rosu", 5019)).toBe("roșu");
+    expect(normalizePostColor("roșu", 5019)).toBe("roșu");
+    expect(normalizePostColor("Galben", 300)).toBe("galben");
+    expect(normalizePostColor(undefined, 650)).toBe("roșu");
+    expect(normalizePostColor("necunoscut", 120)).toBe("verde");
+    expect(normalizePostColor("mov", null)).toBe("necunoscut");
+    // aceleași praguri ca config/planner.yaml: galben de la 200, roșu de la 600
+    expect(colorFor(199.66)).toBe("verde");
+    expect(colorFor(210.44)).toBe("galben");
+    expect(colorFor(621.7)).toBe("roșu");
+  });
+
+  test("pragurile vin din config/planner.yaml", async () => {
+    const { readPostThresholds } = await import("./files");
+    expect(await readPostThresholds()).toEqual({ yellow: 200, red: 600 });
+  });
+
+  test("cauza din bilanț: codurile devin cuvinte, textul rămâne", async () => {
+    const { postDiagnosisRo } = await import("./posts");
+    expect(postDiagnosisRo("furt_inainte_contor")).toBe("furt înainte de contor");
+    expect(postDiagnosisRo("pierdere_tehnica")).not.toContain("_");
+    expect(postDiagnosisRo("Furt înainte de contor")).toBe("Furt înainte de contor");
+    expect(postDiagnosisRo(null)).toBeNull();
+  });
+});
+
+describe("planul fără dubluri", () => {
+  test("lucrările repetate într-o alertă apar o singură dată, în ordine", async () => {
+    const { dedupePlan } = await import("./index");
+    const plan = {
+      alerts: [
+        { alert_id: "AL-1", severity: "critical", title_ro: "5 cazuri cu risc de siguranță", body_ro: "b", channel: "dispecerat", created_at: "2025-07-08T08:00:00+03:00", work_item_ids: ["a", "b", "a", "c", "b"] },
+      ],
+    } as unknown as import("@/lib/contracts").Plan;
+    expect(dedupePlan(plan).alerts?.[0].work_item_ids).toEqual(["a", "b", "c"]);
+    // numărul din titlu număra dublurile
+    expect(dedupePlan(plan).alerts?.[0].title_ro).toBe("3 cazuri cu risc de siguranță");
+    const clean = { alerts: [{ ...plan.alerts![0], work_item_ids: ["a"] }] } as unknown as import("@/lib/contracts").Plan;
+    expect(dedupePlan(clean)).toBe(clean);
+  });
+});

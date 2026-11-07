@@ -8,7 +8,7 @@ import { cn } from "cn";
 import type { WorkItem } from "@/lib/contracts";
 import { DECISION_LABEL_RO } from "@/lib/data/labels";
 import type { PostSummary } from "@/lib/data/types";
-import { fmtDec, fmtInt, hhmm, minutesOfPlanDay } from "@/lib/format";
+import { fmtDec, fmtInt, hhmm, minutesOfPlanDay, plural } from "@/lib/format";
 import { markerKind, markerSvg } from "@/lib/marker-svg";
 import { loadWorkItemDetail } from "@/lib/data/actions";
 import { RE_BOUNDS, isSlim, itemTitle, type PlanScreenData } from "@/lib/plan-screen";
@@ -32,10 +32,15 @@ function shortDepot(label: string): string {
     .replace(/^Baza București /, "Baza ");
 }
 
+// în modul de prezentare, subtitrarea stă jos, peste hartă: încadrarea îi lasă loc
+const SCENE_MAP_PADDING = { top: 76, bottom: 160, left: 56, right: 330 };
+
 export interface PostsInfo {
   posts: PostSummary[];
   derived: boolean;
   lossCostNote: string | null;
+  /** Pragurile de culoare, în lei pe lună (config/planner.yaml). */
+  thresholds: { yellow: number; red: number };
 }
 
 export function PlanScreen({
@@ -126,10 +131,15 @@ export function PlanScreen({
     [data.regionOf, region, setRegion, scene],
   );
 
+  // în prezentare, încadrarea cuprinde și lucrarea scenei (de exemplu un caz „Nu sunt sigur” din afara traseelor)
+  const sceneItem = scene?.selected ? itemsById[scene.selected] : undefined;
   const bounds: Bounds = useMemo(() => {
-    if (region === ALL) return RE_BOUNDS;
-    return data.regions.find((r) => r.id === region)?.bounds ?? RE_BOUNDS;
-  }, [region, data.regions]);
+    const base = region === ALL ? RE_BOUNDS : (data.regions.find((r) => r.id === region)?.bounds ?? RE_BOUNDS);
+    if (!sceneItem || region === ALL) return base;
+    const { lon, lat } = sceneItem.location;
+    const m = 0.08; // ~8 km de margine în jurul lucrării
+    return [Math.min(base[0], lon - m), Math.min(base[1], lat - m), Math.max(base[2], lon + m), Math.max(base[3], lat + m)];
+  }, [region, data.regions, sceneItem]);
 
   const mapItems: MapItem[] = useMemo(
     () =>
@@ -168,7 +178,7 @@ export function PlanScreen({
     return list.map((p) => {
       const parts: string[] = [];
       if (p.loss_lei_month != null) parts.push(`${fmtInt(p.loss_lei_month)} lei pe lună pierduți${p.derived ? " (estimat din A)" : ""}`);
-      if (p.meters_flagged) parts.push(`${p.meters_flagged} ${p.meters_flagged === 1 ? "contor semnalat" : "contoare semnalate"}`);
+      if (p.meters_flagged) parts.push(plural(p.meters_flagged, "contor semnalat", "contoare semnalate"));
       if (p.voltage_p90_pu != null) parts.push(`tensiune P90 ${fmtDec(p.voltage_p90_pu, 3).replace(/0$/, "")} pu`);
       if (p.diagnosis) parts.push(p.diagnosis);
       return {
@@ -238,13 +248,14 @@ export function PlanScreen({
             mode={mode}
             onPostClick={(id) => router.push(`/posturi/${encodeURIComponent(id)}`)}
             theme={theme}
+            padding={scene ? SCENE_MAP_PADDING : undefined}
           />
           <div className="absolute top-4 left-4 flex flex-col items-start gap-2">
             <RegionChips regions={data.regions} region={region} onChange={setRegion} totalItems={data.items.length} />
             {mapPosts.length ? <ModeSwitch mode={mode} onChange={setMode} posts={mapPosts.length} /> : null}
           </div>
           {scene ? null : mode === "posts" ? (
-            <PostsLegend derived={postsInfo?.derived ?? false} note={postsInfo?.lossCostNote ?? null} />
+            <PostsLegend derived={postsInfo?.derived ?? false} note={postsInfo?.lossCostNote ?? null} thresholds={postsInfo?.thresholds ?? { yellow: 200, red: 600 }} />
           ) : (
             <Legend />
           )}
@@ -263,7 +274,7 @@ export function PlanScreen({
           <div className={cn(spotlight === "queue" && "spot spot-att")}>
             <QueuePanel queue={queue} itemsById={itemsById} scenario={data.scenario} onSelect={select} recovered={data.recovered} />
           </div>
-          <AlertsPanel alerts={data.alerts} onSelect={select} />
+          <AlertsPanel alerts={data.alerts} decisions={data.decisions} onSelect={select} />
           <WorkItemPeek
             highlight={spotlight === "peek"}
             detailError={selected ? (detailErrors[selected] ?? null) : null}
@@ -456,20 +467,23 @@ function ModeSwitch({ mode, onChange, posts }: { mode: "items" | "posts"; onChan
   return (
     <div role="group" aria-label="Ce arată harta" className="flex overflow-hidden rounded-[4px] border border-rule bg-panel text-[14px]">
       {btn("items", "Lucrările de mâine")}
-      {btn("posts", `Posturile (${posts})`)}
+      {btn("posts", `Posturile (${fmtInt(posts)})`)}
     </div>
   );
 }
 
-function PostsLegend({ derived, note }: { derived: boolean; note: string | null }) {
+function PostsLegend({ derived, note, thresholds }: { derived: boolean; note: string | null; thresholds: { yellow: number; red: number } }) {
   const dot = (color: string) => <span className="inline-block size-3.5 rounded-full border border-panel" style={{ background: color }} aria-hidden="true" />;
   return (
     <div className="absolute bottom-7 left-4 max-w-[760px] rounded-[4px] border border-rule bg-panel/95 px-3 py-2 text-[13.5px]">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
         <b className="font-[600]">Lei pierduți pe lună</b>
-        <span className="flex items-center gap-1.5">{dot("#2f8f5b")}sub 150</span>
-        <span className="flex items-center gap-1.5">{dot("#d9a400")}150–600</span>
-        <span className="flex items-center gap-1.5">{dot("#c8321e")}peste 600</span>
+        <span className="flex items-center gap-1.5">{dot("#2f8f5b")}sub {fmtInt(thresholds.yellow)}</span>
+        <span className="flex items-center gap-1.5">
+          {dot("#d9a400")}
+          {fmtInt(thresholds.yellow)}–{fmtInt(thresholds.red)}
+        </span>
+        <span className="flex items-center gap-1.5">{dot("#c8321e")}peste {fmtInt(thresholds.red)}</span>
         <span className="flex items-center gap-1.5">{dot("#9aa4a9")}necunoscut</span>
         <span className="text-muted-foreground">cercul mai mare, pierdere mai mare; clic pe un post pentru pagina lui</span>
         <Link href="/posturi" className="font-[560] underline decoration-rule underline-offset-4 hover:decoration-ink">

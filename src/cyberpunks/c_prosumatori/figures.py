@@ -169,6 +169,7 @@ def main() -> None:
     reliability(res)
     example_series("demo-vara")
     ladder("demo-vara", "PT-1252")
+    ladder("demo-vara", "PT-1082")  # postul pentru legătura cu bilanțul (dezechilibru pe faze găsit de bilanț)
     print("figuri în", FIG)
 
 

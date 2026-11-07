@@ -115,7 +115,7 @@ export function DemoStage({
         <span className="flex items-center gap-2 rounded-[4px] border border-ink px-3 py-1.5 text-[15px] font-[520]">
           <SyntheticGlyph /> Date sintetice pe hartă reală
         </span>
-        <nav aria-label="Scenele prezentării" className="flex items-center gap-1.5">
+        <nav aria-label="Scenele prezentării" className="flex items-center">
           {scenes.map((s, i) => (
             <button
               key={s.title}
@@ -123,8 +123,17 @@ export function DemoStage({
               onClick={() => go(i)}
               aria-current={i === index ? "step" : undefined}
               aria-label={`Scena ${i + 1}: ${s.title}`}
-              className={"h-2.5 rounded-full transition-[width,background-color] duration-300 " + (i === index ? "w-7 bg-ink" : "w-2.5 bg-idle hover:bg-ink-soft")}
-            />
+              className="group grid h-9 place-items-center rounded-[4px] px-1"
+            >
+              {/* punctul se vede mic; ținta de clic e tot butonul */}
+              <span
+                aria-hidden="true"
+                className={
+                  "block h-2.5 rounded-full transition-[width,background-color] duration-300 " +
+                  (i === index ? "w-7 bg-ink" : "w-2.5 bg-idle group-hover:bg-ink-soft")
+                }
+              />
+            </button>
           ))}
         </nav>
       </header>
@@ -134,8 +143,7 @@ export function DemoStage({
         <div
           key={index}
           className="pointer-events-none absolute bottom-[326px] left-4 z-20 w-[min(720px,52%)] animate-in fade-in slide-in-from-bottom-2 rounded-[6px] border border-rule bg-panel/95 px-5 py-3.5 duration-500"
-          role="status"
-          aria-live="polite"
+          aria-hidden="true"
         >
           <p className="text-[13px] tracking-[0.01em] text-muted-foreground tabular-nums">
             Scena {index + 1} din {scenes.length}
@@ -143,6 +151,10 @@ export function DemoStage({
           <p className="text-[22px] leading-tight font-[650]">{scene.title}</p>
           <p className="mt-1 text-[16px] leading-snug text-ink-soft">{scene.text}</p>
         </div>
+        {/* regiunea anunțată rămâne montată; subtitrarea vizibilă se remontează doar pentru intrare */}
+        <p role="status" className="sr-only">
+          Scena {index + 1} din {scenes.length}: {scene.title}. {scene.text}
+        </p>
       </div>
     </div>
   );

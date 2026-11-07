@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useDeferredValue, useMemo, useState, type ReactNode } from "react";
+import { useSearchParams } from "next/navigation";
+import { Fragment, memo, useCallback, useDeferredValue, useMemo, useState, type ReactNode } from "react";
 import { ChevronDownIcon, SearchIcon } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
@@ -45,7 +46,7 @@ function Segmented<T extends string>({
             aria-pressed={on}
             onClick={() => onChange(it.id)}
             className={cn(
-              "flex items-center gap-2 border-l border-rule px-3.5 whitespace-nowrap transition-colors duration-150 first:border-l-0",
+              "flex items-center gap-2 border-l border-rule px-3.5 whitespace-nowrap transition-colors duration-150 first:border-l-0 focus-visible:outline-offset-[-3px]",
               on ? "bg-ink font-[600] text-panel" : "font-[500] text-ink hover:bg-muted",
             )}
           >
@@ -73,31 +74,63 @@ function SourceDot({ source }: { source: Source }) {
  * Filtrele și tabelul jurnalului. Datele vin gata făcute de pe server; aici doar se filtrează.
  * Rulările agentului apar ca rânduri-titlu deasupra deciziilor pe care le-au scris.
  */
+// filtrele în adresă: ?cine=agent|om&sursa=A|B|C&decizia=<acțiune>&cauta=<text>
+const ACTOR_PARAM: Record<ActorFilter, string | null> = { all: null, agent: "agent", human: "om" };
+
+function readFilters(sp: URLSearchParams | null, options: ActionOption[]) {
+  const cine = sp?.get("cine");
+  const sursa = sp?.get("sursa");
+  const decizia = sp?.get("decizia");
+  return {
+    actor: (cine === "agent" ? "agent" : cine === "om" ? "human" : "all") as ActorFilter,
+    source: (SOURCE_ORDER as readonly string[]).includes(sursa ?? "") ? (sursa as Source) : ("all" as SourceFilter),
+    action: decizia && options.some((o) => o.action === decizia) ? decizia : "all",
+    query: (sp?.get("cauta") ?? "").slice(0, 80),
+  };
+}
+
+function writeFilters(f: { actor: ActorFilter; source: SourceFilter; action: string; query: string }) {
+  const url = new URL(window.location.href);
+  const set = (k: string, v: string | null) => (v ? url.searchParams.set(k, v) : url.searchParams.delete(k));
+  set("cine", ACTOR_PARAM[f.actor]);
+  set("sursa", f.source === "all" ? null : f.source);
+  set("decizia", f.action === "all" ? null : f.action);
+  set("cauta", f.query.trim() || null);
+  window.history.replaceState(window.history.state, "", url);
+}
+
 export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; options: ActionOption[]; scenario: string }) {
-  const [actor, setActorState] = useState<ActorFilter>("all");
-  const [source, setSourceState] = useState<SourceFilter>("all");
-  const [action, setActionState] = useState("all");
-  const [query, setQueryState] = useState("");
+  const searchParams = useSearchParams();
+  const [initial] = useState(() => readFilters(searchParams, options));
+  const [actor, setActorState] = useState<ActorFilter>(initial.actor);
+  const [source, setSourceState] = useState<SourceFilter>(initial.source);
+  const [action, setActionState] = useState(initial.action);
+  const [query, setQueryState] = useState(initial.query);
   const [limit, setLimit] = useState(PAGE);
   const [open, setOpen] = useState<ReadonlySet<string>>(() => new Set());
   const q = useDeferredValue(query).trim().toUpperCase();
 
   // Orice filtru nou pornește iar de la primele rânduri.
+  const current = { actor, source, action, query };
   const setActor = (v: ActorFilter) => {
     setActorState(v);
     setLimit(PAGE);
+    writeFilters({ ...current, actor: v });
   };
   const setSource = (v: SourceFilter) => {
     setSourceState(v);
     setLimit(PAGE);
+    writeFilters({ ...current, source: v });
   };
   const setAction = (v: string) => {
     setActionState(v);
     setLimit(PAGE);
+    writeFilters({ ...current, action: v });
   };
   const setQuery = (v: string) => {
     setQueryState(v);
     setLimit(PAGE);
+    writeFilters({ ...current, query: v });
   };
 
   const decisions = useMemo(() => rows.filter((r) => r.kind !== "run"), [rows]);
@@ -123,14 +156,19 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
     setActionState("all");
     setQueryState("");
     setLimit(PAGE);
+    writeFilters({ actor: "all", source: "all", action: "all", query: "" });
   };
-  const toggle = (id: string) =>
-    setOpen((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  // stabilă, ca rândurile memorate să nu se redeseneze toate la fiecare deschidere
+  const toggle = useCallback(
+    (id: string) =>
+      setOpen((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+      }),
+    [],
+  );
 
   const actionLabel = options.find((o) => o.action === action)?.label;
   const th = "sticky top-0 z-[1] border-b border-rule bg-panel px-3 py-2.5 text-left align-bottom text-[14px] font-[560] text-muted-foreground";
@@ -184,7 +222,7 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
         />
         <Select value={action} onValueChange={setAction}>
           <SelectTrigger
-            aria-label="Tipul deciziei"
+            aria-label="Decizia: tipul deciziei"
             className="h-10 min-w-[232px] gap-2 rounded-[4px] border-input bg-panel px-3 text-[15px] font-[520]"
           >
             <span className="text-muted-foreground">Decizia</span>
@@ -207,16 +245,17 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
           <SearchIcon className="pointer-events-none absolute left-3 size-[18px] text-muted-foreground" aria-hidden="true" />
           <input
             type="search"
+            name="cauta"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Caută după ID-ul lucrării"
+            placeholder="ID-ul lucrării, de exemplu PT-1269…"
             spellCheck={false}
             autoComplete="off"
             className="h-10 w-[320px] rounded-[4px] border border-input bg-panel pr-3 pl-10 text-[15px] placeholder:text-muted-foreground"
           />
         </label>
         <span className="flex-1" />
-        <span className="text-[15px] text-muted-foreground tabular-nums" aria-live="polite">
+        <span className="text-[15px] text-muted-foreground tabular-nums" aria-live="polite" aria-atomic="true">
           {active ? `${fmtInt(shown)} din ${plural(decisions.length, "decizie", "decizii")}` : plural(decisions.length, "decizie", "decizii")}
         </span>
         {active ? (
@@ -286,7 +325,7 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
               r.kind === "run" ? (
                 <RunRow key={r.id} r={r} />
               ) : (
-                <DecisionRow key={r.id} r={r} scenario={scenario} expanded={open.has(r.id)} onToggle={() => toggle(r.id)} />
+                <DecisionRow key={r.id} r={r} scenario={scenario} expanded={open.has(r.id)} onToggle={toggle} />
               ),
             )
           )}
@@ -338,7 +377,9 @@ function RunRow({ r }: { r: JournalRow }) {
   );
 }
 
-function DecisionRow({
+const DecisionRow = memo(DecisionRowImpl);
+
+function DecisionRowImpl({
   r,
   scenario,
   expanded,
@@ -347,7 +388,7 @@ function DecisionRow({
   r: JournalRow;
   scenario: string;
   expanded: boolean;
-  onToggle: () => void;
+  onToggle: (id: string) => void;
 }) {
   const human = r.actor === "human";
   const href = r.workItemId ? `/lucrari/${encodeURIComponent(r.workItemId)}?scenariu=${encodeURIComponent(scenario)}` : null;
@@ -388,7 +429,7 @@ function DecisionRow({
                 />
               ) : null}
               <div className="min-w-0">
-                <Link href={href} className="code-id text-[15px] break-all underline decoration-rule underline-offset-4 hover:decoration-ink">
+                <Link href={href} translate="no" className="code-id text-[15px] break-all underline decoration-rule underline-offset-4 hover:decoration-ink">
                   {r.workItemId}
                 </Link>
                 {r.itemTitle ? (
@@ -405,7 +446,7 @@ function DecisionRow({
         <td className={td}>
           {r.ruleId ? (
             <>
-              <span className="code-id text-[15px] break-all">{r.ruleId}</span>
+              <span translate="no" className="code-id text-[15px] break-all">{r.ruleId}</span>
               {r.ruleText ? <p className="text-[13.5px] leading-snug text-muted-foreground">{r.ruleText}</p> : null}
             </>
           ) : (
@@ -430,7 +471,7 @@ function DecisionRow({
           {extra > 0 ? (
             <button
               type="button"
-              onClick={onToggle}
+              onClick={() => onToggle(r.id)}
               aria-expanded={expanded}
               aria-controls={detailId}
               className="mt-1 text-[14px] font-[560] text-muted-foreground underline decoration-rule underline-offset-4 hover:text-ink hover:decoration-ink"
@@ -474,7 +515,7 @@ function DecisionRow({
         <td className={cn(td, "pr-7 text-right")}>
           <button
             type="button"
-            onClick={onToggle}
+            onClick={() => onToggle(r.id)}
             aria-expanded={expanded}
             aria-controls={detailId}
             aria-label={expanded ? `Ascunde detaliile pentru ${what}` : `Arată tot rândul pentru ${what}`}

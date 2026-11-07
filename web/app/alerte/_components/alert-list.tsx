@@ -1,5 +1,6 @@
 import { cn } from "cn";
 import type { Alert, Decision, WorkItem } from "@/lib/contracts";
+import { alertOutcomeRo } from "@/lib/data/labels";
 import { fmtInt, fmtMoment, fmtTime, plural } from "@/lib/format";
 import { CountPill, DemoStamp, SEVERITY_RO, SeverityIcon, WorkItemRef, type Severity } from "./parts";
 
@@ -81,6 +82,7 @@ function LinkedItems({ ids, workItemsById, decisionsByWorkItemId, scenario }: { 
 
 function AlertItem({ a, ...lookups }: { a: Alert } & Lookups) {
   const ids = a.work_item_ids ?? [];
+  const outcome = alertOutcomeRo(ids, lookups.decisionsByWorkItemId);
   return (
     <li className={cn("grid grid-cols-[152px_minmax(0,1fr)] gap-x-5 py-4 pr-7 pl-7", BAR[a.severity])}>
       <div className="text-[14.5px] leading-snug">
@@ -98,6 +100,12 @@ function AlertItem({ a, ...lookups }: { a: Alert } & Lookups) {
       <div className="min-w-0">
         <h4 className="text-[18px] leading-snug font-[620]">{a.title_ro}</h4>
         <p className="mt-1 max-w-[82ch] text-[16px] leading-relaxed">{a.body_ro}</p>
+        {outcome ? (
+          <p className="mt-1 text-[15px]">
+            <span className="text-muted-foreground">Ce a decis agentul: </span>
+            {outcome}
+          </p>
+        ) : null}
         {ids.length ? <LinkedItems ids={ids} {...lookups} /> : null}
         {a.channel === "clienti" ? (
           <div className="mt-2.5">

@@ -15,7 +15,9 @@ import { SOURCES, sourceOf } from "@/lib/sources";
 
 export default function QueuePage({ searchParams }: PageProps<"/coada">) {
   return (
-    <Suspense fallback={<div className="min-h-dvh bg-canvas" aria-busy="true" aria-label="Se încarcă lucrările care așteaptă un om" />}>
+    <Suspense fallback={<div role="status" className="min-h-dvh bg-canvas" aria-busy="true">
+        <span className="sr-only">Se încarcă lucrările care așteaptă un om…</span>
+      </div>}>
       <Queue searchParams={searchParams} />
     </Suspense>
   );
@@ -197,7 +199,7 @@ function WaitingRow({ item: { decision, w }, scenario }: { item: Waiting; scenar
             <span className="size-9 shrink-0" dangerouslySetInnerHTML={{ __html: markerSvg({ source, kind: "human" }) }} />
           ) : null}
           <div className="min-w-0">
-            <Link href={linkTo(id, scenario)} className="code-id block truncate text-[19px] underline decoration-rule underline-offset-4 hover:decoration-ink">
+            <Link href={linkTo(id, scenario)} translate="no" className="code-id block truncate text-[19px] underline decoration-rule underline-offset-4 hover:decoration-ink">
               {id}
             </Link>
             {w ? (
@@ -211,7 +213,7 @@ function WaitingRow({ item: { decision, w }, scenario }: { item: Waiting; scenar
         </div>
         <p className="mt-3 text-[17.5px] leading-snug font-[580]">{reason}</p>
         <p className="mt-1.5 text-[14.5px] text-muted-foreground">
-          <span className="code-id text-ink">{decision.rule_id}</span>
+          <span translate="no" className="code-id text-ink">{decision.rule_id}</span>
           {rule ? `: ${rule}` : ""}
         </p>
         {w?.impact.safety_flag ? (
@@ -317,7 +319,7 @@ function DecidedRow({ a, scenario }: { a: AuditRecord; scenario: string }) {
         {a.work_item_id ? (
           <span className="flex items-center gap-2">
             {source ? <span className="size-6 shrink-0" dangerouslySetInnerHTML={{ __html: markerSvg({ source }, 24) }} /> : null}
-            <Link href={linkTo(a.work_item_id, scenario)} className="code-id truncate underline decoration-rule underline-offset-4 hover:decoration-ink">
+            <Link href={linkTo(a.work_item_id, scenario)} translate="no" className="code-id truncate underline decoration-rule underline-offset-4 hover:decoration-ink">
               {a.work_item_id}
             </Link>
             {a.rule_id ? <span className="dense text-[13.5px] text-muted-foreground">venită din {a.rule_id}</span> : null}

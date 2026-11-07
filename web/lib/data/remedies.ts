@@ -62,7 +62,7 @@ export async function getRemedies(scenario: string): Promise<Sourced<RemedyChoic
         if (!isSafeSegment(scenario)) return missing("scenariu invalid");
         for (const file of [path.join(demoDir(), "plans", scenario, "remedies.json"), path.join(demoDir(), scenario, "remedies.json")]) {
           try {
-            return ok(normalize(JSON.parse(await readFile(file, "utf8"))), { detail: file });
+            return ok(normalize(JSON.parse(await readFile(/*turbopackIgnore: true*/ file, "utf8"))), { detail: file });
           } catch {
             // următorul
           }

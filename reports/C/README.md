@@ -30,11 +30,17 @@ Pentru prezentare și pentru interfață. Toate cifrele vin din scripturi (coman
 
 ## Ziua demo: 8 iulie 2025 (`make c-predict`)
 
-- Caniculă, cer senin, 956 W/m² pe panou la prânz, 35 °C. 300 de posturi, 41 de lucrări C, 18 posturi cu probabilitate peste 50%.
-- Scara de soluții: 7 × o treaptă de priză, 4 × 3 case mutate pe altă fază, 2 × limită de export, 20 de mesaje de grup, 8 posturi urmărite.
+- Caniculă, cer senin, 956 W/m² pe panou la prânz, 35 °C. 300 de posturi, 33 de lucrări C, 18 posturi cu probabilitate peste 50%.
+- Scara de soluții: 8 × o treaptă de priză, 4 × 3 case mutate pe altă fază, 2 × limită de export, 19 mesaje de grup.
 - Exemplu (PT-1252, Popești-Leordeni): P90 1,113 pu după model, 1,133 pu cu dezechilibrul de faze estimat. O treaptă de priză singură îl lasă la 1,109 pu, 3 case mutate pe altă fază la 1,115 pu; împreună îl aduc la 1,092 pu, pentru 1.956 lei. Mesajele (−0,0018 pu la 10% participare) și bateriile (−0,0044 pu) nu ajung singure.
-- Oferte de baterii pentru PPC Energie: 108 prosumatori pe 13 posturi, recuperare mediană de circa 5 ani cu grantul Casa Verde Baterii 2026; bateria încărcată la prânz se descarcă seara, în orele de deficit 18-22 (`reports/C/oferte_baterii.md`).
-- Mâine (8 nov. 2026, duminică senină și rece): 7 posturi cu risc peste 50%, doar mesaje și urmărire, pentru că în afara sezonului o vizită nu se justifică. Agentul explică de ce: panourile reci produc aproape cât vara, iar duminica consumul e mic.
+- Oferte de baterii pentru PPC Energie: 113 prosumatori pe 14 posturi, recuperare mediană de circa 5 ani cu grantul Casa Verde Baterii 2026; bateria încărcată la prânz se descarcă seara, în orele de deficit 18-22 (`reports/C/oferte_baterii.md`).
+- Mâine, cu prognoza reală de noiembrie: pe 8 nov. (duminică senină și rece, 730 W/m²) 7 posturi cu risc peste 50%, nicio echipă, doar mesaje și urmărire, pentru că în afara sezonului o vizită nu se justifică; pe 9 nov. (înnorat 78%, 484 W/m²) niciun post peste 50%, nicio echipă, 9 posturi urmărite și 2 cazuri nesigure la om. Explicația spune de ce: soarele de noiembrie e slab. Agentul explică de ce: panourile reci produc aproape cât vara, iar duminica consumul e mic.
+
+## Postul pentru legătura cu bilanțul: PT-1082 (1 Decembrie, sintetic)
+
+- Bilanțul pe post (`A-20250708-PT-1082`) găsește dezechilibru pe faze: circa 77% din case pe o fază, pierderi pe cabluri de 2,9 ori normalul.
+- C (`C-20250708-PT-1082`) folosește constatarea în scara de soluții: P90 1,138 pu (cu dezechilibrul). Mutarea a 3 case −0,011 pu (încredere medie, susținută de bilanț), o treaptă de priză −0,025 pu, ofertele de baterii −0,008 pu: împreună 1,095 pu, pentru 1.966 lei. Fără mutarea caselor, combinația ieftină nu ajunge sub 1,10.
+- PT-1269 (propus de bilanț): aceeași legătură, dar acolo problema e mai ales cantitatea de panouri; mutarea caselor e prima treaptă dintr-o soluție cu baterii și limită de export (12.439 lei).
 
 ## Figuri (`reports/C/figures/`)
 
@@ -43,6 +49,7 @@ Pentru prezentare și pentru interfață. Toate cifrele vin din scripturi (coman
 - `reliability.png`: probabilitatea prezisă față de frecvența reală (modelul calibrat stă pe diagonală).
 - `mae_by_topology.png`: eroarea pe fiecare rețea lăsată deoparte la antrenare.
 - `ladder_demo-vara_PT-1252.png`: scara de soluții pentru un post: ce aduce tensiunea sub 1,10 pu și cât costă (efecte simulate).
+- `ladder_demo-vara_PT-1082.png`: scara pentru postul cu dezechilibrul găsit de bilanț (faze + priză + baterii).
 
 ## Mai multe
 

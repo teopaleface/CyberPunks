@@ -14,6 +14,7 @@ const DONE: Record<ReviewDecision, string> = { approve: "Ai aprobat", reject: "A
 export function ReviewActions({ workItemId, scenario }: { workItemId: string; scenario?: string }) {
   const router = useRouter();
   const noteId = useId();
+  const itemId = useId();
   const [note, setNote] = useState("");
   const [pending, startTransition] = useTransition();
   const [acting, setActing] = useState<ReviewDecision | null>(null);
@@ -33,11 +34,15 @@ export function ReviewActions({ workItemId, scenario }: { workItemId: string; sc
   };
   return (
     <div className="space-y-3">
+      <span id={itemId} className="sr-only">
+        lucrarea {workItemId}
+      </span>
       <label className="block text-[14px] font-[560]" htmlFor={noteId}>
         Nota ta (opțional, intră în jurnal)
       </label>
       <Textarea
         id={noteId}
+        aria-describedby={itemId}
         name="nota"
         autoComplete="off"
         value={note}
@@ -47,13 +52,13 @@ export function ReviewActions({ workItemId, scenario }: { workItemId: string; sc
         className="min-h-[76px] rounded-[4px] bg-panel text-[15px]"
       />
       <div className="flex flex-wrap gap-2.5">
-        <Button size="panel" onClick={() => act("approve")} disabled={pending}>
+        <Button size="panel" onClick={() => act("approve")} disabled={pending} aria-describedby={itemId}>
           {acting === "approve" ? "Se trimite…" : "Aprobă"}
         </Button>
-        <Button size="panel" variant="outline" onClick={() => act("reject")} disabled={pending}>
+        <Button size="panel" variant="outline" onClick={() => act("reject")} disabled={pending} aria-describedby={itemId}>
           {acting === "reject" ? "Se trimite…" : "Respinge"}
         </Button>
-        <Button size="panel" variant="outline" onClick={() => act("defer")} disabled={pending}>
+        <Button size="panel" variant="outline" onClick={() => act("defer")} disabled={pending} aria-describedby={itemId}>
           {acting === "defer" ? "Se trimite…" : "Amână"}
         </Button>
       </div>
