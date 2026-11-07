@@ -3,14 +3,16 @@
  * Fără cod de server: se folosește și în componentele client.
  */
 
+import { englishText } from "@/lib/english";
+
 export const TZ = "Europe/Bucharest";
 
-const intFmt = new Intl.NumberFormat("ro-RO", { maximumFractionDigits: 0 });
+const intFmt = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 });
 const decFmts = new Map<number, Intl.NumberFormat>();
 function decFmt(digits: number): Intl.NumberFormat {
   let f = decFmts.get(digits);
   if (!f) {
-    f = new Intl.NumberFormat("ro-RO", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+    f = new Intl.NumberFormat("en-GB", { minimumFractionDigits: digits, maximumFractionDigits: digits });
     decFmts.set(digits, f);
   }
   return f;
@@ -29,10 +31,13 @@ export function fmtScore(p: number): string {
   return decFmt(2).format(p);
 }
 
-/** Lei fără zecimale peste 100, cu două zecimale sub (costurile mici contează la centime). */
+/**
+ * Lei fără zecimale peste 100 și la sume întregi („2 lei”, „0 lei”); sub 100, cu bani, două zecimale
+ * („2,70 lei”: costurile mici contează la bani).
+ */
 export function fmtLei(n: number, opts: { decimals?: number } = {}): string {
-  const d = opts.decimals ?? (Math.abs(n) >= 100 ? 0 : 2);
-  return `${d === 0 ? fmtInt(n) : fmtDec(n, d)} lei`;
+  const d = opts.decimals ?? (Math.abs(n) >= 100 || Number.isInteger(n) ? 0 : 2);
+  return `${d === 0 ? fmtInt(n) : fmtDec(n, d)} RON`;
 }
 
 export function fmtKm(n: number): string {
@@ -43,15 +48,15 @@ export function fmtPercent(ratio: number, digits = 0): string {
   return `${fmtDec(ratio * 100, digits)}%`;
 }
 
-const timeFmt = new Intl.DateTimeFormat("ro-RO", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: TZ });
-const dateLongFmt = new Intl.DateTimeFormat("ro-RO", {
+const timeFmt = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: TZ });
+const dateLongFmt = new Intl.DateTimeFormat("en-GB", {
   weekday: "long",
   day: "numeric",
   month: "long",
   year: "numeric",
   timeZone: TZ,
 });
-const dateShortFmt = new Intl.DateTimeFormat("ro-RO", { weekday: "long", day: "numeric", month: "long", timeZone: TZ });
+const dateShortFmt = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: TZ });
 const partsFmt = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: TZ });
 
 /** Ora la București: „08:25”. */
@@ -60,7 +65,7 @@ export function fmtTime(iso: string): string {
 }
 
 function capitalize(s: string): string {
-  return s.charAt(0).toLocaleUpperCase("ro-RO") + s.slice(1);
+  return s.charAt(0).toLocaleUpperCase("en-GB") + s.slice(1);
 }
 
 /** O zi calendaristică (YYYY-MM-DD) fără să alunece din cauza fusului orar. */
@@ -81,10 +86,24 @@ export function fmtDateShort(date: string): string {
 /** Data și ora unui moment: „duminică, 8 noiembrie, la 06:00”. */
 export function fmtMoment(iso: string): string {
   const d = new Date(iso);
-  return `${dateShortFmt.format(d)}, la ${timeFmt.format(d)}`;
+  return `${dateShortFmt.format(d)}, at ${timeFmt.format(d)}`;
 }
 
 /** Minutul zilei la București (0–1439) pentru un moment ISO. */
+// ziua și luna („10.05”), din partea de dată a textului, fără conversie de fus orar
+const dayMonthFmt = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "2-digit", timeZone: "UTC" });
+
+/** „2025-05-10” sau „2025-05-10T00:00:00” → „10.05”. */
+export function fmtDayMonth(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  return m ? dayMonthFmt.format(new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])))) : iso;
+}
+
+/** Punctele zilnice vin fie ca dată, fie la miezul nopții („…T00:00:00”). */
+export function isWholeDay(iso: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}(?:[T ]00:00(?::00(?:\.0+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/.test(iso);
+}
+
 export function minutesOfDay(iso: string): number {
   const [h, m] = partsFmt.format(new Date(iso)).split(":").map(Number);
   return (h % 24) * 60 + m;
@@ -105,7 +124,7 @@ export function minutesOfPlanDay(iso: string, planDate: string): number {
 /** „08:05”, iar a doua zi „00:15 (+1 zi)”. */
 export function hhmmDay(min: number): string {
   const extra = Math.floor(min / 1440);
-  return extra > 0 ? `${hhmm(min)} (+${extra} zi)` : hhmm(min);
+  return extra > 0 ? `${hhmm(min)} (+${extra} day)` : hhmm(min);
 }
 
 /** „HH:MM” → minutul zilei. */
@@ -137,16 +156,15 @@ export function fmtSeconds(s: number): string {
 
 /** Prima literă mare, restul neatins (pentru motive care vin cu literă mică din date). */
 export function sentence(s: string): string {
-  const t = s.trim();
+  const t = englishText(s).trim();
   if (!t) return t;
   const out = capitalize(t);
   return /[.!?…]$/.test(out) ? out : `${out}.`;
 }
 
 /** Plural românesc simplu: 1 lucrare, 2 lucrări, 20 de lucrări. */
-export function plural(n: number, one: string, few: string, many = `de ${few}`): string {
-  if (n === 1) return `1 ${one}`;
-  const mod100 = n % 100;
-  if (n === 0 || (mod100 >= 1 && mod100 <= 19)) return `${fmtInt(n)} ${few}`;
-  return `${fmtInt(n)} ${many}`;
+export function plural(n: number, one: string, few: string): string;
+export function plural(n: number, one: string, few: string, many: string): string;
+export function plural(n: number, one: string, few: string): string {
+  return `${fmtInt(n)} ${n === 1 ? one : few}`;
 }

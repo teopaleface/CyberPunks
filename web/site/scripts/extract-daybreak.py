@@ -15,6 +15,7 @@ from pathlib import Path
 
 demo = Path(sys.argv[1])
 out = Path(sys.argv[2])
+reports = Path(sys.argv[3]) if len(sys.argv) > 3 else demo.parent.parent / "reports"
 plan_dir = demo / "plans" / "demo-vara"
 
 
@@ -193,8 +194,13 @@ for d in plan["decisions"]:
     per_source[d["work_item_id"][0]]["total"] += 1
 
 # ---- models and agent evaluation ----
+def report_path(k, name):
+    current = reports / k / name
+    return current if current.exists() else demo / "reports" / k / name
+
+
 def metrics(k):
-    m = load(demo / "reports" / k / "metrics.json")
+    m = load(report_path(k, "metrics.json"))
     return m.get("metrics", {}), m.get("model_version"), m.get("baseline") or m.get("baselines")
 
 
@@ -202,7 +208,7 @@ mA, vA, _ = metrics("A")
 mB, vB, _ = metrics("B")
 mC, vC, _ = metrics("C")
 mBil, vBil, _ = metrics("bilant")
-ev = load(demo / "reports" / "planner" / "agent_eval.json")
+ev = load(report_path("planner", "agent_eval.json"))
 strategies = ev["main"]["strategies"]
 NAMES = {
     "agent": "Agentul (reguli + OR-Tools)",
@@ -361,7 +367,7 @@ audit_counts = dict(audit_counts)
 
 
 def model_card(k):
-    m = load(demo / "reports" / k / "metrics.json")
+    m = load(report_path(k, "metrics.json"))
     return {
         "id": m.get("model_id"), "version": m.get("model_version"), "task": m.get("task"), "dataset": m.get("dataset"),
         "split": m.get("split"), "testSize": m.get("test_size"), "primary": m.get("primary_metric"),
@@ -395,7 +401,7 @@ if crews_file.exists():
 shift = {"start": "08:00", "end": "16:00"}
 
 data = {
-    "source": "teopaleface/CyberPunks, branch design, outputs/demo (planul real al agentului, scenariul demo-vara)",
+    "source": "CyberPunks outputs/demo, fixed summer-demo plan; model evaluation reports are versioned separately",
     "planId": plan["plan_id"],
     "planDate": plan["plan_date"],
     "generatedAt": plan["generated_at"],
@@ -451,7 +457,9 @@ data = {
 }
 
 out.parent.mkdir(parents=True, exist_ok=True)
-out.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+serialized = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+if not out.exists() or out.read_text(encoding="utf-8") != serialized:
+    out.write_text(serialized, encoding="utf-8")
 sys.stdout.reconfigure(encoding="utf-8")
 print("wrote", out, round(out.stat().st_size / 1024), "KiB")
 print("cases", [(c["post"], c["diagnosis"], c["lossLeiMonth"], c["decision"]) for c in cases])

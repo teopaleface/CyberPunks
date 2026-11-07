@@ -8,7 +8,7 @@ import { cn } from "cn";
 import type { WorkItem } from "@/lib/contracts";
 import { DECISION_LABEL_RO } from "@/lib/data/labels";
 import type { PostSummary } from "@/lib/data/types";
-import { fmtDec, fmtInt, hhmm, minutesOfPlanDay } from "@/lib/format";
+import { fmtDec, fmtInt, hhmm, minutesOfPlanDay, plural } from "@/lib/format";
 import { markerKind, markerSvg } from "@/lib/marker-svg";
 import { loadWorkItemDetail } from "@/lib/data/actions";
 import { RE_BOUNDS, isSlim, itemTitle, type PlanScreenData } from "@/lib/plan-screen";
@@ -27,15 +27,20 @@ const ALL = "toata_zona";
 
 function shortDepot(label: string): string {
   return label
-    .replace(/^Bază operativă\s*/i, "Baza ")
+    .replace(/^Bază operativă\s*/i, "Depot ")
     .replace(/\s*\(simulată\)/i, "")
-    .replace(/^Baza București /, "Baza ");
+    .replace(/^Baza București /, "Depot ");
 }
+
+// în modul de prezentare, încadrarea lasă loc butoanelor de regiune și hărții mici (subtitrarea are banda ei)
+const SCENE_MAP_PADDING = { top: 76, bottom: 64, left: 56, right: 330 };
 
 export interface PostsInfo {
   posts: PostSummary[];
   derived: boolean;
   lossCostNote: string | null;
+  /** Pragurile de culoare, în lei pe lună (config/planner.yaml). */
+  thresholds: { yellow: number; red: number };
 }
 
 export function PlanScreen({
@@ -44,7 +49,7 @@ export function PlanScreen({
   initialSelected,
   postsInfo,
   approval,
-  theme = "light",
+  theme,
   scene,
   initialRegion,
   initialMode = "items",
@@ -126,10 +131,15 @@ export function PlanScreen({
     [data.regionOf, region, setRegion, scene],
   );
 
+  // în prezentare, încadrarea cuprinde și lucrarea scenei (de exemplu un caz „Nu sunt sigur” din afara traseelor)
+  const sceneItem = scene?.selected ? itemsById[scene.selected] : undefined;
   const bounds: Bounds = useMemo(() => {
-    if (region === ALL) return RE_BOUNDS;
-    return data.regions.find((r) => r.id === region)?.bounds ?? RE_BOUNDS;
-  }, [region, data.regions]);
+    const base = region === ALL ? RE_BOUNDS : (data.regions.find((r) => r.id === region)?.bounds ?? RE_BOUNDS);
+    if (!sceneItem || region === ALL) return base;
+    const { lon, lat } = sceneItem.location;
+    const m = 0.08; // ~8 km de margine în jurul lucrării
+    return [Math.min(base[0], lon - m), Math.min(base[1], lat - m), Math.max(base[2], lon + m), Math.max(base[3], lat + m)];
+  }, [region, data.regions, sceneItem]);
 
   const mapItems: MapItem[] = useMemo(
     () =>
@@ -140,7 +150,7 @@ export function PlanScreen({
         let sub: string | undefined;
         if (stop) sub = `${stop.crewId}, ${hhmm(stop.start)}`;
         else if (d) sub = DECISION_LABEL_RO[d.decision];
-        else sub = "fără decizie";
+        else sub = "No decision";
         return {
           id: w.work_item_id,
           source: w.source,
@@ -167,9 +177,9 @@ export function PlanScreen({
     const maxLoss = Math.max(1, ...list.map((p) => p.loss_lei_month ?? 0));
     return list.map((p) => {
       const parts: string[] = [];
-      if (p.loss_lei_month != null) parts.push(`${fmtInt(p.loss_lei_month)} lei pe lună pierduți${p.derived ? " (estimat din A)" : ""}`);
-      if (p.meters_flagged) parts.push(`${p.meters_flagged} ${p.meters_flagged === 1 ? "contor semnalat" : "contoare semnalate"}`);
-      if (p.voltage_p90_pu != null) parts.push(`tensiune P90 ${fmtDec(p.voltage_p90_pu, 3).replace(/0$/, "")} pu`);
+      if (p.loss_lei_month != null) parts.push(`${fmtInt(p.loss_lei_month)} RON lost per month${p.derived ? " (estimated from model A)" : ""}`);
+      if (p.meters_flagged) parts.push(plural(p.meters_flagged, "flagged meter", "flagged meters"));
+      if (p.voltage_p90_pu != null) parts.push(`P90 voltage ${fmtDec(p.voltage_p90_pu, 3).replace(/0$/, "")} pu`);
       if (p.diagnosis) parts.push(p.diagnosis);
       return {
         id: p.post_id,
@@ -177,7 +187,7 @@ export function PlanScreen({
         lon: p.lon,
         color: p.color ?? "necunoscut",
         title: p.label && p.label !== p.post_id ? `${p.post_id}, ${p.label.replace(`${p.post_id}, `, "")}` : p.post_id,
-        sub: parts.join("; ") || "fără semnale",
+        sub: parts.join("; ") || "No signals",
         weight: Math.sqrt((p.loss_lei_month ?? 0) / maxLoss),
       };
     });
@@ -204,7 +214,7 @@ export function PlanScreen({
         if (r.ok) setDetails((d) => ({ ...d, [selected]: r.workItem }));
         else setDetailErrors((e) => ({ ...e, [selected]: r.error }));
       } catch {
-        if (!cancelled) setDetailErrors((e) => ({ ...e, [selected]: "Consola nu a putut cere detaliile (serverul nu răspunde)." }));
+        if (!cancelled) setDetailErrors((e) => ({ ...e, [selected]: "Could not load details. The server did not respond." }));
       }
     });
     return () => {
@@ -238,13 +248,14 @@ export function PlanScreen({
             mode={mode}
             onPostClick={(id) => router.push(`/posturi/${encodeURIComponent(id)}`)}
             theme={theme}
+            padding={scene ? SCENE_MAP_PADDING : undefined}
           />
           <div className="absolute top-4 left-4 flex flex-col items-start gap-2">
             <RegionChips regions={data.regions} region={region} onChange={setRegion} totalItems={data.items.length} />
             {mapPosts.length ? <ModeSwitch mode={mode} onChange={setMode} posts={mapPosts.length} /> : null}
           </div>
           {scene ? null : mode === "posts" ? (
-            <PostsLegend derived={postsInfo?.derived ?? false} note={postsInfo?.lossCostNote ?? null} />
+            <PostsLegend derived={postsInfo?.derived ?? false} note={postsInfo?.lossCostNote ?? null} thresholds={postsInfo?.thresholds ?? { yellow: 200, red: 600 }} />
           ) : (
             <Legend />
           )}
@@ -259,11 +270,11 @@ export function PlanScreen({
             />
           ) : null}
         </div>
-        <aside className="flex min-h-0 flex-col bg-panel" aria-label="Decizii care cer atenție">
+        <aside className="flex min-h-0 flex-col bg-panel" aria-label="Decisions needing attention">
           <div className={cn(spotlight === "queue" && "spot spot-att")}>
             <QueuePanel queue={queue} itemsById={itemsById} scenario={data.scenario} onSelect={select} recovered={data.recovered} />
           </div>
-          <AlertsPanel alerts={data.alerts} onSelect={select} />
+          <AlertsPanel alerts={data.alerts} decisions={data.decisions} onSelect={select} />
           <WorkItemPeek
             highlight={spotlight === "peek"}
             detailError={selected ? (detailErrors[selected] ?? null) : null}
@@ -306,9 +317,9 @@ function RegionChips({
   onChange: (id: string) => void;
   totalItems: number;
 }) {
-  const chips = [{ id: ALL, label: "Toată zona", count: totalItems }, ...regions.map((r) => ({ id: r.id, label: r.label, count: r.itemCount }))];
+  const chips = [{ id: ALL, label: "All areas", count: totalItems }, ...regions.map((r) => ({ id: r.id, label: r.label, count: r.itemCount }))];
   return (
-    <div role="group" aria-label="Zona arătată pe hartă" className="flex overflow-hidden rounded-[4px] border border-rule bg-panel text-[14.5px]">
+    <div role="group" aria-label="Area shown on the map" className="flex overflow-hidden rounded-[4px] border border-rule bg-panel text-[14.5px]">
       {chips.map((c) => (
         <button
           key={c.id}
@@ -336,12 +347,12 @@ function Legend() {
     />
   );
   const items: [string, string][] = [
-    [markerSvg({ source: "A", r: 9 }), "Contoare"],
-    [markerSvg({ source: "B", r: 9 }), "Furtună"],
-    [markerSvg({ source: "C", r: 9 }), "Tensiune"],
-    [markerSvg({ source: "A", kind: "human", r: 9 }), "Decide un om"],
-    [markerSvg({ source: "C", kind: "remote", r: 9 }), "Fără echipă"],
-    [markerSvg({ source: "B", kind: "pending", r: 9 }), "Amânată"],
+    [markerSvg({ source: "A", r: 9 }), "Meters"],
+    [markerSvg({ source: "B", r: 9 }), "Storm"],
+    [markerSvg({ source: "C", r: 9 }), "Voltage"],
+    [markerSvg({ source: "A", kind: "human", r: 9 }), "Human review"],
+    [markerSvg({ source: "C", kind: "remote", r: 9 }), "No crew"],
+    [markerSvg({ source: "B", kind: "pending", r: 9 }), "Deferred"],
   ];
   return (
     <div className="absolute bottom-7 left-4 flex items-center gap-4 rounded-[4px] border border-rule bg-panel/95 px-3 py-1.5 text-[13.5px] max-[1500px]:gap-2.5 max-[1500px]:text-[13px]">
@@ -355,7 +366,8 @@ function Legend() {
         <svg width="22" height="10" viewBox="0 0 26 12" aria-hidden="true">
           <path d="M1 9 Q13 0 25 9" fill="none" style={{ stroke: "var(--ink)" }} strokeWidth="2.2" />
         </svg>
-        ordinea opririlor, nu drumul
+
+        Stop order, not road directions
       </span>
     </div>
   );
@@ -379,13 +391,13 @@ function Locator({
   const [w, s, e, n] = geo.bounds;
   const px = (lon: number) => ((lon - w) / (e - w)) * geo.width;
   const py = (lat: number) => ((n - lat) / (n - s)) * geo.height;
-  const label = region === ALL ? "Toată zona Rețele Electrice" : `Harta arată: ${data.regions.find((r) => r.id === region)?.label ?? region}`;
+  const label = region === ALL ? "All Rețele Electrice areas" : `Map shows: ${data.regions.find((r) => r.id === region)?.label ?? region}`;
   const items = Object.values(itemsById);
   return (
     <div className="absolute top-4 right-4 w-[292px] rounded-[4px] border border-rule bg-panel/95 max-[1500px]:hidden">
       <div className="flex items-baseline justify-between border-b border-rule px-3 pt-2 pb-1.5 text-[14px]">
-        <b className="font-[600]">Zona Rețele Electrice</b>
-        <span className="text-muted-foreground">{label.replace("Harta arată: ", "")}</span>
+        <b className="font-[600]">Rețele Electrice area</b>
+        <span className="text-muted-foreground">{label.replace("Map shows: ", "")}</span>
       </div>
       <svg width="100%" viewBox={`-6 -6 ${geo.width + 12} ${geo.height + 12}`} role="group" aria-label={label} className="block">
         {geo.counties.map((c) => (
@@ -454,33 +466,38 @@ function ModeSwitch({ mode, onChange, posts }: { mode: "items" | "posts"; onChan
     </button>
   );
   return (
-    <div role="group" aria-label="Ce arată harta" className="flex overflow-hidden rounded-[4px] border border-rule bg-panel text-[14px]">
-      {btn("items", "Lucrările de mâine")}
-      {btn("posts", `Posturile (${posts})`)}
+    <div role="group" aria-label="Map content" className="flex overflow-hidden rounded-[4px] border border-rule bg-panel text-[14px]">
+      {btn("items", "Tomorrow's work items")}
+      {btn("posts", `Substations (${fmtInt(posts)})`)}
     </div>
   );
 }
 
-function PostsLegend({ derived, note }: { derived: boolean; note: string | null }) {
+function PostsLegend({ derived, note, thresholds }: { derived: boolean; note: string | null; thresholds: { yellow: number; red: number } }) {
   const dot = (color: string) => <span className="inline-block size-3.5 rounded-full border border-panel" style={{ background: color }} aria-hidden="true" />;
   return (
     <div className="absolute bottom-7 left-4 max-w-[760px] rounded-[4px] border border-rule bg-panel/95 px-3 py-2 text-[13.5px]">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-        <b className="font-[600]">Lei pierduți pe lună</b>
-        <span className="flex items-center gap-1.5">{dot("#2f8f5b")}sub 150</span>
-        <span className="flex items-center gap-1.5">{dot("#d9a400")}150–600</span>
-        <span className="flex items-center gap-1.5">{dot("#c8321e")}peste 600</span>
+        <b className="font-[600]">RON lost per month</b>
+        <span className="flex items-center gap-1.5">{dot("#2f8f5b")}below {fmtInt(thresholds.yellow)}</span>
+        <span className="flex items-center gap-1.5">
+          {dot("#d9a400")}
+          {fmtInt(thresholds.yellow)}–{fmtInt(thresholds.red)}
+        </span>
+        <span className="flex items-center gap-1.5">{dot("#c8321e")}above {fmtInt(thresholds.red)}</span>
         <span className="flex items-center gap-1.5">{dot("#9aa4a9")}necunoscut</span>
-        <span className="text-muted-foreground">cercul mai mare, pierdere mai mare; clic pe un post pentru pagina lui</span>
+        <span className="text-muted-foreground">Larger circles mean greater losses. Select a substation for details.</span>
         <Link href="/posturi" className="font-[560] underline decoration-rule underline-offset-4 hover:decoration-ink">
-          Lista posturilor
+
+          Substation list
         </Link>
       </div>
       <p className="mt-1 text-[12.5px] text-muted-foreground">
         {derived
-          ? "Estimat din contoarele semnalate de modelul A (kWh pe zi × scor), până vine bilanțul pe post. "
-          : "Din bilanțul pe post. "}
-        Simulare pe date publice, gândită pentru datele PPC.{note ? ` Prețul energiei pierdute: ${note.split(/[:;(]/)[0].trim().toLowerCase() === "proxy" ? "proxy din prețul PZU OPCOM" : note.split(";")[0]}.` : ""}
+          ? "Estimated from meters flagged by model A (daily kWh × score), pending the substation energy balance. "
+          : "From the substation energy balance. "}
+
+        Simulation using public data, designed for PPC data.{note ? ` Lost energy price: ${note.split(/[:;(]/)[0].trim().toLowerCase() === "proxy" ? "proxy from the OPCOM day-ahead price" : note.split(";")[0]}.` : ""}
       </p>
     </div>
   );

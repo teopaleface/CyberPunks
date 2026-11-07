@@ -8,7 +8,7 @@ Modelul spune „nu sunt sigur” (abstain) când cea mai probabilă cauză are 
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import lightgbm as lgb
 import numpy as np
@@ -23,50 +23,64 @@ ABSTAIN_MARGIN = 0.15
 ABSTAIN_WIDTH_RATIO = 3.0  # intervalul P10-P90 mai mare de 3 ori decât lipsa peste normal: nu ne pronunțăm
 
 
+DEFAULT_PARAMS = {"n_estimators": 400, "learning_rate": 0.05, "num_leaves": 31, "min_child_samples": 20, "subsample": 0.8, "colsample_bytree": 0.8, "reg_lambda": 0.0, "class_weight_power": 1.0}
+
+
 @dataclass
 class Diagnoser:
     model: lgb.LGBMClassifier | lgb.Booster
+    features: list = field(default_factory=lambda: list(WIN_FEATURES))
 
     def proba(self, X: pd.DataFrame) -> pd.DataFrame:
         if isinstance(self.model, lgb.Booster):
-            p = self.model.predict(X[WIN_FEATURES])
+            p = self.model.predict(X[self.features])
         else:
-            p = self.model.predict_proba(X[WIN_FEATURES])
+            p = self.model.predict_proba(X[self.features])
         return pd.DataFrame(p, columns=list(CLASSES), index=X.index)
 
-    def save(self) -> None:
+    def save(self, name: str = "diagnose", params: dict | None = None) -> None:
         MODEL_DIR.mkdir(parents=True, exist_ok=True)
         assert isinstance(self.model, lgb.LGBMClassifier)
-        self.model.booster_.save_model(str(MODEL_DIR / "diagnose.txt"))
-        (MODEL_DIR / "diagnose.json").write_text(json.dumps({"classes": list(CLASSES), "features": WIN_FEATURES}))
+        self.model.booster_.save_model(str(MODEL_DIR / f"{name}.txt"))
+        (MODEL_DIR / f"{name}.json").write_text(json.dumps({"classes": list(CLASSES), "features": self.features, "params": params or {}}))
 
 
-def load() -> Diagnoser:
-    return Diagnoser(lgb.Booster(model_file=str(MODEL_DIR / "diagnose.txt")))
+def load(name: str = "diagnose") -> Diagnoser:
+    meta_p = MODEL_DIR / f"{name}.json"
+    feats = json.loads(meta_p.read_text())["features"] if meta_p.exists() else list(WIN_FEATURES)
+    return Diagnoser(lgb.Booster(model_file=str(MODEL_DIR / f"{name}.txt")), feats)
 
 
-def fit(win: pd.DataFrame, seed: int = 0) -> Diagnoser:
+def load_best() -> Diagnoser:
+    """Diagnosticul folosit în producție: v2 dacă e antrenat (`models/bilant/diagnose_v2.txt`), altfel v1."""
+    return load("diagnose_v2") if (MODEL_DIR / "diagnose_v2.txt").exists() else load("diagnose")
+
+
+def fit(win: pd.DataFrame, seed: int = 0, features: list | None = None, params: dict | None = None, n_jobs: int = 4) -> Diagnoser:
+    feats = list(features or WIN_FEATURES)
+    prm = {**DEFAULT_PARAMS, **(params or {})}
     y = win["true_class"].map({c: i for i, c in enumerate(CLASSES)}).to_numpy()
-    # clase echilibrate: problemele rare cântăresc cât cele dese
+    # clase echilibrate (puterea 1 = complet): problemele rare cântăresc cât cele dese
     counts = np.bincount(y, minlength=len(CLASSES)).astype(float)
-    w = (len(y) / (len(CLASSES) * np.maximum(counts, 1)))[y]
+    w = ((len(y) / (len(CLASSES) * np.maximum(counts, 1))) ** prm["class_weight_power"])[y]
     if "weight" in win.columns:  # verdictele după vizită (feedback.windows_with_verdicts) cântăresc mai mult
         w = w * win["weight"].to_numpy()
     m = lgb.LGBMClassifier(
         objective="multiclass",
-        n_estimators=400,
-        learning_rate=0.05,
-        num_leaves=31,
-        min_child_samples=20,
-        subsample=0.8,
+        n_estimators=int(prm["n_estimators"]),
+        learning_rate=float(prm["learning_rate"]),
+        num_leaves=int(prm["num_leaves"]),
+        min_child_samples=int(prm["min_child_samples"]),
+        subsample=float(prm["subsample"]),
         subsample_freq=1,
-        colsample_bytree=0.8,
+        colsample_bytree=float(prm["colsample_bytree"]),
+        reg_lambda=float(prm["reg_lambda"]),
         random_state=seed,
         verbose=-1,
-        n_jobs=4,
+        n_jobs=n_jobs,
     )
-    m.fit(win[WIN_FEATURES], y, sample_weight=w)
-    return Diagnoser(m)
+    m.fit(win[feats], y, sample_weight=w)
+    return Diagnoser(m, feats)
 
 
 def decide(proba: pd.DataFrame, win: pd.DataFrame) -> pd.DataFrame:
@@ -132,4 +146,27 @@ def pair_consistency(win: pd.DataFrame, dec: pd.DataFrame) -> pd.DataFrame:
     out.loc[flip, "abstain"] = False
     out.loc[flip, "abstain_reason"] = ""
     out["pair_linked"] = flip
+    return out
+
+
+def apply_martor_rule(win: pd.DataFrame, dec: pd.DataFrame) -> pd.DataFrame:
+    """Regula contorului martor (`martor.py`), aplicată după model, unde postul are martor:
+    - diferență peste clasa de exactitate → contorul de balanță e defect sau setat greșit (sigur, fără abținere);
+    - diferență în clasă, dar modelul spusese „contor de post setat greșit” → contorul de balanță e confirmat bun,
+      deci se alege a doua cauză a modelului."""
+    from cyberpunks.a_bilant.martor import MARTOR_DIFF_LIMIT
+
+    out = dec.copy()
+    d = win["martor_diff"].to_numpy() if "martor_diff" in win else np.full(len(win), np.nan)
+    has = np.isfinite(d)
+    over = has & (d > MARTOR_DIFF_LIMIT)
+    ok_meter = has & ~over & (out["label"].to_numpy() == "contor_bilant_setat")
+    out.loc[over, "label"] = "contor_bilant_setat"
+    out.loc[over, "p_label"] = 1.0
+    out.loc[over, "p_problem"] = 1.0
+    out.loc[over, "abstain"] = False
+    out.loc[over, "abstain_reason"] = ""
+    out.loc[ok_meter, "label"] = out.loc[ok_meter, "second"]
+    out.loc[ok_meter, "p_label"] = out.loc[ok_meter, "p_second"]
+    out["martor_rule"] = np.where(over, "diferenta_peste_clasa", np.where(ok_meter, "contor_balanta_confirmat", np.where(has, "in_clasa", "fara_martor")))
     return out

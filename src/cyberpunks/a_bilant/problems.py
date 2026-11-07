@@ -8,7 +8,7 @@ Clasele diagnosticului (tabelul din conceptul lui Teo, `memory/11-bilant-pe-post
 | `furt_inainte_contor`  | consum nemăsurat legat direct la rețea, constant sau cu profil de casă, de la o zi | echipa de control |
 | `pierdere_tehnica`     | dezechilibru mare de faze sau îmbinare degradată: pierderea crește cu pătratul încărcării | echipa de rețea |
 | `client_post_gresit`   | un client al postului X apare în bază la postul vecin Y (X are lipsă, Y are surplus) | corecție în birou |
-| `contor_bilant_setat`  | contorul de bilanț numără exact de 2 ori mai mult (raport de transformare greșit) | echipa de contoare |
+| `contor_bilant_setat`  | contorul de balanță numără exact de 2 ori mai mult (raport de transformare greșit) | echipa de contoare |
 
 Defectele și manipulările de contor vin direct din generatorul firului A (`cyberpunks.a_contoare.inject`: zero, stuck,
 negative, h1, bypass), cu parametrii trași de el, aplicate pe valori orare. Plajele parametrilor sunt IPOTEZE (vezi docs/data/bilant.md).
@@ -27,7 +27,7 @@ CLASS_RO = {
     "furt_inainte_contor": "furt înainte de contor",
     "pierdere_tehnica": "pierdere tehnică (cablu, faze dezechilibrate)",
     "client_post_gresit": "client trecut la postul greșit în bază",
-    "contor_bilant_setat": "contorul de bilanț al postului setat greșit",
+    "contor_bilant_setat": "contorul de balanță al postului setat greșit",
 }
 KIND_CLASS = {
     "meter_fault": "contor_client",
@@ -152,3 +152,26 @@ def apply_meter_problem(x: np.ndarray, on: np.ndarray, params: dict, local_day: 
             ratio = yh.sum() / h[:k].sum() if abs(h[:k].sum()) > 1e-9 else 1.0
             y[starts[d] + k : starts[d + 1]] = h[k:] * ratio
     return y
+
+
+def a_like_meter_problems(plan: PostPlan, n_customers: int, n_days: int, rng: np.random.Generator, p_meter: float = 0.08, min_onset: int = MIN_ONSET_DAY) -> None:
+    """Înlocuiește problemele de contor ale planului cu unele trase ca la firul A: toate cele 15 tipuri ale generatorului
+    lui A (cotele lor sunt aproape egale în `A_ground_truth.csv`), ~8% din contoare pe an (IPOTEZĂ, ca la un moment dat
+    ~5% să fie active, cât are A), plus concedii și schimbări de ocupare la câte ~2% din clienți. Pentru lotul `train2`,
+    care antrenează diagnosticul pe aceeași lume de contoare ca testul."""
+    from cyberpunks.a_contoare.inject import FAULT_KINDS, TAMPER_KINDS
+
+    plan.problems = [p for p in plan.problems if p.kind not in ("meter_fault", "meter_tamper")]
+    plan.benign = []
+    last = max(min_onset + 1, n_days - 3)
+    kinds = list(FAULT_KINDS) + list(TAMPER_KINDS)
+    for i in range(n_customers):
+        if rng.random() < p_meter:
+            k = str(rng.choice(kinds))
+            fam = "meter_fault" if k in FAULT_KINDS else "meter_tamper"
+            plan.problems.append(Problem(fam, int(rng.integers(min_onset, last)), i, {"type": k, "seed": int(rng.integers(0, 2**31 - 1))}))
+        r = rng.random()
+        if r < 0.02:
+            plan.benign.append((i, "concediu", int(rng.integers(0, n_days)), 14, 0.15))
+        elif r < 0.04:
+            plan.benign.append((i, "ocupare_schimbata", int(rng.integers(0, n_days)), None, 0.6))

@@ -4,6 +4,12 @@ Proiectul echipei CyberPunks la SmartHack XI 2026 (7-8 noiembrie, București), p
 
 Stare: în lucru, vezi [`status/ACUM.md`](status/ACUM.md). Planul: [`docs/PLAN.md`](docs/PLAN.md). Formatele de date: [`docs/CONTRACTS.md`](docs/CONTRACTS.md). Contextul și research-ul: [`memory/`](memory/INDEX.md).
 
+## Cum testezi
+
+Ghidul pentru echipă, cu pornirea demo-ului într-o singură comandă (`make demo`) și ce verifici pe fiecare ecran: [`docs/TESTARE.md`](docs/TESTARE.md).
+
+Pentru cele trei conturi, conversația prin Codex, vocea ElevenLabs și WhatsApp: [`docs/operations/RUNBOOK.md`](docs/operations/RUNBOOK.md). Această integrare rulează separat, local, fără publicarea site-ului.
+
 ## Pornire rapidă
 
 ```bash
@@ -12,4 +18,4 @@ make check       # lint și teste
 make validate-fixtures
 ```
 
-Pașii completi de reproducere (date, antrenare, evaluare, demo) se adaugă pe măsură ce firele livrează.
+Pașii completi de reproducere (date, antrenare, evaluare, demo), cu durata măsurată a fiecărui pas într-o clonă curată: [`docs/REPRODUCERE.md`](docs/REPRODUCERE.md). Întrebările tehnice probabile ale juriului, cu răspunsuri: [`docs/QA-JURIU.md`](docs/QA-JURIU.md).

@@ -47,7 +47,8 @@ def test_rules_on_fixtures(out_root: Path) -> None:
     d = _decisions(agent.run("demo-vara", mode="fixtures", out_root=out_root))
     assert d["A-20261109-MTR-027710"].decision.value == "human_review"  # abstain → om
     assert d["A-20261109-MTR-027710"].rule_id == "R-ABSTAIN"
-    assert d["A-20261109-MTR-004217"].rule_id == "R-SAFETY" and d["A-20261109-MTR-004217"].decision.value == "assigned"
+    # semnal de manipulare 0,87 fără bilanț pentru post: sub pragul de 0,95 pentru regimul de siguranță fără confirmare
+    assert d["A-20261109-MTR-004217"].rule_id != "R-SAFETY" and "fără regim de siguranță" in d["A-20261109-MTR-004217"].reason_ro
     # încredere medie, dar valoarea netă (~650 lei) trece de marja de siguranță (25% din costul vizitei): echipă
     assert d["A-20261109-MTR-019833"].rule_id == "R-A-VISIT-MEDIUM" and d["A-20261109-MTR-019833"].decision.value == "assigned"
     # pe valorile din fixture, priza (450 lei + întreruperea pentru 38 de clienți) costă mai mult decât valoarea așteptată
@@ -195,7 +196,12 @@ def test_storm_region_cap(out_root: Path) -> None:
     rows = [variant(b, f"CT-Z{i}", **{"location.lon": 28.2 + 0.05 * i}) for i in range(cap + 2)]
     write_items(out_root, "B", rows)
     d = _decisions(agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root))
-    assert sum(1 for x in d.values() if x.rule_id == "R-B-REGION-CAP") == 2
+    capped = sum(1 for x in d.values() if x.rule_id == "R-B-REGION-CAP")
+    kept = [x for x in d.values() if x.rule_id == "R-B-PREPOSITION"]
+    # Cel mult `cap` zone păstrate și doar câte echipe pot ajunge la timp (în Dobrogea, o singură echipă de medie tensiune);
+    # restul cer întăriri la dispecer.
+    assert 1 <= len(kept) <= cap and capped == len(rows) - len(kept)
+    assert all(x.decision.value == "assigned" for x in kept)
 
 
 def test_plan_totals_are_consistent(out_root: Path) -> None:

@@ -11,7 +11,9 @@ global:
   max_missing_ratio: 0.4            # peste 40% date lipsă la intrare, scorul nu e de încredere
   safety_priority_multiplier: 3.0   # riscul pentru oameni triplează prioritatea și intră primul în traseu
   safety_mandatory: true            # un caz cu risc pentru oameni intră în traseu oricare ar fi valoarea (siguranța înainte de bani); costul regulii e în evaluare
-  safety_min_score: 0.7             # sub acest scor, semnalul de siguranță e prea slab ca să treacă peste cost: prioritate triplă, fără obligativitate
+  safety_min_score: 0.7             # sub acest scor, semnalul de siguranță e prea slab: regulile obișnuite, fără regim de siguranță
+  safety_unconfirmed_min_score: 0.95  # contor semnalat fără bilanț pentru post: regim de siguranță doar de la acest scor, cu încredere mare
+                                    # (cu bilanț, decide bilanțul: manipularea fără energie lipsă la post nu dovedește o legătură ilegală)
   safety_max_mandatory_per_day: 12  # IPOTEZĂ: cota zilei pentru siguranță, ~jumătate din capacitatea echipelor de contorizare; restul cazurilor au prioritate triplă
   degraded_invalid_share: 0.2       # peste 20% linii respinse, sursa e "degraded"
 
@@ -56,8 +58,9 @@ alerts:
 
 routing:
   solver: ortools                   # ortools | greedy
-  time_limit_s: 10                  # după atât, se păstrează cea mai bună soluție găsită
-  solution_limit: 400               # oprire după un număr fix de soluții: același plan la fiecare rulare
+  time_limit_s: 60                  # plasă de siguranță; în mod normal oprește limita de soluții de mai jos
+  solution_limit: 200               # oprire după un număr fix de soluții: același plan la fiecare rulare, oricât de ocupat
+                                    # e calculatorul (cu limita de 10 s, planul real ieșea puțin diferit de la o rulare la alta)
   briefing_min: 30                  # instructaj și încărcare la bază înainte de plecare
   break_min: 30                     # pauza din tură (scade din timpul disponibil)
   value_scale: 100                  # lei → bani, pentru costurile întregi din OR-Tools

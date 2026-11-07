@@ -42,6 +42,20 @@ def variant(base: dict[str, Any], asset_id: str, **changes: Any) -> dict[str, An
     return it
 
 
+def confirmed_by_bilant(it: dict[str, Any], confirmed: bool = True) -> dict[str, Any]:
+    """Un contor cu semnal de siguranță, comparat cu bilanțul postului (extra.fusion, contractul BilantFusion).
+    Confirmat = bilanțul arată energie lipsă și a urcat scorul; altfel scorul rămâne al modelului A."""
+    score = it["prediction"]["score"]
+    a_score = round(max(0.0, score - 0.05), 4) if confirmed else score
+    it.setdefault("extra", {})
+    it["extra"] = {**(it["extra"] or {}), "fusion": {
+        "post_id": "PT-TEST", "bilant_prediction_id": "bilant-test", "post_excess_loss_kwh_day": 12.0 if confirmed else 0.2,
+        "post_excess_loss_lei_month": 250.0 if confirmed else 4.0, "a_score": a_score, "combined_score": score,
+        "note_ro": "Confirmat de bilanțul postului PT-TEST (test)." if confirmed else "Bilanțul postului PT-TEST nu confirmă (test).",
+    }}
+    return it
+
+
 def write_items(out_root: Path, source: str, rows: list[Any], scenario: str = SCENARIO) -> Path:
     path = out_root / "work_items" / scenario / f"{source}.jsonl"
     path.parent.mkdir(parents=True, exist_ok=True)

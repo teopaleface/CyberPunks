@@ -1,7 +1,7 @@
 import "server-only";
 import type { Decision, WorkItem } from "@/lib/contracts";
 import { apiPosts, apiUrl, isApiRequestError } from "./api";
-import { readDemoPosts, readLossCost } from "./files";
+import { readDemoPosts, readLossCost, readPostThresholds } from "./files";
 import { predictionLabelRo } from "./labels";
 import { getPlanView } from "./index";
 import { missing, ok, resolveData } from "./source";
@@ -18,16 +18,52 @@ export interface PostsResult extends Sourced<PostSummary[]> {
   derived: boolean;
   /** Costul energiei pierdute folosit la derivare, cu sursa din config/economics.yaml. */
   lossCost: { value: number; note: string } | null;
+  /** Pragurile de culoare (lei pe lună), din config/planner.yaml. */
+  thresholds: PostThresholds;
 }
 
-/** Pragurile de culoare pentru harta posturilor (lei pierduți pe lună). Doar afișare, nu decizie. */
-export const POST_COLOR_THRESHOLDS = { yellow: 150, red: 600 } as const;
+export interface PostThresholds {
+  yellow: number;
+  red: number;
+}
 
-export function colorFor(lossLeiMonth: number | null | undefined): string {
+/**
+ * Pragurile de culoare pentru harta posturilor (lei pierduți pe lună), dacă lipsește config/planner.yaml.
+ * Aceleași valori ca acolo (`posts`): galben de la 200, roșu de la 600. Doar afișare, nu decizie.
+ */
+export const DEFAULT_POST_THRESHOLDS: PostThresholds = { yellow: 200, red: 600 };
+
+export function colorFor(lossLeiMonth: number | null | undefined, t: PostThresholds = DEFAULT_POST_THRESHOLDS): string {
   if (lossLeiMonth == null || !Number.isFinite(lossLeiMonth)) return "necunoscut";
-  if (lossLeiMonth >= POST_COLOR_THRESHOLDS.red) return "roșu";
-  if (lossLeiMonth >= POST_COLOR_THRESHOLDS.yellow) return "galben";
+  if (lossLeiMonth >= t.red) return "roșu";
+  if (lossLeiMonth >= t.yellow) return "galben";
   return "verde";
+}
+
+// Planificatorul scrie culorile fără diacritice („rosu”); interfața folosește „roșu”.
+const COLOR_ALIASES: Record<string, string> = {
+  verde: "verde",
+  green: "verde",
+  galben: "galben",
+  yellow: "galben",
+  roșu: "roșu",
+  rosu: "roșu",
+  red: "roșu",
+  necunoscut: "necunoscut",
+  unknown: "necunoscut",
+};
+
+/** O culoare primită (API sau instantaneu) în forma interfeței; necunoscută sau lipsă: din pierdere. */
+export function normalizePostColor(color: unknown, lossLeiMonth: number | null | undefined, t: PostThresholds = DEFAULT_POST_THRESHOLDS): string {
+  const known = typeof color === "string" ? COLOR_ALIASES[color.trim().toLowerCase()] : undefined;
+  return known && known !== "necunoscut" ? known : colorFor(lossLeiMonth, t);
+}
+
+/** Cauza din bilanț: codurile („furt_inainte_contor”) devin cuvinte; textul deja scris rămâne. */
+export function postDiagnosisRo(diagnosis: unknown): string | null {
+  if (typeof diagnosis !== "string" || !diagnosis.trim()) return null;
+  const d = diagnosis.trim();
+  return /^[a-z0-9_]+$/.test(d) ? predictionLabelRo(d) : d;
 }
 
 function num(v: unknown): number | null {
@@ -42,7 +78,12 @@ function normalize(list: unknown): PostSummary[] {
   );
 }
 
-export function derivePosts(items: WorkItem[], decisions: Record<string, Decision>, lossCostLeiKwh: number | null): PostSummary[] {
+export function derivePosts(
+  items: WorkItem[],
+  decisions: Record<string, Decision>,
+  lossCostLeiKwh: number | null,
+  thresholds: PostThresholds = DEFAULT_POST_THRESHOLDS,
+): PostSummary[] {
   const posts = new Map<string, PostSummary & { _pts: [number, number][]; _kwh: number }>();
   const get = (id: string) => {
     let p = posts.get(id);
@@ -105,8 +146,20 @@ export function derivePosts(items: WorkItem[], decisions: Record<string, Decisio
       p.loss_kwh_day = +_kwh.toFixed(2);
       p.loss_lei_month = lossCostLeiKwh != null ? +(_kwh * 30 * lossCostLeiKwh).toFixed(0) : null;
     }
-    p.color = colorFor(p.loss_lei_month);
+    p.color = colorFor(p.loss_lei_month, thresholds);
     return p;
+  });
+}
+
+/**
+ * Completează lipsa pe zi din lucrarea bilanțului (`prediction.point_estimate`, kWh/zi peste pierderea normală),
+ * când /posts nu o are. Nu schimbă nimic altceva.
+ */
+export function withBilantLoss(posts: PostSummary[], workItemsById: Record<string, WorkItem | undefined>): PostSummary[] {
+  return posts.map((p) => {
+    if (p.loss_kwh_day != null || !p.bilant_work_item_id) return p;
+    const estimate = workItemsById[p.bilant_work_item_id]?.prediction.point_estimate;
+    return typeof estimate === "number" && Number.isFinite(estimate) ? { ...p, loss_kwh_day: estimate } : p;
   });
 }
 
@@ -133,12 +186,17 @@ export async function getPosts(scenario: string): Promise<PostsResult> {
     [],
     { scenario },
   );
-  const lossCost = await readLossCost();
+  const [lossCost, thresholds] = await Promise.all([readLossCost(), readPostThresholds().then((t) => t ?? DEFAULT_POST_THRESHOLDS)]);
   if (result.data.length) {
-    return { ...result, data: result.data.map((p) => ({ ...p, color: p.color && p.color !== "necunoscut" ? p.color : colorFor(p.loss_lei_month) })), derived: false, lossCost };
+    const data = result.data.map((p) => ({
+      ...p,
+      color: normalizePostColor(p.color, p.loss_lei_month, thresholds),
+      diagnosis: postDiagnosisRo(p.diagnosis),
+    }));
+    return { ...result, data, derived: false, lossCost, thresholds };
   }
   const view = await getPlanView(scenario);
-  const data = view.data ? derivePosts(view.data.workItems, view.data.decisionsByWorkItemId, lossCost?.value ?? null) : [];
+  const data = view.data ? derivePosts(view.data.workItems, view.data.decisionsByWorkItemId, lossCost?.value ?? null, thresholds) : [];
   return {
     data,
     source: view.source,
@@ -148,5 +206,6 @@ export async function getPosts(scenario: string): Promise<PostsResult> {
       : "posturile sunt derivate din lucrări (contoarele A pe post și posturile C), până vine bilanțul",
     derived: !data.some((p) => p.bilant_work_item_id),
     lossCost,
+    thresholds,
   };
 }

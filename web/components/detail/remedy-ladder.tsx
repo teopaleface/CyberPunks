@@ -1,3 +1,4 @@
+import { englishText } from "@/lib/english";
 import type { Decision, RecommendedAction } from "@/lib/contracts";
 import { ACTION_RO, CONFIDENCE_RO } from "@/lib/data/labels";
 import type { RemedyOption } from "@/lib/extras";
@@ -58,35 +59,39 @@ export function RemedyLadder({
               <div className="min-w-0">
                 <div className="flex flex-wrap items-baseline gap-x-2">
                   <span className="text-[16px] font-[620]">{ACTION_RO[o.action] ?? o.action}</span>
-                  {isChosen ? <span className="text-[13.5px] font-[600] text-src-c-ink">aleasă de agent</span> : null}
+                  {isChosen ? <span className="text-[13.5px] font-[600] text-src-c-ink">chosen by the agent</span> : null}
                 </div>
-                <p className="text-[14px] text-muted-foreground">{o.note_ro}</p>
+                <p className="text-[14px] text-muted-foreground">{englishText(o.note_ro)}</p>
                 <p className="text-[13.5px] text-muted-foreground">
-                  {o.needs_crew ? `cere echipă, ${fmtDuration(o.duration_min)}` : "fără echipă"}, {CONFIDENCE_RO[o.confidence]}
-                  {o.participation_rate != null ? `, participare ${fmtPercent(o.participation_rate)} (ipoteză)` : ""}
-                  {o.inverter_trips_avoided != null ? `, ${fmtInt(o.inverter_trips_avoided)} opriri de invertoare evitate` : ""}
+                  {o.needs_crew ? `requires a crew, ${fmtDuration(o.duration_min)}` : "no crew"}, {CONFIDENCE_RO[o.confidence]}
+                  {o.participation_rate != null ? `, participation ${fmtPercent(o.participation_rate)} (assumption)` : ""}
+                  {o.inverter_trips_avoided != null ? `, ${fmtInt(o.inverter_trips_avoided)} inverter shutdowns avoided` : ""}
                 </p>
                 {o.message_preview_ro ? (
                   <blockquote className="mt-1.5 border-l-2 border-rule pl-3 text-[14px]">
-                    „{o.message_preview_ro}”
-                    <span className="block text-[12.5px] text-muted-foreground">mesaj de grup pe post, fără date personale, demo: nu se trimite</span>
+                    „{englishText(o.message_preview_ro)}”
+                    <span className="block text-[12.5px] text-muted-foreground">Group message for the substation. No personal data. Demo: nothing is sent.</span>
                   </blockquote>
                 ) : null}
                 {o.customers_targeted != null || o.battery_kwh_total != null ? (
                   <p className="mt-1 text-[13.5px]">
-                    {o.customers_targeted != null ? `${fmtInt(o.customers_targeted)} clienți vizați` : ""}
-                    {o.battery_kwh_total != null ? `, ${fmtDec(o.battery_kwh_total, 0)} kWh de baterii` : ""}
-                    {o.revenue_lei != null ? `, venit estimat ${fmtLei(o.revenue_lei)}` : ""}
-                    {o.payback_years != null ? `, recuperare în ${fmtDec(o.payback_years, 1)} ani` : ""}
+                    {o.customers_targeted != null ? `${fmtInt(o.customers_targeted)} target customers` : ""}
+                    {o.battery_kwh_total != null ? `, ${fmtDec(o.battery_kwh_total, 0)} kWh of battery capacity` : ""}
+                    {o.revenue_lei != null ? `, estimated revenue ${fmtLei(o.revenue_lei)}` : ""}
+                    {o.payback_years != null ? `, payback in ${fmtDec(o.payback_years, 1)} years` : ""}
                   </p>
                 ) : null}
               </div>
               {/* P90 după soluție față de limită */}
-              <div className="relative h-8" aria-label={`P90 după: ${fmtDec(o.p90_after_pu, 3)} pu`}>
+              <div
+                role="img"
+                className="relative h-8"
+                aria-label={`P90 after remedy ${fmtDec(o.p90_after_pu, 3)} pu, limit ${fmtDec(limit, 2)} pu${p90Before != null ? `, before remedy ${fmtDec(p90Before, 3)} pu` : ""}`}
+              >
                 <span className="absolute top-1/2 h-px w-full bg-rule" />
-                <span className="absolute top-0 bottom-0 w-[2px] bg-att" style={{ left: X(limit) }} title="limita 1,10 pu" />
+                <span className="absolute top-0 bottom-0 w-[2px] bg-att" style={{ left: X(limit) }} title={`limit ${fmtDec(limit, 2)} pu`} />
                 {p90Before != null ? (
-                  <span className="absolute top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-ink bg-panel" style={{ left: X(p90Before) }} title="P90 fără soluție" />
+                  <span className="absolute top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-ink bg-panel" style={{ left: X(p90Before) }} title="P90 before remedy" />
                 ) : null}
                 <span
                   className={"absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full " + (ok ? "bg-ink" : "bg-att")}
@@ -97,8 +102,8 @@ export function RemedyLadder({
                 </span>
               </div>
               <div className="text-right">
-                <div className="text-[16px] font-[620] tabular-nums">{o.cost_lei === 0 ? "0 lei" : fmtLei(o.cost_lei)}</div>
-                <div className={"text-[13px] " + (ok ? "text-muted-foreground" : "text-att-ink")}>{ok ? "sub limită" : "nu ajunge"}</div>
+                <div className="text-[16px] font-[620] tabular-nums">{fmtLei(o.cost_lei)}</div>
+                <div className={"text-[13px] " + (ok ? "text-muted-foreground" : "text-att-ink")}>{ok ? "below the limit" : "insufficient"}</div>
               </div>
             </li>
           );
@@ -107,15 +112,16 @@ export function RemedyLadder({
       {choice ? (
         <div className="mt-3 space-y-1.5 text-[15px]">
           <p>
-            Agentul combină{" "}
+
+            The agent combines{" "}
             <b className="font-[620]">{choice.chosen.map((a) => ACTION_RO[a as RecommendedAction] ?? a).join(" + ")}</b>, cost{" "}
-            {fmtLei(choice.cost_lei)}: P90 scade de la {fmtDec(choice.p90_before_pu, 3)} la{" "}
-            <b className="font-[620]">{fmtDec(choice.p90_after_pu, 3)} pu</b>, sub limita de {fmtDec(limit, 2)}.
-            {choice.inverter_trips_avoided ? ` Se evită circa ${fmtInt(choice.inverter_trips_avoided)} opriri ale invertoarelor.` : ""}
+            {fmtLei(choice.cost_lei)}: P90 falls from {fmtDec(choice.p90_before_pu, 3)}  at{" "}
+            <b className="font-[620]">{fmtDec(choice.p90_after_pu, 3)} pu</b>, below the limit of {fmtDec(limit, 2)}.
+            {choice.inverter_trips_avoided ? ` Approximately ${fmtInt(choice.inverter_trips_avoided)} inverter shutdowns avoided.` : ""}
           </p>
           {choice.why_not_cheaper?.length ? (
             <div>
-              <p className="text-muted-foreground">De ce nu ajunge ceva mai ieftin:</p>
+              <p className="text-muted-foreground">Why cheaper options are insufficient:</p>
               <ul className="mt-0.5 list-disc pl-5 text-[14.5px]">
                 {choice.why_not_cheaper.map((r) => (
                   <li key={r}>{r}</li>
@@ -127,11 +133,13 @@ export function RemedyLadder({
       ) : null}
       {!choice ? (
         <p className="mt-3 text-[15px] text-muted-foreground">
-          Combinația aleasă de agent și motivul ei sunt în decizie, mai sus. Aici se vede efectul fiecărei trepte, singură.
+
+          The decision above shows the chosen combination and its reason. These values show each step used alone.
         </p>
       ) : null}
       <p className="mt-1 text-[13.5px] text-muted-foreground">
-        Efectul fiecărei trepte e calculat cu modelul de rețea al firului C, nu ghicit. Punctul gol arată P90 fără nicio soluție.
+
+        Each step&apos;s effect is calculated by model C&apos;s grid model. The hollow point shows P90 without a remedy.
       </p>
     </div>
   );

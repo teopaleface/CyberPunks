@@ -22,11 +22,19 @@
   --color-att-surface: var(--att-surface);
   --color-ok: var(--ok);
   --color-on-att: var(--on-att);
+  --color-surface-2: var(--surface-2);
+  --color-violet: var(--violet);
+  --color-action: var(--action);
+  --color-action-hover: var(--action-hover);
+  --color-on-action: var(--on-action);
+  --color-track: var(--track);
+  --color-ok-ink: var(--ok-ink);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-unbounded), var(--font-geist), ui-sans-serif, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -66,106 +74,121 @@
 }
 
 /*
- * Tema „Panou” (direcția aleasă pe 7 nov., 13:14): disciplina panourilor de dispecerat.
- * Totul e gri în repaus; culoarea apare doar când înseamnă ceva: sursa unei lucrări (A, B, C)
- * sau ceva ce cere un om (portocaliu). Culorile surselor sunt validate pentru daltonism
- * (scriptul abilității dataviz, toate perechile): A #2C6FD9, B #A23C9E, C #D99100.
+ * Aceeași identitate ca web/site: negru, suprafețe neutre, galben pentru acțiuni.
+ * Sursele rămân distincte: A albastru, B violet, C chihlimbar.
+ * Portocaliul semnalează verificarea de către un om; verdele indică aprobarea.
  */
-:root {
-  --canvas: #e4e7e6;
-  --panel: #f2f3f1;
-  --ink: #13202a;
-  --ink-soft: #2a3742;
-  --rule: #c3c9c9;
-  --grid: #dce0df;
-  --idle: #9aa4a9;
-  --travel: #56616b;
-  --src-a: #2c6fd9;
-  --src-b: #a23c9e;
-  --src-c: #d99100;
-  --src-c-ink: #8a5c00;
-  --att: #d4430f;
-  --att-ink: #a8360b;
-  --att-surface: #f8e3da;
-  --ok: #2f7d4f;
-  /* textul de pe discurile A/B și de pe insigna portocalie */
-  --on-src: #ffffff;
+:root,
+.dark {
+  color-scheme: dark;
+  --canvas: #000000;
+  --panel: #0b0b0c;
+  --surface-2: #141416;
+  --ink: #f5f5f7;
+  --ink-soft: #c7c7cc;
+  --rule: #2a2a2e;
+  --grid: #202023;
+  --track: #303034;
+  --idle: #74747d;
+  --travel: #a3a3a8;
+  --src-a: #3986fc;
+  --src-b: #ad5fd6;
+  --src-c: #e59b15;
+  --src-c-ink: #f2b544;
+  --att: #fc521e;
+  --att-ink: #ff8a5c;
+  --att-surface: #2a140c;
+  --ok: #16a34a;
+  --ok-ink: #4ade80;
+  --violet: #ad7cfc;
+  --action: #ffc502;
+  --action-hover: #ffdc6b;
+  --on-action: #000000;
+  --on-src: #000000;
   --on-att: #ffffff;
 
   --background: var(--canvas);
   --foreground: var(--ink);
   --card: var(--panel);
   --card-foreground: var(--ink);
-  --popover: #fbfbfa;
+  --popover: var(--surface-2);
   --popover-foreground: var(--ink);
-  --primary: var(--ink);
-  --primary-foreground: #f2f3f1;
-  --secondary: #e9ecea;
+  --primary: var(--action);
+  --primary-foreground: var(--on-action);
+  --secondary: var(--surface-2);
   --secondary-foreground: var(--ink);
-  --muted: #dde1e0;
-  --muted-foreground: #56616b;
-  --accent: #dde1e0;
+  --muted: #1b1b1e;
+  --muted-foreground: #a3a3a8;
+  --accent: #242427;
   --accent-foreground: var(--ink);
-  --destructive: #b42318;
+  --destructive: var(--att);
   --border: var(--rule);
-  --input: #8b959c;
-  --ring: var(--ink);
+  --input: #444448;
+  --ring: var(--action);
   --chart-1: var(--src-a);
   --chart-2: var(--src-b);
   --chart-3: var(--src-c);
-  --chart-4: #56616b;
-  --chart-5: #9aa4a9;
-  --radius: 0.25rem;
-  --sidebar: var(--panel);
+  --chart-4: var(--travel);
+  --chart-5: var(--idle);
+  --radius: 0.75rem;
+  --sidebar: var(--canvas);
   --sidebar-foreground: var(--ink);
-  --sidebar-primary: var(--ink);
-  --sidebar-primary-foreground: #f2f3f1;
-  --sidebar-accent: #dde1e0;
+  --sidebar-primary: var(--action);
+  --sidebar-primary-foreground: var(--on-action);
+  --sidebar-accent: var(--surface-2);
   --sidebar-accent-foreground: var(--ink);
   --sidebar-border: var(--rule);
-  --sidebar-ring: var(--ink);
+  --sidebar-ring: var(--ring);
 }
 
-/* Varianta închisă (pentru video, opțională). Culorile surselor sunt pașii validați pe fundal închis. */
-.dark {
-  color-scheme: dark;
-  --canvas: #0a1521;
-  --panel: #0f1d2b;
-  --ink: #e9eef2;
-  --ink-soft: #c9d3dc;
-  --rule: #22344a;
-  --grid: #1a2a3b;
-  --idle: #5d6f81;
-  --travel: #93a3b3;
-  --src-a: #3b82f0;
-  --src-b: #b84fc0;
-  --src-c: #c4880a;
-  --src-c-ink: #e0a42a;
-  --att: #ff6a3d;
-  --att-ink: #ff8a63;
-  --att-surface: #3a1d14;
-  --ok: #4fb57a;
-  --on-src: #06101a;
-  --on-att: #1a0a05;
+.light {
+  color-scheme: light;
+  --canvas: #ffffff;
+  --panel: #fafafa;
+  --surface-2: #f0f0f2;
+  --ink: #151518;
+  --ink-soft: #505058;
+  --rule: #d4d4d9;
+  --grid: #e4e4e8;
+  --track: #c5c5cc;
+  --idle: #696972;
+  --travel: #61616b;
+  --src-a: #2563c7;
+  --src-b: #893ab4;
+  --src-c: #a56500;
+  --src-c-ink: #8b5300;
+  --att: #c53a12;
+  --att-ink: #a52f0d;
+  --att-surface: #fff0e8;
+  --ok: #168143;
+  --ok-ink: #126b36;
+  --violet: #7d38b8;
+  --muted: #ededf0;
+  --muted-foreground: #62626c;
+  --accent: #e8e8ed;
+  --input: #8d8d98;
+  --ring: #8b5a00;
+}
 
-  --background: var(--canvas);
-  --foreground: var(--ink);
-  --card: var(--panel);
-  --card-foreground: var(--ink);
-  --popover: #152637;
-  --popover-foreground: var(--ink);
-  --primary: #e9eef2;
-  --primary-foreground: #0a1521;
-  --secondary: #152637;
-  --secondary-foreground: var(--ink);
-  --muted: #152637;
-  --muted-foreground: #93a3b3;
-  --accent: #1a2e42;
-  --accent-foreground: var(--ink);
-  --destructive: #ff6b5e;
-  --border: var(--rule);
-  --input: #3a4f66;
-  --ring: #e9eef2;
+/* Yellow remains the button fill; standalone text needs darker ink on white. */
+.light .text-action { color: #865700; }
+
+/* Work orders follow the screen theme, but print as an ink-friendly document. */
+@media print {
+  #order-paper {
+    color-scheme: light;
+    --panel: #ffffff;
+    --surface-2: #f8fafc;
+    --ink: #0b1322;
+    --ink-soft: #334155;
+    --rule: #cbd5e1;
+    --src-a: #1d5fcf;
+    --src-b: #8a3fb3;
+    --src-c: #a8680a;
+    --violet: #6b2d98;
+    --action: #986400;
+    --att: #b52d20;
+  }
 }
 
 @layer base {
@@ -174,16 +197,17 @@
   }
   body {
     @apply bg-background text-foreground;
+    line-height: 1.6;
   }
   html {
     @apply font-sans;
   }
 }
 
-/* Cifre aliniate peste tot: consola e plină de ore, scoruri și lei. */
+/* Cifrele proporționale în text (ID-uri, fraze); coloanele de numere își pun singure `tabular-nums`. */
 @layer base {
   html {
-    font-variant-numeric: tabular-nums;
+    font-variant-numeric: normal;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -206,30 +230,35 @@
     text-wrap: balance;
   }
   ::selection {
-    background: color-mix(in oklab, var(--src-a) 22%, transparent);
+    background: var(--action);
+    color: var(--on-action);
+  }
+  /* bare de derulare în tonul paginii */
+  * {
+    scrollbar-color: var(--input) transparent;
+    scrollbar-width: thin;
   }
 }
 
-/* Lățimile fontului Archivo (axa wdth 62–125): cifrele de panou sunt late, orele și ID-urile înguste. */
+/* Cifrele mari rămân în Geist pentru a se citi ușor în carduri și tabele. */
 @utility num-wide {
-  font-stretch: 122%;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 @utility num-tall {
-  font-stretch: 75%;
   font-weight: 650;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.01em;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 @utility dense {
-  font-stretch: 88%;
+  letter-spacing: -0.005em;
 }
 @utility code-id {
-  font-stretch: 88%;
   font-weight: 600;
-  letter-spacing: 0.005em;
+  letter-spacing: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -357,7 +386,7 @@
   border: 1px solid var(--rule);
   background: var(--popover);
   box-shadow: 0 6px 18px -10px rgb(19 32 42 / 0.45);
-  font-family: var(--font-sans);
+  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   color: var(--ink);
   line-height: 1.25;
 }

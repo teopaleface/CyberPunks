@@ -1,21 +1,25 @@
+import { requireConsole } from "@/lib/server/operations";
+import { englishText } from "@/lib/english";
+import { ClipboardList, HardHat, Layers, ChevronRight, Gauge, ScrollText, Search, UtilityPole, Waypoints, Zap, Network, SlidersHorizontal, Link2, MapPin, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { RemedyLadder } from "@/components/detail/remedy-ladder";
 import { ReviewActions } from "@/components/detail/review-actions";
 import { SeriesChart, SeriesLegend } from "@/components/detail/series-chart";
-import { isBilantSeries } from "@/lib/series-utils";
-import { SyntheticGlyph } from "@/components/shell/provenance";
+import { Card, Pill, btn, PageTitle, type Tone } from "@/components/ds";
+import { PostSections, type SectionDef } from "@/components/posts/post-sections";
 import { AppShell } from "@/components/shell/app-shell";
 import type { WorkItem } from "@/lib/contracts";
 import { getSeries } from "@/lib/data";
-import { clampPercentRo, factorLabelRo, DECISION_LABEL_RO, predictionLabelRo, ruleRo } from "@/lib/data/labels";
-import { POST_COLOR_THRESHOLDS, getPosts } from "@/lib/data/posts";
+import { ACTION_RO, DECISION_LABEL_RO, auditActionRo, predictionLabelRo } from "@/lib/data/labels";
+import { getPosts, withBilantLoss } from "@/lib/data/posts";
 import { getRemedies } from "@/lib/data/remedies";
-import { BILANT_LABEL, bilantFusion, remedyOptions } from "@/lib/extras";
-import { fmtDec, fmtInt, fmtLei, fmtScore, sentence } from "@/lib/format";
-import { markerKind, markerSvg } from "@/lib/marker-svg";
+import { BILANT_LABEL, ladderChoice, remedyOptions } from "@/lib/extras";
+import { fmtDec, fmtInt, fmtLei, fmtMoment, sentence } from "@/lib/format";
+import { approxLei, roundPct } from "@/lib/human";
+import { causeBand, causeProbs, parseSection, postColor, postPlace } from "@/lib/posts-view";
 import { loadPlanView, loadShellInfo, resolveScenario } from "@/lib/server/queries";
+import { isBilantSeries } from "@/lib/series-utils";
 
 function safeDecode(value: string): string {
   try {
@@ -27,43 +31,54 @@ function safeDecode(value: string): string {
 
 export default function PostPage({ params, searchParams }: PageProps<"/posturi/[id]">) {
   return (
-    <Suspense fallback={<div className="min-h-dvh bg-canvas" aria-busy="true" aria-label="Se încarcă postul" />}>
+    <Suspense fallback={<div role="status" className="min-h-dvh bg-canvas" aria-busy="true">
+        <span className="sr-only">Loading substation…</span>
+      </div>}>
       <Post params={params} searchParams={searchParams} />
     </Suspense>
   );
 }
 
-const STATUS: Record<string, { label: string; color: string }> = {
-  verde: { label: "pierderi mici", color: "#2f8f5b" },
-  galben: { label: "pierderi de urmărit", color: "#d9a400" },
-  roșu: { label: "pierderi mari", color: "#c8321e" },
-  necunoscut: { label: "fără bilanț încă", color: "#9aa4a9" },
+const CAUSE_ICON: Record<string, typeof Zap> = {
+  contor_client: Zap,
+  furt_inainte_contor: Network,
+  pierdere_tehnica: SlidersHorizontal,
+  client_post_gresit: Link2,
+  contor_bilant_setat: Gauge,
 };
+const BAND_TONE: Record<string, Tone> = { Likely: "blue", Possible: "violet", Unlikely: "grey" };
+const PIN_TEXT = { verde: "text-ok-ink", galben: "text-src-c-ink", roșu: "text-red-700 dark:text-red-300", necunoscut: "text-ink-soft" } as const;
+
+const clean = (t: string) => { const x = englishText(t).replace(/\.\s*$/, "").trim(); return x.charAt(0).toUpperCase() + x.slice(1); };
+const short = (t: string) => clean(t.replace(/\s*\([^)]*\)/g, ""));
 
 async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "params" | "searchParams">) {
+  await requireConsole();
   await connection();
   const id = safeDecode((await params).id);
+  const sp = await searchParams;
   const scenario = await resolveScenario(searchParams);
+  const q = `?scenariu=${encodeURIComponent(scenario)}`;
   const [{ info }, posts, view, remedies] = await Promise.all([
     loadShellInfo(scenario),
     getPosts(scenario),
     loadPlanView(scenario),
     getRemedies(scenario).catch(() => null),
   ]);
-  const post = posts.data.find((p) => p.post_id === id);
   const items = view.data?.workItems ?? [];
   const decisions = view.data?.decisionsByWorkItemId ?? {};
   const byId = new Map(items.map((w) => [w.work_item_id, w]));
+  const post = withBilantLoss(posts.data, view.data?.workItemsById ?? {}).find((p) => p.post_id === id);
 
   if (!post) {
     return (
       <AppShell info={info}>
-        <div className="mx-auto max-w-[680px] px-7 py-20">
-          <Link href="/" className="text-[15px] underline decoration-rule underline-offset-4">
-            Înapoi la planul de mâine
+        <div className="mx-auto w-full max-w-[680px] px-8 py-16 max-md:px-4">
+          <Link href={`/posturi${q}`} className="text-[15px] underline decoration-rule underline-offset-4">
+            Back to substations
           </Link>
-          <h1 className="mt-6 text-[26px] font-[650]">Postul {id} nu apare în scenariul „{scenario}”</h1>
-          <p className="mt-3 text-[16px] text-muted-foreground">Alege un post din harta planului, în modul „Posturile”.</p>
+          <h1 className="mt-6 text-[26px] font-[650]">Substation {id} not found in scenario &quot;{scenario}&quot;</h1>
+          <p className="mt-3 text-[16px] text-muted-foreground">Choose a substation from the list or map.</p>
         </div>
       </AppShell>
     );
@@ -71,226 +86,275 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
 
   const bilant = post.bilant_work_item_id ? byId.get(post.bilant_work_item_id) : undefined;
   const cItem = post.c_work_item_id ? byId.get(post.c_work_item_id) : undefined;
-  const meters = (post.meter_work_item_ids ?? []).map((m) => byId.get(m)).filter((w): w is WorkItem => Boolean(w));
-  const meterRows = meters.toSorted((a, b) => b.prediction.score - a.prediction.score);
+  const meters = (post.meter_work_item_ids ?? []).map((m) => byId.get(m)).filter((w): w is WorkItem => Boolean(w)).toSorted((a, b) => b.prediction.score - a.prediction.score);
   const [bilantSeries, cSeries] = await Promise.all([
     bilant ? getSeries(bilant.work_item_id, scenario) : Promise.resolve(null),
     cItem ? getSeries(cItem.work_item_id, scenario) : Promise.resolve(null),
   ]);
-  const status = STATUS[post.color ?? "necunoscut"] ?? STATUS.necunoscut;
-  const bilantDecision = bilant ? decisions[bilant.work_item_id] : undefined;
-  const cDecision = cItem ? decisions[cItem.work_item_id] : undefined;
-  const options = cItem ? remedyOptions(cItem) : [];
+  const bd = bilant ? decisions[bilant.work_item_id] : undefined;
+  const cd = cItem ? decisions[cItem.work_item_id] : undefined;
+  const color = postColor(post, posts.thresholds);
+  const place = postPlace(post);
+  const wi = (w: WorkItem) => `/lucrari/${encodeURIComponent(w.work_item_id)}${q}`;
+  const crew = bd?.crew_id ?? cd?.crew_id ?? null;
+
+  // starea, în cuvinte simple, din bilanț
+  const label = bilant?.prediction.label;
+  const normal = label === "normal";
+  const headline = !bilant
+    ? `No energy balance for ${post.post_id}.`
+    : normal
+      ? `Energy balance within limits at ${post.post_id}.`
+      : `${short(predictionLabelRo(label!))} at ${post.post_id}.`;
+  const detail = !bilant
+    ? "Energy balance not calculated yet. Meters are flagged separately."
+    : normal
+      ? "Substation output matches total customer consumption."
+      : "Substation output exceeds total customer consumption beyond the normal range.";
+
+  let pill: { tone: Tone; text: string } | null = null;
+  if (bd) {
+    pill =
+      bd.decision === "human_review" ? { tone: "orange", text: "Human decision required" }
+      : bd.decision === "assigned" ? { tone: "blue", text: crew ? `On route, ${crew}` : "On route" }
+      : bd.decision === "remote_action" ? { tone: "violet", text: "Remote check" }
+      : bd.decision === "deferred" ? { tone: "grey", text: "Deferred" }
+      : { tone: "grey", text: sentence(DECISION_LABEL_RO[bd.decision]) };
+  }
+
+  const stare = (
+    <Card title="Substation status" icon={ClipboardList} iconTone="blue" id="stare" className="h-full">
+      <p className="text-[21px] leading-tight font-[700] tracking-[-0.015em]">{headline}</p>
+      <p className="mt-1.5 text-[15px] text-ink-soft">{detail}</p>
+      <dl className="mt-4 grid grid-cols-2 gap-4">
+        <div className="flex items-center gap-3">
+          <UtilityPole aria-hidden="true" size={30} strokeWidth={1.5} className={PIN_TEXT[color]} />
+          <div>
+            <dt className="text-[13px] text-ink-soft">Substation</dt>
+            <dd className="font-[650]" translate="no">{post.post_id}</dd>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 border-l border-rule pl-4">
+          <MapPin aria-hidden="true" size={26} strokeWidth={1.5} className="text-ink-soft" />
+          <div className="min-w-0">
+            <dt className="text-[13px] text-ink-soft">Location</dt>
+            <dd className="truncate font-[650]">{place || "no location in the register"}</dd>
+          </div>
+        </div>
+      </dl>
+      {post.loss_lei_month != null ? (
+        <p className="mt-3 text-[14.5px] text-ink-soft">
+          Estimated loss: <b className="font-[650] text-ink">{approxLei(post.loss_lei_month)} per month</b>
+          {post.derived ? " (from model A meters)" : ""}.
+        </p>
+      ) : null}
+      {pill ? <div className="mt-3"><Pill tone={pill.tone} size="lg">{pill.text}</Pill></div> : null}
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <a href="#cauze" className={btn("primary", "md")}>Investigate</a>
+        {bilant ? (
+          <Link href={wi(bilant)} className={btn(bd?.decision === "human_review" ? "danger" : "outline", "md")}>View work item</Link>
+        ) : cItem ? (
+          <Link href={wi(cItem)} className={btn("outline", "md")}>View work item</Link>
+        ) : null}
+      </div>
+    </Card>
+  );
+
+  const chart = (
+    <Card title="Substation output vs. customer consumption" icon={TrendingUp} iconTone="blue" className="h-full">
+      {bilantSeries?.data && bilant ? (
+        <>
+          <SeriesChart series={bilantSeries.data} workItem={bilant} />
+          <div className="mt-2">
+            <SeriesLegend source="A" bilant={isBilantSeries(bilantSeries.data)} series={bilantSeries.data} />
+          </div>
+        </>
+      ) : (
+        <div role="status" className="py-6 text-[15px]">
+          <p className="font-[560]">{bilant ? "Energy balance time series not published yet." : "Energy balance not calculated yet."}</p>
+          <p className="mt-1 text-ink-soft">
+            {bilant
+              ? "Balance results are available; the chart awaits its time series."
+              : `Until the balance is available, loss is estimated from meters flagged by model A${posts.lossCost ? ` (daily kWh × score × 30 days × ${fmtDec(posts.lossCost.value, 2)} lei/kWh)` : ""}.`}
+          </p>
+        </div>
+      )}
+      <p className="mt-2 text-[12.5px] text-muted-foreground">{englishText(BILANT_LABEL)}</p>
+    </Card>
+  );
+
+  const causes = bilant ? causeProbs(bilant.extra) : [];
+  const causeCard = (
+    <Card title="Estimated causes" icon={Search} iconTone="blue" id="cauze" className="h-full scroll-mt-20">
+      {causes.length ? (
+        <ul className="space-y-2">
+          {causes.slice(0, 5).map((c) => {
+            const Icon = CAUSE_ICON[c.key] ?? Waypoints;
+            const band = causeBand(c.p);
+            return (
+              <li key={c.key} className="flex items-center gap-3 rounded-[10px] border border-rule bg-surface-2 px-3.5 py-2.5 text-[14.5px]">
+                <Icon aria-hidden="true" size={20} strokeWidth={1.6} className="shrink-0 text-src-a" />
+                <span className="min-w-0 flex-1">{clean(predictionLabelRo(c.key))}</span>
+                <span className="sr-only">{roundPct(c.p)}</span>
+                <Pill tone={BAND_TONE[band]} size="sm">{englishText(band)}</Pill>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="py-4 text-[15px] text-ink-soft">{bilant ? "Cause probabilities not published yet." : "Without an energy balance, normal losses cannot be separated from theft, faulty meters or incorrectly linked customers."}</p>
+      )}
+      <p className="mt-3 text-[12.5px] text-muted-foreground">Model estimates. No cause has been confirmed by a person.</p>
+    </Card>
+  );
+
+  const meterCard = (
+    <Card title="Meters at this substation" icon={Gauge} iconTone="blue" className="h-full">
+      {meters.length ? (
+        <table className="w-full text-[14px]">
+          <thead className="text-left text-[13px] text-ink-soft">
+            <tr className="border-b border-rule">
+              <th scope="col" className="py-1.5 font-[500]">Meter</th>
+              <th scope="col" className="py-1.5 font-[500]">Status</th>
+              <th scope="col" className="py-1.5 text-right font-[500]">Score</th>
+              <th scope="col" className="w-7"><span className="sr-only">Open</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {meters.map((w) => (
+              <tr key={w.work_item_id} className="border-b border-rule/60 last:border-0">
+                <td className="py-2 pr-2 font-[600] whitespace-nowrap" translate="no">{w.asset_id}</td>
+                <td className="py-2">
+                  <Pill tone={w.prediction.label === "normal" ? "green" : "red"} size="sm">{clean(predictionLabelRo(w.prediction.label))}</Pill>
+                </td>
+                <td className="py-2 text-right"><Pill tone="grey" size="sm">{roundPct(w.prediction.score)}</Pill></td>
+                <td className="py-2 text-right">
+                  <Link href={wi(w)} aria-label={`Open work item for meter ${w.asset_id}`} className="inline-grid size-7 place-items-center rounded-full hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-ring">
+                    <ChevronRight aria-hidden="true" size={18} />
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p className="py-4 text-[15px] text-ink-soft">No meters at this substation are flagged by model A.</p>
+      )}
+    </Card>
+  );
+
+  const voltageCard = (
+    <Card title="Midday voltage (P10–P90)" icon={Zap} iconTone="amber" className="h-full">
+      {cItem && cSeries?.data ? (
+        <>
+          <SeriesChart series={cSeries.data} workItem={cItem} />
+          <div className="mt-2"><SeriesLegend source="C" /></div>
+        </>
+      ) : (
+        <p role="status" className="py-4 text-[15px] text-ink-soft">
+          {cItem ? "Voltage time series not published yet." : "No voltage work item exists for this substation. This does not confirm that voltage is within limits."}
+        </p>
+      )}
+    </Card>
+  );
+
+  const options = cItem ? remedyOptions(cItem).toSorted((a, b) => a.cost_lei - b.cost_lei) : [];
+  const cChoice = cItem ? remedies?.data.find((r) => r.work_item_id === cItem.work_item_id) : undefined;
+  const chosen = new Set(cItem ? ladderChoice(cItem, cChoice) : []);
+  const ladderCard = (
+    <Card title="Remedy options" icon={Layers} iconTone="violet" className="h-full">
+      {options.length ? (
+        <ol className="space-y-2">
+          {options.map((o, i) => {
+            const on = chosen.has(o.action);
+            return (
+              <li key={`${o.action}-${i}`} className="flex items-center gap-3 rounded-[10px] border border-rule bg-surface-2 px-3 py-2 text-[14px]">
+                <span aria-hidden="true" className={`grid size-7 shrink-0 place-items-center rounded-full border text-[13px] font-[650] ${on ? "border-src-a bg-src-a text-white" : "border-rule"}`}>{i + 1}</span>
+                <span className="min-w-0 flex-1">
+                  {clean(ACTION_RO[o.action] ?? o.action)}
+                  <span className="block text-[12.5px] text-ink-soft">{fmtLei(o.cost_lei)}</span>
+                </span>
+                <Pill tone={on ? "blue" : "grey"} size="sm">{on ? "Selected" : o.p90_after_pu >= 1.1 ? "Insufficient" : "Not selected"}</Pill>
+              </li>
+            );
+          })}
+        </ol>
+      ) : bilant ? (
+        <div className="flex items-center gap-3 rounded-[10px] border border-rule bg-surface-2 px-3 py-2.5 text-[14.5px]">
+          <span aria-hidden="true" className="grid size-7 place-items-center rounded-full border border-src-a bg-src-a text-[13px] font-[650] text-white">1</span>
+          <span className="flex-1">{clean(ACTION_RO[bilant.recommended_action] ?? bilant.recommended_action)}</span>
+          <Pill tone="blue" size="sm">Recommended</Pill>
+        </div>
+      ) : (
+        <p className="py-4 text-[15px] text-ink-soft">No remedy proposed for this substation yet.</p>
+      )}
+    </Card>
+  );
+
+  const work = [bilant && { w: bilant, d: bd }, cItem && { w: cItem, d: cd }].filter((x): x is { w: WorkItem; d: typeof bd } => Boolean(x));
+  const decisionText = work.length
+    ? work.map(({ w, d }) => `${w.source === "C" ? "Voltage" : "Energy balance"}: ${d ? englishText(DECISION_LABEL_RO[d.decision]) : "no decision"}`).join("; ") + "."
+    : "No work items for this substation in the plan yet.";
+  const works = (
+    <Card className="h-full" bodyClassName="flex flex-wrap items-center gap-x-6 gap-y-3 !py-4">
+      <div className="flex items-center gap-3">
+        <HardHat aria-hidden="true" size={30} strokeWidth={1.5} className="text-att-ink" />
+        <h2 className="text-[19px] font-[700]">Work items</h2>
+      </div>
+      <span className="h-8 w-px bg-rule max-md:hidden" aria-hidden="true" />
+      <p className="min-w-[220px] flex-1 text-[15.5px]">{sentence(decisionText)}</p>
+      <div className="flex flex-wrap items-center gap-2.5">
+        {bd?.decision === "human_review" && bilant ? <ReviewActions workItemId={bilant.work_item_id} scenario={scenario} /> : null}
+        {work.map(({ w }) => (
+          <Link key={w.work_item_id} href={wi(w)} className={btn("outline")}>{work.length > 1 ? `View work item (${w.source === "C" ? "voltage" : "energy balance"})` : "View work item"}</Link>
+        ))}
+        {crew ? <Link href={`/ordine/${encodeURIComponent(crew)}${q}`} className={btn("primary")}>Work order</Link> : null}
+      </div>
+    </Card>
+  );
+
+  const ids = new Set([bilant?.work_item_id, cItem?.work_item_id, ...meters.map((m) => m.work_item_id)].filter(Boolean) as string[]);
+  const audit = (view.data?.audit ?? []).filter((a) => a.work_item_id && ids.has(a.work_item_id)).toSorted((a, b) => b.ts.localeCompare(a.ts)).slice(0, 8);
+  const journal = (
+    <Card title="History" icon={ScrollText} iconTone="blue">
+      {audit.length ? (
+        <ul className="divide-y divide-rule text-[14.5px]">
+          {audit.map((a) => (
+            <li key={a.audit_id} className="flex flex-wrap items-baseline gap-x-4 gap-y-0.5 py-2">
+              <span className="w-[220px] whitespace-nowrap text-ink-soft tabular-nums">{fmtMoment(a.ts)}</span>
+              <span className="flex-1">{sentence(auditActionRo(a.action))}</span>
+              <span className="text-ink-soft">{a.actor === "human" ? "human" : "agent"}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-[15px] text-ink-soft">No history for this substation&apos;s work items.</p>
+      )}
+    </Card>
+  );
+
+  const sections: SectionDef[] = [
+    { id: "bilant", node: chart },
+    { id: "cauze", node: causeCard },
+    { id: "contoare", node: meterCard },
+    { id: "tensiune", node: voltageCard },
+    { id: "remediere", node: ladderCard },
+    { id: "lucrari", node: works, className: "col-span-full" },
+    { id: "jurnal", node: journal, className: "col-span-full" },
+  ];
 
   return (
     <AppShell info={info}>
-      <section className="border-b border-rule bg-panel">
-        <div className="mx-auto flex max-w-[1760px] flex-wrap items-center gap-x-6 gap-y-3 px-7 py-5">
-          <Link href="/posturi" className="text-[15px] text-muted-foreground underline decoration-rule underline-offset-4 hover:text-ink">
-            Toate posturile
-          </Link>
-          <span className="h-6 w-px bg-rule" aria-hidden="true" />
-          <span className="size-7 shrink-0 rounded-full border-2 border-panel" style={{ background: status.color }} aria-hidden="true" />
-          <div className="min-w-0">
-            <h1 className="code-id text-[24px] leading-tight">
-              Postul de transformare <span translate="no">{post.post_id}</span>
-            </h1>
-            <p className="text-[15.5px] text-muted-foreground">
-              {[post.label && post.label !== post.post_id ? post.label : post.zone_id, post.approx_position ? "poziție aproximativă (media contoarelor)" : null]
-                .filter(Boolean)
-                .join(", ") || "fără locație în registru"}
-            </p>
-          </div>
-          <span className="flex items-center gap-2 rounded-[4px] border border-rule px-3 py-1.5 text-[15px]">
-            <b className="font-[620]">{post.loss_lei_month != null ? `${fmtInt(post.loss_lei_month)} lei pe lună` : "pierdere necunoscută"}</b>
-            <span className="text-muted-foreground">{status.label}</span>
-          </span>
-          <span className="flex-1" />
-          <span className="flex items-center gap-2 text-[14px] text-muted-foreground">
-            <SyntheticGlyph size={14} /> {BILANT_LABEL}
-          </span>
-        </div>
-      </section>
-
-      <div className="mx-auto grid max-w-[1760px] grid-cols-1 gap-x-10 gap-y-8 px-7 py-7 xl:grid-cols-[minmax(0,1.55fr)_minmax(420px,1fr)]">
-        <div className="min-w-0 space-y-8">
-          <section aria-labelledby="bal-title">
-            <h2 id="bal-title" className="text-[20px] font-[650]">
-              Energia ieșită din post față de suma clienților
-            </h2>
-            <div className="mt-3 border-y border-rule bg-panel px-4 pt-3 pb-4">
-              {bilantSeries?.data ? (
-                <>
-                  <SeriesChart series={bilantSeries.data} workItem={bilant!} />
-                  <div className="mt-2">
-                    <SeriesLegend source="A" bilant={isBilantSeries(bilantSeries.data)} />
-                  </div>
-                </>
-              ) : (
-                <div className="py-8 text-[15px]">
-                  <p className="font-[560]">{bilant ? "Seria bilanțului pentru grafic nu e publicată încă." : "Bilanțul pe acest post nu e calculat încă."}</p>
-                  <p className="mt-1 max-w-[70ch] text-muted-foreground">
-                    Bilanțul compară energia ieșită din post cu suma contoarelor clienților de sub el. Lipsa peste normal arată
-                    unde se pierd bani.{" "}
-                    {bilant
-                      ? "Cifrele și cauza de mai jos vin deja din bilanț; graficul apare când firul bilanțului publică seria."
-                      : `Până vine bilanțul, pierderea afișată e estimată din contoarele semnalate de modelul A${posts.lossCost ? ` (kWh pe zi × scor × 30 de zile × ${fmtDec(posts.lossCost.value, 2)} lei/kWh)` : ""}.`}
-                  </p>
-                </div>
-              )}
-            </div>
-          </section>
-
-          <section aria-labelledby="cause-title">
-            <h2 id="cause-title" className="text-[20px] font-[650]">
-              Cauza probabilă
-            </h2>
-            {bilant ? (
-              <>
-                <p className="mt-1.5 max-w-[72ch] text-[16.5px] leading-relaxed">
-                  {post.diagnosis && !/cauza probabilă/i.test(bilant.explanation.summary_ro) ? `${sentence(post.diagnosis)} ` : ""}
-                  {clampPercentRo(bilant.explanation.summary_ro)}
-                </p>
-                <ul className="mt-3 space-y-1.5 text-[15.5px]">
-                  {bilant.explanation.top_factors.map((f) => (
-                    <li key={f.feature} className="flex justify-between gap-6 border-t border-rule pt-1.5">
-                      <span>{factorLabelRo(f.label_ro)}</span>
-                      <span className="font-[600] tabular-nums">
-                        {f.contribution >= 0 ? "+" : "−"}
-                        {fmtScore(Math.abs(f.contribution))}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                {bilantDecision ? (
-                  <p className="mt-3 text-[15px]">
-                    <span className="code-id">{bilantDecision.rule_id}</span>{" "}
-                    <span className="text-muted-foreground">{ruleRo(bilantDecision.rule_id) ?? ""}</span>: {bilantDecision.reason_ro}
-                  </p>
-                ) : null}
-              </>
-            ) : (
-              <p className="mt-1.5 max-w-[72ch] text-[16px] text-muted-foreground">
-                Fără bilanț, nu putem separa pierderea normală de rețea de furt, contoare defecte sau clienți trecuți la postul greșit.
-                Contoarele de mai jos sunt semnalate independent de modelul A.
-              </p>
-            )}
-          </section>
-
-          <section aria-labelledby="meters-title">
-            <h2 id="meters-title" className="text-[20px] font-[650]">
-              Contoarele semnalate pe acest post
-            </h2>
-            {meterRows.length ? (
-              <ul className="mt-3 divide-y divide-rule border-y border-rule">
-                {meterRows.map((w) => {
-                  const d = decisions[w.work_item_id];
-                  const fusion = bilantFusion(w);
-                  const kwh = (w.extra as Record<string, unknown> | undefined)?.estimated_kwh_lost_per_day;
-                  return (
-                    <li key={w.work_item_id} className="grid grid-cols-[36px_minmax(0,1.2fr)_minmax(0,1fr)_110px_minmax(0,1fr)] items-center gap-x-4 py-2.5 text-[15px]">
-                      <span className="block size-9" dangerouslySetInnerHTML={{ __html: markerSvg({ source: "A", kind: markerKind(d?.decision) }) }} />
-                      <Link href={`/lucrari/${encodeURIComponent(w.work_item_id)}`} className="code-id underline decoration-rule underline-offset-4 hover:decoration-ink">
-                        {w.asset_id}
-                      </Link>
-                      <span className="text-muted-foreground">{predictionLabelRo(w.prediction.label)}</span>
-                      <span className="text-right tabular-nums">
-                        <b className="font-[620]">{fmtScore(w.prediction.score)}</b>
-                        {typeof kwh === "number" ? <span className="block text-[13.5px] text-muted-foreground">{fmtDec(kwh, 1)} kWh/zi</span> : null}
-                      </span>
-                      <span>
-                        {d ? DECISION_LABEL_RO[d.decision] : "fără decizie"}
-                        {fusion ? <span className="block text-[13.5px] font-[560] text-ink">confirmat de bilanț: {fmtScore(fusion.a_score)} → {fmtScore(fusion.combined_score)}</span> : null}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <p className="mt-2 text-[15px] text-muted-foreground">Niciun contor de sub acest post nu e semnalat de modelul A.</p>
-            )}
-          </section>
-        </div>
-
-        <div className="min-w-0 space-y-7">
-          {bilantDecision?.decision === "human_review" ? (
-            <section className="border-l-[3px] border-att bg-att-surface px-5 py-4">
-              <h2 className="text-[20px] font-[650] text-att-ink">Nu sunt sigur: decide tu</h2>
-              <p className="mt-1 mb-3 text-[15.5px]">{bilantDecision.reason_ro}</p>
-              <ReviewActions workItemId={bilant!.work_item_id} scenario={scenario} />
-            </section>
-          ) : null}
-
-          <section aria-labelledby="sum-title">
-            <h2 id="sum-title" className="text-[18px] font-[650]">
-              Pe scurt
-            </h2>
-            <dl className="mt-2 grid grid-cols-[180px_minmax(0,1fr)] gap-x-4 text-[15px] [&>dd]:border-t [&>dd]:border-rule [&>dd]:py-1.5 [&>dt]:border-t [&>dt]:border-rule [&>dt]:py-1.5 [&>dt]:text-muted-foreground">
-              <dt>Pierderi pe lună</dt>
-              <dd>
-                {post.loss_lei_month != null ? fmtLei(post.loss_lei_month) : "necunoscute"}
-                {post.derived ? <span className="block text-[13.5px] text-muted-foreground">estimat din contoarele semnalate de A</span> : null}
-              </dd>
-              <dt>Lipsă pe zi</dt>
-              <dd>{post.loss_kwh_day != null ? `${fmtDec(post.loss_kwh_day, 1)} kWh` : "–"}</dd>
-              <dt>Contoare semnalate</dt>
-              <dd>{fmtInt(post.meters_flagged ?? 0)}</dd>
-              <dt>Tensiune maximă P90</dt>
-              <dd>{post.voltage_p90_pu != null ? `${fmtDec(post.voltage_p90_pu, 3).replace(/0$/, "")} pu (limita 1,10)` : "–"}</dd>
-              <dt>Culoarea pe hartă</dt>
-              <dd>
-                {status.label}; praguri de afișare: {POST_COLOR_THRESHOLDS.yellow} și {POST_COLOR_THRESHOLDS.red} lei pe lună
-              </dd>
-            </dl>
-          </section>
-
-          {cItem ? (
-            <section aria-labelledby="c-title">
-              <h2 id="c-title" className="text-[18px] font-[650]">
-                Tensiunea la prânz (sursa C)
-              </h2>
-              <p className="mt-1.5 text-[15.5px]">{clampPercentRo(cItem.explanation.summary_ro)}</p>
-              {cDecision ? (
-                <p className="mt-2 text-[15px]">
-                  Decizia: <b className="font-[600]">{DECISION_LABEL_RO[cDecision.decision]}</b>, <span className="code-id">{cDecision.rule_id}</span>.
-                </p>
-              ) : null}
-              {cSeries?.data ? (
-                <div className="mt-3 border-y border-rule bg-panel px-3 pt-2 pb-3">
-                  <SeriesChart series={cSeries.data} workItem={cItem} />
-                  <SeriesLegend source="C" />
-                </div>
-              ) : null}
-              <Link href={`/lucrari/${encodeURIComponent(cItem.work_item_id)}`} className="mt-2 inline-block text-[15px] font-[600] underline decoration-rule underline-offset-4 hover:decoration-ink">
-                Deschide lucrarea de tensiune
-              </Link>
-            </section>
-          ) : null}
-
-          {options.length && cItem ? (
-            <section aria-labelledby="ladder-title">
-              <h2 id="ladder-title" className="text-[18px] font-[650]">
-                Scara de soluții
-              </h2>
-              <div className="mt-2">
-                <RemedyLadder
-                  options={options}
-                  decision={cDecision ?? null}
-                  recommended={cItem.recommended_action}
-                  p90Before={cItem.prediction.point_interval?.[1] ?? null}
-                  choice={remedies?.data.find((r) => r.work_item_id === cItem.work_item_id) ?? null}
-                />
-              </div>
-            </section>
-          ) : null}
-
-          <p className="text-[13.5px] text-muted-foreground">
-            Postul e unitatea comună: contoarele (A), bilanțul și tensiunea (C) se întâlnesc aici.{" "}
-            {posts.derived
-              ? "Până vine bilanțul, posturile sunt derivate din lucrările planului (contoarele A pe post și posturile C)."
-              : `Datele: ${posts.detail ?? "API"}.`}
-          </p>
-        </div>
+      <div className="mx-auto w-full max-w-[1520px] px-8 pt-7 pb-14 max-md:px-4">
+        <PageTitle
+          icon={UtilityPole}
+          title={`Substation ${post.post_id}${place ? ` ${place}` : ""}${post.synthetic !== false ? " (synthetic)" : ""}`}
+          subtitle="Energy balance, meters and voltage evidence."
+        />
+        <PostSections sections={sections} stare={stare} initial={parseSection(typeof sp.sectiune === "string" ? sp.sectiune : null)} />
+        <p className="mt-5 text-[13px] text-muted-foreground">
+          Linked work at this substation. {fmtInt(post.meters_flagged ?? 0)} flagged meters.
+        </p>
       </div>
     </AppShell>
   );

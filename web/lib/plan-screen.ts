@@ -2,6 +2,7 @@
  * Datele ecranului „Planul de mâine”, pregătite pe server din PlanView (doar ce trebuie în browser).
  * Fără cod de server: tipurile se folosesc și în componentele client.
  */
+import { englishText } from "@/lib/english";
 import type { Alert, Decision, Notification, PlanSummary, Source, WorkItem } from "@/lib/contracts";
 import type { Crew, Depot, PlanView, ResolvedRoute } from "@/lib/data/types";
 
@@ -81,11 +82,11 @@ function invalidReason(raw: Record<string, unknown>, decision: Decision | undefi
   const loc = raw.location as { lat?: unknown; lon?: unknown } | undefined;
   const lat = typeof loc?.lat === "number" ? loc.lat : null;
   const lon = typeof loc?.lon === "number" ? loc.lon : null;
-  if (lat !== null && (lat < 43.5 || lat > 48.5)) reasons.push(`latitudine ${String(lat).replace(".", ",")} (în afara României)`);
-  if (lon !== null && (lon < 20 || lon > 30)) reasons.push(`longitudine ${String(lon).replace(".", ",")} (în afara României)`);
+  if (lat !== null && (lat < 43.5 || lat > 48.5)) reasons.push(`latitude ${String(lat).replace(".", ",")} (outside Romania)`);
+  if (lon !== null && (lon < 20 || lon > 30)) reasons.push(`longitude ${String(lon).replace(".", ",")} (outside Romania)`);
   const score = (raw.prediction as { score?: unknown } | undefined)?.score;
-  if (typeof score === "number" && (score < 0 || score > 1)) reasons.push(`scor ${String(score).replace(".", ",")} (imposibil)`);
-  return reasons.length ? `Intrare greșită: ${reasons.join(" și ")}.` : "Intrare greșită: nu respectă contractul.";
+  if (typeof score === "number" && (score < 0 || score > 1)) reasons.push(`score ${String(score).replace(".", ",")} (impossible)`);
+  return reasons.length ? `Invalid input: ${reasons.join(" and ")}.` : "Invalid input: contract validation failed.";
 }
 
 /**
@@ -161,7 +162,7 @@ export function toPlanScreenData(view: PlanView, fullIds: string[] = []): PlanSc
   const firstInDefault = ranked.find((d) => regionOf[d.work_item_id] === defaultRegion) ?? ranked[0];
 
   const quarantine: QuarantineEntry[] = view.invalidItems.map((raw) => {
-    const id = String(raw.work_item_id ?? "fără ID");
+    const id = String(raw.work_item_id ?? "no ID");
     return { id, reason: invalidReason(raw, decisions[id]) };
   });
   for (const d of plan.decisions) {
@@ -217,10 +218,10 @@ function cleanLabel(w: WorkItem): string | null {
 }
 
 export function itemTitle(w: WorkItem): string {
-  if (w.asset_type === "meter") return `Contor ${w.asset_id}`;
+  if (w.asset_type === "meter") return `Meter ${w.asset_id}`;
   if (w.asset_type === "transformer_post") return w.asset_id;
   const l = cleanLabel(w);
-  return l ? l.replace(/\s*\([^)]*\)\s*$/, "") : w.asset_id;
+  return l ? englishText(l.replace(/\s*\([^)]*\)\s*$/, "")) : w.asset_id;
 }
 
 /** Locul, în cuvinte, cu diacriticele din date: „PT-1208, Chiajna”, „Afumați, Ilfov”, „Ilfov”. */
@@ -239,7 +240,7 @@ export function itemPlace(w: WorkItem): string {
   // rezervă: din zone_id (fără diacritice)
   const z = w.location.zone_id;
   const sector = /^B-S(\d)$/.exec(z);
-  if (sector) return `București, sectorul ${sector[1]}`;
+  if (sector) return `Bucharest, sector ${sector[1]}`;
   const local = z.includes("-") ? z.split("-").slice(1).join(" ") : "";
   const pretty = local ? local.charAt(0) + local.slice(1).toLowerCase() : "";
   if (pretty && county) return `${pretty}, ${county}`;
@@ -247,5 +248,5 @@ export function itemPlace(w: WorkItem): string {
 }
 
 export function sourceName(s: Source): string {
-  return { A: "Contoare", B: "Furtună", C: "Tensiune" }[s];
+  return { A: "Meters", B: "Storm", C: "Voltage" }[s];
 }

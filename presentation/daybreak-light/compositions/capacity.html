@@ -1,0 +1,12 @@
+<template><link rel="stylesheet" href="assets/theme.css"><style>#root{position:absolute;inset:0;overflow:hidden;background:var(--paper)}</style>
+<div id="root" data-composition-id="capacity" data-width="1920" data-height="1080"><div id="crews" style="position:absolute;left:230px;top:220px"><div class="title" style="font-size:264px">11</div><div class="body" style="margin-top:20px">field crews</div></div>
+<div style="position:absolute;left:890px;top:220px;width:2px;height:425px;background:var(--rule)"></div>
+<div id="jobs" style="position:absolute;left:1010px;top:220px"><div class="title" style="font-size:264px">689</div><div class="body" style="margin-top:20px">incoming jobs</div></div>
+<p id="cap-note" class="small" style="position:absolute;left:230px;top:750px">Current demo scenario. Includes synthetic data.</p>
+<img id="cap-truck" class="object" src="assets/objects/truck/hero.png" alt="truck" style="width:550px;height:550px;left:1130px;top:570px" /></div>
+<script>(function(){const tl=gsap.timeline({paused:true});
+tl.fromTo('#jobs',{y:50,opacity:0},{y:0,opacity:1,duration:.6,ease:'power3.out'},1.55);
+tl.fromTo('#cap-note',{opacity:0},{opacity:1,duration:.45},2.7);
+tl.fromTo('#cap-truck',{x:900,rotation:4},{x:0,rotation:0,duration:1.1,ease:'power3.out'},2.75);
+
+window.__timelines=window.__timelines||{};window.__timelines["capacity"]=tl;})();</script></template>

@@ -9,11 +9,16 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    ".next-operations*/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
     // generate sau statice, nu cod de-al nostru
     "public/maplibre/**",
+    "public/landing/**",
+    "public/_data/**",
+    ".open-next/**",
+    ".wrangler/**",
     "design/**",
     // site-ul de prezentare (Vite, separat), cu lintul lui
     "site/**",

@@ -3,6 +3,7 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Map as MLMap, Marker as MLMarker, StyleSpecification } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "next-themes";
 import type { Source } from "@/lib/contracts";
 import { depotSvg, markerSvg, type MarkerKind } from "@/lib/marker-svg";
 
@@ -85,12 +86,12 @@ export function arc(a: [number, number], b: [number, number], bend = 0.2, n = 32
 // --------------------------------------------------------------------------------------------
 const PALETTE = {
   light: { bg: "#e4e7e6", water: "#cdd5d8", waterLine: "#c3cdd1", build: "#dadedd", green: "#dfe3e2", land: "#dce0df", road: "#f6f7f5", casing: "#d3d8d8", rail: "#d2d7d7", admin: "#a9b1b3", city: "#3e4952", text: "#6a747c" },
-  dark: { bg: "#0a1521", water: "#0d2133", waterLine: "#13304a", build: "#101e2c", green: "#0c1a27", land: "#0c1926", road: "#1b2c3e", casing: "#14243a", rail: "#16263a", admin: "#3a4f66", city: "#c9d3dc", text: "#7f91a3" },
+  dark: { bg: "#020f22", water: "#04182f", waterLine: "#0b2744", build: "#071629", green: "#041325", land: "#031325", road: "#13233a", casing: "#0c1b30", rail: "#11213a", admin: "#2d3f58", city: "#c3ccd8", text: "#76839a" },
 } as const;
 
 const LAYER_COLORS = {
   light: { A: "#2c6fd9", B: "#a23c9e", C: "#d99100", att: "#d4430f", panel: "#f2f3f1", ink: "#13202a", verde: "#2f8f5b", galben: "#d9a400", rosu: "#c8321e", gri: "#9aa4a9" },
-  dark: { A: "#3b82f0", B: "#b84fc0", C: "#c4880a", att: "#ff6a3d", panel: "#0f1d2b", ink: "#e9eef2", verde: "#4fb57a", galben: "#e0b52a", rosu: "#ff6b5e", gri: "#5d6f81" },
+  dark: { A: "#3986fc", B: "#ad5fd6", C: "#e59b15", att: "#fc521e", panel: "#061221", ink: "#eef2f7", verde: "#22c55e", galben: "#eab308", rosu: "#ef4444", gri: "#4a5a70" },
 } as const;
 
 function postsGeoJSON(posts: MapPost[]) {
@@ -142,7 +143,9 @@ function quiet(map: MLMap, theme: "light" | "dark") {
           map.setLayoutProperty(id, "visibility", "none");
           continue;
         }
-        if (map.getLayoutProperty(id, "text-field") !== undefined) map.setLayoutProperty(id, "text-field", ["get", "name"]);
+        // numele în română dacă există, altfel cu litere latine (fără БЕОГРАД / СРБИЈА la vecini), altfel numele local
+        if (map.getLayoutProperty(id, "text-field") !== undefined)
+          map.setLayoutProperty(id, "text-field", ["coalesce", ["get", "name:ro"], ["get", "name:latin"], ["get", "name"]]);
         map.setPaintProperty(id, "text-color", /city|capital|state|country/.test(id) ? P.city : P.text);
         map.setPaintProperty(id, "text-halo-color", P.bg);
         map.setPaintProperty(id, "text-halo-width", 1.4);
@@ -174,7 +177,46 @@ function labelHtml(item: MapItem): string {
   return `<div class="lab"><span class="t">${esc(item.title)}</span>${sub}</div>`;
 }
 
-export function PlanMap({
+/** Markerul DOM al unei lucrări: buton cu nume, accesibil din tastatură. */
+function markerElement(item: MapItem, selected: boolean, onSelect: (id: string) => void): HTMLDivElement {
+  const el = document.createElement("div");
+  el.className = "mk item";
+  el.dataset.pinned = item.pinned ? "1" : "0";
+  el.setAttribute("role", "button");
+  el.setAttribute("tabindex", "0");
+  el.setAttribute("aria-label", `${item.title}${item.sub ? `, ${item.sub}` : ""}`); // atributul nu interpretează HTML
+  el.innerHTML = markerSvg({ source: item.source, kind: item.kind, selected }) + labelHtml(item);
+  el.addEventListener("click", (e) => {
+    e.stopPropagation();
+    onSelect(item.id);
+  });
+  el.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onSelect(item.id);
+    }
+  });
+  return el;
+}
+
+export interface MapPadding {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
+
+// sus: butoanele de regiune; dreapta: harta mică a zonei
+const DEFAULT_PADDING: MapPadding = { top: 76, bottom: 64, left: 56, right: 330 };
+
+export function PlanMap(props: Parameters<typeof ThemedPlanMap>[0]) {
+  const { resolvedTheme } = useTheme();
+  const theme = props.theme ?? (resolvedTheme === "light" ? "light" : "dark");
+  // Remount the map and its markers together when the base style changes.
+  return <ThemedPlanMap key={theme} {...props} theme={theme} />;
+}
+
+function ThemedPlanMap({
   items,
   routes,
   depots,
@@ -184,7 +226,8 @@ export function PlanMap({
   posts = [],
   mode = "items",
   onPostClick,
-  theme = "light",
+  theme = "dark",
+  padding = DEFAULT_PADDING,
   className,
 }: {
   items: MapItem[];
@@ -197,6 +240,8 @@ export function PlanMap({
   mode?: "items" | "posts";
   onPostClick?: (id: string) => void;
   theme?: "light" | "dark";
+  /** Marginile încadrării; în modul de prezentare jos e loc pentru subtitrare. */
+  padding?: MapPadding;
   className?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -207,14 +252,14 @@ export function PlanMap({
   const onPostRef = useRef(onPostClick);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
-  const latest = useRef({ items, routes, depots, bounds, selectedId, posts, mode });
+  const latest = useRef({ items, routes, depots, bounds, selectedId, posts, mode, padding });
 
   useEffect(() => {
     onSelectRef.current = onSelect;
     onPostRef.current = onPostClick;
   });
   useEffect(() => {
-    latest.current = { items, routes, depots, bounds, selectedId, posts, mode };
+    latest.current = { items, routes, depots, bounds, selectedId, posts, mode, padding };
   });
 
   // creează harta o singură dată
@@ -236,7 +281,7 @@ export function PlanMap({
             [b[0], b[1]],
             [b[2], b[3]],
           ],
-          fitBoundsOptions: { padding: { top: 76, bottom: 64, left: 56, right: 330 } },
+          fitBoundsOptions: { padding: latest.current.padding },
           attributionControl: false,
           fadeDuration: 0,
           dragRotate: false,
@@ -391,23 +436,7 @@ export function PlanMap({
       const sel = latest.current.selectedId;
       for (const item of items) {
         if (!item.prominent && item.id !== sel) continue;
-        const el = document.createElement("div");
-        el.className = "mk item";
-        el.dataset.pinned = item.pinned ? "1" : "0";
-        el.setAttribute("role", "button");
-        el.setAttribute("tabindex", "0");
-        el.setAttribute("aria-label", `${item.title}${item.sub ? `, ${item.sub}` : ""}`); // atributul nu interpretează HTML
-        el.innerHTML = markerSvg({ source: item.source, kind: item.kind, selected: item.id === latest.current.selectedId }) + labelHtml(item);
-        el.addEventListener("click", (e) => {
-          e.stopPropagation();
-          onSelectRef.current(item.id);
-        });
-        el.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onSelectRef.current(item.id);
-          }
-        });
+        const el = markerElement(item, item.id === sel, (id) => onSelectRef.current(id));
         const marker = new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([item.lon, item.lat]).addTo(map);
         markersRef.current.set(item.id, { marker, el, item });
       }
@@ -434,11 +463,8 @@ export function PlanMap({
       (async () => {
         const maplibregl = await import("maplibre-gl");
         if (cancelled) return;
-        const el = document.createElement("div");
-        el.className = "mk item";
-        el.dataset.pinned = "0";
+        const el = markerElement({ ...selItem, pinned: false }, true, (id) => onSelectRef.current(id));
         el.dataset.selected = "1";
-        el.innerHTML = markerSvg({ source: selItem.source, kind: selItem.kind, selected: true }) + labelHtml(selItem);
         el.style.zIndex = "5";
         const marker = new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([selItem.lon, selItem.lat]).addTo(map);
         markersRef.current.set(selItem.id, { marker, el, item: selItem });
@@ -477,18 +503,18 @@ export function PlanMap({
         [bounds[0], bounds[1]],
         [bounds[2], bounds[3]],
       ],
-      { padding: { top: 76, bottom: 64, left: 56, right: 330 }, duration: reduce ? 0 : 800, maxZoom: 13.2 },
+      { padding, duration: reduce ? 0 : 800, maxZoom: 13.2 },
     );
-  }, [ready, bounds]);
+  }, [ready, bounds, padding]);
 
   return (
     <div className={className}>
-      <div ref={containerRef} className="plan-map h-full w-full" aria-label="Harta planului" role="region" />
+      <div ref={containerRef} className="plan-map h-full w-full" aria-label="Plan map" role="region" />
       {failed ? (
-        <div className="absolute inset-0 grid place-items-center bg-canvas/80 p-8 text-center text-[15px]">
+        <div role="alert" className="absolute inset-0 grid place-items-center bg-canvas/80 p-8 text-center text-[15px]">
           <p>
-            Harta nu s-a putut încărca (dalele OpenFreeMap nu răspund). Planul e întreg în linia de timp și în lista din
-            dreapta.
+
+            Map tiles could not load from OpenFreeMap. The full plan remains available in the timeline and list.
           </p>
         </div>
       ) : null}

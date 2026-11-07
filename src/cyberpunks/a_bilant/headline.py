@@ -1,6 +1,6 @@
 """Cifrele bilanțului pentru prezentare, într-o pagină: `reports/bilant/headline.md`.
 
-    uv run python -m cyberpunks.a_bilant.headline      # după evaluate; citește doar reports/bilant/metrics.json
+    uv run python -m cyberpunks.a_bilant.headline      # după evaluate și predict (inclus în `make bilant-predict`)
 
 Nicio cifră nu e scrisă de mână: toate vin din `metrics.json` (comanda `make bilant-eval`). SIMULARE pe date publice.
 """
@@ -57,6 +57,8 @@ def main() -> None:
         "",
         f"SIMULARE pe date publice, gândită pentru datele PPC. Sursa: `reports/bilant/metrics.json` ({mj['model_version']}), comanda `make bilant-data bilant-eval`. Test: cele 300 de posturi ale hărții (registrul C), rețele nevăzute la antrenare; defectele de contor sunt cele ale firului A.",
         "",
+        "**Baza legală:** Codul de măsurare ANRE (Ord. 103/2015) cere ca sistemele de măsurare inteligentă să permită „cel puţin un contor de balanţă la fiecare post de transformare, pentru a facilita identificarea pierderilor tehnice şi netehnice”.",
+        "",
         "## 1. Ce vede doar bilanțul (cifra principală)",
         "",
         "Contoarele clienților (modelul A) nu au cum să vadă aceste probleme: A găsește 0 prin construcție.",
@@ -75,32 +77,31 @@ def main() -> None:
         f"- **Bilanțul găsește {pct(M['cauze_post_energy_found_share'])} din energia pierdută din aceste cauze, ~{ro(M['cauze_post_lei_per_month_found'], 0)} lei pe lună** pe cele 300 de posturi (la 0,70 lei/kWh, `config/economics.yaml`). Din posturile marcate, {pct(M['cauze_post_false_alarm_share_of_found'])} sunt de fapt normale.",
         f"- În ziua demo, **{pct(M['invizibil_share_invisible_to_meters'])} din energia pierdută peste normal nu apare la niciun contor de client**.",
         f"- Diagnosticul cauzei: F1 macro {ro(M['diagnoza_macro_f1'], 2)} față de {ro(B['diagnoza_macro_f1'], 2)} la tabelul de reguli din concept.",
+        f"- **Contorul martor** (regulă, prag 0,5% = clasa de exactitate): pe posturile cu martor prinde {pct(M.get('martor_rule_recall_contor_post', 0))} din contoarele de balanță setate greșit, cu {int(M.get('martor_rule_false_alarms', 0))} alarme false; diferența normală martor − contor de balanță are mediana {ro(M.get('martor_normal_diff_median_pct', 0), 2)}% (mentorul PPC: ~0,1%).",
         "",
         "## 2. Cu bilanț față de fără, la verificările de contoare",
         "",
-        "Bilanțul doar confirmă (urcă scorul contorului când lipsa de la post crește cât lipsește la contor); nu coboară niciodată un contor găsit de A.",
+        "Testul: harta (cele 300 de posturi, defectele de contor ale lui A apărute în ultimele 2-12 zile), ultimele 50 de zile, scoruri de tip A simulate (AUC 0,91). Regula v2 are parametrii căutați automat pe un lot separat de 3.000 de posturi (`reports/bilant/fusion_v2_params.json`) și doar confirmă: nu coboară niciodată un contor găsit de A.",
         "",
-        "| Modelul de contoare | K verificări pe zi | Precizia fără → cu | Deplasări degeaba evitate pe zi | Lei recuperați pe zi fără → cu |",
-        "|---|---|---|---|---|",
+        "| K verificări pe zi | Precizia: A singur → regula v1 → regula v2 | Deplasări degeaba evitate pe zi (v2 față de A) | Lei recuperați pe zi: A singur → v2 |",
+        "|---|---|---|---|",
     ]
-    for pre, name in (("fuziune_", "scor A simulat, calitatea pe Londra (AUC 0,91)"), ("fuziune_sgcc_", "scor A simulat, calitatea pe SGCC (AUC 0,80)")):
-        for i, K in enumerate((10, 20, 50, 100)):
-            md.append(
-                f"| {name if i == 0 else ''} | {K} | {pct(B[f'{pre}precision_at_{K}'], 1)} → {pct(M[f'{pre}precision_at_{K}'], 1)} | {ro(M[f'{pre}wasted_trips_avoided_per_day_at_{K}'], 2)} | {ro(B[f'{pre}value_lei_per_day_at_{K}'], 0)} → {ro(M[f'{pre}value_lei_per_day_at_{K}'], 0)} |"
-            )
-    for i, K in enumerate((10, 100, 300, 500)):
-        a, f = M[f"fuziune_a_real_precision_at_{K}_a"], M[f"fuziune_a_real_precision_at_{K}_fused"]
-        wa, wf = M[f"fuziune_a_real_wasted_trips_at_{K}_a"], M[f"fuziune_a_real_wasted_trips_at_{K}_fused"]
-        md.append(f"| {'scorurile REALE ale lui A, ziua demo' if i == 0 else ''} | {K} | {pct(a, 1)} → {pct(f, 1)} | {ro(wa - wf, 0)} | - |")
+    for K in (10, 20, 50, 100):
+        if f"fuziune_harta_v2_precision_at_{K}" not in M:
+            continue
+        md.append(
+            f"| {K} | {pct(M[f'fuziune_harta_A_singur_precision_at_{K}'])} → {pct(M[f'fuziune_harta_v1_precision_at_{K}'])} → **{pct(M[f'fuziune_harta_v2_precision_at_{K}'])}** | {ro(M[f'fuziune_harta_v2_wasted_trips_avoided_per_day_at_{K}'], 1)} | {ro(M[f'fuziune_harta_A_singur_value_lei_per_day_at_{K}'], 0)} → {ro(M[f'fuziune_harta_v2_value_lei_per_day_at_{K}'], 0)} |"
+        )
+    if "fuziune_harta_real_v2_roc_auc" in M:
+        md += [
+            "",
+            f"Cu scorurile **reale** ale lui A (ziua demo, 15.850 de contoare): AUC {ro(M['fuziune_harta_real_A_singur_roc_auc'], 3)} (A singur), {ro(M['fuziune_harta_real_v1_roc_auc'], 3)} (v1), {ro(M['fuziune_harta_real_v2_roc_auc'], 3)} (v2); precizia în primele 500: {pct(M['fuziune_harta_real_A_singur_precision_at_500'], 1)} → {pct(M['fuziune_harta_real_v2_precision_at_500'], 1)}. Pe scorurile reale, A e deja precis în vârf; regula v2 nu strică, regula v1 strica la K mare.",
+        ]
     md += [
         "",
-        "Cum se citește: cu scorurile reale, A e deja precis în vârful listei, iar bilanțul nu mai adaugă nimic la clasare. Când modelul de contoare e mai slab, confirmarea din bilanț ridică banii recuperați (la calitatea SGCC, de "
-        + ro(M["fuziune_sgcc_value_lei_per_day_at_10"] / max(B["fuziune_sgcc_value_lei_per_day_at_10"], 1), 1)
-        + " ori în primele 10).",
+        "## 3. Unde montăm întâi contoarele de balanță (planul B)",
         "",
-        "## 3. Unde montăm întâi contoarele de bilanț (planul B)",
-        "",
-        "`reports/bilant/plan_b.md`: gradul de integrare a contoarelor inteligente e 56-67% pe regiuni (31 dec. 2025). Montând contoare de bilanț la 20% din posturi, în ordinea modelului, găsim mai multă energie lipsă decât la întâmplare sau la „posturile mari întâi”.",
+        "`reports/bilant/plan_b.md`: gradul de integrare a contoarelor inteligente e 56-67% pe regiuni (31 dec. 2025). Montând contoare de balanță la 20% din posturi, în ordinea modelului, găsim mai multă energie lipsă decât la întâmplare sau la „posturile mari întâi”.",
         "",
         "## 4. Postul pentru demo",
         "",

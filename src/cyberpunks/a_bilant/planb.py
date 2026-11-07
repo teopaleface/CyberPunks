@@ -1,8 +1,8 @@
-"""Planul B: unde se montează întâi contoarele de bilanț, când nu toate posturile au unul.
+"""Planul B: unde se montează întâi contoarele de balanță, când nu toate posturile au unul.
 
 Fără contor de post, lipsa nu se vede. Estimăm energia intrată în post din modelul rețelei (suma clienților plus
 pierderea normală fără istoric, `normal_cold`) și clasăm posturile după lipsa așteptată, dintr-un model antrenat pe
-posturile care au contor de bilanț (lotul `train`), doar cu ce se vede fără el: semnalele contoarelor de client
+posturile care au contor de balanță (lotul `train`), doar cu ce se vede fără el: semnalele contoarelor de client
 (zile cu zero, blocate, negative noaptea, consum dispărut), mărimea postului, cablurile din GIS, pierderea tehnică
 estimată.
 
@@ -122,18 +122,18 @@ def main() -> None:
         "lei_year_per_meter_random": float(lei_year_random),
     }
     (OUT / "plan_b.json").write_text(json.dumps(summary, indent=2))
-    md = f"""# Planul B: unde montăm întâi contoarele de bilanț
+    md = f"""# Planul B: unde montăm întâi contoarele de balanță
 
 SIMULARE pe date publice, gândită pentru datele PPC. Comanda: `uv run python -m cyberpunks.a_bilant.planb` (după `make bilant-data bilant-eval`).
 
 ## De ce contează
 
-Gradul de integrare a contoarelor inteligente la 31 decembrie 2025 (infobuz, prin `memory/12-probleme-reale-ppc-2026.md`): Dobrogea 66,85%, Muntenia 58,81%, Banat 56,45%. Ținta RER e 67% la finalul lui 2026. Planul de dezvoltare RER 2026-2035 cere ca infrastructura de contorizare inteligentă să permită cel puțin un contor de bilanț în fiecare post (`docs/research/bilant_lit.md`). Până atunci, o parte din posturi nu au bilanț complet. Concentratorul de date din post nu e contor de bilanț. Planul B răspunde la întrebarea: unde montăm întâi?
+Gradul de integrare a contoarelor inteligente la 31 decembrie 2025 (infobuz, prin `memory/12-probleme-reale-ppc-2026.md`): Dobrogea 66,85%, Muntenia 58,81%, Banat 56,45%. Ținta RER e 67% la finalul lui 2026. Planul de dezvoltare RER 2026-2035 cere ca infrastructura de contorizare inteligentă să permită cel puțin un contor de balanță în fiecare post (`docs/research/bilant_lit.md`). Până atunci, o parte din posturi nu au bilanț complet. Concentratorul de date din post nu e contor de balanță. Planul B răspunde la întrebarea: unde montăm întâi?
 
 ## Cum
 
 1. Fără contor de post, energia intrată se estimează din modelul rețelei: suma clienților plus pierderea normală estimată fără istoric (`normal_cold`, eroare medie 12,0 kWh/zi pe rețele nevăzute, `reports/bilant/metrics.json`).
-2. Un model (LightGBM, pierdere Huber) învață, pe cele 300 de posturi de antrenare care au contor de bilanț, lipsa măsurată peste normal din ultimele {LAST} de zile. Folosește doar ce se vede fără contorul postului: semnalele contoarelor de client (zile cu zero, blocate, negative noaptea, clienți cu consum scăzut la jumătate, cel mai mare consum dispărut), mărimea postului, cablurile din GIS și pierderea tehnică estimată.
+2. Un model (LightGBM, pierdere Huber) învață, pe cele 300 de posturi de antrenare care au contor de balanță, lipsa măsurată peste normal din ultimele {LAST} de zile. Folosește doar ce se vede fără contorul postului: semnalele contoarelor de client (zile cu zero, blocate, negative noaptea, clienți cu consum scăzut la jumătate, cel mai mare consum dispărut), mărimea postului, cablurile din GIS și pierderea tehnică estimată.
 3. Pe cele {n} posturi ale hărții (fără cele cu contorul de post setat greșit, care nu există unde nu e contor), comparăm ce parte din lipsa reală totală (din construcție) se găsește montând contoare la primele k posturi.
 
 ## Rezultat
@@ -141,13 +141,13 @@ Gradul de integrare a contoarelor inteligente la 31 decembrie 2025 (infobuz, pri
 {md_table(tab)}
 
 - Cu modelul, primele 20% din posturi ({k20}) acoperă **{summary['capture_top20pct_model'] * 100:.0f}%** din energia lipsă, față de {summary['capture_top20pct_random'] * 100:.0f}% la întâmplare și {summary['capture_top20pct_biggest'] * 100:.0f}% la „posturile mari întâi”.
-- Un contor de bilanț montat după clasament găsește în medie ~{lei_year_per_meter:,.0f} lei pe an de energie lipsă (la {price} lei/kWh, `config/economics.yaml`), față de ~{lei_year_random:,.0f} lei pe an la un post ales la întâmplare.
+- Un contor de balanță montat după clasament găsește în medie ~{lei_year_per_meter:,.0f} lei pe an de energie lipsă (la {price} lei/kWh, `config/economics.yaml`), față de ~{lei_year_random:,.0f} lei pe an la un post ales la întâmplare.
 - Clasamentul complet: `reports/bilant/plan_b_ranking.csv`; curbele: `reports/bilant/plan_b.png`.
 
 ## Limite
 
 - Furtul înainte de contor nu lasă urme la contoarele clienților. Planul B îl găsește doar prin mărimea și tipul postului, de aceea pierde din ce găsește bilanțul complet.
-- Lipsa reală e din construcție (simulare). Pe date PPC, eticheta de antrenare e lipsa măsurată la posturile care au deja contor de bilanț, exact ca aici (`measured_excess`).
+- Lipsa reală e din construcție (simulare). Pe date PPC, eticheta de antrenare e lipsa măsurată la posturile care au deja contor de balanță, exact ca aici (`measured_excess`).
 """
     (OUT / "plan_b.md").write_text(md, encoding="utf-8")
     print(tab.to_string(index=False))
@@ -168,9 +168,9 @@ def _fig(curves: dict, n: int) -> None:
         ax.plot(x, c * 100, label=name, color=col, lw=lw)
     ax.axvline(100 - 58.81, color="#444", ls=":", lw=1)
     ax.text(100 - 58.81 + 1, 5, "posturi fără contoare\ninteligente, Muntenia (41%)", fontsize=7)
-    ax.set_xlabel("% din posturi cu contor de bilanț montat (în ordinea metodei)")
+    ax.set_xlabel("% din posturi cu contor de balanță montat (în ordinea metodei)")
     ax.set_ylabel("% din energia lipsă găsită")
-    ax.set_title("Planul B: unde montăm întâi contoarele de bilanț (SIMULARE)", fontsize=10)
+    ax.set_title("Planul B: unde montăm întâi contoarele de balanță (SIMULARE)", fontsize=10)
     ax.legend(fontsize=8, loc="lower right")
     ax.grid(alpha=0.3)
     fig.tight_layout()

@@ -1,5 +1,6 @@
 "use client";
 
+import { englishText } from "@/lib/english";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -24,15 +25,16 @@ export function ApproveList({
   const [state, setState] = useState<{ at: string; local: boolean } | null>(approvedAt ? { at: approvedAt, local: approvedLocal } : null);
   if (state) {
     return (
-      <span className="flex items-center gap-2 text-[15px] whitespace-nowrap">
+      <span role="status" className="flex items-center gap-2 text-[15px] whitespace-nowrap">
         <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
           <circle cx="9" cy="9" r="8" style={{ fill: "var(--ok)" }} />
           <path d="M5 9.3l2.6 2.5L13 6.4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <b className="font-[620]">Lista aprobată</b>
+        <b className="font-[620]">Assignments approved</b>
         <span className="text-muted-foreground">
-          la {fmtTime(state.at)}
-          {state.local ? ", doar în acest browser" : ", scrisă în jurnal"}
+
+          at {fmtTime(state.at)}
+          {state.local ? ", saved in this browser only" : ", recorded in the audit log"}
         </span>
       </span>
     );
@@ -46,17 +48,17 @@ export function ApproveList({
           const r = await approvePlan(scenario, planId);
           if (r.ok) {
             setState({ at: r.at, local: r.local });
-            toast.success("Ai aprobat lista echipelor pentru mâine", {
-              description: r.local ? "API-ul nu are încă aprobarea; o păstrez în acest browser." : "Aprobarea a intrat în jurnal.",
+            toast.success("Tomorrow's crew assignments approved", {
+              description: r.local ? "The API does not support approval yet. Saved in this browser only." : "Approval recorded in the audit log.",
             });
             router.refresh();
           } else {
-            toast.error("Aprobarea nu s-a salvat", { description: r.error });
+            toast.error("Approval was not saved", { description: englishText(r.error) });
           }
         })
       }
     >
-      {pending ? "Se trimite…" : "Aprobă lista echipelor"}
+      {pending ? "Sending…" : "Approve crew assignments"}
     </Button>
   );
 }

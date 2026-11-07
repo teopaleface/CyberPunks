@@ -512,6 +512,14 @@ def build_model_card() -> str:
         "",
         "## Rezultate (K = 1% din contoarele din test)",
         "",
+        (f"**Metrica principală** (prima din `metrics.json`): precizia@K pe problemele subtile, adică testul Londra fără "
+         f"defectele evidente pe care le prinde orice regulă: **{f2(sub['model']['precision_at_k'])}**, față de "
+         f"{f2(sub['rule']['precision_at_k'])} la regula simplă și {f2(sub['vee']['precision_at_k'])} la regula VEE "
+         f"completă. A doua cifră, pe furt real (SGCC): **{f2(S['model']['precision_at_k'])}**, față de "
+         f"{f2(S['rule']['precision_at_k'])} și {f2(S['vee']['precision_at_k'])}. Precizia@K = "
+         f"{f2(L['model']['precision_at_k'])} pe tot testul Londra NU e cifra principală: vârful listei e plin de "
+         "defecte evidente."),
+        "",
         table(
             ["Set de test", "Model", "Regula simplă", "Regula VEE completă", "IsolationForest"],
             [
@@ -588,6 +596,10 @@ def build_model_card() -> str:
         ("- Om în buclă: cazurile nesigure (zona gri conformal, istoric scurt, date insuficiente) și furtul suspectat "
         "la consum mic merg la un om, cu motivul scris."),
         "- Alarmele false se verifică pe chintile de consum la fiecare evaluare (`error_analysis.md`, secțiunea 5).",
+        ("- Riscul de siguranță (`safety_flag`) se pune doar la ocolirea FIZICĂ a contorului, cu risc de incendiu: cel "
+         "puțin 3 ore pe zi de zero exact la aceleași ore (punte sau comutator improvizat) sau o ocolire parțială "
+         "sigură, la furt cu scor de cel puțin 0,8. Manipulările de date (profil aplatizat sau inversat) nu primesc "
+         "steagul. Tiparul e în `extra.tamper_pattern`."),
         ("- EU AI Act: tratăm sistemul ca pe unul cu impact (utilități, infrastructură critică). De aceea are "
         "supraveghere umană, jurnal automat al deciziilor (planificatorul), documentație (acest card, "
         "`docs/data/A.md`) și explicații pentru fiecare lucrare. Clasificarea juridică exactă nu am verificat-o."),

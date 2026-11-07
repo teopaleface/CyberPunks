@@ -1,0 +1,7 @@
+<template><link rel="stylesheet" href="assets/theme.css"><style>#root{position:absolute;inset:0;overflow:hidden;background:var(--paper)}</style>
+<div id="root" data-composition-id="meter" data-width="1920" data-height="1080"><div class="side"><h1 class="title">Tampered<br>meters.</h1></div><img id="object" class="object" src="assets/objects/meter/hero.png" alt="meter" style="" /></div>
+<script>(function(){const tl=gsap.timeline({paused:true});
+tl.fromTo('#object',{rotation:-12,x:180},{rotation:0,x:0,duration:.65,ease:'power3.out'},0);
+tl.to('#object',{scale:1.12,duration:.7,ease:'power2.inOut'},.9);
+
+window.__timelines=window.__timelines||{};window.__timelines["meter"]=tl;})();</script></template>

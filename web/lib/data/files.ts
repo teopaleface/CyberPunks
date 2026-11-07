@@ -1,5 +1,5 @@
 import "server-only";
-import { readFile } from "node:fs/promises";
+import { readText } from "@/lib/server/read-file";
 import path from "node:path";
 import YAML from "yaml";
 import type { AuditRecord, ModelReport, Plan, Series, WorkItem } from "@/lib/contracts";
@@ -167,7 +167,7 @@ function isMissingFileError(err: unknown): boolean {
 
 async function readTextIfExists(file: string): Promise<string | null> {
   try {
-    return await readFile(file, "utf8");
+    return await readText(file);
   } catch (err) {
     if (isMissingFileError(err)) return null;
     throw err;
@@ -278,7 +278,7 @@ export interface DemoCandidates {
   quarantine: string[];
   workItems: (source: WorkItemSource) => string[];
   series: (workItemId: string) => string[];
-  metrics: (source: WorkItemSource | "planner") => string[];
+  metrics: (source: WorkItemSource | "bilant" | "planner") => string[];
 }
 
 /**
@@ -289,8 +289,9 @@ export interface DemoCandidates {
  *      series/<scenariu>/<id>.json
  *   3. plat: outputs/demo/plan.json etc., doar dacă planul plat e al scenariului cerut
  *      (`plan.scenario`) sau dacă e cerut scenariul implicit (DEFAULT_SCENARIO)
- * Metricile: outputs/demo/metrics/<A|B|C>.json, apoi reports/<A|B|C>/metrics.json (în git);
- * pentru planificator: outputs/demo/metrics/planner.json, apoi reports/planner/agent_eval.json.
+ * Seriile au și o ultimă variantă: outputs/series/<scenariu>/<id>.json din checkout (ieșirea directă a modelelor).
+ * Metricile: reports/<A|B|C|bilant>/metrics.json, apoi copia din instantaneu;
+ * pentru planificator: reports/planner/agent_eval.json, apoi copia din instantaneu. Aceeași ordine ca API-ul Python.
  */
 export async function demoCandidates(scenario: string): Promise<DemoCandidates> {
   const base = demoDir();
@@ -341,19 +342,22 @@ export async function demoCandidates(scenario: string): Promise<DemoCandidates> 
               ],
             ],
             [flat, [path.join(base, "series", `${workItemId}.json`)]],
+            // ieșirea modelelor din acest checkout (de exemplu seriile bilanțului după `make bilant-predict`),
+            // calea din `extra.series_ref`, dacă instantaneul nu are seria
+            [safe, [repoPath("outputs", "series", scenario, `${workItemId}.json`)]],
           )
         : [],
     metrics: (source) =>
       source === "planner"
         ? [
+            repoPath("reports", "planner", "agent_eval.json"),
             path.join(base, "reports", "planner", "agent_eval.json"),
             path.join(base, "metrics", "planner.json"),
-            repoPath("reports", "planner", "agent_eval.json"),
           ]
         : [
+            repoPath("reports", source, "metrics.json"),
             path.join(base, "reports", source, "metrics.json"),
             path.join(base, "metrics", `${source}.json`),
-            repoPath("reports", source, "metrics.json"),
           ],
   };
 }
@@ -410,12 +414,31 @@ export async function readDemoPosts(scenario: string): Promise<FileRead<unknown>
 /** Costul energiei pierdute (lei/kWh) din config/economics.yaml, cu comentariul de sursă. */
 export async function readLossCost(): Promise<{ value: number; note: string } | null> {
   try {
-    const text = await readFile(repoPath("config", "economics.yaml"), "utf8");
+    const text = await readText(repoPath("config", "economics.yaml"));
     const line = text.split("\n").find((l) => /^\s*loss_cost_lei_per_kwh\s*:/.test(l));
     if (!line) return null;
     const value = Number(line.split(":")[1].split("#")[0].trim());
     const note = line.includes("#") ? line.slice(line.indexOf("#") + 1).trim() : "";
     return Number.isFinite(value) ? { value, note } : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Pragurile de culoare ale posturilor, din config/planner.yaml (`posts.yellow_lei_month`, `posts.red_lei_month`),
+ * aceleași cu care planificatorul colorează posturile în /posts. Null dacă fișierul sau cheile lipsesc.
+ */
+export async function readPostThresholds(): Promise<{ yellow: number; red: number } | null> {
+  try {
+    const text = await readText(repoPath("config", "planner.yaml"));
+    const value = (key: string) => {
+      const m = new RegExp(`^\\s*${key}\\s*:\\s*([0-9.]+)`, "m").exec(text);
+      return m ? Number(m[1]) : Number.NaN;
+    };
+    const yellow = value("yellow_lei_month");
+    const red = value("red_lei_month");
+    return Number.isFinite(yellow) && Number.isFinite(red) && yellow < red ? { yellow, red } : null;
   } catch {
     return null;
   }
@@ -456,14 +479,15 @@ export async function readDemoMetrics(): Promise<FileRead<MetricsBundle> | null>
     if (result) files.push(...result.files);
     return result?.data ?? null;
   };
-  const [A, B, C, planner] = await Promise.all([
+  const [A, B, C, bilant, planner] = await Promise.all([
     read<ModelReport>(candidates.metrics("A")),
     read<ModelReport>(candidates.metrics("B")),
     read<ModelReport>(candidates.metrics("C")),
+    read<ModelReport>(candidates.metrics("bilant")),
     read<Record<string, unknown>>(candidates.metrics("planner")),
   ]);
   if (!files.length) return null;
-  return { data: { A, B, C, planner }, files: files.sort() };
+  return { data: { A, B, C, bilant, planner }, files: files.sort() };
 }
 
 // ---------------------------------------------------------------------------------------------

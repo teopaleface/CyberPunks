@@ -50,6 +50,31 @@ Testul: pe timp: antrenare 2023-2024, test 2025 (an nevăzut), 80 comitate din 8
 - **Echipe puține** (8 echipe pe zi pentru 80 zone, câte una în zonele cu scorul cel mai mare): acoperă din clienții afectați 16,7% cu modelul, 14,6% cu regula pe rafală, 12,3% cu climatologia, 7,6% la întâmplare și 88,5% cu un oracol care știe viitorul.
 - **Figuri:** `fig_pr_curves.png`, `fig_reliability.png`, `fig_shap_importance.png`; analiza erorilor în `error_analysis.md`; backtestul din România în `backtest_romania.md`.
 
+## Backtest în România: trei furtuni reale (`reports/B/backtest_romania.md`)
+
+- **Banat, 7-8 iulie 2025** (cod roșu ANM de vijelii): riscul mediu e 0,31 în Banat, față de 0,07 în rest; echipă recomandată în 22 zone-zi din Banat și în 0 din rest.
+- **Slobozia, 17 iulie 2025** (cod roșu): zona e pe locul 1 din 26 după risc, la egalitate cu CS-ORAVITA (P = 0,36).
+- **Dobrogea, 26 noiembrie 2023** (cod portocaliu de viscol): riscul mediu e 0,87 în Dobrogea, față de 0,09 în rest; 10 din 10 zone primesc echipă.
+- Fără istoricul de avarii Rețele Electrice, verificarea e calitativă: zonele lovite, ziua, ordinul de mărime.
+
+## Varianta europeană: avarii reale din nordul Scoției (SSEN)
+
+Date: avariile de joasă tensiune SSEN (SHEPD), 5 districte, cu cauza fiecărei avarii (arhiva Zenodo 10.5281/zenodo.23303815, CC BY 4.0), și vremea Open-Meteo pe districte. Eticheta: cel puțin o avarie cu cauză de vreme în district, în ziua respectivă. Antrenare 2016-2023 (14.610 zile-district), test 2024-2025 (3.655 zile-district, prevalență 10,9%).
+
+| Pe testul din Scoția 2024-2025 | PR-AUC | ROC-AUC |
+|---|---|---|
+| Modelul SSEN (antrenat pe Scoția) | **0,296** | 0,692 |
+| Modelul pe SUA, fără date europene | 0,277 | 0,620 |
+| Climatologia pe district și lună | 0,161 | 0,652 |
+| Regula pe rafală | 0,247 | 0,644 |
+
+- Invers, modelul SSEN pe testul din SUA (2025): PR-AUC 0,159, față de 0,278 pentru modelul pe SUA (prevalență 10,3%).
+- România, Banat 7-8 iulie 2025: SSEN 0,09 în Banat față de 0,03 în rest; modelul pe SUA 0,31 față de 0,07.
+- România, Slobozia 17 iulie 2025: SSEN locul 2 din 26; modelul pe SUA locul 1.
+- România, viscolul din Dobrogea 26 nov. 2023: SSEN 0,73 față de 0,22; modelul pe SUA 0,87 față de 0,09.
+
+**Decizia pentru demo:** Agentul rămâne pe modelul pe SUA („B FINAL”); modelul SSEN e păstrat ca variantă evaluată. Pe Scoția 2024-2025, modelul SSEN are PR-AUC 0,296, față de 0,277 pentru modelul pe SUA, care n-a văzut date europene și bate climatologia locală (0,161). Pe SUA 2025, modelul SSEN are doar 0,159, față de 0,278. Pe furtuna de vară din Banat (8 iulie 2025), modelul SSEN dă 0,09 în Banat, sub pragul de 0,16, deci n-ar trimite nicio echipă; a învățat mai ales furtunile de iarnă dinspre ocean, iar România are furtuni convective vara.
+
 ## Ce am încercat
 
 | Varianta | Ce | PR-AUC | Brier |
@@ -64,6 +89,7 @@ Testul: pe timp: antrenare 2023-2024, test 2025 (an nevăzut), 80 comitate din 8
 | prag_5pct | evenimentul la ≥ 5% din clienți | 0,100 | 0,0212 |
 | arbori_mai_mari | num_leaves 31, min_data_in_leaf 20 | 0,275 | 0,0842 |
 | coada_rafalei | + cât trece rafala peste 60 km/h | 0,276 | 0,0842 |
+| zapada_uda_viscol | + zăpadă udă și viscol (pentru punctul slab, zăpada) | 0,275 | 0,0842 |
 | cu_temperaturi | + temperaturile și radiația (scoase din model: trimiteau echipe la caniculă în România) | 0,283 | 0,0837 |
 | mai_putine_variabile | fără orele de ploaie, vântul mediu și sezonul (cos) | 0,269 | 0,0847 |
 
@@ -76,6 +102,13 @@ Testul: pe timp: antrenare 2023-2024, test 2025 (an nevăzut), 80 comitate din 8
 - **Evenimentele fără semnal meteo** (defecte de echipament) sunt circa jumătate din evenimentele de 1% și nu pot fi prezise din vreme. De aici vine plafonul de PR-AUC.
 - **Clienții pe zonă** sunt o aproximare din populație. Clienții pe județ sunt oficiali (RER, 31.12.2024).
 - **Testul folosește vremea reconstituită** (arhiva Open-Meteo), nu prognoza făcută cu o zi înainte. În exploatare, cu prognoza, performanța va fi ceva mai mică, deci cifrele de test sunt mai degrabă o limită de sus. Incertitudinea prognozei e tratată separat: ensemble (40 de membri ICON-EPS) pentru mâine, trei modele pentru zilele trecute.
+
+## Îmbunătățiri viitoare
+
+- **Mai mulți ani de antrenare (2021-2022):** EAGLE-I 2021-2022 e deja descărcat, dar vremea pentru acești ani ar cere circa 4.200 de apeluri Open-Meteo, peste cota gratuită rămasă (10.000 pe zi, comună pentru tot laptopul). N-am adăugat-o, ca să nu schimbăm cifrele după ce le-a învățat echipa.
+- **Calibrarea pe istoricul de avarii Rețele Electrice:** pasul obligatoriu înainte de producție (transfer din SUA, prag, cuantile).
+- **Evaluare pe prognoza din ziua de dinainte** (Historical Forecast / Previous Runs API), nu pe vremea reconstituită, ca cifrele să arate performanța din exploatare.
+- **Zăpada:** variabile pentru zăpada grea și umedă (experimentul `zapada_uda_viscol` n-a ajutat cu datele zilnice).
 
 ## „Nu sunt sigur”: când trimite la om
 

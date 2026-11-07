@@ -11,7 +11,7 @@
     ],
     "cost_lei": 12439.34,
     "p90_before_pu": 1.1768,
-    "p90_after_pu": 1.0952,
+    "p90_after_pu": 1.0944,
     "why_not_cheaper": [
       "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,175 pu",
       "cu oferta de baterii singură (24 lei), tensiunea ajunge doar la 1,162 pu",
@@ -27,7 +27,8 @@
     "inverter_trips_avoided": 25.0,
     "crew_steps": [
       "phase_rebalance"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + baterii + limită de injecție"
   },
   {
     "post_id": "PT-1076",
@@ -39,7 +40,7 @@
       "offer_battery",
       "export_limit"
     ],
-    "cost_lei": 8586.84,
+    "cost_lei": 8586.83,
     "p90_before_pu": 1.1612,
     "p90_after_pu": 1.0939,
     "why_not_cheaper": [
@@ -57,7 +58,8 @@
     "inverter_trips_avoided": 16.0,
     "crew_steps": [
       "phase_rebalance"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + baterii + limită de injecție"
   },
   {
     "post_id": "PT-1300",
@@ -87,7 +89,8 @@
     "inverter_trips_avoided": 8.0,
     "crew_steps": [
       "phase_rebalance"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + baterii + limită de injecție"
   },
   {
     "post_id": "PT-1147",
@@ -118,7 +121,8 @@
     "crew_steps": [
       "phase_rebalance",
       "adjust_tap"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
   },
   {
     "post_id": "PT-1131",
@@ -129,7 +133,7 @@
       "phase_rebalance",
       "export_limit"
     ],
-    "cost_lei": 9068.56,
+    "cost_lei": 9068.57,
     "p90_before_pu": 1.1552,
     "p90_after_pu": 1.0958,
     "why_not_cheaper": [
@@ -142,7 +146,8 @@
     "inverter_trips_avoided": 15.0,
     "crew_steps": [
       "phase_rebalance"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + limită de injecție"
   },
   {
     "post_id": "PT-1075",
@@ -173,7 +178,8 @@
     "crew_steps": [
       "phase_rebalance",
       "adjust_tap"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
   },
   {
     "post_id": "PT-1072",
@@ -204,7 +210,8 @@
     "crew_steps": [
       "phase_rebalance",
       "adjust_tap"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
   },
   {
     "post_id": "PT-1005",
@@ -226,7 +233,8 @@
     "invest": false,
     "battery": null,
     "inverter_trips_avoided": 4.0,
-    "crew_steps": []
+    "crew_steps": [],
+    "title_ro": "Soluție: mesaje Ore Smart + limită de injecție"
   },
   {
     "post_id": "PT-1255",
@@ -257,7 +265,8 @@
     "crew_steps": [
       "phase_rebalance",
       "adjust_tap"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
   },
   {
     "post_id": "PT-1119",
@@ -282,7 +291,8 @@
     "crew_steps": [
       "phase_rebalance",
       "adjust_tap"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + priza transformatorului"
   },
   {
     "post_id": "PT-1087",
@@ -307,7 +317,8 @@
     "crew_steps": [
       "phase_rebalance",
       "adjust_tap"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + priza transformatorului"
   },
   {
     "post_id": "PT-1263",
@@ -336,7 +347,8 @@
     "inverter_trips_avoided": 18.0,
     "crew_steps": [
       "adjust_tap"
-    ]
+    ],
+    "title_ro": "Soluție: priza transformatorului + baterii"
   },
   {
     "post_id": "PT-1252",
@@ -361,6 +373,39 @@
     "crew_steps": [
       "phase_rebalance",
       "adjust_tap"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + priza transformatorului"
+  },
+  {
+    "post_id": "PT-1082",
+    "work_item_id": "C-20250708-PT-1082",
+    "label": "PT-1082, 1 Decembrie (sintetic)",
+    "feasible": true,
+    "chosen": [
+      "phase_rebalance",
+      "adjust_tap",
+      "offer_battery"
+    ],
+    "cost_lei": 1966.0,
+    "p90_before_pu": 1.138,
+    "p90_after_pu": 1.0947,
+    "why_not_cheaper": [
+      "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,136 pu",
+      "cu oferta de baterii singură (10 lei), tensiunea ajunge doar la 1,130 pu",
+      "cu mesajele către clienții Ore Smart și oferta de baterii (13 lei, la 10% participare), tensiunea ajunge doar la 1,128 pu"
+    ],
+    "invest": false,
+    "battery": {
+      "battery_kwh_total": 20.0,
+      "revenue_lei": 4500.0,
+      "payback_years": 5.15,
+      "customers_targeted": 5
+    },
+    "inverter_trips_avoided": 5.0,
+    "crew_steps": [
+      "phase_rebalance",
+      "adjust_tap"
+    ],
+    "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
   }
 ]

@@ -33,6 +33,7 @@ from cyberpunks.a_bilant import inputs as I
 from cyberpunks.a_bilant import normal as N
 from cyberpunks.a_bilant import windows as W
 from cyberpunks.a_bilant.fuse import state_path
+from cyberpunks.a_bilant.martor import MARTOR_DIFF_LIMIT
 from cyberpunks.a_bilant.problems import CLASS_RO, CLASSES
 from cyberpunks.common.config import load as load_config
 from cyberpunks.common.contracts import Series, WorkItem
@@ -67,6 +68,29 @@ ACTION_RO = {
 }
 
 
+P_DISPLAY_MAX = 0.99  # nicio probabilitate afișată nu e 100%: peste 0,99 se scrie „peste 99%”
+SAFETY_P_MIN = 0.90
+SAFETY_THEFT_KWH_DAY = 12.0  # ~0,5 kW medii nemăsurați, zi și noapte: legătură directă permanentă (IPOTEZĂ)
+SAFETY_THEFT_NIGHT_SHARE = 0.20
+SAFETY_TECH_LOSS_RATIO = 3.0  # pierderi pe cabluri de cel puțin 3 ori normalul: îmbinare care se poate încălzi (IPOTEZĂ)
+
+
+def pfmt(p: float) -> str:
+    """Probabilitatea pentru text: plafonată, fără „100%”."""
+    return "peste 99%" if p > P_DISPLAY_MAX else f"{p:.0%}"
+
+
+def safety(label: str, r: pd.Series, abstain: bool, loss_ratio: float | None) -> tuple[bool, str]:
+    """Risc real pentru oameni, nu orice pierdere mare: legătură directă permanentă sau îmbinare care se încălzește."""
+    if abstain or float(r["p_label"]) < SAFETY_P_MIN:
+        return False, ""
+    if label == "furt_inainte_contor" and float(r["r_mean_kwh"]) >= SAFETY_THEFT_KWH_DAY and float(r["night_excess_share"]) >= SAFETY_THEFT_NIGHT_SHARE:
+        return True, "consum nemăsurat constant, zi și noapte: probabil legătură directă la rețea (risc de incendiu și electrocutare)"
+    if label == "pierdere_tehnica" and loss_ratio is not None and loss_ratio >= SAFETY_TECH_LOSS_RATIO:
+        return True, f"pierderi pe cabluri de {loss_ratio:.1f} ori normalul: o îmbinare se poate încălzi"
+    return False, ""
+
+
 def economics() -> dict:
     eco = load_config("economics")
     return {
@@ -93,8 +117,8 @@ def _shap(diag: G.Diagnoser, X: pd.DataFrame, cls_idx: np.ndarray) -> np.ndarray
     import lightgbm as lgb
 
     booster = diag.model if isinstance(diag.model, lgb.Booster) else diag.model.booster_
-    c = booster.predict(X[W.WIN_FEATURES], pred_contrib=True)
-    nf = len(W.WIN_FEATURES) + 1
+    c = booster.predict(X[diag.features], pred_contrib=True)
+    nf = len(diag.features) + 1
     c = np.asarray(c).reshape(len(X), len(CLASSES), nf)
     return c[np.arange(len(X)), cls_idx, :-1]
 
@@ -123,6 +147,12 @@ def _factor_text(feat: str, r: pd.Series, extra: dict) -> str | None:
         return f"Tensiunea unui contor seamănă puțin cu a postului (corelație {r['vcorr_min']:.2f} față de mediana {r['vcorr_min'] + r['vcorr_gap']:.2f})"
     if f in ("width_kwh", "p50_mean_kwh", "hist_days"):
         return f"Pierderea normală estimată: {r['p50_mean_kwh']:.1f} kWh/zi (interval P10-P90 de {r['width_kwh']:.1f} kWh)"
+    if f in ("n_drop50", "top3_drop_match"):
+        return f"{int(r['n_drop50'])} clienți și-au înjumătățit consumul; primii 3 explică {r['top3_drop_match']:.0%} din lipsă"
+    if f in ("zero7", "const7", "neg7"):
+        return f"Pe ultimele 7 zile: {int(max(r['zero7'], 0))} contoare noi cu zero, {int(r['const7'])} blocate, {int(r['neg7'])} cu semn schimbat"
+    if f in ("ratio_vs_gis", "r_vs_gis_kwh"):
+        return f"Postul pierde de {r['ratio_vs_gis']:.1f} ori cât îi spun cablurile din GIS și încărcarea"
     if f == "miss_share_w":
         return f"Date lipsă la contoare: {r['miss_share_w'] * 100:.1f}% din ore (completate din istoric)"
     return None
@@ -134,9 +164,9 @@ def post_states(pool: str, target_day: int) -> tuple[pd.DataFrame, pd.DataFrame,
     models = {"warm": N.load("normal"), "cold": N.load("normal_cold")}
     pred = W.predict_normal(models, d)
     win = W.build_windows(d, pred, pool, days=[target_day])
-    diag = G.load()
+    diag = G.load_best()
     proba = diag.proba(win)
-    dec = G.pair_consistency(win, G.decide(proba, win))
+    dec = G.apply_martor_rule(win, G.pair_consistency(win, G.decide(proba, win)))
     d = d.assign(p10=pred["p10"].to_numpy(), p50=pred["p50"].to_numpy(), p90=pred["p90"].to_numpy())
     return d, win.join(dec), proba
 
@@ -250,7 +280,8 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
     a_by_post = a_items_by_post(scenario)
     dedup = {"human_review_left_to_A": 0, "meter_work_left_to_A": 0}
     shap_idx = np.array([CLASSES.index(c) for c in win["label"]])
-    shap = _shap(G.load(), win, shap_idx)
+    diag_m = G.load_best()
+    shap = _shap(diag_m, win, shap_idx)
 
     items, series, states = [], {}, {}
     rmean = dict(zip(win["post_id"], win["r_mean_kwh"], strict=True))
@@ -271,6 +302,7 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
             "abstain": bool(r["abstain"]),
             "prediction_id": pred_id,
             "has_balance": has_bal,
+            "martor_diff_pct": round(float(r["martor_diff"]) * 100, 3) if np.isfinite(float(r.get("martor_diff", float("nan")))) else None,
             "input_issues": post_issues,
         }
         if not has_bal:
@@ -279,7 +311,14 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
         material = abs(float(r["r_mean_kwh"])) > half
         if r["p_problem"] < MIN_P_PROBLEM or not material or (r["label"] == "normal" and not r["abstain"]):
             continue
-        extra: dict = {"post_id": pid, "series_ref": f"outputs/series/{scenario}/A-{target:%Y%m%d}-{pid}.json", "diagnosis_proba": {c: round(float(proba.loc[_, c]), 4) for c in CLASSES}}
+        extra: dict = {"post_id": pid, "series_ref": f"outputs/series/{scenario}/A-{target:%Y%m%d}-{pid}.json", "diagnosis_proba": {c: round(min(float(proba.loc[_, c]), P_DISPLAY_MAX), 4) for c in CLASSES}}
+        md = float(r.get("martor_diff", float("nan")))
+        extra["martor_check"] = {
+            "rule": "contor de balanță față de contorul martor (Codul de măsurare ANRE 2015)",
+            "diff_pct": round(md * 100, 3) if np.isfinite(md) else None,
+            "limit_pct": MARTOR_DIFF_LIMIT * 100,
+            "verdict": str(r.get("martor_rule", "fara_martor")),
+        }
         # clientul suspect (cel mai mare consum dispărut) și vecinul cu surplus
         cd = cust[pid].astype(float) if pid in cust.files else None
         sus = suspect_meter(cd, tday, float(r["r_mean_kwh"])) if cd is not None else None
@@ -313,7 +352,7 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
             # IPOTEZĂ: valoarea = două verificări degeaba evitate (cât costă o deplasare, config/economics.yaml)
             value = 2 * eco["visit_cost"]
             extra["paper_loss_kwh_day"] = round(float(r["r_mean_kwh"]), 1)
-        score = float(np.clip(r["p_problem"], 0, 1))
+        score = float(np.clip(r["p_problem"], 0, P_DISPLAY_MAX))
         # fără dubluri cu A: un post nu ajunge la om de două ori, iar munca pe contoare o face lucrarea lui A
         a_here = a_by_post.get(pid, [])
         if r["abstain"] and any(x["action"] == "human_review" for x in a_here):
@@ -337,7 +376,7 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
         order = np.argsort(-np.abs(shap[k]))
         factors, seen = [], set()
         for j in order:
-            feat = W.WIN_FEATURES[j]
+            feat = diag_m.features[j]
             txt = _factor_text(feat, r, extra)
             if not txt or txt in seen:
                 continue
@@ -346,21 +385,28 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
             factors.append({"feature": feat, "label_ro": txt, "value": round(float(v), 3), "contribution": round(float(shap[k][j]), 4)})
             if len(factors) == 5:
                 break
+        lratio = extra.get("phase_rebalance_input", {}).get("loss_ratio_vs_normal")
+        safe, safe_why = safety(label, r, bool(r["abstain"]), lratio)
+        if safe:
+            extra["safety_reason_ro"] = safe_why
         lei_month = 0.0 if label == "contor_bilant_setat" else excess * 30 * eco["price"]
         who = f"{CLASS_RO[label]}, probabil clientul {extra['suspect_meter']} ({extra['suspect_meter_reason_ro']})" if label == "contor_client" and "suspect_meter" in extra else CLASS_RO[label]
         if r["abstain"]:
-            summary = f"Postul {pid}: ~{lei_month:.0f} lei pe lună pierduți peste normal. Nu sunt sigur de cauză ({r['abstain_reason']}): {CLASS_RO[label]} {r['p_label']:.0%} sau {CLASS_RO[r['second']]} {r['p_second']:.0%}. Decide un om."
+            summary = f"Postul {pid}: ~{lei_month:.0f} lei pe lună pierduți peste normal. Nu sunt sigur de cauză ({r['abstain_reason']}): {CLASS_RO[label]} {pfmt(r['p_label'])} sau {CLASS_RO[r['second']]} {pfmt(r['p_second'])}. Decide un om."
         elif label == "client_post_gresit":
             side = "lipsă" if float(r["r_mean_kwh"]) > 0 else "surplus"
             mirror = str(r.get("mirror_post") or "")
             if mirror:
                 extra["pair_post"] = mirror
             other = f" Perechea probabilă: {mirror}." if mirror else ""
-            summary = f"Postul {pid}: {side} de ~{abs(float(r['r_mean_kwh'])):.1f} kWh/zi (~{lei_month:.0f} lei pe lună contați la postul greșit). Cauza probabilă ({r['p_label']:.0%}): client trecut la postul greșit în bază; tensiunea contorului seamănă cu a altui post.{other} Recomand: {ACTION_RO[action]}."
+            summary = f"Postul {pid}: {side} de ~{abs(float(r['r_mean_kwh'])):.1f} kWh/zi (~{lei_month:.0f} lei pe lună contați la postul greșit). Cauza probabilă ({pfmt(r['p_label'])}): client trecut la postul greșit în bază; tensiunea contorului seamănă cu a altui post.{other} Recomand: {ACTION_RO[action]}."
         elif label == "contor_bilant_setat":
-            summary = f"Postul {pid}: contorul postului arată de {r['bal_db_ratio']:.2f} ori suma clienților ({r['p_label']:.0%} contor de post setat greșit). Lipsa de ~{r['r_mean_kwh']:.0f} kWh/zi e doar pe hârtie. Recomand: {ACTION_RO[action]} (raportul de transformare)."
+            mtxt = f" Contorul martor diferă cu {md * 100:.1f}% (peste clasa de exactitate de {MARTOR_DIFF_LIMIT * 100:.1f}%): regula confirmă." if np.isfinite(md) and md > MARTOR_DIFF_LIMIT else ""
+            summary = f"Postul {pid}: contorul de balanță arată de {r['bal_db_ratio']:.2f} ori suma clienților ({pfmt(r['p_label'])} contor de balanță defect sau setat greșit).{mtxt} Lipsa de ~{r['r_mean_kwh']:.0f} kWh/zi e doar pe hârtie. Recomand: {ACTION_RO[action]} (raportul de transformare)."
         else:
-            summary = f"Postul {pid}: ~{lei_month:.0f} lei pe lună pierduți peste normal. Cauza probabilă ({r['p_label']:.0%}): {who}. Recomand: {ACTION_RO[action]}."
+            summary = f"Postul {pid}: ~{lei_month:.0f} lei pe lună pierduți peste normal. Cauza probabilă ({pfmt(r['p_label'])}): {who}. Recomand: {ACTION_RO[action]}."
+        if safe:
+            summary += f" Atenție la siguranță: {safe_why}."
         wid = f"A-{target:%Y%m%d}-{pid}"
         miss = float(np.clip(r["miss_share_w"], 0, 1))
         item = {
@@ -389,7 +435,7 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
                 "value_if_true_lei": round(value, 2),
                 "customers_affected": int(rg.get("n_customers", 0)),
                 "urgency_hours": urg,
-                "safety_flag": bool(label == "furt_inainte_contor"),
+                "safety_flag": safe,
                 "assumptions_ref": "energy.loss_cost_lei_per_kwh",
             },
             "effort": {"duration_min": dur, "crew_skill": skill, "crew_size": size, "requires_planned_outage": False},

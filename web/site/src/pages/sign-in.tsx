@@ -1,21 +1,20 @@
 import { CheckCircle2, Loader2 } from "lucide-react"
-import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useId, useState, type FormEvent, type ReactNode } from "react"
-import { Link, useNavigate, useSearchParams } from "react-router-dom"
-import { NetworkGlobe } from "@/components/network-globe"
+import { Link, useSearchParams } from "react-router-dom"
 import { GlassButton } from "@/components/ui/liquid-glass-button"
 import { displayName, useAuth } from "@/lib/auth"
-import { ROUTES } from "@/lib/site"
+import { proposalFromSearch, proposalWorkspacePath, signInModeParams } from "../../../lib/operations/proposal-link"
 import { supabaseReady } from "@/lib/supabase"
+import { accountErrorMessage } from "@/lib/account-errors"
 import { cn } from "@/lib/utils"
 
 type Mode = "intra" | "cont-nou" | "resetare"
 
 const TITLES: Record<Mode | "parola-noua", string> = {
-  intra: "Intră în cont",
-  "cont-nou": "Cont nou",
-  resetare: "Resetează parola",
-  "parola-noua": "Parolă nouă",
+  intra: "Account access",
+  "cont-nou": "Account access",
+  resetare: "Password help",
+  "parola-noua": "New password",
 }
 
 function Field({
@@ -53,8 +52,8 @@ function Field({
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${id}-err` : hint ? `${id}-hint` : undefined}
         className={cn(
-          "h-12 w-full rounded-2xl bg-surface-2 px-4 text-white outline-none transition-[box-shadow] duration-150",
-          "placeholder:text-white/40 focus-visible:ring-2 focus-visible:ring-ember disabled:opacity-60",
+          "h-12 w-full rounded-2xl bg-surface-2 px-4 text-foreground outline-none transition-[box-shadow] duration-150",
+          "placeholder:text-foreground/60 focus-visible:ring-2 focus-visible:ring-accent-ink disabled:opacity-60",
           error && "ring-2 ring-bad"
         )}
       />
@@ -63,7 +62,7 @@ function Field({
           {error}
         </p>
       ) : hint ? (
-        <p id={`${id}-hint`} className="mt-1.5 text-sm text-white/65">
+        <p id={`${id}-hint`} className="mt-1.5 text-sm text-foreground/65">
           {hint}
         </p>
       ) : null}
@@ -77,7 +76,7 @@ function Notice({ tone, children }: { tone: "error" | "success"; children: React
       role={tone === "error" ? "alert" : "status"}
       className={cn(
         "flex gap-3 rounded-2xl p-4",
-        tone === "error" ? "bg-bad/15 text-white" : "bg-ok/12 text-white"
+        tone === "error" ? "bg-bad/15 text-foreground" : "bg-ok/12 text-foreground"
       )}
     >
       {tone === "success" && <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-ok" aria-hidden />}
@@ -90,12 +89,13 @@ const emailOk = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim())
 
 export default function SignInPage() {
   const auth = useAuth()
-  const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
+  const openWorkspace = () => window.location.assign(new URL(proposalWorkspacePath(proposalFromSearch(params)), window.location.origin).href)
   const mode: Mode = (["intra", "cont-nou", "resetare"] as Mode[]).includes(params.get("mod") as Mode)
     ? (params.get("mod") as Mode)
     : "intra"
   const view = auth.recovering ? "parola-noua" : mode
+  const localPreview = ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname)
 
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -111,11 +111,11 @@ export default function SignInPage() {
     setTouched(false)
   }, [view])
 
-  const setMode = (m: Mode) => setParams(m === "intra" ? {} : { mod: m })
+  const setMode = (m: Mode) => setParams(signInModeParams(params, m))
 
-  const emailErr = touched && !emailOk(email) ? "Scrie un email valid, de forma nume@domeniu.ro." : null
-  const passErr = touched && password.length < 6 ? "Parola trebuie să aibă cel puțin 6 caractere." : null
-  const nameErr = touched && view === "cont-nou" && !name.trim() ? "Scrie-ți numele, ca să știe echipa cine a aprobat." : null
+  const emailErr = touched && !emailOk(email) ? "Enter a valid email, such as name@example.com." : null
+  const passErr = touched && password.length < 6 ? "Use at least 6 characters." : null
+  const nameErr = touched && view === "cont-nou" && !name.trim() ? "Enter your name so the team can identify your approvals." : null
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -126,47 +126,43 @@ export default function SignInPage() {
       setBusy(true)
       const err = await auth.setNewPassword(password)
       setBusy(false)
-      if (err) setError(err)
-      else navigate(ROUTES.app)
+      if (err) setError(accountErrorMessage(err))
+      else openWorkspace()
       return
     }
+    if (view === "resetare") return
     if (!emailOk(email)) return
-    if (view !== "resetare" && password.length < 6) return
+    if (password.length < 6) return
     if (view === "cont-nou" && !name.trim()) return
     setBusy(true)
     if (view === "intra") {
       const err = await auth.signIn(email.trim(), password)
       setBusy(false)
-      if (err) setError(err)
-      else navigate(ROUTES.app)
+      if (err) setError(accountErrorMessage(err))
+      else openWorkspace()
     } else if (view === "cont-nou") {
       const res = await auth.signUp(email.trim(), password, name.trim())
       setBusy(false)
-      if (res.error) setError(res.error)
+      if (res.error) setError(accountErrorMessage(res.error))
       else if (res.needsConfirmation)
-        setDone(`Ți-am trimis un email la ${email.trim()}. Deschide linkul din el ca să-ți activezi contul.`)
-      else navigate(ROUTES.app)
-    } else {
-      const err = await auth.sendReset(email.trim())
-      setBusy(false)
-      if (err) setError(err)
-      else setDone(`Dacă există un cont pe ${email.trim()}, ai primit un link pentru parolă nouă.`)
+        setDone(`Check your email at ${email.trim()} for the account confirmation link.`)
+      else openWorkspace()
     }
   }
 
   // Already signed in: say who, offer the way in or out.
   if (auth.user && !auth.recovering) {
     return (
-      <Shell title="Ești conectat">
-        <p className="text-white/90">
-          Ești conectat ca <span className="font-medium">{displayName(auth.user, auth.profile)}</span> ({auth.user.email}).
+      <Shell title="You are signed in">
+        <p className="text-foreground/90">
+          Signed in as <span className="font-medium">{displayName(auth.user, auth.profile)}</span> ({auth.user.email}).
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-4">
-          <GlassButton size="lg" variant="blue" onClick={() => navigate(ROUTES.app)}>
-            Deschide aplicația
+          <GlassButton size="lg" variant="signal" onClick={() => openWorkspace()}>
+            Open workspace
           </GlassButton>
-          <button type="button" onClick={() => auth.signOut()} className="cursor-pointer text-white/80 underline-offset-4 hover:text-white hover:underline">
-            Ieși din cont
+          <button type="button" onClick={() => auth.signOut()} className="cursor-pointer text-foreground/80 underline-offset-4 hover:text-foreground hover:underline">
+            Sign out
           </button>
         </div>
       </Shell>
@@ -176,112 +172,114 @@ export default function SignInPage() {
   return (
     <Shell title={TITLES[view]}>
       {view !== "parola-noua" && view !== "resetare" && (
-        <div role="tablist" aria-label="Alege" className="mb-8 inline-flex rounded-full bg-surface-2 p-1">
+        <div role="group" aria-label="Account access" className="mb-8 inline-flex rounded-full bg-surface-2 p-1">
           {(["intra", "cont-nou"] as Mode[]).map((m) => (
             <button
               key={m}
-              role="tab"
               type="button"
-              aria-selected={view === m}
+              aria-pressed={view === m}
               onClick={() => setMode(m)}
               className={cn(
                 "h-10 cursor-pointer rounded-full px-5 text-sm font-medium transition-colors duration-200",
-                view === m ? "bg-white text-black" : "text-white/80 hover:text-white"
+                view === m ? "bg-foreground text-background" : "text-foreground/80 hover:text-foreground"
               )}
             >
-              {m === "intra" ? "Am cont" : "Cont nou"}
+              {m === "intra" ? "Sign in" : "Create account"}
             </button>
           ))}
         </div>
       )}
 
+      {localPreview && (
+        <p className="mb-6 text-sm text-foreground/70">
+          Local preview uses separate accounts.{" "}
+          <a href="https://daybreak.ghiseateodor245.workers.dev/intra" className="text-foreground underline underline-offset-4">Open live sign in</a>
+        </p>
+      )}
+
       {!supabaseReady && (
         <Notice tone="error">
-          Conturile nu sunt configurate pe acest server (lipsesc cheile Supabase din .env.local). Poți folosi aplicația
-          fără cont.
+          Accounts are unavailable on this server. You can still explore the demo without an account.
         </Notice>
       )}
 
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.form
-          key={view}
-          noValidate
-          onSubmit={submit}
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 6 }}
-          transition={{ duration: 0.2 }}
-          className="mt-2 space-y-5"
-        >
-          {done ? (
-            <Notice tone="success">{done}</Notice>
-          ) : (
-            <>
-              {view === "resetare" && (
-                <p className="text-white/85">Scrie emailul contului. Îți trimitem un link pentru o parolă nouă.</p>
-              )}
-              {view === "cont-nou" && (
-                <Field label="Nume" value={name} onChange={setName} autoComplete="name" error={nameErr} disabled={busy} />
-              )}
-              {view !== "parola-noua" && (
-                <Field label="Email" type="email" value={email} onChange={setEmail} autoComplete="email" error={emailErr} disabled={busy} />
-              )}
-              {view !== "resetare" && (
-                <Field
-                  label={view === "parola-noua" ? "Parola nouă" : "Parolă"}
-                  type="password"
-                  value={password}
-                  onChange={setPassword}
-                  autoComplete={view === "intra" ? "current-password" : "new-password"}
-                  error={passErr}
-                  hint={view !== "intra" ? "Cel puțin 6 caractere." : undefined}
-                  disabled={busy}
-                />
-              )}
+      <form
+        noValidate
+        onSubmit={submit}
+        className="mt-2 space-y-5"
+      >
+        {done ? (
+          <Notice tone="success">{done}</Notice>
+        ) : (
+          <>
+            {view === "resetare" && (
+              <p className="text-foreground/85">Email password recovery is unavailable. Ask the administrator for help or create a new account.</p>
+            )}
+            {view !== "parola-noua" && view !== "resetare" && (
+              <Field label="Email" type="email" value={email} onChange={setEmail} autoComplete="email" error={emailErr} disabled={busy} />
+            )}
+            {view !== "resetare" && (
+              <Field
+                label={view === "parola-noua" ? "New password" : "Password"}
+                type="password"
+                value={password}
+                onChange={setPassword}
+                autoComplete={view === "intra" ? "current-password" : "new-password"}
+                error={passErr}
+                hint="At least 6 characters."
+                disabled={busy}
+              />
+            )}
 
-              {error && <Notice tone="error">{error}</Notice>}
+            {view !== "parola-noua" && view !== "resetare" && (
+              // Reserve the name row so shared fields and actions stay put when switching modes.
+              <div className="min-h-[5.25rem]">
+                {view === "cont-nou" && (
+                  <Field label="Name" value={name} onChange={setName} autoComplete="name" error={nameErr} disabled={busy} />
+                )}
+              </div>
+            )}
 
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-4 pt-2">
-                <GlassButton type="submit" size="lg" variant="blue" disabled={busy || !supabaseReady} aria-busy={busy}>
-                  {busy && <Loader2 className="size-4 animate-spin" aria-hidden />}
-                  {view === "intra"
+            {error && <Notice tone="error">{error}</Notice>}
+
+            <div className="grid items-center justify-items-start gap-x-6 gap-y-4 pt-2 sm:flex sm:flex-wrap">
+              {view !== "resetare" && <GlassButton type="submit" size="lg" variant="signal" disabled={busy || !supabaseReady} aria-busy={busy}>
+                {busy && <Loader2 className="size-4 animate-spin" aria-hidden />}
+                {view === "intra"
+                  ? busy
+                    ? "Signing in…"
+                    : "Sign in"
+                  : view === "cont-nou"
                     ? busy
-                      ? "Se verifică…"
-                      : "Intră în cont"
-                    : view === "cont-nou"
-                      ? busy
-                        ? "Se creează contul…"
-                        : "Creează contul"
-                      : view === "resetare"
-                        ? busy
-                          ? "Se trimite…"
-                          : "Trimite linkul"
-                        : busy
-                          ? "Se salvează…"
-                          : "Salvează parola"}
-                </GlassButton>
+                      ? "Creating account…"
+                      : "Create account"
+                    : busy
+                      ? "Saving…"
+                      : "Save password"}
+              </GlassButton>}
+              <div className="min-h-7">
                 {view === "intra" && (
-                  <button type="button" onClick={() => setMode("resetare")} className="cursor-pointer text-white/80 underline-offset-4 hover:text-white hover:underline">
-                    Ai uitat parola?
+                  <button type="button" onClick={() => setMode("resetare")} className="cursor-pointer text-foreground/80 underline-offset-4 hover:text-foreground hover:underline">
+                    Forgot password?
                   </button>
                 )}
                 {view === "resetare" && (
-                  <button type="button" onClick={() => setMode("intra")} className="cursor-pointer text-white/80 underline-offset-4 hover:text-white hover:underline">
-                    Înapoi la intrare
+                  <button type="button" onClick={() => setMode("intra")} className="cursor-pointer text-foreground/80 underline-offset-4 hover:text-foreground hover:underline">
+                    Back to sign in
                   </button>
                 )}
               </div>
-            </>
-          )}
-        </motion.form>
-      </AnimatePresence>
+            </div>
+          </>
+        )}
+      </form>
 
-      <p className="mt-12 text-white/70">
-        Totul e public deocamdată.{" "}
-        <Link to={ROUTES.app} className="text-white underline underline-offset-4 hover:text-ember-soft">
-          Continuă fără cont
+      <p className="mt-12 text-foreground/70">
+        The public site explains how Daybreak works.{" "}
+        <Link to="/agent" className="text-foreground underline underline-offset-4 hover:text-accent-ink">
+          Explore Daybreak
         </Link>
-        . Contul păstrează aprobările și profilul tău.
+        . Sign in to open your workspace.
       </p>
     </Shell>
   )
@@ -289,15 +287,13 @@ export default function SignInPage() {
 
 function Shell({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <main className="container-page flex min-h-[100svh] items-center py-[clamp(112px,14vh,150px)]">
-      <div className="grid w-full items-center gap-12 lg:grid-cols-12">
-        <div className="lg:col-span-6">
+    <main className="container-page flex min-h-[100svh] items-start py-[clamp(172px,18vh,200px)]">
+      <div className="grid w-full items-start gap-12 lg:grid-cols-12">
+        <div className="lg:col-span-6 lg:pt-44">
           <h1 className="text-[clamp(2.2rem,min(4.2vw,7.5vh),3.9rem)] leading-[1.02] font-semibold tracking-[-0.03em]">
-            Un singur cont pentru orice problemă
+            Your Daybreak workspace
           </h1>
-          <div className="mt-[clamp(16px,4vh,40px)] hidden lg:block">
-            <NetworkGlobe className="max-w-[min(520px,52vh)]" />
-          </div>
+          <p className="mt-6 max-w-[40ch] text-lg text-foreground/80">Sign in to track your cases or assigned work. Your verified account determines which connections and work you can access.</p>
         </div>
         <div className="lg:col-span-6">
           <div className="rounded-2xl bg-surface p-[clamp(24px,3vw,40px)]">

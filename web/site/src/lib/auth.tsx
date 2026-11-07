@@ -1,14 +1,22 @@
-import type { Session, User } from "@supabase/supabase-js"
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
-import { supabase, supabaseReady, type Profile, type Team } from "@/lib/supabase"
+import { api } from "@/lib/api"
+import type { Profile, Team } from "@/lib/supabase"
+
+export interface User {
+  id: string
+  email: string
+}
+interface Session {
+  user: User
+}
 
 interface AuthState {
-  /** true until the stored session has been read */
+  /** true until the session has been read */
   loading: boolean
   session: Session | null
   user: User | null
   profile: Profile | null
-  /** set when a password-recovery link was opened */
+  /** kept for the sign-in page; there are no email recovery links any more */
   recovering: boolean
   signIn: (email: string, password: string) => Promise<string | null>
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null; needsConfirmation: boolean }>
@@ -18,119 +26,72 @@ interface AuthState {
   saveProfile: (patch: { full_name?: string; team?: Team | null }) => Promise<string | null>
 }
 
+type Me = { user: User | null; profile: Profile | null }
+
 const AuthContext = createContext<AuthState | null>(null)
 
-/** Supabase errors, said in Romanian with what to do next. */
-function explain(message: string): string {
-  const m = message.toLowerCase()
-  if (m.includes("invalid login")) return "Emailul sau parola nu se potrivesc. Verifică-le și încearcă din nou."
-  if (m.includes("email not confirmed")) return "Contul nu e confirmat încă. Deschide linkul din emailul de confirmare."
-  if (m.includes("already registered") || m.includes("already been registered"))
-    return "Există deja un cont cu acest email. Intră în cont sau resetează parola."
-  if (m.includes("password should be")) return "Parola trebuie să aibă cel puțin 6 caractere."
-  if (m.includes("rate limit") || m.includes("too many"))
-    return "Prea multe încercări într-un timp scurt. Așteaptă un minut și încearcă din nou."
-  if (m.includes("failed to fetch") || m.includes("network"))
-    return "Nu ne-am putut conecta la server. Verifică internetul și încearcă din nou."
-  return message
-}
-
+/** Conturi în Cloudflare KV (prin /api/cont), active imediat, fără confirmare pe email. */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
-  const [session, setSession] = useState<Session | null>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [recovering, setRecovering] = useState(false)
 
   useEffect(() => {
-    if (!supabaseReady) {
-      setLoading(false)
-      return
-    }
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
+    api<Me>("/cont").then(({ data }) => {
+      setUser(data?.user ?? null)
+      setProfile(data?.profile ?? null)
       setLoading(false)
     })
-    const { data } = supabase.auth.onAuthStateChange((event, s) => {
-      setSession(s)
-      if (event === "PASSWORD_RECOVERY") setRecovering(true)
-    })
-    return () => data.subscription.unsubscribe()
   }, [])
 
-  const userId = session?.user.id
-  useEffect(() => {
-    if (!userId) {
-      setProfile(null)
-      return
-    }
-    let cancelled = false
-    supabase
-      .from("profiles")
-      .select("id, full_name, team")
-      .eq("id", userId)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!cancelled) setProfile((data as Profile) ?? { id: userId, full_name: null, team: null })
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [userId])
+  const accept = (data?: Me) => {
+    setUser(data?.user ?? null)
+    setProfile(data?.profile ?? null)
+  }
 
   const signIn = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    return error ? explain(error.message) : null
+    const { data, error } = await api<Me>("/cont/intrare", { method: "POST", body: { email, password } })
+    if (error) return error
+    accept(data)
+    return null
   }, [])
 
-  const signUp = useCallback(async (email: string, password: string, fullName: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName }, emailRedirectTo: `${window.location.origin}/app` },
-    })
-    if (error) return { error: explain(error.message), needsConfirmation: false }
-    return { error: null, needsConfirmation: !data.session }
+  const signUp = useCallback(async (email: string, password: string, full_name: string) => {
+    const { data, error } = await api<Me>("/cont/inregistrare", { method: "POST", body: { email, password, full_name } })
+    if (error) return { error, needsConfirmation: false }
+    accept(data)
+    return { error: null, needsConfirmation: false }
   }, [])
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut()
+    await api("/cont/iesire", { method: "POST" })
+    accept()
   }, [])
 
-  const sendReset = useCallback(async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/intra`,
-    })
-    return error ? explain(error.message) : null
-  }, [])
+  const sendReset = useCallback(
+    async () => "Email password recovery is unavailable. Ask the administrator for help or create a new account.",
+    []
+  )
 
   const setNewPassword = useCallback(async (password: string) => {
-    const { error } = await supabase.auth.updateUser({ password })
-    if (!error) setRecovering(false)
-    return error ? explain(error.message) : null
+    const { error } = await api("/cont/parola", { method: "POST", body: { password } })
+    return error ?? null
   }, [])
 
-  const saveProfile = useCallback(
-    async (patch: { full_name?: string; team?: Team | null }) => {
-      if (!userId) return "Intră în cont ca să îți salvezi profilul."
-      const { data, error } = await supabase
-        .from("profiles")
-        .upsert({ id: userId, ...patch, updated_at: new Date().toISOString() })
-        .select("id, full_name, team")
-        .single()
-      if (error) return explain(error.message)
-      setProfile(data as Profile)
-      return null
-    },
-    [userId]
-  )
+  const saveProfile = useCallback(async (patch: { full_name?: string; team?: Team | null }) => {
+    const { data, error } = await api<{ profile: Profile }>("/cont", { method: "PATCH", body: patch })
+    if (error) return error
+    if (data) setProfile(data.profile)
+    return null
+  }, [])
 
   const value = useMemo<AuthState>(
     () => ({
       loading,
-      session,
-      user: session?.user ?? null,
+      session: user ? { user } : null,
+      user,
       profile,
-      recovering,
+      recovering: false,
       signIn,
       signUp,
       signOut,
@@ -138,7 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setNewPassword,
       saveProfile,
     }),
-    [loading, session, profile, recovering, signIn, signUp, signOut, sendReset, setNewPassword, saveProfile]
+    [loading, user, profile, signIn, signUp, signOut, sendReset, setNewPassword, saveProfile]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
@@ -152,5 +113,5 @@ export function useAuth() {
 
 /** The name to greet someone by: profile name, else the part of the email before @. */
 export function displayName(user: User | null, profile: Profile | null) {
-  return profile?.full_name?.trim() || user?.email?.split("@")[0] || "cont"
+  return profile?.full_name?.trim() || user?.email?.split("@")[0] || "account"
 }

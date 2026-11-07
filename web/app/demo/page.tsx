@@ -1,36 +1,33 @@
+import { requireConsole } from "@/lib/server/operations";
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { DemoStage } from "@/components/demo/demo-stage";
-import { getPosts } from "@/lib/data/posts";
 import { toPlanScreenData } from "@/lib/plan-screen";
-import { loadLocatorGeo } from "@/lib/server/geo";
 import { loadPlanView, resolveScenario } from "@/lib/server/queries";
 
-export const metadata: Metadata = { title: "Prezentare" };
+export const metadata: Metadata = { title: "Presentation" };
 
 export default function DemoPage({ searchParams }: PageProps<"/demo">) {
   return (
-    <Suspense fallback={<div className="dark h-dvh bg-canvas" aria-busy="true" />}>
+    <Suspense fallback={<div role="status" className="dark h-dvh bg-canvas" aria-busy="true">
+        <span className="sr-only">Loading presentation…</span>
+      </div>}>
       <Demo searchParams={searchParams} />
     </Suspense>
   );
 }
 
 async function Demo({ searchParams }: { searchParams: PageProps<"/demo">["searchParams"] }) {
+  await requireConsole();
   await connection();
   const scenario = await resolveScenario(searchParams);
-  const [view, geo, params, posts] = await Promise.all([
-    loadPlanView(scenario),
-    loadLocatorGeo(),
-    searchParams,
-    getPosts(scenario).catch(() => null),
-  ]);
+  const [view, params] = await Promise.all([loadPlanView(scenario), searchParams]);
   if (!view.data) {
     return (
       <div className="dark grid h-dvh place-items-center bg-canvas text-ink">
         <p className="max-w-[560px] text-center text-[18px]">
-          Nu există încă un plan pentru „{scenario}”. Rulează agentul din consolă, apoi revino aici.
+          No plan yet for &quot;{scenario}&quot;. Run the agent from the console, then return here.
         </p>
       </div>
     );
@@ -50,9 +47,6 @@ async function Demo({ searchParams }: { searchParams: PageProps<"/demo">["search
   return (
     <DemoStage
       data={data}
-      geo={geo}
-      generatedAt={view.data.plan.generated_at}
-      postsInfo={posts ? { posts: posts.data, derived: posts.derived, lossCostNote: posts.lossCost?.note ?? null } : undefined}
       initialScene={scene}
       auto={params.auto === "1"}
     />

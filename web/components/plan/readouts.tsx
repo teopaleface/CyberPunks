@@ -23,9 +23,9 @@ export function Readouts({
       value: fmtInt(summary.items_in),
       label: (
         <>
-          <b>lucrări intrate</b>
+          <b>work items received</b>
           <br />
-          <span className="sec">{fmtInt(summary.items_valid)} valide, {fmtInt(summary.items_invalid)} în carantină</span>
+          <span className="sec">{fmtInt(summary.items_valid)}  valid, {fmtInt(summary.items_invalid)}  quarantined</span>
         </>
       ),
     },
@@ -33,9 +33,9 @@ export function Readouts({
       value: fmtInt(summary.assigned),
       label: (
         <>
-          <b>în trasee</b>
+          <b>Assigned</b>
           <br />
-          <span className="sec">{fmtInt(summary.crews_used)} din {fmtInt(crewsTotal)} echipe</span>
+          <span className="sec">{fmtInt(summary.crews_used)}  of {fmtInt(crewsTotal)} echipe</span>
         </>
       ),
     },
@@ -44,9 +44,9 @@ export function Readouts({
       attention: summary.human_review > 0,
       label: (
         <>
-          <b>la om</b>
+          <b>Human review</b>
           <br />
-          <span className="sec">decide dispecerul</span>
+          <span className="sec">dispatcher decides</span>
         </>
       ),
     },
@@ -54,9 +54,9 @@ export function Readouts({
       value: fmtInt(summary.notifications + summary.remote_actions),
       label: (
         <>
-          <b>fără echipă</b>
+          <b>no crew</b>
           <br />
-          <span className="sec">{fmtInt(summary.notifications)} mesaje, {fmtInt(summary.remote_actions)} la distanță</span>
+          <span className="sec">{fmtInt(summary.notifications)}  messages, {fmtInt(summary.remote_actions)}  Remote</span>
         </>
       ),
     },
@@ -64,14 +64,14 @@ export function Readouts({
       value: (
         <>
           {fmtInt(summary.expected_value_lei)}
-          <small>lei</small>
+          <small>RON</small>
         </>
       ),
       label: (
         <>
-          <b>valoare</b>
+          <b>value</b>
           <br />
-          <span className="sec">așteptată</span>
+          <span className="sec">expected</span>
         </>
       ),
     },
@@ -84,39 +84,40 @@ export function Readouts({
       ),
       label: (
         <>
-          <b>de parcurs</b>
+          <b>to travel</b>
           <br />
-          <span className="sec">pe trasee</span>
+          <span className="sec">on routes</span>
         </>
       ),
     },
   ];
   return (
-    <section aria-label="Cifrele zilei" className="flex h-[88px] shrink-0 border-b border-rule bg-canvas [@media(max-height:950px)]:h-[76px]">
+    <section aria-label="Daily figures" className="flex h-[88px] shrink-0 border-b border-rule bg-canvas [@media(max-height:950px)]:h-[76px]">
       <div className="flex shrink-0 flex-col justify-center border-r border-rule bg-panel pr-7 pl-7 max-[1600px]:pr-5 max-[1600px]:pl-5">
         <h1 className="text-[21px] leading-tight font-[650] tracking-[-0.005em] whitespace-nowrap max-[1600px]:text-[18px]">
           {fmtDateLong(planDate)}
         </h1>
         <p className="text-[14px] leading-snug whitespace-nowrap text-muted-foreground max-[1600px]:text-[13px]">
-          {shift ? `tura ${shift.start}–${shift.end}` : "tura de zi"}
+          {shift ? `shift ${shift.start}–${shift.end}` : "day shift"}
           <br />
-          plan generat {fmtMoment(generatedAt)}
+
+          plan generated {fmtMoment(generatedAt)}
         </p>
       </div>
-      <dl className="flex min-w-0 flex-1">
+      <dl className="@container flex min-w-0 flex-1">
         {cells.map((c, i) => (
-          <div key={i} className="flex min-w-0 flex-auto items-center gap-3 border-l border-rule px-5 first:border-l-0 min-[1700px]:px-6 max-[1680px]:flex-col max-[1680px]:items-start max-[1680px]:justify-center max-[1680px]:gap-1 max-[1680px]:px-4">
+          <div key={i} className="flex min-w-0 flex-auto items-center gap-3 border-l border-rule px-5 first:border-l-0 @min-[1300px]:px-6 @max-[1240px]:flex-col @max-[1240px]:items-start @max-[1240px]:justify-center @max-[1240px]:gap-1 @max-[1240px]:px-4">
+            <dt className="order-2 text-[14px] leading-[1.3] whitespace-nowrap text-muted-foreground [&_b]:font-[560] [&_b]:text-ink @max-[1240px]:text-[13px] @max-[1240px]:[&_br]:hidden @max-[1240px]:[&_b]:mr-1 @max-[1000px]:[&_.sec]:hidden">
+              {c.label}
+            </dt>
             <dd
               className={
-                "num-wide order-1 text-[clamp(26px,2.1vw,40px)] whitespace-nowrap max-[1680px]:text-[clamp(24px,2vw,32px)] [&_small]:ml-1.5 [&_small]:text-[0.46em] [&_small]:font-[520] [&_small]:tracking-normal [&_small]:text-muted-foreground " +
+                "num-wide order-1 text-[clamp(22px,2.4cqw,38px)] whitespace-nowrap @max-[1240px]:text-[clamp(20px,2.6cqw,30px)] [&_small]:ml-1.5 [&_small]:text-[0.46em] [&_small]:font-[520] [&_small]:tracking-normal [&_small]:text-muted-foreground " +
                 (c.attention ? "text-att" : "")
               }
             >
               {c.value}
             </dd>
-            <dt className="order-2 text-[14px] leading-[1.3] whitespace-nowrap text-muted-foreground [&_b]:font-[560] [&_b]:text-ink max-[1680px]:text-[13px] max-[1680px]:[&_br]:hidden max-[1680px]:[&_b]:mr-1 max-[1400px]:[&_.sec]:hidden">
-              {c.label}
-            </dt>
           </div>
         ))}
       </dl>

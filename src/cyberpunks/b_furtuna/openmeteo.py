@@ -20,7 +20,7 @@ from pathlib import Path
 import httpx
 import pandas as pd
 
-from cyberpunks.common.paths import DATA_RAW
+from cyberpunks.common.paths import DATA_RAW, DATA_SAMPLES
 
 ARCHIVE = "https://archive-api.open-meteo.com/v1/archive"
 HIST_FORECAST = "https://historical-forecast-api.open-meteo.com/v1/forecast"
@@ -186,6 +186,7 @@ def ensemble_gusts(lats: list[float], lons: list[float], forecast_days: int = 3,
 # ---------------------------------------------------------------------------------------------
 
 US_DIR = OM_DIR / "us"
+US_WEATHER_SAMPLE = DATA_SAMPLES / "B" / "us_weather_daily.parquet"
 
 
 def us_history(sample_csv: Path, start: str, end: str, calls_per_hour: float = 3600.0, limit: int | None = None) -> None:
@@ -221,7 +222,13 @@ def us_history(sample_csv: Path, start: str, end: str, calls_per_hour: float = 3
 
 
 def load_us_history() -> pd.DataFrame:
-    """Toată vremea descărcată pentru comitatele SUA (oricâte intervale), fără zile duplicate."""
+    """Vremea zilnică pentru comitatele SUA, fără zile duplicate.
+
+    Dacă există descărcările brute (`data/raw/B/openmeteo/us/*.json`), le citește pe ele; altfel folosește tabelul
+    procesat din git (`data/samples/B/us_weather_daily.parquet`), ca reproducerea să nu ceară ~7.300 de apeluri.
+    """
+    if not any(US_DIR.glob("*.json")):
+        return pd.read_parquet(US_WEATHER_SAMPLE) if US_WEATHER_SAMPLE.exists() else pd.DataFrame()
     frames = []
     for p in sorted(US_DIR.glob("*.json")):
         payload = json.loads(p.read_text(encoding="utf-8"))
@@ -235,9 +242,18 @@ def load_us_history() -> pd.DataFrame:
     return pd.concat(frames, ignore_index=True).drop_duplicates(["fips", "date"]).reset_index(drop=True)
 
 
+def export_us_history() -> Path:
+    """Scrie vremea brută într-un singur tabel comprimat, în git (Open-Meteo, CC BY 4.0)."""
+    df = load_us_history()
+    US_WEATHER_SAMPLE.parent.mkdir(parents=True, exist_ok=True)
+    df.to_parquet(US_WEATHER_SAMPLE, index=False, compression="zstd")
+    print(f"{len(df):,} zile-comitat, {df['fips'].nunique()} comitate -> {US_WEATHER_SAMPLE}")
+    return US_WEATHER_SAMPLE
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["us-history"])
+    ap.add_argument("cmd", choices=["us-history", "export"])
     ap.add_argument("--sample", type=Path, default=None)
     ap.add_argument("--start", default="2022-12-25")
     ap.add_argument("--end", default="2025-12-31")
@@ -246,6 +262,9 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     if args.cmd == "us-history":
         us_history(args.sample, args.start, args.end, args.calls_per_hour, args.limit)
+        export_us_history()
+    elif args.cmd == "export":
+        export_us_history()
     return 0
 
 

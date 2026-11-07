@@ -70,5 +70,33 @@ Generat de `uv run python -m cyberpunks.b_furtuna.backtest`. Pentru fiecare zi, 
 | 17.07 | 0.36 | 0.13-0.36 | preposition_crew | 33.1 | 26.9 | 20:00 | 0.20 |
 | 18.07 | 0.16 | 0.16-0.29 | no_action | 39.6 | 24.4 | 13:00 | 0.17 |
 
-Pe 17 iulie, Slobozia a fost pe locul 1 din 26 de zone după risc (P = 0.36). Nu avem cifre despre clienții fără curent, deci verificăm doar dacă zona lovită iese în față.
+Pe 17 iulie, Slobozia a fost pe locul 1 din 26 de zone după risc, la egalitate cu CS-ORAVITA (P = 0.36). Nu avem cifre despre clienții fără curent, deci verificăm doar dacă zona lovită iese în față.
+
+## Al treilea caz, de iarnă: viscolul din Dobrogea, 26-27 noiembrie 2023
+
+| Ziua | Unde | Ce s-a întâmplat | Sursa |
+|---|---|---|---|
+| 2023-11-26, 02:00-16:00 | Constanța, Tulcea, Călărași, Ialomița (și alte 4 județe) | ANM: cod portocaliu de viscol, rafale de 75-85 km/h, vizibilitate sub 50 m. | https://radioconstanta.ro/2023/11/24/constanta-tulcea-anm-a-emis-un-cod-portocaliu-de-viscol |
+| 2023-11-27/28 | Dobrogea | Rețele Electrice Dobrogea, la o actualizare de la ora 13:00: circa 61.000 de clienți din 99 de localități fără curent (32.000 Constanța, 19.000 Tulcea, 9.000 Călărași, 1.000 Ialomița); echipe suplimentare aduse din Muntenia și Banat. | https://www.economica.net/retele-electrice-dobrogea-a-reconectat-la-retea-80-dintre-clientii-care-au-ramas-fara-curent-in-ultimele-zile-49-000-de-consumatori-inca-nu-au-lumina_709345.html |
+
+| Ziua | Dobrogea: P medie | Dobrogea: echipe recomandate | Dobrogea: rafala maximă (km/h) | Restul: P medie | Primele 3 zone |
+|---|---|---|---|---|---|
+| 24.11.2023 | 0.06 | 0 din 10 | 61 | 0.04 | TL-BABADAG 0.10, CS-ORAVITA 0.06, CT-CONSTANTA 0.06 |
+| 25.11.2023 | 0.13 | 2 din 10 | 62 | 0.05 | CT-CONSTANTA 0.20, TL-BABADAG 0.17, CT-MANGALIA 0.16 |
+| 26.11.2023 | 0.87 | 10 din 10 | 104 | 0.09 | CT-CONSTANTA 0.99, CT-MEDGIDIA 0.96, CT-MANGALIA 0.96 |
+| 27.11.2023 | 0.41 | 9 din 10 | 54 | 0.05 | CT-CONSTANTA 0.85, CT-MANGALIA 0.58, TL-TULCEA 0.49 |
+| 28.11.2023 | 0.18 | 4 din 10 | 75 | 0.12 | CS-RESITA 0.58, CT-CONSTANTA 0.43, CT-MANGALIA 0.43 |
+
+## Ordin de mărime, cu cifrele oficiale din România
+
+- Furtuna din 7-9 iulie 2025 a afectat circa 40.000 de consumatori (prefectul Timișului), adică 4,1% din cei 967.682 de utilizatori Rețele Electrice Banat.
+  - Dacă întreruperea a durat în medie 4 ore (IPOTEZĂ), furtuna adaugă circa 10 minute la SAIDI-ul anual al Banatului.
+  - Dacă întreruperea a durat în medie 8 ore (IPOTEZĂ), furtuna adaugă circa 20 de minute la SAIDI-ul anual al Banatului.
+  - Dacă întreruperea a durat în medie 12 ore (IPOTEZĂ), furtuna adaugă circa 30 de minute la SAIDI-ul anual al Banatului.
+- Rețele Electrice Banat, 2025, SAIDI din condiții meteorologice deosebite: 92,87 de minute în mediul rural la JT și 16,94 în mediul urban la JT (https://www.reteleelectrice.ro/wp-content/uploads/banat-anexa-2-2025.pdf). O singură furtună ca aceasta are, deci, același ordin de mărime cu minutele anuale din cauza vremii: cifrele din presă și cele oficiale se potrivesc ca mărime.
+- Modelul: suma vârfurilor așteptate pe zonele din Banat pe 7-8 iulie e de circa 15.710 de clienți (P × P50), același ordin de mărime cu cei circa 40.000 de consumatori cumulați în trei zile.
+- Pentru context: ANRE 2025 (prin Economica): 236 de minute de întrerupere pe client la nivel național, din care 91,41 neplanificate, https://www.economica.net/romanii-au-stat-fara-electricitate-in-medie-patru-ore-in-2025-situatie-putin-mai-proasta-fata-de-anul-precedent_961648.html. Cifrele ANRE sunt anuale, deci servesc doar la verificare, nu la antrenare.
+
+
+Pe 26-27 noiembrie, riscul mediu în Dobrogea a fost 0.64, față de 0.07 în Muntenia și Banat. Zona lovită iese în față și iarna.
 

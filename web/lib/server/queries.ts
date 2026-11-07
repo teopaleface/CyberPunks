@@ -27,8 +27,8 @@ export async function resolveScenario(searchParams: Promise<Record<string, strin
 
 /** Nume scurte pentru scenariile cunoscute; restul păstrează eticheta din config. */
 const SHORT_LABEL: Record<string, string> = {
-  "demo-vara": "Zi de vară cu furtuni",
-  maine: "Mâine, cu prognoza reală",
+  "demo-vara": "Summer storm scenario",
+  maine: "Tomorrow's forecast",
 };
 
 export interface ShellInfo {
@@ -53,7 +53,7 @@ export async function loadShellInfo(scenario: string): Promise<{ info: ShellInfo
   const [viewResult, scenariosResult] = await Promise.all([loadPlanView(scenario), loadScenarios()]);
   const view = viewResult.data;
   const list = scenariosResult.data.length ? scenariosResult.data : [{ id: scenario, label_ro: scenario }];
-  const scenarios = list.map((s) => ({ id: s.id, label: SHORT_LABEL[s.id] ?? s.label_ro, detail: s.label_ro }));
+  const scenarios = list.map((s) => ({ id: s.id, label: SHORT_LABEL[s.id] ?? s.label_ro, detail: s.id === "demo-vara" ? "8 July 2025 · historical weather" : s.id === "maine" ? "Live Open-Meteo forecast" : s.label_ro }));
   if (!scenarios.some((s) => s.id === scenario)) scenarios.unshift({ id: scenario, label: SHORT_LABEL[scenario] ?? scenario, detail: scenario });
   const decisions = view?.plan.decisions ?? [];
   const info: ShellInfo = {

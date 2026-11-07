@@ -29,6 +29,48 @@ def ro_int(n: float) -> str:
     return f"{int(n):,}".replace(",", ".")
 
 
+def ssen_section() -> list[str]:
+    """Varianta europeană (SSEN), dacă a fost evaluată: cele patru comparații, din fișierele de metrici."""
+    p_m, p_d = REPORTS / "B" / "metrics_ssen.json", REPORTS / "B" / "metrics_ssen_detail.json"
+    if not (p_m.exists() and p_d.exists()):
+        return []
+    d = json.loads(p_d.read_text(encoding="utf-8"))
+    s, c, g, us = d["ssen_model"], d["clim_district_month"], d["gust_rule"], d["us_model_on_ssen_test"]
+    inv = d["ssen_model_on_us_test_2025"]
+    ro = d.get("romania_backtest", {})
+    out = [
+        "## Varianta europeană: avarii reale din nordul Scoției (SSEN)",
+        "",
+        (f"Date: avariile de joasă tensiune SSEN (SHEPD), {len(d['districts'])} districte, cu cauza fiecărei avarii "
+         "(arhiva Zenodo 10.5281/zenodo.23303815, CC BY 4.0), și vremea Open-Meteo pe districte. Eticheta: cel puțin o "
+         f"avarie cu cauză de vreme în district, în ziua respectivă. Antrenare 2016-2023 ({ro_int(d['train_rows'])} zile-district), "
+         f"test 2024-2025 ({ro_int(d['test_rows'])} zile-district, prevalență {pct(d['prevalence_test'])})."),
+        "",
+        "| Pe testul din Scoția 2024-2025 | PR-AUC | ROC-AUC |",
+        "|---|---|---|",
+        f"| Modelul SSEN (antrenat pe Scoția) | **{num(s['pr_auc'])}** | {num(s['roc_auc'])} |",
+        f"| Modelul pe SUA, fără date europene | {num(us['pr_auc'])} | {num(us['roc_auc'])} |",
+        f"| Climatologia pe district și lună | {num(c['pr_auc'])} | {num(c['roc_auc'])} |",
+        f"| Regula pe rafală | {num(g['pr_auc'])} | {num(g['roc_auc'])} |",
+        "",
+        (f"- Invers, modelul SSEN pe testul din SUA (2025): PR-AUC {num(inv['pr_auc'])}, față de "
+         f"{num(d['us_model_on_us_test_2025_pr_auc'])} pentru modelul pe SUA (prevalență {pct(inv['prevalence'])})."),
+    ]
+    if ro:
+        a, b2, c3 = ro["banat_2025_07_07_08"], ro["slobozia_2025_07_17"], ro["dobrogea_2023_11_26"]
+        out += [
+            (f"- România, Banat 7-8 iulie 2025: SSEN {num(a['ssen_p_banat'], 2)} în Banat față de {num(a['ssen_p_rest'], 2)} în "
+             f"rest; modelul pe SUA {num(a['us']['p_banat'], 2)} față de {num(a['us']['p_rest'], 2)}."),
+            (f"- România, Slobozia 17 iulie 2025: SSEN locul {b2['ssen_rank']} din 26; modelul pe SUA locul {b2['us']['rank']}."),
+            (f"- România, viscolul din Dobrogea 26 nov. 2023: SSEN {num(c3['ssen_p_dobrogea'], 2)} față de "
+             f"{num(c3['ssen_p_rest'], 2)}; modelul pe SUA {num(c3['us']['p_dobrogea'], 2)} față de {num(c3['us']['p_rest'], 2)}."),
+        ]
+    dec = d.get("decision_ro")
+    if dec:
+        out += ["", f"**Decizia pentru demo:** {dec}"]
+    return out + [""]
+
+
 def run() -> str:
     m = json.loads((REPORTS / "B" / "metrics.json").read_text(encoding="utf-8"))
     d = json.loads((REPORTS / "B" / "metrics_detail.json").read_text(encoding="utf-8"))
@@ -149,6 +191,25 @@ def run() -> str:
         "`error_analysis.md`; backtestul din România în `backtest_romania.md`."),
         "",
     ]
+    bt_path = REPORTS / "B" / "backtest_summary.json"
+    if bt_path.exists():
+        bt = json.loads(bt_path.read_text(encoding="utf-8"))
+        c1, c2, c3 = bt["banat_2025_07_07_08"], bt["slobozia_2025_07_17"], bt["dobrogea_2023_11_26"]
+        lines += [
+            "## Backtest în România: trei furtuni reale (`reports/B/backtest_romania.md`)",
+            "",
+            (f"- **Banat, 7-8 iulie 2025** (cod roșu ANM de vijelii): riscul mediu e {num(c1['p_banat'], 2)} în Banat, față de "
+             f"{num(c1['p_rest'], 2)} în rest; echipă recomandată în {c1['crews_banat_zone_days']} zone-zi din Banat și în "
+             f"{c1['crews_rest_zone_days']} din rest."),
+            (f"- **Slobozia, 17 iulie 2025** (cod roșu): zona e pe locul {c2['rank']} din {c2['zones']} după risc"
+             + (f", la egalitate cu {', '.join(c2['tied_with'])}" if c2.get("tied_with") else "")
+             + f" (P = {num(c2['p'], 2)})."),
+            (f"- **Dobrogea, 26 noiembrie 2023** (cod portocaliu de viscol): riscul mediu e {num(c3['p_dobrogea'], 2)} în "
+             f"Dobrogea, față de {num(c3['p_rest'], 2)} în rest; {c3['crews_dobrogea']} din {c3['zones_dobrogea']} zone primesc echipă."),
+            "- Fără istoricul de avarii Rețele Electrice, verificarea e calitativă: zonele lovite, ziua, ordinul de mărime.",
+            "",
+        ]
+    lines += ssen_section()
     if exps:
         lines += ["## Ce am încercat", "", "| Varianta | Ce | PR-AUC | Brier |", "|---|---|---|---|"]
         lines += [f"| {e['varianta']} | {e['ce']} | {num(e['pr_auc'])} | {num(e['brier'], 4)} |" for e in exps]
@@ -172,6 +233,17 @@ def run() -> str:
         ("- **Testul folosește vremea reconstituită** (arhiva Open-Meteo), nu prognoza făcută cu o zi înainte. În exploatare, "
          "cu prognoza, performanța va fi ceva mai mică, deci cifrele de test sunt mai degrabă o limită de sus. Incertitudinea "
          "prognozei e tratată separat: ensemble (40 de membri ICON-EPS) pentru mâine, trei modele pentru zilele trecute."),
+        "",
+        "## Îmbunătățiri viitoare",
+        "",
+        ("- **Mai mulți ani de antrenare (2021-2022):** EAGLE-I 2021-2022 e deja descărcat, dar vremea pentru acești ani ar "
+         "cere circa 4.200 de apeluri Open-Meteo, peste cota gratuită rămasă (10.000 pe zi, comună pentru tot laptopul). "
+         "N-am adăugat-o, ca să nu schimbăm cifrele după ce le-a învățat echipa."),
+        ("- **Calibrarea pe istoricul de avarii Rețele Electrice:** pasul obligatoriu înainte de producție (transfer din "
+         "SUA, prag, cuantile)."),
+        ("- **Evaluare pe prognoza din ziua de dinainte** (Historical Forecast / Previous Runs API), nu pe vremea "
+         "reconstituită, ca cifrele să arate performanța din exploatare."),
+        "- **Zăpada:** variabile pentru zăpada grea și umedă (experimentul `zapada_uda_viscol` n-a ajutat cu datele zilnice).",
         "",
         "## „Nu sunt sigur”: când trimite la om",
         "",

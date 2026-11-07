@@ -221,7 +221,7 @@ def priority_of(ctx: Context, wi: WorkItem, costs: Costs) -> float:
     """Premiul din trasee (lei): valoarea așteptată minus costul acțiunii și al întreruperii; drumul îl socotește solverul.
     La siguranță, prioritatea se înmulțește (config: safety_priority_multiplier)."""
     p = max(0.0, wi.impact.expected_value_lei - costs.action_cost - costs.outage_cost)
-    if wi.impact.safety_flag:
+    if strong_safety(ctx, wi):
         p *= float(ctx.g("safety_priority_multiplier", 3.0))
     return round(p, 2)
 
@@ -333,9 +333,9 @@ def _uncertain_route(ctx: Context, item: Item, rule_id: str, why: str, threshold
     wi = item.wi
     min_ev = float(ctx.g("human_review_min_ev_lei", 150))
     threshold = {**threshold, "human_review_min_ev_lei": min_ev, "expected_value_lei": round(wi.impact.expected_value_lei, 2)}
-    if wi.impact.expected_value_lei >= min_ev or wi.impact.safety_flag:
+    if wi.impact.expected_value_lei >= min_ev or strong_safety(ctx, wi):
         alerts = []
-        if wi.impact.safety_flag:
+        if strong_safety(ctx, wi):
             alerts.append(
                 AlertSpec("critical", f"Siguranță, de decis azi: {_label(wi)}", f"{why} Cazul are risc pentru oameni; un dispecer trebuie să decidă azi.")
             )
@@ -437,9 +437,44 @@ def rule_abstain(ctx: Context, item: Item) -> Proposal | None:
                   "human_review", th)
 
 
+def _fusion_confirmed(wi: WorkItem) -> bool | None:
+    """True/False dacă bilanțul postului a fost comparat cu contorul (confirmă = a urcat scorul); None dacă nu există bilanț."""
+    f = wi.extra.get("fusion")
+    if not isinstance(f, dict) or not isinstance(f.get("a_score"), (int, float)) or not isinstance(f.get("combined_score"), (int, float)):
+        return None
+    return float(f["combined_score"]) > float(f["a_score"]) + 0.005
+
+
 def strong_safety(ctx: Context, wi: WorkItem) -> bool:
-    """Risc pentru oameni cu semnal puternic: safety_flag și scor de cel puțin `safety_min_score` (A, bilanț, C)."""
-    return bool(wi.impact.safety_flag) and wi.source != Source.B and wi.prediction.score >= float(ctx.g("safety_min_score", 0.7))
+    """Risc pentru oameni, cu dovadă: safety_flag, scor de cel puțin `safety_min_score` și, la un contor, o confirmare
+    independentă: bilanțul postului arată energie lipsă (fuziunea a urcat scorul). O manipulare fără energie lipsă la post nu
+    dovedește o legătură ilegală. Fără bilanț pentru post, doar un semnal foarte puternic al modelului A
+    (`safety_unconfirmed_min_score`, încredere mare). Furtul înainte de contor, văzut direct de bilanț, e risc în sine.
+    La B, safety_flag e un avertisment pentru echipă (rafale), nu un caz de siguranță."""
+    if not wi.impact.safety_flag or wi.source == Source.B:
+        return False
+    if wi.prediction.score < float(ctx.g("safety_min_score", 0.7)):
+        return False
+    if wi.source == Source.A and not is_bilant_post(wi):
+        confirmed = _fusion_confirmed(wi)
+        if confirmed is not None:
+            return confirmed
+        return (wi.prediction.score >= float(ctx.g("safety_unconfirmed_min_score", 0.95))
+                and wi.prediction.confidence == Confidence.high)
+    return True
+
+
+def unconfirmed_safety_note(ctx: Context, wi: WorkItem) -> str | None:
+    """De ce un semnal de siguranță nu intră în regimul de siguranță (textul pentru motiv), sau None."""
+    if not wi.impact.safety_flag or wi.source == Source.B or strong_safety(ctx, wi):
+        return None
+    if wi.prediction.score < float(ctx.g("safety_min_score", 0.7)):
+        return f"Semnalul de siguranță al modelului e slab (scor {pct(wi.prediction.score)}, pragul e {pct(float(ctx.g('safety_min_score', 0.7)))}): fără regim de siguranță."
+    if _fusion_confirmed(wi) is False:
+        return ("Modelul A vede semne de manipulare, dar bilanțul postului nu arată energie lipsă: fără dovada unei legături "
+                "ilegale, cazul nu intră în regimul de siguranță; rămâne o verificare obișnuită.")
+    return (f"Semnal de manipulare fără bilanț pentru post și sub pragul de {pct(float(ctx.g('safety_unconfirmed_min_score', 0.95)))} "
+            "cu încredere mare: fără regim de siguranță.")
 
 
 def _data_issue(wi: WorkItem) -> bool:
@@ -477,21 +512,24 @@ def rule_safety(ctx: Context, item: Item) -> Proposal | None:
     """Risc pentru oameni (A: șunt cu risc de incendiu; C). La B, safety_flag înseamnă rafale ≥ 75 km/h, adică lucru
     periculos la înălțime pentru echipă: se tratează în rule_storm ca avertisment, nu ca prioritate obligatorie."""
     wi = item.wi
-    if not wi.impact.safety_flag or wi.source == Source.B:
-        return None
-    if wi.prediction.score < float(ctx.g("safety_min_score", 0.7)):
-        return None  # semnal de siguranță slab: regulile obișnuite, cu prioritatea triplată (priority_of), fără obligativitate
+    if not strong_safety(ctx, wi):
+        return None  # fără dovadă (semnal slab sau neconfirmat de bilanț): regulile obișnuite, fără obligativitate
     action = {Source.A: "inspect_on_site", Source.B: "preposition_crew", Source.C: "measurement_campaign"}[wi.source]
     costs = estimate_costs(ctx, wi, action)
     mult = float(ctx.g("safety_priority_multiplier", 3.0))
-    reason = f"Risc pentru siguranța oamenilor ({_factors(wi, 1)}, scor {pct(wi.prediction.score)}): intră primul în traseu, oricare ar fi costul."
+    evidence = ("confirmat de bilanțul postului" if _fusion_confirmed(wi) else
+                "văzut direct în bilanțul postului" if is_bilant_post(wi) else "semnal foarte puternic, fără bilanț pentru post")
+    reason = (f"Risc pentru siguranța oamenilor ({_factors(wi, 1)}, scor {pct(wi.prediction.score)}, {evidence}): "
+              "intră primul în traseu, oricare ar fi costul.")
     p = _route(ctx, item, "R-SAFETY", reason, action, costs, {"safety_flag": 1.0, "safety_priority_multiplier": mult})
     p.mandatory = bool(ctx.g("safety_mandatory", True))  # siguranța înainte de bani (config: global.safety_mandatory)
     p.priority = max(p.priority or 0.0, round(wi.impact.expected_value_lei * mult, 2))
+    single_model = wi.source == Source.A and not is_bilant_post(wi) and _fusion_confirmed(wi) is None
     p.alerts.append(
         AlertSpec(
             "critical",
-            f"Risc de siguranță: {_label(wi)}",
+            # Fără bilanț pentru post, alerta spune că e doar semnalul (foarte puternic) al unui singur model.
+            f"{'Manipulare probabilă, fără bilanț' if single_model else 'Risc de siguranță'}: {_label(wi)}",
             f"{wi.explanation.summary_ro} Echipa merge fără să atingă instalația până la verificare; lucrul se face doar cu formele de organizare (AL/DV).",
         )
     )
@@ -513,15 +551,18 @@ def rule_meters(ctx: Context, item: Item) -> Proposal:
     remote = estimate_costs(ctx, wi, "remote_reading")
     ev = wi.impact.expected_value_lei
     net_visit = ev - visit.total
-    breakeven = visit.total / wi.impact.value_if_true_lei if wi.impact.value_if_true_lei else 1.0
+    # Scorul de la care vizita se plătește. Peste 1 nu există: atunci nici o problemă sigură nu acoperă vizita.
+    value_if_true = wi.impact.value_if_true_lei
+    breakeven = visit.total / value_if_true if value_if_true > 0 else float("inf")
     th = {
         "min_net_value_lei": min_net,
         "expected_value_lei": round(ev, 2),
         "visit_cost_lei": round(visit.total, 2),
         "net_value_lei": round(net_visit, 2),
-        "breakeven_score": round(breakeven, 3),
         "score": pr.score,
     }
+    if breakeven <= 1.0:
+        th["breakeven_score"] = round(breakeven, 3)
     remote_fallback = None
     if smart and pr.score >= remote_min:
         remote_fallback = _final(
@@ -571,6 +612,11 @@ def rule_meters(ctx: Context, item: Item) -> Proposal:
             why = (
                 f"Încredere medie (scor {pct(pr.score)}) și valoare netă mică ({lei(net_visit)}, sub marja de {lei(margin)}): "
                 f"întâi citire la distanță ({lei(remote.total)}), fără deplasare."
+            )
+        elif breakeven > 1.0:
+            why = (
+                f"Chiar dacă problema ar fi sigură, valoarea ({lei(value_if_true)}) nu acoperă vizita ({lei(visit.total)}): "
+                f"citire la distanță ({lei(remote.total)})."
             )
         else:
             why = (
@@ -721,15 +767,15 @@ def _storm_window(ctx: Context, p: Proposal) -> None:
     p.threshold.setdefault("arrive_before_start_min", float(before))
 
 
-def rule_storm(ctx: Context, item: Item) -> Proposal:
-    wi = item.wi
+def storm_min_score(ctx: Context, wi: WorkItem) -> float:
+    """Pragul de la care se mută echipe din timp: cel mai mare dintre config și pragul publicat de modelul B (extra.decision_threshold)."""
+    b_threshold = wi.extra.get("decision_threshold")
+    return max(float(ctx.settings.rule("storm", "preposition_min_score", default=0.15)),
+               float(b_threshold) if isinstance(b_threshold, (int, float)) and 0 < float(b_threshold) < 1 else 0.0)
+
+
+def _storm_risk(wi: WorkItem) -> str:
     pr = wi.prediction
-    min_net = float(ctx.g("min_net_value_lei", 0))
-    alert_min = float(ctx.settings.rule("storm", "alert_min_score", default=0.4))
-    crit_min = float(ctx.settings.rule("storm", "critical_alert_min_score", default=0.75))
-    costs = estimate_costs(ctx, wi, "preposition_crew")
-    ev = wi.impact.expected_value_lei
-    net = ev - costs.total
     tw = wi.time_window
     onset = storm_onset(wi)
     if onset is not None and tw is not None:
@@ -737,7 +783,30 @@ def rule_storm(ctx: Context, item: Item) -> Proposal:
     else:
         window_ro = f"Fereastra de risc: {hhmm(tw.start.astimezone(TZ))}-{hhmm(tw.end.astimezone(TZ))}" if tw else "Fereastra de risc: mâine"
     p90 = f"; în scenariul pesimist (P90), {num(pr.point_interval[1])} clienți fără curent" if pr.point_interval else ""
-    risk = f"{_factors(wi).capitalize()}. {window_ro}. Probabilitate de avarii {pct(pr.score)}{p90}."
+    return f"{_factors(wi).capitalize()}. {window_ro}. Probabilitate de avarii {pct(pr.score)}{p90}."
+
+
+def storm_alerts(ctx: Context, wi: WorkItem, unsure: bool = False) -> list[AlertSpec]:
+    """Alerta „Risc de avarii” pentru dispecerat, de la pragul de alertă din config (critică de la pragul critic).
+    Apare și când modelul nu e sigur și cazul merge la dispecer: riscul mare trebuie să se vadă oricum."""
+    alert_min = float(ctx.settings.rule("storm", "alert_min_score", default=0.4))
+    crit_min = float(ctx.settings.rule("storm", "critical_alert_min_score", default=0.75))
+    score = wi.prediction.score
+    if score < alert_min:
+        return []
+    title = f"Risc de avarii: {_label(wi)}" + (" (model nesigur, decide dispecerul)" if unsure else "")
+    return [AlertSpec("critical" if score >= crit_min else "warning", title, _storm_risk(wi))]
+
+
+def rule_storm(ctx: Context, item: Item) -> Proposal:
+    wi = item.wi
+    pr = wi.prediction
+    min_net = float(ctx.g("min_net_value_lei", 0))
+    alert_min = float(ctx.settings.rule("storm", "alert_min_score", default=0.4))
+    costs = estimate_costs(ctx, wi, "preposition_crew")
+    ev = wi.impact.expected_value_lei
+    net = ev - costs.total
+    risk = _storm_risk(wi)
     th = {
         "min_net_value_lei": min_net,
         "expected_value_lei": round(ev, 2),
@@ -746,13 +815,8 @@ def rule_storm(ctx: Context, item: Item) -> Proposal:
         "score": pr.score,
         "alert_min_score": alert_min,
     }
-    alerts: list[AlertSpec] = []
-    if pr.score >= alert_min:
-        sev = "critical" if pr.score >= crit_min else "warning"
-        alerts.append(AlertSpec(sev, f"Risc de avarii: {_label(wi)}", risk))
-    b_threshold = wi.extra.get("decision_threshold")
-    min_score = max(float(ctx.settings.rule("storm", "preposition_min_score", default=0.15)),
-                    float(b_threshold) if isinstance(b_threshold, (int, float)) and 0 < float(b_threshold) < 1 else 0.0)
+    alerts = storm_alerts(ctx, wi)
+    min_score = storm_min_score(ctx, wi)
     th["preposition_min_score"] = round(min_score, 3)
     if pr.score < min_score:
         return _final(
@@ -842,6 +906,25 @@ REMEDY_RO = {
     "export_limit": "limita de injecție pe oră",
     "transformer_upgrade": "transformatorul nou",
 }
+
+
+REMEDY_SHORT_RO = {
+    "phase_rebalance": "mutare pe faze",
+    "adjust_tap": "priza transformatorului",
+    "notify_customers": "mesaje Ore Smart",
+    "offer_battery": "baterii",
+    "export_limit": "limită de injecție",
+    "transformer_upgrade": "transformator nou",
+}
+
+
+def ladder_title(chosen: list[str], feasible: bool = True, invest: bool = False) -> str:
+    """Titlul scurt al deciziei pe scara de soluții, de afișat în locul etichetei tipului de decizie
+    (care la treptele cu echipă așteptând preavizul ar fi doar „mesaj către clienți”)."""
+    steps = " + ".join(REMEDY_SHORT_RO.get(a, a) for a in chosen)
+    if not feasible:
+        return f"Nicio combinație nu ajunge sub limită (cel mai bun: {steps}): decide un om"
+    return ("Investiție: " if invest else "Soluție: ") + steps
 
 
 def _combo_ro(combo: tuple[RemedyOption, ...]) -> str:
@@ -942,7 +1025,10 @@ def rule_remedy_ladder(ctx: Context, item: Item, th: dict[str, float]) -> Propos
     rates = [o.participation_rate for o in combo if o.participation_rate is not None]
     if rates:
         th["participation_rate"] = float(rates[0])
-    chosen_txt = f"Aleg {_combo_ro(combo)} ({_combo_extra(combo, cost)}): P90 scade de la {num(base, 3)} la {num(p90_after, 3)} pu, sub limita de {num(limit, 2)}."
+    chosen_txt = (f"Soluția aleasă: {_combo_ro(combo)} ({_combo_extra(combo, cost)}): P90 scade de la {num(base, 3)} la "
+                  f"{num(p90_after, 3)} pu, sub limita de {num(limit, 2)}.")
+    physics = _factors(wi)
+    physics = (physics[:1].upper() + physics[1:] + ".") if physics else ""
     why_txt = (" N-am ales o variantă mai ieftină: " + "; ".join(why_not) + ".") if why_not else " E cea mai ieftină treaptă din scară."
     battery = next((o for o in combo if o.action == RecommendedAction.offer_battery), None)
     ladder = {
@@ -954,6 +1040,7 @@ def rule_remedy_ladder(ctx: Context, item: Item, th: dict[str, float]) -> Propos
         "inverter_trips_avoided": sum(o.inverter_trips_avoided or 0.0 for o in combo),
         "crew_steps": [o.action.value for o in combo if o.needs_crew],
     }
+    ladder["title_ro"] = ladder_title(ladder["chosen"], bool(feasible), ladder["invest"])
     notes = _ladder_notifications(ctx, wi, combo)
     notify_costs = Costs(action="notify_customers", action_cost=sum(o.cost_lei for o in combo if not o.needs_crew))
     if not feasible:
@@ -961,11 +1048,11 @@ def rule_remedy_ladder(ctx: Context, item: Item, th: dict[str, float]) -> Propos
                   f"(cel mai bun: {_combo_ro(combo)}, {num(p90_after, 3)} pu). Decide un om; probabil e nevoie de investiție.")
         return _final(item, DecisionType.human_review, "R-REMEDY-LADDER", reason, "human_review", th, notifications=notes, ladder=ladder)
     if ladder["invest"]:
-        reason = (f"{_factors(wi)}. {chosen_txt}{why_txt} E o investiție: intră în raportul de investiții, nu în traseele de mâine.")
+        reason = (f"{chosen_txt} {physics}{why_txt} E o investiție: intră în raportul de investiții, nu în traseele de mâine.")
         return _final(item, DecisionType.deferred, "R-REMEDY-LADDER", reason, "transformer_upgrade", th, ladder=ladder)
     crew = [o for o in combo if o.needs_crew]
     if not crew:
-        reason = f"{_factors(wi)}. {chosen_txt}{why_txt} Fără echipă: mesajele și ofertele pleacă din sistem (demo, nu se trimite nimic)."
+        reason = f"{chosen_txt} {physics}{why_txt} Fără echipă: mesajele și ofertele pleacă din sistem (demo, nu se trimite nimic)."
         return _final(item, DecisionType.notify, "R-REMEDY-LADDER", reason, "notify_customers", th, notifications=notes, costs=notify_costs, ladder=ladder)
     needs_notice = {str(a) for a in (s.rule("remedy", "crew_steps_need_notice", default=["adjust_tap", "phase_rebalance"]) or [])}
     if any(o.action.value in needs_notice for o in crew) and not _tap_notice_ok(ctx, wi):
@@ -979,8 +1066,8 @@ def rule_remedy_ladder(ctx: Context, item: Item, th: dict[str, float]) -> Propos
             # Mesajul de grup aproape nu costă nimic: pleacă oricum, cât timp treptele cu echipă așteaptă preavizul.
             notes = notes + _ladder_notifications(ctx, wi, (group,))
             interim = f" Până atunci trimit și mesajul de grup către clienții Ore Smart (tensiunea ar ajunge la {num(group.p90_after_pu, 3)} pu, nu e destul singur)."
-        reason = (f"{_factors(wi)}. {chosen_txt}{why_txt} Treptele cu echipă cer o întrerupere planificată, anunțată cu cel puțin "
-                  f"{notice} zile lucrătoare înainte (Ord. ANRE 46/2021, art. 12): le programez pe {zi(on)}.{interim}"
+        reason = (f"{chosen_txt} Mâine: mesajele către clienți; {_combo_ro(tuple(crew))} cu echipa pe {zi(on)}, după preavizul de "
+                  f"întrerupere ({notice} zile lucrătoare, Ord. ANRE 46/2021, art. 12). {physics}{why_txt}{interim}"
                   + (" Mesajele și ofertele sunt mai jos (demo, nimic trimis)." if notes else ""))
         return _final(item, DecisionType.notify, "R-REMEDY-LADDER", reason, "notify_customers", th,
                       notifications=notes + [_outage_notice(ctx, wi, on)], costs=notify_costs, ladder=ladder)
@@ -997,7 +1084,7 @@ def rule_remedy_ladder(ctx: Context, item: Item, th: dict[str, float]) -> Propos
             notes = notes + [_outage_notice(ctx, wi, wi.target_date)]
     else:
         when = " Fără întrerupere; echipa merge mâine."
-    reason = f"{_factors(wi)}. {chosen_txt}{why_txt}{when}"
+    reason = f"{chosen_txt} {physics}{why_txt}{when}"
     p = _route(ctx, item, "R-REMEDY-LADDER", reason, primary.action.value, costs, th, notifications=notes, ladder=ladder,
                duration_min=duration, skills_required=skills)
     p.fallback = _final(item, DecisionType.notify, "R-REMEDY-LADDER", reason.replace("echipa merge mâine", "echipele sunt pline mâine: doar mesajele"),
@@ -1133,34 +1220,115 @@ def _drop_unreachable_storms(ctx: Context, proposals: list[Proposal]) -> None:
             )
 
 
+def _storm_net_by_crew(ctx: Context, p: Proposal) -> dict[str, float]:
+    """Valoarea netă a turei trimise din timp, pentru fiecare echipă potrivită care ajunge înainte de ora limită:
+    valoarea așteptată minus costul turei minus drumul de la baza ei (aceleași formule ca estimate_costs).
+    La zonele opționale rămân doar echipele cu valoare netă pozitivă; la cele aprobate de dispecer, toate echipele care ajung."""
+    wi = p.wi
+    start, _ = ctx.shift()
+    per_km = ctx.settings.econ("travel", "vehicle_cost_lei_per_km", 0.0)
+    per_hour = ctx.settings.econ("crew", "cost_lei_per_person_hour", 0.0) * wi.effort.crew_size
+    base = wi.impact.expected_value_lei - ((p.costs.action_cost + p.costs.outage_cost) if p.costs else 0.0)
+    out: dict[str, float] = {}
+    for c in ctx.eligible_crews(wi.effort.crew_skill.value, wi.effort.crew_size):
+        depot = ctx.settings.depots[c.depot_id]
+        km = ctx.travel.road_km(depot.lat, depot.lon, wi.location.lat, wi.location.lon)
+        minutes = ctx.travel.minutes(km)
+        if p.latest is not None and start + timedelta(minutes=minutes) > p.latest:
+            continue
+        net = base - (km * per_km + minutes / 60.0 * per_hour)
+        if net > 0 or p.mandatory:
+            out[c.crew_id] = net
+    return out
+
+
+def pick_storm_zones(nets: dict[int, dict[str, float]], region_of: dict[int, str], cap: int,
+                     mandatory: frozenset[int] | set[int] = frozenset()) -> set[int]:
+    """Zonele care primesc echipe: fiecare echipă într-o singură zonă, cel mult `cap` zone opționale pe regiune, întâi zonele
+    aprobate de dispecer (`mandatory`, care nu intră în plafon), apoi suma valorilor nete cât mai mare. Toate zonele de furtună
+    din toate regiunile intră în aceeași atribuire, pentru că echipele se împart între ele.
+    Problemă mică (câteva echipe, câteva zone): CP-SAT din OR-Tools o rezolvă exact, cu limită de lucru deterministă (nu de
+    ceas), deci la fel la fiecare rulare; fără OR-Tools sau fără soluție optimă: zonele aprobate întâi, apoi perechile
+    echipă-zonă cele mai valoroase."""
+    pairs = [(i, c) for i, by_crew in nets.items() for c in by_crew]
+    if not pairs:
+        return set()
+    coef = {(i, c): round(nets[i][c] * 100) for i, c in pairs}
+    bonus = 1 + sum(abs(v) for v in coef.values())  # o zonă aprobată în plus bate orice combinație de zone opționale
+    try:
+        from ortools.sat.python import cp_model
+    except ImportError:
+        cp_model = None
+    if cp_model is not None:
+        m = cp_model.CpModel()
+        x = {(i, c): m.NewBoolVar(f"x_{i}_{c}") for i, c in pairs}
+        for i, by_crew in nets.items():
+            m.Add(sum(x[i, c] for c in by_crew) <= 1)
+        for crew in {c for _, c in pairs}:
+            m.Add(sum(x[i, c] for i, c in pairs if c == crew) <= 1)
+        for region in set(region_of.values()):
+            m.Add(sum(x[i, c] for i, c in pairs if region_of[i] == region and i not in mandatory) <= max(0, cap))
+        m.Maximize(sum((coef[i, c] + (bonus if i in mandatory else 0)) * x[i, c] for i, c in pairs))
+        solver = cp_model.CpSolver()
+        solver.parameters.num_workers = 1
+        solver.parameters.max_deterministic_time = 10.0
+        if solver.Solve(m) == cp_model.OPTIMAL:
+            return {i for i, c in pairs if solver.Value(x[i, c])}
+    chosen: set[int] = set()
+    used: set[str] = set()
+    per_region: dict[str, int] = {}
+    for i, c in sorted(pairs, key=lambda ic: (ic[0] not in mandatory, -nets[ic[0]][ic[1]], ic[0], ic[1])):
+        optional = i not in mandatory
+        if i in chosen or c in used or (optional and per_region.get(region_of[i], 0) >= cap):
+            continue
+        chosen.add(i)
+        used.add(c)
+        if optional:
+            per_region[region_of[i]] = per_region.get(region_of[i], 0) + 1
+    return chosen
+
+
 def cap_storm_per_region(ctx: Context, proposals: list[Proposal]) -> None:
-    """Cel mult `max_crews_per_region` echipe trimise din timp într-o regiune; restul rămân pentru lucrările curente."""
+    """Cel mult `max_crews_per_region` echipe trimise din timp într-o regiune (zonele aprobate de dispecer nu intră în plafon);
+    restul echipelor rămân pentru lucrările curente. Zonele păstrate sunt cele unde echipele aduc cea mai mare valoare netă,
+    socotită de la baza fiecărei echipe (fiecare echipă merge într-o singură zonă), nu primele din fișier."""
     _drop_unreachable_storms(ctx, proposals)
     cap = int(ctx.settings.rule("storm", "max_crews_per_region", default=2))
-    by_region: dict[str, list[int]] = {}
+    region_of: dict[int, str] = {}
     for i, p in enumerate(proposals):
-        if p.route and p.action == "preposition_crew" and not p.mandatory:
+        if p.route and p.action == "preposition_crew":
             rid = ctx.settings.region_of_county(p.wi.location.county) or ""
-            region = (ctx.settings.regions.get(rid) or {}).get("label_ro", "zona necunoscută")
-            by_region.setdefault(region, []).append(i)
-    for region, idxs in by_region.items():
-        idxs.sort(key=lambda i: proposals[i].priority or 0.0, reverse=True)
-        for i in idxs[cap:]:
-            p = proposals[i]
-            # Valoare peste cost, dar plafonul regional e atins: agentul nu amână în tăcere, cere întăriri și lasă decizia
-            # dispecerului (aprobarea face lucrarea obligatorie și o trimite cu prima echipă liberă).
-            proposals[i] = _final(
-                p.item,
-                DecisionType.human_review,
-                "R-B-REGION-CAP",
-                f"{p.reason_ro} Dar în regiunea {region} sunt deja {cap} echipe trimise din timp (plafonul din config): "
-                "cer întăriri (echipe din alte regiuni sau contractori); decide dispecerul.",
-                "human_review",
-                {**p.threshold, "max_crews_per_region": float(cap)},
-                alerts=p.alerts,
-                priority=p.priority,
-            )
-
+            region_of[i] = (ctx.settings.regions.get(rid) or {}).get("label_ro", "zona necunoscută")
+    mandatory = {i for i in region_of if proposals[i].mandatory}
+    counts: dict[str, int] = {}
+    for i, region in region_of.items():
+        if i not in mandatory:
+            counts[region] = counts.get(region, 0) + 1
+    over = {i: r for i, r in region_of.items() if i not in mandatory and counts[r] > cap}
+    if not over:
+        return
+    keep = pick_storm_zones({i: _storm_net_by_crew(ctx, proposals[i]) for i in region_of}, region_of, cap, mandatory)
+    for i, region in over.items():
+        if i in keep:
+            continue
+        p = proposals[i]
+        kept_here = sorted(_label(proposals[j].wi) for j in keep if region_of[j] == region and j not in mandatory)
+        kept = ", ".join(kept_here) or "niciuna"
+        limit = (f"plafonul e de {cap} echipe trimise din timp (config)" if len(kept_here) >= cap
+                 else f"doar {len(kept_here)} echipe potrivite ajung la timp")
+        # Valoare peste cost, dar plafonul regional e atins: agentul nu amână în tăcere, cere întăriri și lasă decizia
+        # dispecerului (aprobarea face lucrarea obligatorie și o trimite cu prima echipă liberă).
+        proposals[i] = _final(
+            p.item,
+            DecisionType.human_review,
+            "R-B-REGION-CAP",
+            f"{p.reason_ro} Dar în regiunea {region} {limit}, iar ele merg unde aduc cea mai mare valoare netă de la baza "
+            f"fiecăreia: {kept}. Cer întăriri (echipe din alte regiuni sau contractori); decide dispecerul.",
+            "human_review",
+            {**p.threshold, "max_crews_per_region": float(cap)},
+            alerts=p.alerts,
+            priority=p.priority,
+        )
 
 # ------------------------------------------------------------------ intrarea principală
 
@@ -1194,6 +1362,15 @@ def propose(ctx: Context, item: Item) -> Proposal:
 
 def decide(ctx: Context, items: list[Item]) -> list[Proposal]:
     proposals = [propose(ctx, it) for it in items]
+    for p in proposals:
+        note = unconfirmed_safety_note(ctx, p.wi)
+        if note and p.rule_id != "R-SAFETY":
+            # Semnalul modelului rămâne vizibil în motiv, cu motivul pentru care nu e tratat ca risc pentru oameni.
+            p.reason_ro = f"{p.reason_ro} {note}"
+            p.threshold["safety_flag_unconfirmed"] = 1.0
+        # Furtuna cu risc mare, dar cu model nesigur (merge la dispecer înainte de regula de furtună): alerta se vede oricum.
+        if p.wi.source == Source.B and not p.alerts and p.decision in (DecisionType.human_review, DecisionType.deferred):
+            p.alerts = storm_alerts(ctx, p.wi, unsure=True)
     cap_storm_per_region(ctx, proposals)
     cap_human_queue(ctx, proposals)
     cap_mandatory_safety(ctx, proposals)
@@ -1221,18 +1398,22 @@ def cap_mandatory_safety(ctx: Context, proposals: list[Proposal]) -> None:
             remote = estimate_costs(ctx, wi, "remote_reading")
             p.fallback = _final(p.item, DecisionType.remote_action, "R-SAFETY-OVER-CAP",
                                 f"{p.reason_ro} Nu a încăput în turele de mâine: citire la distanță acum, apoi primul în planul următor.",
-                                "remote_reading", p.threshold, costs=remote, alerts=p.alerts)
+                                "remote_reading", p.threshold, costs=remote)  # alertele le moștenește din p, la finalize
+
+
+def _urgent_storm(ctx: Context, wi: WorkItem) -> bool:
+    return wi.source == Source.B and wi.prediction.score >= storm_min_score(ctx, wi)
 
 
 def cap_human_queue(ctx: Context, proposals: list[Proposal]) -> None:
     """Omul e și el o resursă limitată: cel mult `human_review_max_per_day` cazuri pe zi în coada „nu sunt sigur”.
-    În ordine: cererile de întăriri pentru furtună, riscul pentru oameni, apoi valoarea așteptată, până se umple coada.
+    În ordine: furtunile de mâine (întăriri, zone incerte), riscul pentru oameni, apoi valoarea așteptată, până se umple coada.
     Ce nu încape rămâne la urmărire și revine în planul următor."""
     cap = int(ctx.g("human_review_max_per_day", 25))
     queue = [i for i, p in enumerate(proposals) if p.decision == DecisionType.human_review]
-    # Ordinea în coadă: întâi cererile de întăriri pentru furtună (puține și urgente: furtuna vine mâine după-amiază),
-    # apoi riscul pentru oameni cu semnal puternic, apoi valoarea așteptată.
-    queue.sort(key=lambda i: (proposals[i].rule_id != "R-B-REGION-CAP", not strong_safety(ctx, proposals[i].wi),
+    # Ordinea în coadă: întâi furtunile de mâine peste pragul modelului B (cereri de întăriri și zone incerte: puține și
+    # urgente, decizia nu poate aștepta planul următor), apoi riscul pentru oameni cu semnal puternic, apoi valoarea așteptată.
+    queue.sort(key=lambda i: (not _urgent_storm(ctx, proposals[i].wi), not strong_safety(ctx, proposals[i].wi),
                               -proposals[i].wi.impact.expected_value_lei))
     for i in queue[cap:]:
         p = proposals[i]
@@ -1265,7 +1446,8 @@ RULE_CATALOG: dict[str, str] = {
     "R-B-PREPOSITION": "Furtună: valoarea așteptată peste costul turei; echipa ajunge înainte de fereastra de risc.",
     "R-B-BELOW-COST": "Furtună cu risc mic: doar alertă la dispecerat.",
     "R-B-BELOW-THRESHOLD": "Furtună: probabilitatea e sub pragul modelului B pentru un eveniment; nu se mută echipe, oricât de mare e zona.",
-    "R-B-REGION-CAP": "Furtună: plafonul de echipe pe regiune e atins.",
+    "R-B-REGION-CAP": "Furtună: plafonul de echipe pe regiune e atins; echipele merg în zonele cu cea mai mare valoare netă "
+                      "de la baza lor, pentru restul agentul cere întăriri.",
     "R-B-TOO-LATE": "Furtună: nicio echipă nu poate ajunge înainte de fereastra de risc.",
     "R-C-WATCH": "Tensiune: sub prag sau sub limită chiar și în scenariul pesimist: urmărire.",
     "R-C-TAP": "Tensiune: întreruperea a fost anunțată la timp, schimbarea prizei merită: echipă.",

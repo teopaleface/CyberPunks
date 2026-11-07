@@ -56,6 +56,7 @@ STORM_RAIN_MM = 1.0
 SAFETY_GUST_KMH = 75.0  # peste această rafală, lucrul la înălțime e periculos: semnalăm planificatorului
 DISAGREE_WIDTH = 0.35  # lățimea intervalului de probabilitate de la care spunem "nu sunt sigur"
 ZONE_FEATURES = {"log_customers", "log_density"}
+SCORE_MIN, SCORE_MAX = 0.005, 0.99
 # Vreme periculoasă: o zonă în afara antrenării merge la om doar atunci (pe vreme liniștită riscul e oricum mic)
 HAZARD = {"gust_max_2d": 50.0, "precip_48h": 15.0, "snow_3d": 3.0, "ice_proxy": 1.0}
 
@@ -240,10 +241,11 @@ def build_items(model: BModel, zones: list[romania.Zone], feats: pd.DataFrame, h
     fill_cols = list(dict.fromkeys([*cols, *CASE_FEATURES]))
     med = feats[fill_cols].median(numeric_only=True)
     filled[fill_cols] = filled[fill_cols].fillna(med).fillna(0.0)
-    p = model.predict_proba(filled)
+    # Calibrarea izotonică poate da 0 sau 1 la capete; un model nu e niciodată sigur, deci în lucrări folosim [0,005; 0,99].
+    p = np.clip(model.predict_proba(filled), SCORE_MIN, SCORE_MAX)
     q = model.predict_quantiles(filled)
-    lo = p.copy() if lo is None else np.minimum(lo, p)
-    hi = p.copy() if hi is None else np.maximum(hi, p)
+    lo = p.copy() if lo is None else np.clip(np.minimum(lo, p), SCORE_MIN, SCORE_MAX)
+    hi = p.copy() if hi is None else np.clip(np.maximum(hi, p), SCORE_MIN, SCORE_MAX)
     ood = model.out_of_range(feats)
     factors = explain.top_factors(model, filled)
     cases = explain.similar_cases(model, filled)
@@ -358,7 +360,7 @@ def build_items(model: BModel, zones: list[romania.Zone], feats: pd.DataFrame, h
             },
         )
         items.append(item)
-        series.append(make_series(wid, z, h, target, onset, tw_start))
+        series.append(make_series(wid, z, h, target, onset, tw_start, hourly_risk(model, filled.iloc[i], h, target)))
     return items, series
 
 
@@ -402,23 +404,56 @@ def run(scenario: str, date: str | None = None) -> Path:
     return out_path
 
 
+def hourly_risk(model: BModel, base: pd.Series, h: pd.DataFrame, target: date) -> dict[pd.Timestamp, float]:
+    """Riscul zilei estimat de model, cu vremea de până la fiecare oră din ziua țintă (curbă care nu scade).
+
+    La ora h, rafala maximă, vântul maxim și ploaia sunt cele observate (sau prognozate) de la 00:00 până la h;
+    restul variabilelor (zilele precedente, zăpada, zona) rămân cele ale zilei. La 23:00 curba ajunge la scorul zilei.
+    """
+    if h.empty or "time" not in h:
+        return {}
+    day = h[h["time"].dt.date == target].sort_values("time")
+    if day.empty or day["wind_gusts_10m"].isna().all():
+        return {}
+    prev_precip = float(base["precip_48h"] - base["precip"]) if pd.notna(base["precip_48h"]) else 0.0
+    prev_6d = float(base["precip_7d"] - base["precip"]) if pd.notna(base["precip_7d"]) else 0.0
+    gusts = day["wind_gusts_10m"].ffill().fillna(0.0).cummax()
+    winds = day["wind_speed_10m"].ffill().fillna(0.0).cummax() if "wind_speed_10m" in day else gusts / 2
+    rain = day["precipitation"].fillna(0.0).clip(lower=0.0).cumsum()
+    wet_hours = (day["precipitation"].fillna(0.0) >= 0.1).cumsum()
+    rows = pd.DataFrame([base] * len(day)).reset_index(drop=True)
+    rows["gust_max"] = gusts.to_numpy()
+    rows["wind_max"] = winds.to_numpy()
+    rows["gust_max_2d"] = np.maximum(rows["gust_max"], rows["gust_prev"].fillna(0.0))
+    rows["precip"] = rain.to_numpy()
+    rows["precip_48h"] = prev_precip + rain.to_numpy()
+    rows["precip_7d"] = prev_6d + rain.to_numpy()
+    rows["precip_hours"] = wet_hours.to_numpy().astype(float)
+    p = np.clip(model.predict_proba(rows), SCORE_MIN, SCORE_MAX)
+    return {pd.Timestamp(t): round(float(v), 4) for t, v in zip(day["time"], p, strict=True)}
+
+
 def make_series(wid: str, z: romania.Zone, h: pd.DataFrame, target: date, onset: datetime,
-                tw_start: datetime) -> Series:
-    window = h if h.empty else h[(h["time"] >= pd.Timestamp(target - timedelta(days=1)) + pd.Timedelta(hours=12))
+                tw_start: datetime, risk: dict[pd.Timestamp, float] | None = None) -> Series:
+    """Rafalele pe ore (`value`, km/h) și riscul zilei estimat de model pe ore (`expected`, 0-1)."""
+    risk = risk or {}
+    window = h if h.empty else h[(h["time"] >= pd.Timestamp(target))
                                  & (h["time"] < pd.Timestamp(target + timedelta(days=1)) + pd.Timedelta(hours=6))]
     points = []
     for _, r in window.iterrows():
-        t = pd.Timestamp(r["time"]).to_pydatetime().replace(tzinfo=TZ)
+        ts = pd.Timestamp(r["time"])
+        t = ts.to_pydatetime().replace(tzinfo=TZ)
         g = None if pd.isna(r["wind_gusts_10m"]) else float(r["wind_gusts_10m"])
         pr = 0.0 if pd.isna(r["precipitation"]) else float(r["precipitation"])
         flag = f"ploaie {pr:.0f} mm" if pr >= ONSET_PRECIP_MM else None
-        points.append(SeriesPoint(t=t, value=g, flag=flag))
+        points.append(SeriesPoint(t=t, value=g, expected=risk.get(ts), flag=flag))
     if not points:
         points = [SeriesPoint(t=onset, value=None, flag="gol")]
     s = Series(
         work_item_id=wid,
         source="B",
-        title_ro=f"Rafale de vânt pe ore, {z.label_ro} ({z.county})",
+        title_ro=(f"Rafale de vânt pe ore (km/h) și riscul zilei estimat de model, cu vremea de până la acea oră (0-1), "
+                  f"{z.label_ro} ({z.county})"),
         unit="km/h",
         points=points,
         thresholds={"rafala_inceput_furtuna_kmh": ONSET_GUST_KMH, "rafala_periculoasa_kmh": SAFETY_GUST_KMH},

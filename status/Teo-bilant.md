@@ -1,7 +1,93 @@
 # Status: Teo-bilant
-Actualizat: 2026-11-07 16:12
-Milestone curent: M4 făcut (verificat dintr-o clonă curată); îmbunătățiri
-Gata de merge: da (commit 0e919f7)
+Actualizat: 2026-11-07 22:36
+Milestone curent: v2 (sarcina de la 22:10) terminată. **Sunt liber**, de acum doar reparații.
+Gata de merge: da (commit 85174c8)
+
+## Răspuns la sarcina de la 22:10 (v2: de 10 ori mai multe posturi, reglaj automat): gata de merge
+**Dependență nouă:** `optuna` (5.0.0), prin `uv add optuna`. `pyproject.toml` și `uv.lock` sunt modificate în acest commit.
+
+**Ce s-a făcut.** Toate comparațiile sunt pe același test: cele 300 de posturi din registrul C, rețele nevăzute. v1 rămâne rezervă, neștearsă: `models/bilant/diagnose.*` și `fuse.V1_PARAMS`.
+1. **Loturi mari:** `trainL`, ~3.000 de posturi sintetice pentru diagnostic, și `trainLA`, ~3.000 de posturi cu defectele de contor ca la A, apărute în ultimele 60 de zile, ca pe harta de test, pentru fuziune. Fiecare lot se simulează în ~2 minute pe 8 procese.
+2. **Diagnosticul v2** (`v2.py`): trăsături noi pentru clasele slabe (clienți cu consumul înjumătățit, cât explică primii 3, contoare noi cu zero / blocate / cu semn schimbat pe 7 zile, raportul față de normalul din GIS), plus setări LightGBM căutate cu Optuna (40 de încercări). Validarea e pe 20% din cartierele `trainL`, niciodată pe test.
+3. **Fuziunea v2** (`fusion_v2.py`): aceeași regulă, care doar confirmă, cu parametrii căutați cu Optuna (60 de încercări) pe `trainLA`. Am încercat și o fuziune învățată (LightGBM): **respinsă**. Câștigul ei pe simulare venea din felul în care e construit scorul A simulat, iar pe scorurile reale ale lui A cădea la AUC 0,85.
+4. **Pragurile contorului martor** sunt cele corecte: 0,5% pentru regula martor față de contorul de balanță; pierderea normală de câteva procente o învață modelul separat.
+
+**Cifrele, înainte (v1) → după (v2), pe același test**
+- **Diagnosticul, F1 macro: 0,704 → 0,754**, iar exactitatea 0,82 → 0,86.
+  - Pași intermediari: doar mai multe posturi 0,717; plus trăsăturile noi 0,735; plus căutarea 0,754 (`reports/bilant/v2_comparison.json`).
+  - Pe clase: contor de client 0,38 → **0,47**, pierdere tehnică 0,51 → 0,49 (ușor mai jos, cinstit), furt înainte de contor 0,67 → 0,77, client la postul greșit 0,76 → 0,87.
+- **Fuziunea „cu bilanț față de fără”** (harta, defectele lui A, scoruri A simulate, ultimele 50 de zile):
+
+  | K pe zi | A singur | regula v1 | regula v2 | deplasări degeaba evitate (v2 față de A) | lei pe zi, A → v2 |
+  |---|---|---|---|---|---|
+  | 10 | 80% | 78% | **90%** | 1,0 | 4.966 → 8.278 |
+  | 20 | 64% | 62% | **68%** | 0,8 | 7.917 → 10.444 |
+  | 50 | 44% | 40% | **46%** | 1,0 | 11.716 → 13.595 |
+  | 100 | 31% | 29% | **33%** | 2,0 | 13.818 → 17.484 |
+
+  **Cu scorurile reale ale lui A** (ziua demo): AUC 0,917 (A) → 0,919 (v2; v1: 0,916); precizia în primele 500: 96,2% → 96,0%. Pe scorurile reale, A e deja precis în vârf; v2 nu strică, dar nici nu adaugă vizibil. **Pentru prezentare:** cifra cu deplasările degeaba se poate folosi doar cu mențiunea „pe simulare, cu scoruri de tip A simulate”. Cifra principală rămâne cea cu cauzele pe care contoarele nu le văd.
+- **Cauzele de post (A = 0), cu v2:** postul găsit la 76% din furturile înainte de contor (cauza corectă 62%), 64% din pierderile tehnice (50%), 99% din contoarele de balanță setate greșit, 58% din clienții la postul greșit (54%). Asta înseamnă **84% din energia pierdută, ~24.700 lei pe lună**. Din posturile marcate, 18% sunt de fapt normale (cu v1: 14%).
+- Regula martorului: 98% prinse, 0 alarme false. Postul demo rămâne **PT-1269** (cu C: `C-20250708-PT-1269`).
+- Lucrări demo-vara: 84, toate pe posturi cu probleme reale. `make check`: 299 trec.
+
+**Ce intră în git:** doar setările (`reports/bilant/v2_params.json`, `reports/bilant/fusion_v2_params.json`) și comparațiile. Modelul de diagnostic v2 (~34 MB) și loturile mari (~1 GB) rămân în afara git (regula de 5 MB) și se refac cu `make bilant-v2`, apoi `make bilant-eval`. Fără loturile mari, evaluarea revine singură la v1.
+
+## Răspuns la QA de la 17:55: gata de merge, sunt liber
+1. **Siguranța:** bilanțul marca `safety_flag` pe toate furturile înainte de contor, adică **31** de lucrări. Regula nouă (`predict.safety`) marchează doar riscul real pentru oameni, și numai când modelul e sigur (≥ 90%, fără „nu sunt sigur”):
+   - furt înainte de contor cu consum nemăsurat constant, zi și noapte, de cel puțin ~0,5 kW (≥ 12 kWh/zi, cel puțin 20% noaptea): probabil legătură directă la rețea;
+   - pierdere tehnică cu pierderi pe cabluri de cel puțin 3 ori normalul: o îmbinare se poate încălzi.
+   **Cifra nouă pentru planificator: 6 lucrări de bilanț cu `safety_flag` în demo-vara** (din 75). 5 din 6 sunt furturi constante reale în simulare. Motivul e în `extra.safety_reason_ro` și în rezumatul lucrării.
+   **Atenție:** restul alertei vine de la A, care marchează **175** de contoare (`label == "tamper"` și scor ≥ 0,5). E regula lui A, nu a mea. De transmis firului A dacă alerta trebuie să scadă mai mult.
+2. **Probabilitățile:** scorul și probabilitățile afișate sunt plafonate la **0,99**, iar în text apare „peste 99%”. Plafonarea e și în fuziune (scorul combinat ≤ 0,99) și în `extra.diagnosis_proba`. Niciun text al bilanțului nu mai scrie „100%”.
+- Teste: plafonarea și regula de siguranță au test nou; `make check`: 288 trec.
+
+## Răspuns la cererea orchestratorului de la 17:25 (contorul martor, Weave): gata, sunt liber
+**Ce s-a schimbat**
+1. **Regula contorului martor** (`src/cyberpunks/a_bilant/martor.py`; o regulă, nu un model ML). Compară contorul de balanță cu martorul pe ultimele 3 zile; o diferență peste **0,5%** (clasa de exactitate) înseamnă contor de balanță defect sau setat greșit, cazul „2×”. Dacă martorul confirmă contorul, iar modelul spusese „contor setat greșit”, se alege a doua cauză a modelului.
+   - În simulare, martorul există la 50% din posturi (IPOTEZĂ), iar eroarea fixă a celor două contoare e de 0,07%. Diferența normală are mediana **0,06%**, în linie cu „poate 0,1%” spus de mentor.
+   - Pragul stă temporar în modul, cu sursa în comentariu. **Cerere către planificator:** cheia `config/economics.yaml` → `meters.martor_diff_limit_pct: 0.5` (SURSĂ: Codul de măsurare ANRE, Ord. 103/2015, contor martor de cel puțin aceeași clasă; clasa 0,5S).
+   - Bilanțul post − clienți **nu** folosește pragul de 0,1-0,5%: acolo pierderea normală e de câteva procente și o învață modelul (eroare medie 5,40 kWh/zi; formula fizică 14,92).
+2. **Termenii PPC:** „contor de balanță” și „contor martor” în toate textele (cod, explicațiile lucrărilor, documentație, rapoarte). Lucrările au `extra.martor_check` (diferența, pragul, verdictul).
+3. **Baza legală, citată:** Codul de măsurare ANRE (Ord. 103/2015): „cel puţin un contor de balanţă la fiecare post de transformare, pentru a facilita identificarea pierderilor tehnice şi netehnice”. Apare în `docs/research/bilant.md`, în `reports/bilant/model_card.md` și în `reports/bilant/headline.md` (textul pentru prezentare).
+4. **Weave (date reale UK), ca verificare de realism, nu ca etichete** (`weave_check.py`, `reports/bilant/weave_check.md`, `.png`). Mostra de o zi (~38 MB, în afara git, cu sha256 în docs) are ~42.000 de posturi reale. Forma curbei e apropiată:
+   - factorul de încărcare: 0,57 real, 0,51 simulat;
+   - ponderea nopții: 0,17 real, 0,16 simulat;
+   - vârful: la 18:00 real, la 19:00 simulat;
+   - prânzul simulat e mai jos din cauza prosumatorilor.
+   Folosirea Weave pentru profilele din simulare rămâne îmbunătățire viitoare. Fișierul complet (700 MB) nu l-am descărcat. NGED LV Load Monitor (cu cont) nu l-am încercat.
+
+**Cifrele (test pe aceleași 300 de posturi, `make bilant-data bilant-eval`)**
+- Regula martorului: prinde **98%** din contoarele de balanță setate greșit pe posturile cu martor, cu **0** alarme false. F1 pentru „contor de balanță setat greșit” pe acele posturi: 0,97 doar cu modelul, **0,99** cu regula.
+- Diagnosticul pe același test nou: **0,704 cu regula, 0,703 fără**, deci regula se păstrează. Față de 16:12 (0,714), lumea simulată e alta (eroarea contoarelor de balanță trecută la 0,07%, ca martorul să aibă diferența reală). Testul s-a schimbat; nu e o regresie a modelului.
+- Cifrele pentru slide rămân: **85% din energia pierdută din cauzele pe care contoarele nu le văd, ~25.000 lei pe lună** (A = 0); **48%** din energia pierdută e invizibilă la contoare.
+- Planul B: 30% față de 20% la întâmplare (înainte 36%, pe lumea veche).
+- **Postul pentru demo rămâne PT-1269:** bilanțul vede acum pierderi de 2,4 ori normalul și o fază cu ~71% din case (adevărul 76/15/9). C are `C-20250708-PT-1269`, cu `phase_rebalance` prima treaptă.
+- Lucrări demo-vara: 75, toate pe posturi cu probleme reale; 0 suprapuneri cu A la om. `make check`: 287 trec.
+
+## Regula de la 17:15 (fără fișiere grele): verificat, sunt liber
+- Bilanțul nu are în git nici modele, nici mostre de date. `models/bilant/` (~22 MB) și `data/processed/bilant/` sunt ignorate și se refac cu `make bilant-eval` / `make bilant-data`, iar `predict.run` le reface singur dacă lipsesc. Cel mai mare fișier al firului în git e o figură de 206 KB (`reports/bilant/normal_loss.png`).
+- `tests/test_repo_size.py` trece; `make check`: 277 trec.
+
+## Răspuns la cererea orchestratorului de la 17:05 (sunt liber)
+- `reports/bilant/headline.md` și `reports/bilant/demo_posts.md` se scriu acum la **`make bilant-predict`**, după lucrări. `make bilant-eval` nu le mai atinge, deci nu mai apare „rulează întâi make bilant-predict”.
+- Ordinea pentru `docs/REPRODUCERE.md`: `make c-weather` → `make bilant-data` → `make bilant-eval` → `make bilant-predict` → `make bilant-test`. Pasul separat `demo_story` nu mai e nevoie, e inclus în `bilant-predict`. Actualizat și în `docs/data/bilant.md`.
+- Verificat local: după `make bilant-predict`, pagina are PT-1269 cu cifrele lui. `make check`: 276 trec.
+- Lucrări demo-vara cu A-ul curent: 76, toate pe posturi cu probleme reale. Numărul depinde de `A.jsonl` (deduplicare); metricile nu.
+
+## Răspuns la cererea orchestratorului de la 16:40 (sunt liber)
+1. **Diagnosticele.** Cifrele din cerere erau vechi: clientul la postul greșit e la **0,77** (de la 16:12, cu identificarea topologiei din tensiuni), iar contorul de client la 0,40. Am mai încercat două lucruri pe același test, fără câștig, deci **modelul rămâne cel actual** (F1 macro 0,714):
+   - lot de antrenare nou, cu defecte de contor trase ca la A (`train2`): F1 macro 0,594 singur și 0,706 împreună cu lotul vechi;
+   - ponderile claselor: 0,714-0,716. Contorul de client urcă la 0,43 doar dacă clientul la postul greșit coboară la 0,74.
+   Reproductibil: `uv run python -m cyberpunks.a_bilant.experiments` → `reports/bilant/experiments.md`.
+2. **Cifrele pentru slide** (din `reports/bilant/headline.md`, generat din `metrics.json`):
+   - **„Bilanțul găsește 85% din energia pierdută pe care contoarele nu o văd deloc: ~25.000 lei pe lună pe 300 de posturi.”** (furt înainte de contor, cabluri, contor de post setat greșit, client la postul greșit; A găsește 0 aici prin construcție)
+   - **„48% din energia pierdută nu apare la niciun contor de client.”** (ziua demo)
+   - **„Cauza corectă: F1 0,71, față de 0,48 la regulile clasice.”** Opțional: contorul postului setat greșit e prins în 99% din cazuri, clientul trecut la alt post cu precizie 91%.
+   - De nu pus pe slide ca cifră principală: „cu bilanț față de fără” la clasarea contoarelor (zero câștig cu scorurile reale ale lui A).
+3. **Postul pentru prezentare: PT-1269**, împreună cu **firul C**:
+   - bilanțul: `A-20250708-PT-1269` (`grid_inspection`), pierderi pe cabluri de 2,2 ori normalul, faza estimată ~69% din case (adevărul 76/15/9), în `extra.phase_rebalance_input`;
+   - C: `C-20250708-PT-1269` (tensiune prea mare), cu `phase_rebalance` prima treaptă în `extra.remedy_options`;
+   - mesajul: o singură mutare a câtorva case pe altă fază rezolvă și pierderile (bilanț), și tensiunea (C). Seria: `outputs/series/demo-vara/A-20250708-PT-1269.json`.
 
 ## Postul pentru prezentare și interfață
 - **PT-1269**: dezechilibrul de faze găsit de bilanț e intrarea pentru `phase_rebalance` la C.
@@ -84,5 +170,10 @@ SIMULARE pe date publice. Test: cele 300 de posturi ale registrului C (rețele n
 - 14:30: fuziunea doar confirmă; testul pe mai multe zile trece pe lotul train (lotul hărții are acum defectele lui A, apărute doar în ultimele 60 de zile).
 - 14:35: rezolvarea automată a lui „nu sunt sigur” e oprită (0 din 5 corecte pe demo).
 - 14:35: bilanțul lasă lui A posturile unde A are deja lucrare la om sau pe contor.
+- 22:35: v2 păstrat (diagnostic 0,754 față de 0,704; fuziunea reglată bate v1 pe simulare și nu strică pe scorurile reale); fuziunea învățată respinsă (artefact al scorului simulat).
+- 18:00: `safety_flag` doar pentru risc real (31 → 6); probabilitățile afișate ≤ 0,99.
+- 17:30: regula contorului martor (0,5%, pe ultimele 3 zile) peste model; eroarea contoarelor de balanță 0,07% (diferența normală martor ~0,1%, mentorul PPC); Weave doar ca verificare de realism.
+- 17:15: fără fișiere grele în git: modelele și datele bilanțului rămân în afara git, refăcute din comenzi.
+- 16:55: lotul train2 și ponderile claselor încercate pe același test, fără câștig: modelul rămâne neschimbat.
 - 16:20: identificarea topologiei din tensiuni pentru clientul la postul greșit; extinderea regulii de pereche testată și lăsată deoparte (0,567 → 0,574, zgomot).
 - 15:00: trăsătura „oglindă” și legarea perechii pentru clientul la postul greșit; forma orară a lipsei pentru pierderea tehnică; comparația cu normalul fără istoric, scoasă (F1 macro mai mic).

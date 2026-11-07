@@ -1,20 +1,30 @@
-import { readFile } from "node:fs/promises";
+import { requireConsole } from "@/lib/server/operations";
+import { englishText } from "@/lib/english";
+import { readText } from "@/lib/server/read-file";
 import path from "node:path";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { PageTitle } from "@/components/ds";
+import { Disclosure } from "@/components/simple/disclosure";
 import { AppShell } from "@/components/shell/app-shell";
 import type { Source } from "@/lib/contracts";
 import { REPO_ROOT, getMetrics } from "@/lib/data";
 import { SOURCE_LABEL_RO } from "@/lib/data/labels";
+import { sentence } from "@/lib/format";
 import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
 import { SOURCE_ORDER } from "@/lib/sources";
-import { ErrorAnalysis } from "./_components/error-analysis";
+import { ModelsBoard } from "./_components/board";
+import { BalanceEvaluation } from "./_components/balance-evaluation";
 import { ModelColumn } from "./_components/model-column";
 import { PlannerSection } from "./_components/planner-section";
 
+const WRAP = "mx-auto w-full max-w-[1520px] px-8 pt-7 pb-14 max-md:px-4";
+
 export default function ModelsPage({ searchParams }: PageProps<"/modele">) {
   return (
-    <Suspense fallback={<div className="min-h-dvh bg-canvas" aria-busy="true" aria-label="Se încarcă modelele" />}>
+    <Suspense fallback={<div role="status" className="min-h-dvh bg-canvas" aria-busy="true">
+        <span className="sr-only">Loading models…</span>
+      </div>}>
       <Models searchParams={searchParams} />
     </Suspense>
   );
@@ -23,7 +33,7 @@ export default function ModelsPage({ searchParams }: PageProps<"/modele">) {
 /** reports/<X>/error_analysis.md din repo, dacă există (scris de scriptul de analiză al modelului). */
 async function readErrorAnalysis(source: Source): Promise<string | null> {
   try {
-    const text = await readFile(path.join(REPO_ROOT, "reports", source, "error_analysis.md"), "utf8");
+    const text = await readText(path.join(REPO_ROOT, "reports", source, "error_analysis.md"));
     return text.trim() ? text : null;
   } catch {
     return null;
@@ -31,6 +41,7 @@ async function readErrorAnalysis(source: Source): Promise<string | null> {
 }
 
 async function Models({ searchParams }: { searchParams: PageProps<"/modele">["searchParams"] }) {
+  await requireConsole();
   await connection();
   const scenario = await resolveScenario(searchParams);
   const [{ info }, metrics, ...analyses] = await Promise.all([loadShellInfo(scenario), getMetrics(), ...SOURCE_ORDER.map(readErrorAnalysis)]);
@@ -40,61 +51,38 @@ async function Models({ searchParams }: { searchParams: PageProps<"/modele">["se
 
   return (
     <AppShell info={info}>
-      <div className="mx-auto max-w-[1760px] px-7 pt-7 pb-16">
-        <h1 className="text-[30px] leading-tight font-[650]">Modelele</h1>
-        <p className="mt-2 max-w-[92ch] text-[16.5px] leading-relaxed">
-          Trei modele antrenate de echipă. Fiecare e evaluat pe un set de test separat, pe care nu l-a văzut la antrenare, și comparat cu un baseline
-          simplu. Orice cifră de pe pagină vine dintr-un script pe care îl poți rula din nou: comanda stă lângă fiecare raport.
-        </p>
-        <p className="mt-1.5 text-[14px] text-muted-foreground">
-          {published.length === 3
-            ? "Toate cele trei rapoarte sunt publicate"
+      <div className={WRAP}>
+        <PageTitle
+          title="Model evaluation"
+          subtitle="Measured performance against simple rules on the same test data."
+        />
+        <ModelsBoard bundle={bundle} planner={bundle.planner} analysisBy={analysisBy} />
+        <BalanceEvaluation report={bundle.bilant ?? null} />
+
+        <p className="mt-5 text-[13.5px] text-muted-foreground">
+          {published.length === 3 && bundle.bilant
+            ? "All four model reports published"
             : published.length
-              ? `Publicate: ${published.join(", ")}`
-              : "Niciun raport publicat încă"}
-          . Rapoartele vin din: {SOURCE_LABEL_RO[metrics.source]}
-          {metrics.degradedReason ? `. ${metrics.degradedReason}` : ""}.
+              ? `Published: ${published.join(", ")}`
+              : "No reports published yet"}
+          . Report source: {englishText(SOURCE_LABEL_RO[metrics.source])}
+          {metrics.degradedReason ? `. ${englishText(sentence(metrics.degradedReason)).replace(/\.$/, "")}` : ""}.
         </p>
 
-        <div className="mt-7 grid grid-cols-1 gap-y-10 xl:grid-cols-3 xl:gap-x-0 xl:divide-x xl:divide-rule">
-          {SOURCE_ORDER.map((s, i) => (
-            <div key={s} className={i === 0 ? "min-w-0 xl:pr-9" : i === 2 ? "min-w-0 xl:pl-9" : "min-w-0 xl:px-9"}>
-              <ModelColumn source={s} report={bundle[s]} hasAnalysis={Boolean(analysisBy[s])} />
+        <div className="mt-6">
+          <Disclosure title="Model details" hint="Test data, baseline, metrics and sources">
+            <div className="grid grid-cols-1 gap-y-10 xl:grid-cols-3 xl:gap-x-0 xl:divide-x xl:divide-rule">
+              {SOURCE_ORDER.map((s, i) => (
+                <div key={s} className={i === 0 ? "min-w-0 xl:pr-9" : i === 2 ? "min-w-0 xl:pl-9" : "min-w-0 xl:px-9"}>
+                  <ModelColumn source={s} report={bundle[s]} hasAnalysis={Boolean(analysisBy[s])} />
+                </div>
+              ))}
             </div>
-          ))}
+          </Disclosure>
+          <Disclosure title="Agent evaluation details" hint="Strategies, robustness and assumptions">
+            <PlannerSection planner={bundle.planner} />
+          </Disclosure>
         </div>
-
-        <section aria-labelledby="erori-title" className="mt-12 border-t border-rule pt-6">
-          <h2 id="erori-title" className="text-[24px] font-[650]">
-            Unde greșește modelul
-          </h2>
-          <p className="mt-1.5 max-w-[92ch] text-[15.5px] leading-relaxed text-muted-foreground">
-            Analiza erorilor pe setul de test: unde scade calitatea și ce cazuri scapă. Textul vine neschimbat din raportul fiecărui model.
-          </p>
-          {SOURCE_ORDER.some((s) => analysisBy[s]) ? (
-            <div className="mt-5 space-y-8">
-              {SOURCE_ORDER.map((s) => {
-                const md = analysisBy[s];
-                return md ? <ErrorAnalysis key={s} source={s} md={md} /> : null;
-              })}
-              {SOURCE_ORDER.some((s) => !analysisBy[s]) ? (
-                <p className="text-[14.5px] text-muted-foreground">
-                  Încă nepublicate:{" "}
-                  {SOURCE_ORDER.filter((s) => !analysisBy[s])
-                    .map((s) => `reports/${s}/error_analysis.md`)
-                    .join(", ")}
-                  .
-                </p>
-              ) : null}
-            </div>
-          ) : (
-            <p className="mt-4 text-[15px] text-muted-foreground">
-              Nicio analiză a erorilor nu e publicată încă. Fișierele așteptate: <span className="dense">reports/&lt;A|B|C&gt;/error_analysis.md</span>.
-            </p>
-          )}
-        </section>
-
-        <PlannerSection planner={bundle.planner} />
       </div>
     </AppShell>
   );

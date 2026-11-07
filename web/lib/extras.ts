@@ -60,4 +60,21 @@ export function isBilantPost(w: WorkItem): boolean {
   return w.source === "A" && w.asset_type === "transformer_post";
 }
 
-export const BILANT_LABEL = "Simulare pe date publice, gândită pentru datele PPC";
+export const BILANT_LABEL = "Simulation using public data, designed for PPC data";
+
+/**
+ * P90 de pornire al scării de soluții (punctul gol): `extra.ladder_base_p90_pu`, baza din care pornesc treptele;
+ * altfel cel din combinația aleasă, apoi P90 al modelului.
+ */
+export function ladderBaseP90(w: WorkItem, choice?: { p90_before_pu?: number | null } | null): number | null {
+  const extra = (w.extra ?? {}) as Record<string, unknown>;
+  const value = (v: unknown): number | null => (num(v) ? v : null);
+  return value(extra.ladder_base_p90_pu) ?? value(choice?.p90_before_pu) ?? w.prediction.point_interval?.[1] ?? null;
+}
+
+/** Combinația de trepte aleasă de agent pentru tensiune: `extra.ladder_choice`, altfel cea din /remedies. */
+export function ladderChoice(w: WorkItem, choice?: { chosen?: string[] | null } | null): string[] {
+  const extra = (w.extra ?? {}) as Record<string, unknown>;
+  const fromItem = Array.isArray(extra.ladder_choice) ? extra.ladder_choice.filter((a): a is string => typeof a === "string") : [];
+  return fromItem.length ? fromItem : (choice?.chosen ?? []).filter((a): a is string => typeof a === "string");
+}

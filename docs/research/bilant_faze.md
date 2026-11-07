@@ -136,7 +136,7 @@ Deci modelul pe tronsoane (rapid, fără pandapower) reproduce bine `runpp_3ph` 
 
 ## 6. Se văd pierderile în bilanț?
 
-**Da.** Contorul de bilanț al postului (la trafo, partea de JT) măsoară energia totală intrată; contoarele clienților măsoară ce a ieșit la ei. Pierderile = bilanț − suma clienților. Dezechilibrul crește curenții pe tronsoane și în neutru, deci crește I²R, deci diferența bilanț − Σ clienți crește. Din tabel: la 60/25/15 pierderile dependente de sarcină sunt de 1,4-1,7 ori cele din modelul echilibrat. Observații:
+**Da.** Contorul de balanță al postului (la trafo, partea de JT) măsoară energia totală intrată; contoarele clienților măsoară ce a ieșit la ei. Pierderile = bilanț − suma clienților. Dezechilibrul crește curenții pe tronsoane și în neutru, deci crește I²R, deci diferența bilanț − Σ clienți crește. Din tabel: la 60/25/15 pierderile dependente de sarcină sunt de 1,4-1,7 ori cele din modelul echilibrat. Observații:
 
 - Contoarele clienților (kWh) nu se schimbă (aceeași energie consumată), deci **tot excesul apare în bilanț ca "pierdere tehnică"**, fără să fie furt sau eroare de contor. În simulator trebuie separat: pierderi tehnice (modelul lui C × factorul de mai sus) vs. pierderi comerciale (furt, contoare defecte).
 - Dezechilibrul scade și tensiunea la fazele încărcate (în rural1, la 80/10/10 și 167 % din capacitatea trafo, tensiunea minimă scade de la 0,95 la 0,77 pu, în prima trecere `run_grid.py`; peste ~130 % unele cazuri nu converg). Efect secundar, nu e în formulă.

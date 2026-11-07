@@ -270,6 +270,24 @@ def _confidence(p: float, width: float, abstain: bool) -> str:
     return "low"
 
 
+def bilant_phase_inputs(scenario: str, d: date) -> dict[str, dict]:
+    """Ce a găsit bilanțul pe post (firul A_bilant) despre dezechilibrul pe faze, pentru aceeași zi: post -> intrarea
+    pentru treapta phase_rebalance. Fișierul lipsește când bilanțul n-a rulat; atunci fazele se estimează la întâmplare."""
+    p = work_items_path(scenario, "A").with_name("A_bilant.jsonl")
+    out: dict[str, dict] = {}
+    if not p.exists():
+        return out
+    for line in p.read_text(encoding="utf-8").splitlines():
+        try:
+            it = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        inp = (it.get("extra") or {}).get("phase_rebalance_input")
+        if inp and it.get("target_date") == d.isoformat() and inp.get("max_phase_share_est") is not None:
+            out[it["asset_id"]] = {**inp, "work_item_id": it["work_item_id"]}
+    return out
+
+
 def ladder_extra(L) -> dict:
     """Scara de soluții în `extra`: opțiunile (contractul RemedyOption), P90 de pornire, alegerea și motivul."""
     return {
@@ -281,6 +299,7 @@ def ladder_extra(L) -> dict:
         "ladder_reason_ro": L.reason_ro,
         "ladder_reaches_target": L.reaches_target,
         "risk_hours": [remedies.fmt_window(L.hours)],
+        "phase_rebalance_input_from": L.bilant_ref,
         "inverter_trips_base": round(L.base_trips, 1),
     }
 
@@ -298,10 +317,19 @@ def tap_extra(st: pd.Series, d: date, created: datetime) -> dict:
     }
 
 
+def _pct(p: float) -> str:
+    """Probabilitatea în cuvinte: fără 0% și 100% (modelul nu e niciodată absolut sigur)."""
+    if p >= 0.995:
+        return "peste 99%"
+    if p < 0.005:
+        return "sub 1%"
+    return f"{p * 100:.0f}%"
+
+
 def _summary(dec: actions.Decision, r: pd.Series, d: date, h0: int, h1: int, factors: list[dict]) -> str:
     when = f"Pe {d.day} {explain.MONTHS_RO[d.month - 1]}, între {h0}:00 și {h1}:00,"
     core = (f"{when} tensiunea maximă estimată e {explain.fmt(r['q50'], 3)} pu (între {explain.fmt(r['q10'], 3)} și "
-            f"{explain.fmt(r['q90'], 3)}), față de limita de 1,10; probabilitatea depășirii {r['p_exceed'] * 100:.0f}%.")
+            f"{explain.fmt(r['q90'], 3)}), față de limita de 1,10; probabilitatea depășirii {_pct(r['p_exceed'])}.")
     why = " Motive: " + "; ".join(f["label_ro"] for f in factors[:2]) + "." if factors else ""
     return core + why + " " + dec.reason_ro
 
@@ -325,6 +353,7 @@ def run(scenario: str, date_str: str | None = None) -> Path:
     created = now if d > now.date() else datetime(d.year, d.month, d.day, 6, 0, tzinfo=TZ) - timedelta(days=1)
     weather_uncertain = climate or (forecast and (20 <= info["cloud_noon"] <= 80 or info["cloud_std_noon"] > 25))
     out_items, counts, offers, day = [], {}, [], None
+    bilant = bilant_phase_inputs(scenario, d)
     series_dir = OUTPUTS / "series" / scenario
     series_dir.mkdir(parents=True, exist_ok=True)
     for i, r in X.iterrows():
@@ -339,10 +368,11 @@ def run(scenario: str, date_str: str | None = None) -> Path:
         if dec is None:
             continue
         ladder = None
-        if actions.needs_ladder(dec, float(r["q90"])):
+        bil = bilant.get(st["post_id"])
+        if actions.needs_ladder(dec, float(r["q90"]), phase_evidence=bil is not None):
             if day is None:
                 day = remedies.day_inputs(d, wx)
-            ladder = remedies.build_ladder(st["post_id"], day, float(r["q90"]), int(st["n_customers"]), actions.season_horizon_days(d))
+            ladder = remedies.build_ladder(st["post_id"], day, float(r["q90"]), int(st["n_customers"]), actions.season_horizon_days(d), bilant=bil)
             dec = actions.from_ladder(dec, ladder)
             for o in ladder.options:
                 RemedyOption.model_validate(o)
@@ -466,10 +496,17 @@ def run(scenario: str, date_str: str | None = None) -> Path:
               f"{info['temp_noon']:.0f} °C la prânz, nori {info['cloud_noon']:.0f}%.")
     reason += " " + CONTEXT_RO["Ilfov"]
     risky = int((X["p_exceed"] >= 0.5).sum())
-    reason += f" {risky} posturi au probabilitate de depășire peste 50%."
-    if len(out_items) <= 3:
-        reason += (f" Puține lucrări: în {month} soarele urcă puțin pe cer și producția de la prânz rămâne sub pragul la care "
-                   "tensiunea trece de 1,10 pu.") if info["gti_max"] < 650 else " Puține lucrări: consumul acoperă producția."
+    field = sum(v for k, v in counts.items() if k in ("adjust_tap", "phase_rebalance", "measurement_campaign", "transformer_upgrade"))
+    reason += f" {risky} posturi au probabilitate de depășire peste 50%; lucrări pentru echipe: {field}."
+    if risky == 0 and field == 0:
+        weak = info["gti_max"] < 650
+        reason += ((f" Soarele e slab ({month}" + (f", nori {info['cloud_noon']:.0f}%" if info["cloud_noon"] >= 30 else "")
+                    + "): producția de la prânz rămâne sub nivelul la care tensiunea trece de 1,10 pu, deci nu trimit nicio echipă.")
+                   if weak else " Consumul acoperă producția: nu trimit nicio echipă.")
+        if counts.get("watchlist"):
+            reason += f" {counts['watchlist']} posturi aproape de limită rămân urmărite, fără vizită."
+        if counts.get("human_review"):
+            reason += f" {counts['human_review']} cazuri cu prognoză nesigură lângă prag merg la om."
     elif d.month in (11, 12, 1, 2) and info["gti_max"] >= 600:
         reason += (f" Deși e {month}, cerul e senin și panourile reci produc aproape cât vara, iar "
                    + ("în zi liberă consumul de la prânz e mic." if info["free_day"] else "consumul de la prânz nu acoperă producția.")

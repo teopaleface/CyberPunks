@@ -116,6 +116,20 @@ Calculat pe 2023, pe comitatele din cele 8 state cu 10.000-600.000 de clienți (
   - PPC, semestrul I 2026, pentru toată distribuția din România: SAIDI 35 min, SAIFI 0,90 (https://www.economica.net/ppc-si-a-prezentat-rezultatele-pentru-semstrul-i-din-2026-si-a-anuntat-ce-profit-pe-tot-anul-tinteste-si-ce-dividende-a-pregatit_965752.html/amp).
   - Din 2025 până în 2029, ANRE leagă rentabilitatea distribuitorului de un indicator compus (calitate, regenerabile, digitalizare), după documentul de research (neverificat).
   - Partea din SAIDI cauzată de vremea extremă nu e publică.
+- **2025, cifre oficiale noi** (verificate la 22:10):
+  - ANRE, la nivel național: durata medie a întreruperilor e de 236 de minute pe client, din care 91,41 neplanificate. Delgaz Grid are cea mai mică valoare (66,75 de minute neplanificat), iar Distribuție Energie Oltenia cea mai mare (109). Sursa: Economica, pe datele ANRE, https://www.economica.net/romanii-au-stat-fara-electricitate-in-medie-patru-ore-in-2025-situatie-putin-mai-proasta-fata-de-anul-precedent_961648.html și https://www.economica.net/?p=962176 . Presa nu spune clar dacă 66,75 și 109 sunt doar neplanificate.
+  - **Rețele Electrice Banat, anexa 2 ANRE pe 2025** (indicatori de continuitate, pe cauze): https://www.reteleelectrice.ro/wp-content/uploads/banat-anexa-2-2025.pdf . Valorile SAIDI de mai jos sunt în minute pe utilizator.
+
+    | Mediu | Cauza | JT | MT |
+    |---|---|---|---|
+    | Rural | Condiții meteorologice deosebite (CMD) | 92,87 | 65,06 |
+    | Urban | Condiții meteorologice deosebite (CMD) | 16,94 | 15,18 |
+    | Rural | Utilizatori sau terți | 53,12 | 72,70 |
+    | Urban | Utilizatori sau terți | 8,47 | 20,52 |
+    | Rural | Alte cauze neplanificate | 147,43 | 90,24 |
+    | Urban | Alte cauze neplanificate | 49,00 | 35,73 |
+
+    În mediul rural din Banat, vremea extremă a produs circa o treime din minutele de întrerupere neplanificată la joasă tensiune (92,87 din 293,42), iar în mediul urban circa 23% (16,94 din 74,41). E problema pe care o țintește modelul B.
 - **Termenele de restabilire și compensațiile**, din sursa primară (verificată la 13:40): Ordinul ANRE nr. 46/2021, Monitorul Oficial, Partea I, nr. 649 din 1 iulie 2021, standardul, art. 15 alin. (1) și anexa nr. 1. Text: https://www.ppcenergy.ro/wp-content/uploads/ord-46-2021.pdf
   - Întrerupere **neplanificată**, vreme normală: 4 h în municipiile reședință de județ (fără zonele lor rurale), 6 h în restul mediului urban, 12 h în mediul rural.
   - Întrerupere neplanificată, condiții meteorologice deosebite: 48 h dacă avariile sunt în zona intravilană, 72 h dacă sunt în extravilan.
@@ -136,3 +150,10 @@ Calculat pe 2023, pe comitatele din cele 8 state cu 10.000-600.000 de clienți (
 - **Baseline-uri:** climatologia (rata pe lună din anii de antrenare, pe comitat și global) și regula pe rafală (rafala maximă ≥ 70 km/h înseamnă eveniment).
 - **Model:** LightGBM, clasificare cu calibrare izotonică pe un set separat de validare, plus regresie cuantilă. Cel mult 4 nuclee.
 - **Metrici:** PR-AUC (principala, lângă prevalență), Brier, ROC-AUC, pierderea pinball pe cuantile, acoperirea intervalului P10-P90 și recall pe evenimentele severe și extreme.
+
+## 7. Avarii europene reale: SSEN, nordul Scoției (adăugat la 22:30)
+
+- **Sursa:** arhiva Zenodo 10.5281/zenodo.23303815 (CC BY 4.0), cu datele NaFIRS LV ale SSEN Distribution. Fișierul SHEPD are 41.389 de avarii de joasă tensiune în nordul Scoției, 2015-2026, fiecare cu cauza, clienții afectați și minutele pierdute. Peste 4.200 de avarii au cauză de vreme: vânt și furtună 2.087, copaci căzuți 1.877, ploaie 92, inundații 74, trăsnete 52 etc.
+- **Ce arată:** furtunile mari sunt exact cele cunoscute. De exemplu, Arwen (26 nov. 2021) a dus la 54 de avarii JT de vreme într-o singură zi în districtul N/EAST, iar Éowyn (24 ian. 2025) la 29 în TAYCEN.
+- **Folosire:** am antrenat pe 2016-2023 a doua variantă a modelului B și am testat-o pe 2024-2025. Comparația cu modelul pe SUA și decizia sunt în `reports/B/metrics_ssen_detail.json` și în fișa modelului. Agentul rămâne pe modelul pe SUA: cel european câștigă doar în Scoția (PR-AUC 0,296 față de 0,277), pierde în SUA (0,159 față de 0,278) și nu reacționează la furtuna de vară din Banat.
+- **Limite:** sunt doar avarii JT (fără medie tensiune), deci clienții afectați per avarie sunt puțini (mediana 4). Pozițiile districtelor sunt aproximative (orașul principal). Am folosit 5 din 7 districte, iar SEPD (sudul Angliei) a rămas nefolosit din cauza cotei Open-Meteo.

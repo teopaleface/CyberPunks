@@ -41,6 +41,14 @@ def add_gust_tail(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def add_snow_extra(df: pd.DataFrame) -> pd.DataFrame:
+    """Zăpada udă (ninsoare cu minima ≥ −3 °C și maxima ≤ 3 °C, care se lipește de linii) și viscolul (ninsoare și
+    rafale ≥ 50 km/h). Încercate pentru punctul slab al modelului, zăpada."""
+    df["wet_snow"] = np.where((df["temperature_2m_min"] >= -3) & (df["temperature_2m_max"] <= 3), df["snow_3d"], 0.0)
+    df["snow_wind"] = np.where(df["gust_max_2d"] >= 50, df["snow_3d"], 0.0)
+    return df
+
+
 def add_precip_extra(df: pd.DataFrame) -> pd.DataFrame:
     df = df.sort_values(["fips", "date"])
     df["precip_intensity"] = df["precip"] / df["precip_hours"].clip(lower=1)
@@ -79,6 +87,7 @@ def experiments() -> list[tuple[str, str, Callable[[pd.DataFrame], dict]]]:
     weather_only = [(f, m) for f, m in base if f not in ("log_customers", "log_density")]
     clim = base + [("gust_anom", 1), ("gust_ratio_p95", 1)]
     tail = base + [("gust_excess60", 1)]
+    snow_extra = base + [("wet_snow", 1), ("snow_wind", 1)]
     with_temp = base + [("tmax", 0), ("tmin", 0), ("t_range", 0), ("srad", 0)]
     lean = [(f, m) for f, m in base if f not in ("precip_hours", "wind_max", "doy_cos")]
     extra = base + [("precip_intensity", 1), ("precip_30d", 0)]
@@ -98,11 +107,10 @@ def experiments() -> list[tuple[str, str, Callable[[pd.DataFrame], dict]]]:
         ("arbori_mai_mari", "num_leaves 31, min_data_in_leaf 20",
          lambda d: run_variant(d, base, params_over={"num_leaves": 31, "min_data_in_leaf": 20})),
         ("coada_rafalei", "+ cât trece rafala peste 60 km/h", lambda d: run_variant(d, tail)),
+        ("zapada_uda_viscol", "+ zăpadă udă și viscol (pentru punctul slab, zăpada)", lambda d: run_variant(d, snow_extra)),
         ("cu_temperaturi", "+ temperaturile și radiația (scoase din model: trimiteau echipe la caniculă în România)",
          lambda d: run_variant(d, with_temp)),
         ("mai_putine_variabile", "fără orele de ploaie, vântul mediu și sezonul (cos)", lambda d: run_variant(d, lean)),
-        ("doar_2023_2024", "antrenare doar pe 2023-2024 (comparația cu mai mulți ani, pe același test 2025)",
-         lambda d: run_variant(d, base, years=(2023, 2024))),
     ]
 
 
@@ -110,7 +118,7 @@ def main() -> int:
     df = pd.read_parquet(dataset.OUT)
     df["date"] = pd.to_datetime(df["date"])
     df = df[~df["wx_missing"]]
-    df = add_gust_tail(add_precip_extra(add_gust_climate(df)))
+    df = add_snow_extra(add_gust_tail(add_precip_extra(add_gust_climate(df))))
     rows = []
     for name, desc, fn in experiments():
         r = fn(df)
