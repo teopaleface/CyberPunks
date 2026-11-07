@@ -48,4 +48,4 @@ Cum se citește: cu scorurile reale, A e deja precis în vârful listei, iar bil
 ## 4. Postul pentru demo
 
 - **PT-1269** (`A-20250708-PT-1269`): pierderea pe cabluri e de 2,4 ori normalul, iar bilanțul estimează că o fază are ~71% din case. Adevărul din simulare și potrivirea cu lucrarea lui C (`C-20250708-PT-1269`, `phase_rebalance` prima treaptă) sunt în `reports/bilant/demo_posts.md`.
-- Postul PT-1269: ~5402 lei pe lună pierduți peste normal. Cauza probabilă (100%): pierdere tehnică (cablu, faze dezechilibrate). Recomand: echipa de rețea (cabluri, îmbinări, faze).
+- Postul PT-1269: ~5402 lei pe lună pierduți peste normal. Cauza probabilă (peste 99%): pierdere tehnică (cablu, faze dezechilibrate). Recomand: echipa de rețea (cabluri, îmbinări, faze).

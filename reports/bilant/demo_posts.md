@@ -10,14 +10,14 @@ SIMULARE pe date publice, gândită pentru datele PPC. Fiecare caz e verificat c
 
 ## 2. Dezechilibrul de faze, intrare pentru scara de soluții (C)
 
-- **PT-1269**, lucrarea `A-20250708-PT-1269`: Postul PT-1269: ~5402 lei pe lună pierduți peste normal. Cauza probabilă (100%): pierdere tehnică (cablu, faze dezechilibrate). Recomand: echipa de rețea (cabluri, îmbinări, faze).
+- **PT-1269**, lucrarea `A-20250708-PT-1269`: Postul PT-1269: ~5402 lei pe lună pierduți peste normal. Cauza probabilă (peste 99%): pierdere tehnică (cablu, faze dezechilibrate). Recomand: echipa de rețea (cabluri, îmbinări, faze).
 - Bilanțul vede pierderea pe cabluri de 2.4 ori normalul și estimează că faza cea mai încărcată are ~71% din case.
 - Adevărul: din ziua 312, casele sunt împărțite 76% / 15% / 9% pe faze (u = 1.29).
 - Pentru C: `extra.phase_rebalance_input` e intrarea treptei `phase_rebalance` (mută câteva case pe altă fază, o oră de lucru). Aceeași mutare scade și pierderile, și tensiunea pe faza încărcată.
 
 ## 3. Contorul postului setat greșit
 
-- **PT-1210**: Postul PT-1210: contorul de balanță arată de 2.04 ori suma clienților (100% contor de balanță defect sau setat greșit). Lipsa de ~938 kWh/zi e doar pe hârtie. Recomand: întâi citire la distanță și jurnalul de evenimente al contorului (raportul de transformare).
+- **PT-1210**: Postul PT-1210: contorul de balanță arată de 2.04 ori suma clienților (peste 99% contor de balanță defect sau setat greșit). Lipsa de ~938 kWh/zi e doar pe hârtie. Recomand: întâi citire la distanță și jurnalul de evenimente al contorului (raportul de transformare).
 - Adevărul: raportul de transformare greșit din ziua 104. Toate cele 13 posturi marcate așa au chiar această problemă: False.
 
 ## 4. Clientul trecut la postul greșit
