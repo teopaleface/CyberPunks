@@ -45,7 +45,7 @@ Gata de merge: da (commit 4b65254 și următoarele: M3 și M4 gata; Daybreak, gr
 - 17:00 Review final: `web-design-guidelines` pe toate ecranele (3 subagenți, 93 de observații: 1 gravă, 13 medii, restul mici) și `impeccable` (detectorul: 0 probleme; review vizual la 1920 și 1440). Reparate: cea gravă și 12 din 13 medii, plus majoritatea celor mici (detaliile în commit-ul 42a71fd). Filtrele jurnalului stau acum în adresă (`?cine=`, `?sursa=`, `?decizia=`, `?cauta=`).
 - 17:03 Capturi pentru slideuri în `web/design/captures/` (12, la 1920×1080, toate din planul `PLAN-demo-vara-20250708-170128-31d6`), cu README.
 
-- 17:35 Rezerva reverificată după schimbările de azi, pe build-ul de producție: API oprit → „Ultimul plan salvat”, 14/14 ecrane; doar fixture-uri → „Date de test”, 14/14. Scenariul „Mâine, cu prognoza reală” merge pe API (636 de lucrări, 23 în trasee), fără erori în consolă.
+- 17:25 Rezerva reverificată după schimbările de azi, pe build-ul de producție: API oprit → „Ultimul plan salvat”, 14/14 ecrane; doar fixture-uri → „Date de test”, 14/14. Scenariul „Mâine, cu prognoza reală” merge pe API (636 de lucrări, 23 în trasee), fără erori în consolă.
 
 ## Urmează
 - Până la 20:00: captura paginii unui post cu graficul bilanțului, dacă seriile ajung în API sau în instantaneu; altfel nimic nou, doar ce găsește testarea.
