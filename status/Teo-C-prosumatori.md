@@ -1,5 +1,5 @@
 # Status: Teo-C-prosumatori
-Actualizat: 2026-11-07 17:12
+Actualizat: 2026-11-07 17:13
 Milestone curent: M4 terminat (M0 13:10, M1 13:45, M2 14:11, M3 15:40, M4 16:50)
 Gata de merge: da (commit 4cf7428; testele C merg offline; `git merge Teo` făcut la 17:06, `make check` trece)
 
@@ -36,7 +36,7 @@ Gata de merge: da (commit 4cf7428; testele C merg offline; `git merge Teo` făcu
 ## Cereri către orchestrator
 1. Interfață: la C, `explanation.top_factors[].contribution` e în log-odds pe P(tensiune > 1,10 pu) (`extra.factors_unit`), deci poate fi mare (de exemplu +11); cât mută fiecare grup tensiunea, în pu, e în `extra.voltage_contributions_pu`.
 2. Planificator: P90 de pornire al scării e `extra.ladder_base_p90_pu` (P90 model + dezechilibrul estimat, cel mult 0,02 pu); `p90_after_pu` din opțiuni pornește de la el. Dacă bilanțul a dat dezechilibrul, `extra.phase_rebalance_input_from` are lucrarea lui și treapta „faze” are încredere medie. C citește `outputs/work_items/<scenariu>/A_bilant.jsonl` dacă există (bilanțul rulează înaintea lui C în `cyberpunks run`).
-3. Modelul C are 4 versiuni în istoricul git (8,7 MB fiecare), notate pentru curățenia de la final.
+3. Modelul C are 4 versiuni în istoricul git (8,7 MB fiecare), notate pentru curățenia de la final. Regula de la 17:15 e respectată: modelul local e identic cu cel din git, deci nu mai fac commit în `models/release/`; dacă modelul s-ar schimba, o singură dată, la versiunea finală. Cel mai mare fișier C urmărit în afară de model: `data/samples/C/similar_cases.parquet` (0,35 MB).
 
 ## Cum se rulează (comenzile exacte)
 - Tot lanțul: `make c-all` (circa 15-25 de minute, cel mult 4 nuclee). Pas cu pas: `make c-weather c-sim c-population c-train c-predict c-eval`; `make c-bench`; `make c-test`.
