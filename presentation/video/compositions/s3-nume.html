@@ -77,15 +77,11 @@
   <script>
     (function () {
       const tl = gsap.timeline({ paused: true });
-      // Punctul pornește din centrul cadrului (unde s-a strâns scorul) și ajunge la capătul numelui.
-      // Deplasarea e măsurată pe randare: centrul punctului final e la aprox. (1452, 523).
-      tl.fromTo("#s3-dot", { x: -492, y: 17, scale: 0.7 }, { x: 0, y: 0, scale: 1, duration: 0.75, ease: "expo.inOut" }, 0);
-      tl.fromTo(
-        ["#s3-w1", "#s3-w2", "#s3-w3"],
-        { opacity: 0, filter: "blur(12px)" },
-        { opacity: 1, filter: "blur(0px)", duration: 0.55, ease: "expo.out", stagger: 0.1 },
-        0.12,
-      );
+      // Punctul pornește din centrul cadrului (unde s-a strâns scorul) și „scrie” cuvântul „mâine”.
+      // Măsurat pe randare: punctul final are centrul la (1411, 490), deci pornește de la (-451, +50).
+      tl.fromTo(["#s3-w1", "#s3-w2"], { opacity: 0, filter: "blur(12px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out", stagger: 0.08 }, 0.04);
+      tl.fromTo("#s3-dot", { x: -451, y: 50, scale: 0.75 }, { x: 0, y: 0, scale: 1, duration: 0.72, ease: "power3.inOut" }, 0.12);
+      tl.fromTo("#s3-w3", { clipPath: "inset(-20% 100% -20% 0%)", filter: "blur(4px)" }, { clipPath: "inset(-20% 0% -20% 0%)", filter: "blur(0px)", duration: 0.72, ease: "power3.inOut" }, 0.12);
       tl.fromTo(
         "#s3-sub span",
         { opacity: 0, filter: "blur(8px)" },
