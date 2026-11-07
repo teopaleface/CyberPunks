@@ -19,7 +19,7 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 from cyberpunks import __version__
-from cyberpunks.api.store import Store
+from cyberpunks.api.store import Store, read_json
 from cyberpunks.common.contracts import CONTRACT_VERSION
 from cyberpunks.planner import planner_version
 from cyberpunks.planner.settings import Settings
@@ -168,10 +168,10 @@ def work_item(work_item_id: str, scenario: str = DEFAULT_SCENARIO) -> dict[str, 
         raise HTTPException(404, f"lucrarea {work_item_id} nu există în scenariul {scenario!r}")
     plan = view.plan() or {}
     decision = next((d for d in plan.get("decisions", []) if d.get("work_item_id") == work_item_id), None)
-    from cyberpunks.api.store import read_json
 
     actions = (read_json(view.plan_dir / "actions.json") or {}) if view.mode != "fixtures" else {}
-    return {**item, "decision": decision, "action": actions.get(work_item_id)}
+    titles = (read_json(view.plan_dir / "titles.json") or {}) if view.mode != "fixtures" else {}
+    return {**item, "decision": decision, "action": actions.get(work_item_id), "decision_title_ro": titles.get(work_item_id)}
 
 
 @api.get("/series/{work_item_id}")
@@ -213,6 +213,16 @@ def review(work_item_id: str, req: ReviewRequest, scenario: str = Query(DEFAULT_
     finally:
         _run_lock.release()
     return record.model_dump(mode="json")
+
+
+@api.get("/decision-titles")
+def decision_titles(scenario: str = DEFAULT_SCENARIO) -> dict[str, str]:
+    """Titlul deciziei pentru lucrările unde tipul deciziei singur ar înșela (de exemplu scara de soluții C:
+    „Soluție: mutare pe faze + baterii + limită de injecție”, deși mâine pleacă doar mesajele). Lipsa cheii = eticheta obișnuită."""
+    view = store.view(_scenario(scenario))
+    if view.mode in ("fixtures", "none"):
+        return {}
+    return read_json(view.plan_dir / "titles.json") or {}
 
 
 @api.get("/metrics")
@@ -401,7 +411,6 @@ def rules() -> dict[str, Any]:
 @api.get("/run-info")
 def run_info(scenario: str = DEFAULT_SCENARIO) -> dict[str, Any]:
     """Ultima rulare a agentului: timpii pe pași (Perceive, Estimate, Decide, Act), sursele, solverul, fuziunea."""
-    from cyberpunks.api.store import read_json
 
     view = store.view(_scenario(scenario))
     meta = read_json(view.plan_dir / "run.json") if view.mode != "fixtures" else None
@@ -415,7 +424,6 @@ def run_info(scenario: str = DEFAULT_SCENARIO) -> dict[str, Any]:
 def remedies(scenario: str = DEFAULT_SCENARIO) -> list[dict[str, Any]]:
     """Scara de soluții pentru tensiune: varianta aleasă pe fiecare post, costul, P90 înainte și după, de ce nu una mai ieftină."""
     view = store.view(_scenario(scenario))
-    from cyberpunks.api.store import read_json
 
     return read_json(view.plan_dir / "remedies.json") or [] if view.mode != "fixtures" else []
 

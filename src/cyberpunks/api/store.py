@@ -3,7 +3,8 @@
 Ordinea, pentru fiecare scenariu:
 1. "live":     outputs/plans/<scenariu>/plan.json (ultima rulare a agentului pe mașina asta);
 2. "demo":     outputs/demo/plans/<scenariu>/plan.json (instantaneul din git, aceeași structură ca outputs/);
-3. "fixtures": contracts/fixtures/ (exemple ilustrative, până există ieșiri reale).
+3. "none":     niciun plan încă: un plan gol, cu o alertă care cere „Rulează agentul” (nu exemplele de test).
+"fixtures" (contracts/fixtures/, exemple ilustrative) doar la cerere explicită: CYBERPUNKS_API_SOURCE=fixtures.
 
 outputs/ și outputs/demo/ au aceeași structură:
     plans/<s>/{plan.json, audit.jsonl, work_items.jsonl, quarantine.jsonl, alerts.json, notifications.json, report.md}
@@ -24,7 +25,7 @@ from typing import Any, Literal
 from cyberpunks.api.fixture_series import make_series
 from cyberpunks.common.paths import CONTRACTS, OUTPUTS, REPORTS, ROOT
 
-Mode = Literal["live", "demo", "fixtures"]
+Mode = Literal["live", "demo", "fixtures", "none"]
 FIXTURES = CONTRACTS / "fixtures"
 DEMO = OUTPUTS / "demo"
 
@@ -68,9 +69,13 @@ class ScenarioView:
     def plan(self) -> dict[str, Any] | None:
         if self.mode == "fixtures":
             return read_json(FIXTURES / "plan_example.json")
+        if self.mode == "none":
+            return empty_plan(self.scenario)
         return read_json(self.plan_dir / "plan.json")
 
     def work_items(self) -> list[dict[str, Any]]:
+        if self.mode == "none":
+            return []
         if self.mode == "fixtures":
             items: list[dict[str, Any]] = []
             for src in "ABC":
@@ -135,6 +140,48 @@ class ScenarioView:
         return None
 
 
+def empty_plan(scenario: str) -> dict[str, Any]:
+    """Scenariul n-a rulat încă pe mașina asta și nu e în instantaneu: un plan gol, valid după contract, care spune asta.
+    Nu se arată niciodată exemplele de test în locul unui plan real."""
+    from datetime import datetime
+
+    from cyberpunks.common.contracts import CONTRACT_VERSION
+    from cyberpunks.planner import planner_version
+    from cyberpunks.planner.settings import TZ, Settings
+
+    now = datetime.now(TZ).replace(microsecond=0)
+    try:
+        sc = Settings.load().scenarios.get(scenario)
+        day = (sc.resolve_date() if sc else None) or now.date()
+    except Exception:  # noqa: BLE001 - un config stricat nu are voie să oprească răspunsul gol
+        day = now.date()
+    zeros = {"items_in": 0, "items_valid": 0, "items_invalid": 0, "assigned": 0, "deferred": 0, "human_review": 0,
+             "remote_actions": 0, "notifications": 0, "crews_used": 0, "expected_value_lei": 0.0, "total_km": 0.0}
+    return {
+        "contract_version": CONTRACT_VERSION,
+        "plan_id": f"FARA-PLAN-{scenario}",
+        "plan_date": day.isoformat(),
+        "generated_at": now.isoformat(),
+        "planner_version": planner_version(),
+        "scenario": scenario,
+        "summary": zeros,
+        "routes": [],
+        "decisions": [],
+        "alerts": [{
+            "alert_id": f"fara-plan-{scenario}",
+            "severity": "info",
+            "title_ro": f"Încă nu există un plan pentru „{scenario}” ({day.strftime('%d.%m.%Y')})",
+            "body_ro": "Apasă „Rulează agentul”: modelele A, B și C rulează pe datele zilei (prognoza reală pentru mâine), "
+                       "iar o sursă care nu poate da rezultate apare ca lipsă, cu motivul. Nu se folosesc exemplele de test.",
+            "work_item_ids": [],
+            "channel": "dispecerat",
+            "created_at": now.isoformat(),
+        }],
+        "notifications": [],
+        "sources_status": {"A": "missing", "B": "missing", "C": "missing"},
+    }
+
+
 class Store:
     def __init__(self, outputs: Path = OUTPUTS, demo: Path = DEMO, reports: Path = REPORTS) -> None:
         self.outputs = outputs
@@ -142,7 +189,8 @@ class Store:
         self.reports = reports
 
     def view(self, scenario: str) -> ScenarioView:
-        """CYBERPUNKS_API_SOURCE alege sursa: auto (rulare locală, apoi instantaneu, apoi exemple), demo, live sau fixtures."""
+        """CYBERPUNKS_API_SOURCE alege sursa: auto (rulare locală, apoi instantaneu, apoi plan gol), demo, live sau fixtures.
+        Exemplele de test (fixtures) apar doar la cerere explicită, niciodată în locul unui plan real."""
         source = os.environ.get("CYBERPUNKS_API_SOURCE", "auto").strip().lower()
         if source == "demo" and (self.demo / "plans" / scenario / "plan.json").exists():
             return ScenarioView(scenario, "demo", self.demo)
@@ -152,7 +200,7 @@ class Store:
             return ScenarioView(scenario, "live", self.outputs)
         if (self.demo / "plans" / scenario / "plan.json").exists():
             return ScenarioView(scenario, "demo", self.demo)
-        return ScenarioView(scenario, "fixtures", self.outputs)
+        return ScenarioView(scenario, "none", self.outputs)
 
     def metrics(self) -> dict[str, Any]:
         """Rapoartele modelelor: întâi reports/<X>/metrics.json, apoi copia din outputs/demo/reports/."""

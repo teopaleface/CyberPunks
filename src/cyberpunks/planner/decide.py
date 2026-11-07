@@ -870,6 +870,25 @@ REMEDY_RO = {
 }
 
 
+REMEDY_SHORT_RO = {
+    "phase_rebalance": "mutare pe faze",
+    "adjust_tap": "priza transformatorului",
+    "notify_customers": "mesaje Ore Smart",
+    "offer_battery": "baterii",
+    "export_limit": "limită de injecție",
+    "transformer_upgrade": "transformator nou",
+}
+
+
+def ladder_title(chosen: list[str], feasible: bool = True, invest: bool = False) -> str:
+    """Titlul scurt al deciziei pe scara de soluții, de afișat în locul etichetei tipului de decizie
+    (care la treptele cu echipă așteptând preavizul ar fi doar „mesaj către clienți”)."""
+    steps = " + ".join(REMEDY_SHORT_RO.get(a, a) for a in chosen)
+    if not feasible:
+        return f"Nicio combinație nu ajunge sub limită (cel mai bun: {steps}): decide un om"
+    return ("Investiție: " if invest else "Soluție: ") + steps
+
+
 def _combo_ro(combo: tuple[RemedyOption, ...]) -> str:
     names = [REMEDY_RO.get(o.action.value, o.action.value) for o in combo]
     text = names[0] if len(names) == 1 else ", ".join(names[:-1]) + " și " + names[-1]
@@ -968,7 +987,10 @@ def rule_remedy_ladder(ctx: Context, item: Item, th: dict[str, float]) -> Propos
     rates = [o.participation_rate for o in combo if o.participation_rate is not None]
     if rates:
         th["participation_rate"] = float(rates[0])
-    chosen_txt = f"Aleg {_combo_ro(combo)} ({_combo_extra(combo, cost)}): P90 scade de la {num(base, 3)} la {num(p90_after, 3)} pu, sub limita de {num(limit, 2)}."
+    chosen_txt = (f"Soluția aleasă: {_combo_ro(combo)} ({_combo_extra(combo, cost)}): P90 scade de la {num(base, 3)} la "
+                  f"{num(p90_after, 3)} pu, sub limita de {num(limit, 2)}.")
+    physics = _factors(wi)
+    physics = (physics[:1].upper() + physics[1:] + ".") if physics else ""
     why_txt = (" N-am ales o variantă mai ieftină: " + "; ".join(why_not) + ".") if why_not else " E cea mai ieftină treaptă din scară."
     battery = next((o for o in combo if o.action == RecommendedAction.offer_battery), None)
     ladder = {
@@ -980,6 +1002,7 @@ def rule_remedy_ladder(ctx: Context, item: Item, th: dict[str, float]) -> Propos
         "inverter_trips_avoided": sum(o.inverter_trips_avoided or 0.0 for o in combo),
         "crew_steps": [o.action.value for o in combo if o.needs_crew],
     }
+    ladder["title_ro"] = ladder_title(ladder["chosen"], bool(feasible), ladder["invest"])
     notes = _ladder_notifications(ctx, wi, combo)
     notify_costs = Costs(action="notify_customers", action_cost=sum(o.cost_lei for o in combo if not o.needs_crew))
     if not feasible:
@@ -987,11 +1010,11 @@ def rule_remedy_ladder(ctx: Context, item: Item, th: dict[str, float]) -> Propos
                   f"(cel mai bun: {_combo_ro(combo)}, {num(p90_after, 3)} pu). Decide un om; probabil e nevoie de investiție.")
         return _final(item, DecisionType.human_review, "R-REMEDY-LADDER", reason, "human_review", th, notifications=notes, ladder=ladder)
     if ladder["invest"]:
-        reason = (f"{_factors(wi)}. {chosen_txt}{why_txt} E o investiție: intră în raportul de investiții, nu în traseele de mâine.")
+        reason = (f"{chosen_txt} {physics}{why_txt} E o investiție: intră în raportul de investiții, nu în traseele de mâine.")
         return _final(item, DecisionType.deferred, "R-REMEDY-LADDER", reason, "transformer_upgrade", th, ladder=ladder)
     crew = [o for o in combo if o.needs_crew]
     if not crew:
-        reason = f"{_factors(wi)}. {chosen_txt}{why_txt} Fără echipă: mesajele și ofertele pleacă din sistem (demo, nu se trimite nimic)."
+        reason = f"{chosen_txt} {physics}{why_txt} Fără echipă: mesajele și ofertele pleacă din sistem (demo, nu se trimite nimic)."
         return _final(item, DecisionType.notify, "R-REMEDY-LADDER", reason, "notify_customers", th, notifications=notes, costs=notify_costs, ladder=ladder)
     needs_notice = {str(a) for a in (s.rule("remedy", "crew_steps_need_notice", default=["adjust_tap", "phase_rebalance"]) or [])}
     if any(o.action.value in needs_notice for o in crew) and not _tap_notice_ok(ctx, wi):
@@ -1005,8 +1028,8 @@ def rule_remedy_ladder(ctx: Context, item: Item, th: dict[str, float]) -> Propos
             # Mesajul de grup aproape nu costă nimic: pleacă oricum, cât timp treptele cu echipă așteaptă preavizul.
             notes = notes + _ladder_notifications(ctx, wi, (group,))
             interim = f" Până atunci trimit și mesajul de grup către clienții Ore Smart (tensiunea ar ajunge la {num(group.p90_after_pu, 3)} pu, nu e destul singur)."
-        reason = (f"{_factors(wi)}. {chosen_txt}{why_txt} Treptele cu echipă cer o întrerupere planificată, anunțată cu cel puțin "
-                  f"{notice} zile lucrătoare înainte (Ord. ANRE 46/2021, art. 12): le programez pe {zi(on)}.{interim}"
+        reason = (f"{chosen_txt} Mâine: mesajele către clienți; {_combo_ro(tuple(crew))} cu echipa pe {zi(on)}, după preavizul de "
+                  f"întrerupere ({notice} zile lucrătoare, Ord. ANRE 46/2021, art. 12). {physics}{why_txt}{interim}"
                   + (" Mesajele și ofertele sunt mai jos (demo, nimic trimis)." if notes else ""))
         return _final(item, DecisionType.notify, "R-REMEDY-LADDER", reason, "notify_customers", th,
                       notifications=notes + [_outage_notice(ctx, wi, on)], costs=notify_costs, ladder=ladder)
@@ -1023,7 +1046,7 @@ def rule_remedy_ladder(ctx: Context, item: Item, th: dict[str, float]) -> Propos
             notes = notes + [_outage_notice(ctx, wi, wi.target_date)]
     else:
         when = " Fără întrerupere; echipa merge mâine."
-    reason = f"{_factors(wi)}. {chosen_txt}{why_txt}{when}"
+    reason = f"{chosen_txt} {physics}{why_txt}{when}"
     p = _route(ctx, item, "R-REMEDY-LADDER", reason, primary.action.value, costs, th, notifications=notes, ladder=ladder,
                duration_min=duration, skills_required=skills)
     p.fallback = _final(item, DecisionType.notify, "R-REMEDY-LADDER", reason.replace("echipa merge mâine", "echipele sunt pline mâine: doar mesajele"),
