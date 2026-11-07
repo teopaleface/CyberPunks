@@ -3,7 +3,8 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { RemedyLadder } from "@/components/detail/remedy-ladder";
 import { ReviewActions } from "@/components/detail/review-actions";
-import { SeriesChart, SeriesLegend, isBilantSeries } from "@/components/detail/series-chart";
+import { SeriesChart, SeriesLegend } from "@/components/detail/series-chart";
+import { isBilantSeries } from "@/lib/series-utils";
 import { SyntheticGlyph } from "@/components/shell/provenance";
 import { AppShell } from "@/components/shell/app-shell";
 import type { WorkItem } from "@/lib/contracts";
@@ -85,7 +86,9 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
           <span className="h-6 w-px bg-rule" aria-hidden="true" />
           <span className="size-7 shrink-0 rounded-full border-2 border-panel" style={{ background: status.color }} aria-hidden="true" />
           <div className="min-w-0">
-            <h1 className="code-id text-[24px] leading-tight">Postul de transformare {post.post_id}</h1>
+            <h1 className="code-id text-[24px] leading-tight">
+              Postul de transformare <span translate="no">{post.post_id}</span>
+            </h1>
             <p className="text-[15.5px] text-muted-foreground">
               {[post.label && post.label !== post.post_id ? post.label : post.zone_id, post.approx_position ? "poziție aproximativă (media contoarelor)" : null]
                 .filter(Boolean)

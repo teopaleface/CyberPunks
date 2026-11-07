@@ -3,7 +3,8 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { RemedyLadder } from "@/components/detail/remedy-ladder";
 import { ReviewActions } from "@/components/detail/review-actions";
-import { SeriesChart, SeriesLegend, isBilantSeries } from "@/components/detail/series-chart";
+import { SeriesChart, SeriesLegend } from "@/components/detail/series-chart";
+import { isBilantSeries } from "@/lib/series-utils";
 import { ScoreScale } from "@/components/plan/score-scale";
 import { SyntheticGlyph } from "@/components/shell/provenance";
 import { AppShell } from "@/components/shell/app-shell";
@@ -89,7 +90,7 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
           <span className="h-6 w-px bg-rule" aria-hidden="true" />
           <span className="size-9 shrink-0" dangerouslySetInnerHTML={{ __html: markerSvg({ source: w.source, kind: markerKind(decision?.decision) }) }} />
           <div className="min-w-0">
-            <h1 className="code-id text-[24px] leading-tight">{w.work_item_id}</h1>
+            <h1 className="code-id text-[24px] leading-tight" translate="no">{w.work_item_id}</h1>
             <p className="text-[15.5px] text-muted-foreground">
               {itemTitle(w)}, {itemPlace(w)}: {predictionLabelRo(p.label)}
             </p>

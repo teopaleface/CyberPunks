@@ -69,7 +69,7 @@ export function RunAgentButton({ scenario, scenarioLabel }: { scenario: string; 
           Rulează agentul
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[600px] gap-5 rounded-[6px] p-7">
+      <DialogContent className="max-w-[600px] gap-5 overscroll-contain rounded-[6px] p-7">
         <DialogHeader>
           <DialogTitle className="text-[22px] font-[650]">Rulează agentul</DialogTitle>
           <DialogDescription className="text-[15px] leading-relaxed">

@@ -100,7 +100,7 @@ export function QueuePanel({
             <Marker w={w} decision={first} />
           </button>
           <div className="min-w-0">
-            <div className="code-id truncate text-[16px]">{w.work_item_id}</div>
+            <div className="code-id truncate text-[16px]" translate="no">{w.work_item_id}</div>
             <div className="truncate text-[14.5px] text-muted-foreground">
               {itemTitle(w)}, {itemPlace(w)}
             </div>
@@ -178,7 +178,7 @@ export function AlertsPanel({ alerts, onSelect }: { alerts: Alert[]; onSelect: (
           <li key={a.alert_id}>
             <div className="flex items-center gap-2.5">
               <SeverityIcon severity={a.severity} />
-              <h3 className="truncate text-[17px] font-[620]">{a.title_ro}</h3>
+              <h3 className="min-w-0 truncate text-[17px] font-[620]">{a.title_ro}</h3>
               <span className="sr-only">, {SEVERITY_RO[a.severity]}</span>
               {a.work_item_ids?.[0] ? (
                 <button
@@ -264,7 +264,7 @@ export function WorkItemPeek({
       <div className="grid grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-x-3">
         <Marker w={w} decision={decision} selected />
         <div className="min-w-0">
-          <h2 id="peek-title" className="code-id truncate text-[18px]">
+          <h2 id="peek-title" className="code-id truncate text-[18px]" translate="no">
             {w.work_item_id}
           </h2>
           <p className="truncate text-[14.5px] text-muted-foreground">

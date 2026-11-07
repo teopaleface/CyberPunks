@@ -38,10 +38,12 @@ export function ReviewActions({ workItemId, scenario }: { workItemId: string; sc
       </label>
       <Textarea
         id={noteId}
+        name="nota"
+        autoComplete="off"
         value={note}
         onChange={(e) => setNote(e.target.value)}
         maxLength={2000}
-        placeholder="De exemplu: am sunat clientul, contorul a fost înlocuit acum două săptămâni."
+        placeholder="De exemplu: am sunat clientul, contorul a fost înlocuit acum două săptămâni…"
         className="min-h-[76px] rounded-[4px] bg-panel text-[15px]"
       />
       <div className="flex flex-wrap gap-2.5">
