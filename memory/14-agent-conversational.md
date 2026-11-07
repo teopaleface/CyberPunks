@@ -40,3 +40,7 @@ Teo a creat numărul de test Meta +1 555 154 5755 și a confirmat parola Faceboo
 Notele vocale sunt implementate și testate cu furnizori simulați, inclusiv răspuns OGG/Opus și păstrarea textului dacă audio eșuează. Teo a precizat că nu poate înregistra acum; nu s-a verificat o notă vocală reală prin Meta. Nu îi cerem repetat înregistrarea. Audio este activat numai pentru expeditorul verificat care a cerut această funcție.
 
 Tunelul și tokenul Meta sunt temporare. Procesele locale trebuie să rămână pornite; site-ul nu a fost publicat. P1/P2 din catalog nu sunt toate implementate. Pornire, verificări și limite: [RUNBOOK](../docs/operations/RUNBOOK.md). Secretele și identificatorii personali ai expeditorului rămân numai în fișiere private ignorate de Git, fără valori în memorie.
+
+## Conturi nominale, 8 noiembrie
+
+Teo a cerut explicit aceleași trei conturi local și pe live: dispecer@daybreak.ro, tehnician@daybreak.ro și client@daybreak.ro, cu parola comună stabilită de el, păstrată numai privat. Conturile au fost configurate cu rolurile corespunzătoare, păstrând identificatorii și asocierea WhatsApp. Formularul a fost corectat pentru autentificarea cu parola existentă, păstrând minimul obișnuit la creare/resetare. Toate cele șase autentificări din formular, trei roluri în două medii, au trecut. Publicare din copie izolată a sursei comise, versiunea 2c071473-84fb-4923-a5e7-2135d343fad1. Serviciul operațional rămâne local.
