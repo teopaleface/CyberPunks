@@ -1,0 +1,12 @@
+# Jurnal
+
+Cronologic. Fiecare intrare: ora (București), ce s-a întâmplat, ce s-a decis. Cele mai noi jos.
+
+## 7 noiembrie 2026
+
+- dimineața: research despre PPC Group (firmă, planul 2026-2030, România, tehnologie, știri). Raportul e în `02-ppc-firma.md`.
+- 11:40: Teo e la SmartHack 2026, la standul PPC. A cerut folderul proiectului "CyberPunks", repo GitHub privat și un folder separat de memorie cu tot ce e relevant.
+- 11:45: research SmartHack. Tema e secretă până la deschidere. PPC dă marele premiu (1.500 €) și locul 2 (1.000 €). Prezentare de maxim 10 minute. Proiectul trebuie pe GitHub, cu acces pentru juriu. Detalii în `01-smarthack-2026.md`.
+- 11:48: am găsit cum lucrează PPC cu datele: Daniel Albu conduce datele și infrastructura, folosesc Claude Enterprise pentru circa 1.000 de angajați, contoarele trimit la 15 minute, au mentenanță predictivă și inspecții cu drone. Detalii în `03-ppc-tehnologie-si-digital.md`.
+- 11:49: am verificat surse de date publice. Transelectrica (sistemul energetic în timp real) și Open-Meteo merg fără cheie. Detalii în `04-surse-de-date.md`.
+- 11:55: creat folderul `~/Projects/CyberPunks`, memoria în `memory/`, repo privat `teopaleface/CyberPunks` pe GitHub.
