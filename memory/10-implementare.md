@@ -18,6 +18,19 @@ Decizia lui Teo (7 nov. 2026, 12:30): facem în paralel A (contoare), B (furtun�
 | Interfață | Teo-ui | consola dispecerului, Next.js, portul 3710 |
 | Prezentare | Teo-prezentare | video de 30 s cu HyperFrames în stil Apple, slideuri, scriptul demo-ului |
 
+## Thread-urile pornite (7 nov., 12:44) și worktree-urile lor
+
+Worktree-urile sunt în `/Users/teo/.t3/worktrees/CyberPunks/<branch>`.
+
+- A: `mcp:67703da0-af20-4c1c-a2bb-e07fc00ea882`
+- B: `mcp:42039004-e535-4894-814b-7dfcc519d440`
+- C: `mcp:1db1c118-f897-495d-bf45-dcd91a9d84bf`
+- Planificator: `mcp:8a721147-9253-4a31-a5c5-45843bf660ae`
+- Interfață: `mcp:258543d3-0b7d-4643-bfb8-99aa0e4bc313`
+- Prezentare: `mcp:1b443203-dc89-437d-bf33-01ad5692d571`
+
+Orchestratorul rulează automat la fiecare 30 de minute, prin programarea T3 "Orchestrator CyberPunks (la 30 de minute)" (`scheduled-task:command:mcp:2b4adb6a-3dd4-464e-9117-b6bdd3211bf4:schedule-task:cyberpunks-orchestrator-tick-v1`), legată de conversația laterală. Se oprește după demo (duminică, 13:30). Mac-ul e ținut treaz cu `caffeinate -dimsu -t 93600` (26 de ore, pornit la 12:46).
+
 ## Alegeri tehnice (orchestrator, 7 nov.)
 
 - Python 3.12 prin uv. Verificat că se instalează și se importă: lightgbm 4.7.0, shap 0.54.1, ortools 9.15, pandapower 3.5.6, simbench 1.6.3, scikit-learn 1.9.1, pandas 2.3.3, numpy 2.4.6, fastapi, fpdf2.
