@@ -20,3 +20,5 @@ plates_v3/raw/*.png
 audio/local/
 plates_v3/attempts/
 **/__pycache__/
+audio/vo/**/*.wav
+audio/vo/*.wav

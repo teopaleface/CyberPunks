@@ -1,0 +1,1118 @@
+{
+ "voice": "am_michael",
+ "units": "seconds, film time (t=0 = first sample of the mix)",
+ "total_duration": 55.986,
+ "sample_rate": 48000,
+ "music": {
+  "track": "Kanye West - POWER (instrumental), local only",
+  "bpm": 77.001,
+  "beat_s": 0.779212,
+  "bar_s": 3.116846,
+  "drop": 21.818,
+  "drop_note": "drum drop = start of VO line 6",
+  "button": 52.9864,
+  "button_note": "hook downbeat; the music rings out to the end",
+  "edits": [
+   {
+    "film_s": 46.7527,
+    "from_orig_s": 49.9735,
+    "to_orig_s": 68.6746
+   }
+  ],
+  "segments": [
+   {
+    "film_start_s": 0.0,
+    "orig_start_s": 3.2208,
+    "orig_end_s": 49.9735
+   },
+   {
+    "film_start_s": 46.7527,
+    "orig_start_s": 68.6746,
+    "orig_end_s": 74.9083
+   },
+   {
+    "film_start_s": 52.9864,
+    "orig_start_s": 74.9083,
+    "orig_end_s": 77.9083,
+    "note": "hook downbeat, ring-out"
+   }
+  ],
+  "beat_detection": {
+   "librosa_tempo": 77.13,
+   "detected": 65,
+   "of": 69
+  },
+  "beats": [
+   {
+    "t": 0.0,
+    "detected": 0.044,
+    "bar": -7,
+    "beat": 1,
+    "downbeat": true
+   },
+   {
+    "t": 0.7792,
+    "detected": 0.792,
+    "bar": -7,
+    "beat": 2,
+    "downbeat": false
+   },
+   {
+    "t": 1.5584,
+    "detected": 1.5653,
+    "bar": -7,
+    "beat": 3,
+    "downbeat": false
+   },
+   {
+    "t": 2.3376,
+    "detected": 2.3533,
+    "bar": -7,
+    "beat": 4,
+    "downbeat": false
+   },
+   {
+    "t": 3.1168,
+    "detected": 3.1187,
+    "bar": -6,
+    "beat": 1,
+    "downbeat": true
+   },
+   {
+    "t": 3.8961,
+    "detected": 3.9093,
+    "bar": -6,
+    "beat": 2,
+    "downbeat": false
+   },
+   {
+    "t": 4.6753,
+    "detected": 4.6827,
+    "bar": -6,
+    "beat": 3,
+    "downbeat": false
+   },
+   {
+    "t": 5.4545,
+    "detected": 5.4693,
+    "bar": -6,
+    "beat": 4,
+    "downbeat": false
+   },
+   {
+    "t": 6.2337,
+    "detected": 6.24,
+    "bar": -5,
+    "beat": 1,
+    "downbeat": true
+   },
+   {
+    "t": 7.0129,
+    "detected": 7.0413,
+    "bar": -5,
+    "beat": 2,
+    "downbeat": false
+   },
+   {
+    "t": 7.7921,
+    "detected": 7.796,
+    "bar": -5,
+    "beat": 3,
+    "downbeat": false
+   },
+   {
+    "t": 8.5713,
+    "detected": 8.6107,
+    "bar": -5,
+    "beat": 4,
+    "downbeat": false
+   },
+   {
+    "t": 9.3505,
+    "detected": 9.3507,
+    "bar": -4,
+    "beat": 1,
+    "downbeat": true
+   },
+   {
+    "t": 10.1297,
+    "detected": 10.1333,
+    "bar": -4,
+    "beat": 2,
+    "downbeat": false
+   },
+   {
+    "t": 10.909,
+    "detected": 10.9093,
+    "bar": -4,
+    "beat": 3,
+    "downbeat": false
+   },
+   {
+    "t": 11.6882,
+    "detected": 11.6987,
+    "bar": -4,
+    "beat": 4,
+    "downbeat": false
+   },
+   {
+    "t": 12.4674,
+    "detected": 12.4627,
+    "bar": -3,
+    "beat": 1,
+    "downbeat": true
+   },
+   {
+    "t": 13.2466,
+    "detected": 13.2547,
+    "bar": -3,
+    "beat": 2,
+    "downbeat": false
+   },
+   {
+    "t": 14.0258,
+    "detected": 14.0293,
+    "bar": -3,
+    "beat": 3,
+    "downbeat": false
+   },
+   {
+    "t": 14.805,
+    "detected": 14.816,
+    "bar": -3,
+    "beat": 4,
+    "downbeat": false
+   },
+   {
+    "t": 15.5842,
+    "detected": 15.58,
+    "bar": -2,
+    "beat": 1,
+    "downbeat": true
+   },
+   {
+    "t": 16.3634,
+    "detected": 16.3733,
+    "bar": -2,
+    "beat": 2,
+    "downbeat": false
+   },
+   {
+    "t": 17.1427,
+    "detected": 17.152,
+    "bar": -2,
+    "beat": 3,
+    "downbeat": false
+   },
+   {
+    "t": 17.9219,
+    "detected": 17.9347,
+    "bar": -2,
+    "beat": 4,
+    "downbeat": false
+   },
+   {
+    "t": 18.7011,
+    "detected": 18.7093,
+    "bar": -1,
+    "beat": 1,
+    "downbeat": true
+   },
+   {
+    "t": 19.4803,
+    "detected": 19.5053,
+    "bar": -1,
+    "beat": 2,
+    "downbeat": false
+   },
+   {
+    "t": 20.2595,
+    "detected": 20.2587,
+    "bar": -1,
+    "beat": 3,
+    "downbeat": false
+   },
+   {
+    "t": 21.0387,
+    "detected": 21.076,
+    "bar": -1,
+    "beat": 4,
+    "downbeat": false
+   },
+   {
+    "t": 21.8179,
+    "detected": 21.8133,
+    "bar": 0,
+    "beat": 1,
+    "downbeat": true
+   },
+   {
+    "t": 22.5971,
+    "detected": 22.592,
+    "bar": 0,
+    "beat": 2,
+    "downbeat": false
+   },
+   {
+    "t": 23.3763,
+    "detected": 23.3747,
+    "bar": 0,
+    "beat": 3,
+    "downbeat": false
+   },
+   {
+    "t": 24.1556,
+    "detected": 24.1547,
+    "bar": 0,
+    "beat": 4,
+    "downbeat": false
+   },
+   {
+    "t": 24.9348,
+    "detected": 24.9293,
+    "bar": 1,
+    "beat": 1,
+    "downbeat": true
+   },
+   {
+    "t": 25.714,
+    "detected": 25.708,
+    "bar": 1,
+    "beat": 2,
+    "downbeat": false
+   },
+   {
+    "t": 26.4932,
+    "detected": 26.4987,
+    "bar": 1,
+    "beat": 3,
+    "downbeat": false
+   },
+   {
+    "t": 27.2724,
+    "detected": 27.2707,
+    "bar": 1,
+    "beat": 4,
+    "downbeat": false
+   },
+   {
+    "t": 28.0516,
+    "detected": 28.0493,
+    "bar": 2,
+    "beat": 1,
+    "downbeat": true
+   },
+   {
+    "t": 28.8308,
+    "detected": 28.828,
+    "bar": 2,
+    "beat": 2,
+    "downbeat": false
+   },
+   {
+    "t": 29.61,
+    "detected": 29.6093,
+    "bar": 2,
+    "beat": 3,
+    "downbeat": false
+   },
+   {
+    "t": 30.3892,
+    "detected": 30.388,
+    "bar": 2,
+    "beat": 4,
+    "downbeat": false
+   },
+   {
+    "t": 31.1685,
+    "detected": 31.1787,
+    "bar": 3,
+    "beat": 1,
+    "downbeat": true
+   },
+   {
+    "t": 31.9477,
+    "detected": 31.968,
+    "bar": 3,
+    "beat": 2,
+    "downbeat": false
+   },
+   {
+    "t": 32.7269,
+    "detected": 32.7347,
+    "bar": 3,
+    "beat": 3,
+    "downbeat": false
+   },
+   {
+    "t": 33.5061,
+    "detected": 33.4747,
+    "bar": 3,
+    "beat": 4,
+    "downbeat": false
+   },
+   {
+    "t": 34.2853,
+    "detected": 34.2787,
+    "bar": 4,
+    "beat": 1,
+    "downbeat": true
+   },
+   {
+    "t": 35.0645,
+    "detected": 35.0667,
+    "bar": 4,
+    "beat": 2,
+    "downbeat": false
+   },
+   {
+    "t": 35.8437,
+    "detected": 35.844,
+    "bar": 4,
+    "beat": 3,
+    "downbeat": false
+   },
+   {
+    "t": 36.6229,
+    "detected": 36.6227,
+    "bar": 4,
+    "beat": 4,
+    "downbeat": false
+   },
+   {
+    "t": 37.4022,
+    "detected": 37.396,
+    "bar": 5,
+    "beat": 1,
+    "downbeat": true
+   },
+   {
+    "t": 38.1814,
+    "detected": 38.1787,
+    "bar": 5,
+    "beat": 2,
+    "downbeat": false
+   },
+   {
+    "t": 38.9606,
+    "detected": 38.9613,
+    "bar": 5,
+    "beat": 3,
+    "downbeat": false
+   },
+   {
+    "t": 39.7398,
+    "detected": 39.7373,
+    "bar": 5,
+    "beat": 4,
+    "downbeat": false
+   },
+   {
+    "t": 40.519,
+    "detected": 40.516,
+    "bar": 6,
+    "beat": 1,
+    "downbeat": true
+   },
+   {
+    "t": 41.2982,
+    "detected": 41.292,
+    "bar": 6,
+    "beat": 2,
+    "downbeat": false
+   },
+   {
+    "t": 42.0774,
+    "detected": 42.0773,
+    "bar": 6,
+    "beat": 3,
+    "downbeat": false
+   },
+   {
+    "t": 42.8566,
+    "detected": 42.856,
+    "bar": 6,
+    "beat": 4,
+    "downbeat": false
+   },
+   {
+    "t": 43.6358,
+    "detected": 43.6373,
+    "bar": 7,
+    "beat": 1,
+    "downbeat": true
+   },
+   {
+    "t": 44.4151,
+    "detected": 44.412,
+    "bar": 7,
+    "beat": 2,
+    "downbeat": false
+   },
+   {
+    "t": 45.1943,
+    "detected": 45.1933,
+    "bar": 7,
+    "beat": 3,
+    "downbeat": false
+   },
+   {
+    "t": 45.9735,
+    "detected": 45.976,
+    "bar": 7,
+    "beat": 4,
+    "downbeat": false
+   },
+   {
+    "t": 46.7527,
+    "detected": 46.7427,
+    "bar": 8,
+    "beat": 1,
+    "downbeat": true
+   },
+   {
+    "t": 47.5319,
+    "detected": 47.5293,
+    "bar": 8,
+    "beat": 2,
+    "downbeat": false
+   },
+   {
+    "t": 48.3111,
+    "detected": 48.312,
+    "bar": 8,
+    "beat": 3,
+    "downbeat": false
+   },
+   {
+    "t": 49.0903,
+    "detected": 49.0907,
+    "bar": 8,
+    "beat": 4,
+    "downbeat": false
+   },
+   {
+    "t": 49.8695,
+    "detected": 49.872,
+    "bar": 9,
+    "beat": 1,
+    "downbeat": true
+   },
+   {
+    "t": 50.6487,
+    "detected": null,
+    "bar": 9,
+    "beat": 2,
+    "downbeat": false
+   },
+   {
+    "t": 51.428,
+    "detected": null,
+    "bar": 9,
+    "beat": 3,
+    "downbeat": false
+   },
+   {
+    "t": 52.2072,
+    "detected": null,
+    "bar": 9,
+    "beat": 4,
+    "downbeat": false
+   },
+   {
+    "t": 52.9864,
+    "detected": null,
+    "bar": 10,
+    "beat": 1,
+    "downbeat": true
+   }
+  ]
+ },
+ "lines": [
+  {
+   "index": 1,
+   "text": "A storm hits Banat.",
+   "file": "vo/am_michael/line_01.wav",
+   "file_start": 2.308,
+   "start": 2.338,
+   "end": 3.743,
+   "words": [
+    {
+     "word": "A",
+     "start": 2.338,
+     "end": 2.538
+    },
+    {
+     "word": "storm",
+     "start": 2.573,
+     "end": 2.843
+    },
+    {
+     "word": "hits",
+     "start": 2.843,
+     "end": 3.173
+    },
+    {
+     "word": "Banat.",
+     "start": 3.173,
+     "end": 3.743
+    }
+   ]
+  },
+  {
+   "index": 2,
+   "text": "Poles fall. Houses go dark.",
+   "file": "vo/am_michael/line_02.wav",
+   "file_start": 4.645,
+   "start": 4.675,
+   "end": 7.33,
+   "words": [
+    {
+     "word": "Poles",
+     "start": 4.675,
+     "end": 5.09
+    },
+    {
+     "word": "fall.",
+     "start": 5.09,
+     "end": 5.579
+    },
+    {
+     "word": "Houses",
+     "start": 6.009,
+     "end": 6.59
+    },
+    {
+     "word": "go",
+     "start": 6.59,
+     "end": 6.865
+    },
+    {
+     "word": "dark.",
+     "start": 6.865,
+     "end": 7.33
+    }
+   ]
+  },
+  {
+   "index": 3,
+   "text": "Meters get tampered with. Rooftop solar overloads the grid.",
+   "file": "vo/am_michael/line_03.wav",
+   "file_start": 8.541,
+   "start": 8.571,
+   "end": 12.862,
+   "words": [
+    {
+     "word": "Meters",
+     "start": 8.571,
+     "end": 8.97
+    },
+    {
+     "word": "get",
+     "start": 8.97,
+     "end": 9.221
+    },
+    {
+     "word": "tampered",
+     "start": 9.221,
+     "end": 9.751
+    },
+    {
+     "word": "with.",
+     "start": 9.751,
+     "end": 10.113
+    },
+    {
+     "word": "Rooftop",
+     "start": 10.563,
+     "end": 11.081
+    },
+    {
+     "word": "solar",
+     "start": 11.081,
+     "end": 11.454
+    },
+    {
+     "word": "overloads",
+     "start": 11.454,
+     "end": 12.15
+    },
+    {
+     "word": "the",
+     "start": 12.15,
+     "end": 12.326
+    },
+    {
+     "word": "grid.",
+     "start": 12.326,
+     "end": 12.861
+    }
+   ]
+  },
+  {
+   "index": 4,
+   "text": "Tomorrow, eleven crews must fix five hundred and fifty-six problems.",
+   "file": "vo/am_michael/line_04.wav",
+   "file_start": 13.996,
+   "start": 14.026,
+   "end": 18.694,
+   "words": [
+    {
+     "word": "Tomorrow,",
+     "start": 14.026,
+     "end": 14.731
+    },
+    {
+     "word": "eleven",
+     "start": 14.836,
+     "end": 15.286
+    },
+    {
+     "word": "crews",
+     "start": 15.286,
+     "end": 15.864
+    },
+    {
+     "word": "must",
+     "start": 15.864,
+     "end": 16.246
+    },
+    {
+     "word": "fix",
+     "start": 16.246,
+     "end": 16.461
+    },
+    {
+     "word": "five",
+     "start": 16.461,
+     "end": 16.766
+    },
+    {
+     "word": "hundred",
+     "start": 16.766,
+     "end": 17.151
+    },
+    {
+     "word": "and",
+     "start": 17.151,
+     "end": 17.343
+    },
+    {
+     "word": "fifty-six",
+     "start": 17.343,
+     "end": 17.886
+    },
+    {
+     "word": "problems.",
+     "start": 17.886,
+     "end": 18.695
+    }
+   ]
+  },
+  {
+   "index": 5,
+   "text": "Where should each crew go?",
+   "file": "vo/am_michael/line_05.wav",
+   "file_start": 19.45,
+   "start": 19.48,
+   "end": 20.832,
+   "words": [
+    {
+     "word": "Where",
+     "start": 19.48,
+     "end": 19.705
+    },
+    {
+     "word": "should",
+     "start": 19.705,
+     "end": 20.11
+    },
+    {
+     "word": "each",
+     "start": 20.11,
+     "end": 20.382
+    },
+    {
+     "word": "crew",
+     "start": 20.382,
+     "end": 20.69
+    },
+    {
+     "word": "go?",
+     "start": 20.69,
+     "end": 20.832
+    }
+   ]
+  },
+  {
+   "index": 6,
+   "text": "Daybreak plans it for you.",
+   "file": "vo/am_michael/line_06.wav",
+   "file_start": 21.788,
+   "start": 21.818,
+   "end": 23.383,
+   "words": [
+    {
+     "word": "Daybreak",
+     "start": 21.818,
+     "end": 22.328
+    },
+    {
+     "word": "plans",
+     "start": 22.328,
+     "end": 22.723
+    },
+    {
+     "word": "it",
+     "start": 22.723,
+     "end": 22.843
+    },
+    {
+     "word": "for",
+     "start": 22.843,
+     "end": 22.958
+    },
+    {
+     "word": "you.",
+     "start": 22.958,
+     "end": 23.383
+    }
+   ]
+  },
+  {
+   "index": 7,
+   "text": "It finds the problems,",
+   "file": "vo/am_michael/line_07.wav",
+   "file_start": 24.905,
+   "start": 24.935,
+   "end": 26.354,
+   "words": [
+    {
+     "word": "It",
+     "start": 24.935,
+     "end": 25.156
+    },
+    {
+     "word": "finds",
+     "start": 25.156,
+     "end": 25.475
+    },
+    {
+     "word": "the",
+     "start": 25.475,
+     "end": 25.63
+    },
+    {
+     "word": "problems,",
+     "start": 25.655,
+     "end": 26.354
+    }
+   ]
+  },
+  {
+   "index": 8,
+   "text": "puts the urgent ones first,",
+   "file": "vo/am_michael/line_08.wav",
+   "file_start": 26.664,
+   "start": 26.694,
+   "end": 28.355,
+   "words": [
+    {
+     "word": "puts",
+     "start": 26.694,
+     "end": 26.849
+    },
+    {
+     "word": "the",
+     "start": 26.849,
+     "end": 27.124
+    },
+    {
+     "word": "urgent",
+     "start": 27.124,
+     "end": 27.528
+    },
+    {
+     "word": "ones",
+     "start": 27.528,
+     "end": 27.884
+    },
+    {
+     "word": "first,",
+     "start": 27.884,
+     "end": 28.355
+    }
+   ]
+  },
+  {
+   "index": 9,
+   "text": "and plans the shortest route for every crew.",
+   "file": "vo/am_michael/line_09.wav",
+   "file_start": 28.675,
+   "start": 28.705,
+   "end": 31.288,
+   "words": [
+    {
+     "word": "and",
+     "start": 28.705,
+     "end": 28.935
+    },
+    {
+     "word": "plans",
+     "start": 28.935,
+     "end": 29.177
+    },
+    {
+     "word": "the",
+     "start": 29.177,
+     "end": 29.4
+    },
+    {
+     "word": "shortest",
+     "start": 29.4,
+     "end": 29.985
+    },
+    {
+     "word": "route",
+     "start": 29.985,
+     "end": 30.31
+    },
+    {
+     "word": "for",
+     "start": 30.31,
+     "end": 30.515
+    },
+    {
+     "word": "every",
+     "start": 30.545,
+     "end": 30.88
+    },
+    {
+     "word": "crew.",
+     "start": 30.88,
+     "end": 31.289
+    }
+   ]
+  },
+  {
+   "index": 10,
+   "text": "Is this meter really tampered with? When Daybreak isn't sure, the dispatcher decides.",
+   "file": "vo/am_michael/line_10.wav",
+   "file_start": 32.307,
+   "start": 32.337,
+   "end": 38.064,
+   "words": [
+    {
+     "word": "Is",
+     "start": 32.337,
+     "end": 32.497
+    },
+    {
+     "word": "this",
+     "start": 32.497,
+     "end": 32.702
+    },
+    {
+     "word": "meter",
+     "start": 32.702,
+     "end": 33.122
+    },
+    {
+     "word": "really",
+     "start": 33.122,
+     "end": 33.467
+    },
+    {
+     "word": "tampered",
+     "start": 33.467,
+     "end": 33.932
+    },
+    {
+     "word": "with?",
+     "start": 33.932,
+     "end": 34.404
+    },
+    {
+     "word": "When",
+     "start": 34.934,
+     "end": 35.177
+    },
+    {
+     "word": "Daybreak",
+     "start": 35.177,
+     "end": 35.882
+    },
+    {
+     "word": "isn't",
+     "start": 35.882,
+     "end": 36.227
+    },
+    {
+     "word": "sure,",
+     "start": 36.227,
+     "end": 36.522
+    },
+    {
+     "word": "the",
+     "start": 36.637,
+     "end": 36.747
+    },
+    {
+     "word": "dispatcher",
+     "start": 36.747,
+     "end": 37.527
+    },
+    {
+     "word": "decides.",
+     "start": 37.527,
+     "end": 38.064
+    }
+   ]
+  },
+  {
+   "index": 11,
+   "text": "Crews leave at daybreak.",
+   "file": "vo/am_michael/line_11.wav",
+   "file_start": 38.931,
+   "start": 38.961,
+   "end": 40.519,
+   "words": [
+    {
+     "word": "Crews",
+     "start": 38.961,
+     "end": 39.175
+    },
+    {
+     "word": "leave",
+     "start": 39.175,
+     "end": 39.601
+    },
+    {
+     "word": "at",
+     "start": 39.601,
+     "end": 39.756
+    },
+    {
+     "word": "daybreak.",
+     "start": 39.756,
+     "end": 40.519
+    }
+   ]
+  },
+  {
+   "index": 12,
+   "text": "Thirty percent less driving. Fewer wasted trips.",
+   "file": "vo/am_michael/line_12.wav",
+   "file_start": 41.658,
+   "start": 41.688,
+   "end": 45.305,
+   "words": [
+    {
+     "word": "Thirty",
+     "start": 41.688,
+     "end": 41.993
+    },
+    {
+     "word": "percent",
+     "start": 41.993,
+     "end": 42.292
+    },
+    {
+     "word": "less",
+     "start": 42.292,
+     "end": 42.588
+    },
+    {
+     "word": "driving.",
+     "start": 42.588,
+     "end": 43.423
+    },
+    {
+     "word": "Fewer",
+     "start": 43.893,
+     "end": 44.137
+    },
+    {
+     "word": "wasted",
+     "start": 44.137,
+     "end": 44.603
+    },
+    {
+     "word": "trips.",
+     "start": 44.603,
+     "end": 45.305
+    }
+   ]
+  },
+  {
+   "index": 13,
+   "text": "Daybreak. Tomorrow's crews, planned tonight.",
+   "file": "vo/am_michael/line_13.wav",
+   "file_start": 46.723,
+   "start": 46.753,
+   "end": 50.156,
+   "words": [
+    {
+     "word": "Daybreak.",
+     "start": 46.753,
+     "end": 47.547
+    },
+    {
+     "word": "Tomorrow's",
+     "start": 48.357,
+     "end": 48.702
+    },
+    {
+     "word": "crews,",
+     "start": 48.702,
+     "end": 49.122
+    },
+    {
+     "word": "planned",
+     "start": 49.122,
+     "end": 49.598
+    },
+    {
+     "word": "tonight.",
+     "start": 49.598,
+     "end": 50.156
+    }
+   ]
+  }
+ ],
+ "sfx": [
+  {
+   "type": "tick",
+   "t": 19.48
+  },
+  {
+   "type": "tick",
+   "t": 20.259
+  },
+  {
+   "type": "tick",
+   "t": 21.039
+  },
+  {
+   "type": "whoosh",
+   "start": 20.818,
+   "end": 21.818
+  },
+  {
+   "type": "pin_tock",
+   "t": 25.655
+  },
+  {
+   "type": "pin_tock",
+   "t": 26.045
+  },
+  {
+   "type": "pin_tock",
+   "t": 26.434
+  },
+  {
+   "type": "cursor_click",
+   "t": 38.214
+  }
+ ]
+}

@@ -1,0 +1,1481 @@
+{
+ "af_heart": {
+  "1": {
+   "text": "A storm hits Banat.",
+   "heard": "A storm hits Banat.",
+   "ok": true,
+   "words": [
+    [
+     "A",
+     -0.3,
+     0.030000000000000027
+    ],
+    [
+     "storm",
+     0.030000000000000027,
+     0.19
+    ],
+    [
+     "hits",
+     0.19,
+     0.51
+    ],
+    [
+     "Banat.",
+     0.51,
+     1.18
+    ]
+   ]
+  },
+  "2": {
+   "text": "Poles fall. Houses go dark.",
+   "heard": "Poles fall. Houses go dark.",
+   "ok": true,
+   "words": [
+    [
+     "Poles",
+     0.030000000000000027,
+     0.25000000000000006
+    ],
+    [
+     "fall.",
+     0.25000000000000006,
+     0.74
+    ],
+    [
+     "Houses",
+     0.74,
+     1.57
+    ],
+    [
+     "go",
+     1.57,
+     1.8699999999999999
+    ],
+    [
+     "dark.",
+     1.8699999999999999,
+     2.4200000000000004
+    ]
+   ]
+  },
+  "3": {
+   "text": "Meters get tampered with. Rooftop solar overloads the grid.",
+   "heard": "Meters get tampered with. Rooftop solar overloads the grid.",
+   "ok": true,
+   "words": [
+    [
+     "Meters",
+     -0.3,
+     0.26000000000000006
+    ],
+    [
+     "get",
+     0.26000000000000006,
+     0.54
+    ],
+    [
+     "tampered",
+     0.54,
+     1.29
+    ],
+    [
+     "with.",
+     1.29,
+     1.9000000000000001
+    ],
+    [
+     "Rooftop",
+     1.9000000000000001,
+     2.3000000000000003
+    ],
+    [
+     "solar",
+     2.3000000000000003,
+     2.6100000000000003
+    ],
+    [
+     "overloads",
+     2.6100000000000003,
+     3.1700000000000004
+    ],
+    [
+     "the",
+     3.1700000000000004,
+     3.37
+    ],
+    [
+     "grid.",
+     3.37,
+     3.84
+    ]
+   ]
+  },
+  "4": {
+   "text": "Tomorrow, eleven crews must fix five hundred and fifty-six problems.",
+   "heard": "Tomorrow, 11 crews must fix 556 problems.",
+   "ok": true,
+   "words": [
+    [
+     "Tomorrow,",
+     0.030000000000000027,
+     0.8699999999999999
+    ],
+    [
+     "11",
+     0.8699999999999999,
+     1.15
+    ],
+    [
+     "crews",
+     1.15,
+     1.5899999999999999
+    ],
+    [
+     "must",
+     1.5899999999999999,
+     2.0100000000000002
+    ],
+    [
+     "fix",
+     2.0100000000000002,
+     2.3200000000000003
+    ],
+    [
+     "556",
+     2.3200000000000003,
+     3.35
+    ],
+    [
+     "problems.",
+     3.35,
+     4.44
+    ]
+   ]
+  },
+  "5": {
+   "text": "Where should each crew go?",
+   "heard": "Where should each crew go?",
+   "ok": true,
+   "words": [
+    [
+     "Where",
+     -0.02999999999999997,
+     0.040000000000000036
+    ],
+    [
+     "should",
+     0.040000000000000036,
+     0.29
+    ],
+    [
+     "each",
+     0.29,
+     0.52
+    ],
+    [
+     "crew",
+     0.52,
+     0.74
+    ],
+    [
+     "go?",
+     0.74,
+     1.04
+    ]
+   ]
+  },
+  "6": {
+   "text": "Daybreak plans it for you.",
+   "heard": "Daybreak plans it for you.",
+   "ok": true,
+   "words": [
+    [
+     "Daybreak",
+     -0.09,
+     0.25000000000000006
+    ],
+    [
+     "plans",
+     0.25000000000000006,
+     0.6799999999999999
+    ],
+    [
+     "it",
+     0.6799999999999999,
+     0.73
+    ],
+    [
+     "for",
+     0.73,
+     0.94
+    ],
+    [
+     "you.",
+     0.94,
+     1.38
+    ]
+   ]
+  },
+  "7": {
+   "text": "It finds the problems,",
+   "heard": "It finds the problems.",
+   "ok": true,
+   "words": [
+    [
+     "It",
+     -0.10999999999999999,
+     0.030000000000000027
+    ],
+    [
+     "finds",
+     0.030000000000000027,
+     0.36000000000000004
+    ],
+    [
+     "the",
+     0.36000000000000004,
+     0.6300000000000001
+    ],
+    [
+     "problems.",
+     0.6300000000000001,
+     1.42
+    ]
+   ]
+  },
+  "8": {
+   "text": "puts the urgent ones first,",
+   "heard": "puts the urgent ones first,",
+   "ok": true,
+   "words": [
+    [
+     "puts",
+     0.030000000000000027,
+     0.06
+    ],
+    [
+     "the",
+     0.06,
+     0.34
+    ],
+    [
+     "urgent",
+     0.34,
+     0.8299999999999998
+    ],
+    [
+     "ones",
+     0.8299999999999998,
+     1.18
+    ],
+    [
+     "first,",
+     1.18,
+     1.64
+    ]
+   ]
+  },
+  "9": {
+   "text": "and plans the shortest route for every crew.",
+   "heard": "and plans the shortest route for every crew,",
+   "ok": true,
+   "words": [
+    [
+     "and",
+     -0.07999999999999999,
+     0.030000000000000027
+    ],
+    [
+     "plans",
+     0.030000000000000027,
+     0.27999999999999997
+    ],
+    [
+     "the",
+     0.27999999999999997,
+     0.5
+    ],
+    [
+     "shortest",
+     0.5,
+     1.0799999999999998
+    ],
+    [
+     "route",
+     1.0799999999999998,
+     1.55
+    ],
+    [
+     "for",
+     1.55,
+     1.66
+    ],
+    [
+     "every",
+     1.66,
+     2.02
+    ],
+    [
+     "crew,",
+     2.02,
+     2.3400000000000003
+    ]
+   ]
+  },
+  "10": {
+   "text": "Is this meter really tampered with? When Daybreak isn't sure, the dispatcher decides.",
+   "heard": "Is this meter really tampered with? When Daybreak isn't sure, the dispatcher decides.",
+   "ok": true,
+   "words": [
+    [
+     "Is",
+     -0.3,
+     0.030000000000000027
+    ],
+    [
+     "this",
+     0.030000000000000027,
+     0.24000000000000005
+    ],
+    [
+     "meter",
+     0.24000000000000005,
+     0.55
+    ],
+    [
+     "really",
+     0.55,
+     1.01
+    ],
+    [
+     "tampered",
+     1.01,
+     1.6199999999999999
+    ],
+    [
+     "with?",
+     1.6199999999999999,
+     2.2
+    ],
+    [
+     "When",
+     2.2,
+     2.5300000000000002
+    ],
+    [
+     "Daybreak",
+     2.5300000000000002,
+     3.04
+    ],
+    [
+     "isn't",
+     3.04,
+     3.39
+    ],
+    [
+     "sure,",
+     3.39,
+     3.8200000000000003
+    ],
+    [
+     "the",
+     3.8200000000000003,
+     4.0200000000000005
+    ],
+    [
+     "dispatcher",
+     4.0200000000000005,
+     4.95
+    ],
+    [
+     "decides.",
+     4.95,
+     5.4
+    ]
+   ]
+  },
+  "11": {
+   "text": "Crews leave at daybreak.",
+   "heard": "Crews leave at daybreak.",
+   "ok": true,
+   "words": [
+    [
+     "Crews",
+     0.030000000000000027,
+     0.14
+    ],
+    [
+     "leave",
+     0.14,
+     0.5700000000000001
+    ],
+    [
+     "at",
+     0.5700000000000001,
+     0.78
+    ],
+    [
+     "daybreak.",
+     0.78,
+     1.9000000000000001
+    ]
+   ]
+  },
+  "12": {
+   "text": "Thirty percent less driving. Fewer wasted trips.",
+   "heard": "30% less driving, fewer wasted trips,",
+   "ok": true,
+   "words": [
+    [
+     "30%",
+     0.13,
+     0.47000000000000003
+    ],
+    [
+     "less",
+     0.47000000000000003,
+     0.9099999999999999
+    ],
+    [
+     "driving,",
+     0.9099999999999999,
+     2.08
+    ],
+    [
+     "fewer",
+     2.08,
+     2.33
+    ],
+    [
+     "wasted",
+     2.33,
+     2.87
+    ],
+    [
+     "trips,",
+     2.87,
+     3.3600000000000003
+    ]
+   ]
+  },
+  "13": {
+   "text": "Daybreak. Tomorrow's crews, planned tonight.",
+   "heard": "Daybreak. Tomorrow's cruise planned tonight.",
+   "ok": true,
+   "words": [
+    [
+     "Daybreak.",
+     0.040000000000000036,
+     1.5
+    ],
+    [
+     "Tomorrow's",
+     1.5,
+     1.66
+    ],
+    [
+     "cruise",
+     1.66,
+     2.14
+    ],
+    [
+     "planned",
+     2.14,
+     2.72
+    ],
+    [
+     "tonight.",
+     2.72,
+     3.3000000000000003
+    ]
+   ]
+  }
+ },
+ "am_michael": {
+  "1": {
+   "text": "A storm hits Banat.",
+   "heard": "A storm hits Banat.",
+   "ok": true,
+   "words": [
+    [
+     "A",
+     -0.3,
+     0.030000000000000027
+    ],
+    [
+     "storm",
+     0.030000000000000027,
+     0.27999999999999997
+    ],
+    [
+     "hits",
+     0.27999999999999997,
+     0.6000000000000001
+    ],
+    [
+     "Banat.",
+     0.6000000000000001,
+     1.3599999999999999
+    ]
+   ]
+  },
+  "2": {
+   "text": "Poles fall. Houses go dark.",
+   "heard": "Polls fall, houses go dark,",
+   "ok": true,
+   "words": [
+    [
+     "Polls",
+     0.030000000000000027,
+     0.49000000000000005
+    ],
+    [
+     "fall,",
+     0.49000000000000005,
+     1.42
+    ],
+    [
+     "houses",
+     1.42,
+     1.9799999999999998
+    ],
+    [
+     "go",
+     1.9799999999999998,
+     2.23
+    ],
+    [
+     "dark,",
+     2.23,
+     2.7600000000000002
+    ]
+   ]
+  },
+  "3": {
+   "text": "Meters get tampered with. Rooftop solar overloads the grid.",
+   "heard": "Meters get tampered with. Rooftop solar overloads the grid.",
+   "ok": true,
+   "words": [
+    [
+     "Meters",
+     -0.3,
+     0.26000000000000006
+    ],
+    [
+     "get",
+     0.26000000000000006,
+     0.54
+    ],
+    [
+     "tampered",
+     0.54,
+     1.29
+    ],
+    [
+     "with.",
+     1.29,
+     1.99
+    ],
+    [
+     "Rooftop",
+     1.99,
+     2.4400000000000004
+    ],
+    [
+     "solar",
+     2.4400000000000004,
+     2.81
+    ],
+    [
+     "overloads",
+     2.81,
+     3.48
+    ],
+    [
+     "the",
+     3.48,
+     3.7
+    ],
+    [
+     "grid.",
+     3.7,
+     4.26
+    ]
+   ]
+  },
+  "4": {
+   "text": "Tomorrow, eleven crews must fix five hundred and fifty-six problems.",
+   "heard": "Tomorrow, 11 crews must fix 556 problems.",
+   "ok": true,
+   "words": [
+    [
+     "Tomorrow,",
+     0.030000000000000027,
+     0.8499999999999999
+    ],
+    [
+     "11",
+     0.8499999999999999,
+     1.49
+    ],
+    [
+     "crews",
+     1.49,
+     2.1500000000000004
+    ],
+    [
+     "must",
+     2.1500000000000004,
+     2.5
+    ],
+    [
+     "fix",
+     2.5,
+     2.85
+    ],
+    [
+     "556",
+     2.85,
+     3.83
+    ],
+    [
+     "problems.",
+     3.83,
+     4.78
+    ]
+   ]
+  },
+  "5": {
+   "text": "Where should each crew go?",
+   "heard": "Where should each crew go?",
+   "ok": true,
+   "words": [
+    [
+     "Where",
+     0.030000000000000027,
+     0.10999999999999999
+    ],
+    [
+     "should",
+     0.10999999999999999,
+     0.6100000000000001
+    ],
+    [
+     "each",
+     0.6100000000000001,
+     0.94
+    ],
+    [
+     "crew",
+     0.94,
+     1.24
+    ],
+    [
+     "go?",
+     1.24,
+     1.46
+    ]
+   ]
+  },
+  "6": {
+   "text": "Daybreak plans it for you.",
+   "heard": "Daybreak plans it for you.",
+   "ok": true,
+   "words": [
+    [
+     "Daybreak",
+     -0.07999999999999999,
+     0.29
+    ],
+    [
+     "plans",
+     0.29,
+     0.71
+    ],
+    [
+     "it",
+     0.71,
+     0.81
+    ],
+    [
+     "for",
+     0.81,
+     1.03
+    ],
+    [
+     "you.",
+     1.03,
+     1.52
+    ]
+   ]
+  },
+  "7": {
+   "text": "It finds the problems,",
+   "heard": "It finds the problems.",
+   "ok": true,
+   "words": [
+    [
+     "It",
+     -0.3,
+     0.030000000000000027
+    ],
+    [
+     "finds",
+     0.030000000000000027,
+     0.26999999999999996
+    ],
+    [
+     "the",
+     0.26999999999999996,
+     0.43
+    ],
+    [
+     "problems.",
+     0.43,
+     1.26
+    ]
+   ]
+  },
+  "8": {
+   "text": "puts the urgent ones first,",
+   "heard": "puts the urgent ones first,",
+   "ok": true,
+   "words": [
+    [
+     "puts",
+     0.030000000000000027,
+     0.040000000000000036
+    ],
+    [
+     "the",
+     0.040000000000000036,
+     0.32
+    ],
+    [
+     "urgent",
+     0.32,
+     0.8
+    ],
+    [
+     "ones",
+     0.8,
+     1.22
+    ],
+    [
+     "first,",
+     1.22,
+     1.76
+    ]
+   ]
+  },
+  "9": {
+   "text": "and plans the shortest route for every crew.",
+   "heard": "and plans the shortest route for every crew.",
+   "ok": true,
+   "words": [
+    [
+     "and",
+     -0.04999999999999999,
+     0.10999999999999999
+    ],
+    [
+     "plans",
+     0.10999999999999999,
+     0.36000000000000004
+    ],
+    [
+     "the",
+     0.36000000000000004,
+     0.6100000000000001
+    ],
+    [
+     "shortest",
+     0.6100000000000001,
+     1.32
+    ],
+    [
+     "route",
+     1.32,
+     1.72
+    ],
+    [
+     "for",
+     1.72,
+     1.93
+    ],
+    [
+     "every",
+     1.93,
+     2.3400000000000003
+    ],
+    [
+     "crew.",
+     2.3400000000000003,
+     2.7
+    ]
+   ]
+  },
+  "10": {
+   "text": "Is this meter really tampered with? When Daybreak isn't sure, the dispatcher decides.",
+   "heard": "Is this meter really tampered with? When Daybreak isn't sure, the dispatcher decides.",
+   "ok": true,
+   "words": [
+    [
+     "Is",
+     -0.3,
+     0.030000000000000027
+    ],
+    [
+     "this",
+     0.030000000000000027,
+     0.21000000000000002
+    ],
+    [
+     "meter",
+     0.21000000000000002,
+     0.6000000000000001
+    ],
+    [
+     "really",
+     0.6000000000000001,
+     1.0899999999999999
+    ],
+    [
+     "tampered",
+     1.0899999999999999,
+     1.74
+    ],
+    [
+     "with?",
+     1.74,
+     2.3400000000000003
+    ],
+    [
+     "When",
+     2.3400000000000003,
+     2.6900000000000004
+    ],
+    [
+     "Daybreak",
+     2.6900000000000004,
+     3.3800000000000003
+    ],
+    [
+     "isn't",
+     3.3800000000000003,
+     3.8100000000000005
+    ],
+    [
+     "sure,",
+     3.8100000000000005,
+     4.33
+    ],
+    [
+     "the",
+     4.33,
+     4.55
+    ],
+    [
+     "dispatcher",
+     4.55,
+     5.3
+    ],
+    [
+     "decides.",
+     5.3,
+     5.84
+    ]
+   ]
+  },
+  "11": {
+   "text": "Crews leave at daybreak.",
+   "heard": "Crews leave at daybreak.",
+   "ok": true,
+   "words": [
+    [
+     "Crews",
+     0.0,
+     0.07
+    ],
+    [
+     "leave",
+     0.07,
+     0.45
+    ],
+    [
+     "at",
+     0.45,
+     0.6000000000000001
+    ],
+    [
+     "daybreak.",
+     0.6000000000000001,
+     1.48
+    ]
+   ]
+  },
+  "12": {
+   "text": "Thirty percent less driving. Fewer wasted trips.",
+   "heard": "30% less driving, fewer wasted trips.",
+   "ok": true,
+   "words": [
+    [
+     "30%",
+     0.13,
+     0.54
+    ],
+    [
+     "less",
+     0.54,
+     0.9099999999999999
+    ],
+    [
+     "driving,",
+     0.9099999999999999,
+     2.27
+    ],
+    [
+     "fewer",
+     2.27,
+     2.3400000000000003
+    ],
+    [
+     "wasted",
+     2.3400000000000003,
+     2.8200000000000003
+    ],
+    [
+     "trips.",
+     2.8200000000000003,
+     3.54
+    ]
+   ]
+  },
+  "13": {
+   "text": "Daybreak. Tomorrow's crews, planned tonight.",
+   "heard": "Daybreak. Tomorrow's cruise planned tonight.",
+   "ok": true,
+   "words": [
+    [
+     "Daybreak.",
+     0.040000000000000036,
+     1.5799999999999998
+    ],
+    [
+     "Tomorrow's",
+     1.5799999999999998,
+     1.74
+    ],
+    [
+     "cruise",
+     1.74,
+     2.24
+    ],
+    [
+     "planned",
+     2.24,
+     2.7800000000000002
+    ],
+    [
+     "tonight.",
+     2.7800000000000002,
+     3.3800000000000003
+    ]
+   ]
+  }
+ },
+ "bm_george": {
+  "1": {
+   "text": "A storm hits Banat.",
+   "heard": "A storm hits Banat.",
+   "ok": true,
+   "words": [
+    [
+     "A",
+     -0.3,
+     0.030000000000000027
+    ],
+    [
+     "storm",
+     0.030000000000000027,
+     0.49000000000000005
+    ],
+    [
+     "hits",
+     0.49000000000000005,
+     1.02
+    ],
+    [
+     "Banat.",
+     1.02,
+     1.7
+    ]
+   ]
+  },
+  "2": {
+   "text": "Poles fall. Houses go dark.",
+   "heard": "Poles fall, houses go dark.",
+   "ok": true,
+   "words": [
+    [
+     "Poles",
+     0.040000000000000036,
+     0.5800000000000001
+    ],
+    [
+     "fall,",
+     0.5800000000000001,
+     1.5999999999999999
+    ],
+    [
+     "houses",
+     1.5999999999999999,
+     2.0700000000000003
+    ],
+    [
+     "go",
+     2.0700000000000003,
+     2.33
+    ],
+    [
+     "dark.",
+     2.33,
+     2.96
+    ]
+   ]
+  },
+  "3": {
+   "text": "Meters get tampered with. Rooftop solar overloads the grid.",
+   "heard": "Meters get tampered with. Rooftop solar overloads the grid.",
+   "ok": true,
+   "words": [
+    [
+     "Meters",
+     -0.3,
+     0.38000000000000006
+    ],
+    [
+     "get",
+     0.38000000000000006,
+     0.72
+    ],
+    [
+     "tampered",
+     0.72,
+     1.63
+    ],
+    [
+     "with.",
+     1.63,
+     2.24
+    ],
+    [
+     "Rooftop",
+     2.24,
+     2.87
+    ],
+    [
+     "solar",
+     2.87,
+     3.4000000000000004
+    ],
+    [
+     "overloads",
+     3.4000000000000004,
+     4.41
+    ],
+    [
+     "the",
+     4.41,
+     4.67
+    ],
+    [
+     "grid.",
+     4.67,
+     5.4
+    ]
+   ]
+  },
+  "4": {
+   "text": "Tomorrow, eleven crews must fix five hundred and fifty-six problems.",
+   "heard": "Tomorrow, 11 crews must fix 556 problems.",
+   "ok": true,
+   "words": [
+    [
+     "Tomorrow,",
+     0.020000000000000018,
+     0.8599999999999999
+    ],
+    [
+     "11",
+     0.8599999999999999,
+     1.48
+    ],
+    [
+     "crews",
+     1.48,
+     2.1300000000000003
+    ],
+    [
+     "must",
+     2.1300000000000003,
+     2.47
+    ],
+    [
+     "fix",
+     2.47,
+     2.8000000000000003
+    ],
+    [
+     "556",
+     2.8000000000000003,
+     3.8
+    ],
+    [
+     "problems.",
+     3.8,
+     5.0600000000000005
+    ]
+   ]
+  },
+  "5": {
+   "text": "Where should each crew go?",
+   "heard": "Where should each crew go?",
+   "ok": true,
+   "words": [
+    [
+     "Where",
+     0.020000000000000018,
+     0.16999999999999998
+    ],
+    [
+     "should",
+     0.16999999999999998,
+     0.78
+    ],
+    [
+     "each",
+     0.78,
+     1.1199999999999999
+    ],
+    [
+     "crew",
+     1.1199999999999999,
+     1.5
+    ],
+    [
+     "go?",
+     1.5,
+     1.7
+    ]
+   ]
+  },
+  "6": {
+   "text": "Daybreak plans it for you.",
+   "heard": "Daybreak plans it for you.",
+   "ok": true,
+   "words": [
+    [
+     "Daybreak",
+     -0.019999999999999962,
+     0.45
+    ],
+    [
+     "plans",
+     0.45,
+     0.9199999999999999
+    ],
+    [
+     "it",
+     0.9199999999999999,
+     1.1099999999999999
+    ],
+    [
+     "for",
+     1.1099999999999999,
+     1.39
+    ],
+    [
+     "you.",
+     1.39,
+     1.78
+    ]
+   ]
+  },
+  "7": {
+   "text": "It finds the problems,",
+   "heard": "It finds the problems.",
+   "ok": true,
+   "words": [
+    [
+     "It",
+     -0.3,
+     0.020000000000000018
+    ],
+    [
+     "finds",
+     0.020000000000000018,
+     0.25000000000000006
+    ],
+    [
+     "the",
+     0.25000000000000006,
+     0.44
+    ],
+    [
+     "problems.",
+     0.44,
+     1.28
+    ]
+   ]
+  },
+  "8": {
+   "text": "puts the urgent ones first,",
+   "heard": "Puts the urgent ones first.",
+   "ok": true,
+   "words": [
+    [
+     "Puts",
+     -0.3,
+     0.10999999999999999
+    ],
+    [
+     "the",
+     0.10999999999999999,
+     0.48000000000000004
+    ],
+    [
+     "urgent",
+     0.48000000000000004,
+     1.05
+    ],
+    [
+     "ones",
+     1.05,
+     1.47
+    ],
+    [
+     "first.",
+     1.47,
+     2.2800000000000002
+    ]
+   ]
+  },
+  "9": {
+   "text": "and plans the shortest route for every crew.",
+   "heard": "and plans the shortest route for every crew.",
+   "ok": true,
+   "words": [
+    [
+     "and",
+     -0.06999999999999998,
+     0.030000000000000027
+    ],
+    [
+     "plans",
+     0.030000000000000027,
+     0.32
+    ],
+    [
+     "the",
+     0.32,
+     0.55
+    ],
+    [
+     "shortest",
+     0.55,
+     1.17
+    ],
+    [
+     "route",
+     1.17,
+     1.56
+    ],
+    [
+     "for",
+     1.56,
+     1.9999999999999998
+    ],
+    [
+     "every",
+     1.9999999999999998,
+     2.18
+    ],
+    [
+     "crew.",
+     2.18,
+     2.7600000000000002
+    ]
+   ]
+  },
+  "10": {
+   "text": "Is this meter really tampered with? When Daybreak isn't sure, the dispatcher decides.",
+   "heard": "\"Is this meter really tampered with? When Daybreak isn't sure, the dispatcher decides.\"",
+   "ok": true,
+   "words": [
+    [
+     "\"Is",
+     -0.3,
+     0.020000000000000018
+    ],
+    [
+     "this",
+     0.020000000000000018,
+     0.47000000000000003
+    ],
+    [
+     "meter",
+     0.47000000000000003,
+     1.21
+    ],
+    [
+     "really",
+     1.21,
+     1.64
+    ],
+    [
+     "tampered",
+     1.64,
+     2.49
+    ],
+    [
+     "with?",
+     2.49,
+     3.3200000000000003
+    ],
+    [
+     "When",
+     3.3200000000000003,
+     3.64
+    ],
+    [
+     "Daybreak",
+     3.64,
+     4.28
+    ],
+    [
+     "isn't",
+     4.28,
+     4.83
+    ],
+    [
+     "sure,",
+     4.83,
+     5.16
+    ],
+    [
+     "the",
+     5.16,
+     5.390000000000001
+    ],
+    [
+     "dispatcher",
+     5.390000000000001,
+     6.8
+    ],
+    [
+     "decides.\"",
+     6.8,
+     6.8
+    ]
+   ]
+  },
+  "11": {
+   "text": "Crews leave at daybreak.",
+   "heard": "Crews leave at daybreak.",
+   "ok": true,
+   "words": [
+    [
+     "Crews",
+     0.020000000000000018,
+     0.10000000000000003
+    ],
+    [
+     "leave",
+     0.10000000000000003,
+     0.5
+    ],
+    [
+     "at",
+     0.5,
+     0.6599999999999999
+    ],
+    [
+     "daybreak.",
+     0.6599999999999999,
+     1.56
+    ]
+   ]
+  },
+  "12": {
+   "text": "Thirty percent less driving. Fewer wasted trips.",
+   "heard": "30% less driving. Fewer wasted trips.",
+   "ok": true,
+   "words": [
+    [
+     "30%",
+     0.10000000000000003,
+     0.78
+    ],
+    [
+     "less",
+     0.78,
+     1.4
+    ],
+    [
+     "driving.",
+     1.4,
+     2.7
+    ],
+    [
+     "Fewer",
+     2.7,
+     3.33
+    ],
+    [
+     "wasted",
+     3.33,
+     4.28
+    ],
+    [
+     "trips.",
+     4.28,
+     4.7
+    ]
+   ]
+  },
+  "13": {
+   "text": "Daybreak. Tomorrow's crews, planned tonight.",
+   "heard": "Daybreak. Tomorrow's cruise planned tonight.",
+   "ok": true,
+   "words": [
+    [
+     "Daybreak.",
+     0.030000000000000027,
+     1.7099999999999997
+    ],
+    [
+     "Tomorrow's",
+     1.7099999999999997,
+     1.97
+    ],
+    [
+     "cruise",
+     1.97,
+     2.54
+    ],
+    [
+     "planned",
+     2.54,
+     3.2
+    ],
+    [
+     "tonight.",
+     3.2,
+     3.9400000000000004
+    ]
+   ]
+  }
+ }
+}

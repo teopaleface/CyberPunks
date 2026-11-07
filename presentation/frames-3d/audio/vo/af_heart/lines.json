@@ -1,0 +1,196 @@
+{
+ "1": {
+  "text": "A storm hits Banat.",
+  "speed": 0.93,
+  "sr": 24000,
+  "duration": 1.3596666666666666,
+  "sentences": [
+   {
+    "text": "A storm hits Banat.",
+    "start": 0.03,
+    "end": 1.2796666666666667
+   }
+  ]
+ },
+ "2": {
+  "text": "Poles fall. Houses go dark.",
+  "speed": 0.93,
+  "sr": 24000,
+  "duration": 2.5951666666666666,
+  "sentences": [
+   {
+    "text": "Poles fall.",
+    "start": 0.03,
+    "end": 0.860625
+   },
+   {
+    "text": "Houses go dark.",
+    "start": 1.290625,
+    "end": 2.5151666666666666
+   }
+  ]
+ },
+ "3": {
+  "text": "Meters get tampered with. Rooftop solar overloads the grid.",
+  "speed": 0.93,
+  "sr": 24000,
+  "duration": 4.020166666666666,
+  "sentences": [
+   {
+    "text": "Meters get tampered with.",
+    "start": 0.03,
+    "end": 1.4458333333333333
+   },
+   {
+    "text": "Rooftop solar overloads the grid.",
+    "start": 1.8958333333333333,
+    "end": 3.940166666666667
+   }
+  ]
+ },
+ "4": {
+  "text": "Tomorrow, eleven crews must fix five hundred and fifty-six problems.",
+  "speed": 0.93,
+  "sr": 24000,
+  "duration": 4.352,
+  "sentences": [
+   {
+    "text": "Tomorrow, eleven crews must fix five hundred and fifty-six problems.",
+    "start": 0.03,
+    "end": 4.272
+   }
+  ]
+ },
+ "5": {
+  "text": "Where should each crew go?",
+  "speed": 0.93,
+  "sr": 24000,
+  "duration": 1.2780416666666667,
+  "sentences": [
+   {
+    "text": "Where should each crew go?",
+    "start": 0.03,
+    "end": 1.1980416666666667
+   }
+  ]
+ },
+ "6": {
+  "text": "Daybreak plans it for you.",
+  "speed": 0.93,
+  "sr": 24000,
+  "duration": 1.5595416666666666,
+  "sentences": [
+   {
+    "text": "Daybreak plans it for you.",
+    "start": 0.03,
+    "end": 1.4795416666666668
+   }
+  ]
+ },
+ "7": {
+  "text": "It finds the problems,",
+  "speed": 0.93,
+  "sr": 24000,
+  "duration": 1.427625,
+  "sentences": [
+   {
+    "text": "It finds the problems,",
+    "start": 0.03,
+    "end": 1.347625
+   }
+  ]
+ },
+ "8": {
+  "text": "puts the urgent ones first,",
+  "speed": 0.93,
+  "sr": 24000,
+  "duration": 1.6435833333333334,
+  "sentences": [
+   {
+    "text": "puts the urgent ones first,",
+    "start": 0.03,
+    "end": 1.5635833333333333
+   }
+  ]
+ },
+ "9": {
+  "text": "and plans the shortest route for every crew.",
+  "speed": 0.93,
+  "sr": 24000,
+  "duration": 2.3472916666666666,
+  "sentences": [
+   {
+    "text": "and plans the shortest route for every crew.",
+    "start": 0.03,
+    "end": 2.2672916666666665
+   }
+  ]
+ },
+ "10": {
+  "text": "Is this meter really tampered with? When Daybreak isn't sure, the dispatcher decides.",
+  "speed": 0.93,
+  "sr": 24000,
+  "duration": 5.255125,
+  "sentences": [
+   {
+    "text": "Is this meter really tampered with?",
+    "start": 0.03,
+    "end": 1.9177916666666666
+   },
+   {
+    "text": "When Daybreak isn't sure, the dispatcher decides.",
+    "start": 2.447791666666667,
+    "end": 5.175125
+   }
+  ]
+ },
+ "11": {
+  "text": "Crews leave at daybreak.",
+  "speed": 0.93,
+  "sr": 24000,
+  "duration": 1.4563333333333333,
+  "sentences": [
+   {
+    "text": "Crews leave at daybreak.",
+    "start": 0.03,
+    "end": 1.3763333333333334
+   }
+  ]
+ },
+ "12": {
+  "text": "Thirty percent less driving. Fewer wasted trips.",
+  "speed": 0.93,
+  "sr": 24000,
+  "duration": 3.3357916666666667,
+  "sentences": [
+   {
+    "text": "Thirty percent less driving.",
+    "start": 0.03,
+    "end": 1.4982083333333334
+   },
+   {
+    "text": "Fewer wasted trips.",
+    "start": 1.9682083333333333,
+    "end": 3.2557916666666666
+   }
+  ]
+ },
+ "13": {
+  "text": "Daybreak. Tomorrow's crews, planned tonight.",
+  "speed": 0.93,
+  "sr": 24000,
+  "duration": 3.4835416666666665,
+  "sentences": [
+   {
+    "text": "Daybreak.",
+    "start": 0.03,
+    "end": 0.7195416666666666
+   },
+   {
+    "text": "Tomorrow's crews, planned tonight.",
+    "start": 1.5295416666666666,
+    "end": 3.4035416666666665
+   }
+  ]
+ }
+}
