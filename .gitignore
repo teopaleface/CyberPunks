@@ -41,3 +41,4 @@ presentation/**/*.zip
 presentation/**/*.wav
 presentation/**/renders/
 *.mov
+logs/
