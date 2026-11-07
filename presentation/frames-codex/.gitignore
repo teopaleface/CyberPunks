@@ -1,0 +1,5 @@
+# Imaginile generate se refac din plăci (v2/compose.py); v1 e respinsă, rămân doar planșa și prompturile
+v1/*.png
+v2/frames/
+__pycache__/
+v2/plates/*.png
