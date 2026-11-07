@@ -14,7 +14,7 @@ Contract implementat în acest task. Nu se modifică API-ul vechi sau serverele 
 
 ## Persistență și confirmare
 
-SQLite păstrează `connections`, `cases`, `proposals`, `commands`, `events`. Propunerea expiră după zece minute și este legată de utilizator, întreaga apartenență verificată, scenariu, versiunea planului și versiunile cazurilor afectate. Identitatea este verificată din nou înainte de confirmare și de recuperarea comenzii. Un alt utilizator nu poate confirma propunerea și nu poate citi comanda emitentului.
+SQLite păstrează `connections`, `cases`, `proposals`, `commands`, `events` și `command_recoveries`. Propunerea expiră după zece minute și este legată de utilizator, întreaga apartenență verificată, scenariu, versiunea planului și versiunile cazurilor afectate. Identitatea este verificată din nou înainte de confirmare și de recuperarea comenzii. Un alt utilizator nu poate confirma propunerea. Comanda poate fi citită de emitentul cu apartenență neschimbată sau de dispecerul autorizat explicit pentru recuperare, în aceeași organizație și scenariu.
 
 Propunerile neconfirmate nu schimbă cazuri, planul, etichetele sau jurnalul deciziilor. Parametrii necunoscuți, inclusiv roluri sau identități strecurate în date, sunt refuzați. Refuzul unui obiect din alt domeniu produce 404, fără conținut privat. Organizațiile și scenariile neprovisionate nu primesc planul global.
 
@@ -55,3 +55,44 @@ Evaluările salvate care nu mai corespund predicției curente apar ca `stale`, f
 ## Rezultatul verificării acestui task
 
 Pe copia completă a rulării izolate `20261107-225356-433121`, cu 689 de lucrări valide, comanda `DAYBREAK_OPERATIONS_TEST_DATA=/Users/teo/Projects/CyberPunks/outputs/operations-runtime/runs/20261107-225356-433121/data uv run pytest tests/operations tests/runtime -x` a trecut: 32 de probe, dintre care 28 operaționale și patru de autorizare a runtime-ului. Ruff, verificarea formatării și compilarea Python au trecut. Avertismentele rămase provin din Starlette/httpx și SWIG. Nu s-a făcut commit, staging, publicare, trimitere externă sau modificare a conturilor/datei operaționale folosite de integrare. Testele au scris numai în directoarele temporare proprii.
+
+## Contractul recuperării după schimbarea apartenenței
+
+Permisiune nouă explicită pentru dispecer: `recover_commands`. Nu este dedusă din rol și nu se acordă vechiului tehnician. Provizionarea pentru conturi noi o include; conturile existente trebuie autorizate separat de serverul care gestionează apartenențele.
+
+`context.pending_commands` include comenzile proprii și, pentru dispecerul cu această permisiune, comenzile în așteptare din aceeași organizație și scenariu. Fiecare rând include `command_id`, `proposal_id`, `action`, `status`, `created_at`, `can_recover`, `recovery_action`. Valorile recuperării sunt `retrieve`, `cancel`, `manual_review`, `requires_dispatcher`.
+
+`GET /api/operations/commands/{id}` recuperează pentru dispecer numai efectul deja publicat, integral sau parțial, pe baza manifestului existent. Nu recalculează o acțiune și nu publică un rezultat doar pregătit după revocare. Dacă nu există efect publicat, întoarce comanda încă în așteptare și `recovery: {effect_status,allowed_decisions:["cancel"],requires_confirmation:true}`.
+
+Anularea explicită, numai fără efect publicat: `POST /api/operations/commands/{id}/recover`, corp `{decision:"cancel",reason:"..."}`. Este permisă numai dispecerului cu `recover_commands`; marchează comanda `cancelled`, fără executarea acțiunii. Confirmarea inițială rămâne imuabilă. Un manifest corupt/conflictual cere verificare manuală și nu poate fi anulat prin această cale.
+
+
+Recuperările au audit durabil în `command_recoveries`, cu `confirmed_by` și `reconciled_by` separate. Evenimentul rezultat păstrează `actor_id` și rolul emitentului inițial, plus dispecerul și ID-ul recuperării. Comenzile confirmate înaintea acestei corecții se pot recupera din identitatea emitentului păstrată deja în SQLite; rolul istoric neînregistrat apare `null`, fără a inventa apartenențe sau a le reinstaura. Propunerea și parametrii ei nu sunt rescriși.
+
+Un simplu GET al unei comenzi fără efect publicat nu o anulează și nu o execută. Pentru butonul de recuperare, UI folosește `pending_commands[].recovery_action`: `retrieve` apelează GET-ul existent; `cancel` arată motivul și confirmarea explicită, apoi apelează POST-ul nou; `manual_review` și `requires_dispatcher` nu execută nimic. Comenzile terminale se recitesc idempotent și nu adaugă recuperări duplicate. După finalizare sau anulare, `pending_commands` nu mai include comanda și o operație independentă poate fi confirmată.
+
+Verificarea corecției: suita completă `uv run pytest tests/operations tests/runtime -x` a trecut 40 de probe pe o copie completă a rulării izolate curente. Apoi `uv run pytest tests/operations/test_recovery.py -x` a trecut opt probe, inclusiv două probe suplimentare pentru comenzile vechi fără rol salvat. Sunt acoperite publicarea integrală și parțială, revocarea apartenenței, descoperirea după restart, refuzurile pentru alte organizații/tehnicieni/dispeceri fără permisiune, lipsa reapelării planificatorului, auditul separat, anularea explicită fără efect, refuzul adoptării unei propuneri neconfirmate și deblocarea operației următoare. Nu au fost modificate conturi sau procesele live de integrare.
+
+## Deschiderea unei propuneri dintr-un link autentificat
+
+Contract implementat: `GET /api/operations/proposals/{proposal_id}`, prin `OperationsService.proposal(actor, proposal_id)`. Răspunsul 200 este exact propunerea publică întoarsă de prepare: `proposal_id`, `action`, `data`, `scenario`, `plan_version`, `created_at`, `expires_at`, `requires_confirmation`, `summary`. Nu include `actor_signature`, rânduri interne sau identitatea salvată a actorului.
+
+Ruta este doar de citire. Nu pregătește din nou, nu confirmă, nu anulează și nu recuperează comenzi. Numai emitentul original, în aceeași organizație, cu apartenența și permisiunile neschimbate și obiectele încă în domeniul său, poate citi propunerea. Dispecerul cu `recover_commands` nu poate deschide propunerea altui emitent. Identificatorul din link nu acordă drepturi. Antetele de serviciu și actorul verificat se transmit la fel ca la prepare/confirm.
+
+Erori: 401 fără autentificarea de serviciu; 404 pentru alt emitent, organizație sau obiect ieșit din domeniu; 403 `membership_changed` la revocare/schimbare de rol, echipă sau permisiuni; 409 `proposal_expired` după expirare; 409 `proposal_consumed` după orice confirmare anterioară, inclusiv comandă în reconciliere sau anulată ulterior; 409 `stale_plan`/`stale_case` dacă versiunile s-au schimbat. Propunerile expirate sau consumate nu sunt întoarse ca propuneri confirmabile. Citirea nu execută confirmarea sau recuperarea și nu schimbă regulile existente ale acestor acțiuni.
+
+Web poate folosi `/workspace?proposal=<id>` după autentificare, apoi acest GET. Confirmarea rămâne exclusiv butonul care apelează POST-ul existent `/proposals/{id}/confirm`. Pentru rularea locală fără URL public, `context.pending_proposals` permite găsirea ID-ului după autentificare, conform contractului de mai jos.
+
+Verificarea noului GET: `uv run pytest tests/operations/test_proposal_read.py -x` a trecut 14 probe pe datele complete copiate izolat. Sunt verificate egalitatea cu propunerea originală după restart, lipsa oricărei executări/scrieri operaționale, alt emitent/organizație/dispecer, promovarea sau revocarea apartenenței, expirarea, confirmarea deja executată/în reconciliere/anulată, schimbarea planului și autentificarea de serviciu. Corecția proiecției verdictului către client și recuperarea comenzilor rămân păstrate.
+
+Suita extinsă `uv run pytest tests/operations tests/runtime -x` a trecut 54 de probe înainte de un eșec din domeniul runtime/channels: `tests/runtime/test_runtime_auth.py::test_whatsapp_handshake_uses_native_verification_not_app_bearer` a primit 403, cu 200 așteptat. Acest task nu modifică acel test, runtime-ul sau configurarea WhatsApp. Nu s-au modificat conturi, baza runtime, configurații sau procese. Fără staging/commit.
+
+Regresia operațională verificată separat după acel eșec: `uv run pytest tests/operations -x` a trecut toate cele 50 de probe. Ruff, formatarea și `git diff --check` trec.
+
+## Descoperirea propunerilor fără link public
+
+Contract implementat pentru web: `GET /api/operations/context` include `pending_proposals`, o listă cu cel mult zece propuneri proprii, cele mai recente primele. Fiecare element are exact `proposal_id`, `action`, `summary`, `scenario`, `created_at`, `expires_at`, `requires_confirmation: true`. Butonul Open poate citi `GET /api/operations/proposals/{proposal_id}` după autentificare; apoi folosește confirmarea explicită existentă. Nu este necesar un URL public sau publicarea site-ului.
+
+Lista include numai emitentul curent, aceeași organizație/scenariu și semnătura apartenenței actuale. Se verifică din nou rolul, permisiunile, expirarea, versiunile planului/cazurilor și domeniul obiectelor. Propunerile confirmate, expirate, vechi sau revocate sunt excluse. Nici dispecerul cu `recover_commands` nu vede propunerile altui utilizator. Citirea nu execută, nu confirmă, nu anulează și nu recuperează nimic. Se verifică o fereastră mărginită de maximum 50 dintre cele mai recente propuneri neconfirmate cu apartenență corespunzătoare, pentru a întoarce maximum zece valide. Nu se expun datele interne sau parametrii compleți ai propunerilor în listă. GET-ul individual și regulile sale rămân neschimbate.
+
+Verificarea descoperirii locale: `uv run pytest tests/operations/test_proposal_read.py -x` a trecut 20 de probe, inclusiv șase noi pentru descoperire după restart fără efecte, izolarea emitentului/apartenenței, excluderea propunerilor expirate sau confirmate, versiunile cazului/planului și limita/ordinea celor zece propuneri. `uv run pytest tests/operations -x` a trecut toate cele 56 de probe. Ruff, formatarea și `git diff --check` trec. În acest follow-up au fost modificate numai `service.py`, `test_proposal_read.py` și acest document. Verdictul public pentru client și recuperarea comenzilor sunt păstrate. Nu au fost modificate conturi, runtime, configurații sau indexul Git.

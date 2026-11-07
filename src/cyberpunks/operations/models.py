@@ -29,6 +29,12 @@ class ProposalRequest(BaseModel):
     scenario: str = Field(default="demo-vara", pattern=r"^[a-z0-9][a-z0-9_-]{0,63}$")
 
 
+class RecoveryRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    decision: Literal["cancel"]
+    reason: str = Field(min_length=3, max_length=2000)
+
+
 class Data(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     idempotency_key: str | None = Field(default=None, min_length=1, max_length=120)

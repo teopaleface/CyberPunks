@@ -106,6 +106,9 @@ def main() -> None:
         for role, client in clients.items():
             current_case = next(c for c in context(client)["cases"] if c["case_id"] == case_id)
             assert current_case["status"] == "verification_after_visit"
+            assert current_case["verdict"]["outcome"] == "confirmed"
+            if role == "customer":
+                assert current_case["verdict"] == {"outcome": "confirmed", "repair_confirmed": False}
         assert saved["result"]["repaired"] is False
         passed("field confirmation: shared follow-up state, no false repair claim, no duplicate")
 

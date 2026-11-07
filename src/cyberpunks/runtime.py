@@ -28,7 +28,8 @@ def create_app() -> FastAPI:
 
     @runtime.middleware("http")
     async def require_internal_access(request: Request, call_next):
-        if request.url.path.startswith("/api/"):
+        meta_webhook = request.url.path == "/api/conversation/whatsapp/webhook" and request.method in ("GET", "POST")
+        if request.url.path.startswith("/api/") and not meta_webhook:
             token = os.environ.get("DAYBREAK_INTERNAL_TOKEN", "")
             if not token:
                 return JSONResponse({"detail": "The private API is not configured."}, status_code=503)

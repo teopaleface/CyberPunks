@@ -6,7 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from cyberpunks.operations.auth import require_actor
-from cyberpunks.operations.models import Actor, OperationError, ProposalRequest
+from cyberpunks.operations.models import Actor, OperationError, ProposalRequest, RecoveryRequest
 from cyberpunks.operations.service import OperationsService, get_service
 
 router = APIRouter(prefix="/api/operations", tags=["operations"])
@@ -42,6 +42,11 @@ def prepare(req: ProposalRequest, actor: VerifiedActor, service: Service):
     return safe(lambda: service.prepare(actor, req.action, req.data, req.scenario))
 
 
+@router.get("/proposals/{proposal_id}")
+def proposal(proposal_id: str, actor: VerifiedActor, service: Service):
+    return safe(lambda: service.proposal(actor, proposal_id))
+
+
 @router.post("/proposals/{proposal_id}/confirm")
 def confirm(proposal_id: str, actor: VerifiedActor, service: Service):
     return safe(lambda: service.confirm(actor, proposal_id))
@@ -50,3 +55,8 @@ def confirm(proposal_id: str, actor: VerifiedActor, service: Service):
 @router.get("/commands/{command_id}")
 def command(command_id: str, actor: VerifiedActor, service: Service):
     return safe(lambda: service.command(actor, command_id))
+
+
+@router.post("/commands/{command_id}/recover")
+def recover(command_id: str, req: RecoveryRequest, actor: VerifiedActor, service: Service):
+    return safe(lambda: service.recover(actor, command_id, req.decision, req.reason))

@@ -25,6 +25,10 @@ CREATE TABLE IF NOT EXISTS events (
  event_id TEXT PRIMARY KEY, command_id TEXT NOT NULL, case_id TEXT, organization_id TEXT NOT NULL,
  scenario TEXT NOT NULL, body TEXT NOT NULL, UNIQUE(command_id, case_id)
 );
+CREATE TABLE IF NOT EXISTS command_recoveries (
+ recovery_id TEXT PRIMARY KEY, command_id TEXT NOT NULL, organization_id TEXT NOT NULL,
+ scenario TEXT NOT NULL, body TEXT NOT NULL
+);
 """
 
 

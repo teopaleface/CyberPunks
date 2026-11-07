@@ -196,7 +196,9 @@ def test_field_verdict_is_actual_but_not_a_repair(env, outcome, label, status):
     assert cmd["status"] == "succeeded"
     assert cmd["result"]["effect"]["label"]["label"] == label
     assert cmd["result"]["repaired"] is False
-    assert s.context(env["customer"])["cases"][0]["status"] == status
+    customer_case = s.context(env["customer"])["cases"][0]
+    assert customer_case["status"] == status
+    assert customer_case["verdict"] == {"outcome": outcome, "repair_confirmed": False}
     assert confirm(env, p, t) == cmd
     labels = [json.loads(x) for x in (env["root"] / "plans/demo-vara/labels.jsonl").read_text().splitlines()]
     assert len(labels) == 1 and labels[0]["prediction_id"] and labels[0]["model_version"]

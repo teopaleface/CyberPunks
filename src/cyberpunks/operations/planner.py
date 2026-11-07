@@ -68,12 +68,49 @@ class Planner:
         if not (view.plan_dir / "inputs").is_dir():
             raise OperationError(409, "missing_run_inputs", "The local run has no reproducible planner inputs.")
 
-    def execute(self, command: dict, proposal: dict, actor_id: str) -> dict:
+    def effect_status(self, command_id: str, proposal: dict) -> str:
+        """Inspectează efectul fără a genera, publica sau modifica vreun rezultat."""
+        path = self.state / "effects" / command_id / "effect.json"
+        manifest = read_json(path)
+        if manifest is None:
+            return "corrupt" if path.exists() else "not_started"
+        try:
+            if manifest["command_id"] != command_id or manifest["scenario"] != proposal["scenario"]:
+                return "corrupt"
+            self._verify_effect(manifest, command_id, proposal["scenario"])
+            target = self.outputs / "plans" / proposal["scenario"]
+            published = [digest(target / c["path"]) == c["after"] for c in manifest["changes"]]
+            if not published or not any(published):
+                return "prepared"
+            return "applied" if all(published) else "partially_applied"
+        except (OperationError, KeyError, TypeError, OSError):
+            return "conflict"
+
+    def _verify_effect(self, manifest: dict, command_id: str, scenario: str):
+        target = self.outputs / "plans" / scenario
+        stage = self.state / "effects" / command_id / "stage" / "plans" / scenario
+        for name, expected in manifest.get("guards", {}).items():
+            if digest(target / name) != expected:
+                raise OperationError(
+                    409, "effect_conflict", "The pending command belongs to a different planner state."
+                )
+        for change in manifest["changes"]:
+            current = digest(target / change["path"])
+            if current not in (change["before"], change["after"]):
+                raise OperationError(
+                    409, "effect_conflict", "Planner files changed during reconciliation; human review required."
+                )
+            if digest(stage / change["path"]) != change["after"]:
+                raise OperationError(503, "effect_corrupt", "The pending planner result needs human review.")
+
+    def execute(self, command: dict, proposal: dict, actor_id: str, *, recover_only: bool = False) -> dict:
         """Cheia comenzii și manifestul fac retry-ul sigur inclusiv după publicare parțială."""
         cid, scenario = command["command_id"], proposal["scenario"]
         base = self.state / "effects" / cid
         manifest_path = base / "effect.json"
         manifest = read_json(manifest_path)
+        if recover_only and self.effect_status(cid, proposal) not in ("applied", "partially_applied"):
+            raise OperationError(409, "recovery_not_committed", "No published effect can be reconciled automatically.")
         if manifest is None:
             self.writable(scenario)
             if self.version(scenario) != proposal["plan_version"]:
@@ -127,21 +164,8 @@ class Planner:
             dump(manifest_path, manifest)
         target = self.outputs / "plans" / scenario
         stage = base / "stage" / "plans" / scenario
-        # Immutable read inputs must still match even after a process restart.
-        for name, expected in manifest.get("guards", {}).items():
-            if digest(target / name) != expected:
-                raise OperationError(
-                    409, "effect_conflict", "The pending command belongs to a different planner state."
-                )
-        # Validate all files before any write. Allow the command's already-published files.
-        for change in manifest["changes"]:
-            current = digest(target / change["path"])
-            if current not in (change["before"], change["after"]):
-                raise OperationError(
-                    409, "effect_conflict", "Planner files changed during reconciliation; human review required."
-                )
-            if digest(stage / change["path"]) != change["after"]:
-                raise OperationError(503, "effect_corrupt", "The pending planner result needs human review.")
+        # Validate all files before any write. Allow this command's already-published files.
+        self._verify_effect(manifest, cid, scenario)
         for change in manifest["changes"]:
             dest = target / change["path"]
             if digest(dest) == change["after"]:

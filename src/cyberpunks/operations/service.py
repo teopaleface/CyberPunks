@@ -108,7 +108,7 @@ class OperationsService:
                 "connection_ids": [c["connection_id"] for c in connections],
                 "crew_id": connections[0]["crew_id"] if connections else None,
                 "connections": connections,
-                "permissions": ["approve_plan", "review_work_item", "create_case"],
+                "permissions": ["approve_plan", "review_work_item", "create_case", "recover_commands"],
             }
 
     def _connections(self, actor: Actor, scenario: str) -> list[dict]:
@@ -288,7 +288,12 @@ class OperationsService:
             "assessment",
             "human_requested",
         )
-        return {k: v for k, v in case.items() if k in allowed}
+        public = {k: v for k, v in case.items() if k in allowed}
+        outcome = case.get("verdict", {}).get("outcome")
+        if outcome in {"confirmed", "not_found", "other_problem", "no_access"}:
+            # Customers need the finding, without internal command/prediction identifiers.
+            public["verdict"] = {"outcome": outcome, "repair_confirmed": False}
+        return public
 
     def context(self, actor: Actor, scenario: str = "demo-vara") -> dict:
         self._scope(actor, scenario)
@@ -336,9 +341,63 @@ class OperationsService:
                     )
                 ]
                 pending = db.execute(
-                    "SELECT count(*) FROM commands WHERE organization_id=? AND scenario=? AND status=?",
+                    "SELECT c.*, p.actor_signature, p.body AS proposal_body FROM commands c JOIN proposals p "
+                    "ON p.proposal_id=c.proposal_id WHERE c.organization_id=? AND c.scenario=? AND c.status=?",
                     (actor.organization_id, scenario, "reconciling"),
-                ).fetchone()[0]
+                ).fetchall()
+                proposal_rows = db.execute(
+                    "SELECT body FROM proposals WHERE user_id=? AND organization_id=? AND scenario=? "
+                    "AND actor_signature=? AND command_id IS NULL ORDER BY rowid DESC LIMIT 50",
+                    (actor.user_id, actor.organization_id, scenario, signature(actor)),
+                ).fetchall()
+            pending_proposals = []
+            for row in proposal_rows:
+                p = json.loads(row["body"])
+                if datetime.fromisoformat(p["expires_at"]) <= now() or p["plan_version"] != version:
+                    continue
+                try:
+                    self._authorize_action(actor, p["action"])
+                    self._check_versions(actor, p)
+                except OperationError:
+                    continue
+                pending_proposals.append(
+                    {
+                        k: p[k]
+                        for k in (
+                            "proposal_id",
+                            "action",
+                            "summary",
+                            "scenario",
+                            "created_at",
+                            "expires_at",
+                            "requires_confirmation",
+                        )
+                    }
+                )
+                if len(pending_proposals) == 10:
+                    break
+            pending_commands = []
+            for row in pending:
+                if row["user_id"] != actor.user_id and not self._can_recover(actor):
+                    continue
+                p = json.loads(row["proposal_body"])
+                cmd = json.loads(row["body"])
+                unchanged_owner = row["user_id"] == actor.user_id and row["actor_signature"] == signature(actor)
+                recovery = self._recovery_options(p, cmd) if self._can_recover(actor) else None
+                pending_commands.append(
+                    {
+                        "command_id": cmd["command_id"],
+                        "proposal_id": cmd["proposal_id"],
+                        "action": cmd["action"],
+                        "status": cmd["status"],
+                        "created_at": cmd["created_at"],
+                        "can_recover": unchanged_owner
+                        or bool(recovery and recovery["action"] in ("retrieve", "cancel")),
+                        "recovery_action": recovery["action"]
+                        if recovery
+                        else ("retrieve" if unchanged_owner else "requires_dispatcher"),
+                    }
+                )
             case_ids = {c["case_id"] for c in cases}
             if actor.role != "dispatcher":
                 events = [
@@ -383,6 +442,8 @@ class OperationsService:
                 "next_stop_status": "approved_plan" if route_approved else "awaiting_approval",
                 "human_requests": [e["human_request"] for e in events if "human_request" in e],
                 "reconciliation_pending": bool(pending),
+                "pending_commands": pending_commands,
+                "pending_proposals": pending_proposals,
                 "synthetic": True,
                 "data_notice": "Synthetic operational associations. Historical model scenario, not a live grid feed.",
             }
@@ -543,10 +604,30 @@ class OperationsService:
         self._authorize_action(actor, p["action"])
         return p, row["command_id"]
 
+    def proposal(self, actor: Actor, proposal_id: str) -> dict:
+        """Citește propunerea confirmabilă a emitentului, fără executare sau regenerare."""
+        with self._lock():
+            p, command_id = self._load_proposal(actor, proposal_id)
+            if command_id:
+                fail(409, "proposal_consumed", "This proposal was already confirmed. Retrieve its command.")
+            if datetime.fromisoformat(p["expires_at"]) <= now():
+                fail(409, "proposal_expired", "The proposal expired. Prepare a new proposal.")
+            self._check_versions(actor, p)
+            return self._public_proposal(p)
+
     def _check_versions(self, actor: Actor, p: dict):
         scenario, d = p["scenario"], p["data"]
         if self.planner.version(scenario) != p["plan_version"]:
             fail(409, "stale_plan", "The plan changed. Prepare a new proposal.")
+        self._check_case_versions(actor, p)
+        # Also recheck current route and connection access at confirmation.
+        if d.get("work_item_id"):
+            self._work_item(actor, scenario, d["work_item_id"])
+        if d.get("connection_id"):
+            self._connection(actor, scenario, d["connection_id"])
+
+    def _check_case_versions(self, actor: Actor, p: dict):
+        scenario, d = p["scenario"], p["data"]
         versions = dict(d.get("linked_case_versions", {}))
         if d.get("case_id"):
             versions[d["case_id"]] = d["case_version"]
@@ -559,11 +640,6 @@ class OperationsService:
                 linked = [c for c in linked if c["work_item_id"] == d["work_item_id"]]
             if {c["case_id"] for c in linked} != set(d["linked_case_versions"]):
                 fail(409, "stale_case", "The linked cases changed. Prepare a new proposal.")
-        # Also recheck current route and connection access at confirmation.
-        if d.get("work_item_id"):
-            self._work_item(actor, scenario, d["work_item_id"])
-        if d.get("connection_id"):
-            self._connection(actor, scenario, d["connection_id"])
 
     def confirm(self, actor: Actor, proposal_id: str) -> dict:
         with self._lock():
@@ -575,7 +651,8 @@ class OperationsService:
             self._check_versions(actor, p)
             with self.db.transaction() as db:
                 if db.execute(
-                    "SELECT 1 FROM commands WHERE scenario=? AND status=?", (p["scenario"], "reconciling")
+                    "SELECT 1 FROM commands WHERE organization_id=? AND scenario=? AND status=?",
+                    (actor.organization_id, p["scenario"], "reconciling"),
                 ).fetchone():
                     fail(
                         409,
@@ -589,6 +666,7 @@ class OperationsService:
                     "status": "reconciling",
                     "action": p["action"],
                     "created_at": now().isoformat(),
+                    "confirmed_by": {"user_id": actor.user_id, "role": actor.role},
                     "result": None,
                 }
                 db.execute(
@@ -598,30 +676,136 @@ class OperationsService:
                 db.execute("UPDATE proposals SET command_id=? WHERE proposal_id=?", (cid, proposal_id))
             return self._resume(actor, p, cid)
 
+    @staticmethod
+    def _can_recover(actor: Actor) -> bool:
+        return actor.role == "dispatcher" and "recover_commands" in actor.permissions
+
+    def _recovery_options(self, p: dict, cmd: dict) -> dict:
+        state = self.planner.effect_status(cmd["command_id"], p) if p["action"] in PLANNER_ACTIONS else "not_started"
+        action = (
+            "retrieve"
+            if state in ("applied", "partially_applied")
+            else ("cancel" if state in ("not_started", "prepared") else "manual_review")
+        )
+        return {
+            "effect_status": state,
+            "action": action,
+            "allowed_decisions": ["cancel"] if action == "cancel" else [],
+            "requires_confirmation": action == "cancel",
+        }
+
+    def _command_row(self, actor: Actor, command_id: str):
+        with self.db.connect() as db:
+            row = db.execute(
+                "SELECT c.*, p.body AS proposal_body FROM commands c JOIN proposals p "
+                "ON p.proposal_id=c.proposal_id WHERE c.command_id=? AND c.organization_id=?",
+                (command_id, actor.organization_id),
+            ).fetchone()
+        if not row or (row["user_id"] != actor.user_id and not self._can_recover(actor)):
+            fail(404, "not_found", "Command not found in your scope.")
+        self._scope(actor, row["scenario"])
+        return row
+
+    def _recovery_audit(self, actor: Actor, row, cmd: dict, decision: str, reason: str | None = None) -> dict:
+        audit = {
+            "recovery_id": str(uuid.uuid4()),
+            "command_id": cmd["command_id"],
+            "confirmed_by": cmd.get("confirmed_by", {"user_id": row["user_id"], "role": None}),
+            "reconciled_by": {
+                "user_id": actor.user_id,
+                "role": actor.role,
+                "permission": "recover_commands",
+                "membership_signature": signature(actor),
+            },
+            "decision": decision,
+            "reason": reason,
+            "created_at": now().isoformat(),
+            "status": "started",
+        }
+        with self.db.transaction() as db:
+            db.execute(
+                "INSERT INTO command_recoveries VALUES (?,?,?,?,?)",
+                (audit["recovery_id"], cmd["command_id"], actor.organization_id, row["scenario"], encode(audit)),
+            )
+        return audit
+
     def command(self, actor: Actor, command_id: str) -> dict:
         with self._lock():
-            with self.db.connect() as db:
-                row = db.execute(
-                    "SELECT * FROM commands WHERE command_id=? AND organization_id=?",
-                    (command_id, actor.organization_id),
-                ).fetchone()
-            if not row or row["user_id"] != actor.user_id:
-                fail(404, "not_found", "Command not found in your scope.")
+            row = self._command_row(actor, command_id)
+            p, cmd = json.loads(row["proposal_body"]), json.loads(row["body"])
+            if self._can_recover(actor):
+                if cmd["status"] != "reconciling":
+                    return cmd
+                recovery = self._recovery_options(p, cmd)
+                if recovery["action"] != "retrieve":
+                    return {**cmd, "recovery": recovery}
+                # Current dispatcher authority adopts only the immutable, already-published effect.
+                audit = self._recovery_audit(actor, row, cmd, "reconcile_published_effect")
+                return self._resume(actor, p, command_id, recovery_audit=audit)
             p, _ = self._load_proposal(actor, row["proposal_id"])
             return self._resume(actor, p, command_id)
 
-    def _resume(self, actor: Actor, p: dict, cid: str) -> dict:
+    def recover(self, actor: Actor, command_id: str, decision: str, reason: str) -> dict:
+        with self._lock():
+            row = self._command_row(actor, command_id)
+            if not self._can_recover(actor):
+                fail(403, "forbidden", "Explicit dispatcher recovery permission is required.")
+            p, cmd = json.loads(row["proposal_body"]), json.loads(row["body"])
+            if decision != "cancel" or not isinstance(reason, str) or not 3 <= len(reason.strip()) <= 2000:
+                fail(422, "invalid_recovery", "Provide an explicit cancellation and reason.")
+            if cmd["status"] != "reconciling":
+                return cmd
+            if self._recovery_options(p, cmd)["action"] != "cancel":
+                fail(
+                    409,
+                    "effect_already_published",
+                    "A published or uncertain effect cannot be cancelled. Recover or review it.",
+                )
+            audit = self._recovery_audit(actor, row, cmd, "cancel_unpublished", reason.strip())
+            cmd.update(
+                status="cancelled",
+                result={"cancelled": True, "effect_published": False},
+                completed_at=now().isoformat(),
+                recovery=audit,
+            )
+            cmd.pop("error", None)
+            audit.update(status="completed", completed_at=cmd["completed_at"])
+            with self.db.transaction() as db:
+                self._event(db, actor, p, command_id, None, "cancelled", audit=audit)
+                db.execute(
+                    "UPDATE commands SET status=?,body=? WHERE command_id=?", ("cancelled", encode(cmd), command_id)
+                )
+                db.execute(
+                    "UPDATE command_recoveries SET body=? WHERE recovery_id=?", (encode(audit), audit["recovery_id"])
+                )
+            return cmd
+
+    def _resume(self, actor: Actor, p: dict, cid: str, *, recovery_audit: dict | None = None) -> dict:
         with self.db.connect() as db:
             row = db.execute("SELECT body FROM commands WHERE command_id=?", (cid,)).fetchone()
         cmd = json.loads(row["body"])
-        if cmd["status"] == "succeeded":
+        if cmd["status"] != "reconciling":
             return cmd
         try:
-            effect = self.planner.execute(cmd, p, actor.user_id) if p["action"] in PLANNER_ACTIONS else {}
+            if recovery_audit:
+                self._check_case_versions(actor, p)
+            original_id = recovery_audit["confirmed_by"]["user_id"] if recovery_audit else actor.user_id
+            effect = (
+                self.planner.execute(cmd, p, original_id, recover_only=bool(recovery_audit))
+                if p["action"] in PLANNER_ACTIONS
+                else {}
+            )
             with self.db.transaction() as db:
-                result = self._apply(db, actor, p, cid, effect)
+                result = self._apply(db, actor, p, cid, effect, audit=recovery_audit)
                 cmd.update(status="succeeded", result=result, completed_at=now().isoformat())
                 cmd.pop("error", None)
+                if recovery_audit:
+                    recovery_audit.update(status="completed", completed_at=cmd["completed_at"])
+                    cmd["recovery"] = recovery_audit
+                    db.execute(
+                        "UPDATE command_recoveries SET body=? WHERE recovery_id=?",
+                        (encode(recovery_audit), recovery_audit["recovery_id"]),
+                    )
                 db.execute("UPDATE commands SET status=?,body=? WHERE command_id=?", ("succeeded", encode(cmd), cid))
             return cmd
         except Exception as exc:  # noqa: BLE001 - persist recoverable partial effect without exposing private exception
@@ -635,10 +819,17 @@ class OperationsService:
                 },
             )
             with self.db.transaction() as db:
+                if recovery_audit:
+                    recovery_audit.update(status="reconciling", error_code=code)
+                    cmd["recovery"] = recovery_audit
+                    db.execute(
+                        "UPDATE command_recoveries SET body=? WHERE recovery_id=?",
+                        (encode(recovery_audit), recovery_audit["recovery_id"]),
+                    )
                 db.execute("UPDATE commands SET body=? WHERE command_id=?", (encode(cmd), cid))
             return cmd
 
-    def _event(self, db, actor: Actor, p: dict, cid: str, case: dict | None, status: str):
+    def _event(self, db, actor: Actor, p: dict, cid: str, case: dict | None, status: str, *, audit: dict | None = None):
         event = {
             "event_id": str(uuid.uuid4()),
             "command_id": cid,
@@ -651,7 +842,14 @@ class OperationsService:
             "plan_version": p["plan_version"],
             "synthetic": True,
         }
-        if p["action"] == "request_human":
+        if audit:
+            event.update(
+                actor_id=audit["confirmed_by"]["user_id"],
+                role=audit["confirmed_by"]["role"],
+                reconciled_by=audit["reconciled_by"],
+                recovery_id=audit["recovery_id"],
+            )
+        if p["action"] == "request_human" and status != "cancelled":
             event["human_request"] = {
                 "request_id": cid,
                 "reason": p["data"]["reason"],
@@ -684,7 +882,7 @@ class OperationsService:
             ),
         )
 
-    def _apply(self, db, actor: Actor, p: dict, cid: str, effect: dict) -> dict:
+    def _apply(self, db, actor: Actor, p: dict, cid: str, effect: dict, *, audit: dict | None = None) -> dict:
         action, d, scenario = p["action"], p["data"], p["scenario"]
         result = {"effect": effect, "synthetic": True, "repaired": False}
         changed = []
@@ -780,10 +978,12 @@ class OperationsService:
         event_ids = []
         for case in changed:
             self._save_case(db, case)
-            event_ids.append(self._event(db, actor, p, cid, case, case["status"]))
+            event_ids.append(self._event(db, actor, p, cid, case, case["status"], audit=audit))
         if not changed:
             event_ids.append(
-                self._event(db, actor, p, cid, None, result.get("human_request", {}).get("status", "succeeded"))
+                self._event(
+                    db, actor, p, cid, None, result.get("human_request", {}).get("status", "succeeded"), audit=audit
+                )
             )
         if changed:
             result["cases"] = [self._public_case(actor, c) for c in changed]
