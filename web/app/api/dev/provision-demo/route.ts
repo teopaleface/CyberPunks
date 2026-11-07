@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { provisionDemoAccounts } from "@/lib/server/accounts";
 import { backendUrl, fail } from "@/lib/operations/gateway";
+import { DEMO_DISPATCHER_PERMISSIONS } from "@/lib/operations/demo-permissions";
 import { validOrigin, type Role } from "@/lib/operations/policy";
 let provisioning = false;
 /** Activare exclusiv locală. Parolele sunt furnizate independent prin mediul privat de pornire. */
@@ -85,14 +86,7 @@ export async function POST(request: Request) {
         crew_id: role === "technician" ? binding.crew_id! : null,
         connection_ids: role === "customer" ? [binding.connection_id!] : [],
         permissions:
-          role === "dispatcher"
-            ? [
-                "approve_plan",
-                "review_work_item",
-                "create_case",
-                "view_console",
-              ]
-            : [],
+          role === "dispatcher" ? [...DEMO_DISPATCHER_PERMISSIONS] : [],
       },
     }));
     const users = await provisionDemoAccounts(inputs);

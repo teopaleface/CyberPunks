@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { forward, type GatewayDependencies, type GatewayUser } from "./gateway";
+import {
+  allowedPath,
+  forward,
+  type GatewayDependencies,
+  type GatewayUser,
+} from "./gateway";
 import {
   actorOf,
   mayReadConsole,
@@ -342,4 +347,165 @@ describe("stored membership policy", () => {
         .organization_id,
     ).toBeNull();
   });
+});
+
+test("only the exact command recovery POST is allowlisted", () => {
+  expect(
+    allowedPath("operations", ["commands", "cmd-one", "recover"], "POST"),
+  ).toBe(true);
+  for (const method of ["GET", "PUT", "DELETE"])
+    expect(
+      allowedPath("operations", ["commands", "cmd-one", "recover"], method),
+    ).toBe(false);
+  for (const path of [
+    ["commands", "cmd-one", "cancel"],
+    ["commands", "cmd-one", "recover", "extra"],
+    ["recover"],
+    ["commands", "..", "recover"],
+  ])
+    expect(allowedPath("operations", path, "POST")).toBe(false);
+});
+test("recovery requires a verified dispatcher permission and an explicit reason", async () => {
+  for (const role of ["customer", "technician", "dispatcher"] as Role[]) {
+    const { deps, calls } = setup(member(role));
+    expect(
+      (
+        await forward(
+          request("commands/cmd-one/recover", {
+            decision: "cancel",
+            reason: "No effect published",
+          }),
+          "operations",
+          ["commands", "cmd-one", "recover"],
+          deps,
+        )
+      ).status,
+    ).toBe(403);
+    expect(calls).toHaveLength(0);
+  }
+  const dispatcher = member("dispatcher");
+  dispatcher.membership!.permissions.push("recover_commands");
+  const { deps, calls } = setup(dispatcher);
+  for (const body of [
+    {},
+    { decision: "cancel", reason: " " },
+    { decision: "execute", reason: "Do it" },
+    { decision: "cancel", reason: "Safe reason", permission: "admin" },
+  ])
+    expect(
+      (
+        await forward(
+          request("commands/cmd-one/recover", body),
+          "operations",
+          ["commands", "cmd-one", "recover"],
+          deps,
+        )
+      ).status,
+    ).toBe(422);
+  expect(calls).toHaveLength(0);
+  const body = {
+    decision: "cancel",
+    reason: "No effect was published and the original membership was revoked.",
+  };
+  expect(
+    (
+      await forward(
+        request("commands/cmd-one/recover", body),
+        "operations",
+        ["commands", "cmd-one", "recover"],
+        deps,
+      )
+    ).status,
+  ).toBe(200);
+  expect(calls).toHaveLength(1);
+  expect(calls[0].url).toBe(
+    "http://127.0.0.1:8720/api/operations/commands/cmd-one/recover",
+  );
+  expect(JSON.parse(calls[0].init!.body as string)).toEqual(body);
+  expect(
+    JSON.parse(new Headers(calls[0].init!.headers).get("x-daybreak-actor")!)
+      .permissions,
+  ).toContain("recover_commands");
+});
+
+test("proposal lookup allows only a UUID GET and never confirms as a side effect", async () => {
+  const id = "6d57ebca-af8d-4da4-afcb-3080dca9a671";
+  expect(allowedPath("operations", ["proposals", id], "GET")).toBe(true);
+  expect(allowedPath("operations", ["proposals", id], "POST")).toBe(false);
+  for (const invalid of [
+    "p-one",
+    `${id}/confirm`,
+    "..",
+    "https://foreign.example",
+    `${id}?confirm=true`,
+  ])
+    expect(allowedPath("operations", ["proposals", invalid], "GET")).toBe(
+      false,
+    );
+  const { deps, calls } = setup();
+  const response = await forward(
+    new Request(`${ORIGIN}/api/operations/proposals/${id}`, {
+      headers: { origin: ORIGIN },
+    }),
+    "operations",
+    ["proposals", id],
+    deps,
+  );
+  expect(response.status).toBe(200);
+  expect(calls).toHaveLength(1);
+  expect(calls[0].url).toBe(
+    `http://127.0.0.1:8720/api/operations/proposals/${id}`,
+  );
+  expect(calls[0].init!.method).toBe("GET");
+  expect(calls[0].init!.body).toBeUndefined();
+});
+test.each([403, 404, 409])(
+  "linked proposal refusal %s is safe and cannot expose a foreign proposal",
+  async (status) => {
+    const id = "6d57ebca-af8d-4da4-afcb-3080dca9a671";
+    const { deps } = setup(undefined, () =>
+      Response.json(
+        {
+          detail: {
+            private_proposal: "foreign secret",
+            reason: "private actor signature",
+          },
+        },
+        { status },
+      ),
+    );
+    const response = await forward(
+      new Request(`${ORIGIN}/api/operations/proposals/${id}`, {
+        headers: { origin: ORIGIN },
+      }),
+      "operations",
+      ["proposals", id],
+      deps,
+    );
+    expect(response.status).toBe(status);
+    const error = await response.text();
+    expect(error).not.toContain("foreign secret");
+    expect(error).not.toContain("private actor signature");
+    if (status === 409)
+      expect(error).toContain("expired or its source data changed");
+  },
+);
+
+test("a failed linked-proposal read reports no confirmation and offers a read retry", async () => {
+  const id = "6d57ebca-af8d-4da4-afcb-3080dca9a671";
+  const { deps } = setup(undefined, () => {
+    throw new Error("private upstream failure");
+  });
+  const response = await forward(
+    new Request(`${ORIGIN}/api/operations/proposals/${id}`, {
+      headers: { origin: ORIGIN },
+    }),
+    "operations",
+    ["proposals", id],
+    deps,
+  );
+  expect(response.status).toBe(503);
+  const error = await response.text();
+  expect(error).toContain("No action was confirmed");
+  expect(error).not.toContain("private upstream failure");
 });

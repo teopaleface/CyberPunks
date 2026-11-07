@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { englishText } from "@/lib/english";
 import { api, SessionExpired } from "@/lib/operations/client";
+import { loadLinkedProposal } from "@/lib/operations/linked-proposal";
+import { proposalSignInPath } from "@/lib/operations/proposal-link";
 import { conversationHistory } from "@/lib/operations/history";
 import {
   label,
@@ -25,7 +27,11 @@ import {
   type Row,
   type Turn,
   type WorkspaceAccount,
+  findingText,
 } from "@/lib/operations/types";
+import { DraftRequests } from "./draft-requests";
+import { PendingCommands } from "./pending-commands";
+import { recoveryControl } from "@/lib/operations/recovery";
 import { ACTION_NAMES, ProposalForm } from "./proposal-form";
 import { Voice } from "./voice";
 import "./workspace.css";
@@ -54,23 +60,43 @@ function date(value: unknown): string {
     ? input
     : parsed.toLocaleString("en-GB");
 }
-export function Workspace({ account }: { account: WorkspaceAccount }) {
+interface WorkspaceProps {
+  account: WorkspaceAccount;
+  linkedProposalId?: string | null;
+  initialError?: string;
+}
+export function Workspace({
+  account,
+  linkedProposalId,
+  initialError,
+}: WorkspaceProps) {
   return (
     <ConversationProvider>
-      <WorkspaceContent account={account} />
+      <WorkspaceContent
+        account={account}
+        linkedProposalId={linkedProposalId}
+        initialError={initialError}
+      />
     </ConversationProvider>
   );
 }
-function WorkspaceContent({ account }: { account: WorkspaceAccount }) {
+function WorkspaceContent({
+  account,
+  linkedProposalId,
+  initialError,
+}: WorkspaceProps) {
   const role = account.membership.role;
   const [context, setContext] = useState<Context | null>(null);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(initialError ?? "");
+  const [proposalLoading, setProposalLoading] = useState(
+    Boolean(linkedProposalId),
+  );
   const [expired, setExpired] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const history = useRef<Message[]>([]);
   const [message, setMessage] = useState("");
-  const [busy, setBusy] = useState(false);
-  const inFlight = useRef(false);
+  const [busy, setBusy] = useState(Boolean(linkedProposalId));
+  const inFlight = useRef(Boolean(linkedProposalId));
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [command, setCommand] = useState<Command | null>(null);
   const [form, setForm] = useState<{ action: Action; data: Row } | null>(null);
@@ -79,6 +105,7 @@ function WorkspaceContent({ account }: { account: WorkspaceAccount }) {
   const [updated, setUpdated] = useState("");
   const [notice, setNotice] = useState("");
   const messagesEnd = useRef<HTMLDivElement>(null);
+  const proposalCard = useRef<HTMLElement>(null);
   const onError = useCallback((issue: unknown) => {
     if (issue instanceof SessionExpired) {
       setExpired(true);
@@ -96,6 +123,42 @@ function WorkspaceContent({ account }: { account: WorkspaceAccount }) {
         : "The request could not complete. Please try again.",
     );
   }, []);
+  useEffect(() => {
+    if (!linkedProposalId || expired || !account.membership.organization_id)
+      return;
+    let active = true;
+    const timer = setTimeout(() => {
+      void loadLinkedProposal(linkedProposalId, (path) => api<Proposal>(path))
+        .then((saved) => {
+          if (!active) return;
+          setProposal(saved);
+          setNotice(
+            "Linked proposal loaded. Review it below. Nothing has been confirmed.",
+          );
+        })
+        .catch((issue) => {
+          if (active) onError(issue);
+        })
+        .finally(() => {
+          if (active) {
+            setProposalLoading(false);
+            setBusy(false);
+            inFlight.current = false;
+          }
+        });
+    }, 0);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [linkedProposalId, expired, account.membership.organization_id, onError]);
+  useEffect(() => {
+    if (proposal?.proposal_id)
+      proposalCard.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+  }, [proposal?.proposal_id]);
   const refresh = useCallback(async () => {
     if (!account.membership.organization_id || expired) return;
     try {
@@ -130,22 +193,6 @@ function WorkspaceContent({ account }: { account: WorkspaceAccount }) {
       block: "nearest",
     });
   }, [messages]);
-  useEffect(() => {
-    if (
-      !command ||
-      ["completed", "succeeded", "failed"].includes(command.status) ||
-      expired
-    )
-      return;
-    const timer = setInterval(() => {
-      void api<Command>(
-        `operations/commands/${encodeURIComponent(command.command_id)}`,
-      )
-        .then(setCommand)
-        .catch(onError);
-    }, 2000);
-    return () => clearInterval(timer);
-  }, [command, expired, onError]);
   const append = useCallback((next: Message[]) => {
     history.current = [...history.current, ...next].slice(-40);
     setMessages([...history.current]);
@@ -200,6 +247,30 @@ function WorkspaceContent({ account }: { account: WorkspaceAccount }) {
     },
     [append, expired, onError, selected],
   );
+  async function openDraft(proposalId: string) {
+    if (expired || inFlight.current) return;
+    inFlight.current = true;
+    setBusy(true);
+    setProposalLoading(true);
+    setError("");
+    try {
+      const saved = await loadLinkedProposal(proposalId, (path) =>
+        api<Proposal>(path),
+      );
+      setProposal(saved);
+      setForm(null);
+      setCommand(null);
+      setNotice(
+        "Draft loaded from the server. Review it before confirming. No change has been saved.",
+      );
+    } catch (issue) {
+      onError(issue);
+    } finally {
+      inFlight.current = false;
+      setBusy(false);
+      setProposalLoading(false);
+    }
+  }
   async function prepare(action: Action, data: Row) {
     if (inFlight.current) return;
     inFlight.current = true;
@@ -245,6 +316,51 @@ function WorkspaceContent({ account }: { account: WorkspaceAccount }) {
       await refresh();
     } catch (issue) {
       onError(issue);
+    } finally {
+      inFlight.current = false;
+      setBusy(false);
+    }
+  }
+  async function recoverCommand(
+    commandId: string,
+    reason?: string,
+  ): Promise<boolean> {
+    if (!context || expired || inFlight.current) return false;
+    const pending = context.pending_commands?.find(
+      (item) => item.command_id === commandId,
+    );
+    const control = pending ? recoveryControl(context.actor, pending) : null;
+    if (
+      !control ||
+      (reason === undefined
+        ? control !== "retrieve"
+        : control !== "cancel" || reason.trim().length < 3)
+    )
+      return false;
+    inFlight.current = true;
+    setBusy(true);
+    setError("");
+    try {
+      const result = await api<Command>(
+        `operations/commands/${encodeURIComponent(commandId)}${reason === undefined ? "" : "/recover"}`,
+        reason === undefined
+          ? undefined
+          : { decision: "cancel", reason: reason.trim() },
+      );
+      setCommand(result);
+      setNotice(
+        result.status === "cancelled"
+          ? "The server confirmed cancellation. The original operation was not executed."
+          : result.status === "succeeded"
+            ? "The server recovered the saved result."
+            : "The command is still pending. Check its current recovery instructions.",
+      );
+      await refresh();
+      return true;
+    } catch (issue) {
+      onError(issue);
+      await refresh();
+      return false;
     } finally {
       inFlight.current = false;
       setBusy(false);
@@ -322,7 +438,8 @@ function WorkspaceContent({ account }: { account: WorkspaceAccount }) {
         </section>
         {expired ? (
           <div className="db-alert" role="alert">
-            {error || "Your session ended."} <a href="/intra">Sign in again</a>
+            {error || "Your session ended."}{" "}
+            <a href={proposalSignInPath(linkedProposalId)}>Sign in again</a>
           </div>
         ) : (
           <>
@@ -368,6 +485,23 @@ function WorkspaceContent({ account }: { account: WorkspaceAccount }) {
                     </button>
                   </div>
                 )}
+                {proposalLoading && (
+                  <p role="status">Loading your draft for review…</p>
+                )}
+                <DraftRequests
+                  proposals={context?.pending_proposals ?? []}
+                  busy={busy}
+                  onOpen={(id) => {
+                    void openDraft(id);
+                  }}
+                />
+                <PendingCommands
+                  commands={context?.pending_commands ?? []}
+                  actor={context?.actor ?? account.membership}
+                  busy={busy}
+                  onRetrieve={(id) => recoverCommand(id)}
+                  onCancel={(id, reason) => recoverCommand(id, reason)}
+                />
                 <div className="db-grid">
                   <section className="db-context">
                     {role === "customer" && (
@@ -543,6 +677,7 @@ function WorkspaceContent({ account }: { account: WorkspaceAccount }) {
                               <p>
                                 {id(item)} · {text(item.connection_id)}
                               </p>
+                              {findingText(item) && <p>{findingText(item)}</p>}
                             </div>
                             <span className="db-badge">
                               {label(item.status) || "Open"}
@@ -612,6 +747,7 @@ function WorkspaceContent({ account }: { account: WorkspaceAccount }) {
                               : "CONNECTION"}
                         </p>
                         <h2>{id(current)}</h2>
+                        {findingText(current) && <p>{findingText(current)}</p>}
                         {[
                           "symptom",
                           "status",
@@ -826,6 +962,7 @@ function WorkspaceContent({ account }: { account: WorkspaceAccount }) {
                     {proposal && (
                       <section
                         className="db-panel db-proposal"
+                        ref={proposalCard}
                         aria-label="Action proposal"
                       >
                         <p className="db-eyebrow">REVIEW BEFORE SAVING</p>

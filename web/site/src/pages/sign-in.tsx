@@ -1,10 +1,10 @@
 import { CheckCircle2, Loader2 } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useId, useState, type FormEvent, type ReactNode } from "react"
-import { Link, useNavigate, useSearchParams } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
 import { GlassButton } from "@/components/ui/liquid-glass-button"
 import { displayName, useAuth } from "@/lib/auth"
-import { ROUTES } from "@/lib/site"
+import { proposalFromSearch, proposalWorkspacePath, signInModeParams } from "../../../lib/operations/proposal-link"
 import { supabaseReady } from "@/lib/supabase"
 import { accountErrorMessage } from "@/lib/account-errors"
 import { cn } from "@/lib/utils"
@@ -90,8 +90,8 @@ const emailOk = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim())
 
 export default function SignInPage() {
   const auth = useAuth()
-  const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
+  const openWorkspace = () => window.location.assign(new URL(proposalWorkspacePath(proposalFromSearch(params)), window.location.origin).href)
   const mode: Mode = (["intra", "cont-nou", "resetare"] as Mode[]).includes(params.get("mod") as Mode)
     ? (params.get("mod") as Mode)
     : "intra"
@@ -111,7 +111,7 @@ export default function SignInPage() {
     setTouched(false)
   }, [view])
 
-  const setMode = (m: Mode) => setParams(m === "intra" ? {} : { mod: m })
+  const setMode = (m: Mode) => setParams(signInModeParams(params, m))
 
   const emailErr = touched && !emailOk(email) ? "Enter a valid email, such as name@example.com." : null
   const passErr = touched && password.length < 6 ? "Use at least 6 characters." : null
@@ -127,7 +127,7 @@ export default function SignInPage() {
       const err = await auth.setNewPassword(password)
       setBusy(false)
       if (err) setError(accountErrorMessage(err))
-      else navigate(ROUTES.app)
+      else openWorkspace()
       return
     }
     if (view === "resetare") return
@@ -139,14 +139,14 @@ export default function SignInPage() {
       const err = await auth.signIn(email.trim(), password)
       setBusy(false)
       if (err) setError(accountErrorMessage(err))
-      else navigate(ROUTES.app)
+      else openWorkspace()
     } else if (view === "cont-nou") {
       const res = await auth.signUp(email.trim(), password, name.trim())
       setBusy(false)
       if (res.error) setError(accountErrorMessage(res.error))
       else if (res.needsConfirmation)
         setDone(`Check your email at ${email.trim()} for the account confirmation link.`)
-      else navigate(ROUTES.app)
+      else openWorkspace()
     }
   }
 
@@ -158,8 +158,8 @@ export default function SignInPage() {
           Signed in as <span className="font-medium">{displayName(auth.user, auth.profile)}</span> ({auth.user.email}).
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-4">
-          <GlassButton size="lg" variant="signal" onClick={() => navigate(ROUTES.app)}>
-            Open console
+          <GlassButton size="lg" variant="signal" onClick={() => openWorkspace()}>
+            Open workspace
           </GlassButton>
           <button type="button" onClick={() => auth.signOut()} className="cursor-pointer text-foreground/80 underline-offset-4 hover:text-foreground hover:underline">
             Sign out

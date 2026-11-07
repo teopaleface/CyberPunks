@@ -1,5 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { mayAddDemoRecovery, sameMembership } from "@/lib/operations/demo-permissions";
 import { membershipOf, unboundCustomer, type Membership } from "@/lib/operations/policy";
 
 /**
@@ -8,7 +9,7 @@ import { membershipOf, unboundCustomer, type Membership } from "@/lib/operations
  * Chei: u:email:<email> → id; u:<id> → utilizatorul; s:<sha256(token)> → id (30 de zile); a:<id> → aprobările.
  */
 
-interface KV {
+export interface KV {
   get(key: string): Promise<string | null>;
   put(key: string, value: string, opts?: { expirationTtl?: number }): Promise<void>;
   delete(key: string): Promise<void>;
@@ -25,6 +26,7 @@ export interface StoredUser {
   created_at: string;
   membership?: Membership;
   synthetic_demo?: boolean;
+  capability_grants?: { permission: "recover_commands"; granted_at: string; source: "local_demo_provisioning"; credentials_verified: true }[];
 }
 export interface PublicUser {
   id: string;
@@ -172,9 +174,13 @@ export async function writeApprovals(userId: string, rows: ApprovalRow[]): Promi
 export const toMembership = (user: StoredUser) => membershipOf(user);
 
 export interface DemoAccountInput { email: string; password: string; membership: Membership }
-/** Numai ruta locală, explicit activată, poate apela această procedură. Nu modifică conturi existente. */
+/** Numai ruta locală activată explicit. Păstrează identitățile și parolele; permite exclusiv extinderea sintetică recover_commands. */
 export async function provisionDemoAccounts(inputs: DemoAccountInput[]) {
-  const store = await kv();
+  return provisionDemoAccountsInStore(await kv(), inputs);
+}
+
+/** Procedura de stocare se testează fără acces la KV-ul real sau la cookie-uri. */
+export async function provisionDemoAccountsInStore(store: KV, inputs: DemoAccountInput[]) {
   if (inputs.length !== 3 || new Set(inputs.map(x => x.membership.role)).size !== 3) throw new Error("Supply exactly three demo accounts.");
   const emails = inputs.map(x => normEmail(x.email));
   if (new Set(emails).size !== 3 || inputs.some((x, i) => !EMAIL_RE.test(emails[i]) || x.password.length < 12) || new Set(inputs.map(x => x.password)).size !== 3) throw new Error("Use three unique emails and independently supplied passwords of at least 12 characters.");
@@ -183,9 +189,20 @@ export async function provisionDemoAccounts(inputs: DemoAccountInput[]) {
     const existing = await Promise.all(existingIds.map(id => id ? readUser(store, id) : null));
     for (let i = 0; i < existing.length; i++) {
       const user = existing[i];
-      if (!user || !user.synthetic_demo || JSON.stringify(membershipOf(user)) !== JSON.stringify(inputs[i].membership) || !sameText(await hashPassword(inputs[i].password, user.salt, user.iter), user.hash)) throw new Error("An account already exists. Existing accounts are never overwritten.");
+      if (!user || user.id !== existingIds[i] || user.email !== emails[i] || !user.synthetic_demo || (!sameMembership(user.membership, inputs[i].membership) && !mayAddDemoRecovery(user.membership, inputs[i].membership)) || !sameText(await hashPassword(inputs[i].password, user.salt, user.iter), user.hash)) throw new Error("An account already exists. Existing accounts are never overwritten.");
     }
-    return existing.map(u => ({ ...toPublic(u!), membership: toMembership(u!), synthetic: true, already_ready: true }));
+    // Toate cele trei identități și parole au trecut verificarea înaintea oricărei scrieri.
+    const upgraded = new Set<string>();
+    for (let i = 0; i < existing.length; i++) {
+      const user = existing[i]!;
+      if (mayAddDemoRecovery(user.membership, inputs[i].membership)) {
+        const next: StoredUser = { ...user, membership: { ...user.membership!, permissions: [...user.membership!.permissions, "recover_commands"] }, capability_grants: [...(user.capability_grants ?? []), { permission: "recover_commands", granted_at: new Date().toISOString(), source: "local_demo_provisioning", credentials_verified: true }] };
+        await store.put(`u:${user.id}`, JSON.stringify(next));
+        existing[i] = next;
+        upgraded.add(user.id);
+      }
+    }
+    return existing.map(u => ({ ...toPublic(u!), membership: toMembership(u!), synthetic: true, already_ready: true, ...(upgraded.has(u!.id) ? { membership_upgrade: { added_permissions: ["recover_commands"] } } : {}) }));
   }
   const users = await Promise.all(inputs.map(async (x, i): Promise<StoredUser> => {
     const salt = randomHex(16);

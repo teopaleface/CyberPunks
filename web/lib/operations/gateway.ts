@@ -1,3 +1,4 @@
+import { parseProposalId } from "./proposal-link";
 import { actorOf, membershipOf, validOrigin, type Membership } from "./policy";
 export interface GatewayUser {
   id: string;
@@ -28,9 +29,15 @@ export function allowedPath(
     return method === "POST" && ["chat", "voice-session"].includes(p);
   return (
     (method === "GET" &&
-      (p === "context" || /^commands\/[A-Za-z0-9_-]+$/.test(p))) ||
+      (p === "context" ||
+        /^commands\/[A-Za-z0-9_-]+$/.test(p) ||
+        (path.length === 2 &&
+          path[0] === "proposals" &&
+          parseProposalId(path[1]) !== null))) ||
     (method === "POST" &&
-      (p === "proposals" || /^proposals\/[A-Za-z0-9_-]+\/confirm$/.test(p)))
+      (p === "proposals" ||
+        /^proposals\/[A-Za-z0-9_-]+\/confirm$/.test(p) ||
+        /^commands\/[A-Za-z0-9_-]+\/recover$/.test(p)))
   );
 }
 export function backendUrl(base: string, path: string): URL {
@@ -61,6 +68,22 @@ export async function forward(
     return fail(403, "This request must come from this site.");
   if (!allowedPath(kind, path, request.method))
     return fail(404, "Endpoint not available.");
+  const isProposalRead =
+    kind === "operations" &&
+    path[0] === "proposals" &&
+    path.length === 2 &&
+    request.method === "GET";
+  const isRecovery =
+    kind === "operations" &&
+    path[0] === "commands" &&
+    path[2] === "recover" &&
+    request.method === "POST";
+  if (
+    isRecovery &&
+    (membershipOf(user).role !== "dispatcher" ||
+      !membershipOf(user).permissions.includes("recover_commands"))
+  )
+    return fail(403, "Explicit dispatcher recovery permission is required.");
   if (!deps.token)
     return fail(
       503,
@@ -106,6 +129,20 @@ export async function forward(
         ].some((k) => k in data)
       )
         return fail(422, "Account identity cannot be supplied in a request.");
+      if (
+        isRecovery &&
+        (Object.keys(data).some(
+          (key) => !["decision", "reason"].includes(key),
+        ) ||
+          data.decision !== "cancel" ||
+          typeof data.reason !== "string" ||
+          data.reason.trim().length < 3 ||
+          data.reason.length > 2000)
+      )
+        return fail(
+          422,
+          "Provide an explicit cancellation and a reason of 3 to 2000 characters.",
+        );
     } catch {
       return fail(422, "Invalid JSON.");
     }
@@ -130,8 +167,14 @@ export async function forward(
       const messages: Record<number, string> = {
         401: "Your session is no longer authorized. Sign in again.",
         403: "This action is outside your account's permissions.",
-        404: "This item was not found in your account.",
-        409: "This proposal has expired or the data changed. Refresh and prepare it again.",
+        404: isProposalRead
+          ? "This proposal is unavailable for your account. Open your workspace to prepare a new proposal."
+          : "This item was not found in your account.",
+        409: isProposalRead
+          ? "This proposal has expired or its source data changed. Prepare a new proposal in the workspace."
+          : isRecovery
+            ? "Command recovery changed or is unavailable. Refresh pending commands before trying again."
+            : "This proposal has expired or the data changed. Refresh and prepare it again.",
         422: "Some details are missing or invalid. Review your request.",
         429: "Too many requests. Please wait and try again.",
         503: "The service is unavailable. No success has been confirmed.",
@@ -146,7 +189,9 @@ export async function forward(
   } catch {
     return fail(
       503,
-      "The service did not return a result. Confirming the same proposal again will recover its saved command without duplicating it.",
+      isProposalRead
+        ? "The proposal could not be loaded. No action was confirmed. Retry opening the link or use your workspace."
+        : "The service did not return a result. Confirming the same proposal again will recover its saved command without duplicating it.",
     );
   }
 }

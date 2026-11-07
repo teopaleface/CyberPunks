@@ -71,3 +71,41 @@ Modificări proprii în fișiere existente:
 - `web/site/src/pages/sign-in.tsx`: numai textele despre workspace și legătura publică spre /agent. Modificările de temă din acest fișier aparțin celuilalt task.
 
 Nu aparțin acestui task modificările de temă, contrast, metrici/confidence, datele modelelor, layoutul global, scripturile de generare landing sau alte fișiere Python. Unele pagini protejate au și modificări paralele; lista de mai sus revendică numai verificarea accesului. Nu am făcut stage sau commit, la cererea root.
+
+## Corecția recuperării comenzilor
+
+Workspace-ul afișează `context.pending_commands` după recitire sau redeschidere. Lista nu execută GET pe fiecare comandă și nu anulează nimic automat. Acțiunea oferită depinde de `can_recover`, `recovery_action` și permisiunile curente din contextul verificat. `retrieve` oferă recuperarea explicită prin GET. `cancel` cere motiv, revizuire și butonul separat Confirm cancellation; abia acel buton trimite POST-ul cu `decision: cancel` și motiv. `manual_review` și `requires_dispatcher` explică blocajul și nu oferă un buton care să execute operații. Backendul verifică din nou starea efectului și apartenența înaintea acțiunii.
+
+Gateway-ul permite exclusiv `POST /api/operations/commands/{id}/recover`, cu dispecer verificat și `recover_commands`. Acceptă numai `decision: cancel` și un motiv de 3-2000 de caractere; nu există endpoint generic pentru schimbarea drepturilor. Pollingul contextului rămâne la două secunde, dar recuperarea comenzilor este explicită.
+
+Comanda administrativă este aceeași, rulată de root: `python3 scripts/daybreak_runtime.py accounts`. Ruta locală existentă păstrează toate verificările de development, flag, loopback, origine și bearer intern. Pentru conturi existente verifică toate cele trei emailuri, marcajele sintetice, parolele și apartenențele așteptate înaintea oricărei scrieri. Singura diferență acceptată este lipsa `recover_commands` din vechiul dispecer sintetic `daybreak-demo`, fără echipă sau puncte proprii și cu setul anterior exact de permisiuni. Numai acea permisiune se adaugă. ID-ul, emailul, hash-ul și salt-ul parolei, data creării, profilul și celelalte două conturi rămân neschimbate. Rezultatul include `membership_upgrade.added_permissions` numai la aplicare. Repetarea nu scrie din nou.
+
+Auditul este stocat atomic în aceeași înregistrare KV cu permisiunea: `capability_grants` include permisiunea, ora, sursa `local_demo_provisioning` și verificarea credențialelor, fără parole. Conturile noi de dispecer sintetic primesc permisiunea în setul fix de la server. Conturile generale sau de producție nu sunt eligibile pentru upgrade. Profilul public nu poate edita aceste câmpuri. Nu am executat upgrade-ul pe conturile runtime; root îl aplică și verifică fluxul complet.
+
+Fișierele acestei corecții, fără staging sau commit:
+
+- Noi: `web/components/workspace/pending-commands.tsx`, `web/lib/operations/recovery.ts`, `web/lib/operations/recovery.test.tsx`, `web/lib/operations/demo-permissions.ts`, `web/lib/operations/demo-provisioning.test.ts`, `web/lib/operations/demo-admin-gate.test.ts`.
+- Modificate: `web/components/workspace/workspace.tsx`, `web/lib/operations/types.ts`, `web/lib/operations/gateway.ts`, `web/lib/operations/gateway.test.ts`, `web/lib/server/accounts.ts`, `web/app/api/dev/provision-demo/route.ts`, `web/OPERATIONS.md`.
+- Modificările paralele de culoare din `web/app/coada/page.tsx` nu aparțin acestei corecții și nu au fost atinse.
+
+Testele noi verifică redescoperirea comenzilor la randare, lipsa efectelor la randare, refuzurile pe stările manuale sau drepturi insuficiente, ruta și corpul exact al anulării, verificările de acces ale administrării locale și acordarea controlată în stocare cu PBKDF2 real. Proba din stocare verifică păstrarea conturilor și identificatorilor, auditul, repetarea fără scriere și refuzul conturilor nesintetice, rolurilor/organizațiilor/apartenențelor diferite sau parolelor greșite. Nu înlocuiește proba root pe conturile și comenzile runtime.
+
+Verificarea acestei corecții: `bun test` a trecut 142 de teste, cu șapte probe runtime oprite implicit și zero eșecuri. `bun x tsc --noEmit`, `bun run lint`, `DAYBREAK_NEXT_DIST=.next-operations-web-review bun x next build` și `git diff --check` au trecut. Directorul de build rămâne ignorat; includerile temporare ale tipurilor sale au fost eliminate din tsconfig. Testele au folosit numai stocări de test în memorie și parole sintetice generate pentru fiecare probă, fără acces la conturile runtime.
+
+## Propuneri pornite din WhatsApp: acces din workspace
+
+Calea `/workspace?proposal=<UUID>` păstrează identificatorul valid prin redirecționarea la `/intra?proposal=<UUID>` și prin schimbarea modului de autentificare. După login se încarcă pagina workspace prin navigare locală completă. Nu acceptă un URL de revenire liber; `next`, `returnTo`, scheme externe, ID-uri ambigue sau căi injectate nu stabilesc destinația.
+
+Gateway-ul permite noul `GET /api/operations/proposals/{UUID}` numai pentru un ID UUID strict. Backendul verifică proprietarul și valabilitatea. Clientul initializează cardul existent cu exact obiectul întors de GET, fără regenerare sau confirmare automată. Confirm/Edit/Cancel folosesc comportamentul explicit existent. Erorile 403/404/409 și indisponibilitatea au texte sigure, fără obiecte sau semnături private.
+
+Contextul poate include `pending_proposals`, cel mult zece ciorne proprii, valide, curente și neconfirmate. Interfața acceptă sumarul public cu `proposal_id`, `action`, `summary`, `expires_at` și metadate opționale. Secțiunea Draft requests nu face alte citiri sau scrieri la randare/polling. Numai Open for review citește propunerea completă prin GET-ul verificat și deschide cardul existent. Astfel, tehnicianul poate deschide workspace-ul pe laptop după conversația WhatsApp chiar fără un link public.
+
+`PUBLIC_APP_ORIGIN` nu a fost configurat aici și nu s-a publicat site-ul. O cale locală nu este prezentată drept link accesibil de pe telefon. Generarea unui link WhatsApp public rămâne condiționată de configurarea și verificarea ulterioară a originii publice de către root. Nu au fost modificate conturi, credențiale, runtime sau configurări.
+
+Fișierele acestei completări P1:
+
+- Noi: `web/lib/operations/proposal-link.ts`, `web/lib/operations/linked-proposal.ts`, `web/lib/operations/proposal-link.test.ts`, `web/components/workspace/draft-requests.tsx`, `web/lib/operations/draft-requests.test.tsx`.
+- Modificate: `web/app/workspace/page.tsx`, `web/components/workspace/workspace.tsx`, `web/site/src/pages/sign-in.tsx`, `web/lib/operations/gateway.ts`, `web/lib/operations/gateway.test.ts`, `web/lib/operations/types.ts`, `web/OPERATIONS.md`.
+- Funcția findingText și folosirile ei adăugate de root sunt păstrate. Nu au fost atinse culorile din coada.
+
+Verificări: `bun test` a trecut 164 de probe, cu șapte probe runtime oprite implicit și zero eșecuri. Typecheck și lint pentru web au trecut; buildul Next izolat în `.next-operations-link-review` a trecut. Site-ul de autentificare a trecut `bun run build`; lintul lui nu are erori, dar raportează avertismente existente despre Fast Refresh și efecte React. `bun scripts/build-landing.ts` a reconstruit bundle-ul local de autentificare, fără modificări ale datelor urmărite de git. Testele acoperă păstrarea ID-ului prin login, refuzul redirecționărilor externe, identitatea exactă a obiectului citit, GET fără confirmare, refuzurile sigure și lista inertă de ciorne. Fluxul WhatsApp real până la butonul Confirm rămâne de verificat de root cu backendul integrat.
