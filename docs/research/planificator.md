@@ -97,7 +97,9 @@ Problema e o rutare cu colectare de premii (prize-collecting VRP) cu ferestre de
 | Timp limitat | `time_limit` plus `solution_limit` (ca rezultatul să fie același la fiecare rulare); prima soluție `PATH_CHEAPEST_ARC`, apoi `GUIDED_LOCAL_SEARCH` [S22] |
 | Rezerva | dacă solverul nu dă soluție în N secunde: inserare greedy, în ordinea priorității, cu aceleași restricții |
 
-Drumul dintre două puncte: distanța haversine × factorul de drum (1,35), cu viteza urbană pe primii 10 km și cea extraurbană după (config). Timpii de rezolvare pe 100-300 de noduri îi măsurăm cu solverul real și îi scriem în `reports/planner/` (M2).
+Drumul dintre două puncte: distanța haversine × factorul de drum (1,35), cu viteza urbană pe primii 10 km și cea extraurbană după (config).
+
+**Măsurat** (`uv run python -m cyberpunks.planner.benchmark`, `reports/planner/solver_benchmark.json`, lucrări sintetice, 11 echipe, câte 3 semințe): cu setările din config (`time_limit_s: 10`, `solution_limit: 400`), OR-Tools termină în 1,4-1,6 s la 100 de lucrări, 3,2-9,0 s la 200 și 7,2-8,3 s la 300. Față de inserarea greedy aduce cu 2,9-7,5% mai multă valoare netă la 100 de lucrări, 6,0-9,8% la 200 și 7,2-19,4% la 300. Încă 30 de secunde de căutare adaugă cel mult 0,85%. Pe planul real din 8 iulie 2025 (316 lucrări, din care 120 candidate pentru echipe), OR-Tools rulează în circa 7,8 s.
 
 ## 6. Ce n-am găsit (riscuri cunoscute)
 

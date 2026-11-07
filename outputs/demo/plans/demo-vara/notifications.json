@@ -4,7 +4,7 @@
     "audience": "echipa",
     "asset_id": "TM-TIMISOARA",
     "message_ro": "Mâine, echipa E-TM-1: fiți în Zona Timișoara (Timiș) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-    "scheduled_for": "2026-11-07T14:00:22+02:00",
+    "scheduled_for": "2026-11-07T14:08:05+02:00",
     "work_item_id": "B-20250708-TM-TIMISOARA",
     "demo_only": true
   },
@@ -13,7 +13,7 @@
     "audience": "echipa",
     "asset_id": "CS-RESITA",
     "message_ro": "Mâine, echipa E-RS-1: fiți în Zona Reșița (Caraș-Severin) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-    "scheduled_for": "2026-11-07T14:00:22+02:00",
+    "scheduled_for": "2026-11-07T14:08:05+02:00",
     "work_item_id": "B-20250708-CS-RESITA",
     "demo_only": true
   },
@@ -22,7 +22,7 @@
     "audience": "echipa",
     "asset_id": "AR-ARAD",
     "message_ro": "Mâine, echipa E-AR-1: fiți în Zona Arad (Arad) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-    "scheduled_for": "2026-11-07T14:00:22+02:00",
+    "scheduled_for": "2026-11-07T14:08:05+02:00",
     "work_item_id": "B-20250708-AR-ARAD",
     "demo_only": true
   },
@@ -31,7 +31,7 @@
     "audience": "echipa",
     "asset_id": "IF-BUFTEA",
     "message_ro": "Mâine, echipa E-BE-2: fiți în Zona Buftea (Ilfov) la 15:30, înainte de 17:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-    "scheduled_for": "2026-11-07T14:00:22+02:00",
+    "scheduled_for": "2026-11-07T14:08:05+02:00",
     "work_item_id": "B-20250708-IF-BUFTEA",
     "demo_only": true
   },
@@ -49,7 +49,7 @@
     "audience": "echipa",
     "asset_id": "IL-SLOBOZIA",
     "message_ro": "Mâine, echipa E-CT-1: fiți în Zona Slobozia (Ialomița) la 15:30, înainte de 18:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-    "scheduled_for": "2026-11-07T14:00:22+02:00",
+    "scheduled_for": "2026-11-07T14:08:05+02:00",
     "work_item_id": "B-20250708-IL-SLOBOZIA",
     "demo_only": true
   },
@@ -58,7 +58,7 @@
     "audience": "echipa",
     "asset_id": "GR-GIURGIU",
     "message_ro": "Mâine, echipa E-BV-3: fiți în Zona Giurgiu (Giurgiu) la 15:30, înainte de 22:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-    "scheduled_for": "2026-11-07T14:00:22+02:00",
+    "scheduled_for": "2026-11-07T14:08:05+02:00",
     "work_item_id": "B-20250708-GR-GIURGIU",
     "demo_only": true
   },

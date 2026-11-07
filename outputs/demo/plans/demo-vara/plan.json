@@ -1,9 +1,9 @@
 {
   "contract_version": "1.0",
-  "plan_id": "PLAN-demo-vara-20250708-135922",
+  "plan_id": "PLAN-demo-vara-20250708-140705-2c33",
   "plan_date": "2025-07-08",
-  "generated_at": "2026-11-07T13:59:22+02:00",
-  "planner_version": "planner@0.1.0+94f3151",
+  "generated_at": "2026-11-07T14:07:05+02:00",
+  "planner_version": "planner@0.1.0+c33c013",
   "scenario": "demo-vara",
   "summary": {
     "items_in": 316,
@@ -419,7 +419,7 @@
       "priority_score": 1064.68,
       "rank": 36,
       "crew_id": null,
-      "audit_id": "339eafc2-0a46-4cb7-b232-57664ebd797f"
+      "audit_id": "850a75b9-ef72-41d5-a6de-bbdce2df982a"
     },
     {
       "work_item_id": "A-20250708-MTR-008715",
@@ -440,7 +440,7 @@
       "priority_score": 1051.68,
       "rank": 42,
       "crew_id": null,
-      "audit_id": "7cd1bba9-b41d-425f-ae6e-9a5a928acf62"
+      "audit_id": "68fa065d-8d86-40ab-863a-3dac59a5e279"
     },
     {
       "work_item_id": "A-20250708-MTR-009940",
@@ -461,7 +461,7 @@
       "priority_score": 1044.73,
       "rank": 39,
       "crew_id": null,
-      "audit_id": "60b2601b-b39c-4005-9d3a-eee6bb253f02"
+      "audit_id": "e5a19791-36f6-45c3-88b2-d2c1505eb273"
     },
     {
       "work_item_id": "A-20250708-MTR-004597",
@@ -482,7 +482,7 @@
       "priority_score": 1040.86,
       "rank": 32,
       "crew_id": null,
-      "audit_id": "11b41b98-8772-4262-abed-bc7dc0c8ecb0"
+      "audit_id": "5cdea3e3-7d0a-476b-b22f-602dd50292c1"
     },
     {
       "work_item_id": "A-20250708-MTR-000291",
@@ -503,7 +503,7 @@
       "priority_score": 987.81,
       "rank": 34,
       "crew_id": null,
-      "audit_id": "bc74eabf-54bb-4746-81e6-05016df831fc"
+      "audit_id": "42142901-6670-4858-8db8-8bc3d263890b"
     },
     {
       "work_item_id": "A-20250708-MTR-001538",
@@ -524,7 +524,7 @@
       "priority_score": 933.24,
       "rank": 31,
       "crew_id": null,
-      "audit_id": "0505f939-40b5-4aaa-b989-853595a48637"
+      "audit_id": "011c0a40-d506-4b00-a1e7-b0f4a177e0ca"
     },
     {
       "work_item_id": "A-20250708-MTR-000906",
@@ -545,7 +545,7 @@
       "priority_score": 915.45,
       "rank": 45,
       "crew_id": null,
-      "audit_id": "0e781612-5ce2-45e8-bbb9-9821c8afacc7"
+      "audit_id": "d9f19692-db62-49bc-8736-8cf2f98610e9"
     },
     {
       "work_item_id": "A-20250708-MTR-006768",
@@ -566,7 +566,7 @@
       "priority_score": 907.31,
       "rank": 30,
       "crew_id": null,
-      "audit_id": "561f28bb-e3a5-44d0-9f1c-d7f3479fbf51"
+      "audit_id": "c09d249e-09b3-412c-b649-0e03d81ea54c"
     },
     {
       "work_item_id": "A-20250708-MTR-007201",
@@ -587,7 +587,7 @@
       "priority_score": 892.14,
       "rank": 33,
       "crew_id": null,
-      "audit_id": "e9671e6d-0b9c-40a9-afa9-a4fa947fb414"
+      "audit_id": "99094249-09ed-4fd2-b837-7b2a2d693eb6"
     },
     {
       "work_item_id": "A-20250708-MTR-001467",
@@ -608,7 +608,7 @@
       "priority_score": 889.82,
       "rank": 29,
       "crew_id": null,
-      "audit_id": "1ffa955d-98ae-409c-a0bd-13920d91194c"
+      "audit_id": "64da7409-16e6-4953-8361-65082f44e6e6"
     },
     {
       "work_item_id": "A-20250708-MTR-002948",
@@ -629,7 +629,7 @@
       "priority_score": 855.07,
       "rank": 37,
       "crew_id": null,
-      "audit_id": "2fb945d7-78dd-41ac-88da-d6ee7a82b51c"
+      "audit_id": "81f2157a-e34e-438a-add7-1ce5cadf7664"
     },
     {
       "work_item_id": "A-20250708-MTR-005210",
@@ -650,7 +650,7 @@
       "priority_score": 821.65,
       "rank": 44,
       "crew_id": null,
-      "audit_id": "2351d5cc-eb96-4e05-bfd5-150c1d72cf10"
+      "audit_id": "33358baa-d8ef-4d41-9023-d93fe37d9d8f"
     },
     {
       "work_item_id": "A-20250708-MTR-003206",
@@ -671,7 +671,7 @@
       "priority_score": 758.17,
       "rank": 35,
       "crew_id": null,
-      "audit_id": "01d32f57-472a-438d-8d52-c8a4766ce6b5"
+      "audit_id": "797b102c-bfec-4203-beaf-2b1ae0f4c862"
     },
     {
       "work_item_id": "A-20250708-MTR-002777",
@@ -692,7 +692,7 @@
       "priority_score": 722.81,
       "rank": 40,
       "crew_id": null,
-      "audit_id": "ed785ef9-9a1b-4669-979f-70d0098a48fa"
+      "audit_id": "11b41128-5a22-4bbc-8ee9-69be80bf5e8b"
     },
     {
       "work_item_id": "A-20250708-MTR-007572",
@@ -713,7 +713,7 @@
       "priority_score": 697.74,
       "rank": 63,
       "crew_id": null,
-      "audit_id": "3a189ca2-2fdb-4782-99d2-27d756530925"
+      "audit_id": "7fa4e725-2b2c-4e44-90ef-4f2544cfa754"
     },
     {
       "work_item_id": "A-20250708-MTR-007512",
@@ -734,7 +734,7 @@
       "priority_score": 669.97,
       "rank": 78,
       "crew_id": null,
-      "audit_id": "109f7c72-1f85-4d41-b907-1e5f4aa3c5df"
+      "audit_id": "e8609f3a-cedd-4a6c-ac00-c23a24ad062d"
     },
     {
       "work_item_id": "A-20250708-MTR-004871",
@@ -755,7 +755,7 @@
       "priority_score": 662.97,
       "rank": 50,
       "crew_id": null,
-      "audit_id": "e397bffe-f961-4d03-b3c5-81552e4c0f91"
+      "audit_id": "805dcdf0-f467-442e-bd86-a1adf95945bd"
     },
     {
       "work_item_id": "A-20250708-MTR-002912",
@@ -776,7 +776,7 @@
       "priority_score": 643.38,
       "rank": 43,
       "crew_id": null,
-      "audit_id": "e580f610-c572-4701-b38e-7cab6ee2c955"
+      "audit_id": "ce84e72c-6354-4edb-a2a7-545cb32b707b"
     },
     {
       "work_item_id": "A-20250708-MTR-003672",
@@ -797,7 +797,7 @@
       "priority_score": 642.57,
       "rank": 62,
       "crew_id": null,
-      "audit_id": "d6ceda3b-24d1-4032-9014-f2ea4ffa2bff"
+      "audit_id": "fbdcce10-a73a-4a74-b13e-80e2103a9335"
     },
     {
       "work_item_id": "A-20250708-MTR-002069",
@@ -818,7 +818,7 @@
       "priority_score": 637.04,
       "rank": 46,
       "crew_id": null,
-      "audit_id": "03cde825-7d58-4b5a-b127-af7781151f4f"
+      "audit_id": "5a1bbc78-bebc-4c92-95a2-0b5a2a63287c"
     },
     {
       "work_item_id": "A-20250708-MTR-003729",
@@ -839,7 +839,7 @@
       "priority_score": 630.51,
       "rank": 59,
       "crew_id": null,
-      "audit_id": "eff73d38-c4ed-4e0a-9a7a-367f7c23094c"
+      "audit_id": "28f4f752-b6c8-425e-9a33-dad0fdf70aea"
     },
     {
       "work_item_id": "A-20250708-MTR-004289",
@@ -860,7 +860,7 @@
       "priority_score": 613.69,
       "rank": 54,
       "crew_id": null,
-      "audit_id": "90be990b-3905-495c-9b19-804ba092a201"
+      "audit_id": "b0d88c8d-984e-4e0d-9fd4-8d8cd867609f"
     },
     {
       "work_item_id": "A-20250708-MTR-002076",
@@ -881,7 +881,7 @@
       "priority_score": 605.22,
       "rank": 47,
       "crew_id": null,
-      "audit_id": "70279832-966c-4467-99ad-a0bad08b1e65"
+      "audit_id": "6ed0564c-801e-4386-852a-24e27a991cf8"
     },
     {
       "work_item_id": "A-20250708-MTR-004036",
@@ -902,7 +902,7 @@
       "priority_score": 600.28,
       "rank": 64,
       "crew_id": null,
-      "audit_id": "be83111d-686d-410c-a556-07f420712e36"
+      "audit_id": "b3d7aabd-b68a-4ab8-a5ed-2af818fb7a93"
     },
     {
       "work_item_id": "A-20250708-MTR-004070",
@@ -923,7 +923,7 @@
       "priority_score": 590.32,
       "rank": 61,
       "crew_id": null,
-      "audit_id": "67ee174e-0d3d-49ad-a910-39e945995bad"
+      "audit_id": "2ed0d01b-a072-499d-86cb-6efd4ddb0c00"
     },
     {
       "work_item_id": "A-20250708-MTR-007902",
@@ -944,7 +944,7 @@
       "priority_score": 578.57,
       "rank": 70,
       "crew_id": null,
-      "audit_id": "395bb967-8e6e-4ae1-82f4-9b59c6079ba5"
+      "audit_id": "ac89744c-2987-4000-a3e2-c98909ee62ad"
     },
     {
       "work_item_id": "A-20250708-MTR-000200",
@@ -965,7 +965,7 @@
       "priority_score": 577.68,
       "rank": 67,
       "crew_id": null,
-      "audit_id": "769a79c6-008d-456d-80fd-2be36f06e555"
+      "audit_id": "20fc54e6-2fda-424b-808b-b461d212dddc"
     },
     {
       "work_item_id": "A-20250708-MTR-002690",
@@ -986,7 +986,7 @@
       "priority_score": 577.4,
       "rank": 49,
       "crew_id": null,
-      "audit_id": "b2bf0a2a-be3d-452a-9531-d36ec2d3a668"
+      "audit_id": "846a497f-2078-4794-85e0-5b00cf653441"
     },
     {
       "work_item_id": "A-20250708-MTR-006332",
@@ -1007,7 +1007,7 @@
       "priority_score": 538.44,
       "rank": 51,
       "crew_id": null,
-      "audit_id": "631ab93a-f2c2-444d-8fa5-c79513ecf6ce"
+      "audit_id": "b3d3b32d-c578-4690-b303-1c4b7e4fe421"
     },
     {
       "work_item_id": "A-20250708-MTR-009294",
@@ -1028,7 +1028,7 @@
       "priority_score": 537.56,
       "rank": 71,
       "crew_id": null,
-      "audit_id": "621361b1-8494-46f6-aff4-2a3dda2cee98"
+      "audit_id": "bd6d10f1-dec7-4ba3-92de-6db53e21ade2"
     },
     {
       "work_item_id": "A-20250708-MTR-005633",
@@ -1049,7 +1049,7 @@
       "priority_score": 517.26,
       "rank": 53,
       "crew_id": null,
-      "audit_id": "7d553438-c7a8-41de-b7d0-dee9d7608eaa"
+      "audit_id": "d7a86a54-ca7a-4e83-9cf8-57f68239d60b"
     },
     {
       "work_item_id": "A-20250708-MTR-006584",
@@ -1070,7 +1070,7 @@
       "priority_score": 507.05,
       "rank": 58,
       "crew_id": null,
-      "audit_id": "ced8bf90-d138-4547-88ed-c8ba3493621d"
+      "audit_id": "9f715215-021b-4601-b5e8-f0f813c868fd"
     },
     {
       "work_item_id": "A-20250708-MTR-006555",
@@ -1091,7 +1091,7 @@
       "priority_score": 502.2,
       "rank": 48,
       "crew_id": null,
-      "audit_id": "06a15f3b-c264-4577-bafc-f88360caa9af"
+      "audit_id": "21822ad9-b5de-453c-b3dc-28040ad00a59"
     },
     {
       "work_item_id": "A-20250708-MTR-008166",
@@ -1112,7 +1112,7 @@
       "priority_score": 498.18,
       "rank": 81,
       "crew_id": null,
-      "audit_id": "68f408f9-c637-4afd-bbf2-5516b71000ff"
+      "audit_id": "2521b47f-ae38-4424-a003-d322a7986c99"
     },
     {
       "work_item_id": "A-20250708-MTR-008625",
@@ -1133,7 +1133,7 @@
       "priority_score": 493.85,
       "rank": 80,
       "crew_id": null,
-      "audit_id": "f964d36c-ef2a-4c01-b2a4-24f13c351081"
+      "audit_id": "d5ae9d16-6417-460f-aebc-95c1613a4c47"
     },
     {
       "work_item_id": "A-20250708-MTR-007308",
@@ -1154,7 +1154,7 @@
       "priority_score": 464.59,
       "rank": 68,
       "crew_id": null,
-      "audit_id": "d7634a21-6d1f-439b-a1f5-8ed8538e8795"
+      "audit_id": "2704ee6b-ca3d-49af-8267-5e120084eacb"
     },
     {
       "work_item_id": "A-20250708-MTR-007728",
@@ -1175,7 +1175,7 @@
       "priority_score": 455.25,
       "rank": 91,
       "crew_id": null,
-      "audit_id": "d40ce20f-de0f-4b9c-82b3-ec8d53a1c265"
+      "audit_id": "20f5dc7c-880a-4b3e-87f6-3bbe9f140d9e"
     },
     {
       "work_item_id": "A-20250708-MTR-007078",
@@ -1196,7 +1196,7 @@
       "priority_score": 446.23,
       "rank": 65,
       "crew_id": null,
-      "audit_id": "131eacda-9794-4103-8b7b-322060a5765a"
+      "audit_id": "1f9000b8-9a32-4b8c-88ff-455ea7c64228"
     },
     {
       "work_item_id": "A-20250708-MTR-009891",
@@ -1217,7 +1217,7 @@
       "priority_score": 438.02,
       "rank": 83,
       "crew_id": null,
-      "audit_id": "f719f9d8-9d53-427b-ace5-2c3b077cb2d8"
+      "audit_id": "c079e646-07af-4312-968a-20524b72b977"
     },
     {
       "work_item_id": "A-20250708-MTR-004720",
@@ -1238,7 +1238,7 @@
       "priority_score": 425.38,
       "rank": 77,
       "crew_id": null,
-      "audit_id": "4d81a933-9a2e-42ac-866f-dc56c9cee376"
+      "audit_id": "874508ce-c98f-4ffc-a637-17514754f40d"
     },
     {
       "work_item_id": "A-20250708-MTR-006342",
@@ -1259,7 +1259,7 @@
       "priority_score": 403.78,
       "rank": 72,
       "crew_id": null,
-      "audit_id": "f99a6ded-cc7d-40f3-8fbb-888708f5b7c3"
+      "audit_id": "48b23e6b-29ff-4260-9421-e8479ccde72e"
     },
     {
       "work_item_id": "A-20250708-MTR-008425",
@@ -1280,7 +1280,7 @@
       "priority_score": 392.41,
       "rank": 97,
       "crew_id": null,
-      "audit_id": "f115a607-385b-475a-bb52-e2b8044db205"
+      "audit_id": "3d1fb580-9054-4ea3-9752-3f26f022fb4e"
     },
     {
       "work_item_id": "A-20250708-MTR-003229",
@@ -1301,7 +1301,7 @@
       "priority_score": 390.68,
       "rank": 74,
       "crew_id": null,
-      "audit_id": "3686fefd-3943-4705-ab65-000aedb6de3a"
+      "audit_id": "d8de2139-f705-47d6-913b-eebe1acdc16a"
     },
     {
       "work_item_id": "A-20250708-MTR-005339",
@@ -1322,7 +1322,7 @@
       "priority_score": 387.76,
       "rank": 87,
       "crew_id": null,
-      "audit_id": "49fd2de6-af39-4ab9-b007-b09a28eacabd"
+      "audit_id": "511c7869-29b4-4083-8027-c208fe905332"
     },
     {
       "work_item_id": "A-20250708-MTR-006176",
@@ -1343,7 +1343,7 @@
       "priority_score": 382.68,
       "rank": 73,
       "crew_id": null,
-      "audit_id": "f88063e4-9b93-4eaa-9c35-f9c8d0a623ac"
+      "audit_id": "e57ceda0-401c-4e30-8eb6-9f8386be9780"
     },
     {
       "work_item_id": "A-20250708-MTR-009233",
@@ -1364,7 +1364,7 @@
       "priority_score": 377.43,
       "rank": 89,
       "crew_id": null,
-      "audit_id": "e95e40dd-5d48-4426-856c-765faa9a4352"
+      "audit_id": "68bd9fe6-3c85-4cbe-982e-6ad552b86f67"
     },
     {
       "work_item_id": "A-20250708-MTR-005526",
@@ -1385,7 +1385,7 @@
       "priority_score": 373.94,
       "rank": 84,
       "crew_id": null,
-      "audit_id": "d4b1363d-5bc5-4693-a9bc-1f0555208468"
+      "audit_id": "55b52be2-680a-438b-b749-f007e0ea3bf1"
     },
     {
       "work_item_id": "A-20250708-MTR-002183",
@@ -1406,7 +1406,7 @@
       "priority_score": 368.7,
       "rank": 82,
       "crew_id": null,
-      "audit_id": "7b121bad-eeb9-4825-bf8f-06826a15f5f2"
+      "audit_id": "401221cb-1942-4ab3-a7c5-b8198d881149"
     },
     {
       "work_item_id": "A-20250708-MTR-004955",
@@ -1427,7 +1427,7 @@
       "priority_score": 357.96,
       "rank": 85,
       "crew_id": null,
-      "audit_id": "daf62de5-0dea-4bb7-b722-ce82597612ed"
+      "audit_id": "5d04e3e9-4ece-4d76-828b-a1edfb91c4af"
     },
     {
       "work_item_id": "A-20250708-MTR-000518",
@@ -1448,7 +1448,7 @@
       "priority_score": 346.22,
       "rank": 95,
       "crew_id": null,
-      "audit_id": "fff32da6-2acb-4b12-b6df-639ecf25e90f"
+      "audit_id": "441c3ad9-6c66-487c-a164-373f2880d643"
     },
     {
       "work_item_id": "A-20250708-MTR-006619",
@@ -1469,7 +1469,7 @@
       "priority_score": 340.44,
       "rank": 79,
       "crew_id": null,
-      "audit_id": "6872354c-0f2b-452e-8d5c-d19e48ebafb5"
+      "audit_id": "f6fa9e78-0ada-401a-926f-860df0f8cd88"
     },
     {
       "work_item_id": "A-20250708-MTR-009415",
@@ -1490,7 +1490,7 @@
       "priority_score": 337.94,
       "rank": 94,
       "crew_id": null,
-      "audit_id": "b59faaf5-d531-4c53-aeb6-7783772d773f"
+      "audit_id": "6c42785e-cf19-4e07-bdd4-3938c927b57e"
     },
     {
       "work_item_id": "A-20250708-MTR-007961",
@@ -1511,7 +1511,7 @@
       "priority_score": 335.82,
       "rank": 106,
       "crew_id": null,
-      "audit_id": "24eb4afb-d62f-486a-b610-e5c9445ffc28"
+      "audit_id": "e04c25cb-e8a7-46b9-a05e-b0cc12f0ace0"
     },
     {
       "work_item_id": "A-20250708-MTR-007457",
@@ -1532,7 +1532,7 @@
       "priority_score": 328.98,
       "rank": 103,
       "crew_id": null,
-      "audit_id": "3c99b0c0-5c37-4b29-a754-0e85001c10fd"
+      "audit_id": "a90e2184-4662-4910-b2a7-e98f35d564e7"
     },
     {
       "work_item_id": "A-20250708-MTR-008211",
@@ -1553,7 +1553,7 @@
       "priority_score": 311.43,
       "rank": 86,
       "crew_id": null,
-      "audit_id": "e1f35726-c5fd-43b8-85a1-d3c6379f1b02"
+      "audit_id": "87cf2d91-ef81-4792-9f0d-27e3847a7ea3"
     },
     {
       "work_item_id": "A-20250708-MTR-009716",
@@ -1574,7 +1574,7 @@
       "priority_score": 299.08,
       "rank": 96,
       "crew_id": null,
-      "audit_id": "dfd93c6b-a881-4f9d-8be9-7afe4d1a8c0b"
+      "audit_id": "3375263f-12ca-4a41-b7aa-02609c78f5e0"
     },
     {
       "work_item_id": "A-20250708-MTR-002056",
@@ -1595,7 +1595,7 @@
       "priority_score": 280.04,
       "rank": 92,
       "crew_id": null,
-      "audit_id": "26c7cf98-cee0-4790-b1a4-00eb39e5133c"
+      "audit_id": "69d42d37-bfe6-4a56-a6a1-d3324c2d0f88"
     },
     {
       "work_item_id": "A-20250708-MTR-008955",
@@ -1616,7 +1616,7 @@
       "priority_score": 279.02,
       "rank": 105,
       "crew_id": null,
-      "audit_id": "d80be1e8-3b7f-46b3-9327-f44f9563e280"
+      "audit_id": "395cc4e9-9e1e-4604-9290-a2392e779bad"
     },
     {
       "work_item_id": "A-20250708-MTR-002701",
@@ -1637,7 +1637,7 @@
       "priority_score": 271.82,
       "rank": 90,
       "crew_id": null,
-      "audit_id": "b121130f-277b-4de1-8ca9-7778a76f4d7c"
+      "audit_id": "6752246a-a31b-44be-ad2c-ff77646e8449"
     },
     {
       "work_item_id": "A-20250708-MTR-008348",
@@ -1658,7 +1658,7 @@
       "priority_score": 262.36,
       "rank": 102,
       "crew_id": null,
-      "audit_id": "5a90f0eb-a654-4282-a91a-d08b90175231"
+      "audit_id": "d9ce4cae-e716-4386-83e3-65a097d6c7d9"
     },
     {
       "work_item_id": "A-20250708-MTR-001363",
@@ -1679,7 +1679,7 @@
       "priority_score": 250.49,
       "rank": 93,
       "crew_id": null,
-      "audit_id": "7fb3272a-3e32-4d8a-bd0e-f196b5213f91"
+      "audit_id": "cdaa852e-f0d1-4910-8604-1c7cab6d3935"
     },
     {
       "work_item_id": "A-20250708-MTR-009096",
@@ -1700,7 +1700,7 @@
       "priority_score": 244.44,
       "rank": 107,
       "crew_id": null,
-      "audit_id": "4ac85a51-9ed3-4b71-9480-a24eaaf7912e"
+      "audit_id": "505bbfe7-a59c-4cb7-8ae7-8ab2a16ede3b"
     },
     {
       "work_item_id": "A-20250708-MTR-002123",
@@ -1721,7 +1721,7 @@
       "priority_score": 244.0,
       "rank": 100,
       "crew_id": null,
-      "audit_id": "5eb83756-b8db-457a-b3c1-b615935df8b7"
+      "audit_id": "20e9a089-da82-4b42-b5da-e9a2e526fde6"
     },
     {
       "work_item_id": "A-20250708-MTR-004465",
@@ -1742,7 +1742,7 @@
       "priority_score": 237.65,
       "rank": 104,
       "crew_id": null,
-      "audit_id": "3026efe8-f163-4fa0-a024-e514ac1068ae"
+      "audit_id": "44b4ba77-de00-41e2-9fef-ae2ecd79f61b"
     },
     {
       "work_item_id": "A-20250708-MTR-003173",
@@ -1765,7 +1765,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "f95a691b-c71c-4244-b308-62294622c5e3"
+      "audit_id": "45d3aa4d-997b-4ac0-8255-96c8dffa3ff7"
     },
     {
       "work_item_id": "A-20250708-MTR-001244",
@@ -1786,7 +1786,7 @@
       "priority_score": 229.15,
       "rank": 123,
       "crew_id": null,
-      "audit_id": "023ea334-a352-413e-86f8-074bac3839c6"
+      "audit_id": "a834f16b-c9f0-4e91-b62f-452e9ad99153"
     },
     {
       "work_item_id": "A-20250708-MTR-006683",
@@ -1807,7 +1807,7 @@
       "priority_score": 222.76,
       "rank": 99,
       "crew_id": null,
-      "audit_id": "8f2ab87e-7136-4f8a-a6c2-20c83dbc29f4"
+      "audit_id": "27a6268b-3244-4569-9fb7-99ef1018b94d"
     },
     {
       "work_item_id": "A-20250708-MTR-008284",
@@ -1828,7 +1828,7 @@
       "priority_score": 221.13,
       "rank": 101,
       "crew_id": null,
-      "audit_id": "fce6a493-73cb-4852-9f37-8d97470608e3"
+      "audit_id": "d60a864f-9869-4492-beb8-a79ecbab2340"
     },
     {
       "work_item_id": "A-20250708-MTR-007723",
@@ -1849,7 +1849,7 @@
       "priority_score": 219.18,
       "rank": 131,
       "crew_id": null,
-      "audit_id": "99c39778-14fc-4882-a80e-7728f8936c32"
+      "audit_id": "f072d3b1-21e3-45e7-b4fe-542a2475d553"
     },
     {
       "work_item_id": "A-20250708-MTR-000101",
@@ -1870,7 +1870,7 @@
       "priority_score": 213.51,
       "rank": 108,
       "crew_id": null,
-      "audit_id": "3896524c-51bd-4a38-834c-3a62bd27fabf"
+      "audit_id": "0ba30516-c579-4bc5-a87b-27b3c64e13e3"
     },
     {
       "work_item_id": "A-20250708-MTR-000104",
@@ -1891,7 +1891,7 @@
       "priority_score": 209.21,
       "rank": 111,
       "crew_id": null,
-      "audit_id": "d5ba71f5-dcd9-4c25-8f0f-30bb93a4b0e1"
+      "audit_id": "faf33366-5408-4705-bea2-26bd4df7d6c1"
     },
     {
       "work_item_id": "A-20250708-MTR-003696",
@@ -1912,7 +1912,7 @@
       "priority_score": 207.33,
       "rank": 120,
       "crew_id": null,
-      "audit_id": "00e85ea2-a98b-414b-9002-f85723006eae"
+      "audit_id": "bd1bfae2-53ae-4ec8-abbd-8b53dcfdec79"
     },
     {
       "work_item_id": "A-20250708-MTR-008947",
@@ -1933,7 +1933,7 @@
       "priority_score": 194.33,
       "rank": 125,
       "crew_id": null,
-      "audit_id": "476661cb-4eb1-4aad-95de-a968660b1e11"
+      "audit_id": "47e0146c-6dfa-4d24-ab8a-3e92a19c95c3"
     },
     {
       "work_item_id": "A-20250708-MTR-002156",
@@ -1954,7 +1954,7 @@
       "priority_score": 189.89,
       "rank": 121,
       "crew_id": null,
-      "audit_id": "fe900850-5ad9-42c9-aaa2-f56e62e043cc"
+      "audit_id": "88c0d497-c486-4b51-8a21-37bc54c1d65a"
     },
     {
       "work_item_id": "A-20250708-MTR-002288",
@@ -1975,7 +1975,7 @@
       "priority_score": 189.21,
       "rank": 122,
       "crew_id": null,
-      "audit_id": "812d6100-fdd3-478d-95f7-478071ab1da7"
+      "audit_id": "779766d3-3251-45d1-9580-be8529504988"
     },
     {
       "work_item_id": "A-20250708-MTR-004405",
@@ -1996,7 +1996,7 @@
       "priority_score": 184.4,
       "rank": 116,
       "crew_id": null,
-      "audit_id": "ea9bdc59-bdd1-40d9-9d5c-e3f8b3cb2578"
+      "audit_id": "1d76dbdd-69d8-41d6-8379-0cd1d593a3a0"
     },
     {
       "work_item_id": "A-20250708-MTR-000142",
@@ -2017,7 +2017,7 @@
       "priority_score": 177.73,
       "rank": 126,
       "crew_id": null,
-      "audit_id": "49b918a9-bccb-4ebd-b724-a021a2ef06c8"
+      "audit_id": "0d3e8d6c-a533-42b9-b504-1bd8acdfdef0"
     },
     {
       "work_item_id": "A-20250708-MTR-003092",
@@ -2038,7 +2038,7 @@
       "priority_score": 177.37,
       "rank": 109,
       "crew_id": null,
-      "audit_id": "1a30f0a8-c835-40d6-b5cd-8d18ff291bda"
+      "audit_id": "78d21b02-8141-41c5-bb15-c6b8a4a89dbf"
     },
     {
       "work_item_id": "A-20250708-MTR-007331",
@@ -2059,7 +2059,7 @@
       "priority_score": 169.83,
       "rank": 115,
       "crew_id": null,
-      "audit_id": "4e0e29fa-6818-4814-b800-f485746d9fbb"
+      "audit_id": "e298762a-71cf-474a-8b95-06a4b15d5430"
     },
     {
       "work_item_id": "A-20250708-MTR-004928",
@@ -2080,7 +2080,7 @@
       "priority_score": 169.1,
       "rank": 124,
       "crew_id": null,
-      "audit_id": "24492a8d-f948-4d6a-9fb1-938919f81556"
+      "audit_id": "7657815d-5fa2-4e97-84ba-efb06bf5dadc"
     },
     {
       "work_item_id": "A-20250708-MTR-000170",
@@ -2101,7 +2101,7 @@
       "priority_score": 168.8,
       "rank": 129,
       "crew_id": null,
-      "audit_id": "e74f2ec3-ef74-4c0b-a1cf-1e3d53494eeb"
+      "audit_id": "002e6d30-670c-4b3e-8676-b92eb3e90f6d"
     },
     {
       "work_item_id": "A-20250708-MTR-002582",
@@ -2122,7 +2122,7 @@
       "priority_score": 163.03,
       "rank": 114,
       "crew_id": null,
-      "audit_id": "8b495037-3fd5-4576-890b-9c4b0e5dd902"
+      "audit_id": "3d1ff117-c86e-4444-9fe7-df1acf66bfc5"
     },
     {
       "work_item_id": "A-20250708-MTR-006607",
@@ -2143,7 +2143,7 @@
       "priority_score": 161.77,
       "rank": 110,
       "crew_id": null,
-      "audit_id": "032f583e-94e4-4aab-8ea9-f53847f17f0c"
+      "audit_id": "c79638b1-a2de-4c27-8e0f-2143edcaddba"
     },
     {
       "work_item_id": "A-20250708-MTR-003424",
@@ -2164,7 +2164,7 @@
       "priority_score": 161.52,
       "rank": 119,
       "crew_id": null,
-      "audit_id": "94685266-00fb-4f20-8345-0d9dce479941"
+      "audit_id": "793701d1-b5b3-4f14-b7d4-391de36bf3a5"
     },
     {
       "work_item_id": "A-20250708-MTR-004221",
@@ -2185,7 +2185,7 @@
       "priority_score": 161.34,
       "rank": 127,
       "crew_id": null,
-      "audit_id": "56ce1a41-d927-426f-8689-adc128f625fc"
+      "audit_id": "8b798b38-8ac1-42e9-927c-b4425a0b3fe6"
     },
     {
       "work_item_id": "A-20250708-MTR-006845",
@@ -2206,7 +2206,7 @@
       "priority_score": 152.84,
       "rank": 113,
       "crew_id": null,
-      "audit_id": "699d4354-a7ae-4086-ac93-41bbe5bc0655"
+      "audit_id": "7df597c7-0a14-49f4-a8b4-587bd4954a58"
     },
     {
       "work_item_id": "A-20250708-MTR-004456",
@@ -2227,7 +2227,7 @@
       "priority_score": 147.5,
       "rank": 132,
       "crew_id": null,
-      "audit_id": "fc84bb0d-a0e3-43c6-9a7c-0692b9ad1373"
+      "audit_id": "7b8d3d46-d363-4fbd-909f-81a914725863"
     },
     {
       "work_item_id": "A-20250708-MTR-004583",
@@ -2248,7 +2248,7 @@
       "priority_score": 146.86,
       "rank": 130,
       "crew_id": null,
-      "audit_id": "f3ff2cd3-3c19-4a1d-abb8-ee184135f3dc"
+      "audit_id": "8e9d35ea-0eae-4629-a841-deed2d1c691a"
     },
     {
       "work_item_id": "A-20250708-MTR-000424",
@@ -2269,7 +2269,7 @@
       "priority_score": 141.73,
       "rank": 133,
       "crew_id": null,
-      "audit_id": "5c001ff9-f918-4ce1-bbc3-2d4fc5d41a32"
+      "audit_id": "f9e403aa-16fa-4f24-b3ce-315f5d06dc06"
     },
     {
       "work_item_id": "A-20250708-MTR-007708",
@@ -2290,7 +2290,7 @@
       "priority_score": 140.48,
       "rank": 141,
       "crew_id": null,
-      "audit_id": "7c523efd-e632-4cac-9321-52774d9d23e5"
+      "audit_id": "3ded9958-aab0-4f1c-bc36-368301fa5a36"
     },
     {
       "work_item_id": "A-20250708-MTR-003955",
@@ -2311,7 +2311,7 @@
       "priority_score": 128.75,
       "rank": 135,
       "crew_id": null,
-      "audit_id": "1a51182b-aa8c-4d83-8e21-e695f13d1b76"
+      "audit_id": "756f4095-345f-4b5c-ad71-59f458dc0032"
     },
     {
       "work_item_id": "A-20250708-MTR-000679",
@@ -2332,7 +2332,7 @@
       "priority_score": 123.11,
       "rank": 138,
       "crew_id": null,
-      "audit_id": "81147f8b-a0ff-476f-82ef-92ee5bc17de6"
+      "audit_id": "4a6dca75-a623-4dcb-80fe-b8f273b85594"
     },
     {
       "work_item_id": "A-20250708-MTR-000922",
@@ -2353,7 +2353,7 @@
       "priority_score": 120.79,
       "rank": 144,
       "crew_id": null,
-      "audit_id": "0e12922f-a780-4beb-8fa6-e4d7c7c694e9"
+      "audit_id": "e5f96060-0340-418c-9b83-52a3abd64848"
     },
     {
       "work_item_id": "A-20250708-MTR-009904",
@@ -2374,7 +2374,7 @@
       "priority_score": 102.38,
       "rank": 145,
       "crew_id": null,
-      "audit_id": "87a34d5b-9dab-46ae-9be2-8d5caf4aa441"
+      "audit_id": "658c11a3-ec81-4efd-8392-fd0d03d63522"
     },
     {
       "work_item_id": "A-20250708-MTR-008160",
@@ -2395,7 +2395,7 @@
       "priority_score": 96.37,
       "rank": 147,
       "crew_id": null,
-      "audit_id": "03944f8d-9afe-4eaf-b708-04429df566e3"
+      "audit_id": "9f571478-5a67-4ead-a239-2294540356f4"
     },
     {
       "work_item_id": "A-20250708-MTR-002789",
@@ -2416,7 +2416,7 @@
       "priority_score": 90.72,
       "rank": 137,
       "crew_id": null,
-      "audit_id": "4bf6ef78-d1eb-4427-8474-04069ae24623"
+      "audit_id": "81fc650b-4f0b-4ebc-8e16-b5a8cab9f238"
     },
     {
       "work_item_id": "A-20250708-MTR-006355",
@@ -2437,7 +2437,7 @@
       "priority_score": 86.74,
       "rank": 139,
       "crew_id": null,
-      "audit_id": "dad38f01-6672-4253-84a4-b0db403dedf7"
+      "audit_id": "ed657824-a399-4d54-9a03-75f2e8d036b6"
     },
     {
       "work_item_id": "A-20250708-MTR-005754",
@@ -2458,7 +2458,7 @@
       "priority_score": 84.95,
       "rank": 140,
       "crew_id": null,
-      "audit_id": "bbd44bbd-ec37-4fa6-95d4-5cb55c923551"
+      "audit_id": "7fca2ecf-9567-417a-9f1e-1f74527f62f4"
     },
     {
       "work_item_id": "A-20250708-MTR-007967",
@@ -2481,7 +2481,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "a98eb0d3-d621-48ae-a888-3a9098127e2d"
+      "audit_id": "a93b5767-9700-4bdf-896e-39c77a78532a"
     },
     {
       "work_item_id": "A-20250708-MTR-002619",
@@ -2502,7 +2502,7 @@
       "priority_score": 79.02,
       "rank": 143,
       "crew_id": null,
-      "audit_id": "2bfcdbae-dc74-44c1-8548-c4597dc20410"
+      "audit_id": "d458ea1c-4ac5-40e2-873c-69169a8ae2c5"
     },
     {
       "work_item_id": "A-20250708-MTR-008237",
@@ -2525,7 +2525,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "953f58da-2158-4a65-b77f-5eae0e6526e4"
+      "audit_id": "db39f782-fc4e-42dd-ba34-15bb9553359d"
     },
     {
       "work_item_id": "A-20250708-MTR-001955",
@@ -2546,7 +2546,7 @@
       "priority_score": 70.38,
       "rank": 148,
       "crew_id": null,
-      "audit_id": "5d0b2a3f-5d4e-44dd-81b4-25d15a53d04f"
+      "audit_id": "68977b86-efce-47be-9d06-19c88125727d"
     },
     {
       "work_item_id": "A-20250708-MTR-008297",
@@ -2567,7 +2567,7 @@
       "priority_score": 69.16,
       "rank": 146,
       "crew_id": null,
-      "audit_id": "247deede-8896-443b-b678-f651040b98bb"
+      "audit_id": "028a4e8a-6a7f-4aac-9477-f1d32bf43022"
     },
     {
       "work_item_id": "A-20250708-MTR-008011",
@@ -2590,7 +2590,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "7088314f-f917-458b-aa06-8f59e9c1cdae"
+      "audit_id": "45f1e0f4-37a3-454e-a232-07d40647ea8a"
     },
     {
       "work_item_id": "A-20250708-MTR-000684",
@@ -2613,7 +2613,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "39db9c79-e88f-403e-857a-73d4506edba4"
+      "audit_id": "f5f8f6e7-6d72-4584-b015-290061455714"
     },
     {
       "work_item_id": "A-20250708-MTR-005498",
@@ -2634,7 +2634,7 @@
       "priority_score": 57.3,
       "rank": 149,
       "crew_id": null,
-      "audit_id": "5cf8b32f-0a61-4ccf-8532-c477bc508b90"
+      "audit_id": "afde675f-bd86-4202-a02e-e56b3578e4d4"
     },
     {
       "work_item_id": "A-20250708-MTR-003877",
@@ -2657,7 +2657,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "c6695aa3-6a04-4836-b1f2-2ca6ed4a536e"
+      "audit_id": "23e82638-4621-4e44-ac15-ce7b4af5db66"
     },
     {
       "work_item_id": "A-20250708-MTR-005458",
@@ -2678,7 +2678,7 @@
       "priority_score": 43.97,
       "rank": 142,
       "crew_id": null,
-      "audit_id": "b7f0f279-a543-45a9-a2b0-cc7c25fca2d6"
+      "audit_id": "394a7de1-b120-45ad-8262-4ea64a49a9a6"
     },
     {
       "work_item_id": "A-20250708-MTR-008876",
@@ -2699,7 +2699,7 @@
       "priority_score": 43.95,
       "rank": 134,
       "crew_id": null,
-      "audit_id": "2368cf6d-9921-4f2b-98b0-c28a6b7f1924"
+      "audit_id": "fa4fd506-6e89-4c81-98b7-bbed955ee14c"
     },
     {
       "work_item_id": "A-20250708-MTR-005407",
@@ -2720,7 +2720,7 @@
       "priority_score": 39.18,
       "rank": 150,
       "crew_id": null,
-      "audit_id": "29ec7d1a-9b62-4538-b9cc-5256e99ebf40"
+      "audit_id": "2d3400a8-0025-4094-8c2b-074a702668fa"
     },
     {
       "work_item_id": "A-20250708-MTR-003891",
@@ -2743,7 +2743,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "48f0fbf3-dfb3-462f-9319-691f143db6b7"
+      "audit_id": "aff0d633-9d87-43bf-b2d3-4e4dbc645ce3"
     },
     {
       "work_item_id": "A-20250708-MTR-005188",
@@ -2766,7 +2766,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "4e6a0430-60dc-4836-ac55-db81858847ef"
+      "audit_id": "d90af1a2-47f1-4b81-9898-00ec73d716cd"
     },
     {
       "work_item_id": "A-20250708-MTR-007924",
@@ -2789,7 +2789,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "15ba740b-75ae-49f6-bd04-a0d5c0bf6eb4"
+      "audit_id": "bc7b7165-a2d9-4786-96ec-7fad1a936312"
     },
     {
       "work_item_id": "A-20250708-MTR-007220",
@@ -2810,7 +2810,7 @@
       "priority_score": 29.29,
       "rank": 136,
       "crew_id": null,
-      "audit_id": "40ec65da-0f66-49ed-b2c5-da997806e1f1"
+      "audit_id": "6bc84b6a-4139-4ffd-a7bd-4c5cb964a4e2"
     },
     {
       "work_item_id": "A-20250708-MTR-006750",
@@ -2831,7 +2831,7 @@
       "priority_score": 27.43,
       "rank": 151,
       "crew_id": null,
-      "audit_id": "8d77240e-05aa-49ed-a5ae-d63c482b746c"
+      "audit_id": "09dbbb6c-35e7-4950-ac9b-4c778c6a5d10"
     },
     {
       "work_item_id": "A-20250708-MTR-003404",
@@ -2854,7 +2854,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "881fbc2d-297d-4995-a6d1-4306daf85e41"
+      "audit_id": "9b8881db-0ef2-48c4-9581-d145d74fd340"
     },
     {
       "work_item_id": "A-20250708-MTR-002438",
@@ -2877,7 +2877,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "92269bcc-365c-4943-a726-e0cfd7120254"
+      "audit_id": "556abdee-ee92-4110-a2ce-ea3b2f53c527"
     },
     {
       "work_item_id": "A-20250708-MTR-002506",
@@ -2900,7 +2900,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "98a535f0-9c89-4c1c-a8da-35d93943da4e"
+      "audit_id": "361e51b7-10ad-4e62-bf12-cf56d1d8ed3f"
     },
     {
       "work_item_id": "A-20250708-MTR-005882",
@@ -2923,7 +2923,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "1b6552e0-af30-4da8-9718-ccd5b3dbc121"
+      "audit_id": "835ae446-55db-401e-9eb1-e9f540a7bffc"
     },
     {
       "work_item_id": "A-20250708-MTR-002198",
@@ -2946,7 +2946,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "9e6668b5-4881-4b9d-a203-a0d26c10a3c8"
+      "audit_id": "0dbb944e-1aaa-4430-8668-0aa0fa16b288"
     },
     {
       "work_item_id": "A-20250708-MTR-007578",
@@ -2969,7 +2969,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "53cb5990-ad7f-4f91-b64d-e6d2fe053752"
+      "audit_id": "f4e6546a-57f8-4bf0-99ef-711109ccdf0b"
     },
     {
       "work_item_id": "A-20250708-MTR-001427",
@@ -2992,7 +2992,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "d7381e85-dcf4-4695-8847-3904d02caf6e"
+      "audit_id": "d05ec27f-3607-4f32-b4f6-c41902bc68d0"
     },
     {
       "work_item_id": "A-20250708-MTR-002314",
@@ -3015,7 +3015,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "0383ac6a-982c-42a6-a3fd-0bfea274d036"
+      "audit_id": "e290d463-1fd2-4ebe-83b5-0e66015f659e"
     },
     {
       "work_item_id": "A-20250708-MTR-008323",
@@ -3038,7 +3038,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "7abc4f5a-87de-45fd-ab43-ad993d37efb7"
+      "audit_id": "abd5a289-dabb-4a31-86ff-e15be6fca0ed"
     },
     {
       "work_item_id": "A-20250708-MTR-009371",
@@ -3061,7 +3061,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "fc204fa8-dd1c-423f-96c8-3ee4cbf3d45c"
+      "audit_id": "a929148c-7826-4637-8b60-f0192cfdb793"
     },
     {
       "work_item_id": "A-20250708-MTR-006291",
@@ -3084,7 +3084,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "005127ac-8be4-4fc2-bffb-ee11cd6e5308"
+      "audit_id": "482e6bc8-ac19-476b-ac7e-21e48188718a"
     },
     {
       "work_item_id": "A-20250708-MTR-001212",
@@ -3107,7 +3107,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "fec3ddc0-4b00-44d9-a50c-51aa00460345"
+      "audit_id": "4f401150-e4fe-4d56-afae-6c39d82a0f40"
     },
     {
       "work_item_id": "A-20250708-MTR-008576",
@@ -3130,7 +3130,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "e7472626-2f86-47e5-bff4-d66dfde54293"
+      "audit_id": "d83f90d5-c1a0-4176-b9f0-384179051e03"
     },
     {
       "work_item_id": "A-20250708-MTR-004864",
@@ -3153,7 +3153,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "b2e50845-eed4-4cae-b6d2-49106a998f93"
+      "audit_id": "f5f81b93-64af-42ac-8ac8-891dec400984"
     },
     {
       "work_item_id": "A-20250708-MTR-008460",
@@ -3176,7 +3176,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "d7c6f74b-cd32-46f1-8ca6-45871d1aefd6"
+      "audit_id": "6fedf510-7537-4f4b-8eda-e986dfd48e83"
     },
     {
       "work_item_id": "A-20250708-MTR-006980",
@@ -3199,7 +3199,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "a1b965d1-bc7d-467c-a255-6cf44e9d7603"
+      "audit_id": "08e3a5e5-f5a9-48b3-8344-2b306633074c"
     },
     {
       "work_item_id": "A-20250708-MTR-001632",
@@ -3222,7 +3222,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "a90fddf0-03f8-48e6-b9b2-e570245cc0f3"
+      "audit_id": "70422897-84b1-4a37-8814-d53abb8fb3a4"
     },
     {
       "work_item_id": "A-20250708-MTR-009425",
@@ -3245,7 +3245,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "6516d9f0-f485-40e6-96e6-61f29fd1e3e7"
+      "audit_id": "90a8eaf3-fedd-4341-85e0-b529144ce9f7"
     },
     {
       "work_item_id": "A-20250708-MTR-005197",
@@ -3268,7 +3268,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "d7d84547-b3fc-42da-971b-96811d1394c3"
+      "audit_id": "0d2ef15a-19c9-49dc-aed6-17f6f4026d10"
     },
     {
       "work_item_id": "A-20250708-MTR-007011",
@@ -3291,7 +3291,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "316363e8-4d0c-4580-93f2-bcdea1abd947"
+      "audit_id": "5f04dd7c-7237-4e79-9ddc-ac469153e617"
     },
     {
       "work_item_id": "A-20250708-MTR-008739",
@@ -3314,7 +3314,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "f3760e85-5326-4aa1-a3b0-e103be3d788c"
+      "audit_id": "de5722ba-7c60-4063-ae65-a1167c361138"
     },
     {
       "work_item_id": "A-20250708-MTR-005672",
@@ -3337,7 +3337,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "c1c0a391-f717-4058-b849-b177c3785e84"
+      "audit_id": "9d0555ef-216c-4e94-9d8b-16c1fdf736ab"
     },
     {
       "work_item_id": "A-20250708-MTR-006722",
@@ -3360,7 +3360,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "8d5f8e16-c018-42ff-b3b3-bd413986cbdd"
+      "audit_id": "78dda07a-81a7-49f6-802f-de262fc74b76"
     },
     {
       "work_item_id": "A-20250708-MTR-005414",
@@ -3383,7 +3383,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "2a80e0a4-7f1d-498a-ac7f-2bf1de1c1b2c"
+      "audit_id": "4b8e1a2f-3cfe-4419-89cc-fdd8429184a7"
     },
     {
       "work_item_id": "A-20250708-MTR-003804",
@@ -3406,7 +3406,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "a3651862-a79a-4eae-b19e-2b2179fd10f0"
+      "audit_id": "a808f8ec-1737-4b66-b5e1-507555bbc230"
     },
     {
       "work_item_id": "A-20250708-MTR-009010",
@@ -3429,7 +3429,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "c9241fa9-76a6-4223-bec7-1eb837a413a4"
+      "audit_id": "fe3243ef-da1e-494e-b23a-a216b2a14f98"
     },
     {
       "work_item_id": "A-20250708-MTR-007837",
@@ -3452,7 +3452,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "9c09e045-f758-4da4-a4cf-951847d63475"
+      "audit_id": "43bd67f8-b063-4947-a1bf-289fcfb24ba7"
     },
     {
       "work_item_id": "A-20250708-MTR-000739",
@@ -3475,7 +3475,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "31727a8c-8697-4b8c-8960-0fc1d5b0f0bf"
+      "audit_id": "6dfeea46-2bda-4ce5-b7bf-50ded97646c1"
     },
     {
       "work_item_id": "A-20250708-MTR-005802",
@@ -3498,7 +3498,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "83ded97d-e445-4145-84e9-fd8f97e952ec"
+      "audit_id": "6e6e72b9-2b71-41a9-966a-c2b51e8f1d1c"
     },
     {
       "work_item_id": "A-20250708-MTR-007889",
@@ -3521,7 +3521,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "1a5167e5-df2c-4bab-a276-fbdbd6880fc2"
+      "audit_id": "36e662b3-c8c2-44ef-bce0-a622d21ae814"
     },
     {
       "work_item_id": "A-20250708-MTR-001619",
@@ -3544,7 +3544,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "0ac030eb-d815-421c-a97f-84bb3e4b58a3"
+      "audit_id": "3f8a0873-a768-4e46-8813-13681266a44f"
     },
     {
       "work_item_id": "A-20250708-MTR-004758",
@@ -3567,7 +3567,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "c517cae0-b51a-4531-a312-fd37fe3d1224"
+      "audit_id": "dea613b4-4cbb-466b-8d15-36f21d327d75"
     },
     {
       "work_item_id": "A-20250708-MTR-003089",
@@ -3590,7 +3590,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "920a6d44-0614-4708-8286-0f63a1c62bbb"
+      "audit_id": "f6f7dfe9-4f54-4ff8-9a62-d438e0e2f001"
     },
     {
       "work_item_id": "A-20250708-MTR-005464",
@@ -3613,7 +3613,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "a5aa2634-2b9e-4ca4-a0cc-6d5778586a90"
+      "audit_id": "9f34f738-f6f0-4389-b8cb-a0fc07e3c6df"
     },
     {
       "work_item_id": "A-20250708-MTR-007818",
@@ -3636,7 +3636,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "155307f5-c897-4e77-bfad-1708a1d996c9"
+      "audit_id": "505f2974-0a92-4036-929f-ea782fe64c5c"
     },
     {
       "work_item_id": "A-20250708-MTR-005168",
@@ -3659,7 +3659,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "97bfa6da-a483-445f-adbf-8e187d69f10b"
+      "audit_id": "2e8afb60-3ae4-4642-8097-f2d51255179d"
     },
     {
       "work_item_id": "A-20250708-MTR-008496",
@@ -3682,7 +3682,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "2adf5eb6-f105-47c1-815d-604e541ec299"
+      "audit_id": "90322029-b156-4beb-95e0-acf6b3b42fd5"
     },
     {
       "work_item_id": "A-20250708-MTR-008402",
@@ -3705,7 +3705,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "342abf38-0bcc-4e87-838b-5e1888d63ed2"
+      "audit_id": "1144728c-110b-468c-87c4-4d5bc49087e3"
     },
     {
       "work_item_id": "A-20250708-MTR-003514",
@@ -3728,7 +3728,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "7cc054c9-229b-43dc-8a75-0a9711720f64"
+      "audit_id": "c7c39a4d-4d87-4f32-9a9e-3dedee866a5d"
     },
     {
       "work_item_id": "A-20250708-MTR-009069",
@@ -3751,7 +3751,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "0dc1fba5-e466-4c57-8371-4da0f0477903"
+      "audit_id": "25028dec-2d34-4c3b-939b-fa9c152204ce"
     },
     {
       "work_item_id": "A-20250708-MTR-006507",
@@ -3770,7 +3770,7 @@
       "priority_score": 5238.09,
       "rank": 1,
       "crew_id": "E-BV-2",
-      "audit_id": "d80016ea-f89c-4874-b083-4ad1aec61c57"
+      "audit_id": "03a55b8c-970c-416b-83d4-7b157d18c573"
     },
     {
       "work_item_id": "A-20250708-MTR-001620",
@@ -3789,7 +3789,7 @@
       "priority_score": 1593.57,
       "rank": 2,
       "crew_id": "E-BV-2",
-      "audit_id": "f9e81a1c-526a-4fcb-8e3e-0b0f43003f1b"
+      "audit_id": "541fec47-d0c1-4b4f-9a5b-f7d5895bb488"
     },
     {
       "work_item_id": "A-20250708-MTR-004572",
@@ -3808,7 +3808,7 @@
       "priority_score": 1636.02,
       "rank": 3,
       "crew_id": "E-BE-1",
-      "audit_id": "b16fb42f-d465-4673-b785-ebe3478f1fc2"
+      "audit_id": "3f8527ed-f7fc-44b1-935e-f809b378a207"
     },
     {
       "work_item_id": "A-20250708-MTR-002328",
@@ -3827,7 +3827,7 @@
       "priority_score": 1478.07,
       "rank": 4,
       "crew_id": "E-BE-1",
-      "audit_id": "7a9d5b01-dc2d-45a3-9614-18fcb2ffefde"
+      "audit_id": "ec0a7c9b-7f98-4dad-a478-c678809ede81"
     },
     {
       "work_item_id": "A-20250708-MTR-005642",
@@ -3846,7 +3846,7 @@
       "priority_score": 1254.18,
       "rank": 5,
       "crew_id": "E-BV-1",
-      "audit_id": "93b6c280-d5b1-40c3-b95c-2e7809c7b15e"
+      "audit_id": "f58df4c1-466f-4071-87cd-4d8ea47ea3ba"
     },
     {
       "work_item_id": "A-20250708-MTR-000045",
@@ -3865,7 +3865,7 @@
       "priority_score": 1341.33,
       "rank": 6,
       "crew_id": "E-BV-2",
-      "audit_id": "6998886c-edd2-4baf-a344-b9defd385d55"
+      "audit_id": "1ad796a4-d90d-4853-bca3-07462bcf0359"
     },
     {
       "work_item_id": "A-20250708-MTR-009707",
@@ -3884,7 +3884,7 @@
       "priority_score": 1318.32,
       "rank": 7,
       "crew_id": "E-BE-1",
-      "audit_id": "6fb5b6aa-b46d-48a6-a6bb-38a12f8f4864"
+      "audit_id": "e8ba0ef6-af75-4bea-b042-0eac27dea332"
     },
     {
       "work_item_id": "A-20250708-MTR-007098",
@@ -3903,7 +3903,7 @@
       "priority_score": 1166.4,
       "rank": 8,
       "crew_id": "E-BV-1",
-      "audit_id": "869d4bcc-b725-4e02-b56a-30a7f1403331"
+      "audit_id": "3457a077-a0f2-433e-a9e2-c1039a4a6cd2"
     },
     {
       "work_item_id": "A-20250708-MTR-003106",
@@ -3922,7 +3922,7 @@
       "priority_score": 1119.87,
       "rank": 9,
       "crew_id": "E-BE-1",
-      "audit_id": "8e9e65dd-91d0-4480-a461-41f4a5da4e93"
+      "audit_id": "6c3adab8-e62c-4bc5-8d01-60a187bb8e64"
     },
     {
       "work_item_id": "A-20250708-MTR-006477",
@@ -3941,7 +3941,7 @@
       "priority_score": 1105.98,
       "rank": 10,
       "crew_id": "E-BV-1",
-      "audit_id": "99797fa0-a664-4352-8d06-7478af9b446c"
+      "audit_id": "333a40ea-9226-424a-9ca9-51f6d81df899"
     },
     {
       "work_item_id": "A-20250708-MTR-000008",
@@ -3960,7 +3960,7 @@
       "priority_score": 1010.34,
       "rank": 11,
       "crew_id": "E-BV-2",
-      "audit_id": "4a2e5e8e-4cc2-45bf-b7c5-41fc395c391f"
+      "audit_id": "6108c464-8748-43cc-bf35-1e95a198b7a0"
     },
     {
       "work_item_id": "A-20250708-MTR-009120",
@@ -3979,7 +3979,7 @@
       "priority_score": 946.98,
       "rank": 12,
       "crew_id": "E-BE-1",
-      "audit_id": "d870fdd1-53ab-4c68-80fb-133cb7374d11"
+      "audit_id": "c0fde90d-bc66-484c-bb1c-08d8ff7a4d22"
     },
     {
       "work_item_id": "A-20250708-MTR-006173",
@@ -3998,7 +3998,7 @@
       "priority_score": 857.58,
       "rank": 13,
       "crew_id": "E-BV-1",
-      "audit_id": "01802dd0-bc97-4cff-93f2-11d37b09f7d8"
+      "audit_id": "c680f20a-1589-4e5e-81ff-294c639f24aa"
     },
     {
       "work_item_id": "A-20250708-MTR-004148",
@@ -4017,7 +4017,7 @@
       "priority_score": 851.73,
       "rank": 14,
       "crew_id": "E-BE-1",
-      "audit_id": "a950d560-1f5c-402d-bf74-e63a75b9274d"
+      "audit_id": "1c164667-de23-4f49-a071-98752cd86b74"
     },
     {
       "work_item_id": "A-20250708-MTR-000769",
@@ -4036,7 +4036,7 @@
       "priority_score": 845.49,
       "rank": 15,
       "crew_id": "E-BV-1",
-      "audit_id": "a1d2ef45-6f0c-4ce7-829f-55c04d10942e"
+      "audit_id": "db45a7be-953e-4be4-b125-eeaffc497100"
     },
     {
       "work_item_id": "A-20250708-MTR-004527",
@@ -4055,7 +4055,7 @@
       "priority_score": 753.48,
       "rank": 16,
       "crew_id": "E-BV-1",
-      "audit_id": "198e90c5-fc55-4a56-b510-622fc382ee73"
+      "audit_id": "5f8f2929-08cb-4f1c-98f3-9c9eebf86ced"
     },
     {
       "work_item_id": "A-20250708-MTR-006826",
@@ -4074,7 +4074,7 @@
       "priority_score": 732.99,
       "rank": 17,
       "crew_id": "E-BV-2",
-      "audit_id": "a153e063-c9c4-47e7-8a88-808409990948"
+      "audit_id": "d6e1931b-1f84-4a92-ae98-e229be0516c5"
     },
     {
       "work_item_id": "A-20250708-MTR-009985",
@@ -4093,7 +4093,7 @@
       "priority_score": 712.95,
       "rank": 18,
       "crew_id": "E-BV-2",
-      "audit_id": "c2c95191-ff98-4182-9789-21346ed6da1a"
+      "audit_id": "3b6e35c1-d5da-4132-93cb-7be86e6a36b9"
     },
     {
       "work_item_id": "A-20250708-MTR-005227",
@@ -4112,7 +4112,7 @@
       "priority_score": 708.45,
       "rank": 19,
       "crew_id": "E-BV-1",
-      "audit_id": "685c8cf3-3088-4060-85dc-56da8673122d"
+      "audit_id": "a486e305-7a58-4eca-aaad-740de6764d3a"
     },
     {
       "work_item_id": "A-20250708-MTR-004634",
@@ -4131,7 +4131,7 @@
       "priority_score": 701.91,
       "rank": 20,
       "crew_id": "E-BE-1",
-      "audit_id": "c2c08969-ee76-448e-aae1-45c7b12a13e9"
+      "audit_id": "bab99488-388c-4878-8946-e7de6baf265b"
     },
     {
       "work_item_id": "B-20250708-TM-TIMISOARA",
@@ -4153,7 +4153,7 @@
       "priority_score": 40584.99,
       "rank": 21,
       "crew_id": "E-TM-1",
-      "audit_id": "1da7cecf-5edc-45ad-ad6d-15fcf002fda7"
+      "audit_id": "5214bc08-77af-49f2-967c-3acf0c3b0eb8"
     },
     {
       "work_item_id": "B-20250708-CS-RESITA",
@@ -4177,7 +4177,7 @@
       "priority_score": 37605.0,
       "rank": 22,
       "crew_id": "E-RS-1",
-      "audit_id": "0bb93046-bb3a-415f-ad73-83b703359835"
+      "audit_id": "4b6341f0-6b28-486c-8bb8-878d040dce24"
     },
     {
       "work_item_id": "B-20250708-AR-ARAD",
@@ -4201,7 +4201,7 @@
       "priority_score": 37560.0,
       "rank": 23,
       "crew_id": "E-AR-1",
-      "audit_id": "e5afb150-3888-49f0-9fdb-385c1fd556ae"
+      "audit_id": "35085e80-ee86-4cd8-81c6-34df4df1d20e"
     },
     {
       "work_item_id": "A-20250708-MTR-004732",
@@ -4226,7 +4226,7 @@
       "priority_score": 1907.36,
       "rank": 24,
       "crew_id": "E-BE-1",
-      "audit_id": "9553a8c9-741e-4cb9-a924-499fcb9164ba"
+      "audit_id": "7d7021f2-4ada-4273-bd96-b92fa8a50ef9"
     },
     {
       "work_item_id": "A-20250708-MTR-001392",
@@ -4251,7 +4251,7 @@
       "priority_score": 1670.92,
       "rank": 25,
       "crew_id": "E-BV-2",
-      "audit_id": "5842d8a8-3d0c-4100-a723-fc3f81af921e"
+      "audit_id": "5444d9ae-436d-487c-a01a-0c4c59d68147"
     },
     {
       "work_item_id": "A-20250708-MTR-003005",
@@ -4276,7 +4276,7 @@
       "priority_score": 1469.31,
       "rank": 26,
       "crew_id": "E-BE-1",
-      "audit_id": "3c9dd8b9-3461-4467-9f7c-b04e6b69eccd"
+      "audit_id": "e0da33be-8d07-45d0-9036-3b87251e80ca"
     },
     {
       "work_item_id": "A-20250708-MTR-004484",
@@ -4301,7 +4301,7 @@
       "priority_score": 1366.15,
       "rank": 27,
       "crew_id": "E-BV-1",
-      "audit_id": "934073fd-daa0-44a1-a02d-e63cb6f8deb9"
+      "audit_id": "86cfc8a1-5fc8-472b-8245-198fa2214bd2"
     },
     {
       "work_item_id": "A-20250708-MTR-001672",
@@ -4326,7 +4326,7 @@
       "priority_score": 1140.18,
       "rank": 28,
       "crew_id": "E-BV-2",
-      "audit_id": "f8b48da8-fdda-4301-a4f0-63c4f7efe2f0"
+      "audit_id": "7a64646d-7ba7-46a6-bc79-616199cdd043"
     },
     {
       "work_item_id": "A-20250708-MTR-009931",
@@ -4351,7 +4351,7 @@
       "priority_score": 1067.02,
       "rank": 38,
       "crew_id": "E-BV-2",
-      "audit_id": "9c33b512-0e3b-4e1a-882f-cefbcefae491"
+      "audit_id": "6ce2863c-03e1-4cd0-9f61-8db3a409facf"
     },
     {
       "work_item_id": "B-20250708-IF-BUFTEA",
@@ -4375,7 +4375,7 @@
       "priority_score": 7649.86,
       "rank": 41,
       "crew_id": "E-BE-2",
-      "audit_id": "cef4dceb-f70e-4b8b-9e74-c782c6983153"
+      "audit_id": "b4cd69dd-2555-4257-b03e-558c8735b2e9"
     },
     {
       "work_item_id": "C-20250708-PT-1076",
@@ -4400,7 +4400,7 @@
       "priority_score": 1024.72,
       "rank": 52,
       "crew_id": "E-BV-3",
-      "audit_id": "f80034dc-e328-4901-bd7f-07f1de0e3088"
+      "audit_id": "3d7e2f3a-667d-4e9e-b858-9652851bf228"
     },
     {
       "work_item_id": "B-20250708-IL-SLOBOZIA",
@@ -4424,7 +4424,7 @@
       "priority_score": 6923.19,
       "rank": 55,
       "crew_id": "E-CT-1",
-      "audit_id": "f584bb65-6c01-40c7-a737-99326e1c0acd"
+      "audit_id": "2fc0bfa5-2f14-4d96-9607-26512af60f47"
     },
     {
       "work_item_id": "B-20250708-GR-GIURGIU",
@@ -4448,7 +4448,7 @@
       "priority_score": 6235.54,
       "rank": 56,
       "crew_id": "E-BV-3",
-      "audit_id": "be51eb1d-1e44-4fa8-993a-fe84c27c0708"
+      "audit_id": "f06a678e-05d3-41df-8247-e19417e42905"
     },
     {
       "work_item_id": "B-20250708-GR-BOLINTIN-VALE",
@@ -4472,7 +4472,7 @@
       "priority_score": 5204.47,
       "rank": 57,
       "crew_id": null,
-      "audit_id": "d8a43b84-1563-4422-ade1-297b3b6c4722"
+      "audit_id": "1086158d-fb84-4538-b675-51ef1cfc66e9"
     },
     {
       "work_item_id": "C-20250708-PT-1131",
@@ -4497,7 +4497,7 @@
       "priority_score": 846.76,
       "rank": 60,
       "crew_id": "E-BE-2",
-      "audit_id": "fe5355aa-7c0e-4310-8737-ded02daaf6d0"
+      "audit_id": "e8b12913-33ca-4f73-9473-a5a0be69c539"
     },
     {
       "work_item_id": "C-20250708-PT-1147",
@@ -4522,7 +4522,7 @@
       "priority_score": 891.85,
       "rank": 66,
       "crew_id": "E-BE-2",
-      "audit_id": "7ea4572d-b8e2-4e08-9360-92f09c7de287"
+      "audit_id": "61aaf3e8-3308-414e-b81e-4c7e1f586e61"
     },
     {
       "work_item_id": "C-20250708-PT-1300",
@@ -4547,7 +4547,7 @@
       "priority_score": 877.79,
       "rank": 69,
       "crew_id": "E-BE-2",
-      "audit_id": "ae749ae3-92b0-49d9-9add-579a8a90d317"
+      "audit_id": "7954fb9d-e3e1-41ff-b481-b99b9eb0eab3"
     },
     {
       "work_item_id": "B-20250708-CL-CALARASI",
@@ -4571,7 +4571,7 @@
       "priority_score": 5044.99,
       "rank": 75,
       "crew_id": null,
-      "audit_id": "ee7bd85c-88ee-4c5a-b4b8-8ff88b736633"
+      "audit_id": "bd1ea3b8-d7c1-42f3-9a37-18909a77712f"
     },
     {
       "work_item_id": "B-20250708-IL-URZICENI",
@@ -4595,7 +4595,7 @@
       "priority_score": 4395.29,
       "rank": 76,
       "crew_id": null,
-      "audit_id": "7deaaa71-97a0-4d4e-a280-4aef4d433583"
+      "audit_id": "91b903fd-b542-4799-8ff1-ee41bec32244"
     },
     {
       "work_item_id": "C-20250708-PT-1072",
@@ -4620,7 +4620,7 @@
       "priority_score": 489.35,
       "rank": 88,
       "crew_id": "E-BE-2",
-      "audit_id": "5052c8d5-f602-4bd2-9f37-5892edd89298"
+      "audit_id": "9587978c-0edd-473b-9faa-fb3fbbd7e54f"
     },
     {
       "work_item_id": "C-20250708-PT-1075",
@@ -4645,7 +4645,7 @@
       "priority_score": 457.45,
       "rank": 98,
       "crew_id": "E-BV-3",
-      "audit_id": "4c4f4407-fad4-40f8-9bb1-ca312854806b"
+      "audit_id": "362e17a4-b038-4a74-baea-55fcc0b17ca7"
     },
     {
       "work_item_id": "A-20250708-MTR-001322",
@@ -4670,7 +4670,7 @@
       "priority_score": 52.82,
       "rank": 112,
       "crew_id": "E-BE-1",
-      "audit_id": "2647c92d-5f9e-4fa3-8c22-bc344827a01a"
+      "audit_id": "ca730867-b5a8-40fa-a605-e1f3f253b827"
     },
     {
       "work_item_id": "C-20250708-PT-1005",
@@ -4692,7 +4692,7 @@
       "priority_score": 276.59,
       "rank": 117,
       "crew_id": null,
-      "audit_id": "26e7299e-b01d-4795-aec1-929bc53ad87e"
+      "audit_id": "e471c270-ca18-4f6a-ad65-b53879e38451"
     },
     {
       "work_item_id": "A-20250708-MTR-005386",
@@ -4717,7 +4717,7 @@
       "priority_score": 184.71,
       "rank": 118,
       "crew_id": null,
-      "audit_id": "f1823ca1-a5b1-4921-8728-17414b9594f6"
+      "audit_id": "ffefe2fa-cebb-45cf-9021-9a3086e33726"
     },
     {
       "work_item_id": "C-20250708-PT-1255",
@@ -4742,7 +4742,7 @@
       "priority_score": 183.32,
       "rank": 128,
       "crew_id": "E-BV-3",
-      "audit_id": "486618a1-a017-48dd-aa21-eda0d7669265"
+      "audit_id": "00a4fab1-22bf-49ef-8b72-539d90606974"
     },
     {
       "work_item_id": "A-20250708-MTR-001516",
@@ -4767,7 +4767,7 @@
       "priority_score": 26.87,
       "rank": 152,
       "crew_id": null,
-      "audit_id": "dd33416f-306d-4251-acee-a7a8475c6c51"
+      "audit_id": "a13fbd52-1651-429a-925a-1fc3f4540952"
     },
     {
       "work_item_id": "B-20250708-HD-DEVA",
@@ -4783,7 +4783,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "44de6cc2-c51d-4995-872e-c6b2c2642cf0"
+      "audit_id": "93627991-bf6e-4a9d-95fd-48f512d65aaa"
     },
     {
       "work_item_id": "B-20250708-B-BUCURESTI",
@@ -4796,7 +4796,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "452a3c0d-025f-475c-a1a4-c6f1933697d1"
+      "audit_id": "43b89767-04ff-440c-9369-3397e266d18a"
     },
     {
       "work_item_id": "B-20250708-AR-INEU",
@@ -4821,7 +4821,7 @@
       "priority_score": 36225.0,
       "rank": null,
       "crew_id": null,
-      "audit_id": "3985513d-b3c9-4d44-9b86-7a8df1da78c8"
+      "audit_id": "693d3062-bedb-489f-9b53-ac765b6444d1"
     },
     {
       "work_item_id": "B-20250708-TM-LUGOJ",
@@ -4846,7 +4846,7 @@
       "priority_score": 26663.67,
       "rank": null,
       "crew_id": null,
-      "audit_id": "734253fd-4154-4ee7-b936-b6a303426c94"
+      "audit_id": "95a17fbc-5530-4b42-aa55-8f291aa163a4"
     },
     {
       "work_item_id": "B-20250708-CS-CARANSEBES",
@@ -4871,7 +4871,7 @@
       "priority_score": 23044.38,
       "rank": null,
       "crew_id": null,
-      "audit_id": "66a3fae9-a573-4374-848f-cadeb6f74e9e"
+      "audit_id": "11e5c4b7-8da4-4c32-8806-9970b070fb69"
     },
     {
       "work_item_id": "B-20250708-HD-BRAD",
@@ -4896,7 +4896,7 @@
       "priority_score": 14919.02,
       "rank": null,
       "crew_id": null,
-      "audit_id": "b81d84c5-8ad6-490a-aa23-1fe54e553fda"
+      "audit_id": "1ad7cdcf-6447-40db-b90f-296cd3d7ce82"
     },
     {
       "work_item_id": "B-20250708-AR-LIPOVA",
@@ -4921,7 +4921,7 @@
       "priority_score": 11184.75,
       "rank": null,
       "crew_id": null,
-      "audit_id": "5c15e877-516e-452c-9211-5999bd23c944"
+      "audit_id": "9cebd676-d9f1-47a3-93c5-1f2f7887d70f"
     },
     {
       "work_item_id": "B-20250708-CS-ORAVITA",
@@ -4946,7 +4946,7 @@
       "priority_score": 8619.0,
       "rank": null,
       "crew_id": null,
-      "audit_id": "e0c4cd58-3d9a-4b98-8dd4-5315b6ca7f16"
+      "audit_id": "d05a615e-1b9f-4e33-a8fb-510a71c8f126"
     },
     {
       "work_item_id": "B-20250708-TM-SANNICOLAU-MARE",
@@ -4971,7 +4971,7 @@
       "priority_score": 6176.3,
       "rank": null,
       "crew_id": null,
-      "audit_id": "470a2254-c8ca-467d-addb-278f9615f67a"
+      "audit_id": "0a39aa46-22d1-402c-af96-5a45b49db014"
     },
     {
       "work_item_id": "B-20250708-HD-PETROSANI",
@@ -4996,7 +4996,7 @@
       "priority_score": 2658.29,
       "rank": null,
       "crew_id": null,
-      "audit_id": "7536ab5b-4c71-4979-aec5-48be05be427e"
+      "audit_id": "2d470e85-45ce-4ff6-a783-f1062615613d"
     },
     {
       "work_item_id": "B-20250708-CL-OLTENITA",
@@ -5021,7 +5021,7 @@
       "priority_score": 2476.02,
       "rank": null,
       "crew_id": null,
-      "audit_id": "babcf66e-7a21-47bc-9543-fef8fd5ec1d7"
+      "audit_id": "7cc3ce0f-125b-4a92-a457-8e2acce6c1c4"
     },
     {
       "work_item_id": "B-20250708-CT-CONSTANTA",
@@ -5044,7 +5044,7 @@
       "priority_score": 2141.07,
       "rank": null,
       "crew_id": null,
-      "audit_id": "fc6783f5-0ea5-40bf-a86f-5d373f8ba3f8"
+      "audit_id": "88952d98-34ce-4279-8df3-96178be286c9"
     },
     {
       "work_item_id": "B-20250708-CT-MEDGIDIA",
@@ -5069,7 +5069,7 @@
       "priority_score": 1745.7,
       "rank": null,
       "crew_id": null,
-      "audit_id": "072759ea-93f4-4c57-b0d5-bf1d785f52d5"
+      "audit_id": "7a365bec-baea-4552-88e7-b3da3848632c"
     },
     {
       "work_item_id": "B-20250708-CT-MANGALIA",
@@ -5087,7 +5087,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "c13abc6a-ad64-4b07-b9df-2834055fce5b"
+      "audit_id": "d5813992-ec61-4412-9903-0d2c96d05d66"
     },
     {
       "work_item_id": "B-20250708-TL-TULCEA",
@@ -5105,7 +5105,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "8dcaa41d-03ee-4874-8294-b7c52bd39ff7"
+      "audit_id": "edf93d5b-1dd0-498d-b5bd-75e7233c6db4"
     },
     {
       "work_item_id": "C-20250708-PT-1269",
@@ -5129,7 +5129,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "c73606f5-f62d-4f64-a27c-7d7f2a34b171"
+      "audit_id": "ec14e60f-ec37-472c-8e91-f7586cc0e212"
     },
     {
       "work_item_id": "B-20250708-TL-MACIN",
@@ -5147,7 +5147,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "c00568d3-9cbd-456f-929c-e0e1a7bd0be7"
+      "audit_id": "27423225-3ebf-4966-b4f3-97fe57a1e885"
     },
     {
       "work_item_id": "B-20250708-TL-BABADAG",
@@ -5165,7 +5165,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "f578efa7-a0f2-41a8-be42-7513f2abb0fb"
+      "audit_id": "4aca4608-6108-48bd-b3a8-941a28f94b44"
     },
     {
       "work_item_id": "A-20250708-MTR-000842",
@@ -5178,7 +5178,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "60e14378-ff0c-4661-8598-d551e4366d02"
+      "audit_id": "18b80a55-f9cb-4318-b3f8-8365c0f02170"
     },
     {
       "work_item_id": "C-20250708-PT-1119",
@@ -5200,7 +5200,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "1c2be0b8-6592-443c-97d6-519e2a1944d1"
+      "audit_id": "7e411576-d173-463e-8a2d-1769986087be"
     },
     {
       "work_item_id": "C-20250708-PT-1252",
@@ -5222,7 +5222,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "a64e5170-3581-4b90-8b59-2e6acc3b3835"
+      "audit_id": "f350d739-3fbd-406d-882e-7880f32a4e04"
     },
     {
       "work_item_id": "C-20250708-PT-1263",
@@ -5244,7 +5244,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "c9284e57-50a1-43c1-9b9d-91a773de47f4"
+      "audit_id": "1e005083-edab-4ef1-a818-aa43c4b8cc14"
     },
     {
       "work_item_id": "C-20250708-PT-1087",
@@ -5266,7 +5266,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "cf0c0670-a6f9-4929-a78e-e90095f0a90e"
+      "audit_id": "2b5660d4-b065-4575-9b7a-8a91fe4b625f"
     },
     {
       "work_item_id": "A-20250708-MTR-001862",
@@ -5279,7 +5279,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "93ea0ea7-d1eb-48fe-9972-4db4422c386c"
+      "audit_id": "4d3d9339-20eb-49bc-b3e3-6ebc97ba509a"
     },
     {
       "work_item_id": "A-20250708-MTR-005252",
@@ -5292,7 +5292,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "9744c2cd-9e09-4999-b69e-c359429406a7"
+      "audit_id": "4feab239-a409-469f-b5f6-935446eea3fe"
     },
     {
       "work_item_id": "A-20250708-MTR-007041",
@@ -5305,7 +5305,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "07bbd105-4dda-46bb-8653-bbc9f726d968"
+      "audit_id": "7dc83d83-5af9-47de-8b2f-aed745c171de"
     },
     {
       "work_item_id": "A-20250708-MTR-008072",
@@ -5327,7 +5327,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "aff40992-ccdf-47c3-a818-4183a5c9dbcb"
+      "audit_id": "6b4a8bd1-b17c-4039-97a1-7ae6af381247"
     },
     {
       "work_item_id": "A-20250708-MTR-007107",
@@ -5340,7 +5340,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "d4c87e29-b700-41a7-92ee-938c896d12ec"
+      "audit_id": "05ae14f8-d13e-4656-91a6-ea396388f6ec"
     },
     {
       "work_item_id": "A-20250708-MTR-005345",
@@ -5353,7 +5353,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "80ae25e7-9762-4823-9d59-1b2f3bbdaec5"
+      "audit_id": "1d9e4cbf-f412-40b8-afba-d066ffd363e6"
     },
     {
       "work_item_id": "A-20250708-MTR-007406",
@@ -5366,7 +5366,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "7eec20ba-45b8-4679-b75c-76ae9f6b9022"
+      "audit_id": "4cd36ac4-f0fd-44ae-8685-bf8d656b26d8"
     },
     {
       "work_item_id": "A-20250708-MTR-009700",
@@ -5379,7 +5379,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "184beaed-3643-4055-a5d4-914982d45102"
+      "audit_id": "3b18e9f6-e369-41a7-8c0e-aa67c9707fa7"
     },
     {
       "work_item_id": "A-20250708-MTR-004410",
@@ -5392,7 +5392,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "76719641-b549-429f-9158-c81f49d667bf"
+      "audit_id": "8a670aa6-4bc5-4e18-a11a-ff59ce108c26"
     },
     {
       "work_item_id": "A-20250708-MTR-009179",
@@ -5414,7 +5414,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "b2c2b96b-c460-4ad6-bf5a-5d9f13bde11c"
+      "audit_id": "9bac2caf-ccd3-4955-9e8d-037621272709"
     },
     {
       "work_item_id": "A-20250708-MTR-007695",
@@ -5436,7 +5436,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "1956dd2e-aa5f-4ea8-b7b7-b86bc58a544f"
+      "audit_id": "29fc9383-fa55-44bd-b03c-712cfd130ae1"
     },
     {
       "work_item_id": "A-20250708-MTR-001637",
@@ -5458,7 +5458,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "190948bf-e973-42c5-b17d-078842edbce1"
+      "audit_id": "a36ed33a-f6a4-40f7-9703-958a1a71448c"
     },
     {
       "work_item_id": "A-20250708-MTR-001428",
@@ -5480,7 +5480,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "e8a64d60-cbfb-4b39-a9d7-c6cb72d00387"
+      "audit_id": "ff3d7e81-2057-41d6-bbf7-218690848b9f"
     },
     {
       "work_item_id": "A-20250708-MTR-008278",
@@ -5502,7 +5502,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "77603074-8773-4285-b12c-6f308ba1d56a"
+      "audit_id": "79f6f72a-491f-4532-bd7a-56ab00ac515b"
     },
     {
       "work_item_id": "A-20250708-MTR-006948",
@@ -5515,7 +5515,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "1552e853-12d8-45b6-b973-419b822335bd"
+      "audit_id": "e400ce3e-6889-4990-9305-b9cd33da2d18"
     },
     {
       "work_item_id": "A-20250708-MTR-006650",
@@ -5528,7 +5528,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "3000e111-3306-4ee6-83da-886a5fa9da5d"
+      "audit_id": "84b2a3a5-12b9-41d1-801a-486a58c3f654"
     },
     {
       "work_item_id": "A-20250708-MTR-001013",
@@ -5541,7 +5541,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "f600a5f1-a1db-415a-a3ea-e477c5e0c9b8"
+      "audit_id": "516b86e8-79ad-4de7-9a0f-ae27ab0db448"
     },
     {
       "work_item_id": "A-20250708-MTR-006276",
@@ -5554,7 +5554,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "c018fd9e-8fea-4bf5-9df0-6f660a8a7621"
+      "audit_id": "43315f20-684c-4291-b48d-81c58cf29ed7"
     },
     {
       "work_item_id": "A-20250708-MTR-003852",
@@ -5567,7 +5567,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "5723990a-6174-44a9-86b6-428869864f0a"
+      "audit_id": "8f4779ef-e243-47d8-9c9d-6fd1dfe0a615"
     },
     {
       "work_item_id": "A-20250708-MTR-005578",
@@ -5580,7 +5580,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "ecce1513-6f30-4589-b297-764d4982f9f2"
+      "audit_id": "87d21761-73dd-46b5-8d70-f0d05d2f4f81"
     },
     {
       "work_item_id": "A-20250708-MTR-009442",
@@ -5593,7 +5593,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "d7b590a7-01f3-424d-99fb-fc36670e99c2"
+      "audit_id": "408021fe-54f9-465a-82fd-8b8178d590d8"
     },
     {
       "work_item_id": "A-20250708-MTR-005721",
@@ -5606,7 +5606,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "afaf9d7e-dcc8-4824-a009-aaedeeca017f"
+      "audit_id": "194da799-f334-49d8-a941-c220cb7d6ddd"
     },
     {
       "work_item_id": "A-20250708-MTR-006263",
@@ -5619,7 +5619,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "1026894a-4a40-4775-a326-6303ade83597"
+      "audit_id": "bd98d863-002e-4839-b946-9db4c2453517"
     },
     {
       "work_item_id": "A-20250708-MTR-002322",
@@ -5632,7 +5632,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "50b7c23d-460a-45c4-88af-b7e10515da85"
+      "audit_id": "0ec116b5-bfbc-4588-a515-eb4f2235635e"
     },
     {
       "work_item_id": "A-20250708-MTR-003558",
@@ -5645,7 +5645,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "a257b668-0180-4563-b48e-c653ee103d65"
+      "audit_id": "10092874-0b99-4365-a632-01ebc733886e"
     },
     {
       "work_item_id": "A-20250708-MTR-009140",
@@ -5658,7 +5658,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "e7a77f65-1eea-4c98-a35e-d43b056ec7bc"
+      "audit_id": "41a3a9a2-0d32-4a07-9795-af9561749d07"
     },
     {
       "work_item_id": "A-20250708-MTR-001959",
@@ -5671,7 +5671,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "4fd9f1b9-33ab-4778-a76d-8ff878ddd158"
+      "audit_id": "fc027fad-4afc-4dcc-9a04-0b6e55d27076"
     },
     {
       "work_item_id": "A-20250708-MTR-003682",
@@ -5684,7 +5684,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "3a974d45-cce3-4451-94d8-8db786f1aea9"
+      "audit_id": "8c88f714-3fb1-4c26-93fc-2760fc309bcf"
     },
     {
       "work_item_id": "A-20250708-MTR-009354",
@@ -5697,7 +5697,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "05abcf02-b9a3-4271-bbad-d4c9f64b7b04"
+      "audit_id": "667c6dfb-a8ea-418a-9a84-911ef68e7004"
     },
     {
       "work_item_id": "A-20250708-MTR-001760",
@@ -5710,7 +5710,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "9f419be6-5d9a-4e6f-8161-2d93569937a3"
+      "audit_id": "a5b1bf18-43d0-42c0-9d5e-3df4177c4077"
     },
     {
       "work_item_id": "A-20250708-MTR-004255",
@@ -5723,7 +5723,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "7c4afe42-c415-4ce9-9faa-e7deff93cf2e"
+      "audit_id": "430dcaf8-dac5-4010-9b0f-cf07cc90c98c"
     },
     {
       "work_item_id": "A-20250708-MTR-003121",
@@ -5736,7 +5736,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "2c5b2c05-d947-4248-8f7e-10c2a2dda95e"
+      "audit_id": "2d7c2d90-040d-42b3-bd88-358cb4a7cfab"
     },
     {
       "work_item_id": "A-20250708-MTR-000507",
@@ -5749,7 +5749,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "100b97ec-2de9-4ab3-aff6-ccacb2412e18"
+      "audit_id": "0c3dbe75-3651-43da-a5de-bca332a6fb38"
     },
     {
       "work_item_id": "A-20250708-MTR-005365",
@@ -5762,7 +5762,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "78ffccfb-c99a-48d6-bf60-2d0bc4246016"
+      "audit_id": "3e9eded3-96e9-4ba3-ad5b-69244d860b82"
     },
     {
       "work_item_id": "A-20250708-MTR-000956",
@@ -5775,7 +5775,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "b70d2057-b069-4cee-a13a-7027e75b5cf3"
+      "audit_id": "6f48636e-b24e-47ba-b792-a6b1d75b74b0"
     },
     {
       "work_item_id": "A-20250708-MTR-002154",
@@ -5788,7 +5788,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "55a19e21-588e-41c9-8061-1ff2a7f1b31f"
+      "audit_id": "793b83cc-634c-48c4-b080-89a8f27cd9e4"
     },
     {
       "work_item_id": "A-20250708-MTR-001268",
@@ -5801,7 +5801,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "54f9f043-9cf1-4b2c-a63c-d8dbbb2f68fb"
+      "audit_id": "1bb1aa92-9ade-4c23-9ef2-9a117f06d233"
     },
     {
       "work_item_id": "A-20250708-MTR-004851",
@@ -5814,7 +5814,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "e0b41046-8a94-40e2-b06b-2dada44901f6"
+      "audit_id": "6b7f9793-cd26-4259-9a7a-bb4ecba4de1d"
     },
     {
       "work_item_id": "A-20250708-MTR-001679",
@@ -5827,7 +5827,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "8d022e0f-b917-4ac5-86dc-6ee25d223882"
+      "audit_id": "e4728e5d-df10-4d23-812a-3c36a91116a0"
     },
     {
       "work_item_id": "A-20250708-MTR-000620",
@@ -5840,7 +5840,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "a8e44373-b140-4c78-a23d-2905e1824f4e"
+      "audit_id": "5736c1a5-3481-4b1a-b8a2-3e05a493d844"
     },
     {
       "work_item_id": "A-20250708-MTR-004460",
@@ -5853,7 +5853,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "8641512b-57b2-4d00-9ed7-6a60356f5488"
+      "audit_id": "2cef5982-c23e-402a-b9de-07902608cd4c"
     },
     {
       "work_item_id": "A-20250708-MTR-001677",
@@ -5866,7 +5866,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "f83325d2-3576-4360-bf26-05de557ad671"
+      "audit_id": "05cfacdb-b14d-4831-9eb2-a0d0fdc83daf"
     },
     {
       "work_item_id": "A-20250708-MTR-009198",
@@ -5879,7 +5879,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "50163833-f2e7-4386-89f6-5e7802989ef9"
+      "audit_id": "dc45cc5f-1cdf-49e5-80ec-8d8c910532fc"
     },
     {
       "work_item_id": "A-20250708-MTR-006444",
@@ -5892,7 +5892,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "ad822a04-51e7-4d9b-89e8-7d336bc6cb1f"
+      "audit_id": "3c53775a-1e80-442c-9f60-b8e2a3adb65c"
     },
     {
       "work_item_id": "A-20250708-MTR-006389",
@@ -5905,7 +5905,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "6c4e3d2a-dcaf-49bc-8409-7480c4bd94b9"
+      "audit_id": "897005b8-42a8-4630-94b4-210c8d62c232"
     },
     {
       "work_item_id": "A-20250708-MTR-000750",
@@ -5918,7 +5918,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "fb7a6904-8ca6-4144-a236-8892c33f7f49"
+      "audit_id": "caa0feb8-887c-4ac1-8c15-fee5834236de"
     },
     {
       "work_item_id": "A-20250708-MTR-006863",
@@ -5931,7 +5931,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "40ad0ad5-6612-4c41-83f0-3320cc08fb3d"
+      "audit_id": "593fc5a5-f5bf-4303-95fc-a03bcca24c3d"
     },
     {
       "work_item_id": "A-20250708-MTR-005635",
@@ -5944,7 +5944,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "c1ac83f4-78dc-4160-b7f7-2f4ee284b0e6"
+      "audit_id": "9d356f71-8c0c-4355-8e2b-d096adffec16"
     },
     {
       "work_item_id": "A-20250708-MTR-008218",
@@ -5957,7 +5957,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "dbb39911-5d98-4ec1-964f-f72dbde16846"
+      "audit_id": "5fc8f9a2-fe05-41f7-a532-0c0e9d8c4b4c"
     },
     {
       "work_item_id": "A-20250708-MTR-007764",
@@ -5970,7 +5970,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "d6918150-6fda-4fdd-ad6b-5b12147f370f"
+      "audit_id": "b9fd189a-9728-419d-b8a6-316477aeaad7"
     },
     {
       "work_item_id": "A-20250708-MTR-003396",
@@ -5983,7 +5983,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "63806ee0-fb93-419b-9057-73befb930d2e"
+      "audit_id": "1e00d6e0-08f9-4be0-b5f9-8fb98cc8764b"
     },
     {
       "work_item_id": "A-20250708-MTR-004978",
@@ -5996,7 +5996,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "44ffe05b-a53f-423e-9942-c00f0df4d648"
+      "audit_id": "fffde985-50f6-41b9-b0c7-d7e974cafd2a"
     },
     {
       "work_item_id": "A-20250708-MTR-002472",
@@ -6009,7 +6009,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "29b94adc-c513-4b02-8ba5-d1bff37169a3"
+      "audit_id": "014b485b-1a2d-4173-b99c-98dec4666d23"
     },
     {
       "work_item_id": "A-20250708-MTR-005260",
@@ -6022,7 +6022,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "913ea036-dbb0-4ed9-b434-4aa5345a045e"
+      "audit_id": "945f011c-fb99-4d08-ae1f-d32ba6907f1f"
     },
     {
       "work_item_id": "A-20250708-MTR-006041",
@@ -6035,7 +6035,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "e3d25d5e-0d5a-49c3-b765-65473e536c74"
+      "audit_id": "d23db488-ddad-4900-b5aa-bcf1a0e1a442"
     },
     {
       "work_item_id": "A-20250708-MTR-004993",
@@ -6048,7 +6048,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "7bf583e8-7d73-468b-94d0-560e68239070"
+      "audit_id": "12bf6a4c-9454-48f1-84c0-1a9f9ef08081"
     },
     {
       "work_item_id": "A-20250708-MTR-001910",
@@ -6061,7 +6061,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "d32bdbed-6579-404a-9075-2998965aff1e"
+      "audit_id": "4d6f6b8e-9644-4d87-8ff5-1ba0c31bafb5"
     },
     {
       "work_item_id": "C-20250708-PT-1015",
@@ -6083,7 +6083,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "7dcab0d8-c0ac-4e32-bebd-f651ef83c9c3"
+      "audit_id": "9aa5bbef-3e89-4749-b99b-a81e14c3bd9d"
     },
     {
       "work_item_id": "C-20250708-PT-1058",
@@ -6105,7 +6105,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "cb371b0f-2876-4790-9d05-7eae2dbeca37"
+      "audit_id": "4ca22fa1-9348-4713-9afb-3140c7ba0c3d"
     },
     {
       "work_item_id": "C-20250708-PT-1082",
@@ -6127,7 +6127,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "89183243-a430-475c-a36e-8c7b3705b2b9"
+      "audit_id": "e1c2530c-b258-47d4-9e36-9b78dea54b79"
     },
     {
       "work_item_id": "C-20250708-PT-1047",
@@ -6149,7 +6149,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "d21ff762-9410-4993-a1fb-deae56f863ea"
+      "audit_id": "6c432ce6-8d19-4e54-9e6b-acf056fac676"
     },
     {
       "work_item_id": "C-20250708-PT-1196",
@@ -6171,7 +6171,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "532a5495-e891-47b9-882b-465455590b7f"
+      "audit_id": "8f8ca84a-cd02-4505-ac7f-82f1ed97914a"
     },
     {
       "work_item_id": "C-20250708-PT-1297",
@@ -6188,7 +6188,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "fddd0039-b127-4bf6-9fa4-0ec363227b09"
+      "audit_id": "784062dd-4b97-4695-8b90-987dd61eac8b"
     },
     {
       "work_item_id": "C-20250708-PT-1062",
@@ -6205,7 +6205,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "135e8bae-feb0-481f-8d96-dbedff6babe2"
+      "audit_id": "1d80baf2-2cf0-491d-8df2-ba49481c55dd"
     },
     {
       "work_item_id": "C-20250708-PT-1296",
@@ -6222,7 +6222,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "77e1f72c-cc37-4879-8a96-c9c41f226b83"
+      "audit_id": "073c0c25-9085-42e0-8898-e9270e206b78"
     },
     {
       "work_item_id": "C-20250708-PT-1168",
@@ -6239,7 +6239,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "0138afe4-34bf-4c7b-9b7c-835e29aca9ff"
+      "audit_id": "4e715ad7-f163-4d61-af6f-caf9317b0001"
     },
     {
       "work_item_id": "C-20250708-PT-1282",
@@ -6256,7 +6256,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "b0888f21-7e3d-42e7-97f3-0e0e6995a596"
+      "audit_id": "4804b1e8-6b13-4057-b627-01911be9e72e"
     },
     {
       "work_item_id": "C-20250708-PT-1246",
@@ -6273,7 +6273,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "2aff4058-1ad2-4bbc-a1e3-6c8a70c10110"
+      "audit_id": "e2103b7f-8fad-44ef-9f39-e785a82a02d4"
     },
     {
       "work_item_id": "C-20250708-PT-1117",
@@ -6290,7 +6290,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "4a4c6204-a622-48e4-a65e-5262acbe7936"
+      "audit_id": "dfe6e609-5027-4f64-8793-2ec754337e96"
     },
     {
       "work_item_id": "C-20250708-PT-1059",
@@ -6307,7 +6307,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "942ba8af-a52e-4dc8-ab72-7797e2383ac3"
+      "audit_id": "da6079c5-2adc-4870-ac3e-828c6c1329b7"
     },
     {
       "work_item_id": "A-20250708-MTR-000412",
@@ -6320,7 +6320,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "3ab92c1b-819a-4fbd-ad69-c972eed8b80b"
+      "audit_id": "069e2c0d-2ce1-476a-9c36-0478fc0c8eb3"
     },
     {
       "work_item_id": "A-20250708-MTR-003485",
@@ -6333,7 +6333,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "b42d3b1a-abbb-46b0-8930-c1b60ec23b4a"
+      "audit_id": "69ea69ef-5058-460e-be59-e15698c426b5"
     },
     {
       "work_item_id": "A-20250708-MTR-005466",
@@ -6346,7 +6346,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "ae66de5a-f6a8-443b-a79a-9c8b05cc64db"
+      "audit_id": "c7b0c8d0-0a5c-4886-929e-4fbeac39b25e"
     },
     {
       "work_item_id": "A-20250708-MTR-005471",
@@ -6359,7 +6359,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "34c68a74-e900-457a-a4ec-dfb5498ba3f1"
+      "audit_id": "8ac065b8-e3d4-41c6-99d7-995865baeebf"
     },
     {
       "work_item_id": "A-20250708-MTR-008962",
@@ -6372,7 +6372,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "0f316c41-d381-409c-8d81-bc8042fe15ab"
+      "audit_id": "9807dc7c-7355-453b-9556-89992697b883"
     },
     {
       "work_item_id": "A-20250708-MTR-009211",
@@ -6385,7 +6385,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "44b9984b-b4f3-446e-8bc7-6f3c420eb3c4"
+      "audit_id": "87e83f4e-986e-4816-9118-56f419b45585"
     },
     {
       "work_item_id": "A-20250708-MTR-009266",
@@ -6398,7 +6398,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "9b0cc94d-1f29-4980-b35a-f7552c1b4e90"
+      "audit_id": "bbd92d1a-9835-4974-ae89-aa476ef00807"
     },
     {
       "work_item_id": "C-20250708-PT-1097",
@@ -6415,7 +6415,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "665cdf9e-300d-4f08-bf8b-111ac36510d1"
+      "audit_id": "4700fd88-3547-455b-9995-99a260c0715b"
     },
     {
       "work_item_id": "C-20250708-PT-1085",
@@ -6432,7 +6432,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "cf21c8b7-81ca-440b-b003-4868d380344a"
+      "audit_id": "a6ac566c-37f9-41ae-80c3-2353f1d5362c"
     },
     {
       "work_item_id": "C-20250708-PT-1157",
@@ -6449,7 +6449,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "86b149c2-db03-402a-b09a-81b77517179d"
+      "audit_id": "87ce9171-8387-47b4-a0f8-898004faa598"
     },
     {
       "work_item_id": "C-20250708-PT-1198",
@@ -6466,7 +6466,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "cca921af-96e2-42e2-b697-41f83bf45c20"
+      "audit_id": "e26c5412-4fe2-4154-b01f-ef260c806583"
     },
     {
       "work_item_id": "C-20250708-PT-1214",
@@ -6483,7 +6483,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "2c69b87a-bf2c-4726-bdc5-80631de78bf0"
+      "audit_id": "b53291d8-711f-4fda-bf47-2ae53272795b"
     },
     {
       "work_item_id": "C-20250708-PT-1219",
@@ -6500,7 +6500,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "c0ff4f09-f3bb-4baf-93c6-c23cb7797b92"
+      "audit_id": "afe215bf-2a8e-45e1-878f-384e9d10f43a"
     },
     {
       "work_item_id": "C-20250708-PT-1242",
@@ -6517,7 +6517,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "9e2bad7f-1eed-4095-87c2-9ce2cd4c5a7d"
+      "audit_id": "121b11f0-333b-4f9e-911d-317a24167ba1"
     },
     {
       "work_item_id": "C-20250708-PT-1077",
@@ -6534,7 +6534,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "e2fa43b0-da01-4185-a5c2-0f0c6ed66035"
+      "audit_id": "b60ca0ab-8968-4138-9925-70549c1c584b"
     },
     {
       "work_item_id": "C-20250708-PT-1166",
@@ -6551,7 +6551,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "8d1916cf-7a26-4e90-9b68-a794879901f9"
+      "audit_id": "0c33d1ac-8f45-4978-850d-63446f949b9b"
     },
     {
       "work_item_id": "C-20250708-PT-1098",
@@ -6568,7 +6568,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "58083a6c-b144-4510-ae5c-2a42f51a868b"
+      "audit_id": "2330d420-2b21-43f9-90d8-3d11b9572e89"
     },
     {
       "work_item_id": "C-20250708-PT-1137",
@@ -6585,7 +6585,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "8a865a60-ed16-4ad2-9b4c-8200626b799e"
+      "audit_id": "25b9d8f1-b7f7-42e3-ae80-cadd0f78a559"
     },
     {
       "work_item_id": "C-20250708-PT-1223",
@@ -6602,7 +6602,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "3f48a028-0dea-43fa-9a87-e67509bb3ad9"
+      "audit_id": "837fc019-e193-49f4-b4b9-2d6d20b5b2ea"
     },
     {
       "work_item_id": "C-20250708-PT-1259",
@@ -6619,7 +6619,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "b8cf33ae-e05c-4349-9db8-f4f302977212"
+      "audit_id": "ec7f5edd-dfc9-40ef-b9a2-0e18e5f1b7c5"
     },
     {
       "work_item_id": "C-20250708-PT-1193",
@@ -6636,7 +6636,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "0c61f193-3955-4754-86c4-5071b696da92"
+      "audit_id": "73138429-61f4-4715-b248-d7b411a30add"
     },
     {
       "work_item_id": "C-20250708-PT-1027",
@@ -6653,7 +6653,7 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "b2d9b046-983e-4961-86ae-ecfee1a02c47"
+      "audit_id": "7d0ab763-e3e1-4ef4-b6ca-fb908d8d5347"
     }
   ],
   "alerts": [
@@ -6685,7 +6685,7 @@
         "A-20250708-MTR-004634"
       ],
       "channel": "dispecerat",
-      "created_at": "2026-11-07T13:59:22+02:00"
+      "created_at": "2026-11-07T14:07:05+02:00"
     },
     {
       "alert_id": "AL-2",
@@ -6696,7 +6696,7 @@
         "B-20250708-CS-RESITA"
       ],
       "channel": "dispecerat",
-      "created_at": "2026-11-07T13:59:22+02:00"
+      "created_at": "2026-11-07T14:07:05+02:00"
     },
     {
       "alert_id": "AL-3",
@@ -6707,7 +6707,7 @@
         "B-20250708-AR-INEU"
       ],
       "channel": "dispecerat",
-      "created_at": "2026-11-07T13:59:22+02:00"
+      "created_at": "2026-11-07T14:07:05+02:00"
     },
     {
       "alert_id": "AL-4",
@@ -6718,7 +6718,7 @@
         "B-20250708-CS-CARANSEBES"
       ],
       "channel": "dispecerat",
-      "created_at": "2026-11-07T13:59:22+02:00"
+      "created_at": "2026-11-07T14:07:05+02:00"
     },
     {
       "alert_id": "AL-5",
@@ -6732,7 +6732,7 @@
         "A-20250708-MTR-009266"
       ],
       "channel": "dispecerat",
-      "created_at": "2026-11-07T13:59:22+02:00"
+      "created_at": "2026-11-07T14:07:05+02:00"
     },
     {
       "alert_id": "AL-6",
@@ -6753,7 +6753,7 @@
         "B-20250708-HD-BRAD"
       ],
       "channel": "dispecerat",
-      "created_at": "2026-11-07T13:59:22+02:00"
+      "created_at": "2026-11-07T14:07:05+02:00"
     },
     {
       "alert_id": "AL-7",
@@ -6835,7 +6835,7 @@
         "B-20250708-HD-BRAD"
       ],
       "channel": "dispecerat",
-      "created_at": "2026-11-07T13:59:22+02:00"
+      "created_at": "2026-11-07T14:07:05+02:00"
     },
     {
       "alert_id": "AL-8",
@@ -6956,7 +6956,7 @@
         "B-20250708-IL-URZICENI"
       ],
       "channel": "dispecerat",
-      "created_at": "2026-11-07T13:59:22+02:00"
+      "created_at": "2026-11-07T14:07:05+02:00"
     }
   ],
   "notifications": [
@@ -6965,7 +6965,7 @@
       "audience": "echipa",
       "asset_id": "TM-TIMISOARA",
       "message_ro": "Mâine, echipa E-TM-1: fiți în Zona Timișoara (Timiș) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-      "scheduled_for": "2026-11-07T14:00:22+02:00",
+      "scheduled_for": "2026-11-07T14:08:05+02:00",
       "work_item_id": "B-20250708-TM-TIMISOARA",
       "demo_only": true
     },
@@ -6974,7 +6974,7 @@
       "audience": "echipa",
       "asset_id": "CS-RESITA",
       "message_ro": "Mâine, echipa E-RS-1: fiți în Zona Reșița (Caraș-Severin) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-      "scheduled_for": "2026-11-07T14:00:22+02:00",
+      "scheduled_for": "2026-11-07T14:08:05+02:00",
       "work_item_id": "B-20250708-CS-RESITA",
       "demo_only": true
     },
@@ -6983,7 +6983,7 @@
       "audience": "echipa",
       "asset_id": "AR-ARAD",
       "message_ro": "Mâine, echipa E-AR-1: fiți în Zona Arad (Arad) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-      "scheduled_for": "2026-11-07T14:00:22+02:00",
+      "scheduled_for": "2026-11-07T14:08:05+02:00",
       "work_item_id": "B-20250708-AR-ARAD",
       "demo_only": true
     },
@@ -6992,7 +6992,7 @@
       "audience": "echipa",
       "asset_id": "IF-BUFTEA",
       "message_ro": "Mâine, echipa E-BE-2: fiți în Zona Buftea (Ilfov) la 15:30, înainte de 17:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-      "scheduled_for": "2026-11-07T14:00:22+02:00",
+      "scheduled_for": "2026-11-07T14:08:05+02:00",
       "work_item_id": "B-20250708-IF-BUFTEA",
       "demo_only": true
     },
@@ -7010,7 +7010,7 @@
       "audience": "echipa",
       "asset_id": "IL-SLOBOZIA",
       "message_ro": "Mâine, echipa E-CT-1: fiți în Zona Slobozia (Ialomița) la 15:30, înainte de 18:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-      "scheduled_for": "2026-11-07T14:00:22+02:00",
+      "scheduled_for": "2026-11-07T14:08:05+02:00",
       "work_item_id": "B-20250708-IL-SLOBOZIA",
       "demo_only": true
     },
@@ -7019,7 +7019,7 @@
       "audience": "echipa",
       "asset_id": "GR-GIURGIU",
       "message_ro": "Mâine, echipa E-BV-3: fiți în Zona Giurgiu (Giurgiu) la 15:30, înainte de 22:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-      "scheduled_for": "2026-11-07T14:00:22+02:00",
+      "scheduled_for": "2026-11-07T14:08:05+02:00",
       "work_item_id": "B-20250708-GR-GIURGIU",
       "demo_only": true
     },
