@@ -1,0 +1,301 @@
+{
+  "meta": {
+    "test": "zile ≥ 2025-01-01, topologia de test nevăzută la antrenare",
+    "etichete": "simulare fizică, rețele SINTETICE",
+    "kwh_per_kwp_bucuresti": {
+      "fizica_livrata": {
+        "2015": 1300.1,
+        "2016": 1276.3,
+        "2017": 1360.6,
+        "2018": 1334.2,
+        "2019": 1335.3,
+        "2020": 1386.7,
+        "2021": 1327.7,
+        "2022": 1433.1,
+        "2023": 1378.6,
+        "2024": 1381.8,
+        "2025": 1362.3
+      },
+      "fizica_v2": {
+        "2015": 1244.6,
+        "2016": 1244.6,
+        "2017": 1277.3,
+        "2018": 1239.4,
+        "2019": 1320.8,
+        "2020": 1374.9,
+        "2021": 1285.8,
+        "2022": 1429.8,
+        "2023": 1339.1,
+        "2024": 1381.6,
+        "2025": 1334.7
+      },
+      "pvgis_referinta": 1282
+    },
+    "ipoteze_fizica_v2": {
+      "faiman_u0": 25.0,
+      "faiman_u1": 6.84,
+      "vant_10m_la_panou": 0.67,
+      "zapada_acopera_de_la_m": 0.03,
+      "factor_gti_sub_zapada": 0.2
+    },
+    "note": "experiment pe ramura Eden; modelul livrat nu e schimbat"
+  },
+  "rows": [
+    {
+      "varianta": "baza",
+      "ce": "vremea București 2023-2024 (ca modelul livrat)",
+      "train_rows": 350880,
+      "seconds": 350,
+      "bucuresti_2025": {
+        "mae_vmax_pu": 0.00538,
+        "coverage_p10_p90": 0.82283,
+        "brier": 0.01541,
+        "recall_exceed": 0.86244,
+        "precision_exceed": 0.85823,
+        "exceed_rate": 0.0812,
+        "pr_auc_exceed": 0.94878,
+        "test_rows": 324000
+      },
+      "timisoara_2025": {
+        "mae_vmax_pu": 0.00539,
+        "coverage_p10_p90": 0.82046,
+        "brier": 0.01584,
+        "recall_exceed": 0.8627,
+        "precision_exceed": 0.85762,
+        "exceed_rate": 0.0829,
+        "pr_auc_exceed": 0.94831,
+        "test_rows": 324000
+      },
+      "cluj_2025": {
+        "mae_vmax_pu": 0.00539,
+        "coverage_p10_p90": 0.82219,
+        "brier": 0.01502,
+        "recall_exceed": 0.86496,
+        "precision_exceed": 0.85874,
+        "exceed_rate": 0.07931,
+        "pr_auc_exceed": 0.94842,
+        "test_rows": 324000
+      },
+      "iasi_2025": {
+        "mae_vmax_pu": 0.00534,
+        "coverage_p10_p90": 0.82495,
+        "brier": 0.01445,
+        "recall_exceed": 0.86592,
+        "precision_exceed": 0.86014,
+        "exceed_rate": 0.07677,
+        "pr_auc_exceed": 0.94946,
+        "test_rows": 324000
+      },
+      "constanta_2025": {
+        "mae_vmax_pu": 0.00545,
+        "coverage_p10_p90": 0.81825,
+        "brier": 0.01577,
+        "recall_exceed": 0.87084,
+        "precision_exceed": 0.86163,
+        "exceed_rate": 0.08577,
+        "pr_auc_exceed": 0.95175,
+        "test_rows": 324000
+      }
+    },
+    {
+      "varianta": "mai_multi_ani",
+      "ce": "vremea București 2015-2024",
+      "train_rows": 1753440,
+      "seconds": 1005,
+      "bucuresti_2025": {
+        "mae_vmax_pu": 0.00538,
+        "coverage_p10_p90": 0.82077,
+        "brier": 0.01471,
+        "recall_exceed": 0.86031,
+        "precision_exceed": 0.87834,
+        "exceed_rate": 0.0812,
+        "pr_auc_exceed": 0.95341,
+        "test_rows": 324000
+      },
+      "timisoara_2025": {
+        "mae_vmax_pu": 0.00539,
+        "coverage_p10_p90": 0.81985,
+        "brier": 0.01511,
+        "recall_exceed": 0.85942,
+        "precision_exceed": 0.87772,
+        "exceed_rate": 0.0829,
+        "pr_auc_exceed": 0.95288,
+        "test_rows": 324000
+      },
+      "cluj_2025": {
+        "mae_vmax_pu": 0.00539,
+        "coverage_p10_p90": 0.82119,
+        "brier": 0.01434,
+        "recall_exceed": 0.86457,
+        "precision_exceed": 0.87956,
+        "exceed_rate": 0.07931,
+        "pr_auc_exceed": 0.95327,
+        "test_rows": 324000
+      },
+      "iasi_2025": {
+        "mae_vmax_pu": 0.00534,
+        "coverage_p10_p90": 0.82414,
+        "brier": 0.01377,
+        "recall_exceed": 0.86363,
+        "precision_exceed": 0.87821,
+        "exceed_rate": 0.07677,
+        "pr_auc_exceed": 0.954,
+        "test_rows": 324000
+      },
+      "constanta_2025": {
+        "mae_vmax_pu": 0.00544,
+        "coverage_p10_p90": 0.81645,
+        "brier": 0.01508,
+        "recall_exceed": 0.86948,
+        "precision_exceed": 0.8782,
+        "exceed_rate": 0.08577,
+        "pr_auc_exceed": 0.95638,
+        "test_rows": 324000
+      }
+    },
+    {
+      "varianta": "mai_multe_regiuni",
+      "ce": "București 2023-2024 + Timișoara, Cluj, Iași, Constanța 2019-2024",
+      "train_rows": 4559520,
+      "seconds": 1887,
+      "bucuresti_2025": {
+        "mae_vmax_pu": 0.00533,
+        "coverage_p10_p90": 0.82549,
+        "brier": 0.01488,
+        "recall_exceed": 0.8645,
+        "precision_exceed": 0.87189,
+        "exceed_rate": 0.0812,
+        "pr_auc_exceed": 0.95044,
+        "test_rows": 324000
+      },
+      "timisoara_2025": {
+        "mae_vmax_pu": 0.00534,
+        "coverage_p10_p90": 0.82533,
+        "brier": 0.01526,
+        "recall_exceed": 0.86523,
+        "precision_exceed": 0.87038,
+        "exceed_rate": 0.0829,
+        "pr_auc_exceed": 0.94995,
+        "test_rows": 324000
+      },
+      "cluj_2025": {
+        "mae_vmax_pu": 0.00533,
+        "coverage_p10_p90": 0.82665,
+        "brier": 0.01449,
+        "recall_exceed": 0.86862,
+        "precision_exceed": 0.87065,
+        "exceed_rate": 0.07931,
+        "pr_auc_exceed": 0.95025,
+        "test_rows": 324000
+      },
+      "iasi_2025": {
+        "mae_vmax_pu": 0.00528,
+        "coverage_p10_p90": 0.82987,
+        "brier": 0.0139,
+        "recall_exceed": 0.87123,
+        "precision_exceed": 0.87298,
+        "exceed_rate": 0.07677,
+        "pr_auc_exceed": 0.95081,
+        "test_rows": 324000
+      },
+      "constanta_2025": {
+        "mae_vmax_pu": 0.00538,
+        "coverage_p10_p90": 0.82101,
+        "brier": 0.01516,
+        "recall_exceed": 0.8743,
+        "precision_exceed": 0.87373,
+        "exceed_rate": 0.08577,
+        "pr_auc_exceed": 0.95366,
+        "test_rows": 324000
+      }
+    },
+    {
+      "varianta": "ani_si_regiuni",
+      "ce": "București 2015-2024 + celelalte 4 regiuni 2019-2024",
+      "train_rows": 5962080,
+      "seconds": 1265,
+      "bucuresti_2025": {
+        "mae_vmax_pu": 0.00535,
+        "coverage_p10_p90": 0.83034,
+        "brier": 0.01447,
+        "recall_exceed": 0.84135,
+        "precision_exceed": 0.90517,
+        "exceed_rate": 0.0812,
+        "pr_auc_exceed": 0.95397,
+        "test_rows": 324000
+      },
+      "timisoara_2025": {
+        "mae_vmax_pu": 0.00536,
+        "coverage_p10_p90": 0.82931,
+        "brier": 0.01481,
+        "recall_exceed": 0.84152,
+        "precision_exceed": 0.90514,
+        "exceed_rate": 0.0829,
+        "pr_auc_exceed": 0.95347,
+        "test_rows": 324000
+      },
+      "cluj_2025": {
+        "mae_vmax_pu": 0.00535,
+        "coverage_p10_p90": 0.83081,
+        "brier": 0.01401,
+        "recall_exceed": 0.8457,
+        "precision_exceed": 0.90519,
+        "exceed_rate": 0.07931,
+        "pr_auc_exceed": 0.95412,
+        "test_rows": 324000
+      },
+      "iasi_2025": {
+        "mae_vmax_pu": 0.00531,
+        "coverage_p10_p90": 0.83337,
+        "brier": 0.01354,
+        "recall_exceed": 0.8469,
+        "precision_exceed": 0.90598,
+        "exceed_rate": 0.07677,
+        "pr_auc_exceed": 0.95435,
+        "test_rows": 324000
+      },
+      "constanta_2025": {
+        "mae_vmax_pu": 0.00541,
+        "coverage_p10_p90": 0.82593,
+        "brier": 0.01476,
+        "recall_exceed": 0.85199,
+        "precision_exceed": 0.90573,
+        "exceed_rate": 0.08577,
+        "pr_auc_exceed": 0.95713,
+        "test_rows": 324000
+      }
+    },
+    {
+      "varianta": "fizica_v2_fara_vant_zapada",
+      "ce": "etichete cu vânt și zăpadă, trăsăturile livrate",
+      "train_rows": 350880,
+      "seconds": 308,
+      "bucuresti_2025_fizica_v2": {
+        "mae_vmax_pu": 0.00576,
+        "coverage_p10_p90": 0.80711,
+        "brier": 0.01558,
+        "recall_exceed": 0.8746,
+        "precision_exceed": 0.84899,
+        "exceed_rate": 0.0796,
+        "pr_auc_exceed": 0.94607,
+        "test_rows": 324000
+      }
+    },
+    {
+      "varianta": "fizica_v2_cu_vant_zapada",
+      "ce": "etichete cu vânt și zăpadă, + vântul, zăpada, umiditatea",
+      "train_rows": 350880,
+      "seconds": 326,
+      "bucuresti_2025_fizica_v2": {
+        "mae_vmax_pu": 0.00546,
+        "coverage_p10_p90": 0.82913,
+        "brier": 0.01478,
+        "recall_exceed": 0.87902,
+        "precision_exceed": 0.85868,
+        "exceed_rate": 0.0796,
+        "pr_auc_exceed": 0.94997,
+        "test_rows": 324000
+      }
+    }
+  ]
+}
