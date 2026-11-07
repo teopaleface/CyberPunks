@@ -1,6 +1,6 @@
 # Status: Teo-prezentare
-Actualizat: 2026-11-07 13:35
-Milestone curent: M0 gata; urmează v0 animat cu muzică (19:00)
+Actualizat: 2026-11-07 13:43
+Milestone curent: v0 animat cu muzică gata (termenul era 19:00); review-urile independente rulează
 Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul comun)
 
 ## Făcut
@@ -12,12 +12,16 @@ Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul co
 - 13:15 Cele 8 scene ale filmului scrise și animate (schiță), `hyperframes check` trece cu 0 erori. Storyboard-ul (11 cadre statice) în `presentation/video/STORYBOARD.md` și `presentation/video/boards/storyboard.html`.
 - 13:20 Storyboard-ul arătat lui Teo (11 cadre) și prima variantă animată, fără muzică.
 - 13:35 Filmul trece pe sistemul produsului, după răspunsul orchestratorului: font Archivo (ca în consolă), fundal cerneala logoului #0B1622, text hârtie #F5F4F0, logoul "răsărit pe traseu" animat la nume și la final, markerii surselor A/B/C în culorile consolei. Chihlimbarul rămâne doar pentru soarele din logo, zori și sursa C; traseele și opririle agentului sunt în hârtie. Ziua reală 8 iulie 2025 apare în scena semnalelor (vijelie în Banat, tensiune la prânz în București). `hyperframes check` trece.
-- Muzica originală (96 BPM, 12 măsuri = 30 s) e aproape gata la un subagent.
+- 13:31 Merge din `Teo` (bilanț pe post, scara de soluții); `make check` trece (38 de teste). Bilanțul intră în scena agentului, la pasul Decide ("Bilanțul confirmă": energia ieșită din post față de cea facturată).
+- 13:37 Merge din `Teo` (documentul cu problemele reale PPC 2026); cifrele noi (prosumatori ANRE aug. 2026, compensații, CPT, integrarea contoarelor) și slideul de context 2026 sunt în `presentation/slides/OUTLINE.md`, cu data și sursa.
+- 13:40 Muzica originală gata (subagent): 96 BPM, 30,000 s, -16,0 LUFS, -1,3 dBTP, compusă în cod, CC0, `presentation/music/`. Motivul ei cade pe Perceive, Estimate, Decide, Act; kick-ul pe fiecare semnal.
+- 13:43 Primul export cu sunet (v0): H.264 High, BT.709, 1920×1080, 30 fps, AAC 48 kHz, -16,1 LUFS, vârf -1,1 dBTP, 15,4 MB. Pornite cele două review-uri independente: vizual (Claude) și tehnic (Codex).
+- Planul slideurilor (`presentation/slides/OUTLINE.md`) și prima schiță a scriptului de demo (`presentation/demo-script.md`).
 
 ## Urmează
 - Arăt storyboard-ul lui Teo (gata înainte de 15:00).
-- Muzica intră în film; v0 animat complet și randat până la 19:00.
-- Scriptul demo-ului (5 min) și scheletul slideurilor.
+- Repar ce găsesc review-urile, apoi v0.1.
+- Slideurile: șablonul HTML și `build_slides.py`, care citește cifrele din `reports/` (fără cifre scrise de mână), export PDF.
 - După 01:00: capturi reale din consolă (cadrele 5 și 6); după 21:30: cifra față de baseline din `reports/` (cadrul 7).
 
 ## Blocaje
@@ -33,7 +37,8 @@ Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul co
 - `make video-check` (verificările HyperFrames)
 - `make video-preview` (previzualizare pe portul 3720), `make video-preview-stop`
 - `make video-render` (exportul final în `presentation/exports/`)
-- `make music` (după ce intră `presentation/music/compose.py`)
+- `make music` (refacerea muzicii, identică bit cu bit, și copia FLAC din proiectul video)
+- Exportul unei variante de lucru: `bash presentation/scripts/export_video.sh <nume> presentation/video/renders/tmp`
 
 ## Cifre (doar din scripturi, cu comanda)
 - În film apar doar cifrele PPC (2 milioane de contoare, 192 de milioane de citiri pe zi, scorul 0,87 din tema PPC). Cadrul 7 așteaptă cifra din `reports/`.
