@@ -9,3 +9,4 @@ music/out/stems/
 
 # Originalele PNG ale imaginilor generate (în git intră variantele JPEG din video/assets/img/)
 assets/gen/*.png
+video/boards/stills/
