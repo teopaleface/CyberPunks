@@ -1,7 +1,7 @@
 # Status: Teo-B-furtuna
-Actualizat: 2026-11-07 13:13
-Milestone curent: M0 gata, lucrez la M1
-Gata de merge: nu (M1 vine când se termină descărcarea vremii, estimat 15:00)
+Actualizat: 2026-11-07 13:30
+Milestone curent: M1 provizoriu (model pe 19 din 80 de comitate); M1 final pe la 15:15
+Gata de merge: da (commit cbf4007), versiune PROVIZORIE: interfața și formatele sunt finale, cifrele modelului se schimbă la 15:15
 
 ## Făcut
 - 12:44 Citit memoria, tema, planul, contractele, fixture-urile. `uv sync` și `make check` trec.
@@ -12,10 +12,15 @@ Gata de merge: nu (M1 vine când se termină descărcarea vremii, estimat 15:00)
 - 13:00 Descărcarea vremii istorice (Open-Meteo, 2023-2025) pentru cele 80 de comitate pornită în fundal, în ritm de 3.300 de apeluri pe oră, ca să rămână cotă pentru celelalte fire. Gata pe la 14:55.
 - 13:10 Lanțul complet merge pe datele de până acum: tabelul comitat × zi, LightGBM calibrat cu cuantile, 3 baseline-uri, test pe 2025 și pe state nevăzute, `reports/B/metrics.json`, 26 de lucrări valide pentru `demo-vara` (`outputs/work_items/demo-vara/B.jsonl`) și seriile lor. Cifrele finale vin cu toate cele 80 de comitate.
 
+- 13:20 Merge `Teo` (data `demo-vara` în config). Cache Open-Meteo pe disc: arhiva permanent, prognoza 3 ore; dacă rețeaua pică, agentul folosește ultima copie și o scrie în `data_quality.input_issues`. Fereastra pornește acum la începutul furtunii (planificatorul adaugă cele 60 de minute), iar `expected_value_lei` = exact `score × value_if_true_lei`.
+- 13:25 Teste B (17, fără rețea): vreme lipsă, valori imposibile, zonă în afara antrenării, rafale extreme, surse meteo în dezacord, lipsa vremii orare, cache și rețea picată. Secțiunea B din `Makefile`. `docs/data/B.md`.
+- 13:28 Analiza erorilor (`reports/B/error_analysis.md`), experimente (`reports/B/experiments.json`), backtest pe 6-10 iulie 2025 (`reports/B/backtest_romania.md`). Începutul furtunii se estimează după prima oră cu ploaie sau rafală foarte puternică: 15:00 la Timișoara și Reșița, 17:00 la Deva (codul roșu ANM: 15-21).
+- 13:30 **Modelul e livrat în git** (`models/release/b_model.joblib`, 1,1 MB), ca planificatorul să poată apela `run()` fără să refacă datele.
+
 ## Urmează
-- 15:00 Antrenarea pe toate cele 80 de comitate, cifrele M1, `B.jsonl` pentru `demo-vara` și `maine`, merge `Teo`, „Gata de merge”.
-- Până atunci: secțiunea B din `Makefile`, teste în `tests/b/`, `docs/data/B.md`.
-- M2 (21:30): modelul bate baseline-urile pe test separat, cuantile calibrate, SHAP în lucrări (există deja), backtest-ul pe 8 iulie 2025.
+- 14:55 Se termină vremea pentru toate cele 80 de comitate. Reantrenez, rulez experimentele, actualizez metricile, lucrările și modelul, apoi „Gata de merge” final pentru M1.
+- M2 (21:30): modelul bate baseline-urile pe 80 de comitate (an nevăzut și state nevăzute), cuantile cu acoperire corectă (acum 62% în loc de 80%: de corectat, de exemplu cu calibrare conformală), praguri justificate.
+- După 02:00 (cota Open-Meteo se reface): vremea pentru 2021-2022, ca să dublez datele de antrenare pentru M3.
 
 ## Blocaje
 - Niciunul.
@@ -36,6 +41,7 @@ Gata de merge: nu (M1 vine când se termină descărcarea vremii, estimat 15:00)
 7. **Cota Open-Meteo e comună pentru tot laptopul** (10.000 de apeluri pe zi, 5.000 pe oră, pe IP). B folosește circa 3.300 pe oră până la 14:55, apoi foarte puțin. Dacă alt fir are nevoie de mult, să-mi spună.
 
 ## Cum se rulează (comenzile exacte)
+Pentru planificator: `from cyberpunks.b_furtuna.predict import run; run("demo-vara", None)` scrie `outputs/work_items/demo-vara/B.jsonl` și `outputs/series/demo-vara/B-*.json`. Folosește modelul din git și vremea Open-Meteo (cu cache: o a doua rulare în 3 ore nu mai consumă din cotă). O rulare durează 2-5 s.
 ```
 uv run python -m cyberpunks.b_furtuna.download eaglei --years 2023-2025   # EAGLE-I, cu md5
 uv run python -m cyberpunks.b_furtuna.eaglei hourly --years 2023-2025     # comitat × oră
@@ -49,8 +55,14 @@ uv run python -m cyberpunks.b_furtuna.predict --scenario maine
 Din Python: `from cyberpunks.b_furtuna.predict import run; run("demo-vara", None)`.
 
 ## Cifre (doar din scripturi, cu comanda)
-- Prevalența evenimentului (vârf ≥ 1% din clienți), 2023, comitatele cu 10.000-600.000 de clienți din cele 8 state: 8,7% din zilele-comitat; ≥ 5%: 2,1%; ≥ 10%: 0,85%. (calcul ad-hoc din `eaglei.py`, de mutat într-un script la M1)
-- Metricile modelului: vin la M1 (acum sunt pe doar 9 comitate și nu au valoare).
+PROVIZORII, model `b-lgbm@409ba59` antrenat pe 19 comitate (13.889 de zile-comitat, 1.334 de evenimente). Comanda: `uv run python -m cyberpunks.b_furtuna.evaluate`. Testul e pe 2025, un an nevăzut: 6.935 de zile-comitat, cu prevalența evenimentului (vârf ≥ 1% din clienți) de 10,6%.
+- PR-AUC: model 0,240 față de climatologia pe comitat și lună 0,132, climatologia pe lună 0,122 și regula pe rafală 0,191.
+- Brier: model 0,0889 față de 0,0952 (climatologia pe comitat și lună).
+- ROC-AUC: model 0,689.
+- State nevăzute (leave-one-state-out, 8 state): PR-AUC mediu 0,238 față de 0,129 (climatologie) și 0,214 (rafală). Modelul bate climatologia în 8 din 8 state.
+- Recall la pragul de 0,16: evenimente severe (≥ 5%) 45%, extreme (≥ 10%) 54%.
+- Acoperirea intervalului P10-P90 pe zilele cu eveniment: 62% (ținta 80%, de corectat).
+- Backtest România (`uv run python -m cyberpunks.b_furtuna.backtest`): riscul mediu în Banat a fost 0,31 pe 7 iulie și 0,34 pe 8 iulie, față de 0,11-0,15 în Muntenia și Dobrogea. Pe 9-10 iulie a scăzut la 0,08.
 
 ## Decizii (cu ora)
 - 12:50 Folosim EAGLE-I v4 de pe figshare (2014-2025), nu doar 2014-2022.
@@ -61,3 +73,7 @@ Din Python: `from cyberpunks.b_furtuna.predict import run; run("demo-vara", None
 - 13:05 Codul meteo nu intră în model: arhiva nu are niciodată coduri de furtună (95-99), prognoza le are.
 - 13:06 Model în doi pași: P(eveniment) calibrat (izotonic, cu fold-uri pe săptămâni) și cuantilele vârfului doar în zilele cu eveniment („dacă se întâmplă, cât de mare”). Valoarea = P × clienți P50 × 2,5 h × 12 lei (`economics.yaml`, `storm`).
 - 13:08 Județele mari sunt împărțite în 26 de zone de mărimea unui comitat american. Clienții pe zonă sunt o aproximare, etichetată ca atare în fiecare lucrare. Cifrele RER pe județ au o anomalie (Giurgiu are 1,22 clienți pe locuitor, Ilfov 0,23): le folosim ca atare și o semnalăm.
+- 13:21 Pragul rămâne 1%: la 2% și 5%, ponderea evenimentelor cu semnal meteo clar nu crește (38-41%), iar lift-ul față de prevalență urcă puțin, de la 2,5x la 3x, deci nu merită o țintă mai greu de explicat.
+- 13:22 Cache Open-Meteo, ca rulările repetate ale planificatorului și ale interfeței să nu consume cota comună, iar demo-ul să meargă și fără internet.
+- 13:26 Modelul livrat în `models/release/` (permis în git), comprimat.
+- 13:27 În explicații, factorul „sezon” apare doar când crește riscul, iar fraza pornește de la factorii cu cea mai mare contribuție SHAP. Pe 8 iulie, în Ialomița și Călărași riscul vine din caniculă (38 °C, minima de 22 °C), nu din vânt. Lăsăm așa: în datele din SUA, zilele foarte calde chiar aduc avarii (suprasarcină, furtuni de după-amiază). Explicația spune deschis ce a contat.
