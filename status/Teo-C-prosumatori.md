@@ -1,7 +1,7 @@
 # Status: Teo-C-prosumatori
-Actualizat: 2026-11-07 14:02
-Milestone curent: M2 în lucru (scara de soluții gata la 14:00; urmează calibrarea și modelul orar)
-Gata de merge: da (commit 41ddaa8: scara de soluții și ofertele de baterii; `git merge Teo` făcut, `make check` trece, 170 de teste)
+Actualizat: 2026-11-07 14:14
+Milestone curent: M3 în lucru (M2 terminat la 14:11; M3 aproape gata: analiza erorilor, investiții, racordări, teste)
+Gata de merge: da (commit adcf42c: M2 complet plus cea mai mare parte din M3; `make check` trece, 175 de teste)
 
 ## Făcut
 - M0 (13:10): calcul de rețea vectorizat verificat față de pandapower, prima rețea simulată, `docs/research/C.md`.
@@ -28,10 +28,22 @@ Gata de merge: da (commit 41ddaa8: scara de soluții și ofertele de baterii; `g
   - Alegerea C: cea mai ieftină combinație (până la 3 trepte, măcar una cu încredere medie sau mare) care aduce P90 sub 1,098 pu; motivul spune și de ce nu treptele mai ieftine. `recommended_action` = acțiunea principală.
   - Pe 8 iulie 2025: 7 × priză, 4 × rebalansare pe faze, 2 × limită de export, 20 de mesaje, 8 urmăriri. `predict.run` durează circa 6,5 s.
 
-## Urmează (M2, 21:30)
-- Scara de soluții în `extra.remedy_options` (`RemedyOption`), cu efectul calculat cu simularea: `phase_rebalance`, `adjust_tap`, `notify_customers` (participare 10/20/30%), `offer_battery` (5/10/15 kWh pe profil), `export_limit`, `transformer_upgrade`.
-- `reports/C/oferte_baterii.md`, cifrele ANRE din 31 aug. 2026 în explicații și documentație.
-- Calibrarea probabilității (curba arată supraestimare între 0,1 și 0,4), SHAP verificat pe cazuri, evaluarea modelului orar.
+- 14:11 M2 complet:
+  - modelul orar are acum interval conformal: acoperire P10-P90 80,0% pe rețele nevăzute (49,8% înainte), MAE 0,0049 pu;
+  - calibrare: ECE 0,003 (model) față de 0,013 (baseline); `reports/C/figures/reliability.png`;
+  - modelul bate baseline-ul pe fiecare topologie, lună, tip de vreme și tip de rețea (`reports/C/error_tables.json`).
+- 14:11 M3, mare parte:
+  - `reports/C/error_analysis.md`: rețele rurale lungi (MAE 0,0063 față de 0,0045 pe cele scurte), zile noroase (recall 81,5% față de 88,5%), baterii (acoperire 77%), lângă prag (ratările au mediana 1,104 pu), ce am încercat;
+  - `connection.py`: cererile de racordare -> aprobat / aprobat cu limită de injecție / studiu, cu modelul și calculul de rețea, comparat cu regula simplă de 3%; `uv run python -m cyberpunks.c_prosumatori.connection --post PT-1020 --kwp 25`;
+  - `reports/C/investitii.md`: posturile de modernizat, ordonate după lei pierduți pe an, cu cea mai ieftină soluție din scară;
+  - `reports/C/model_card.md` (ciornă completă), cifrele ANRE din 31 aug. 2026 în documentație și în rezumatul C;
+  - teste noi: `tests/c/test_remedies.py`, `tests/c/test_connection.py`.
+- Ablație (în lucru): fără trăsăturile fizice din topologie, MAE pe rural2 nevăzut urcă de la 0,0061 la 0,0239 pu și pe rural3 de la 0,0064 la 0,0142 pu.
+
+## Urmează
+- Rezultatele ablațiilor în `reports/C/error_analysis.md` și în fișa modelului.
+- O margine conformală pe tip de rețea (acoperirea variază între 73% și 88% pe topologii).
+- M4: comenzi reproductibile verificate dintr-o clonă curată, curățenie.
 
 ## Blocaje
 - niciunul
