@@ -79,6 +79,8 @@ export async function submitReview(
   try {
     const audit = await apiReview(workItemId, { decision, note: note.trim(), reviewer: who }, scenario);
     revalidatePath("/");
+    revalidatePath("/coada");
+    revalidatePath("/jurnal");
     revalidatePath(`/lucrari/${workItemId}`);
     return { ok: true, audit };
   } catch (err) {

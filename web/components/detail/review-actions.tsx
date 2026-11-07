@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,7 @@ const DONE: Record<ReviewDecision, string> = { approve: "Ai aprobat", reject: "A
 /** Decizia omului: aprobă, respinge sau amână, cu o notă. Se scrie în jurnal cu actor „om”. */
 export function ReviewActions({ workItemId, scenario }: { workItemId: string; scenario?: string }) {
   const router = useRouter();
+  const noteId = useId();
   const [note, setNote] = useState("");
   const [pending, startTransition] = useTransition();
   const [acting, setActing] = useState<ReviewDecision | null>(null);
@@ -32,11 +33,11 @@ export function ReviewActions({ workItemId, scenario }: { workItemId: string; sc
   };
   return (
     <div className="space-y-3">
-      <label className="block text-[14px] font-[560]" htmlFor="review-note">
+      <label className="block text-[14px] font-[560]" htmlFor={noteId}>
         Nota ta (opțional, intră în jurnal)
       </label>
       <Textarea
-        id="review-note"
+        id={noteId}
         value={note}
         onChange={(e) => setNote(e.target.value)}
         maxLength={2000}
