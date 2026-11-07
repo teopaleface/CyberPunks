@@ -10,10 +10,12 @@ from __future__ import annotations
 import json
 from collections.abc import Callable
 
+import lightgbm as lgb
 import numpy as np
 import pandas as pd
 from sklearn.isotonic import IsotonicRegression
 from sklearn.metrics import average_precision_score, brier_score_loss
+from sklearn.model_selection import GroupKFold
 
 from cyberpunks.b_furtuna import dataset
 from cyberpunks.b_furtuna import model as bm
@@ -49,14 +51,13 @@ def run_variant(df: pd.DataFrame, spec: list[tuple[str, int]], event_col: str = 
     te = df[df["year"] == TEST_YEAR].reset_index(drop=True)
     y_tr, y_te = tr[event_col].to_numpy(), te[event_col].to_numpy()
 
-    def fit(X, y):
-        import lightgbm as lgb
-        return lgb.train(params, lgb.Dataset(X[feats], label=y), num_boost_round=params.pop("rounds", bm.CLF_ROUNDS)
-                         if "rounds" in params else bm.CLF_ROUNDS)
+    rounds = int(params.pop("rounds", bm.CLF_ROUNDS))
+
+    def fit(X: pd.DataFrame, y: np.ndarray) -> lgb.Booster:
+        return lgb.train(params, lgb.Dataset(X[feats], label=y), num_boost_round=rounds)
 
     groups = bm.week_groups(tr["date"])
     oof = np.zeros(len(tr))
-    from sklearn.model_selection import GroupKFold
     for a, b in GroupKFold(5).split(tr, y_tr, groups):
         oof[b] = fit(tr.iloc[a], y_tr[a]).predict(tr.iloc[b][feats])
     cal = IsotonicRegression(out_of_bounds="clip").fit(oof, y_tr)
