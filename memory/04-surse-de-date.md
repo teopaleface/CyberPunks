@@ -43,6 +43,19 @@ curl -s "https://api.open-meteo.com/v1/forecast?latitude=44.43&longitude=26.10&h
 - Electricity Maps: intensitatea CO2 pe țară. Are nivel gratuit, cu cont.
 - Seturi de imagini cu defecte pe linii electrice (izolatori), utile dacă tema e despre inspecții cu drone. De căutat dacă e nevoie.
 
+## Seturi de date pentru antrenat modele (adăugate după anunțarea temei)
+
+Tema cere doar date publice sau sintetice, cu sursa citată.
+
+- **Open-Meteo, istoric** (verificat): https://archive-api.open-meteo.com/v1/archive. Vreme orară din trecut, fără cheie, pentru orice coordonate. Exemplu: `?latitude=44.43&longitude=26.10&start_date=2025-01-01&end_date=2025-01-02&hourly=wind_speed_100m,shortwave_radiation`.
+- **PVGIS (Comisia Europeană, JRC)** (verificat): https://re.jrc.ec.europa.eu/api/v5_2/seriescalc. Producție solară estimată pe ore pentru un panou, ani întregi, fără cheie.
+- **SGCC, furt de energie** (repo verificat): https://github.com/henryRDlab/ElectricityTheftDetection. Fișierele `data.zip`, `data.z01`, `data.z02` (circa 52 MB, arhivă împărțită). 42.372 de clienți, consum zilnic ianuarie 2014-octombrie 2016, 3.615 marcați ca furt, circa 25% valori lipsă. Repo-ul nu are licență explicită. Copie pe Kaggle: https://www.kaggle.com/datasets/bensalem14/sgcc-dataset (de verificat licența). Descriere: https://arxiv.org/pdf/2002.06219
+- **Low Carbon London, contoare inteligente** (pagină verificată, redirect): https://data.london.gov.uk/dataset/smartmeter-energy-use-data-in-london-households. 5.567 de locuințe, consum la 30 de minute, 2011-2014 (cifre din memorie, de verificat la descărcare).
+- **EAGLE-I, întreruperi de curent în SUA**: https://figshare.com/articles/dataset/The_Environment_for_Analysis_of_Geo-Located_Energy_Information_s_Recorded_Electricity_Outages_2014-2022/24237376. Clienți fără curent pe comitat, la 15 minute, 2014-2024.
+- **ACN-Data, încărcare mașini electrice (Caltech)** (pagină verificată): https://ev.caltech.edu/dataset. Sesiuni de încărcare, cont gratuit pentru API.
+- **Open Power System Data** (verificat): https://data.open-power-system-data.org/time_series/. Serii de timp europene (consum, eolian, solar, prețuri), descărcabile direct.
+- **ENTSO-E pentru România**: prețuri PZU și producție pe tipuri. Exportul din site și API-ul cer cont; tokenul de API se cere prin email.
+
 ## Ce nu avem
 
 - Date reale de la contoarele PPC. Dacă tema cere așa ceva, PPC ar trebui să dea un set de date. Altfel generăm date sintetice la 15 minute și le etichetăm clar ca sintetice.

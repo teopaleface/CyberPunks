@@ -2,29 +2,36 @@
 
 Se bifează când primim răspunsul, cu ora și cine a răspuns.
 
-## De aflat la deschidere
+## Aflate la deschidere (7 nov.)
 
-- [ ] Tema PPC exactă.
-- [ ] Criteriile de jurizare PPC (și ale Adobe și Siemens pentru premiile speciale).
-- [ ] Ora de start și ora-limită pentru predare.
-- [ ] Cum se predă: link de GitHub într-un formular? Până la ce oră?
-- [ ] Dă PPC un set de date sau acces la vreun API?
+- [x] Tema PPC: un agent AI bazat pe un model ML antrenat de noi, care decide și acționează pe o problemă reală de energie. Detalii în `07-tema-ppc.md`.
+- [x] Criteriile de jurizare PPC: grilă de 100 de puncte (25 relevanță, 25 ML, 25 agent, 10 robustețe, 10 explicabilitate, 5 demo și repo).
+- [x] Termenul: duminică, 8 nov., ora 12:00. Demo live de la 13:00, 5 minute plus 2 minute de întrebări.
+- [x] Cum se predă: repo GitHub cu proiectul și materialele de prezentare.
+- [x] Date de la PPC: nu. Doar date publice sau sintetice, cu sursa citată.
+
+## De decis acum
+
+- [ ] Ce direcție alegem (variantele în `05-unghiuri-pentru-idei.md`).
+- [ ] Cine face ce: date, model, agent, interfață și prezentare.
+
+## De aflat de la PPC sau de la organizatori
+
+- [ ] De unde e slide-ul în română cu "Criterii de evaluare" (inovație, utilitate, etică, sustenabilitate)? E al ASMI, al premiilor speciale sau tot al PPC?
 - [ ] Cine din PPC e mentor și unde stă.
-
-## De întrebat organizatorii (regulamentul nu spune)
-
-- [ ] E voie cu cod scris înainte de eveniment (șabloane, boilerplate)?
-- [ ] E voie cu unelte AI (Claude, Copilot etc.)?
-- [ ] Repo-ul poate rămâne privat dacă dăm acces juriului ca și colaboratori?
+- [ ] E voie cu cod scris înainte de eveniment (șabloane)?
+- [ ] E voie cu unelte AI pentru scris cod (Claude, Copilot)?
+- [ ] Repo-ul poate rămâne privat dacă dăm acces juriului ca și colaboratori? Cui dăm acces (useri GitHub)?
+- [ ] Prezentarea durează 5 minute (PPC) sau 10 (regulamentul ASMI)?
+- [ ] Contează pentru juriu un LLM folosit prin API extern doar la interfață, sau e mai bine local?
 
 ## Despre echipă
 
-- [ ] Cine e în echipa CyberPunks (3-5 oameni), cu GitHub-ul fiecăruia, ca să-i adăugăm în repo.
-- [ ] Ce stack știm cu toții (limbaj, framework, unde găzduim demo-ul).
-- [ ] Am ales PPC ca partener MAIN la înscriere? (presupunem că da)
+- [ ] Cine e în echipa CyberPunks (3-5 oameni), cu userul GitHub al fiecăruia, ca să-i adăugăm în repo.
+- [ ] Ce stack știm cu toții (Python pentru ML e aproape sigur; ce folosim pentru interfață?).
 
 ## Despre research
 
-- [ ] Numărul de clienți de furnizare PPC în România. Un comunicat spune circa 3 milioane la PPC Energie.
+- [ ] Licența setului SGCC (repo-ul GitHub nu are licență; de verificat copia de pe Kaggle).
 - [ ] Ce înseamnă câmpurile `IS` / `ISPOZ` din datele Transelectrica.
-- [ ] Token ENTSO-E: îl cerem acum, ca să-l avem dacă tema e despre prețuri?
+- [ ] Token ENTSO-E: îl cerem acum, dacă alegem o direcție cu prețuri sau producție?

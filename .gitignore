@@ -12,3 +12,6 @@ build/
 .next/
 .idea/
 .vscode/
+
+# Materiale primite la eveniment (prezentările PPC au slideuri marcate "Internal"), poze cu alți participanți
+materiale/

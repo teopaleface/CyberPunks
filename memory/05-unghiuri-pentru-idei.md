@@ -1,65 +1,62 @@
-# Direcții posibile, legate de problemele PPC
+# Direcții de proiect, după tema anunțată
 
-Nu e o decizie. Tema reală vine la deschidere. Lista asta ne ajută să recunoaștem repede ce vrea PPC și ce date putem folosi. Pentru fiecare: problema lor, ce am putea construi în 24 de ore, ce date avem.
+Rescris pe 7 nov. 2026, după anunțarea temei (`07-tema-ppc.md`). Varianta de dinainte de temă e în istoricul git. Încă nu e o decizie: echipa alege, iar alegerea intră în `journal.md`.
 
-## 1. Consum mutat în orele ieftine (Ore Smart)
+Filtrul: model ML propriu cu test separat și baseline, agent care face acțiuni, date publice sau sintetice, relevanță credibilă pentru PPC. Am evitat să copiem proiecte pe care PPC le are deja în producție (lista în `08-ppc-workshop-ai.md`).
 
-- Problema lor: au tarife dinamice (0,98 față de 1,56 lei/kWh) și vor clienți care își mută consumul când produc regenerabilele.
-- Demo: un planificator care spune "pornește mașina de spălat sâmbătă la 12" și arată câți lei economisești pe lună, pe baza curbei de consum la 15 minute.
-- Date: curbe sintetice la 15 minute, prețurile Ore Smart+, producția solară de la Transelectrica.
-- Atenție: myEnergy Coach există deja. Trebuie să facem altceva decât el (de exemplu, programare automată, nu doar sfaturi).
+## Comparație rapidă
 
-## 2. Energie plus electrocasnice (Flanco)
+| Direcție | Firma PPC | Relevanță PPC (25) | Calitate ML (25) | Agent (25) | Robustețe (10) | Date publice |
+|---|---|---|---|---|---|---|
+| A. Contoare defecte sau manipulate, plus echipele de verificare | Rețele Electrice | Foarte bună: PPC a spus că e următorul pas | Bună: etichete reale și sintetice | Foarte bună: capacitate de echipe, cost pe vizită | Foarte bună: datele lipsă sunt chiar semnalul | Da |
+| B. Furtună în 24 de ore: risc de avarii și echipe trimise din timp | Rețele Electrice | Bună: reziliență, SAIDI/SAIFI | Bună | Foarte bună | Foarte bună: evenimente rare | Da, dar din SUA |
+| C. Parc eolian: prognoză și decizie | PPC Renewables | Medie: PPC are deja proiectul în dezvoltare | Foarte bună | Medie | Bună | Da |
+| D. Stații de încărcare: cerere și defecte | PPC Blue | Medie | Bună | Bună | Medie | Da, din SUA și UK |
+| E. Risc de neplată sau programarea consumului în orele ieftine | PPC Energy | Medie: suprapunere cu AI Claims Agent și myEnergy Coach | Slabă spre medie: doar date sintetice sau din altă țară | Bună | Medie | Parțial |
 
-- Problema lor: au cumpărat Flanco pe 3 nov. 2026 și vor să vândă energie și aparate împreună, ca în Grecia.
-- Demo: din consumul clientului, aplicația vede că frigiderul vechi costă X lei pe an și propune un model din Flanco care se amortizează în N luni.
-- Date: consum sintetic, consum tipic pe aparat, prețuri publice de pe site-ul Flanco.
-- De ce contează: e știre de acum 4 zile. Juriul PPC sigur se gândește la asta.
+## A. Contoare defecte sau manipulate, plus echipele de verificare (recomandată)
 
-## 3. Prognoza producției din regenerabile
+- Problema PPC: au peste 2 milioane de contoare care trimit 96 de citiri pe zi. În prezentare au scris că urmează "anomaly detection on meter behaviour, predictive monitoring of faulty meters". În Grecia au avut loturi întregi de contoare defecte (până la 250.000 de puncte). Detectarea fraudei există deja (Energy Anomaly Detection, în producție), deci accentul nostru e pe contoare defecte, pe manipulare și pe decizia de după: pe cine trimiți să verifice, azi.
+- Perceive: consumul pe fiecare contor (la 15 sau 30 de minute, sau zilnic), golurile din date, comparația cu vecinii de pe același post de transformare.
+- Estimate: modelul dă pentru fiecare contor o probabilitate pentru normal, defect (blocat, zero, goluri, salturi, derivă) sau suspect de manipulare, plus energia și banii pierduți pe lună.
+- Decide: pragul vine din bani. Trimitem o echipă dacă probabilitatea înmulțită cu valoarea recuperată depășește costul vizitei. Echipele au capacitate limitată pe zi și pe zonă. Încredere mare: ordin de lucru. Încredere medie: cerem o citire de la distanță. Încredere mică: lista de urmărire.
+- Act: lista zilnică de verificări pe fiecare echipă, grupată pe zone, ordine de lucru, alertă pentru cazurile critice, raport săptămânal. Un LLM poate scrie explicația pentru tehnician, verificată în cod față de cifre.
+- Date: setul SGCC (42.372 de clienți, consum zilnic 2014-2016, 3.615 marcați ca furt, circa 25% valori lipsă) și contoarele din Londra (Low Carbon London, la 30 de minute) cu defecte injectate de noi, etichetate din construcție.
+- Baseline: o regulă simplă (consum zero mai mult de N zile, sau scădere peste 50% față de propriul istoric). Model: gradient boosting pe caracteristici calculate din serie, eventual o rețea 1D. Metrici: PR-AUC și precizie în primele K contoare, unde K e capacitatea echipelor. Asta leagă direct modelul de decizie.
+- Robustețe: golurile din date intră în model ca semnal. Contorul cu prea puțin istoric primește "nu știu" și ajunge la om. Testăm separat tipurile rare de defecte.
+- Explicabilitate: pentru fiecare contor, primele motive în cuvinte simple ("consum zero 9 zile după un istoric stabil", "cu 70% sub vecinii de pe același post").
+- Etică: nu acuzăm automat pe nimeni de furt. Omul decide. ID-uri pseudonimizate, jurnal pentru fiecare decizie, notă despre EU AI Act (infrastructura critică e "high risk").
+- Costuri: modelul rulează pe CPU, în câteva secunde. Se potrivește cu platforma lor (S3, Spark): scorare zilnică după vârful de date de la 4 dimineața.
+- În plus: manipularea contoarelor se leagă de numele echipei, CyberPunks.
+- Riscul: repo-ul GitHub cu setul SGCC nu are licență explicită. Folosim datele din Londra plus sintetice ca bază și SGCC doar ca validare, cu sursa citată. Sau luăm copia de pe Kaggle, dacă are licență.
 
-- Problema lor: portofoliu mare de eolian și solar, care produce intermitent.
-- Demo: prognoză pe 24-48 de ore pentru un parc eolian sau solar din vreme, comparată cu producția reală din România.
-- Date: Open-Meteo (vânt, radiație), Transelectrica (producție reală eoliană și solară la nivel de țară).
+## B. Furtună în 24 de ore: risc de avarii și echipe trimise din timp
 
-## 4. Baterii: când încarci și când descarci
+- Problema PPC: reziliența rețelei (spusă de Daniel Albu), indicatorii de întreruperi SAIDI 35 de minute și SAIFI 0,90 în S1 2026, sistemul nou de gestionare a echipelor (WFM).
+- Model: câți clienți rămân fără curent pe zonă în următoarele 24 de ore, din prognoza meteo. Baseline: persistență sau media istorică.
+- Agent: mută echipele în zonele cu risc înainte de furtună, în limita capacității, trimite alerte, face raport.
+- Date: EAGLE-I (întreruperi în SUA pe comitat, la 15 minute, 2014-2024) și vremea istorică de la Open-Meteo. Slăbiciunea: datele sunt din SUA. Pentru demo am mapa rezultatele pe județele din Muntenia, Banat și Dobrogea, cu date sintetice etichetate ca atare.
 
-- Problema lor: construiesc baterii mari (Corugea 40 MW / 80 MWh, JV cu Metlen de 1,5 GW).
-- Demo: optimizator care decide orele de încărcare și descărcare din prețurile PZU și prognoza solară, cu profitul estimat.
-- Date: prețuri PZU (ENTSO-E, dacă primim token; altfel fișierele OPCOM), Open-Meteo.
+## C. Parc eolian: prognoză și decizie
 
-## 5. Rețea: avarii și mentenanță
+- PPC are deja prognoza producției eoliene în dezvoltare (proiectul 08) și Smart Sentry în producție. E credibil, dar ne compară cu munca lor.
+- Agent: ajustarea poziției pe piața intraday, programarea mentenanței în ferestrele fără vânt, încărcarea bateriilor.
+- Date: SCADA de turbine publice (de exemplu setul de pe Kaggle din Turcia, la 10 minute), vremea istorică de la Open-Meteo, PVGIS pentru solar.
 
-- Problema lor: mentenanță predictivă, inspecții cu drone, rețea bidirecțională din cauza prosumatorilor, reziliență.
-- Demo: hartă cu zonele de risc din rețea, din vreme (vânt, gheață, căldură) și vârsta echipamentelor. Sau detectarea defectelor pe imagini cu izolatori.
-- Date: Open-Meteo, seturi publice de imagini (de căutat), date de rețea sintetice.
-- Riscul: fără date reale de la Rețele Electrice, demo-ul poate părea fals. Merge doar dacă PPC dă date.
+## D. Stații de încărcare PPC Blue: cerere și defecte
 
-## 6. Încărcare mașini electrice (PPC blue)
+- Model: cererea pe stație și oră, sau detectarea stațiilor defecte din sesiuni scurte sau eșuate.
+- Agent: prioritizează mentenanța, recomandă prețuri mai mici la vârful solar, alertează.
+- Date: ACN-Data (Caltech, cont gratuit), datele deschise din Palo Alto, Boulder sau Dundee.
 
-- Problema lor: peste 1.400 de puncte în România, țintă 2.000. Partenerii sunt Dedeman, Penny, Selgros, OSCAR pe A7, aeroportul Otopeni.
-- Demo: programare inteligentă a încărcării în orele cu mult solar, sau recomandare de stație după traseu și preț.
+## E. PPC Energy: neplată sau consum mutat în orele ieftine
 
-## 7. Aplicația myPPC și relația cu clienții
+- Riscul de neplată completează AI Claims Agent, dar nu există date publice de facturare la energie, deci ar fi doar sintetice.
+- Programarea consumului în orele Ore Smart se suprapune cu myEnergy Coach.
 
-- Problema lor: note mici după migrarea din iulie (3,1 și 2,3), plângeri la logare și facturi lipsă. KPI-urile sunt adopția digitală și factura electronică. Pierd cotă de piață (16% la 14%).
-- Demo: asistent care explică factura în cuvinte simple ("de ce am plătit mai mult luna asta"), sau un flux de înscriere la factura electronică în 3 pași.
-- În plus: PPC folosește deja Claude Enterprise intern, deci o soluție pe Claude le e familiară.
+## Lecții de aplicat oricare ar fi direcția
 
-## 8. Centre de date și AI cu energie curată
-
-- Problema lor: construiesc un centru de date de 300 MW pentru AWS. Stassis vrea ca AI să nu crească factura clienților.
-- Demo: un planificator care mută sarcinile de calcul în orele cu energie verde și ieftină, cu CO2 economisit.
-- Date: Transelectrica (mixul de producție), Electricity Maps.
-
-## 9. Securitate cibernetică (se potrivește cu numele echipei)
-
-- Problema lor: platforma GIS nouă cere "cele mai avansate standarde de securitate cibernetică". Rețeaua are tot mai multe puncte de telecontrol și contoare conectate.
-- Demo: detectarea anomaliilor în datele de la contoare (furt de energie, contoare defecte, atac), care leagă și "detectarea pierderilor" pomenită de Stassis.
-
-## Ce câștigă la juriu (din regulament și din ce știm despre PPC)
-
-- Maxim 10 minute de prezentare. Demo care merge, pe date reale sau clar etichetate ca sintetice.
-- Legătura directă cu o problemă pe care PPC a spus-o public, cu cifrele lor.
-- O cifră de impact: lei economisiți, MW, minute de avarie evitate.
-- Repo-ul pe GitHub, cu acces pentru juriu.
+- Codul și modelul nostru decid, LLM-ul doar formulează (lecția R Systems, cerința PPC).
+- Împărțirea train / test pe timp, ca să nu "vadă viitorul".
+- Fiecare decizie are prag justificat, încredere și explicație, și ajunge în jurnal.
+- Demo de 5 minute: o zi din viața agentului, de la date la lista de acțiuni, cu un caz explicat până la capăt.

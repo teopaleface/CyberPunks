@@ -7,15 +7,18 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 | `01-smarthack-2026.md` | Regulament, premii, parteneri, calendar, reguli de predare și prezentare |
 | `02-ppc-firma.md` | Raportul complet despre PPC Group: istoric, acționari, cifre, planul 2026-2030, România, cariere, peste 40 de surse |
 | `03-ppc-tehnologie-si-digital.md` | Echipele IT, stack-ul (SAP, Salesforce, Claude Enterprise), contoare, AI, tarife dinamice, probleme declarate de PPC |
-| `04-surse-de-date.md` | API-uri publice pentru demo (Transelectrica, Open-Meteo, ENTSO-E), verificate pe 7 nov. |
-| `05-unghiuri-pentru-idei.md` | 9 direcții posibile legate de problemele PPC, cu datele pe care le avem pentru fiecare |
-| `06-intrebari-deschise.md` | Ce trebuie aflat la deschidere, de la organizatori și despre echipă |
+| `04-surse-de-date.md` | API-uri publice (Transelectrica, Open-Meteo, ENTSO-E) și seturi de date pentru antrenat modele (SGCC, Londra, EAGLE-I, PVGIS) |
+| `05-unghiuri-pentru-idei.md` | Direcțiile de proiect după temă, comparate pe grila PPC, cu recomandarea |
+| `06-intrebari-deschise.md` | Ce s-a aflat, ce e de decis și ce mai e de întrebat |
+| `07-tema-ppc.md` | **Tema PPC**, cerințele obligatorii, grila de 100 de puncte, termenele, checklist |
+| `08-ppc-workshop-ai.md` | Workshopul PPC: cifre, platforma de date a contoarelor, cele 9 proiecte AI ale lor, guvernanță și EU AI Act |
+| `09-rsystems-workshop.md` | Workshopul R Systems: codul decide, modelul formulează; verificări în cod |
 | `journal.md` | Ce s-a întâmplat și ce s-a decis, cu ora |
 
 ## Reguli
 
 - Orice decizie (temă, idee aleasă, stack, împărțirea pe oameni) intră în `journal.md`, cu ora.
-- Când aflăm tema, o scriem integral într-un fișier nou, `07-tema-ppc.md`, cu criteriile de jurizare.
+- Materialele originale (prezentări, poze) stau în `materiale/`, care nu intră în git.
 - Fără parole, tokenuri sau chei în memorie. Cheile stau în `.env`, care nu intră în git.
 - Datele sintetice se etichetează clar ca sintetice, în cod și în prezentare.
 
@@ -24,4 +27,6 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 - Hackathon: SmartHack 2026 (ASMI), 7-8 nov. 2026, Politehnica Business Tower, București. 24 de ore, echipe de 3-5.
 - Partener: PPC Group, compania greacă de energie care a cumpărat Enel România în 2023. În România: distribuție (Rețele Electrice, 3,2 mil. puncte de consum), furnizare (PPC Energie, cotă 14%), regenerabile (1,56 GW), încărcare mașini electrice (PPC blue). Au cumpărat Flanco pe 3 nov. 2026.
 - Premii PPC: 1.500 € (marele premiu), 1.000 € (locul 2). O echipă ia un singur premiu.
-- Predare: GitHub, cu acces pentru juriu. Prezentare de maxim 10 minute.
+- Tema: un agent AI bazat pe un model ML antrenat de noi, care decide și acționează pe o problemă reală de energie (Perceive, Estimate, Decide, Act). Doar date publice sau sintetice.
+- Jurizare PPC: 25 relevanță, 25 calitate ML, 25 agent, 10 robustețe, 10 explicabilitate, 5 demo și repo.
+- Predare: repo GitHub până duminică, 8 nov., la 12:00. Demo live de la 13:00: 5 minute plus 2 minute de întrebări.
