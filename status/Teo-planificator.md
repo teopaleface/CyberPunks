@@ -41,6 +41,13 @@ Gata de merge: da (commit dfbe35a, plus acest status)
 - 14:15 A doua evaluare: ziua demo, cu lucrările reale A și adevărul injectat (`A_ground_truth.csv`), în `reports/planner/agent_eval.md`.
 - 14:33 Coada omului, aprobarea planului, harta cu bilanțul, instantaneul demo pe ultimul rulaj. 238 de teste trec.
 
+## Pentru README-ul principal (text propus, orchestratorul îl poate copia)
+> **Agentul (planificatorul).** `uv run cyberpunks run --scenario demo-vara` trece automat prin cei patru pași: *Perceive* (configurația, scenariul, ce date și modele există), *Estimate* (modelele A, bilanț, B, C), *Decide* (validare și carantină, reguli cu nume și praguri justificate de cost, trasee OR-Tools cu ferestre de timp, abilități și baze multiple, cu rezervă greedy) și *Act* (planul, jurnalul de decizii, alertele, mesajele demo, ordinele de lucru PDF pe echipă, raportul zilei). Fiecare decizie are o regulă (`rule_id`), pragurile folosite, motivul în română și o linie în jurnal cu ID-ul predicției, versiunea modelului și amprenta intrării. Ce nu e sigur merge la dispecer, într-o coadă de cel mult 25 de cazuri pe zi; dispecerul aprobă, respinge sau amână, iar planul se recalculează. Pragurile: `config/planner.yaml`; costurile, cu sursa fiecăruia: `config/economics.yaml`; cercetarea: `docs/research/planificator.md`.
+>
+> **Evaluarea agentului.** `make agent-eval` (~2 min) compară agentul cu strategii simple (top-K după scor, primul venit, aleator, o singură sursă) pe aceleași echipe și restricții: pe 30 de zile sintetice, +49% valoare netă față de cea mai bună strategie simplă, cu mai puțini km și mai puține urgențe ratate; pe ziua demo, cu lucrările reale A și adevărul injectat, agentul vizitează 29 din 50 de cazuri reale de siguranță, față de 2 la ordinea pe valoare. Metoda și limitele: `reports/planner/README.md`; tabelele: `reports/planner/agent_eval.md`.
+>
+> **API.** `make api` pornește API-ul pe http://127.0.0.1:8710/api (documentație la `/docs`); `CYBERPUNKS_API_SOURCE=demo make api` servește instantaneul din git (`outputs/demo/`), fără să ruleze modelele.
+
 ## Pentru firul Interfață (toate rutele, cu `?scenario=`)
 - Din contract: `/health` (cu `plan_id`, `mode`), `/scenarios`, `POST /run`, `/plan`, `/work-items`, `/work-items/{id}` (cu `decision` și `action`), `/series/{id}`, `/audit`, `POST /review/{id}`, `/metrics`, `/work-orders/{crew}.pdf`.
 - În plus: `/quarantine`, `/alerts`, `/notifications`, `/report`, `/run-info` (timpii pe pași, sursele, solverul), `/rules`, `/remedies` (scara C), `/posts`, `/posts/{post_id}`, `POST /routes/{crew}/approve`, `/approvals` (cu `stale`), `POST /verdict/{id}`, `/labels`, `POST /plan/approve`, `/plan/approval`.
