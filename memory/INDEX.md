@@ -14,6 +14,7 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 | `08-ppc-workshop-ai.md` | Workshopul PPC: cifre, platforma de date a contoarelor, cele 9 proiecte AI ale lor, guvernanță și EU AI Act |
 | `09-rsystems-workshop.md` | Workshopul R Systems: codul decide, modelul formulează; verificări în cod |
 | `10-implementare.md` | **Implementarea**: A, B, C în paralel, cele 6 fire, orchestratorul, alegerile tehnice |
+| `11-bilant-pe-post.md` | **Bilanț pe post** (fir nou) și **scara de soluții pentru tensiune** (C), decizia lui Teo de la 13:45 |
 | `journal.md` | Ce s-a întâmplat și ce s-a decis, cu ora |
 
 ## Reguli

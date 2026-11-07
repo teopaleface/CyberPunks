@@ -77,6 +77,12 @@ class RecommendedAction(str, Enum):
     adjust_tap = "adjust_tap"  # C: schimbarea prizei transformatorului (cere întrerupere planificată)
     measurement_campaign = "measurement_campaign"  # C: analizor de calitate a energiei montat la post
     notify_customers = "notify_customers"  # C: mesaj către prosumatori (PPC Energy), fără echipă
+    office_correction = "office_correction"  # bilanț: corecție în bază (client la postul greșit), fără deplasare
+    grid_inspection = "grid_inspection"  # bilanț: echipă de rețea (lv_grid) pentru pierderi tehnice, faze
+    phase_rebalance = "phase_rebalance"  # C (scara): mută câteva case pe altă fază
+    offer_battery = "offer_battery"  # C (scara): ofertă de baterii pentru prosumatori (PPC Energie)
+    export_limit = "export_limit"  # C (scara): limită de injecție pe oră
+    transformer_upgrade = "transformer_upgrade"  # C (scara): transformator nou (investiție)
     no_action = "no_action"
 
 
@@ -203,6 +209,36 @@ class WorkItem(_Strict):
         return self
 
 
+class RemedyOption(_Strict):
+    """O treaptă din scara de soluții pentru tensiune (C), în `WorkItem.extra["remedy_options"]` (listă).
+
+    Efectul se calculează cu calculul de rețea al lui C, nu se ghicește.
+    """
+
+    action: RecommendedAction
+    cost_lei: float = Field(ge=0.0)
+    p90_after_pu: float = Field(gt=0.5, lt=1.5, description="P90 al tensiunii maxime după soluție")
+    effect_pu: float = Field(description="Cât scade P90 (pu), negativ = scade")
+    confidence: Confidence
+    duration_min: int = Field(ge=0, description="Timp de lucru; 0 pentru mesaje")
+    needs_crew: bool
+    crew_skill: CrewSkill | None = None
+    combinable: bool = Field(default=True, description="Se poate combina cu alte trepte")
+    note_ro: str
+
+
+class BilantFusion(_Strict):
+    """Confirmarea independentă bilanț + contor, în `WorkItem.extra["fusion"]` pentru lucrările A pe contoare."""
+
+    post_id: str
+    bilant_prediction_id: str
+    post_excess_loss_kwh_day: float = Field(description="Lipsa peste normal la post, kWh pe zi")
+    post_excess_loss_lei_month: float
+    a_score: float = Field(ge=0.0, le=1.0, description="Scorul inițial al modelului A")
+    combined_score: float = Field(ge=0.0, le=1.0, description="Scorul după confirmare (devine prediction.score)")
+    note_ro: str
+
+
 # --------------------------------------------------------------------------------------------
 # Plan: ieșirea planificatorului (agentul)
 # --------------------------------------------------------------------------------------------
@@ -219,6 +255,8 @@ class Stop(_Strict):
 class Route(_Strict):
     crew_id: str
     depot_id: str
+    depart_at: datetime | None = Field(default=None, description="Plecarea din bază")
+    return_at: datetime | None = Field(default=None, description="Întoarcerea în bază")
     stops: list[Stop]
     total_km: float = Field(ge=0.0)
     total_work_min: int = Field(ge=0)
@@ -375,6 +413,8 @@ MODELS: dict[str, type[BaseModel]] = {
     "audit": AuditRecord,
     "model_report": ModelReport,
     "series": Series,
+    "remedy_option": RemedyOption,
+    "bilant_fusion": BilantFusion,
 }
 
 

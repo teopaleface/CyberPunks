@@ -1,0 +1,38 @@
+# Pragurile stratului de decizie (agentul). Proprietar: firul Teo-planificator.
+# Fiecare decizie din plan scrie pragurile folosite (câmpul `threshold`) și regula (`rule_id`).
+# Ipotezele de cost stau în config/economics.yaml; aici sunt doar regulile.
+version: 1
+
+global:
+  min_net_value_lei: 0              # o echipă merge doar dacă valoarea așteptată depășește costul (vizită + deplasare): pragul de rentabilitate
+  human_review_min_ev_lei: 150      # sub atât, un caz nesigur nu merită timpul unui om (≈ 15 min de dispecer și o vizită posibilă); intră la urmărire
+  max_interval_width: 0.5           # interval de încredere mai larg de 0,5 = modelul nu e sigur, chiar dacă nu s-a abținut
+  max_missing_ratio: 0.4            # peste 40% date lipsă la intrare, scorul nu e de încredere
+  safety_priority_multiplier: 3.0   # riscul pentru oameni triplează prioritatea și intră primul în traseu
+  urgency_reference_hours: 24       # o lucrare care trebuie făcută în 24 h are factorul de urgență 1
+  urgency_min_factor: 0.25          # factorul de urgență = 24 / urgency_hours, dar nu sub 0,25
+  degraded_invalid_share: 0.2       # peste 20% linii respinse, sursa e "degraded"
+
+meters:                             # A
+  remote_min_score: 0.3             # sub 0,3, nici citirea la distanță nu merită: contorul intră la urmărire
+  smart_meter_default: true         # dacă lucrarea nu spune altfel (extra.smart_meter), contorul e inteligent și se poate citi de la distanță
+
+storm:                              # B
+  arrive_before_start_min: 60       # echipa ajunge în zonă cu cel puțin o oră înainte de începutul ferestrei de risc
+  max_crews_per_region: 2           # câte echipe se mută din timp într-o regiune (restul rămân pentru lucrările curente)
+  alert_min_score: 0.4              # de la acest scor, dispeceratul primește alerta, chiar dacă nu trimitem echipa
+  critical_alert_min_score: 0.75    # de la acest scor, alerta e critică
+
+voltage:                            # C
+  min_score: 0.5                    # sub 0,5, postul intră la urmărire
+  outage_voltage_level: lv          # schimbarea prizei afectează clienți JT: preaviz outages.planned_notice_working_days_lv
+  notify_window: ["11:00", "15:00"] # fereastra de soare pentru mesajul către prosumatori, dacă lucrarea nu are time_window
+  notify_send_time: "18:00"         # mesajele pentru mâine pleacă azi la 18:00 (doar demo)
+
+routing:
+  solver: ortools                   # ortools | greedy
+  time_limit_s: 10                  # după atât, se păstrează cea mai bună soluție găsită
+  solution_limit: 400               # oprire după un număr fix de soluții: același plan la fiecare rulare
+  briefing_min: 30                  # instructaj și încărcare la bază înainte de plecare
+  break_min: 30                     # pauza din tură (scade din timpul disponibil)
+  value_scale: 100                  # lei → bani, pentru costurile întregi din OR-Tools

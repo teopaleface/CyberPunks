@@ -1,8 +1,8 @@
 # Scenariile demo. Proprietar: firul Teo-planificator. Firul B propune data reală pentru demo-vara (status/Teo-B-furtuna.md).
 scenarios:
   demo-vara:
-    label_ro: "Zi de vară: soare puternic la prânz, furtuni după-amiaza (meteo istorică reală)"
-    date: "TBD-B"          # Firul B alege o zi reală cu furtuni în Muntenia sau Dobrogea; A și C folosesc aceeași dată
+    label_ro: "8 iulie 2025: caniculă și soare în București-Ilfov, vijelii cu cod roșu în Banat (meteo istorică reală)"
+    date: "2025-07-08"     # aleasă de firul B (13:00): cod roșu ANM de vijelii în Banat, 881 W/m² la prânz în București
     weather: historical
   maine:
     label_ro: "Mâine, cu prognoza meteo reală de la Open-Meteo"
