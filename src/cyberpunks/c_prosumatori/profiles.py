@@ -19,7 +19,9 @@ TZ = "Europe/Bucharest"
 CACHE = DATA_INTERIM / "C" / "simbench_load_profiles_hourly.parquet"
 
 # Paștele ortodox (sursa: calendarul BOR); Vinerea Mare, Paștele, a doua zi, Rusaliile și a doua zi sunt libere.
-ORTHODOX_EASTER = {2023: date(2023, 4, 16), 2024: date(2024, 5, 5), 2025: date(2025, 4, 20), 2026: date(2026, 4, 12), 2027: date(2027, 5, 2)}
+ORTHODOX_EASTER = {2015: date(2015, 4, 12), 2016: date(2016, 5, 1), 2017: date(2017, 4, 16), 2018: date(2018, 4, 8),
+                   2019: date(2019, 4, 28), 2020: date(2020, 4, 19), 2021: date(2021, 5, 2), 2022: date(2022, 4, 24),
+                   2023: date(2023, 4, 16), 2024: date(2024, 5, 5), 2025: date(2025, 4, 20), 2026: date(2026, 4, 12), 2027: date(2027, 5, 2)}
 FIXED_HOLIDAYS = [(1, 1), (1, 2), (1, 6), (1, 7), (1, 24), (5, 1), (6, 1), (8, 15), (11, 30), (12, 1), (12, 25), (12, 26)]
 
 
