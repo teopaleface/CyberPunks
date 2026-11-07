@@ -304,7 +304,14 @@ function CrewRow({
         {tl.departApprox ? "cca " : ""}pleacă {hhmm(tl.depart)}
       </text>
       <rect x={x(tl.back) - 5} y={cy - 5} width={10} height={10} style={{ fill: "var(--panel)", stroke: "var(--ink)" }} strokeWidth={2} />
-      <text x={x(tl.back) + 10} y={cy + 23} fontSize={12.5} style={{ fill: "var(--muted-foreground)" }}>
+      {/* lângă capătul axei, eticheta se întoarce spre stânga ca să nu iasă din ecran */}
+      <text
+        x={x(tl.back) + (x(tl.back) > x(rangeEnd) - 150 ? -10 : 10)}
+        y={cy + 23}
+        textAnchor={x(tl.back) > x(rangeEnd) - 150 ? "end" : "start"}
+        fontSize={12.5}
+        style={{ fill: "var(--muted-foreground)" }}
+      >
         {tl.backApprox ? "cca " : ""}revine {hhmmDay(tl.back)}
       </text>
 

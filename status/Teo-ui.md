@@ -1,7 +1,7 @@
 # Status: Teo-ui
-Actualizat: 2026-11-07 15:35
+Actualizat: 2026-11-07 15:10
 Milestone curent: M3 (M0 13:50, M1 13:55, M2 14:40)
-Gata de merge: da (commit f3b6a62: M2 + reparațiile din review-ul Codex, consola adaptată la 1280–1600 px, scara de soluții cu combinația aleasă, ofertele de baterii, lista posturilor)
+Gata de merge: da (commit 02b4957: M2 + reparațiile din review-ul Codex, consola adaptată la 1280–1600 px, scara de soluții cu combinația aleasă, ofertele de baterii, lista posturilor)
 
 ## Făcut
 - 12:45 Citite instrucțiunile, memoria, planul, contractele; `uv sync` și `make check` trec.
@@ -29,9 +29,9 @@ Gata de merge: da (commit f3b6a62: M2 + reparațiile din review-ul Codex, consol
 - 14:50 Pagina planului mai ușoară: 3,05 MB → 1,98 MB (214 KB gzip) cu 556 de lucrări; detaliile lucrării se încarcă la selecție.
 - 14:55 Rezerva fără API verificată cu testul de fum: (1) API oprit, fără instantaneu → „Date de test”, 12/12 ecrane merg; (2) API oprit, cu instantaneul planificatorului (`DEMO_DIR=…/outputs/demo`) → „Ultimul plan salvat”, 12/12 ecrane merg, ordinul de lucru PDF vine din instantaneu.
 
-- 15:05 Consola se adaptează la proiectoare și laptopuri de 1280–1600 px (antet, cifre, hartă, linia de timp), verificat cu capturi la 1280×800, 1440×900, 1920×1080.
-- 15:15 Scara de soluții arată combinația aleasă de agent (`GET /remedies` sau `plans/<s>/remedies.json`): treptele alese, P90 înainte/după, de ce nu ajunge ceva mai ieftin. Ofertele de baterii pentru PPC Energie pe „Alerte și mesaje” (clienți, kWh, efect, venit, recuperare).
-- 15:30 Review independent Codex: 18 probleme, toate reparate (validare completă a lucrărilor, surse coerente când API-ul cade la mijloc, ruta PDF sigură, orele după miezul nopții, cache-ul detaliilor legat de plan, eroare cu Reîncearcă, contrast în tema închisă, scenariul păstrat în meniu, stare goală pentru scenariu fără plan, scenele /demo cu regiunea lor). Lista posturilor `/posturi` ca alternativă la hartă. 25 de teste, test de fum pe 14 ecrane.
+- 14:58 Consola se adaptează la proiectoare și laptopuri de 1280–1600 px (antet, cifre, hartă, linia de timp), verificat cu capturi la 1280×800, 1440×900, 1920×1080.
+- 15:00 Scara de soluții arată combinația aleasă de agent (`GET /remedies` sau `plans/<s>/remedies.json`): treptele alese, P90 înainte/după, de ce nu ajunge ceva mai ieftin. Ofertele de baterii pentru PPC Energie pe „Alerte și mesaje” (clienți, kWh, efect, venit, recuperare).
+- 15:08 Review independent Codex: 18 probleme, toate reparate (validare completă a lucrărilor, surse coerente când API-ul cade la mijloc, ruta PDF sigură, orele după miezul nopții, cache-ul detaliilor legat de plan, eroare cu Reîncearcă, contrast în tema închisă, scenariul păstrat în meniu, stare goală pentru scenariu fără plan, scenele /demo cu regiunea lor). Lista posturilor `/posturi` ca alternativă la hartă. 25 de teste, test de fum pe 14 ecrane.
 
 ## Urmează
 - Graficul bilanțului pe post, când firul bilanț publică seriile.
@@ -43,7 +43,7 @@ Gata de merge: da (commit f3b6a62: M2 + reparațiile din review-ul Codex, consol
 - niciunul
 
 ## Cereri către orchestrator
-- (15:35) Pentru demo: consola merge cu API-ul (8710) sau, dacă pică, cu instantaneul `outputs/demo/` din git. Instantaneul planificatorului din checkout-ul principal (`outputs/demo/plans/demo-vara/…`, `series/`, `reports/`, `remedies.json`) e exact ce citește interfața; intră în git la merge?
+- (15:10) Pentru demo: consola merge cu API-ul (8710) sau, dacă pică, cu instantaneul `outputs/demo/` din git. Instantaneul planificatorului din checkout-ul principal (`outputs/demo/plans/demo-vara/…`, `series/`, `reports/`, `remedies.json`) e exact ce citește interfața; intră în git la merge?
 - (14:40) Către planificator (texte): zecimale cu punct în mesaje și alerte („9.1 ore”, „~38.9 kWh”), plural greșit („1 lucrări așteaptă”, „72 lucrări”: corect „1 lucrare”, „72 de lucrări”), data „marți 08.07.2025” în mesaje (în română: „marți, 8 iulie”). Interfața le arată așa cum vin.
 - (14:35) Către firul bilanț: lucrările `A-<data>-PT-*` au `extra.series_ref = outputs/series/<s>/A-<data>-PT-*.json`, dar fișierele nu există (în `outputs/series/demo-vara/` sunt doar seriile C ale posturilor). Pagina postului are graficul „ieșit din post” (`value`) față de „suma clienților” (`expected`) gata; îi lipsește doar seria. Contractul `Series` cu `flag: "lipsa_peste_normal"` pe zilele cu lipsă peste normal.
 - (14:25) Către firul A (date): în `explanation.top_factors[].label_ro` apar procente absurde („Consumul de noapte a crescut cu 18273047% față de istoric”, împărțire la aproape zero) și zecimale cu punct („0.46 din medie”, „9.1 ore”). Interfața le afișează acum protejat („peste 1.000%”, virgulă), dar textul ar trebui reparat la sursă: plafonare la ±1.000% sau formulare relativă („de la aproape zero”), format românesc. La fel în `reports/B/error_analysis.md` („0.16”).
