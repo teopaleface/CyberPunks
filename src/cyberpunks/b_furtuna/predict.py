@@ -88,10 +88,13 @@ def decision_time(target: date, mode: str) -> datetime:
 
 def storm_onset(h: pd.DataFrame, target: date) -> tuple[datetime, int]:
     """Prima oră din ziua țintă cu rafale ≥ 45 km/h sau ploaie ≥ 2 mm; altfel ora rafalei maxime."""
+    default = datetime.combine(target, time(14, 0), tzinfo=TZ), 14  # furtunile de vară vin de obicei după-amiaza
+    if h.empty or "time" not in h:
+        return default
     day = h[h["time"].dt.date == target].sort_values("time")
-    if day.empty:
-        return datetime.combine(target, time(14, 0), tzinfo=TZ), 14
-    hit = day[(day["wind_gusts_10m"] >= ONSET_GUST_KMH) | (day["precipitation"] >= ONSET_PRECIP_MM)]
+    if day.empty or day["wind_gusts_10m"].isna().all():
+        return default
+    hit = day[(day["wind_gusts_10m"] >= ONSET_GUST_KMH) | (day["precipitation"].fillna(0) >= ONSET_PRECIP_MM)]
     t = hit["time"].iloc[0] if not hit.empty else day.loc[day["wind_gusts_10m"].idxmax(), "time"]
     t = pd.Timestamp(t).to_pydatetime().replace(tzinfo=TZ)
     return t, t.hour
@@ -159,41 +162,48 @@ def uncertainty(model: BModel, zones: list[romania.Zone], feats: pd.DataFrame, t
     return lo, hi, source
 
 
-def run(scenario: str, date: str | None = None) -> Path:
-    target, mode = resolve(scenario, date)
-    if not MODEL_PATH.exists():
-        raise SystemExit(f"Lipsește modelul {MODEL_PATH}. Rulează `uv run python -m cyberpunks.b_furtuna.evaluate`.")
-    model = BModel.load()
-    econ = config.load("economics")["storm"]
-    zones = romania.load_zones()
-    created = decision_time(target, mode)
-
-    wx, wx_issues = romania.weather_daily(zones, target, mode)
-    hourly = romania.weather_hourly(zones, target, mode)
+def target_features(zones: list[romania.Zone], wx: pd.DataFrame, target: date) -> pd.DataFrame:
+    """Features pentru ziua țintă, câte un rând pe zonă, în ordinea zonelor. O zonă fără vreme rămâne cu NaN."""
     zf = romania.zones_frame(zones)[["zone_id", "customers", "area_km2"]]
-    full = make_features(wx.merge(zf, on="zone_id"), group="zone_id")
-    feats = full[full["date"] == pd.Timestamp(target)].set_index("zone_id").loc[[z.zone_id for z in zones]].reset_index()
+    full = make_features(wx.merge(zf, on="zone_id"), group="zone_id") if not wx.empty else pd.DataFrame()
+    day = full[full["date"] == pd.Timestamp(target)] if not full.empty else pd.DataFrame(columns=["zone_id"])
+    base = zf.assign(date=pd.Timestamp(target))
+    keep = [c for c in day.columns if c not in ("customers", "area_km2", "date")]
+    feats = base.merge(day[keep], on="zone_id", how="left")
+    for f in FEATURES:
+        if f not in feats:
+            feats[f] = np.nan
+    feats["log_customers"] = np.log10(feats["customers"].clip(lower=1))
+    feats["log_density"] = np.log10((feats["customers"] / feats["area_km2"]).clip(lower=0.01))
+    doy = feats["date"].dt.dayofyear
+    feats["doy_sin"], feats["doy_cos"] = np.sin(2 * np.pi * doy / 365.25), np.cos(2 * np.pi * doy / 365.25)
+    return feats
 
+
+def build_items(model: BModel, zones: list[romania.Zone], feats: pd.DataFrame, hourly: pd.DataFrame, target: date,
+                mode: str, created: datetime, econ: dict, scenario: str, lo: np.ndarray | None = None,
+                hi: np.ndarray | None = None, unc_source: str = "", wx_issues: list[str] | None = None,
+                ) -> tuple[list[WorkItem], list[Series]]:
+    """Regulile de decizie ale lui B, fără rețea: din features și vreme orară -> WorkItem-uri și serii."""
     missing = feats[FEATURES].isna()
-    p = model.predict_proba(feats.fillna(feats[FEATURES].median(numeric_only=True)))
-    q = model.predict_quantiles(feats.fillna(feats[FEATURES].median(numeric_only=True)))
-    lo, hi, unc_source = uncertainty(model, zones, feats, target, mode)
-    lo, hi = np.minimum(lo, p), np.maximum(hi, p)
+    filled = feats.copy()
+    med = feats[FEATURES].median(numeric_only=True)
+    filled[FEATURES] = filled[FEATURES].fillna(med).fillna(0.0)
+    p = model.predict_proba(filled)
+    q = model.predict_quantiles(filled)
+    lo = p.copy() if lo is None else np.minimum(lo, p)
+    hi = p.copy() if hi is None else np.maximum(hi, p)
     ood = model.out_of_range(feats)
-    factors = explain.top_factors(model, feats.fillna(0.0))
-    cases = explain.similar_cases(model, feats)
+    factors = explain.top_factors(model, filled)
+    cases = explain.similar_cases(model, filled)
     thr = model.decision_threshold
-
-    out_path = work_items_path(scenario, "B")
-    series_dir = OUTPUTS / "series" / scenario
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    series_dir.mkdir(parents=True, exist_ok=True)
     items: list[WorkItem] = []
+    series: list[Series] = []
     for i, z in enumerate(zones):
         row = feats.iloc[i]
-        h = hourly[hourly["zone_id"] == z.zone_id]
+        h = hourly[hourly["zone_id"] == z.zone_id] if not hourly.empty else hourly
         onset, onset_h = storm_onset(h, target)
-        issues = list(wx_issues)
+        issues = list(wx_issues or [])
         issues.append("clienții pe zonă sunt o aproximare (populația orașului + restul județului împărțit egal)")
         if not 0.3 <= z.customers_per_capita_county <= 0.9:
             issues.append(f"județul {z.county} are {z.customers_per_capita_county:.2f} clienți RER pe locuitor (neobișnuit):"
@@ -222,9 +232,9 @@ def run(scenario: str, date: str | None = None) -> Path:
         cust = np.round(q[i] * z.customers).astype(int)
         value_if_true = float(cust[1] * econ["restoration_speedup_hours"] * econ["cost_per_customer_hour_lei"])
         wid = f"B-{target:%Y%m%d}-{z.zone_id}"
-        series_ref = f"outputs/series/{scenario}/{wid}.json"
         tw_start = onset - timedelta(hours=3)
         tw_end = onset + timedelta(hours=6)
+        gust = row.get("gust_max")
         item = WorkItem(
             work_item_id=wid,
             source="B",
@@ -254,7 +264,7 @@ def run(scenario: str, date: str | None = None) -> Path:
                 value_if_true_lei=round(value_if_true, 2),
                 customers_affected=int(cust[1]),
                 urgency_hours=max(round((onset - created).total_seconds() / 3600, 1), 1.0),
-                safety_flag=bool((row.get("gust_max") or 0) >= SAFETY_GUST_KMH),
+                safety_flag=bool(pd.notna(gust) and gust >= SAFETY_GUST_KMH),
                 assumptions_ref="storm",
             ),
             effort=Effort(duration_min=480, crew_skill="mv_grid" if cust[1] >= 2000 else "lv_grid", crew_size=3),
@@ -272,12 +282,12 @@ def run(scenario: str, date: str | None = None) -> Path:
             recommended_action=action,
             created_at=created,
             extra={
-                "series_ref": series_ref,
+                "series_ref": f"outputs/series/{scenario}/{wid}.json",
                 "region": z.region,
                 "zone_customers": z.customers,
                 "storm_onset": onset.isoformat(),
-                "gust_max_kmh": None if pd.isna(row["gust_max"]) else round(float(row["gust_max"]), 1),
-                "precip_48h_mm": None if pd.isna(row["precip_48h"]) else round(float(row["precip_48h"]), 1),
+                "gust_max_kmh": None if pd.isna(gust) else round(float(gust), 1),
+                "precip_48h_mm": None if pd.isna(row.get("precip_48h")) else round(float(row["precip_48h"]), 1),
                 "pct_out_p10_p50_p90": [round(float(x), 4) for x in q[i]],
                 "decision_threshold": round(thr, 3),
                 "weather_mode": mode,
@@ -286,7 +296,32 @@ def run(scenario: str, date: str | None = None) -> Path:
             },
         )
         items.append(item)
-        write_series(series_dir / f"{wid}.json", wid, z, h, target, onset, tw_start)
+        series.append(make_series(wid, z, h, target, onset, tw_start))
+    return items, series
+
+
+def run(scenario: str, date: str | None = None) -> Path:
+    target, mode = resolve(scenario, date)
+    if not MODEL_PATH.exists():
+        raise SystemExit(f"Lipsește modelul {MODEL_PATH}. Rulează `uv run python -m cyberpunks.b_furtuna.evaluate`.")
+    model = BModel.load()
+    econ = config.load("economics")["storm"]
+    zones = romania.load_zones()
+    created = decision_time(target, mode)
+
+    wx, wx_issues = romania.weather_daily(zones, target, mode)
+    hourly = romania.weather_hourly(zones, target, mode)
+    feats = target_features(zones, wx, target)
+    lo, hi, unc_source = uncertainty(model, zones, feats, target, mode)
+    items, series = build_items(model, zones, feats, hourly, target, mode, created, econ, scenario, lo, hi,
+                                unc_source, wx_issues)
+
+    out_path = work_items_path(scenario, "B")
+    series_dir = OUTPUTS / "series" / scenario
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    series_dir.mkdir(parents=True, exist_ok=True)
+    for s in series:
+        (series_dir / f"{s.work_item_id}.json").write_text(s.model_dump_json(indent=1) + "\n", encoding="utf-8")
     with open(out_path, "w", encoding="utf-8") as fh:
         fh.writelines(it.model_dump_json() + "\n" for it in items)
     n_pre = sum(it.recommended_action == "preposition_crew" for it in items)
@@ -295,10 +330,10 @@ def run(scenario: str, date: str | None = None) -> Path:
     return out_path
 
 
-def write_series(path: Path, wid: str, z: romania.Zone, h: pd.DataFrame, target: date, onset: datetime,
-                 tw_start: datetime) -> None:
-    window = h[(h["time"] >= pd.Timestamp(target - timedelta(days=1)) + pd.Timedelta(hours=12))
-               & (h["time"] < pd.Timestamp(target + timedelta(days=1)) + pd.Timedelta(hours=6))]
+def make_series(wid: str, z: romania.Zone, h: pd.DataFrame, target: date, onset: datetime,
+                tw_start: datetime) -> Series:
+    window = h if h.empty else h[(h["time"] >= pd.Timestamp(target - timedelta(days=1)) + pd.Timedelta(hours=12))
+                                 & (h["time"] < pd.Timestamp(target + timedelta(days=1)) + pd.Timedelta(hours=6))]
     points = []
     for _, r in window.iterrows():
         t = pd.Timestamp(r["time"]).to_pydatetime().replace(tzinfo=TZ)
@@ -321,7 +356,7 @@ def write_series(path: Path, wid: str, z: romania.Zone, h: pd.DataFrame, target:
         ],
         synthetic=False,
     )
-    path.write_text(s.model_dump_json(indent=1) + "\n", encoding="utf-8")
+    return s
 
 
 def main(argv: list[str] | None = None) -> int:

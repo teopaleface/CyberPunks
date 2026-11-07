@@ -121,8 +121,9 @@ def week_groups(dates: pd.Series) -> np.ndarray:
     return (iso["year"].astype(int) * 100 + iso["week"].astype(int)).to_numpy()
 
 
-def fit_classifier(X: pd.DataFrame, y: np.ndarray, rounds: int = CLF_ROUNDS) -> lgb.Booster:
-    return lgb.train(CLF_PARAMS, lgb.Dataset(X[FEATURES], label=y, free_raw_data=False), num_boost_round=rounds)
+def fit_classifier(X: pd.DataFrame, y: np.ndarray, rounds: int | None = None) -> lgb.Booster:
+    return lgb.train(CLF_PARAMS, lgb.Dataset(X[FEATURES], label=y, free_raw_data=False),
+                     num_boost_round=rounds or CLF_ROUNDS)
 
 
 def oof_scores(X: pd.DataFrame, y: np.ndarray, groups: np.ndarray, n_splits: int = 5) -> np.ndarray:
@@ -134,11 +135,11 @@ def oof_scores(X: pd.DataFrame, y: np.ndarray, groups: np.ndarray, n_splits: int
     return oof
 
 
-def fit_quantiles(X_ev: pd.DataFrame, y_log_pct: np.ndarray) -> dict[float, lgb.Booster]:
+def fit_quantiles(X_ev: pd.DataFrame, y_log_pct: np.ndarray, rounds: int | None = None) -> dict[float, lgb.Booster]:
     models = {}
     for q in QUANTILES:
         params = {**Q_PARAMS, "alpha": q}
-        models[q] = lgb.train(params, lgb.Dataset(X_ev[FEATURES], label=y_log_pct), num_boost_round=Q_ROUNDS)
+        models[q] = lgb.train(params, lgb.Dataset(X_ev[FEATURES], label=y_log_pct), num_boost_round=rounds or Q_ROUNDS)
     return models
 
 
