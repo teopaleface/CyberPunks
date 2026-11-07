@@ -241,7 +241,7 @@ export function ModelsBoard({
           <p className="mt-4 text-center text-[14.5px] leading-snug text-ink-soft">
             Agentul față de cea mai bună strategie simplă ({strategyName(best.key)}).
           </p>
-          <p className="mt-auto flex items-center justify-center gap-2 pt-3 text-center text-[14.5px] text-ink-soft">
+          <p className="mt-4 flex items-center justify-center gap-2 text-center text-[14.5px] text-ink-soft">
             {synthetic ? <SyntheticGlyph size={14} /> : null}
             Simulare: {days ? plural(days, "zi", "zile") : "mai multe zile"}, {synthetic ? "lume sintetică" : "date reale"}
           </p>

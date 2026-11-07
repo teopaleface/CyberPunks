@@ -142,8 +142,15 @@ export function Gauge({ value, label, sub, tone = "violet", size = 190 }: { valu
         <path d="M20 108 A80 80 0 0 1 180 108" fill="none" stroke={color} strokeWidth="16" strokeLinecap="round" strokeDasharray={`${len * v} ${len}`} />
       </svg>
       <div className="absolute inset-x-0 bottom-0 text-center">
-        <p className="text-[32px] leading-none font-[700] tracking-[-0.02em] tabular-nums">{label}</p>
-        {sub ? <p className="mt-1 text-[15px] text-ink-soft">{sub}</p> : null}
+        {/* mărimea textului urmează mărimea indicatorului; etichetele lungi („peste 99%”) sunt mai mici */}
+        <p className="leading-none font-[700] tracking-[-0.02em] tabular-nums" style={{ fontSize: Math.round(size * (typeof label === "string" && label.length > 5 ? 0.12 : 0.17)) }}>
+          {label}
+        </p>
+        {sub ? (
+          <p className="mt-1 text-ink-soft" style={{ fontSize: Math.max(12, Math.round(size * 0.078)) }}>
+            {sub}
+          </p>
+        ) : null}
       </div>
     </div>
   );

@@ -141,9 +141,10 @@ export function DemoStage({
     const own = decision?.crew_id ? data.routes.find((r) => r.crew_id === decision.crew_id) : undefined;
     if (own) return own;
     const depotRegion = new Map(data.depots.map((d) => [d.depot_id, d.region ?? null]));
-    const region = scene.region === ALL ? data.defaultRegion : scene.region;
+    const itemRegion = scene.item ? data.regionOf[scene.item] : null;
+    const region = itemRegion ?? (scene.region === ALL ? data.defaultRegion : scene.region);
     return data.routes.find((r) => depotRegion.get(r.depot_id) === region && r.stops.length > 0) ?? data.routes.find((r) => r.stops.length > 0) ?? null;
-  }, [data.routes, data.depots, data.defaultRegion, decision, scene.region]);
+  }, [data.routes, data.depots, data.defaultRegion, data.regionOf, decision, scene.region, scene.item]);
 
   const bounds: Bounds = useMemo(() => {
     const base = scene.region === ALL ? RE_BOUNDS : (data.regions.find((r) => r.id === scene.region)?.bounds ?? RE_BOUNDS);
@@ -271,7 +272,7 @@ export function DemoStage({
               </span>
             }
           >
-            <div className="absolute inset-x-0 top-[3.25rem] bottom-0 overflow-hidden rounded-b-[14px]">
+            <div className="absolute inset-x-0 top-3 bottom-0 overflow-hidden rounded-b-[14px]">
               <PlanMap className="absolute inset-0" items={mapItems} routes={mapRoutes} depots={mapDepots} bounds={bounds} selectedId={scene.item} onSelect={noop} theme="dark" padding={MAP_PADDING} />
             </div>
           </Card>
@@ -301,7 +302,7 @@ export function DemoStage({
                   </ul>
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-3 max-sm:grid-cols-1">
-                  <span className="flex h-11 items-center justify-center gap-2 rounded-[10px] bg-[#0b2a18] text-[15.5px] font-[600] text-ok-ink">
+                  <span className={"flex h-11 items-center justify-center gap-2 rounded-[10px] text-[15.5px] font-[600] " + (planned ? "bg-[#0b2a18] text-ok-ink" : "bg-[#121e30] text-ink-soft")}>
                     {planned ? `Echipa ${decision?.crew_id ?? ""}${stopInfo.get(scene.item ?? "") ? `, ${fmtTime(stopInfo.get(scene.item ?? "")?.eta ?? "")}` : ""}` : human ? "Fără echipă trimisă" : (ACTION_RO[item.recommended_action] ?? "").replace(/^./, (c) => c.toUpperCase())}
                   </span>
                   <span className={"flex h-11 items-center justify-center gap-2 rounded-[10px] text-[15.5px] font-[600] " + (human ? "bg-att text-white" : "bg-[#0f2547] text-[#8db8ff]")}>

@@ -361,7 +361,7 @@ function Approval({ sel, scenario, series }: { sel: Waiting; scenario: string; s
 
       <div className="mt-4 grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)] items-center gap-x-4 gap-y-3 rounded-[12px] border border-rule bg-surface-2 px-4 py-4 max-md:grid-cols-1 max-md:justify-items-start">
         <div className="shrink-0">
-          <Gauge value={p.score} label={<span className={p.score >= 0.995 ? "text-[21px]" : undefined}>{roundPct(p.score)}</span>} sub="scorul modelului" tone={srcTone} size={150} />
+          <Gauge value={p.score} label={roundPct(p.score)} sub="scorul modelului" tone={srcTone} size={150} />
         </div>
         <div className="flex min-w-0 flex-col gap-3.5 border-l border-rule pl-4 max-md:border-l-0 max-md:pl-0">
           <div className="flex min-w-0 items-center gap-3">

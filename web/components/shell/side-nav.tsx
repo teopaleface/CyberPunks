@@ -43,9 +43,9 @@ export function SideNav({ counts }: { counts: { review: number; alerts: number }
             )}
           >
             <Icon aria-hidden="true" size={21} strokeWidth={1.6} className="shrink-0" />
-            <span className="min-w-0 flex-1 truncate">{n.label}</span>
+            <span className="min-w-0 flex-1 whitespace-nowrap">{n.label}</span>
             {count ? (
-              <span className={cn("rounded-full px-2 py-0.5 text-[12px] font-[650] tabular-nums", n.count === "review" ? "bg-att text-white" : "bg-[#1c2a3e] text-ink-soft")}>
+              <span className={cn("shrink-0 rounded-full px-1.5 py-0.5 text-[11.5px] font-[650] tabular-nums", n.count === "review" ? "bg-att text-white" : "bg-[#1c2a3e] text-ink-soft")}>
                 {count}
                 <span className="sr-only">{n.count === "review" ? " cazuri așteaptă decizia ta" : " alerte"}</span>
               </span>
