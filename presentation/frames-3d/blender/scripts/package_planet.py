@@ -101,7 +101,7 @@ Coordonatele sunt pixeli cu origine sus-stânga, x spre dreapta și y în jos. A
 
 Blender 5.2.1 LTS, Apple M5 Max, Metal GPU 32 de nuclee, CPU exclus din Cycles. Cycles: OIDN, eșantionare adaptivă cu prag 0,015, opt ricoșee, persistent data, AgX Medium High Contrast. Cadre finale: maximum 512 samples; dovada morph: 256. Proba de cost cerută: 64. EEVEE: 128 samples, ray tracing activ, persistent data.
 
-Timpii includ pregătirea stării/camerei, evaluarea scenei, randarea, denoise și scrierea PNG. Nu includ lansarea Blender sau construcția scenei. Fiecare benchmark primește un cadru de încălzire, exclus din medie. Prima randare finală poate include compilare Metal; este păstrată ca măsurare rece. Numărul de samples este plafonul, nu numărul efectiv folosit în fiecare pixel.
+Timpii includ pregătirea stării/camerei, evaluarea scenei, randarea, denoise și scrierea PNG. Nu includ lansarea Blender sau construcția scenei. Fiecare benchmark primește un cadru de încălzire, exclus din medie. Prima randare finală poate include compilare Metal; este păstrată ca măsurare rece. Numărul de samples este plafonul, nu numărul efectiv folosit în fiecare pixel. Eșantionarea adaptivă implicită a fost verificată ca activă. Sistemul are 36 GB RAM; în timpul probei Cycles 64 erau folosiți circa 16,9 GB de swap. Sesiunea nu a fost un benchmark izolat. Presiunea de memorie poate explica de ce proba de 64 a ieșit uneori mai lentă decât randările anterioare la 512. Estimarea folosește valorile efectiv măsurate, ca buget conservator, și trebuie reverificată într-un lot continuu înainte de filmul complet.
 
 | Moment | Cycles 512, s | Cycles 64, s | EEVEE 128, s |
 |---|---:|---:|---:|
@@ -125,7 +125,7 @@ URL-uri exacte:
 
 Verificarea automată cere nouă PNG curente la dimensiunea corectă, opt ancore finite pentru fiecare, trei imagini morph diferite, același hash al scenei și toate cele șase măsurători în fiecare motor. Sunt livrate și verificările independente ale transformării și camerei.
 
-Acesta rămâne un test de aspect și integrare. Fațadele au încă o familie stilistică comună; conceptul are uzură și varietate arhitecturală mai bogate. Iarba poate pierde fibre fine în vederile depărtate după denoise. Proba intermediară arată geometria întinsă a emisferei opuse, care va fi acoperită de harta 2D în film. Camioanele și panglicile au poziții pentru cele șase momente, dar mișcarea lor continuă nu este încă validată. Nu este declarată acceptarea fotografică de către un editor și nu s-a pornit filmul complet.
+Acesta rămâne un test de aspect și integrare. Fațadele au încă o familie stilistică comună; conceptul are uzură și varietate arhitecturală mai bogate. În exportul de cameră primit, unele cadre apropiate taie marginea planetei; poziția camerei nu a fost schimbată pentru a compensa acest lucru. Norul păstrează o formă mai sculptată decât bumbacul din referință, iar panglica portocalie se deschide spre pastel sub AgX și lumina de studio. Iarba poate pierde fibre fine în vederile depărtate după denoise. Proba intermediară arată geometria întinsă a emisferei opuse, care va fi acoperită de harta 2D în film. Camioanele și panglicile au poziții pentru cele șase momente, dar mișcarea lor continuă nu este încă validată. Nu este declarată acceptarea fotografică de către un editor și nu s-a pornit filmul complet.
 '''
 (ROOT/'README.md').write_text(readme)
 print(json.dumps({'scene_sha256':scene_hash,'weighted_seconds_per_frame':weighted,'estimated_900_minutes':{k:v*15 for k,v in weighted.items()},'checks':'passed'},indent=2))
