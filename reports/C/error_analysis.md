@@ -85,8 +85,10 @@ MAE rămâne între 0,0047 și 0,0057 pu în fiecare lună. Vara modelul subesti
 | Lărgire conformală (CQR) din reziduuri pe topologii nevăzute | acoperire 80,9% (zilnic), 80,0% (orar) | păstrată |
 | Constrângeri monotone (mai mult soare / kW / rețea mai slabă nu pot coborî tensiunea) | LightGBM le acceptă doar la clasificator, nu la cuantile | păstrate la clasificator |
 | Simularea cu priza ignorată (bug pandapower 3.x: `tap_changer_type` gol în SimBench) | modelul învăța priza ca pe un zgomot; estimarea „după priză” nu se mișca | reparat; simulări refăcute |
-| Fără trăsăturile fizice din topologie | vezi `reports/C/ablation_fara_fizica.json` | (completat mai jos) |
-| Fără tensiunea de pornire și priză | vezi `reports/C/ablation_fara_tensiune_pornire.json` | (completat mai jos) |
+| Fără trăsăturile fizice din topologie (sensibilitățile rețelei, estimarea liniară a tensiunii, rezistența) | MAE 0,0119 pu (de 2,2 ori mai mare); PR-AUC 0,384, sub baseline (0,428); pe rural2 MAE 0,0239 față de 0,0061 | trăsăturile rămân: fără ele modelul nu se transferă pe rețele noi |
+| Fără tensiunea de pornire și priză | MAE 0,0205 pu (de 3,8 ori mai mare); PR-AUC 0,728 | rămân: sunt cel mai important semnal |
+
+Ce înseamnă ablațiile pentru PPC: modelul are nevoie de două lucruri pe care distribuitorul le poate avea, dar nu le are peste tot azi. Primul e topologia rețelei de joasă tensiune, din care se calculează cât ridică panourile tensiunea în cel mai expus punct; asta aduce GIS-ul nou, pentru care Rețele Electrice a lansat licitația în aprilie 2026. Al doilea e priza și tensiunea pe medie tensiune la fiecare post. Fără ele, eroarea se dublează, respectiv aproape se împătrește.
 
 ## 7. Limite cunoscute
 
