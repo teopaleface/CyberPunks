@@ -387,6 +387,8 @@ def _render(
     pdf.cell(0, 4, note, new_x="LMARGIN", new_y="NEXT")
     pdf.set_text_color(0, 0, 0)
 
+    _shift_start_block(pdf, plan, route, items)
+
     pdf.ln(4)
     for st in route.stops:
         wi, dec = items.get(st.work_item_id), decs.get(st.work_item_id)
@@ -399,6 +401,46 @@ def _render(
         _stop_block(pdf, st, wi, dec)
         pdf.ln(5)
     return bytes(pdf.output())
+
+
+def _shift_start_block(pdf: _Pdf, plan: Plan, route: Route, items: dict[str, WorkItem]) -> None:
+    """Prima pagină: plecarea, alertele care privesc opririle echipei, instructajul și luarea la cunoștință."""
+    stop_ids = {s.work_item_id for s in route.stops}
+    pdf.section("Pornirea turei")
+    leave = hhmm(_t(route.depart_at)) if route.depart_at else hhmm(_t(route.stops[0].eta))
+    back = hhmm(_t(route.return_at)) if route.return_at else "echipa rămâne în zonă (furtună)"
+    pdf.kv("Plecare din bază:", leave, lw=36)
+    pdf.kv("Întoarcere:", back, lw=36)
+    alerts = [a for a in plan.alerts if stop_ids & set(a.work_item_ids)]
+    if alerts:
+        pdf.section("Alerte pentru opririle echipei")
+        for a in alerts[:4]:
+            if a.severity == "critical":
+                pdf.set_text_color(*RED)
+            pdf.set_font(FAMILY, "B", 9)
+            pdf.multi_cell(0, 4.6, a.title_ro, new_x="LMARGIN", new_y="NEXT")
+            pdf.set_text_color(0, 0, 0)
+            pdf.set_font(FAMILY, "", 8.5)
+            body = a.body_ro if len(a.body_ro) <= 260 else a.body_ro[:257] + "…"
+            pdf.multi_cell(0, 4.3, body, new_x="LMARGIN", new_y="NEXT")
+            pdf.ln(0.8)
+    notes = [n for n in plan.notifications if n.work_item_id in stop_ids and n.audience != "echipa"]
+    if notes:
+        pdf.section("Clienții au fost anunțați (demo, nimic trimis)")
+        pdf.set_font(FAMILY, "", 8.5)
+        for n in notes[:3]:
+            text = n.message_ro if len(n.message_ro) <= 220 else n.message_ro[:217] + "…"
+            pdf.multi_cell(0, 4.3, f"• {text}", new_x="LMARGIN", new_y="NEXT")
+    pdf.section("Instructaj la plecare")
+    pdf.boxes("Verificat:", ["instructajul echipei", "EIP (cască, mănuși dielectrice)", "testerul de tensiune", "aparatul foto"], lw=24)
+    kinds = {items[s].source.value for s in stop_ids if s in items}
+    gear = ["sigilii noi"] if "A" in kinds else []
+    gear += ["materiale pentru linii aeriene"] if "B" in kinds else []
+    gear += ["analizor de calitate", "chei pentru post"] if "C" in kinds else []
+    if gear:
+        pdf.boxes("În mașină:", gear, lw=24)
+    pdf.ln(1)
+    pdf.kv("Luat la cunoștință:", f"șef de lucrare {BLANK}   ora ___:___   semnătura {BLANK}", lw=36)
 
 
 def _heading_style():
