@@ -1,5 +1,5 @@
 # Status: Teo-planificator
-Actualizat: 2026-11-07 13:40
+Actualizat: 2026-11-07 13:25
 Milestone curent: M2 în lucru (ordine de lucru PDF gata, evaluarea agentului în lucru)
 Gata de merge: da (commit bb493e4, plus acest status)
 
@@ -72,7 +72,7 @@ Gata de merge: da (commit bb493e4, plus acest status)
 - 13:09 O lucrare lăsată afară are motivul ei: echipe pline (`R-CAPACITY`), nimeni nu ajunge la timp (`R-TIME-WINDOW` / `R-B-TOO-LATE`), drumul dus-întors costă mai mult decât valoarea (`R-NOT-WORTH-TRIP`), fără echipă potrivită (`R-NO-CREW`). Unde există, se aplică rezerva: citire la distanță (A) sau mesaj către prosumatori (C).
 - 13:10 Pentru scenariile istorice, momentul deciziei e seara dinainte, la 18:00 (contează la preavizul ANRE).
 - 13:10 Modul `existing` nu cade pe fixture-uri: o sursă fără ieșire e `missing`. Doar `auto` folosește fixture-urile, cât timp modelele nu există.
-- 13:22 Prioritatea din trasee = valoarea așteptată − costul acțiunii (fără factorul de urgență). Factorul de urgență micșora premiul sub costul drumului și solverul lăsa echipele goale (văzut în simulare).
-- 13:22 Contoare cu încredere medie: echipă doar dacă valoarea netă trece de o marjă de 25% din costul vizitei (`R-A-VISIT-MEDIUM`); altfel citire la distanță. Când echipele sunt pline, rezerva e tot citirea la distanță.
-- 13:30 La B, `safety_flag` (rafale) e avertisment pentru echipă, nu lucrare obligatorie; altfel 10 zone cu rafale ar fi golit toate echipele.
-- 13:30 Plafonul de echipe de furtună pe regiune: 3 (Banat are acum 4 echipe de medie tensiune).
+- 13:18 Prioritatea din trasee = valoarea așteptată − costul acțiunii (fără factorul de urgență). Factorul de urgență micșora premiul sub costul drumului și solverul lăsa echipele goale (văzut în simulare).
+- 13:18 Contoare cu încredere medie: echipă doar dacă valoarea netă trece de o marjă de 25% din costul vizitei (`R-A-VISIT-MEDIUM`); altfel citire la distanță. Când echipele sunt pline, rezerva e tot citirea la distanță.
+- 13:23 La B, `safety_flag` (rafale) e avertisment pentru echipă, nu lucrare obligatorie; altfel 10 zone cu rafale ar fi golit toate echipele.
+- 13:23 Plafonul de echipe de furtună pe regiune: 3 (Banat are acum 4 echipe de medie tensiune).
