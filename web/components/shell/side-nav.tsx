@@ -6,7 +6,7 @@ import { Bell, BookOpen, CircleHelp, Layers, LayoutGrid, Monitor, UtilityPole, W
 import { cn } from "cn";
 
 export const NAV = [
-  { href: "/", label: "Planul de mâine", short: "Planul", icon: LayoutGrid, match: (p: string) => p === "/" || p.startsWith("/harta") },
+  { href: "/app", label: "Planul de mâine", short: "Planul", icon: LayoutGrid, match: (p: string) => p === "/app" || p.startsWith("/harta") },
   { href: "/coada", label: "Nu sunt sigur", short: "Nu sunt sigur", icon: CircleHelp, match: (p: string) => p.startsWith("/coada"), count: "review" as const },
   { href: "/posturi", label: "Posturile", short: "Posturile", icon: UtilityPole, match: (p: string) => p.startsWith("/posturi") },
   { href: "/lucrari", label: "Lucrări", short: "Lucrări", icon: Wrench, match: (p: string) => p.startsWith("/lucrari") || p.startsWith("/ordine") },

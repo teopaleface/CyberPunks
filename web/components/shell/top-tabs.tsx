@@ -11,7 +11,7 @@ export function TopTabs() {
   const scenario = useSearchParams().get("scenariu");
   const q = scenario ? `?scenariu=${encodeURIComponent(scenario)}` : "";
   const tabs = [
-    { href: `/${q}`, label: "Consola", match: !pathname.startsWith("/modele") && !pathname.startsWith("/rulare") },
+    { href: `/app${q}`, label: "Consola", match: !pathname.startsWith("/modele") && !pathname.startsWith("/rulare") },
     { href: `/modele${q}`, label: "Rezultate", match: pathname.startsWith("/modele") },
     { href: `/rulare${q}`, label: "Rulează", match: pathname.startsWith("/rulare") },
   ];

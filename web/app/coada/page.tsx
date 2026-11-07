@@ -146,7 +146,7 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
         ) : !waiting.length ? (
           <Card className="mt-6" bodyClassName="py-7">
             <p className="text-[20px] font-[620]">Agentul a decis singur tot ce a primit. Nimic nu așteaptă un om acum.</p>
-            <Link href={`/?scenariu=${encodeURIComponent(scenario)}`} className={cn(btn("outline"), "mt-4")}>
+            <Link href={`/app?scenariu=${encodeURIComponent(scenario)}`} className={cn(btn("outline"), "mt-4")}>
               Înapoi la planul de mâine
             </Link>
           </Card>

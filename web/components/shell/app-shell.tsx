@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { Wordmark } from "@/components/brand/logo";
 import type { ShellInfo } from "@/lib/server/queries";
@@ -21,9 +20,10 @@ export function AppShell({ info, fit = false, children }: { info: ShellInfo; fit
       </a>
       <header className="sticky top-0 z-30 flex h-[60px] shrink-0 items-center border-b border-[#152133] bg-canvas/95 backdrop-blur">
         <div className="flex h-full w-[224px] shrink-0 items-center border-r border-[#152133] px-7 max-md:w-auto max-md:border-r-0 max-md:px-4">
-          <Link href={`/?scenariu=${encodeURIComponent(info.scenario)}`} aria-label="Daybreak, planul de mâine" className="rounded-[6px]">
+          {/* prima pagină e site-ul de prezentare (static): o încărcare completă, nu navigare Next */}
+          <a href="/" aria-label="Daybreak, prima pagină" className="rounded-[6px]">
             <Wordmark />
-          </Link>
+          </a>
         </div>
         <div className="flex min-w-0 flex-1 items-center gap-4 px-5 max-md:px-3">
           <TopTabs />

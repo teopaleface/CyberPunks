@@ -20,7 +20,7 @@ import { getRomaniaDots } from "@/lib/home-dotmap";
 import { toPlanScreenData } from "@/lib/plan-screen";
 import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
 
-export default function PlanPage({ searchParams }: PageProps<"/">) {
+export default function PlanPage({ searchParams }: PageProps<"/app">) {
   return (
     <Suspense fallback={<PlanSkeleton />}>
       <Plan searchParams={searchParams} />
@@ -42,7 +42,7 @@ function topAlert(alerts: Alert[]): { id: string; lead: string; text: string } |
   return crit ? { id: crit.alert_id, lead: "Atenție", text: `${clean(crit.title_ro)}.` } : null;
 }
 
-async function Plan({ searchParams }: { searchParams: PageProps<"/">["searchParams"] }) {
+async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchParams"] }) {
   await connection();
   const scenario = await resolveScenario(searchParams);
   const [{ info, view }, params] = await Promise.all([loadShellInfo(scenario), searchParams]);
