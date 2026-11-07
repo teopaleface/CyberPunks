@@ -280,7 +280,7 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
       </Card>
 
       <Card as="section" className="min-w-0 max-w-full overflow-hidden rounded-[18px]" bodyClassName="min-w-0 p-0">
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">
           <table className="w-full min-w-[1010px] table-fixed border-separate border-spacing-0 text-[15.5px]">
             <caption className="sr-only">
               Jurnalul deciziilor, cele mai noi primele ({active ? `${fmtInt(shown)} din ${plural(decisions.length, "decizie", "decizii")}` : plural(decisions.length, "decizie", "decizii")})
