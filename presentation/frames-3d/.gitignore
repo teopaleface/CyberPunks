@@ -12,3 +12,5 @@ blender/stills/*.png
 threejs/film/renders/
 threejs/film/assets/frames3d/
 styleframes/frames/
+objects/**/spin/
+objects/**/tumble/
