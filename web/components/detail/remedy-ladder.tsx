@@ -82,9 +82,13 @@ export function RemedyLadder({
                 ) : null}
               </div>
               {/* P90 după soluție față de limită */}
-              <div className="relative h-8" aria-label={`P90 după: ${fmtDec(o.p90_after_pu, 3)} pu`}>
+              <div
+                role="img"
+                className="relative h-8"
+                aria-label={`P90 după soluție ${fmtDec(o.p90_after_pu, 3)} pu, limita ${fmtDec(limit, 2)} pu${p90Before != null ? `, fără soluție ${fmtDec(p90Before, 3)} pu` : ""}`}
+              >
                 <span className="absolute top-1/2 h-px w-full bg-rule" />
-                <span className="absolute top-0 bottom-0 w-[2px] bg-att" style={{ left: X(limit) }} title="limita 1,10 pu" />
+                <span className="absolute top-0 bottom-0 w-[2px] bg-att" style={{ left: X(limit) }} title={`limita ${fmtDec(limit, 2)} pu`} />
                 {p90Before != null ? (
                   <span className="absolute top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-ink bg-panel" style={{ left: X(p90Before) }} title="P90 fără soluție" />
                 ) : null}

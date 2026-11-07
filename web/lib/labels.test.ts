@@ -118,3 +118,14 @@ describe("jurnalul real, în cuvinte", () => {
     expect(thresholdValueRo("fusion_a_score", 0.981)).toBe("0,98");
   });
 });
+
+describe("zilele scurte", () => {
+  test("ziua și luna, cu sau fără miezul nopții", async () => {
+    const { fmtDayMonth, isWholeDay } = await import("@/lib/format");
+    expect(fmtDayMonth("2025-05-10T00:00:00")).toBe("10.05");
+    expect(fmtDayMonth("2025-06-02")).toBe("02.06");
+    expect(isWholeDay("2025-06-02T00:00:00")).toBe(true);
+    expect(isWholeDay("2025-06-02")).toBe(true);
+    expect(isWholeDay("2025-07-08T14:00:00+03:00")).toBe(false);
+  });
+});

@@ -98,7 +98,7 @@ export function RunAgentButton({ scenario, scenarioLabel }: { scenario: string; 
                 </span>
                 <span className="min-w-[72px] text-right text-[16px] font-[600] tabular-nums">
                   {state.kind === "running" ? (
-                    <span className="inline-block h-1.5 w-12 overflow-hidden rounded-full bg-muted" aria-label="rulează">
+                    <span role="img" className="inline-block h-1.5 w-12 overflow-hidden rounded-full bg-muted" aria-label="rulează">
                       <span className="block h-full w-1/2 animate-[runbar_1.1s_ease-in-out_infinite] rounded-full bg-ink" />
                     </span>
                   ) : t !== null && Number.isFinite(t) ? (
@@ -117,12 +117,17 @@ export function RunAgentButton({ scenario, scenarioLabel }: { scenario: string; 
           })}
         </ol>
 
-        {state.kind === "done" ? (
-          <p className="text-[15px]">
-            Gata în <b className="tabular-nums">{fmtSeconds(total ?? 0)}</b>. Plan nou:{" "}
-            <span className="code-id">{state.planId}</span>. Timpii sunt măsurați de agent la fiecare pas.
-          </p>
-        ) : null}
+        <div aria-live="polite" aria-atomic="true">
+          {state.kind === "done" ? (
+            <p className="text-[15px]">
+              Gata în <b className="tabular-nums">{fmtSeconds(total ?? 0)}</b>. Plan nou:{" "}
+              <span className="code-id" translate="no">
+                {state.planId}
+              </span>
+              . Timpii sunt măsurați de agent la fiecare pas.
+            </p>
+          ) : null}
+        </div>
         {state.kind === "error" ? (
           <div role="alert" className="border-l-[3px] border-att bg-att-surface px-4 py-3 text-[15px]">
             <p className="font-[600] text-att-ink">Agentul n-a rulat.</p>

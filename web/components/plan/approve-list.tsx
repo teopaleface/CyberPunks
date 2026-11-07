@@ -24,7 +24,7 @@ export function ApproveList({
   const [state, setState] = useState<{ at: string; local: boolean } | null>(approvedAt ? { at: approvedAt, local: approvedLocal } : null);
   if (state) {
     return (
-      <span className="flex items-center gap-2 text-[15px] whitespace-nowrap">
+      <span role="status" className="flex items-center gap-2 text-[15px] whitespace-nowrap">
         <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
           <circle cx="9" cy="9" r="8" style={{ fill: "var(--ok)" }} />
           <path d="M5 9.3l2.6 2.5L13 6.4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

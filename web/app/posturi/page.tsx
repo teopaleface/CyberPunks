@@ -16,7 +16,9 @@ const STATUS: Record<string, string> = { verde: "pierderi mici", galben: "de urm
 
 export default function PostsPage({ searchParams }: PageProps<"/posturi">) {
   return (
-    <Suspense fallback={<div className="min-h-dvh bg-canvas" aria-busy="true" aria-label="Se încarcă posturile" />}>
+    <Suspense fallback={<div role="status" className="min-h-dvh bg-canvas" aria-busy="true">
+        <span className="sr-only">Se încarcă posturile…</span>
+      </div>}>
       <Posts searchParams={searchParams} />
     </Suspense>
   );
@@ -52,7 +54,7 @@ async function Posts({ searchParams }: { searchParams: PageProps<"/posturi">["se
             </li>
           ))}
           <li className="text-muted-foreground">
-            praguri de afișare: {posts.thresholds.yellow} și {posts.thresholds.red} lei pe lună
+            praguri de afișare: {fmtInt(posts.thresholds.yellow)} și {fmtInt(posts.thresholds.red)} lei pe lună
           </li>
         </ul>
       </section>
