@@ -212,16 +212,30 @@ export function thresholdValueRo(key: string, v: unknown): string {
   return Number.isInteger(v) ? ro(v, 0) : ro(v, 2);
 }
 
+// Un procent, cu „cu”/„de” dinainte dacă există: „cu 18273047%”, „de 1250,5%”, „~-1.500.000%”.
+const PERCENT = /(?:\b(?:cu|de)\s+)?~?[+\-−]?(\d{1,3}(?:[.,]\d{3}){2,}|\d+(?:[.,]\d+)?)\s?%/g;
+
+function percentValue(n: string): number {
+  // „18.273.047” are separatori de mii; „1827.5” sau „1827,5” are zecimale.
+  if (/^\d{1,3}(?:[.,]\d{3}){2,}$/.test(n)) return Number(n.replace(/[.,]/g, ""));
+  return Number(n.replace(",", "."));
+}
+
 /**
- * Textul unui factor, pregătit pentru afișare: zecimalele cu punct devin virgulă („0.46” → „0,46”),
- * iar procentele absurde (împărțiri la aproape zero, de exemplu „18273047%”) devin „peste 1.000%”.
- * Datele originale rămân neatinse; e doar o protecție la afișare.
+ * Plasa de siguranță pentru procente absurde (împărțiri la aproape zero): orice procent peste 999%
+ * se afișează „de peste 10 ori” (decizia lui Teo, 7 nov., 15:30). „A crescut cu 18273047%” devine
+ * „a crescut de peste 10 ori”. Datele originale rămân neatinse; e doar o protecție la afișare.
+ */
+export function clampPercentRo(text: string): string {
+  return text.replace(PERCENT, (m, n: string) => (percentValue(n) > 999 ? "de peste 10 ori" : m));
+}
+
+/**
+ * Textul unui factor, pregătit pentru afișare: procentele peste 999% devin „de peste 10 ori”,
+ * zecimalele cu punct devin virgulă („0.46” → „0,46”), prima literă e mare, fără punct la final.
  */
 export function factorLabelRo(label: string): string {
-  const t = label
-    .replace(/(\d)\.(\d)/g, "$1,$2")
-    .replace(/(\d+(?:,\d+)?)\s?%/g, (m, n: string) => (Number(n.replace(",", ".")) > 1000 ? "peste 1.000%" : m));
-  const out = t.trim();
+  const out = clampPercentRo(label).replace(/(\d)\.(\d)/g, "$1,$2").trim();
   if (!out) return out;
   return (out.charAt(0).toLocaleUpperCase("ro-RO") + out.slice(1)).replace(/\.$/, "");
 }

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { WorkItem } from "@/lib/contracts";
-import { auditActionRo, factorLabelRo, thresholdLabelRo, thresholdValueRo } from "@/lib/data/labels";
+import { auditActionRo, clampPercentRo, factorLabelRo, thresholdLabelRo, thresholdValueRo } from "@/lib/data/labels";
 import { fmtDateLong, fmtLei, fmtScore, plural } from "@/lib/format";
 import { itemPlace, itemTitle } from "@/lib/plan-screen";
 
@@ -24,12 +24,23 @@ describe("pragurile, în cuvinte", () => {
 });
 
 describe("textele factorilor", () => {
-  test("zecimale cu virgulă, procente absurde limitate", () => {
+  test("zecimale cu virgulă, procentele peste 999% devin „de peste 10 ori”", () => {
     expect(factorLabelRo("Variația în cursul zilei: 0.46 din medie")).toBe("Variația în cursul zilei: 0,46 din medie");
     expect(factorLabelRo("consumul de noapte a crescut cu 18273047% față de istoric")).toBe(
-      "Consumul de noapte a crescut cu peste 1.000% față de istoric",
+      "Consumul de noapte a crescut de peste 10 ori față de istoric",
+    );
+    expect(factorLabelRo("față de vecini, o scădere bruscă de 1250.5%")).toBe("Față de vecini, o scădere bruscă de peste 10 ori");
+    expect(factorLabelRo("consumul a scăzut cu ~18.273.047 %")).toBe("Consumul a scăzut de peste 10 ori");
+    expect(factorLabelRo("consumul de noapte a crescut cu 999% față de istoric")).toBe(
+      "Consumul de noapte a crescut cu 999% față de istoric",
     );
     expect(factorLabelRo("cu 72% sub vecini")).toBe("Cu 72% sub vecini");
+    expect(factorLabelRo("85% din intervalele de 30 de minute sunt negative")).toBe("85% din intervalele de 30 de minute sunt negative");
+  });
+
+  test("rezumatele trec prin aceeași plasă", () => {
+    expect(clampPercentRo("Consumul a crescut cu 5000%, iar bilanțul confirmă.")).toBe("Consumul a crescut de peste 10 ori, iar bilanțul confirmă.");
+    expect(clampPercentRo("Tensiunea 1.12 pu, 40% peste")).toBe("Tensiunea 1.12 pu, 40% peste");
   });
 });
 

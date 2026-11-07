@@ -1,5 +1,7 @@
 # Brief comun: machete de direcție vizuală pentru „Tura de mâine”
 
+> Istoric. Din 7 nov., 15:30, produsul se numește Daybreak, iar semnul cu soarele de mai jos a fost respins (decizia lui Teo). Brieful rămâne așa cum a fost dat machetelor.
+
 Scris de firul Interfață (Teo-ui), 7 nov. 2026, 13:00. Trei direcții, același ecran, același conținut, ca Teo să compare doar limbajul vizual.
 
 ## Produsul și publicul
