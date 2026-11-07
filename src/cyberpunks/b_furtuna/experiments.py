@@ -79,11 +79,12 @@ def experiments() -> list[tuple[str, str, Callable[[pd.DataFrame], dict]]]:
     weather_only = [(f, m) for f, m in base if f not in ("log_customers", "log_density")]
     clim = base + [("gust_anom", 1), ("gust_ratio_p95", 1)]
     tail = base + [("gust_excess60", 1)]
-    no_temp = [(f, m) for f, m in base if f not in ("tmax", "tmin", "t_range", "srad")]
-    lean = [(f, m) for f, m in base if f not in ("t_range", "srad", "precip_hours", "wind_max", "doy_cos")]
+    with_temp = base + [("tmax", 0), ("tmin", 0), ("t_range", 0), ("srad", 0)]
+    lean = [(f, m) for f, m in base if f not in ("precip_hours", "wind_max", "doy_cos")]
     extra = base + [("precip_intensity", 1), ("precip_30d", 0)]
     return [
-        ("baza", "features-urile din features.py, constrângeri monotone", lambda d: run_variant(d, base)),
+        ("baza", "modelul livrat: vânt, ploaie, zăpadă, polei, sezon, mărimea zonei; constrângeri monotone",
+         lambda d: run_variant(d, base)),
         ("fara_monotonie", "fără constrângeri monotone", lambda d: run_variant(d, base, monotone=False)),
         ("fara_intarzieri", "fără vremea din zilele precedente", lambda d: run_variant(d, no_lags)),
         ("doar_vreme", "fără mărimea și densitatea zonei", lambda d: run_variant(d, weather_only)),
@@ -97,10 +98,9 @@ def experiments() -> list[tuple[str, str, Callable[[pd.DataFrame], dict]]]:
         ("arbori_mai_mari", "num_leaves 31, min_data_in_leaf 20",
          lambda d: run_variant(d, base, params_over={"num_leaves": 31, "min_data_in_leaf": 20})),
         ("coada_rafalei", "+ cât trece rafala peste 60 km/h", lambda d: run_variant(d, tail)),
-        ("fara_temperaturi", "fără temperaturi și radiație (cât din risc vine din căldură)",
-         lambda d: run_variant(d, no_temp)),
-        ("mai_putine_variabile", "fără diferența zi-noapte, radiație, ore de ploaie, vânt mediu, sezon (cos)",
-         lambda d: run_variant(d, lean)),
+        ("cu_temperaturi", "+ temperaturile și radiația (scoase din model: trimiteau echipe la caniculă în România)",
+         lambda d: run_variant(d, with_temp)),
+        ("mai_putine_variabile", "fără orele de ploaie, vântul mediu și sezonul (cos)", lambda d: run_variant(d, lean)),
     ]
 
 
