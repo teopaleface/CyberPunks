@@ -23,6 +23,7 @@ ASSUMPTIONS = {
     "sunny_day_fraction": 0.65,  # IPOTEZĂ: zile cu soare ca ziua țintă în sezon
     "min_horizon_days": 10,  # IPOTEZĂ: chiar în afara sezonului mai sunt câteva zile senine
     "notify_shift_share": 0.15,  # IPOTEZĂ: cât din kWh pierduți se salvează dacă prosumatorii mută consumul la prânz
+    "complaint_full_season_days": 60,  # IPOTEZĂ: reclamațiile apar după câteva săptămâni de opriri dese
 }
 ORE_SMART = "PPC Ore Smart+: preț redus zilnic 11:00-14:59 între 1 martie și 31 octombrie"
 
@@ -108,8 +109,10 @@ def decide(
     eco = economics()
     horizon = season_horizon_days(target)
     lost_value = lost_kwh * horizon * eco["lost_pv_value_lei_per_kwh"]
-    complaints = n_prosumers * ASSUMPTIONS["complaint_rate_season"] * eco["complaint_compensation_lei"]
+    season_share = min(1.0, horizon / ASSUMPTIONS["complaint_full_season_days"])
+    complaints = n_prosumers * ASSUMPTIONS["complaint_rate_season"] * season_share * eco["complaint_compensation_lei"]
     value_fix = round(lost_value + complaints, 2)
+    measure_ok = p * value_fix >= eco["measurement_campaign_cost_lei"]
 
     if issues_block:
         return Decision("human_review", "C-R1-INTRARE-GRESITA", "Datele postului sunt greșite: " + "; ".join(issues_block),
@@ -136,17 +139,19 @@ def decide(
                       + f" Valoarea în sezon ({value_fix:.0f} lei) acoperă vizita și întreruperea ({cost:.0f} lei);"
                       f" întreruperea se anunță cu {eco['planned_notice_working_days_lv']} zile lucrătoare înainte.")
             return Decision("adjust_tap", "C-R4-PRIZA", reason, value_fix, 120, 3, True, investment_flag=not enough)
-        return Decision("measurement_campaign", "C-R6-MASURARE-VALOARE-MICA",
-                        f"Depășire probabilă, dar valoarea în sezon ({value_fix:.0f} lei) nu acoperă vizita și întreruperea "
-                        f"pentru priză ({cost:.0f} lei): întâi măsurăm 7 zile.", value_fix, 60, 2, False)
-    if p >= 0.2 or (near and p >= 0.1):
+        if measure_ok:
+            return Decision("measurement_campaign", "C-R6-MASURARE-VALOARE-MICA",
+                            f"Depășire probabilă, dar valoarea în sezon ({value_fix:.0f} lei) nu acoperă vizita și întreruperea "
+                            f"pentru priză ({cost:.0f} lei): întâi măsurăm 7 zile.", value_fix, 60, 2, False)
+    elif (p >= 0.2 or (near and p >= 0.1)) and measure_ok:
         return Decision("measurement_campaign", "C-R7-MASURARE",
                         "Risc real, dar nesigur: un analizor la post 7 zile (Ord. ANRE 46/2021) confirmă sau infirmă.",
                         value_fix, 60, 2, False)
     if p >= 0.05 and n_prosumers > 0:
         notify_value = round(lost_kwh * eco["lost_pv_value_lei_per_kwh"] * ASSUMPTIONS["notify_shift_share"] * horizon, 2)
+        why = ("Risc mic" if p < 0.2 else "Risc real, dar o vizită nu se justifică în afara sezonului")
         return Decision("notify_customers", "C-R8-MESAJ",
-                        "Risc mic: mesaj către prosumatorii postului să mute consumul la prânz.", notify_value, 5, 1, False)
+                        f"{why}: mesaj către prosumatorii postului să mute consumul la prânz.", notify_value, 5, 1, False)
     if p >= 0.02 or q90 >= LIMIT_PU - 0.01:
         return Decision("watchlist", "C-R9-URMARIRE", "Aproape de limită, fără vizită: postul rămâne urmărit.", 0.0, 5, 1, False)
     return None

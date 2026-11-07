@@ -26,15 +26,26 @@ validate-fixtures:
 # ---- B: furtună (firul Teo-B-furtuna) ----
 
 # ---- C: prosumatori (firul Teo-C-prosumatori) ----
-.PHONY: c-weather c-bench c-sim c-test
+.PHONY: c-weather c-bench c-sim c-population c-eval c-train c-predict c-figures c-test c-all
 c-weather:        ## C: descarcă meteo Open-Meteo 2023-2026 (data/raw/C, sume de control în data/samples/C)
 	uv run python -m cyberpunks.c_prosumatori.weather archive 2023-01-01 2026-11-06
 c-bench:          ## C: calculul vectorizat față de pandapower, timpi (reports/C/powerflow_bench.json)
 	uv run python -m cyberpunks.c_prosumatori.powerflow
-c-sim:            ## C: simularea fizică a posturilor de antrenare (data/processed/C/train), cel mult 4 procese
+c-sim:            ## C: simularea fizică a celor 480 de posturi de antrenare (data/processed/C/train), cel mult 4 procese
 	uv run python -m cyberpunks.c_prosumatori.simulate pool train --n 80 --workers 4
+c-population:     ## C: cele 300 de posturi demo pe hartă (OSM + sintetic) și simularea lor
+	uv run python -m cyberpunks.c_prosumatori.population
+c-eval:           ## C: evaluarea pe rețele nevăzute și luni nevăzute (reports/C/metrics.json), figurile
+	uv run python -m cyberpunks.c_prosumatori.evaluate
+	uv run python -m cyberpunks.c_prosumatori.figures
+c-train:          ## C: modelele finale (models/C/bundle.joblib), fără ziua demo
+	uv run python -m cyberpunks.c_prosumatori.train
+c-predict:        ## C: lucrările pentru demo-vara și maine (outputs/work_items/<s>/C.jsonl, outputs/series/<s>/)
+	uv run python -m cyberpunks.c_prosumatori.predict --scenario demo-vara
+	uv run python -m cyberpunks.c_prosumatori.predict --scenario maine
 c-test:           ## C: testele firului C
 	uv run pytest tests/c
+c-all: c-weather c-sim c-population c-train c-predict c-eval  ## C: tot lanțul, de la date la lucrări (circa 15 minute)
 
 # ---- Planificator și API (firul Teo-planificator) ----
 .PHONY: api api-dev run-demo test-planner

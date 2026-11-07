@@ -374,9 +374,15 @@ def run(scenario: str, date_str: str | None = None) -> Path:
     month = explain.MONTHS_RO[d.month - 1]
     reason = (f"{len(out_items)} posturi din {len(reg)} au lucrări. Radiația maximă pe panou: {info['gti_max']:.0f} W/m², "
               f"{info['temp_noon']:.0f} °C la prânz, nori {info['cloud_noon']:.0f}%.")
+    risky = int((X["p_exceed"] >= 0.5).sum())
+    reason += f" {risky} posturi au probabilitate de depășire peste 50%."
     if len(out_items) <= 3:
         reason += (f" Puține lucrări: în {month} soarele urcă puțin pe cer și producția de la prânz rămâne sub pragul la care "
-                   "tensiunea trece de 1,10 pu pe aproape toate posturile.") if info["gti_max"] < 650 else " Puține lucrări: consumul acoperă producția."
+                   "tensiunea trece de 1,10 pu.") if info["gti_max"] < 650 else " Puține lucrări: consumul acoperă producția."
+    elif d.month in (11, 12, 1, 2) and info["gti_max"] >= 600:
+        reason += (f" Deși e {month}, cerul e senin și panourile reci produc aproape cât vara, iar "
+                   + ("în zi liberă consumul de la prânz e mic." if info["free_day"] else "consumul de la prânz nu acoperă producția.")
+                   + " În afara sezonului, o vizită pentru priză nu se justifică: agentul trimite mesaje și urmărește.")
     summary = {
         "scenario": scenario, "date": d.isoformat(), "posts": len(reg), "work_items": len(out_items), "by_action": counts,
         "weather_source": wx_src, "weather": info, "weather_issues": wx_issues, "model_version": bundle.version,
