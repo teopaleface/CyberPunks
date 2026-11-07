@@ -1,7 +1,7 @@
 # Status: Teo-ui
-Actualizat: 2026-11-07 17:05
-Milestone curent: M3 (M0 13:50, M1 13:55, M2 14:40)
-Gata de merge: da (commit c6e84c7: Daybreak, graficul bilanțului, `/demo` încadrat pentru filmare, review-ul final reparat, capturile pentru slideuri)
+Actualizat: 2026-11-07 17:25
+Milestone curent: M4 (M0 13:50, M1 13:55, M2 14:40, /demo 16:50, M3 17:00, M4 17:05); înghețarea interfeței la 20:00
+Gata de merge: da (commit 4b65254 și următoarele: M3 și M4 gata; Daybreak, graficul bilanțului, `/demo` pentru filmare, review-ul final reparat, capturile, rezerva fără API reverificată)
 
 ## Făcut
 - 12:45 Citite instrucțiunile, memoria, planul, contractele; `uv sync` și `make check` trec.
@@ -45,9 +45,11 @@ Gata de merge: da (commit c6e84c7: Daybreak, graficul bilanțului, `/demo` înca
 - 17:00 Review final: `web-design-guidelines` pe toate ecranele (3 subagenți, 93 de observații: 1 gravă, 13 medii, restul mici) și `impeccable` (detectorul: 0 probleme; review vizual la 1920 și 1440). Reparate: cea gravă și 12 din 13 medii, plus majoritatea celor mici (detaliile în commit-ul 42a71fd). Filtrele jurnalului stau acum în adresă (`?cine=`, `?sursa=`, `?decizia=`, `?cauta=`).
 - 17:03 Capturi pentru slideuri în `web/design/captures/` (12, la 1920×1080, toate din planul `PLAN-demo-vara-20250708-170128-31d6`), cu README.
 
+- 17:25 Rezerva reverificată după schimbările de azi, pe build-ul de producție: API oprit → „Ultimul plan salvat”, 14/14 ecrane; doar fixture-uri → „Date de test”, 14/14. Scenariul „Mâine, cu prognoza reală” merge pe API (636 de lucrări, 23 în trasee), fără erori în consolă.
+
 ## Urmează
-- Captura paginii unui post cu graficul bilanțului, când seriile bilanțului ajung în API sau în instantaneu.
-- Merge Teo la fiecare milestone; lustruire pe ce mai apare din datele finale.
+- Până la 20:00: captura paginii unui post cu graficul bilanțului, dacă seriile ajung în API sau în instantaneu; altfel nimic nou, doar ce găsește testarea.
+- După 20:00: doar bug-uri. Schimbările de design de pe `design` le aduc în `Teo-ui` doar din `web/` (`git diff <bază>..origin/design -- web | git apply -3`), nu prin merge: `design` șterge datele și modelele. De acolo ajung în `Teo` prin merge-ul orchestratorului (eu nu fac push pe `Teo`). Acum `design` nu are schimbări în `web/`.
 
 ## Blocaje
 - niciunul
@@ -69,6 +71,12 @@ Gata de merge: da (commit c6e84c7: Daybreak, graficul bilanțului, `/demo` înca
 - Răspuns la cererea firului de prezentare (14:05): varianta întunecată pentru `/demo` costă puțin, culorile închise sunt deja validate în temă (A `#3B82F0`, B `#B84FC0`, C `#C4880A` pe `#0F1D2B`), iar harta are stilul `dark`. O fac până la 01:00, împreună cu cardul „Nu sunt sigur” vizibil pentru captură.
 - Către planificator: `GET /api/posts` (registrul posturilor cu lei pierduți pe lună și starea verde/galben/roșu) ar scuti interfața de calcule; până atunci fac un exemplu local, etichetat sintetic.
 - Rezolvate de orchestrator la 13:20: seriile de exemplu, planul complet, `depart_at`/`return_at`, `visit_cost_lei`, structura `outputs/demo/`, `scenario_id`, jurnalul.
+
+## Pornirea consolei pentru testare
+1. Prima dată: `make web-install` (instalează pachetele consolei cu bun).
+2. Cu agentul în direct: `make api` într-un terminal și `make web-demo` în altul, apoi http://localhost:3710 (planul) și http://localhost:3710/demo (prezentarea, tema închisă).
+3. Fără modele și fără API: `make web`; consola citește singură planul salvat din `outputs/demo/` și scrie sus „Ultimul plan salvat”.
+4. Verificări: `make web-test` (38 de teste) și, cu consola pornită, `make web-smoke` (14 ecrane).
 
 ## Cum se rulează (comenzile exacte)
 - **Pentru demo:** `make api` (sau `make api-demo` fără modele) într-un terminal, apoi `make web-demo` în altul → http://localhost:3710 (planul), http://localhost:3710/demo (prezentarea în tema închisă: ← → sau 1–5 schimbă scena, `?scena=N`, `?auto=1`). Fără API, consola merge singură pe instantaneul `outputs/demo/` din git.
