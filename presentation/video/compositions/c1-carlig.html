@@ -1,0 +1,55 @@
+<template>
+  <!-- Cârligul: ziua reală (8 iulie 2025, vijelia din Banat; surse în docs/research/B.md). Norul e obiect 3D modelat cu AI. -->
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: var(--ground); }
+    .clipbox { position: absolute; inset: 0; }
+    .ln { position: absolute; left: 0; right: 0; display: block; text-align: center; white-space: nowrap;
+          font-weight: 650; letter-spacing: -0.04em; line-height: 1.02; color: var(--ink); }
+    .ln span { display: inline-block; }
+    .xl { font-size: 176px; }
+    .l2 { font-size: 150px; }
+    .obj { position: absolute; background-repeat: no-repeat; background-size: 600% 500%; background-position: 0% 0%; }
+    .cursor { position: absolute; left: 0; top: 0; width: 134px; height: 134px; z-index: 20;
+              filter: drop-shadow(0 4px 6px rgba(0,0,0,.3)); }
+    .note { position: absolute; left: 0; right: 0; bottom: 62px; text-align: center; font-size: 28px; font-weight: 500; color: var(--muted); }
+
+    #c1-l1, #c1-l2 { top: 560px; }
+    #c1-l3a { top: 470px; } #c1-l3b { top: 640px; }
+
+  </style>
+  <div id="root" data-composition-id="c1" data-width="1920" data-height="1080">
+    <div id="c1-a" class="clip clipbox" data-start="0" data-duration="1.2"><div id="c1-l1" class="ln xl"><span>8</span> <span>iulie</span> <span>2025.</span></div></div>
+    <div id="c1-b" class="clip clipbox" data-start="1.2" data-duration="1.2"><div id="c1-l2" class="ln xl"><span>Vijelie</span> <span>în</span> <span>Banat.</span></div></div>
+    <div id="c1-c" class="clip clipbox" data-start="2.4" data-duration="1.6"><div id="c1-l3a" class="ln l2"><span>Zeci</span> <span>de</span> <span>mii</span> <span>de</span> <span>case</span></div><div id="c1-l3b" class="ln l2"><span>fără</span> <span>curent.</span></div></div>
+    <div id="c1-o" class="clip clipbox" data-start="1.2" data-duration="2.8" data-layout-allow-overflow><div id="c1-storm" class="obj" style="left:730px; top:40px; width:460px; height:460px; background-image:url(assets/3d/astra/storm_spin.webp)"></div></div>
+    <p id="c1-ai" class="clip note" data-start="1.2" data-duration="2.65">Obiecte 3D modelate cu AI</p>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const IN = (tl, sel, at) => tl.fromTo(sel, { x: 150, opacity: 0, filter: "blur(10px)" }, { x: 0, opacity: 1, filter: "blur(0px)", duration: 0.34, ease: "power4.out" }, at);
+      const OUT = (tl, sel, at) => tl.to(sel, { x: -150, opacity: 0, filter: "blur(10px)", duration: 0.18, ease: "power4.in" }, at);
+      const SPIN = (tl, id, at, dur) => {
+        const el = document.getElementById(id), p = { f: 0 };
+        tl.fromTo(p, { f: 0 }, { f: 29, duration: dur, ease: "power2.out", onUpdate: () => {
+          const i = Math.round(p.f), c = i % 6, r = Math.floor(i / 6);
+          el.style.backgroundPosition = (c * 20) + "% " + (r * 25) + "%";
+        } }, at);
+      };
+
+      // Primul cadru are deja data pe ecran (miniatura filmului).
+      tl.fromTo("#c1-l1", { x: 40, opacity: 1 }, { x: 0, opacity: 1, duration: 0.5, ease: "power4.out" }, 0);
+      OUT(tl, "#c1-l1", 1.02);
+      IN(tl, "#c1-l2", 1.2); OUT(tl, "#c1-l2", 2.22);
+      // Norul de furtună intră rotindu-se, din dreapta sus, și se așază deasupra textului.
+      tl.fromTo("#c1-storm", { x: 520, y: -260, scale: 1.2, filter: "blur(12px)" }, { x: 0, y: 0, scale: 1, filter: "blur(0px)", duration: 0.7, ease: "expo.out" }, 1.2);
+      SPIN(tl, "c1-storm", 1.2, 0.8);
+      tl.to("#c1-storm", { y: -40, scale: 0.8, duration: 0.5, ease: "power3.inOut" }, 2.0);
+      IN(tl, "#c1-l3a", 2.4); IN(tl, "#c1-l3b", 2.5);
+      OUT(tl, ["#c1-l3a", "#c1-l3b", "#c1-storm"], 3.82);
+      tl.fromTo("#c1-ai", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 1.4);
+
+      window.__timelines["c1"] = tl;
+    })();
+  </script>
+</template>

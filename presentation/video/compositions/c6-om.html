@@ -1,0 +1,75 @@
+<template>
+  <!-- Omul decide: cardul real Nu sunt sigur din consolă; cursorul apasă Aprobă; pastila acoperă ecranul. -->
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: var(--ground); }
+    .clipbox { position: absolute; inset: 0; }
+    .ln { position: absolute; left: 0; right: 0; display: block; text-align: center; white-space: nowrap;
+          font-weight: 650; letter-spacing: -0.04em; line-height: 1.02; color: var(--ink); }
+    .ln span { display: inline-block; }
+    .xl { font-size: 176px; }
+    .l2 { font-size: 150px; }
+    .obj { position: absolute; background-repeat: no-repeat; background-size: 600% 500%; background-position: 0% 0%; }
+    .cursor { position: absolute; left: 0; top: 0; width: 134px; height: 134px; z-index: 20;
+              filter: drop-shadow(0 4px 6px rgba(0,0,0,.3)); }
+    .note { position: absolute; left: 0; right: 0; bottom: 62px; text-align: center; font-size: 28px; font-weight: 500; color: var(--muted); }
+
+    #c6-l1a { top: 400px; } #c6-l1b { top: 570px; }
+    #c6-lens { position: absolute; inset: 0; }
+    #c6-cam { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+    #c6-cam img { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+    #c6-press { position: absolute; left: 1267px; top: 295px; width: 83px; height: 39px; border-radius: 4px; background: rgba(0,0,0,.4); opacity: 0; }
+    #c6-pill { position: absolute; left: 960px; top: 540px; width: 1240px; height: 236px; margin: -118px 0 0 -620px; border-radius: 118px;
+               background: var(--ink); box-shadow: 0 26px 64px rgba(11,22,34,.24); transform-origin: 50% 50%; }
+    #c6-lab { position: absolute; left: 0; right: 0; top: 486px; height: 108px; display: flex; align-items: center; justify-content: center; gap: 28px;
+              font-size: 96px; font-weight: 600; letter-spacing: -0.03em; color: var(--paper); white-space: nowrap; }
+    #c6-lab b { display: inline-flex; align-items: center; justify-content: center; width: 88px; height: 88px; border-radius: 50%;
+                background: var(--sun); color: var(--ink); font-size: 54px; }
+
+  </style>
+  <div id="root" data-composition-id="c6" data-width="1920" data-height="1080">
+    <div id="c6-a" class="clip clipbox" data-start="0" data-duration="2"><div id="c6-l1a" class="ln l2"><span>Când</span> <span>nu</span> <span>e</span> <span>sigur,</span></div><div id="c6-l1b" class="ln l2"><span>întreabă</span> <span>dispecerul.</span></div></div>
+    <div id="c6-b" class="clip clipbox" data-start="2" data-duration="4" data-layout-allow-overflow>
+      <div id="c6-lens"><div id="c6-cam"><img src="assets/ui/consola_cu_trasee@2x.png" alt="" /><div id="c6-press"></div></div></div>
+      <div id="c6-pill"></div>
+      <div id="c6-lab"><b>✓</b>Aprobat de dispecer</div>
+      <img id="c6-cursor" class="cursor" src="assets/ui/cursor.svg" alt="" />
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const IN = (tl, sel, at) => tl.fromTo(sel, { x: 150, opacity: 0, filter: "blur(10px)" }, { x: 0, opacity: 1, filter: "blur(0px)", duration: 0.34, ease: "power4.out" }, at);
+      const OUT = (tl, sel, at) => tl.to(sel, { x: -150, opacity: 0, filter: "blur(10px)", duration: 0.18, ease: "power4.in" }, at);
+      const SPIN = (tl, id, at, dur) => {
+        const el = document.getElementById(id), p = { f: 0 };
+        tl.fromTo(p, { f: 0 }, { f: 29, duration: dur, ease: "power2.out", onUpdate: () => {
+          const i = Math.round(p.f), c = i % 6, r = Math.floor(i / 6);
+          el.style.backgroundPosition = (c * 20) + "% " + (r * 25) + "%";
+        } }, at);
+      };
+
+      IN(tl, "#c6-l1a", 0.0); IN(tl, "#c6-l1b", 0.1); OUT(tl, ["#c6-l1a", "#c6-l1b"], 1.82);
+      // Cardul real din consolă, mare și lizibil.
+      tl.fromTo("#c6-cam", { x: 960 - 2.6 * 1555, y: 540 - 2.6 * 268, scale: 2.6, opacity: 0 }, { x: 960 - 2.2 * 1555, y: 540 - 2.2 * 268, scale: 2.2, opacity: 1, duration: 0.4, ease: "expo.out" }, 2.0);
+      tl.set(["#c6-pill", "#c6-lab"], { opacity: 0 }, 0);
+      // Cursorul intră de jos și apasă "Aprobă" pe bătaia de la 26,0 s.
+      tl.set("#c6-cursor", { x: 388.5999999999999, y: 1240 }, 0);
+      tl.to("#c6-cursor", { x: 388.5999999999999, y: 626.2, duration: 0.6, ease: "power3.out" }, 2.35);
+      tl.to("#c6-cursor", { scale: 0.84, duration: 0.1, ease: "power2.in", transformOrigin: "21% 11%" }, 3.0);
+      tl.to("#c6-cursor", { scale: 1, duration: 0.22, ease: "power2.out", transformOrigin: "21% 11%" }, 3.1);
+      tl.to("#c6-press", { opacity: 1, duration: 0.08 }, 3.0);
+      // Clicul aprinde pasul următor: zoom prin buton spre pastila "Aprobat de dispecer".
+      tl.to("#c6-cursor", { y: 1240, duration: 0.3, ease: "power2.in" }, 3.22);
+      tl.to("#c6-cam", { x: 960 - 9 * 1308, y: 540 - 9 * 314, scale: 9, duration: 0.34, ease: "power3.in" }, 3.2);
+      tl.to("#c6-lens", { opacity: 0, filter: "blur(10px)", duration: 0.18, ease: "power2.in" }, 3.38);
+      tl.fromTo("#c6-pill", { scale: 1.25, opacity: 0, filter: "blur(10px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "expo.out" }, 3.5);
+      tl.fromTo("#c6-lab", { scale: 1.2, opacity: 0, filter: "blur(10px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "expo.out" }, 3.55);
+      tl.fromTo("#c6-lab b", { scale: 0 }, { scale: 1, duration: 0.32, ease: "back.out(1.7)" }, 3.65);
+      // Pastila crește până acoperă tot: finalul începe pe cerneală (29,0 s).
+      tl.to("#c6-lab", { opacity: 0, scale: 1.08, duration: 0.15, ease: "power3.in" }, 5.45);
+      tl.to("#c6-pill", { scaleX: 2.0, scaleY: 6.0, duration: 0.5, ease: "power3.in" }, 5.5);
+
+      window.__timelines["c6"] = tl;
+    })();
+  </script>
+</template>

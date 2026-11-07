@@ -1,0 +1,79 @@
+<template>
+  <!-- Produsul: consola reală (http://localhost:3710/, 8 iulie 2025, date sintetice pe hartă reală). Cursorul apasă Rulează agentul, traseele apar. -->
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: var(--ground); }
+    .clipbox { position: absolute; inset: 0; }
+    .ln { position: absolute; left: 0; right: 0; display: block; text-align: center; white-space: nowrap;
+          font-weight: 650; letter-spacing: -0.04em; line-height: 1.02; color: var(--ink); }
+    .ln span { display: inline-block; }
+    .xl { font-size: 176px; }
+    .l2 { font-size: 150px; }
+    .obj { position: absolute; background-repeat: no-repeat; background-size: 600% 500%; background-position: 0% 0%; }
+    .cursor { position: absolute; left: 0; top: 0; width: 134px; height: 134px; z-index: 20;
+              filter: drop-shadow(0 4px 6px rgba(0,0,0,.3)); }
+    .note { position: absolute; left: 0; right: 0; bottom: 62px; text-align: center; font-size: 28px; font-weight: 500; color: var(--muted); }
+
+    #c5-cam { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+    #c5-card { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; border-radius: 26px; overflow: hidden;
+               box-shadow: 0 34px 90px rgba(11,22,34,.18), 0 8px 22px rgba(11,22,34,.10); }
+    #c5-card img { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+    #c5-press { position: absolute; left: 1717px; top: 13px; width: 174px; height: 37px; border-radius: 5px; background: rgba(0,0,0,.35); opacity: 0; }
+    #c5-cap1 { top: 885px; font-size: 76px; }
+    #c5-pillwrap { position: absolute; left: 0; right: 0; top: 900px; display: flex; justify-content: center; }
+    #c5-pill { padding: 26px 52px; border-radius: 999px; background: rgba(255,255,255,.94); box-shadow: 0 18px 50px rgba(11,22,34,.18);
+               font-size: 62px; font-weight: 650; letter-spacing: -0.03em; color: var(--ink); white-space: nowrap; }
+
+  </style>
+  <div id="root" data-composition-id="c5" data-width="1920" data-height="1080">
+    <div id="c5-s" class="clip clipbox" data-start="0" data-duration="8" data-layout-allow-overflow>
+      <div id="c5-cam">
+        <div id="c5-card">
+          <img id="c5-before" src="assets/ui/consola_fara_trasee@2x.png" alt="" />
+          <img id="c5-after" src="assets/ui/consola_cu_trasee@2x.png" alt="" />
+          <div id="c5-press"></div>
+        </div>
+      </div>
+      <div id="c5-cap1" class="ln"><span>Un</span> <span>clic.</span></div>
+      <div id="c5-pillwrap"><div id="c5-pill">Fiecare echipă știe unde merge.</div></div>
+      <img id="c5-cursor" class="cursor" src="assets/ui/cursor.svg" alt="" />
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const IN = (tl, sel, at) => tl.fromTo(sel, { x: 150, opacity: 0, filter: "blur(10px)" }, { x: 0, opacity: 1, filter: "blur(0px)", duration: 0.34, ease: "power4.out" }, at);
+      const OUT = (tl, sel, at) => tl.to(sel, { x: -150, opacity: 0, filter: "blur(10px)", duration: 0.18, ease: "power4.in" }, at);
+      const SPIN = (tl, id, at, dur) => {
+        const el = document.getElementById(id), p = { f: 0 };
+        tl.fromTo(p, { f: 0 }, { f: 29, duration: dur, ease: "power2.out", onUpdate: () => {
+          const i = Math.round(p.f), c = i % 6, r = Math.floor(i / 6);
+          el.style.backgroundPosition = (c * 20) + "% " + (r * 25) + "%";
+        } }, at);
+      };
+
+      const cam = (s, x, y) => ({ x: x, y: y, scale: s });
+      tl.set("#c5-cam", cam(0.74, 249.60000000000002, 60), 0);
+      tl.fromTo("#c5-card", { opacity: 0 }, { opacity: 1, duration: 0.16, ease: "power2.out" }, 0);
+      tl.fromTo("#c5-after", { clipPath: "inset(0% 0% 100% 0%)" }, { clipPath: "inset(0% 0% 100% 0%)", duration: 0.01 }, 0);
+      // Cursorul mare intră de jos, vârful ajunge pe "Rulează agentul" (clic pe bătaia de la 16,0 s).
+      tl.fromTo("#c5-cursor", { x: 1556.56, y: 1240 }, { x: 1556.56, y: 67.94, duration: 0.7, ease: "power3.out", immediateRender: false }, 0.25);
+      tl.set("#c5-cursor", { x: 1556.56, y: 1240 }, 0);
+      tl.to("#c5-cursor", { scale: 0.84, duration: 0.1, ease: "power2.in", transformOrigin: "21% 11%" }, 1.0);
+      tl.to("#c5-cursor", { scale: 1, duration: 0.22, ease: "power2.out", transformOrigin: "21% 11%" }, 1.1);
+      tl.to("#c5-press", { opacity: 1, duration: 0.08 }, 1.0);
+      tl.to("#c5-press", { opacity: 0, duration: 0.25 }, 1.12);
+      tl.to("#c5-cursor", { x: 2100, y: 222.94, duration: 0.55, ease: "power2.in" }, 1.35);
+      tl.fromTo("#c5-cap1 span", { opacity: 0, x: 60, filter: "blur(8px)" }, { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.3, ease: "power4.out", stagger: 0.08 }, 1.02);
+      tl.to("#c5-cap1", { opacity: 0, filter: "blur(8px)", duration: 0.18, ease: "power3.in" }, 1.62);
+      // Clicul pornește planul: camera intră pe hartă, iar traseele echipelor se desenează (de sus în jos).
+      tl.to("#c5-cam", { ...cam(1.9, 960 - 1.9 * 470, 540 - 1.9 * 420), duration: 1.3, ease: "power3.inOut" }, 1.55);
+      tl.to("#c5-after", { clipPath: "inset(0% 0% 0% 0%)", duration: 1.6, ease: "power2.inOut" }, 1.8);
+      tl.to("#c5-cam", { ...cam(2.0, 960 - 2.0 * 480, 540 - 2.0 * 420), duration: 4.6, ease: "none" }, 2.85);
+      tl.fromTo("#c5-pill", { y: 40, opacity: 0, filter: "blur(10px)" }, { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.4, ease: "expo.out" }, 3.0);
+      // Ieșirea spre stânga (curentul filmului).
+      OUT(tl, ["#c5-cam", "#c5-pill"], 7.8);
+
+      window.__timelines["c5"] = tl;
+    })();
+  </script>
+</template>

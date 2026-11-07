@@ -1,0 +1,48 @@
+<template>
+  <!-- Întrebarea: dimineața pleacă echipele; unde le trimiți? Casca e obiect 3D modelat cu AI. -->
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: var(--ground); }
+    .clipbox { position: absolute; inset: 0; }
+    .ln { position: absolute; left: 0; right: 0; display: block; text-align: center; white-space: nowrap;
+          font-weight: 650; letter-spacing: -0.04em; line-height: 1.02; color: var(--ink); }
+    .ln span { display: inline-block; }
+    .xl { font-size: 176px; }
+    .l2 { font-size: 150px; }
+    .obj { position: absolute; background-repeat: no-repeat; background-size: 600% 500%; background-position: 0% 0%; }
+    .cursor { position: absolute; left: 0; top: 0; width: 134px; height: 134px; z-index: 20;
+              filter: drop-shadow(0 4px 6px rgba(0,0,0,.3)); }
+    .note { position: absolute; left: 0; right: 0; bottom: 62px; text-align: center; font-size: 28px; font-weight: 500; color: var(--muted); }
+
+    #c2-l1a { top: 500px; } #c2-l1b { top: 670px; }
+    #c2-l2 { top: 432px; font-size: 216px; }
+
+  </style>
+  <div id="root" data-composition-id="c2" data-width="1920" data-height="1080">
+    <div id="c2-a" class="clip clipbox" data-start="0" data-duration="2"><div id="c2-l1a" class="ln l2"><span>Mâine</span> <span>dimineață</span></div><div id="c2-l1b" class="ln l2"><span>pleacă</span> <span>echipele.</span></div></div>
+    <div id="c2-o" class="clip clipbox" data-start="0" data-duration="2" data-layout-allow-overflow><div id="c2-helmet" class="obj" style="left:760px; top:60px; width:400px; height:400px; background-image:url(assets/3d/astra/helmet_spin.webp)"></div></div>
+    <div id="c2-b" class="clip clipbox" data-start="2" data-duration="2"><div id="c2-l2" class="ln"><span>Dar</span> <span>unde?</span></div></div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const IN = (tl, sel, at) => tl.fromTo(sel, { x: 150, opacity: 0, filter: "blur(10px)" }, { x: 0, opacity: 1, filter: "blur(0px)", duration: 0.34, ease: "power4.out" }, at);
+      const OUT = (tl, sel, at) => tl.to(sel, { x: -150, opacity: 0, filter: "blur(10px)", duration: 0.18, ease: "power4.in" }, at);
+      const SPIN = (tl, id, at, dur) => {
+        const el = document.getElementById(id), p = { f: 0 };
+        tl.fromTo(p, { f: 0 }, { f: 29, duration: dur, ease: "power2.out", onUpdate: () => {
+          const i = Math.round(p.f), c = i % 6, r = Math.floor(i / 6);
+          el.style.backgroundPosition = (c * 20) + "% " + (r * 25) + "%";
+        } }, at);
+      };
+
+      IN(tl, "#c2-l1a", 0.0); IN(tl, "#c2-l1b", 0.1);
+      tl.fromTo("#c2-helmet", { x: 600, y: 120, scale: 1.2, filter: "blur(12px)" }, { x: 0, y: 0, scale: 1, filter: "blur(0px)", duration: 0.7, ease: "expo.out" }, 0.0);
+      SPIN(tl, "c2-helmet", 0.0, 0.8);
+      OUT(tl, ["#c2-l1a", "#c2-l1b", "#c2-helmet"], 1.82);
+      // Întrebarea stă nemișcată (liniștea dinaintea răspunsului).
+      IN(tl, "#c2-l2", 2.0); OUT(tl, "#c2-l2", 3.82);
+
+      window.__timelines["c2"] = tl;
+    })();
+  </script>
+</template>

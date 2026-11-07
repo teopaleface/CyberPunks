@@ -1,0 +1,64 @@
+<template>
+  <!-- Problemele zilei, în cuvinte simple: furtuna (stâlpi căzuți), contoarele manipulate (curent furat), prosumatorii (prea mult soare). -->
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: var(--ground); }
+    .clipbox { position: absolute; inset: 0; }
+    .ln { position: absolute; left: 0; right: 0; display: block; text-align: center; white-space: nowrap;
+          font-weight: 650; letter-spacing: -0.04em; line-height: 1.02; color: var(--ink); }
+    .ln span { display: inline-block; }
+    .xl { font-size: 176px; }
+    .l2 { font-size: 150px; }
+    .obj { position: absolute; background-repeat: no-repeat; background-size: 600% 500%; background-position: 0% 0%; }
+    .cursor { position: absolute; left: 0; top: 0; width: 134px; height: 134px; z-index: 20;
+              filter: drop-shadow(0 4px 6px rgba(0,0,0,.3)); }
+    .note { position: absolute; left: 0; right: 0; bottom: 62px; text-align: center; font-size: 28px; font-weight: 500; color: var(--muted); }
+
+    .c3-ln { top: 452px; }
+
+  </style>
+  <div id="root" data-composition-id="c3" data-width="1920" data-height="1080">
+    <div id="c3-a" class="clip clipbox" data-start="0" data-duration="1"><div id="c3-l1" class="ln xl c3-ln"><span>Stâlpi</span> <span>căzuți.</span></div></div>
+    <div id="c3-b" class="clip clipbox" data-start="1" data-duration="1"><div id="c3-l2" class="ln xl c3-ln"><span>Curent</span> <span>furat.</span></div></div>
+    <div id="c3-c" class="clip clipbox" data-start="2" data-duration="1.1"><div id="c3-l3" class="ln xl c3-ln"><span>Prea</span> <span>mult</span> <span>soare.</span></div></div>
+    <div id="c3-o" class="clip clipbox" data-start="0" data-duration="4" data-layout-allow-overflow>
+      <div id="c3-pole" class="obj" style="left:60px; top:30px; width:400px; height:400px; background-image:url(assets/3d/astra/transformer_spin.webp)"></div>
+      <div id="c3-meter" class="obj" style="left:1480px; top:50px; width:340px; height:340px; background-image:url(assets/3d/astra/meter_spin.webp)"></div>
+      <div id="c3-solar" class="obj" style="left:1440px; top:660px; width:400px; height:400px; background-image:url(assets/3d/astra/solar_spin.webp)"></div>
+    </div>
+    <p id="c3-ai" class="clip note" data-start="0" data-duration="3.05">Obiecte 3D modelate cu AI</p>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const IN = (tl, sel, at) => tl.fromTo(sel, { x: 150, opacity: 0, filter: "blur(10px)" }, { x: 0, opacity: 1, filter: "blur(0px)", duration: 0.34, ease: "power4.out" }, at);
+      const OUT = (tl, sel, at) => tl.to(sel, { x: -150, opacity: 0, filter: "blur(10px)", duration: 0.18, ease: "power4.in" }, at);
+      const SPIN = (tl, id, at, dur) => {
+        const el = document.getElementById(id), p = { f: 0 };
+        tl.fromTo(p, { f: 0 }, { f: 29, duration: dur, ease: "power2.out", onUpdate: () => {
+          const i = Math.round(p.f), c = i % 6, r = Math.floor(i / 6);
+          el.style.backgroundPosition = (c * 20) + "% " + (r * 25) + "%";
+        } }, at);
+      };
+
+      IN(tl, "#c3-l1", 0.0); OUT(tl, "#c3-l1", 0.82);
+      IN(tl, "#c3-l2", 1.0); OUT(tl, "#c3-l2", 1.82);
+      IN(tl, "#c3-l3", 2.0); OUT(tl, "#c3-l3", 2.95);
+      // Stâlpul intră înclinat (căzut), contorul și panoul din dreapta; rămân pe ecran.
+      tl.fromTo("#c3-pole", { x: -560, y: -200, rotation: -38, filter: "blur(12px)" }, { x: 0, y: 0, rotation: -16, filter: "blur(0px)", duration: 0.7, ease: "expo.out" }, 0.0);
+      SPIN(tl, "c3-pole", 0.0, 0.8);
+      tl.fromTo("#c3-meter", { x: 560, y: -260, rotation: 20, filter: "blur(12px)" }, { x: 0, y: 0, rotation: 6, filter: "blur(0px)", duration: 0.7, ease: "expo.out" }, 1.0);
+      SPIN(tl, "c3-meter", 1.0, 0.8);
+      tl.fromTo("#c3-solar", { x: 560, y: 260, rotation: 18, filter: "blur(12px)" }, { x: 0, y: 0, rotation: 4, filter: "blur(0px)", duration: 0.7, ease: "expo.out" }, 2.0);
+      SPIN(tl, "c3-solar", 2.0, 0.8);
+      // Cele trei probleme devin cele trei opriri ale traseului din logo (scena 4).
+      const into = (sel, cx, cy, tx, ty) => tl.to(sel, { x: tx - cx, y: ty - cy, scale: 0.05, rotation: 0, duration: 0.75, ease: "power3.in" }, 3.1);
+      into("#c3-pole", 260, 230, 370.9, 450.1);
+      into("#c3-meter", 1650, 220, 507.3, 409.1);
+      into("#c3-solar", 1640, 860, 589.1, 409.1);
+      tl.to(["#c3-pole", "#c3-meter", "#c3-solar"], { opacity: 0, duration: 0.15 }, 3.82);
+      tl.fromTo("#c3-ai", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 0.2);
+
+      window.__timelines["c3"] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,62 @@
+<template>
+  <!-- Răspunsul: numele produsului; soarele din logo răsare în spatele traseului (singura culoare din cadru). -->
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: var(--ground); }
+    .clipbox { position: absolute; inset: 0; }
+    .ln { position: absolute; left: 0; right: 0; display: block; text-align: center; white-space: nowrap;
+          font-weight: 650; letter-spacing: -0.04em; line-height: 1.02; color: var(--ink); }
+    .ln span { display: inline-block; }
+    .xl { font-size: 176px; }
+    .l2 { font-size: 150px; }
+    .obj { position: absolute; background-repeat: no-repeat; background-size: 600% 500%; background-position: 0% 0%; }
+    .cursor { position: absolute; left: 0; top: 0; width: 134px; height: 134px; z-index: 20;
+              filter: drop-shadow(0 4px 6px rgba(0,0,0,.3)); }
+    .note { position: absolute; left: 0; right: 0; bottom: 62px; text-align: center; font-size: 28px; font-weight: 500; color: var(--muted); }
+
+    #c4-group { position: absolute; inset: 0; transform-origin: 0 0; }
+    #c4-mark { position: absolute; left: 330px; top: 300px; width: 300px; height: 191px; overflow: visible; }
+    #c4-name { position: absolute; left: 670px; top: 326px; font-size: 150px; font-weight: 650; letter-spacing: -0.04em; line-height: 1; color: var(--ink); white-space: nowrap; }
+    #c4-name span, #c4-l2 span { display: inline-block; }
+    #c4-l2 { top: 560px; }
+
+  </style>
+  <div id="root" data-composition-id="c4" data-width="1920" data-height="1080">
+    <div id="c4-s" class="clip clipbox" data-start="0" data-duration="3" data-layout-allow-overflow>
+      <div id="c4-group">
+        <svg id="c4-mark" viewBox="10 18 44 28" aria-hidden="true">
+          <defs><clipPath id="c4-hz"><rect x="0" y="0" width="64" height="36.2" /></clipPath></defs>
+          <g clip-path="url(#c4-hz)"><path id="c4-sun" style="fill: var(--sun)" d="M18 36a14 14 0 0 1 28 0Z" /></g>
+          <path id="c4-route" pathLength="1" d="M16 40h12l8-6h12" style="fill: none; stroke: var(--ink); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round" />
+          <circle cx="16" cy="40" r="4" style="fill: var(--ink)" /><circle cx="36" cy="34" r="4" style="fill: var(--ink)" /><circle cx="48" cy="34" r="4" style="fill: var(--ink)" />
+        </svg>
+        <h1 id="c4-name"><span>Tura</span> <span>de</span> <span>mâine</span></h1>
+        <div id="c4-l2" class="ln l2"><span>face</span> <span>planul.</span></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const IN = (tl, sel, at) => tl.fromTo(sel, { x: 150, opacity: 0, filter: "blur(10px)" }, { x: 0, opacity: 1, filter: "blur(0px)", duration: 0.34, ease: "power4.out" }, at);
+      const OUT = (tl, sel, at) => tl.to(sel, { x: -150, opacity: 0, filter: "blur(10px)", duration: 0.18, ease: "power4.in" }, at);
+      const SPIN = (tl, id, at, dur) => {
+        const el = document.getElementById(id), p = { f: 0 };
+        tl.fromTo(p, { f: 0 }, { f: 29, duration: dur, ease: "power2.out", onUpdate: () => {
+          const i = Math.round(p.f), c = i % 6, r = Math.floor(i / 6);
+          el.style.backgroundPosition = (c * 20) + "% " + (r * 25) + "%";
+        } }, at);
+      };
+
+      // Cele trei opriri sunt deja pe loc (au venit din scena 3); traseul le leagă, soarele răsare.
+      tl.fromTo("#c4-route", { strokeDasharray: "1 1", strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.36, ease: "power2.inOut" }, 0.0);
+      tl.fromTo("#c4-sun", { y: 15 }, { y: 0, duration: 0.8, ease: "expo.out" }, 0.15);
+      tl.fromTo("#c4-name span", { opacity: 0, filter: "blur(12px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.45, ease: "expo.out", stagger: 0.08 }, 0.25);
+      tl.fromTo("#c4-l2 span", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.4, ease: "expo.out", stagger: 0.08 }, 0.75);
+      // Ieșirea: semnul și numele se strâng în antetul consolei din scena 5 (același logo, colțul stânga sus).
+      tl.to("#c4-l2", { opacity: 0, filter: "blur(8px)", duration: 0.15, ease: "power3.in" }, 2.55);
+      tl.to("#c4-group", { x: 279.2 - 0.0666 * 480, y: 82.9 - 0.0666 * 395.5, scale: 0.0666, duration: 0.42, ease: "power3.in" }, 2.58);
+
+      window.__timelines["c4"] = tl;
+    })();
+  </script>
+</template>
