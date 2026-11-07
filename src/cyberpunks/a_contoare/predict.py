@@ -65,6 +65,38 @@ ACTION_RO = {
 LABEL_RO = {"faulty": "contor probabil defect", "tamper": "posibilă intervenție la contor"}
 
 
+# Riscul de siguranță (incendiu) vine din ocolirea FIZICĂ a contorului: o punte sau un comutator improvizat care duce
+# tot curentul pe lângă contor. Manipulările de date (profil aplatizat, inversat) nu au acest risc. Regula, verificată
+# pe populațiile demo (adevărul injectat): "opriri zilnice" = în medie cel puțin 3 ore pe zi de zero exact, la
+# aceleași ore, deși casa consumă (contorul e scurtcircuitat), plus ocolirea parțială sigură (nivel scăzut brusc,
+# forma zilei păstrată). Pe 8 iulie 2025: 175 de steaguri cu regula veche (orice furt cu scor >= 0,5), ~33 cu aceasta.
+SAFETY_MIN_SCORE = 0.8
+SAFETY_PATTERNS = ("ocolire_comutata", "ocolire_partiala")
+TAMPER_PATTERN_RO = {
+    "ocolire_comutata": "contorul nu înregistrează nimic câteva ore pe zi, la aceleași ore (punte sau comutator "
+                        "improvizat): risc de incendiu",
+    "ocolire_partiala": "consumul a scăzut brusc și a rămas jos, cu forma zilei păstrată (o parte din curent ocolește "
+                        "contorul): risc de incendiu",
+    "profil_manipulat": "profilul zilei e aplatizat, inversat sau mutat (manipulare de date, fără risc de incendiu)",
+    "neclar": "tipar de furt neclar (fără risc de incendiu identificat)",
+}
+
+
+def tamper_pattern(f: pd.Series) -> str:
+    """Tiparul unui furt suspectat, din features (reguli scrise, explicabile)."""
+    zero_run = f.get("zero_slot_run_recent", np.nan)
+    if np.isfinite(zero_run) and zero_run >= 6:  # >= 3 ore pe zi de zero exact
+        return "ocolire_comutata"
+    cv_ratio = f.get("intraday_cv_ratio", np.nan)
+    corr = f.get("profile_corr", np.nan)
+    if (np.isfinite(cv_ratio) and cv_ratio < 0.5) or (np.isfinite(corr) and corr < 0.5) or f.get("peak_shift", 0) >= 8:
+        return "profil_manipulat"
+    dropped = (f.get("peer_ratio_change", np.nan) <= 0.75) or (f.get("recent_vs_base", np.nan) <= 0.75)
+    if dropped and np.isfinite(corr) and corr >= 0.85 and (not np.isfinite(cv_ratio) or 0.6 <= cv_ratio <= 1.6):
+        return "ocolire_partiala"
+    return "neclar"
+
+
 def _confidence(score: float, decision: str) -> str:
     if decision == "problem" and score >= 0.6:
         return "high"
@@ -137,19 +169,43 @@ def _flags(x: np.ndarray, expected: np.ndarray) -> list[str | None]:
     return out
 
 
+def onset_index(ratio: np.ndarray, threshold: float = 0.7, ahead: int = 7) -> int | None:
+    """Prima zi de la care consumul stă sub `threshold` din normal: ziua însăși e jos și mediana zilelor care
+    urmează (fereastră înainte, nu înapoi) e jos. Așa adnotarea cade pe prima zi a căderii, nu cu zile mai devreme."""
+    r = pd.Series(ratio)
+    ahead_med = r[::-1].rolling(ahead, min_periods=3).median()[::-1]
+    ok = (r < threshold) & (ahead_med < threshold)
+    hits = np.flatnonzero(ok.to_numpy())
+    return int(hits[0]) if hits.size else None
+
+
+def _run_start(flags: list[str | None], flag: str) -> int | None:
+    """Începutul ultimului șir de cel puțin 2 zile la rând cu `flag` (problema de acum, nu o zi izolată de demult)."""
+    start = None
+    best = None
+    for i, f in enumerate(flags + [None]):
+        if f == flag and start is None:
+            start = i
+        elif f != flag and start is not None:
+            if i - start >= 2:
+                best = start
+            start = None
+    return best
+
+
 def _annotations(days: pd.DatetimeIndex, x: np.ndarray, expected: np.ndarray, flags: list[str | None]) -> list[dict]:
     notes = []
     for flag, text in (("zero", "începe consumul zero"), ("gol", "încep lipsurile de date"),
                        ("plat", "începe valoarea repetată"), ("negativ", "apar citiri negative")):
-        idx = [i for i, f in enumerate(flags) if f == flag]
-        if len(idx) >= 2:
-            notes.append({"t": days[idx[0]].date().isoformat(), "label_ro": text})
+        i = _run_start(flags, flag)
+        if i is not None:
+            notes.append({"t": days[i].date().isoformat(), "label_ro": text})
     if not notes:
         with np.errstate(all="ignore"):
-            r = pd.Series(x / np.where(expected > 1e-6, expected, np.nan)).rolling(7, min_periods=4).median()
-        low = np.flatnonzero((r < 0.7).to_numpy())
-        if low.size:
-            notes.append({"t": days[max(0, low[0] - 6)].date().isoformat(), "label_ro": "consumul scade sub normal"})
+            ratio = x / np.where(expected > 1e-6, expected, np.nan)
+        i = onset_index(ratio)
+        if i is not None:
+            notes.append({"t": days[i].date().isoformat(), "label_ro": "consumul scade sub normal"})
     return notes[:3]
 
 
@@ -292,9 +348,11 @@ def run(scenario: str, date: str | None = None) -> Path:
             action = "remote_reading"
         else:
             action = "inspect_on_site"
+        pattern = tamper_pattern(feats.loc[i]) if label == "tamper" else None
+        safety = bool(label == "tamper" and score >= SAFETY_MIN_SCORE and pattern in SAFETY_PATTERNS)
         if action == "inspect_on_site":
             duration, size = int(econ["service_time_min"]), 2
-            urgency = 72.0 if label == "tamper" else 120.0
+            urgency = 48.0 if safety else (72.0 if label == "tamper" else 120.0)
         elif action == "remote_reading":
             duration, size, urgency = 5, 1, 48.0
         elif action == "watchlist":
@@ -310,6 +368,8 @@ def run(scenario: str, date: str | None = None) -> Path:
             summary = f"{LABEL_RO[label].capitalize()} ({score:.0%}): {top_txt}. Recomand: {ACTION_RO[action]}."
         if deficit > 0:
             summary += f" Lipsesc ~{f'{deficit:.1f}'.replace('.', ',')} kWh pe zi față de normal."
+        if safety:
+            summary += f" Risc de siguranță: {TAMPER_PATTERN_RO[pattern]}."
         conf = "low" if abstain else _confidence(score, str(r["conformal"]))
         item = {
             "contract_version": "1.0",
@@ -345,7 +405,7 @@ def run(scenario: str, date: str | None = None) -> Path:
                 "value_if_true_lei": value,
                 "customers_affected": 1,
                 "urgency_hours": urgency,
-                "safety_flag": bool(label == "tamper" and score >= 0.5),
+                "safety_flag": safety,
                 "assumptions_ref": "meters",
             },
             "effort": {"duration_min": duration, "crew_skill": "metering", "crew_size": size, "requires_planned_outage": False},
@@ -371,6 +431,8 @@ def run(scenario: str, date: str | None = None) -> Path:
                 "comm_down": bool(r["comm_down"]),
                 "level_kwh_day": round(float(feats.loc[i, "level_kwh"]), 3) if np.isfinite(feats.loc[i, "level_kwh"]) else None,
                 "low_consumption_guard": guard,
+                "tamper_pattern": pattern,
+                "tamper_pattern_ro": TAMPER_PATTERN_RO.get(pattern),
             },
         }
         items.append(WorkItem.model_validate(item))

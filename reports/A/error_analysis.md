@@ -1,6 +1,6 @@
 # Analiza erorilor, firul A (contoare defecte sau manipulate)
 
-Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metrics_full.json` (creat 2026-11-07T16:13:05+02:00), `reports/A/robustness.json` și ieșirile `predict`. Modele: a-lgbm@72c4d15 (Londra) și a-lgbm-sgcc@72c4d15 (SGCC). K = 1% din contoarele din test. Londra = etichete SINTETICE (probleme injectate de noi peste consum real); SGCC = etichete reale de furt.
+Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metrics_full.json` (creat 2026-11-07T17:59:02+02:00), `reports/A/robustness.json` și ieșirile `predict`. Modele: a-lgbm@72c4d15 (Londra) și a-lgbm-sgcc@72c4d15 (SGCC). K = 1% din contoarele din test. Londra = etichete SINTETICE (probleme injectate de noi peste consum real); SGCC = etichete reale de furt.
 
 ## Pe scurt
 
