@@ -35,3 +35,19 @@ def test_limit_is_physically_consistent(post_id: str, kwp: float) -> None:
         assert 0.0 <= d["export_limit_kw"] < kwp
     # mai mulți kW nu pot coborî tensiunea estimată
     assert d["p90_ref_after_pu"] >= d["p90_ref_before_pu"] - 1e-3
+
+
+def test_year_outside_archive_is_rejected() -> None:
+    from cyberpunks.c_prosumatori.connection import _year_days
+
+    with pytest.raises(ValueError):
+        _year_days(2026)
+
+
+def test_investment_report_handles_no_problem_posts(tmp_path, monkeypatch) -> None:
+    from cyberpunks.c_prosumatori import reports_c
+
+    monkeypatch.setattr(reports_c, "OUT", tmp_path)
+    text = reports_c.investments(min_days=1e9)
+    assert "0 posturi din" in text or "au cel puțin" in text
+    assert (tmp_path / "investitii.md").exists()

@@ -58,7 +58,7 @@ def battery_offers(scenario: str = "demo-vara", top: int = 30) -> str:
         ("- Efectul pe tensiune: marginal (sensibilitatea rețelei în nodul cel mai expus, la ora de vârf) și pentru tot postul "
         f"(simulare cu bateriile celor care acceptă: {a['battery_accept_share']:.0%}, IPOTEZĂ)."),
         (f"- Recuperarea: (cost − grant) / economia pe an. Economia = kWh mutați de la prânz în seară × ({fmt(c['retail_price'])} − "
-        f"{fmt(c['export_value'])}) lei/kWh × randament {fmt(a['battery_eta'], 1)} (prețul cu taxe PPC Ore Smart+ în afara intervalelor, "
+        f"{fmt(c['export_value'])}) lei/kWh × randament dus-întors {fmt(a['battery_eta'], 2)} (prețul cu taxe PPC Ore Smart+ în afara intervalelor, "
         "valoarea energiei injectate din config). Costul: "
         f"{c['battery_price_lei_per_kwh']:.0f} lei/kWh + {c['battery_installation_cost_lei']:.0f} lei montaj (IPOTEZĂ din config)."),
         (f"- Oferta merge doar unde bateria coboară tensiunea postului cu cel puțin {a['battery_min_effect_pu']} pu și se recuperează în cel mult "
@@ -115,7 +115,7 @@ def battery_offers(scenario: str = "demo-vara", top: int = 30) -> str:
 # ------------------------------------------------------------------------------------------------
 
 
-def investments(year: int = 2025, top: int = 30) -> str:
+def investments(year: int = 2025, top: int = 30, min_days: float = 5.0) -> str:
     """Modelul pe tot anul pentru fiecare post (zile cu depășire, kWh pierduți, lei), apoi scara de soluții pe cea mai
     însorită zi de referință pentru posturile cu probleme: cea mai ieftină soluție care ajunge sau investiția."""
     from cyberpunks.c_prosumatori import actions, connection, posts, weather
@@ -124,7 +124,7 @@ def investments(year: int = 2025, top: int = 30) -> str:
 
     reg = posts.load_posts()
     bundle = T.load_bundle()
-    hw, ref = connection._year_days()
+    hw, ref = connection._year_days(year)
     X = F.daily_features(reg, hw)
     p = bundle.daily.predict(X)
     X = X.assign(p=p["p_exceed"], q90=p["q90"], lost=p["lost_kwh"])
@@ -134,7 +134,7 @@ def investments(year: int = 2025, top: int = 30) -> str:
     df = reg.merge(agg, on="post_id")
     df["complaints_lei"] = df.n_prosumers * actions.ASSUMPTIONS["complaint_rate_season"] * eco["complaint_compensation_lei"] * (df.days_over >= 10)
     df["value_lei_year"] = df.lost_lei + df.complaints_lei
-    bad = df[df.days_over >= 5].sort_values("value_lei_year", ascending=False)
+    bad = df[df.days_over >= min_days].sort_values("value_lei_year", ascending=False)
     # scara de soluții pe cea mai însorită zi de referință
     worst_day = max(ref, key=lambda d: float(hw[hw.date == d]["pvk"].max()))
     start = pd.Timestamp(worst_day, tz="Europe/Bucharest").tz_convert("UTC") + pd.Timedelta(hours=1)
@@ -147,8 +147,8 @@ def investments(year: int = 2025, top: int = 30) -> str:
         cost = sum(o["cost_lei"] for o in lad.options if o["action"] in lad.choice)
         rows.append({**r.to_dict(), "q90_day": q90_day, "choice": lad.choice, "choice_cost": cost, "reaches": lad.reaches_target,
                      "upgrade": "transformer_upgrade" in lad.choice or not lad.reaches_target})
-    inv = pd.DataFrame(rows)
-    inv["payback_years"] = inv.choice_cost / inv.value_lei_year.clip(lower=1)
+    inv = pd.DataFrame(rows, columns=[*bad.columns, "q90_day", "choice", "choice_cost", "reaches", "upgrade"])
+    inv["payback_years"] = inv.choice_cost / inv.value_lei_year.clip(lower=1) if len(inv) else pd.Series(dtype=float)
     n_inv = int(inv.upgrade.sum()) if len(inv) else 0
     lines = [
         "# Raportul de investiții: posturile de transformare de modernizat (SINTETIC)",

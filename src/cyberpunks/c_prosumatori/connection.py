@@ -31,9 +31,12 @@ VDE_RULE = 0.03  # VDE-AR-N 4105: creșterea de tensiune la punctul de racord �
 EXPORT_LIMITS = (0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.0)  # fracții din kWp încercate pentru limita de injecție
 
 
-def _year_days() -> tuple[pd.DataFrame, list]:
+def _year_days(year: int = 2025) -> tuple[pd.DataFrame, list]:
+    """Vremea orară a anului și cele mai însorite zile din aprilie-septembrie (zilele de referință)."""
+    if year not in (2023, 2024, 2025):
+        raise ValueError(f"anul {year} nu e complet în arhiva meteo (2023-2025)")
     wx = weather.archive()
-    wx = wx[(wx.index >= "2025-01-01") & (wx.index < "2026-01-01")]
+    wx = wx[(wx.index >= f"{year}-01-01") & (wx.index < f"{year + 1}-01-01")]
     hw = F.hourly_weather(wx)
     dw = F.daily_weather(hw)
     season = [d for d in dw.index if 4 <= d.month <= 9]
