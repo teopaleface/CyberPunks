@@ -19,15 +19,15 @@ SIMULARE pe date publice, gândită pentru datele PPC. Fiecare caz e verificat c
 ## 3. Contorul postului setat greșit
 
 - **PT-1210**: Postul PT-1210: contorul postului arată de 2.04 ori suma clienților (100% contor de post setat greșit). Lipsa de ~937 kWh/zi e doar pe hârtie. Recomand: întâi citire la distanță și jurnalul de evenimente al contorului (raportul de transformare).
-- Adevărul: raportul de transformare greșit din ziua 104. Toate cele 12 posturi marcate așa au chiar această problemă: True.
+- Adevărul: raportul de transformare greșit din ziua 104. Toate cele 13 posturi marcate așa au chiar această problemă: False.
 
 ## 4. Clientul trecut la postul greșit
 
-- **PT-1165** (lucrarea `A-20250708-PT-1165`): Postul PT-1165: ~1676 lei pe lună pierduți peste normal. Cauza probabilă (99%): client trecut la postul greșit în bază. Recomand: corecție în bază, fără deplasare.
-- Adevărul: clientul `PT-1041-C039` e legat fizic la PT-1041, dar din ziua 175 apare în bază la PT-1165. PT-1041 are lipsă, PT-1165 are surplus. Corecția se face în birou, fără deplasare.
-- PT-1041 în lista zilei: fără lucrare (lipsa e sub pragul de incertitudine).
+- **PT-1155** (lucrarea `A-20250708-PT-1155`): Postul PT-1155: ~1416 lei pe lună pierduți peste normal. Cauza probabilă (81%): client trecut la postul greșit în bază. Recomand: corecție în bază, fără deplasare.
+- Adevărul: clientul `PT-1029-C096` e legat fizic la PT-1029, dar din ziua 302 apare în bază la PT-1155. PT-1029 are lipsă, PT-1155 are surplus. Corecția se face în birou, fără deplasare.
+- PT-1029 în lista zilei: client_post_gresit (office_correction).
 
 ## Lista zilei, pe scurt
 
-- 89 lucrări de bilanț; 89 sunt pe posturi care chiar au cel puțin o problemă ascunsă.
-- Acțiuni: inspect_on_site 26, remote_reading 22, grid_inspection 16, office_correction 14, human_review 11.
+- 85 lucrări de bilanț; 84 sunt pe posturi care chiar au cel puțin o problemă ascunsă.
+- Acțiuni: inspect_on_site 28, remote_reading 24, grid_inspection 13, human_review 12, office_correction 8.

@@ -33,13 +33,25 @@ Pe lotul hărții, defectele de contor sunt exact cele ale firului A (`A_ground_
 | Pierderea normală, MAE (kWh/zi) | **5,30** (14% din 37,0) | formula fizică I²R 14,91; procent fix 20,59 |
 | Același, fără istoricul postului | 12,56 | - |
 | Acoperirea intervalului P10-P90 | 88,1% | formula fizică 86,6% (interval de ~10 ori mai larg) |
-| Diagnosticul, F1 macro | **0,61** | tabelul de reguli din concept 0,48 |
-| Diagnosticul, exactitate | 0,77 | 0,78 (regulile spun des „normal”, clasa cea mai frecventă) |
+| Diagnosticul, F1 macro | **0,67** | tabelul de reguli din concept 0,48 |
+| Diagnosticul, exactitate | 0,81 | 0,78 |
 | Primele 10 posturi pe zi prind din energia lipsă | 85% | 80% |
 | **Energia pierdută pe care niciun contor de client nu o vede** (furt înainte de contor, pierderi tehnice peste normal, client la postul greșit), ziua demo | **48%** | o vede doar bilanțul |
 | Planul B: energia lipsă găsită cu contoare la 20% din posturi | **36%** | la întâmplare 20%; posturile mari întâi 23% |
 
-F1 pe clase (model / reguli): contor de post setat greșit 0,99 / 0,87, normal 0,89 / 0,90, furt înainte de contor 0,66 / 0,35, pierdere tehnică 0,42 / 0,28, client la postul greșit 0,37 / 0,34, contor de client 0,33 / 0,16.
+F1 pe clase (model / reguli): contor de post setat greșit 0,99 / 0,87, normal 0,91 / 0,90, furt înainte de contor 0,70 / 0,35, client la postul greșit 0,57 / 0,34, pierdere tehnică 0,46 / 0,28, contor de client 0,38 / 0,16. Clientul la postul greșit a urcat de la 0,32 la 0,57 cu trăsătura „oglindă” (lipsa la un post și surplusul la vecin, zi de zi, corelate negativ) și cu legarea celor două capete ale perechii (`diagnose.pair_consistency`).
+
+### Ce vede doar bilanțul (A are 0 prin construcție)
+
+| Cauza | Postul găsit | și cauza corectă | Energia lipsă găsită |
+|---|---|---|---|
+| furt înainte de contor | 74% | 55% | 86% |
+| pierdere tehnică (cabluri, faze) | 65% | 42% | 95% |
+| contorul postului setat greșit | 99% | 99% | (lipsă doar pe hârtie) |
+| client la postul greșit | 50% | 30% | 70% |
+| **total** | | | **85%, ~25.000 lei pe lună** pe cele 300 de posturi |
+
+Din posturile marcate, 13% sunt de fapt normale. Figura: `reports/bilant/bilant_only_causes.png`.
 
 ### Cu bilanț față de fără (verificări de contoare)
 
@@ -66,7 +78,7 @@ Modelul se abține și trimite la om (`human_review`) când:
 - primele două cauze sunt la mai puțin de 15 puncte;
 - intervalul pierderii normale e de peste 3 ori mai larg decât lipsa.
 
-Se abține în 15,1% din ferestre; detaliile sunt în `reports/bilant/error_analysis.md`. Posturile fără contor de bilanț nu primesc lucrare de pierderi: trec pe planul B.
+Se abține în 13,1% din ferestre; detaliile sunt în `reports/bilant/error_analysis.md`. Posturile fără contor de bilanț nu primesc lucrare de pierderi: trec pe planul B.
 
 ## Limite cunoscute
 
@@ -75,7 +87,7 @@ Se abține în 15,1% din ferestre; detaliile sunt în `reports/bilant/error_anal
 - Precizia absolută din testul simulat e mică pentru că problemele noi sunt rare: ~10 contoare pe zi din ~24.000.
 - „Nu sunt sigur” al lui A nu se rezolvă automat cu bilanțul. Am încercat; pe ziua demo, cele 5 cazuri rezolvate nu aveau nicio problemă reală. Codul există, dar e oprit (`fuse.RESOLVE_ABSTAIN`).
 - Problemele mici (sub 2 kWh/zi) se confundă cu zgomotul pierderii normale. Problemele foarte vechi (peste 90 de zile) intră treptat în istoricul postului. Istoricul ar trebui învățat doar din perioade verificate.
-- Clientul la postul greșit e clasa cea mai slabă. Semnalul (vecinul cu surplus egal) se pierde când vecinul are și el o problemă.
+- Clientul la postul greșit: recall 43%. Postul donator e prins mai greu decât cel cu surplus. Pierderea tehnică veche (peste 60 de zile) sau mică (sub 10 kWh/zi) scapă des, pentru că istoricul postului o învață ca normală.
 - Fazele nu se măsoară direct: dezechilibrul e estimat din pierderi (`extra.phase_rebalance_input`).
 
 ## Bucla de învățare

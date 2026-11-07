@@ -115,7 +115,7 @@ def eval_diagnosis(wtr: pd.DataFrame, wte: pd.DataFrame) -> tuple[dict, dict, G.
 
     diag = G.fit(wtr)
     proba = diag.proba(wte)
-    dec = G.decide(proba, wte)
+    dec = G.pair_consistency(wte, G.decide(proba, wte))
     y = wte["true_class"].to_numpy()
     lab = dec["label"].to_numpy()
     rl = G.rules(wte).to_numpy()
@@ -187,6 +187,56 @@ def fig_fusion(with_b: dict, without: dict) -> None:
     plt.close(fig)
 
 
+def fig_post_causes(pc: dict) -> None:
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    names = {"furt_inainte_contor": "furt înainte\nde contor", "pierdere_tehnica": "pierdere tehnică\n(cabluri, faze)", "contor_bilant_setat": "contorul postului\nsetat greșit", "client_post_gresit": "client la\npostul greșit"}
+    cs = [c for c in FE.POST_CAUSES if f"{c}_found" in pc]
+    x = np.arange(len(cs))
+    fig, ax = plt.subplots(figsize=(8, 4.2))
+    ax.bar(x - 0.27, [0] * len(cs), 0.27, color="#a0aec0", label="doar contoarele (A): nu le vede")
+    ax.bar(x, [pc[f"{c}_found"] * 100 for c in cs], 0.27, color="#2b6cb0", label="bilanțul: post găsit")
+    ax.bar(x + 0.27, [pc[f"{c}_right_cause"] * 100 for c in cs], 0.27, color="#2c5282", alpha=0.6, label="bilanțul: și cauza corectă")
+    for i, c in enumerate(cs):
+        ax.text(i - 0.27, 2, "0", ha="center", fontsize=8)
+    ax.set_xticks(x, [names[c] for c in cs], fontsize=8)
+    ax.set_ylabel("% din ferestrele cu această problemă")
+    ax.set_ylim(0, 105)
+    ax.legend(fontsize=8, loc="upper left")
+    ax.set_title("Ce vede doar bilanțul: cauze pe care contoarele clienților nu le arată (SIMULARE)", fontsize=10)
+    fig.tight_layout()
+    fig.savefig(OUT / "bilant_only_causes.png", dpi=130)
+    plt.close(fig)
+
+
+def fig_fusion_k(fw: dict, fwo: dict, fs: dict, fso: dict) -> None:
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    ks = list(FE.KS)
+    fig, ax = plt.subplots(1, 2, figsize=(10, 4))
+    for w, wo, lab, col in ((fw, fwo, "A de calitatea pe Londra (AUC 0,91)", "#2b6cb0"), (fs, fso, "A de calitatea pe SGCC (AUC 0,80)", "#dd6b20")):
+        ax[0].plot(ks, [wo[f"value_lei_per_day_at_{k}"] for k in ks], "--", color=col, alpha=0.6, label=f"fără bilanț, {lab}")
+        ax[0].plot(ks, [w[f"value_lei_per_day_at_{k}"] for k in ks], "-o", color=col, label=f"cu bilanț, {lab}")
+        ax[1].bar(np.arange(len(ks)) + (0.2 if col == "#dd6b20" else -0.2), [w[f"wasted_trips_avoided_per_day_at_{k}"] for k in ks], 0.4, color=col, label=lab)
+    ax[0].set_xlabel("contoare verificate pe zi (K)")
+    ax[0].set_ylabel("lei recuperați pe zi")
+    ax[0].legend(fontsize=7)
+    ax[1].set_xticks(range(len(ks)), [str(k) for k in ks])
+    ax[1].set_xlabel("contoare verificate pe zi (K)")
+    ax[1].set_ylabel("deplasări degeaba evitate pe zi")
+    ax[1].legend(fontsize=7)
+    fig.suptitle("Cu bilanț față de fără, pe mai multe K (SIMULARE; scoruri A simulate)", fontsize=10)
+    fig.tight_layout()
+    fig.savefig(OUT / "fusion_k.png", dpi=130)
+    plt.close(fig)
+
+
 def main() -> None:
     tr = F.load_pool("train")
     te = F.load_pool("pop")
@@ -198,13 +248,15 @@ def main() -> None:
 
     # diagnosticul: ferestre de 14 zile; pe antrenare cu pierderea normală prezisă fără ca postul să fi fost văzut
     wtr = W.build_windows(tr, W.oof_normal(tr), "train")
-    wte = W.build_windows(te, N.predict_any(models, te), "pop")
+    wte = W.build_windows(te, W.predict_normal(models, te), "pop")
     from cyberpunks.common.paths import DATA_PROCESSED
 
     wtr.to_parquet(DATA_PROCESSED / "bilant" / "windows_train.parquet")
     md, bd, diag, cm = eval_diagnosis(wtr, wte)
     proba = diag.proba(wte)
-    wte.join(G.decide(proba, wte)).join(proba.add_prefix("p_")).assign(rule=G.rules(wte)).to_parquet(DATA_PROCESSED / "bilant" / "windows_pop.parquet")
+    dec_te = G.pair_consistency(wte, G.decide(proba, wte))
+    wdec = wte.join(dec_te).join(proba.add_prefix("p_")).assign(rule=G.rules(wte))
+    wdec.to_parquet(DATA_PROCESSED / "bilant" / "windows_pop.parquet")
     tec.to_parquet(DATA_PROCESSED / "bilant" / "normal_test_pop.parquet")
     diag.save()
     fig_confusion(cm)
@@ -235,6 +287,12 @@ def main() -> None:
     metrics.update({f"fuziune_a_real_{k}": v for k, v in real.items()})
     # (c) energia pe care contoarele nu o văd (doar bilanțul o vede), ziua demo
     metrics.update({f"invizibil_{k}": v for k, v in FE.invisible_energy(te, int(te["day"].max())).items()})
+    # (d) cauzele de post: ce găsește bilanțul acolo unde A are 0 prin construcție
+    pc = FE.post_causes(wdec, price)
+    metrics.update({f"cauze_post_{k}": v for k, v in pc.items()})
+    baseline.update({f"cauze_post_{k}": 0.0 for k in pc if k.endswith(("_found", "_right_cause", "_share")) and "false_alarm" not in k})
+    fig_post_causes(pc)
+    fig_fusion_k(fw, fwo, fs, fso)
     metrics.update({f"fuziune_{k}": v for k, v in fw.items()})
     baseline.update({f"fuziune_{k}": v for k, v in fwo.items()})
     report = ModelReport(

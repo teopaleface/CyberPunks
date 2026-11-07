@@ -16,6 +16,15 @@ from cyberpunks.common.paths import DATA_PROCESSED, REPORTS
 OUT = REPORTS / "bilant"
 
 
+def _ro(x: float, d: int = 2) -> str:
+    """Număr în format românesc: virgulă zecimală, punct la mii."""
+    return f"{x:,.{d}f}".replace(",", "_").replace(".", ",").replace("_", ".")
+
+
+def _pct(x: float, d: int = 0) -> str:
+    return _ro(x * 100, d) + "%"
+
+
 def _tbl(df: pd.DataFrame, fmt: str = "{:.2f}") -> str:
     cols = [str(c) for c in df.columns]
     lines = ["| " + " | ".join([df.index.name or ""] + cols) + " |", "|" + "|".join("---" for _ in range(len(cols) + 1)) + "|"]
@@ -145,6 +154,36 @@ def main() -> None:
         "",
         "- De ce câștigul e mic cu scorurile reale: A e deja foarte precis în vârful listei (100% în primele 200 de contoare), iar defectele lui A apar pe posturi cu câte 3-4 contoare cu probleme deodată (5,5% din contoare). Creșterea lipsei de la post e suma lor, deci nu spune care contor e de vină. Mai mult, curbele de consum ale lui A (Londra) nu sunt curbele clienților din lumea bilanțului; cele două lumi împart doar contorul cu problemă și ziua în care a apărut.",
         "- Limită: scorurile din testul pe mai multe zile sunt simulate (`fusion_eval.py`).",
+        "",
+    ]
+    # 4. sinteza: unde ajută bilanțul și unde nu
+    mj = json.loads((OUT / "metrics.json").read_text())
+    M, B = mj["metrics"], mj["baseline_metrics"]
+
+    def pc(c: str, k: str) -> str:
+        v = M.get(f"cauze_post_{c}_{k}")
+        return f"{v:.0%}" if v is not None else "-"
+
+    md += [
+        "## 4. Unde ajută bilanțul și unde nu (sinteză cinstită)",
+        "",
+        "### Unde ajută",
+        "",
+        f"- **Cauzele pe care contoarele nu le văd deloc.** Doar contoarele (modelul A) găsesc 0 din aceste probleme, prin construcție: nu au cum să vadă un branșament direct, un cablu care pierde sau un contor de post setat greșit. Bilanțul găsește postul în: furt înainte de contor {pc('furt_inainte_contor', 'found')} (cauza corectă {pc('furt_inainte_contor', 'right_cause')}), pierdere tehnică {pc('pierdere_tehnica', 'found')} ({pc('pierdere_tehnica', 'right_cause')}), contorul postului setat greșit {pc('contor_bilant_setat', 'found')} ({pc('contor_bilant_setat', 'right_cause')}), client la postul greșit {pc('client_post_gresit', 'found')} ({pc('client_post_gresit', 'right_cause')}) din ferestrele de test.",
+        f"- Energia: bilanțul găsește {M.get('cauze_post_energy_found_share', 0):.0%} din energia lipsă din aceste cauze, adică ~{_ro(M.get('cauze_post_lei_per_month_found', 0), 0)} lei pe lună pe cele 300 de posturi ale hărții (la 0,70 lei/kWh). Din posturile marcate, {M.get('cauze_post_false_alarm_share_of_found', 0):.0%} sunt de fapt normale.",
+        f"- Pe ziua demo, {M.get('invizibil_share_invisible_to_meters', 0):.0%} din energia pierdută peste normal nu apare la niciun contor de client.",
+        f"- Diagnosticul cauzei bate tabelul de reguli din concept: F1 macro {_ro(M['diagnoza_macro_f1'])} față de {_ro(B['diagnoza_macro_f1'])}. Clientul la postul greșit: {_ro(M['diagnoza_f1_client_post_gresit'])} (reguli {_ro(B['diagnoza_f1_client_post_gresit'])}), după trăsătura „oglindă” (lipsa la un post și surplusul la vecin, zi de zi) și legarea celor două capete ale perechii. Pierderea tehnică: {_ro(M['diagnoza_f1_pierdere_tehnica'])} (reguli {_ro(B['diagnoza_f1_pierdere_tehnica'])}).",
+        "- Planul B (unde montăm întâi contoarele de bilanț): `reports/bilant/plan_b.md`.",
+        f"- Când modelul de contoare e mai slab (calitatea SGCC, AUC 0,80), confirmarea din bilanț ridică lei recuperați în primele 10 verificări pe zi de la {B['fuziune_sgcc_value_lei_per_day_at_10']:.0f} la {M['fuziune_sgcc_value_lei_per_day_at_10']:.0f}.",
+        "",
+        "### Unde nu ajută",
+        "",
+        f"- **Clasarea contoarelor găsite deja de A.** Cu scorurile reale ale lui A, precizia în primele 10-300 contoare e 100% cu și fără bilanț. La K = 500 bilanțul nu ajută ({_pct(M['fuziune_a_real_precision_at_500_a'], 1)} fără, {_pct(M['fuziune_a_real_precision_at_500_fused'], 1)} cu). Cu scoruri simulate de calitatea lui A pe Londra, câștigul e mic: în primele 10, de la {_pct(B['fuziune_precision_at_10'], 1)} la {_pct(M['fuziune_precision_at_10'], 1)}, adică {_ro(M['fuziune_wasted_trips_avoided_per_day_at_10'])} deplasări degeaba evitate pe zi.",
+        "- Pierderea tehnică veche (peste 60 de zile) sau mică (sub 10 kWh/zi) scapă des: istoricul postului o învață ca normală, iar comparația cu luna trecută nu mai vede saltul. Am încercat și comparația cu normalul fără istoric (doar GIS): pierderea tehnică a urcat puțin, F1 macro a scăzut puțin, deci n-am păstrat-o în model.",
+        "- De ce: un post are adesea mai multe contoare cu probleme deodată, iar lipsa de la post e suma lor, deci nu arată care contor e de vină. Problemele mici (sub 2 kWh/zi) se pierd în zgomotul pierderii normale. Tipurile care nu schimbă totalul zilei (profil inversat, ceas decalat, salturi) nu se văd deloc în bilanț.",
+        "- **Să coboare scorul unui contor** pe un post fără lipsă: pe scorurile reale ale lui A asta strica lista (AUC 0,918 → 0,907), așa că fuziunea doar confirmă.",
+        "- **Să rezolve „nu sunt sigur” al lui A:** pe ziua demo, 0 din 5 cazuri corecte. Funcția e oprită.",
+        f"- Contorul de client în lumea cu defectele lui A: F1 {_ro(M['diagnoza_f1_contor_client'])}. Multe tipuri ale lui A au lipsă mică sau zero la totalul zilei.",
         "",
     ]
     (OUT / "error_analysis.md").write_text("\n".join(md) + "\n", encoding="utf-8")

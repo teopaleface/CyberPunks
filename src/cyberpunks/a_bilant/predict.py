@@ -132,11 +132,11 @@ def post_states(pool: str, target_day: int) -> tuple[pd.DataFrame, pd.DataFrame,
     """Trăsăturile zilnice cu pierderea normală, fereastra zilei țintă, diagnosticul."""
     d = F.load_pool(pool)
     models = {"warm": N.load("normal"), "cold": N.load("normal_cold")}
-    pred = N.predict_any(models, d)
+    pred = W.predict_normal(models, d)
     win = W.build_windows(d, pred, pool, days=[target_day])
     diag = G.load()
     proba = diag.proba(win)
-    dec = G.decide(proba, win)
+    dec = G.pair_consistency(win, G.decide(proba, win))
     d = d.assign(p10=pred["p10"].to_numpy(), p50=pred["p50"].to_numpy(), p90=pred["p90"].to_numpy())
     return d, win.join(dec), proba
 

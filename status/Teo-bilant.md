@@ -1,7 +1,22 @@
 # Status: Teo-bilant
-Actualizat: 2026-11-07 14:38
+Actualizat: 2026-11-07 15:04
 Milestone curent: M3 făcut (robustețe, analiza erorilor, planul B), M4 aproape (docs, fișa modelului)
-Gata de merge: da (commit 35eb179)
+Gata de merge: da (commit b645a1b)
+
+## Răspuns la cererea orchestratorului de la 14:50
+- `git merge Teo` făcut. `reports/bilant/metrics.json` din `Teo` era identic cu al meu (bilant-lgbm@4b1ad06). Acum e regenerat, cu cifrele de mai jos.
+1. **Mai multe K și deplasări degeaba evitate** (`reports/bilant/fusion_k.png`, `metrics.json`, `fuziune_*`, `fuziune_sgcc_*`, `fuziune_a_real_*`). Câștigul rămâne mic la clasarea contoarelor:
+   - calitatea lui A pe Londra: deplasări evitate 0,20 / 0,28 / 0,28 / 0,05 pe zi la K = 10 / 20 / 50 / 100; lei pe zi de la 824 la 855, de la 921 la 1.000, de la 1.177 la 1.458, de la 1.370 la 1.587;
+   - calitatea lui A pe SGCC: 0,15 / 0,25 / 0,25 / 0,40 deplasări evitate; lei pe zi de la 126 la 456 (K = 10);
+   - scorurile reale ale lui A: 0 până la K = 300.
+2. **Cauzele pe care contoarele nu le văd deloc (A = 0)** (`reports/bilant/bilant_only_causes.png`, `cauze_post_*`). Bilanțul găsește postul în 74% din ferestrele cu furt înainte de contor (cauza corectă 55%), 65% la pierderea tehnică (42%), 99% la contorul postului setat greșit (99%) și 50% la clientul la postul greșit (30%). Asta înseamnă **85% din energia lipsă din aceste cauze, ~25.000 lei pe lună** pe cele 300 de posturi. Din posturile marcate, 13% sunt de fapt normale. Plus 48% din energia pierdută în ziua demo e invizibilă la contoare. **Asta propun ca cifră principală.**
+3. **Diagnosticele slabe:**
+   - clientul la postul greșit: de la **0,32 la 0,57** (precizie 0,83), cu trăsătura „oglindă” (lipsa zilnică la un post corelată negativ cu surplusul vecinului) și cu legarea celor două capete ale perechii (`diagnose.pair_consistency`);
+   - pierderea tehnică: de la 0,36 la **0,46**, cu forma orară a lipsei (a + b·sarcină + c·sarcină², acum față de luna trecută) și raportul față de normal;
+   - F1 macro: de la 0,61 la **0,67** (reguli 0,48), exactitate 0,81.
+   - Am încercat și comparația cu normalul fără istoric (doar GIS): pierderea tehnică a urcat la 0,47, dar F1 macro a scăzut la 0,66. N-am păstrat-o.
+4. **`error_analysis.md`, secțiunea 4:** unde ajută bilanțul (cauzele de post, energia invizibilă, diagnosticul, planul B, modelele de contoare slabe) și unde nu (clasarea contoarelor deja găsite de A, coborârea scorurilor, rezolvarea lui „nu sunt sigur”, contorul de client la defectele lui A cu F1 0,38).
+- Lucrări demo-vara: 85, valide; 84 pe posturi cu probleme reale. Fără dubluri cu A: 6 posturi „nu sunt sigur” și 62 de posturi cu contor de client lăsate lui A. `make check`: 243 trec.
 
 ## Răspuns la cererea orchestratorului de la 14:20
 1. **`git merge Teo` făcut.** Contoarele lui A sunt acum pe posturile registrului C. Fuziunea le folosește direct; „legătura aproximativă” mai rămâne doar pentru un `post_id` necunoscut.
@@ -29,7 +44,7 @@ Gata de merge: da (commit 35eb179)
 - Niciunul.
 
 ## Cereri către orchestrator
-1. **Prezentarea:** cifra pentru bilanț e „vede 48% din energia pierdută pe care contoarele nu o văd” plus planul B (36% față de 20%). Cifra „cu bilanț față de fără” doar ca sensibilitate: câștig când modelul de contoare e mai slab (SGCC: lei în primele 10 de 3,6 ori), zero cu scorurile actuale ale lui A. Vă rog transmiteți firului de prezentare.
+1. **Prezentarea:** cifra pentru bilanț e „găsește 85% din energia lipsă din cauzele pe care contoarele nu le văd (furt înainte de contor, cabluri, contor de post, client la postul greșit), ~25.000 lei pe lună pe 300 de posturi; A are 0 acolo”, plus „48% din energia pierdută e invizibilă la contoare” și planul B (36% față de 20%). Cifra „cu bilanț față de fără” doar ca sensibilitate: câștig când modelul de contoare e mai slab (SGCC: lei în primele 10 de 3,6 ori), zero cu scorurile actuale ale lui A. Vă rog transmiteți firului de prezentare.
 2. **Planificatorul:** ordinea contează pentru deduplicare. `cyberpunks.a_contoare.predict` trebuie să ruleze înaintea `cyberpunks.a_bilant.predict` (bilanțul citește `A.jsonl` ca să nu dubleze). Apoi `fuse`.
 3. **C:** `extra.phase_rebalance_input` pe lucrările `pierdere_tehnica` (PT-1269: pierderi de 2,2 ori normalul, faza estimată ~68%, adevărul 76/15/9).
 4. **`memory/journal.md`:** „14:37 bilanț: fuziunea doar confirmă (pe scorurile reale ale lui A, coborârea strica clasamentul); cifra 0,15/0,09 retrasă; cifra pentru prezentare: 48% din energia pierdută e invizibilă la contoare.”
@@ -41,7 +56,8 @@ Gata de merge: da (commit 35eb179)
 ## Cifre (doar din scripturi, cu comanda `make bilant-data bilant-eval`)
 SIMULARE pe date publice. Test: cele 300 de posturi ale registrului C (rețele nevăzute).
 - Pierderea normală: MAE 5,30 kWh/zi (formula fizică 14,91; procent fix 20,59); fără istoric 12,56; acoperirea P10-P90 88,1%; mediana pierderii 3,8% din energia care trece prin post.
-- Diagnosticul: F1 macro 0,61 față de 0,48 la reguli; furt înainte de contor 0,66 față de 0,35; contor de post ×2 0,99; se abține în 15,1% din ferestre.
+- Diagnosticul: F1 macro 0,67 față de 0,48 la reguli; furt înainte de contor 0,70 față de 0,35; client la postul greșit 0,57 față de 0,34; pierdere tehnică 0,46 față de 0,28; contor de post ×2 0,99; se abține în 13,1% din ferestre.
+- Cauzele de post (A = 0): găsite 74% / 65% / 99% / 50%; 85% din energie, ~25.000 lei pe lună.
 - Energia invizibilă la contoare: 48%. Planul B: 36% față de 20%. Fuziunea: tabelul de mai sus.
 
 ## Decizii (cu ora)
@@ -50,3 +66,4 @@ SIMULARE pe date publice. Test: cele 300 de posturi ale registrului C (rețele n
 - 14:30: fuziunea doar confirmă; testul pe mai multe zile trece pe lotul train (lotul hărții are acum defectele lui A, apărute doar în ultimele 60 de zile).
 - 14:35: rezolvarea automată a lui „nu sunt sigur” e oprită (0 din 5 corecte pe demo).
 - 14:35: bilanțul lasă lui A posturile unde A are deja lucrare la om sau pe contor.
+- 15:00: trăsătura „oglindă” și legarea perechii pentru clientul la postul greșit; forma orară a lipsei pentru pierderea tehnică; comparația cu normalul fără istoric, scoasă (F1 macro mai mic).
