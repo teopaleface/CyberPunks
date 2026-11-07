@@ -1,7 +1,7 @@
 # Status: Teo-C-prosumatori
-Actualizat: 2026-11-07 15:15
+Actualizat: 2026-11-07 15:23
 Milestone curent: M3 în lucru (M2 terminat la 14:11; M3 aproape gata: analiza erorilor, investiții, racordări, teste)
-Gata de merge: da (commit 55a6d6a; cifrele seriei orare și ale ablației se recalculează până la 15:35, restul neschimbat)
+Gata de merge: da (commit 972344e; `make check` trece, 249 de teste în tot repo-ul, 31 în `tests/c`)
 
 ## Făcut
 - M0 (13:10): calcul de rețea vectorizat verificat față de pandapower, prima rețea simulată, `docs/research/C.md`.
@@ -29,7 +29,7 @@ Gata de merge: da (commit 55a6d6a; cifrele seriei orare și ale ablației se rec
   - Pe 8 iulie 2025: 7 × priză, 4 × rebalansare pe faze, 2 × limită de export, 20 de mesaje, 8 urmăriri. `predict.run` durează circa 6,5 s.
 
 - 14:11 M2 complet:
-  - modelul orar are acum interval conformal: acoperire P10-P90 79,7% pe rețele nevăzute (49,8% înainte), calibrat doar pe antrenare, MAE 0,0049 pu;
+  - modelul orar are acum interval conformal: acoperire P10-P90 80,4% pe rețele nevăzute (49,8% înainte), calibrat imbricat doar pe antrenare, MAE 0,0049 pu;
   - calibrare: ECE 0,003 (model) față de 0,013 (baseline); `reports/C/figures/reliability.png`;
   - modelul bate baseline-ul pe fiecare topologie, lună, tip de vreme și tip de rețea (`reports/C/error_tables.json`).
 - 14:11 M3, mare parte:
@@ -47,7 +47,7 @@ Gata de merge: da (commit 55a6d6a; cifrele seriei orare și ale ablației se rec
   - o margine conformală negativă ar fi putut încrucișa cuantilele;
   - mesajele de grup: energia mutată se păstrează exact; bateriile: economia ține cont de limita de putere și de pierderi;
   - fereastra care se termină la miezul nopții.
-  - 14:52 Lanțul refăcut: cifrele modelului zilnic neschimbate (tensiunea maximă nu depindea de corecturi); intervalul orar 79,7%; energia pierdută cu circa 10% mai mare (cascada fără plafon).
+  - 14:52 Lanțul refăcut: cifrele modelului zilnic neschimbate (tensiunea maximă nu depindea de corecturi); intervalul orar 79,7%, apoi 80,4% după runda 2; energia pierdută cu circa 10% mai mare (cascada fără plafon).
 - 15:00 Figura scării de soluții pentru prezentare: `reports/C/figures/ladder_demo-vara_PT-1252.png`.
 - 15:05 Clonă curată (`git clone` + `uv sync` + `predict --scenario demo-vara`): 41 de lucrări valide în circa un minut, fără pașii grei.
 - 15:08 Experiment din analiza erorilor (radiația de dimineață, pentru baterii): neadoptat, clasificarea iese mai slabă; notat.
@@ -56,7 +56,7 @@ Gata de merge: da (commit 55a6d6a; cifrele seriei orare și ale ablației se rec
 - 14:55 Rezervă pentru lipsa prognozei: ultima copie salvată, apoi clima medie a perioadei (incertitudine mare, cazurile de lângă prag la om); testat cu rețeaua tăiată.
 
 ## Urmează
-- Cifrele recalculate după runda 2 (seria orară, ablația, ofertele de baterii).
+- 15:25 Rulez `make c-all` într-o clonă curată (circa 25 de minute) și compar cifrele cu cele din git.
 - Notă pentru orchestrator: modelul C are 4 versiuni în istoricul git (8,7 MB fiecare); nu mai adaug altele decât dacă modelul se schimbă.
 - M4: comenzi reproductibile verificate dintr-o clonă curată, curățenie.
 
@@ -87,7 +87,7 @@ Gata de merge: da (commit 55a6d6a; cifrele seriei orare și ale ablației se rec
   - MAE tensiune maximă: **0,0054 pu** (model) față de **0,0227 pu** (baseline); RMSE 0,0070 față de 0,0277.
   - Depășiri peste 1,10 pu: PR-AUC **0,951** față de **0,428**; recall 86,5% față de 25,6%; precizie 86,9% față de 60,5%; Brier 0,015 față de 0,058.
   - Acoperirea intervalului P10-P90: **82,1%** (ținta 80%), lățime medie 0,018 pu; margini conformale pe patru grupe de rețea (pe topologii 76-87%).
-  - Eroarea de calibrare (ECE): 0,003 față de 0,013 la baseline. Modelul orar: MAE 0,0049 pu, acoperire 79,7%.
+  - Eroarea de calibrare (ECE): 0,003 față de 0,013 la baseline. Modelul orar: MAE 0,0049 pu, acoperire 80,4%.
   - Ablații: fără trăsăturile fizice din topologie MAE 0,0119 și PR-AUC 0,384; fără tensiunea de pornire și priză MAE 0,0205 (`reports/C/ablation_*.json`).
   - Pe topologii, MAE model 0,0044-0,0064 pu, baseline 0,0200-0,0269.
   - Reper din literatură: BOOST-RPF (arXiv:2603.21977), aceleași 6 rețele, leave-one-grid-out, RMSE 0,0134 pu pe noduri (altă sarcină, același ordin de mărime).
