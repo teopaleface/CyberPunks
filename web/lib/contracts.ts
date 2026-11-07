@@ -15,6 +15,12 @@ export type RecommendedAction =
   | "adjust_tap"
   | "measurement_campaign"
   | "notify_customers"
+  | "office_correction"
+  | "grid_inspection"
+  | "phase_rebalance"
+  | "offer_battery"
+  | "export_limit"
+  | "transformer_upgrade"
   | "no_action";
 export type DecisionType =
   "assigned" | "deferred" | "human_review" | "remote_action" | "notify" | "rejected_invalid";

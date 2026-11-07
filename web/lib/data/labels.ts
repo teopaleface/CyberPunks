@@ -39,6 +39,12 @@ export const ACTION_RO: Record<RecommendedAction, string> = {
   adjust_tap: "schimbarea prizei transformatorului",
   measurement_campaign: "analizor de calitate montat la post",
   notify_customers: "mesaj către prosumatori",
+  office_correction: "corecție în bază, fără deplasare",
+  grid_inspection: "inspecția rețelei de joasă tensiune",
+  phase_rebalance: "reechilibrarea fazelor",
+  offer_battery: "ofertă de baterii pentru prosumatori",
+  export_limit: "limitarea injecției în rețea",
+  transformer_upgrade: "transformator mai mare",
   no_action: "nicio acțiune",
 };
 
@@ -89,6 +95,8 @@ const RULE_RO: Record<string, string> = {
   "R-PLANNED-OUTAGE-NOTICE": "întreruperea planificată cere anunțarea clienților",
   "R-BELOW-THRESHOLD": "riscul e sub prag, zona rămâne urmărită",
   "R-QUARANTINE": "date de intrare greșite, puse în carantină",
+  "R-REMEDY-LADDER": "cea mai ieftină soluție care aduce tensiunea sub 1,10",
+  "R-FUSION-BILANT": "contorul e confirmat de bilanțul postului",
 };
 
 export function ruleRo(ruleId: string | null | undefined): string | null {
