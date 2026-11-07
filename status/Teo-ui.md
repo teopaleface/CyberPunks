@@ -1,49 +1,49 @@
 # Status: Teo-ui
-Actualizat: 2026-11-07 13:14
-Milestone curent: M0
-Gata de merge: nu
+Actualizat: 2026-11-07 13:52
+Milestone curent: M1 (M0 terminat la 13:50)
+Gata de merge: da (commit d18f547, M0: temă, logo, antet, ecranul Planul de mâine pe API și pe fixture-uri)
 
 ## Făcut
-- 12:45 Citite: prompts/_comun.md, prompts/ui.md, memory/ (INDEX, 07, 08, 10, journal), docs/PLAN.md, docs/CONTRACTS.md, contracts.py, contracts/fixtures/.
-- 12:45 `uv sync` și `make check` trec (ruff curat, 7 teste).
-- 12:50 Paleta PPC verificată din CSS-ul site-urilor: ppcgroup.com `--primary-black #000f1e`, `--primary-blue #00a3e0`, `--primary-red #fa4616`; ppcenergy.ro `primary #163fe8`, `third #ff6447`; font PingLCG (proprietar, nu îl folosim). Folosim doar familia de culori (bleumarin, albastru, cald), nu valorile exacte.
-- 12:52 OpenFreeMap merge fără cheie: stilurile positron, bright, liberty, dark, fiord (HTTP 200), dale vectoriale peste București (z12, 150 KB), glife Noto Sans cu ș/ț. Randat headless cu agent-browser; etichetele se pun pe numele local (`name`), altfel apare „Bucharest”.
-- 12:53 Fonturi verificate pe fișierele Google Fonts (cmap): ș/ț cu virgulă (U+0219/U+021B, glife separate de ş/ţ cu sedilă), ă, â, î în toate cele 34 de candidate (Archivo, Sofia Sans, Instrument Sans, Geist, IBM Plex, Inter Tight etc.).
-- 12:55 Pornite în paralel: scheletul Next.js (subagent), logoul cu Codex (3 concepte, PNG + SVG în `web/public/brand/`), 3 machete de direcție vizuală pe datele din fixture-uri (`web/design/directions/`: „Panou” HMI de dispecerat, „Mersul echipelor” orar, „Noaptea dinaintea turei”).
-
-- 13:00 Logo: Codex a livrat 3 concepte (PNG + SVG) în `web/public/brand/`; ales A, „răsărit pe traseu” (soare care răsare în spatele traseului unei echipe). Favicon: `web/app/icon.svg`.
-- 13:05 Schelet Next.js gata (subagent): Next 16.4 (Cache Components), React 19.3, Tailwind 4, shadcn/ui, MapLibre 6.16, Recharts 3.10, bun; stratul de date API → instantaneu demo → fixture-uri, cu proveniența afișabilă; 17 teste trec, build și lint curate. API-ul planificatorului răspunde deja pe 8710 (`demo-vara`).
-- 13:10 Trei machete pe datele reale din fixture-uri, arătate lui Teo (`web/design/directions/`): Panou, Mersul echipelor, Noaptea dinaintea turei.
-- 13:12 Conturul județelor (Natural Earth, domeniu public, nume cu diacritice) în `web/public/geo/ro-judete.json`, pentru harta mică a zonei Rețele Electrice.
+- 12:45 Citite instrucțiunile, memoria, planul, contractele; `uv sync` și `make check` trec.
+- 12:50 Paleta PPC verificată din CSS-ul site-urilor (ppcgroup.com `#000f1e`, `#00a3e0`, `#fa4616`; ppcenergy.ro `#163fe8`; font PingLCG, proprietar, nefolosit). Folosim doar familia de culori.
+- 12:52 OpenFreeMap merge fără cheie (positron, bright, liberty, dark, fiord; dale peste București; glife cu ș/ț).
+- 12:53 Fonturi verificate pe fișiere (cmap): ș/ț cu virgulă în toate cele 34 de candidate.
+- 13:00 Logo de la Codex (3 concepte, PNG + SVG), ales „răsărit pe traseu”; favicon `web/app/icon.svg`.
+- 13:05 Schelet Next.js 16.4 + React 19.3 + Tailwind 4 + shadcn/ui + MapLibre 6.16 + Recharts 3.10 (bun); stratul de date API → instantaneu demo → fixture-uri, cu proveniența afișată.
+- 13:10 Trei machete pe date reale, arătate lui Teo; aleasă „Panou”.
+- 13:50 M0 gata:
+  - tema Panou (gri în repaus, culoare doar pentru sursă și pentru „decide un om”), Archivo variabil pe lățime;
+  - antetul: ecranele, scenariul, proveniența („Date sintetice în 5 din 7, Agentul, în direct”), „Rulează agentul” cu pașii Perceive → Estimate → Decide → Act și timpii reali de la `POST /run` (fără timpi inventați dacă API-ul nu răspunde);
+  - ecranul Planul de mâine: cifrele zilei, harta cu vederi pe regiuni (Toată zona, Muntenia Sud, Dobrogea, Banat), harta mică a zonei RE din conturul județelor, linia de timp a echipelor ca schemă monofilară (cu ferestrele de furtună și de tensiune), coada „Nu sunt sigur” cu Aprobă/Respinge/Amână legate la `POST /review`, alerta principală, detaliul lucrării selectate (scor și interval față de prag, factori, caz similar, regula cu valoarea față de cost, urmărirea până la predicție și model).
+- 13:51 Merge Teo (extinderea bilanț + scara de soluții): tipurile regenerate, cele 6 acțiuni noi au etichete, tipuri TS pentru `extra.remedy_options` și `extra.fusion`.
 
 ## Urmează
-- Aplic direcția Panou în aplicație: temă (culori, Archivo cu ș/ț), logo, antet, cifrele zilei.
-- M0 la 14:30: direcția aleasă (făcut), logo (făcut), proiectul Next.js pornit (făcut), tema aplicată.
-- M1 la 17:30: ecranul 1 (hartă, linia de timp a echipelor, coada „Nu sunt sigur”, alerta, detaliul lucrării) pe API și pe fixture-uri.
+- M1 (17:30): detaliul lucrării (`/lucrari/[id]`) cu graficul potrivit sursei (consum cu zilele de zero; rafale și risc cu fereastra furtunii; tensiune cu P10–P90 și limita 1,10), apoi „Nu sunt sigur” pe pagina ei, alerte și mesaje, jurnal, modele.
+- După M1: harta posturilor (verde / galben / roșu după lei pierduți pe lună), pagina postului (ieșit din post față de suma clienților, cauza, confirmarea contorului), scara de soluții C cu treapta aleasă și motivul, mesajul de grup ca previzualizare, ofertele de baterii, contorul de lei recuperați, lista echipelor cu aprobare.
+- Până la 01:00: `/demo` pentru înregistrări, cu varianta întunecată cerută de firul de prezentare.
 
 ## Blocaje
 - niciunul
 
 ## Cereri către orchestrator
-0. Te rog notează în `memory/journal.md` deciziile de design de mai jos (13:00 paleta validată, 13:14 direcția Panou), eu n-am voie acolo.
-1. Fixture-uri de serii (`Series`), câte una pe sursă, pentru lucrările din fixture-uri: `A-20261109-MTR-004217` (consum zilnic 60 de zile cu cele 9 zile de zero, `expected` = normalul), `B-20261109-CT-MEDGIDIA` (rafale orare 48 h și riscul, fereastra 12:00–20:00), `C-20261109-PT-1432` (tensiune 15 min pe 24 h, P10/P50/P90, `thresholds: {limita_tensiune_pu: 1.10}`), etichetate `synthetic: true`, generate de `contracts/make_fixtures.py` (de exemplu `contracts/fixtures/series_<id>.json`). Fără ele, detaliul lucrării n-are grafic până la API.
-2. Planul din fixture-uri are decizii doar pentru 4 din 8 lucrări. Pentru interfață ar ajuta câte o decizie pentru fiecare tip: `B-20261109-CT-MEDGIDIA` (assigned, echipă CT, `preposition_crew`), `B-20261109-IF-SNAGOV` (deferred), `C-20261109-PT-0877` (notify), `A-20261109-MTR-BAD` (rejected_invalid), plus `remote_action` pentru un contor. Interfața tratează oricum lucrările fără decizie („neplanificate”).
-3. Către planificator (prin tine): structura lui `outputs/demo/`. Propunerea mea, pe care interfața o citește deja ca rezervă: `outputs/demo/<scenariu>/plan.json`, `audit.jsonl`, `work_items/{A,B,C}.jsonl`, `series/<work_item_id>.json`, `run.json` (timpii ultimei rulări: `{plan_id, timings: {perceive, estimate, decide, act}}`), plus `outputs/demo/metrics/{A,B,C}.json`. Dacă alege altă structură, să o scrie în `docs/CONTRACTS.md`.
-4. Către planificator: interfața cheamă API-ul de pe server (Next.js), deci CORS nu e necesar, dar nu strică.
-5. `contracts/fixtures/plan_example.json` nu se potrivește cu el însuși: `summary.total_km` = 31,4, dar traseele adună 29,0 + 4,8 = 33,8 km; `summary.expected_value_lei` = 2.741,2, dar lucrările alocate adună 1.239,75 + 746,2 + 912,0 = 2.897,95 lei. Juriul poate observa. Planificatorul să verifice în cod că rezumatul e suma traseelor și a deciziilor (un test).
-6. Către planificator: în `Route` ar ajuta `depart_at` și `return_at` (acum interfața le deduce din `eta` și `total_travel_min`), iar costul vizitei folosit la decizie să apară în `Decision.threshold` (de exemplu `visit_cost_lei: 180`), ca interfața să nu-l citească din `config/economics.yaml`.
-7. API-ul trimite `scenario_id` la `GET /scenarios`, iar `docs/CONTRACTS.md` nu spune numele câmpului. Interfața acceptă ambele (`scenario_id` și `id`).
+- Răspuns la cererea firului de prezentare (14:05): varianta întunecată pentru `/demo` costă puțin, culorile închise sunt deja validate în temă (A `#3B82F0`, B `#B84FC0`, C `#C4880A` pe `#0F1D2B`), iar harta are stilul `dark`. O fac până la 01:00, împreună cu cardul „Nu sunt sigur” vizibil pentru captură.
+- Către planificator: `GET /api/posts` (registrul posturilor cu lei pierduți pe lună și starea verde/galben/roșu) ar scuti interfața de calcule; până atunci fac un exemplu local, etichetat sintetic.
+- Rezolvate de orchestrator la 13:20: seriile de exemplu, planul complet, `depart_at`/`return_at`, `visit_cost_lei`, structura `outputs/demo/`, `scenario_id`, jurnalul.
 
 ## Cum se rulează (comenzile exacte)
-- (după schelet) `make web` → http://localhost:3710
+- `make web` → http://localhost:3710 (cu API-ul pe 8710 dacă rulează; altfel instantaneul demo sau fixture-urile, automat)
+- `make web-test` (17 teste, stratul de date), `cd web && bun run lint`, `cd web && bunx tsc --noEmit`
+- Forțarea sursei: `DATA_SOURCE=fixtures make web` (sau `demo`, `api`); alt API: `API_BASE=http://127.0.0.1:8710/api`.
 
 ## Cifre (doar din scripturi, cu comanda)
-- niciuna (interfața doar afișează cifrele firelor)
+- niciuna (interfața doar afișează cifrele firelor; culorile surselor validate cu `node validate_palette.js` din abilitatea dataviz)
 
 ## Decizii (cu ora)
-- 12:48 Faza 0 cu subagenți în paralel: scheletul Next.js separat de direcția vizuală, ca M0 să prindă ora 14:30.
-- 12:50 Trimiterea la PPC rămâne discretă: familia bleumarin + albastru + o culoare caldă, fără valorile lor exacte și fără fontul PingLCG, ca să nu pară produs oficial.
-- 12:54 Logoul: Codex desenează doar semnul (fără text), iar numele „Tura de mâine” îl scriem cu fontul interfeței, ca diacriticele să fie sigur corecte.
-- 13:00 Culorile surselor, validate cu scriptul pentru daltonism (abilitatea dataviz): temă deschisă A `#2C6FD9`, B `#A23C9E`, C `#D99100`; temă închisă A `#3B82F0`, B `#B84FC0`, C `#C4880A`. Violetul inițial pentru B a picat testul (ΔE 0,9 față de albastru la deuteranopie); mov-prună trece (10,7).
-- 13:14 Direcția aleasă: Panou (HMI de dispecerat, temă deschisă). De ce: vorbește limba dispecerilor Rețele Electrice (gri în repaus, culoare doar pentru ce contează; ziua echipelor ca schemă monofilară), se vede bine pe proiector, iar linia de timp a echipelor e ideea memorabilă. Iau de la „Noaptea dinaintea turei” ferestrele de timp (furtuna, soarele) pe linia de timp a echipelor și de la „Mersul echipelor” orele mari, înguste. Temele închise se spală pe proiector, deci „Noaptea” rămâne doar idee pentru video.
-- 12:55 Culorile surselor sunt aceleași în toate direcțiile: A Contoare albastru, B Furtună violet, C Tensiune chihlimbar; markerii poartă și litera, ca să nu depindem doar de culoare.
+- 12:48 Faza 0 cu subagenți în paralel (schelet, logo, 3 machete).
+- 12:50 Trimiterea la PPC rămâne discretă: familia bleumarin + albastru + o culoare caldă, fără valorile lor exacte și fără fontul PingLCG.
+- 12:54 Logoul: Codex desenează doar semnul; numele îl scriem cu fontul interfeței (diacritice sigure).
+- 13:00 Culorile surselor validate pentru daltonism: deschis A `#2C6FD9`, B `#A23C9E`, C `#D99100`; închis A `#3B82F0`, B `#B84FC0`, C `#C4880A`. Violetul inițial pentru B pica (ΔE 0,9 față de albastru la deuteranopie).
+- 13:14 Direcția Panou (HMI de dispecerat, temă deschisă): limba dispecerilor, lizibilă pe proiector; de la „Noaptea” iau ferestrele de timp, de la „Mersul” orele mari.
+- 13:35 Harta are vederi pe regiuni, pentru că scenariul demo (8 iulie 2025) are lucrări B în Banat, departe de București; implicit arată regiunea cu cele mai multe opriri.
+- 13:40 Orele de plecare și de întoarcere: din `depart_at`/`return_at` când există, altfel estimate din km (marcate „cca”).
+- 13:45 Worker-ul MapLibre se servește static din `web/public/maplibre/` (copiat la `dev`/`build`, nu stă în git), pentru că bundler-ul Next nu-i rezolvă calea.
