@@ -7,9 +7,11 @@ Ce face: din consumul contoarelor inteligente, modelul nostru găsește contoare
 ```bash
 uv sync
 make a-predict      # lucrările pentru demo-vara și maine, din modelul și pachetul demo din git (~10 s)
-make a-all          # totul de la zero: descărcare (~260 MB), features, antrenare, evaluare, lucrări (~5 min)
+make a-all          # totul de la zero: descărcare (~260 MB), features, antrenare, evaluare, robustețe, figuri, rapoarte
 make a-test         # testele firului A
 ```
+
+**Verificat dintr-o clonă curată** (7 nov. 2026, 15:15-15:24): `git clone --branch Teo-A-contoare` de pe GitHub într-un folder gol, apoi `uv sync` (25 s), `make a-predict` (aceleași 524 / 563 de lucrări, din pachetul din git, fără descărcări), `make a-test` (89 de teste trec), `make a-all` (7 minute, cu descărcarea de ~260 MB). Metricile din `reports/A/metrics.json` și `metrics_full.json` au ieșit identice cu cele din repo, iar lucrările pentru `demo-vara` identice (ID, scor, acțiune, valoare). Serverul din Londra limitează cererile (HTTP 429); scriptul așteaptă și reîncearcă singur.
 
 Pașii din `make a-all`, separat:
 
@@ -23,6 +25,8 @@ Pașii din `make a-all`, separat:
 | Lucrări pentru planificator | `uv run python -m cyberpunks.a_contoare.predict --scenario demo-vara` | `outputs/work_items/<s>/A.jsonl`, `outputs/series/<s>/<id>.json`, `A_summary.json`, `A_ground_truth.csv` |
 | Robustețe (date lipsă, SGCC pe timp) | `uv run python -m cyberpunks.a_contoare.robustness` | `reports/A/robustness.json` |
 | Alegerea features pe calibrare | `uv run python -m cyberpunks.a_contoare.select_features` | `reports/A/feature_selection.json` |
+| Figurile pentru prezentare | `uv run python -m cyberpunks.a_contoare.figures` | `reports/A/figures/headline_precision.png`, `ranking_at_k.png`, `false_alarms_by_consumption.png` |
+| Fuziunea cu bilanțul pe post, pe testul A | `uv run python -m cyberpunks.a_contoare.fusion_check` | `reports/A/fusion_check.json` |
 | Analiza erorilor și model card | `uv run python -m cyberpunks.a_contoare.report` | `reports/A/error_analysis.md`, `reports/A/model_card.md` |
 | Ce intră în git pentru demo | `uv run python -m cyberpunks.a_contoare.train --release` | `models/release/A/a-lgbm.joblib`, `data/samples/A/demo_pack.*`, `data/samples/A/similar_ref.parquet` |
 
