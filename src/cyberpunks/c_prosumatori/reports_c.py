@@ -61,7 +61,7 @@ def battery_offers(scenario: str = "demo-vara", top: int = 30) -> str:
         f"{fmt(c['export_value'])}) lei/kWh × randament dus-întors {fmt(a['battery_eta'], 2)} (prețul cu taxe PPC Ore Smart+ în afara intervalelor, "
         "valoarea energiei injectate din config). Costul: "
         f"{c['battery_price_lei_per_kwh']:.0f} lei/kWh + {c['battery_installation_cost_lei']:.0f} lei montaj (IPOTEZĂ din config)."),
-        (f"- Oferta merge doar unde bateria coboară tensiunea postului cu cel puțin {a['battery_min_effect_pu']} pu și se recuperează în cel mult "
+        (f"- Oferta merge doar unde bateria coboară tensiunea postului cu cel puțin {fmt(a['battery_min_effect_pu'], 4)} pu și se recuperează în cel mult "
         f"{a['battery_max_payback_years']:.0f} ani (IPOTEZĂ). Pentru fiecare prosumator e aleasă mărimea cu recuperarea cea mai scurtă."),
         f"- Venitul PPC Energie: marja de {a['battery_margin_share']:.0%} din vânzare și montaj (IPOTEZĂ).",
         "",
