@@ -1,5 +1,7 @@
 # Landing-ul Daybreak: research vizual
 
+> **Actualizare 17:55 (Teo):** pagina e acum **în engleză** și în **stilul paginilor de produs Apple** („mai wow, mai premium, mai minimalist”). Ce s-a schimbat față de direcția de mai jos: hero centrat (numele produsului, o frază mare, o propoziție, două acțiuni) cu harta înclinată ca un peisaj în zori și răsăritul PPC în spatele orizontului; fontul sistemului (SF Pro pe Mac, cu dimensiuni optice), cu Inter (OFL) pe celelalte sisteme, în locul lui Figtree; secțiuni cu o singură idee fiecare, text care se aprinde la derulare, povestea pe derulare în „How it works”, plăci (bento) pentru modele, cifra agentului ca la keynote, note de subsol pentru surse. Paleta PPC, culorile surselor A/B/C și regula „cifrele doar din reports/” rămân.
+
 Firul Teo-landing, 7 nov. 2026, 17:16-17:40. Scopul: un landing premium, ușor de ținut minte, pentru juriul PPC și pentru repo, în paleta și designul PPC, inspirat din cele 10 site-uri date de Teo.
 
 ## Cum am studiat

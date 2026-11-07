@@ -1,49 +1,67 @@
 # Status: Teo-landing
-Actualizat: 2026-11-07 17:45
-Milestone curent: M0 (19:00) gata devreme: research, direcția, structura, hero-ul randat. Aștept părerea lui Teo pe capturi înainte de restul secțiunilor.
-Gata de merge: nu (după ce Teo vede hero-ul)
+Actualizat: 2026-11-07 18:25
+Milestone curent: M1 (22:00) gata devreme: toate secțiunile pe date reale, în engleză, stil Apple (cererea lui Teo, 17:55), animațiile de bază. Urmează M2 (03:00): review web-design-guidelines, contrast, reduced motion.
+Gata de merge: da (commitul cu acest status, după `git merge Teo` și `make check`)
 
 ## Făcut
-- 17:16 Citite: `prompts/_comun.md`, `AGENTS.md`, memoria (INDEX, jurnal, 07, 10, 11, 12), `status/Teo-ui.md`, `status/Teo-prezentare.md`, `reports/*/metrics.json`, `reports/planner/agent_eval.md`, cadrele filmului (`presentation/frames-codex/v1/FRAMES.md`, textele în engleză).
-- 17:25 Research pe cele 10 site-uri plus ppcenergy.ro (capturi headless la 1440×900 și 390×844, fonturi, culori, biblioteci): `docs/research/landing.md` (ce iau din fiecare și de ce, licențele, fontul, paleta). ppcgroup.com și reteleelectrice.ro blochează browserele automate; paleta lor vine din verificarea firului Interfață.
-- 17:28 Font: **Figtree** (OFL), cel mai apropiat liber de PingLCG din 12 comparate; ș/ț/Ș/Ț cu virgulă verificate în fișierele woff2, cifre tabulare.
-- 17:30 Paleta PPC cu contrast AA pe `#000f1e` (text 17,3; albastru PPC 6,7; portocaliu 5,5; buton alb pe `#163fe8` 7,2). Culorile surselor A/B/C din consolă (varianta închisă).
-- 17:40 Aplicația `landing/` (Next.js 16.4, Tailwind 4, bun, export static) și hero-ul: harta României din puncte, zona Rețele Electrice aprinsă, lucrările reale din planul demo (8 iulie 2025, din `outputs/demo/`), traseele celor 8 echipe, lupa peste București și Ilfov, cercuri portocalii la cele 25 de cazuri pentru om; secvența Perceive → Estimate → Decide → Act doar în CSS, oprită de `prefers-reduced-motion`; arcul de orizont în culorile PPC.
-- 17:48 Hero reordonat: pe mobil harta vine imediat după butoane (pașii după hartă). `make check` trece (277 de teste).
-- 17:42 Exportul static (`bun run build`, 4 s) merge și deschis direct de pe disc (file://): fontul se încarcă, fără erori. `tsc` și `eslint` trec.
-- Capturi pentru Teo: `landing/design/captures/hero-1920x1080.webp`, `hero-1440x900.webp`, `hero-390x844.webp`, `hero-1440-secventa-2-7s.webp` (mijlocul animației).
+- 17:16 Citite instrucțiunile, memoria, statusurile, rapoartele, cadrele filmului.
+- 17:25 Research pe cele 10 site-uri plus ppcenergy.ro: `docs/research/landing.md` (ce iau din fiecare și de ce, licențele, fontul, paleta, actualizarea de la 17:55).
+- 17:45 Prima variantă a hero-ului (în română), arătată lui Teo.
+- 17:55 Teo: „trebuie în engleză, mai wow, mai premium, mai minimalist, mai stil Apple”. Refăcut tot:
+  - hero centrat: „Daybreak”, „Tomorrow’s crews, planned tonight.” (titlul din film), o propoziție, „Watch the demo” și „Read the code”; dedesubt harta României din puncte, înclinată ca un peisaj, cu lucrările reale ale zilei demo ca lumini și răsăritul în culorile PPC în spatele orizontului;
+  - fontul sistemului (SF Pro pe Mac), Inter pe celelalte sisteme; bara de sus translucidă, ca la Apple;
+  - Problem: frază mare care se aprinde la derulare, 4 cifre publice cu note de subsol (3,18M clienți RE, 385.791 prosumatori, 8,66% pierderi în Muntenia, ≈85% din compensațiile automate), citatul PPC „0.87”, „Daybreak does.”;
+  - How it works: harta Bucureștiului și Ilfovului fixă, cei 4 pași o schimbă la derulare (lucrările apar, primesc scoruri, cele mai multe merg la verificare de la distanță, cercuri portocalii pentru om, traseele se desenează);
+  - Models (bento): contoare, bilanț pe post, furtună, tensiune, fiecare cu cifra față de cel mai puternic reper simplu, citită la build din `reports/*/metrics.json`, și eticheta datelor (sintetic sau real);
+  - Cheapest fix first: scara de soluții pe postul PT-1269 (271 V → 252 V, limita 253 V), cu costul fiecărui pas și ce s-a ales;
+  - Not sure? It asks you.: cazul real cu încredere mică (Ineu, furtună, 58%), butonul „Hold to approve” (ține apăsat 1,2 s, apoi Undo), coada zilei (25 de cazuri: 17 abțineri, 7 peste plafonul regiunii, 1 încredere mică);
+  - Every decision has a reason.: contorul MTR-011921 urmărit de la predicție la factorii SHAP, regula valoare față de cost (695 față de 293 lei), echipa, ora, jurnalul;
+  - Results: „+49%” (din `reports/planner/agent_eval.json`), comparația cu cele 4 strategii simple, comenzile care refac fiecare cifră;
+  - Demo (consola pe 3710, `/demo`, locul filmului de 30 s), echipa, notele cu sursele, „Not an official PPC product.”
+- 18:12 Interacțiunile (textul care se aprinde, pașii hărții, butonul de aprobare) sunt într-un script inline, fără React: merg și deschise direct de pe disc (`landing/out/index.html`), pe serverul static și în dezvoltare. Verificat în toate trei.
+- 18:15 Mobil verificat (390×844): harta din How it works stă fixă sus, pașii trec sub ea; fără depășiri pe lățime.
+- 18:20 `git merge Teo` (planul demo nou, bilanțul nou): pagina preia singură cifrele noi; exemplele alese există în continuare.
+- Capturi: `landing/design/captures/` (hero 1920 și mobil, How it works, modele, scara, omul în buclă, explicația, rezultatele).
 
 ## Urmează
-- După părerea lui Teo pe hero: secțiunile Problema, Agentul, Sursele, Scara C, Omul în buclă, Explicabilitate, Rezultate, Demo, Echipa (structura în `docs/research/landing.md`).
-- Cifrele modelelor citite la build din `reports/`; „în lucru” unde lipsesc.
+- Review `web-design-guidelines` pe fișierele mele și reparațiile; contrast verificat pe toate textele; `prefers-reduced-motion` și `prefers-reduced-transparency`.
+- Verificarea surselor pentru cifrele publice (ANRE, planurile RER) direct în documentele primare, unde se poate.
+- Locul filmului: legătura când firul de prezentare are exportul (nu intră în repo).
+- 08:00: capturi finale pentru prezentare, cererea pentru legătura din README.
 
 ## Blocaje
 - niciunul
 
 ## Cereri către orchestrator
-- (17:20) Limba: landing-ul e **în română** (textul, explicațiile, cifrele, cu ș/ț corecte), cu **titluri scurte în engleză** (cel mult 5 cuvinte), aceleași ca în film acolo unde se potrivesc (ex. „Tomorrow’s crews, planned tonight.”, „Not sure? It asks you.”).
-- (17:45) Nimic de îmbinat încă; scriu „Gata de merge: da” după ce Teo vede hero-ul.
-- (17:50) JURNAL, pentru `memory/journal.md` (eu nu scriu în `memory/`): „17:45 Landing (fir nou Teo-landing, pornit la 17:15 de Teo): direcția vizuală = culorile PPC ca răsărit, hero cu harta României din puncte și planul real al zilei demo; font Figtree (liber, apropiat de PingLCG); port 3730; text în română, titluri scurte în engleză ca în film. Research în docs/research/landing.md.”
+- (18:25) **Limba s-a schimbat**: Teo a cerut la 17:55 ca landing-ul să fie **în engleză** (tot textul), ca filmul. Titlurile sunt cele din film unde se potrivesc („Tomorrow’s crews, planned tonight.”, „Fallen poles. Stolen power. Too much sun.”, „Not sure? It asks you.”, „+49% more value. Same crews.”).
+- (18:25) JURNAL, pentru `memory/journal.md` (eu nu scriu în `memory/`): „17:55 Teo, despre landing: totul în engleză, mai wow, mai premium, mai minimalist, stil Apple. Refăcut: hero centrat cu harta României din puncte înclinată ca un peisaj în zori, fontul sistemului (SF Pro), secțiuni cu o idee fiecare, povestea pe derulare, cifrele modelelor doar din reports/. Port 3730.”
+- (18:25) Pentru README, când vreți: o legătură la landing, de exemplu „Pagina de prezentare: `cd landing && bun install && bun run build`, apoi `open landing/out/index.html` (merge și fără server)”. Nu am publicat nimic online.
+- (17:20) Portul 3730, ca ați cerut.
 
 ## Cum se rulează (comenzile exacte)
 - Dezvoltare: `cd landing && bun install && bun dev` → http://localhost:3730
-- Export static: `cd landing && bun run build` → `landing/out/` (se deschide și direct: `open landing/out/index.html`)
-- Verificarea exportului pe server: `cd landing && bun run preview` → http://localhost:3730
+- Export static: `cd landing && bun run build` → `landing/out/`; se deschide direct: `open landing/out/index.html` (fără server, cu toate interacțiunile)
+- Exportul pe server: `cd landing && bun run preview` → http://localhost:3730
 - `cd landing && bun run lint && bun run typecheck`
 - Portul: **3730** (3720 e al previzualizării video).
 
 ## Cifre (doar din scripturi, cu comanda)
-- Hero-ul arată numerele planului demo citite la build din `outputs/demo/plans/demo-vara/plan.json` și `work_items.jsonl` (instantaneul planificatorului, `uv run python -m cyberpunks.planner.snapshot --scenario demo-vara`): 697 de lucrări (A 630, B 26, C 41), 20 în traseele a 8 echipe, 504 verificate de la distanță, 25 la un om.
-- Cifrele modelelor vin doar din `reports/<A|B|C|bilant>/metrics.json` și `reports/planner/agent_eval.json`. La A nu afișez precizia@K de 1,00; afișez problemele subtile și SGCC, cu valorile din fișier (acum 0,625 față de 0,016 și 0,80 față de 0,106; orchestratorul a scris 0,61/0,02 și 0,81/0,11, cifrele mai vechi).
+- Modelele: citite la build din `reports/<A|B|C|bilant>/metrics.json`; agentul din `reports/planner/agent_eval.json` (`uv run python -m cyberpunks.planner.evaluate --days 30 --seed 7 --meters 120`). Pe pagină, fiecare model e comparat cu **cel mai puternic** reper simplu din raport:
+  - A, probleme subtile (Londra): precizia@K 62,5% față de 7,0% (regula simplă; regula VEE completă are 1,6%); SGCC: 80% față de 16% (Isolation Forest; VEE 11%). Precizia@K de 1,00 nu apare.
+  - Bilanț: pierderea normală, eroare 5,4 față de 14,9 kWh/zi (formula fizică); diagnosticul cauzei F1 0,70 față de 0,48.
+  - B: PR-AUC 0,278 față de 0,182 (regula pe rafale; climatologia are 0,151).
+  - C: eroarea tensiunii 0,0054 față de 0,0228 pu; de circa 1.400 de ori mai rapid decât calculul de rețea complet.
+  - Agentul: +49% valoare netă pe zi față de „primul venit, primul servit”, 352 față de 515 km pe zi (lume sintetică, 30 de zile).
+- Planul demo (hero, How it works, cazurile): `outputs/demo/plans/demo-vara/` (instantaneul planificatorului).
+- Cifrele publice (secțiunea Problem) au sursa și data în notele de subsol ale paginii.
 
 ## Decizii (cu ora)
 - 17:18 Port 3730 (cererea orchestratorului).
-- 17:18 Limba: româna pentru tot textul, titluri scurte în engleză (cel mult 5 cuvinte), ca în film.
-- 17:19 Capturile site-urilor de referință: `agent-browser` headless, doar vizualizare. Jev nu salvează capturi (raportează doar done/blocked și URL-ul), iar studiul cere capturi la rezoluții fixe; așa nu se deschid nici tab-uri în Helium-ul lui Teo.
-- 17:19 Nimic peste 5 MB în git: `landing/node_modules`, `.next`, `out` ignorate; capturile în WebP (27-135 KB); filmul se leagă, nu intră în repo.
-- 17:28 Figtree în locul lui Archivo (fontul consolei): brief-ul cere un font apropiat de PingLCG; culorile surselor rămân cele din consolă, ca să fie același produs.
-- 17:30 Direcția: culorile PPC ca răsărit (bleumarin → albastru → cian → soarele portocaliu); portocaliul înseamnă, ca în consolă, „decide un om”; traseele agentului în alb, ca în film.
-- 17:35 Hero-ul folosește planul real din `outputs/demo/` (nu date desenate de mână), etichetat: activele, echipele și bazele sunt sintetice, pe hartă reală; vremea e reală.
-- 17:40 Animația hero-ului doar în CSS, fără JS: merge și de pe disc; cu reduced motion se vede direct starea finală.
-- 17:41 `experimental.inlineCss` și scriptul `landing/scripts/relativize.ts` fac căile relative după build, ca pagina să meargă de pe disc în sală.
-- 17:43 Nicio componentă copiată încă (hero-ul e scris de noi). Dacă preiau cod: React Bits e MIT + Commons Clause (permis într-un site), shadcn, beUI gratuit și Amicro sunt MIT; Originkit, bencho, beautifului, sceneai doar ca inspirație.
+- 17:19 Capturile site-urilor de referință: `agent-browser` headless, doar vizualizare (Jev nu salvează capturi).
+- 17:19 Nimic peste 5 MB în git: `landing/node_modules`, `.next`, `out` ignorate; capturile în WebP (27-135 KB).
+- 17:55 Teo: totul în engleză, stil Apple. Fontul sistemului (SF Pro pe Mac) cu Inter în rest, în locul lui Figtree; paleta PPC rămâne.
+- 18:00 Hero: harta înclinată în 3D doar cu CSS, răsăritul PPC în spatele orizontului; o singură secvență la încărcare.
+- 18:05 La modele, comparația e cu cel mai puternic reper simplu din fiecare raport, nu cu cel mai slab (la A, cifrele din fișier diferă de cele vechi din mesajul orchestratorului).
+- 18:06 Textele cazurilor reale sunt compuse în engleză din câmpurile structurate (scor, fereastră, factori), nu traduse din textele românești ale planificatorului.
+- 18:08 Am scos „la 15 minute” din texte: datele demo ale contoarelor sunt la 30 de minute (Londra).
+- 18:12 Interacțiunile într-un script inline, fără hidratare: Next nu se poate hidrata de pe disc (file://), iar scriptul merge peste tot. `relativize.ts` rescrie doar src/href și url().
