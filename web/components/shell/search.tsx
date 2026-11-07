@@ -44,8 +44,10 @@ export function SearchButton({ index }: { index: ShellInfo["search"] }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button type="button" aria-label="Caută un post, o lucrare sau o echipă" className="grid size-10 place-items-center rounded-[10px] border border-[#2a3a52] text-ink hover:bg-[#0f1a2b]">
+        <button type="button" aria-label="Caută un post, o lucrare sau o echipă" className="flex h-11 items-center justify-center gap-2 rounded-full border border-rule px-3 text-[14px] text-ink-soft hover:bg-surface-2 hover:text-ink">
           <Search aria-hidden="true" size={19} strokeWidth={1.8} />
+          <span className="max-lg:hidden">Caută</span>
+          <kbd aria-hidden="true" className="ml-3 text-[12px] text-muted-foreground max-xl:hidden">⌘ K</kbd>
         </button>
       </DialogTrigger>
       <DialogContent className="top-[18%] translate-y-0 gap-0 rounded-[14px] border border-rule bg-panel p-0 sm:max-w-[620px]" showCloseButton={false}>
@@ -97,7 +99,7 @@ export function SearchButton({ index }: { index: ShellInfo["search"] }) {
                 aria-selected={i === active}
                 onMouseEnter={() => setActive(i)}
                 onClick={() => go(r.href)}
-                className={`flex cursor-pointer items-center gap-3 rounded-[10px] px-3 py-2.5 text-left ${i === active ? "bg-[#16233a]" : ""}`}
+                className={`flex cursor-pointer items-center gap-3 rounded-[10px] px-3 py-2.5 text-left ${i === active ? "bg-surface-2" : ""}`}
               >
                 <span className="w-16 shrink-0 text-[12.5px] text-ink-soft">{r.kind}</span>
                 <span className="font-[600]" translate="no">

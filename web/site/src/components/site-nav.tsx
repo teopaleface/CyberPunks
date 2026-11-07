@@ -22,14 +22,14 @@ function AccountCorner() {
   return (
     <div className="flex items-center gap-2">
       {user ? (
-        <GlassLink href={ROUTES.app} size="sm" variant="blue" title={`Conectat ca ${displayName(user, profile)}`} onClick={go(ROUTES.app)}>
+        <GlassLink href={ROUTES.app} size="sm" variant="signal" title={`Conectat ca ${displayName(user, profile)}`} onClick={go(ROUTES.app)}>
           <UserRound className="size-4" aria-hidden />
           <span className="hidden min-[1400px]:inline">Contul meu</span>
           <span className="sr-only min-[1400px]:hidden">Contul meu</span>
         </GlassLink>
       ) : (
         <>
-          <GlassLink href={ROUTES.signIn} size="sm" variant="blue" onClick={go(ROUTES.signIn)}>
+          <GlassLink href={ROUTES.signIn} size="sm" variant="signal" onClick={go(ROUTES.signIn)}>
             <LogIn className="size-4" aria-hidden />
             <span className="hidden min-[1400px]:inline">Intră în cont</span>
             <span className="sr-only min-[1400px]:hidden">Intră în cont</span>

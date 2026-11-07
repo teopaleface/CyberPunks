@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
 import { useAuth } from "@/lib/auth"
-import { supabase } from "@/lib/supabase"
+import { api } from "@/lib/api"
 
+type Row = { post_id: string; decision: Verdict; crew_id: string | null }
 type Status = "idle" | "loading" | "ready" | "error"
 export type Verdict = "approved" | "deferred" | "rejected"
 
@@ -33,7 +34,7 @@ const Ctx = createContext<ApprovalsState | null>(null)
 
 /**
  * What a person decided on the cases the agent could not decide alone.
- * Signed in: stored in Supabase (table approvals: post_id, decision), per account.
+ * Signed in: stored per account in Cloudflare KV, through /api/aprobari.
  * Signed out: kept in memory for this visit only.
  */
 export function ApprovalsProvider({ children }: { children: ReactNode }) {
@@ -55,10 +56,8 @@ export function ApprovalsProvider({ children }: { children: ReactNode }) {
     }
     let cancelled = false
     setStatus("loading")
-    supabase
-      .from("approvals")
-      .select("post_id, decision, crew_id")
-      .then(({ data, error: e }) => {
+    api<{ rows: Row[] }>("/aprobari").then(({ data: d, error: e }) => {
+        const data = d?.rows
         if (cancelled) return
         if (e) {
           setStatus("error")
@@ -94,24 +93,17 @@ export function ApprovalsProvider({ children }: { children: ReactNode }) {
       }
       if (!user) return
       setSaving(postId)
-      const { error: e } = clear
-        ? await supabase.from("approvals").delete().eq("post_id", postId).eq("user_id", user.id)
-        : await supabase
-            .from("approvals")
-            .upsert({
-              post_id: postId,
-              user_id: user.id,
-              decision: verdict,
-              decided_at: new Date().toISOString(),
-              ...(verdict !== "approved" ? { crew_id: null } : {}),
-            })
+      const { error: e } = await api("/aprobari", {
+        method: "PUT",
+        body: { post_id: postId, decision: clear ? null : verdict, crew_id: verdict === "approved" ? (crews.get(postId) ?? null) : null },
+      })
       setSaving(null)
       if (e) {
         setDecisions(prev)
         setError("Decizia nu s-a salvat. Încearcă din nou.")
       } else setError(null)
     },
-    [decisions, user]
+    [decisions, crews, user]
   )
 
   const assign = useCallback(
@@ -126,12 +118,9 @@ export function ApprovalsProvider({ children }: { children: ReactNode }) {
       if (decisions.get(postId) !== "approved") setDecisions(new Map(decisions).set(postId, "approved"))
       if (!user) return
       setSaving(postId)
-      const { error: e } = await supabase.from("approvals").upsert({
-        post_id: postId,
-        user_id: user.id,
-        decision: "approved",
-        crew_id: clear ? null : crewId,
-        decided_at: new Date().toISOString(),
+      const { error: e } = await api("/aprobari", {
+        method: "PUT",
+        body: { post_id: postId, decision: "approved", crew_id: clear ? null : crewId },
       })
       setSaving(null)
       if (e) {
@@ -152,12 +141,9 @@ export function ApprovalsProvider({ children }: { children: ReactNode }) {
       setDecisions(next)
       if (!user) return
       setSaving("*")
-      const del = await supabase.from("approvals").delete().eq("user_id", user.id)
-      const ins = ids.length
-        ? await supabase.from("approvals").insert(ids.map((post_id) => ({ post_id, user_id: user.id, decision: "approved" })))
-        : { error: null }
+      const { error: e } = await api("/aprobari", { method: "POST", body: { ids } })
       setSaving(null)
-      if (del.error || ins.error) {
+      if (e) {
         setDecisions(prev)
         setError("Lista nu s-a salvat. Încearcă din nou.")
       } else setError(null)

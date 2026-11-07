@@ -3,7 +3,7 @@ import { forwardRef, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type 
 import { cn } from "@/lib/utils"
 
 /**
- * Liquid-glass CTA in the page's orange and white.
+ * Liquid-glass CTA in the page's yellow and white.
  * Layers: tinted glass body (backdrop blur + saturate), a bright rim,
  * a specular highlight on the top edge, and a warm inner glow that
  * rises on hover. A light sweep crosses the glass on hover.
@@ -28,6 +28,10 @@ const glass = cva(
   {
     variants: {
       variant: {
+        signal: [
+          "bg-ember text-black shadow-[inset_0_1px_0_rgba(255,255,255,.5),0_4px_20px_-10px_rgba(255,197,2,.4)]",
+          "hover:bg-ember-soft",
+        ],
         ember: [
           "text-white bg-[linear-gradient(135deg,rgba(255,197,2,0.34),rgba(255,92,255,0.18))]",
           "shadow-[inset_0_1px_0_rgba(255,255,255,.55),inset_0_-10px_24px_rgba(255,197,2,.35),0_8px_32px_-8px_rgba(255,197,2,.65)]",
@@ -46,7 +50,7 @@ const glass = cva(
         ],
       },
       size: {
-        sm: "h-10 px-4 text-sm",
+        sm: "h-11 px-4 text-sm",
         md: "h-12 px-6 text-[15px]",
         lg: "h-14 px-8 text-base",
       },

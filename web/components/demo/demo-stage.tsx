@@ -201,11 +201,11 @@ export function DemoStage({
 
   return (
     <div className="dark flex min-h-dvh flex-col bg-canvas text-ink [color-scheme:dark] lg:h-dvh lg:overflow-hidden">
-      <header className="flex h-[60px] shrink-0 items-center gap-6 border-b border-[#152133] px-7 max-md:px-4">
+      <header className="flex h-[60px] shrink-0 items-center gap-6 border-b border-rule px-7 max-md:px-4">
         <Wordmark />
         <span className="text-[16px] text-muted-foreground max-md:hidden">Prezentare, planul pentru {fmtDateLong(data.planDate).toLowerCase()}</span>
         <span className="flex-1" />
-        <span className="flex items-center gap-2 rounded-full border border-[#2a3a52] px-3 py-1 text-[14px] font-[520] max-md:hidden">
+        <span className="flex items-center gap-2 rounded-full border border-rule px-3 py-1 text-[14px] font-[520] max-md:hidden">
           <SyntheticGlyph /> Date sintetice pe hartă reală
         </span>
         {auto ? (
@@ -213,7 +213,7 @@ export function DemoStage({
             type="button"
             aria-pressed={autoOn}
             onClick={() => setAutoOn((v) => !v)}
-            className="rounded-[10px] border border-[#2a3a52] px-3 py-1.5 text-[14px] font-[560] text-ink hover:bg-[#0f1a2b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            className="rounded-[10px] border border-rule px-3 py-1.5 text-[14px] font-[560] text-ink hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             {autoOn ? "Pauză" : "Pornește"}
           </button>
@@ -257,7 +257,7 @@ export function DemoStage({
           {regionChips.map((c) => {
             const on = c.id === scene.region;
             return (
-              <span key={c.id} className={"inline-flex h-9 items-center rounded-full border px-4 text-[14.5px] font-[520] " + (on ? "border-[#e6e8eb] bg-[#e6e8eb] text-[#0b1322]" : "border-[#2a3a52] text-ink")}>
+              <span key={c.id} className={"inline-flex h-9 items-center rounded-full border px-4 text-[14.5px] font-[520] " + (on ? "border-[#e6e8eb] bg-[#e6e8eb] text-[#0b1322]" : "border-rule text-ink")}>
                 {c.label}
               </span>
             );
@@ -312,7 +312,7 @@ export function DemoStage({
                   </ul>
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-3 max-sm:grid-cols-1">
-                  <span className={"flex h-11 items-center justify-center gap-2 rounded-[10px] text-[15.5px] font-[600] " + (planned ? "bg-[#0b2a18] text-ok-ink" : "bg-[#121e30] text-ink-soft")}>
+                  <span className={"flex h-11 items-center justify-center gap-2 rounded-[10px] text-[15.5px] font-[600] " + (planned ? "bg-[#0b2a18] text-ok-ink" : "bg-surface-2 text-ink-soft")}>
                     {planned ? `Echipa ${decision?.crew_id ?? ""}${stopInfo.get(scene.item ?? "") ? `, ${fmtTime(stopInfo.get(scene.item ?? "")?.eta ?? "")}` : ""}` : human ? "Fără echipă trimisă" : (ACTION_RO[item.recommended_action] ?? "").replace(/^./, (c) => c.toUpperCase())}
                   </span>
                   <span className={"flex h-11 items-center justify-center gap-2 rounded-[10px] text-[15.5px] font-[600] " + (human ? "bg-[#d03c0c] text-white" : "bg-[#0f2547] text-[#8db8ff]")}>
@@ -357,7 +357,7 @@ export function DemoStage({
               onClick={() => go(i)}
               aria-current={i === index ? "step" : undefined}
               aria-label={`Scena ${i + 1}: ${sc.title}`}
-              className={"grid size-10 place-items-center rounded-full border text-[15px] font-[600] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring " + (i === index ? "border-action bg-action text-white" : "border-[#2a3a52] bg-panel text-ink hover:border-[#3d5170]")}
+              className={"grid size-10 place-items-center rounded-full border text-[15px] font-[600] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring " + (i === index ? "border-action bg-action text-primary-foreground" : "border-rule bg-panel text-ink hover:border-ink-soft")}
             >
               {i + 1}
             </button>

@@ -32,7 +32,7 @@ import { caseFacts, categoryOf, pageList, questionFor, whenText, type Category, 
 import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
 import { itemPlace } from "@/lib/plan-screen";
 
-export const metadata: Metadata = { title: "Nu sunt sigur" };
+export const metadata: Metadata = { title: "De verificat" };
 
 const PER_PAGE = 10;
 
@@ -129,8 +129,8 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
     <AppShell info={info}>
       <div className="mx-auto w-full max-w-[1520px] px-8 pt-7 pb-14 max-md:px-4">
         <PageTitle
-          title="Nu sunt sigur: decizii care cer o persoană."
-          subtitle="Cazuri în care agentul nu e sigur și așteaptă judecata unui om, înainte de planul de mâine."
+          title="Tu iei decizia."
+          subtitle="Aici sunt cazurile pe care agentul nu le poate decide singur. Verifică motivul, apoi aprobă, respinge sau amână."
         />
 
         {!plan ? (
@@ -179,7 +179,7 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
                         <Link
                           href={href({ motiv: cat.id, caz: null, pagina: null })}
                           className={cn(
-                            "flex h-full items-center gap-3 rounded-[12px] border bg-surface-2 px-3.5 py-2.5 transition-colors hover:border-[#3d5170] focus-visible:outline-2 focus-visible:outline-ring",
+                            "flex h-full items-center gap-3 rounded-[12px] border bg-surface-2 px-3.5 py-2.5 transition-colors hover:border-ink-soft focus-visible:outline-2 focus-visible:outline-ring",
                             motiv === cat.id ? "border-[#3d5170]" : "border-rule",
                           )}
                         >
@@ -261,7 +261,7 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
                               aria-current={n === page ? "page" : undefined}
                               className={cn(
                                 "grid size-10 place-items-center rounded-[10px] border text-[15px] font-[600] tabular-nums focus-visible:outline-2 focus-visible:outline-ring",
-                                n === page ? "border-action bg-action text-white" : "border-[#2a3a52] hover:border-[#3d5170] hover:bg-[#0f1a2b]",
+                                n === page ? "border-action bg-action text-primary-foreground" : "border-rule hover:border-ink-soft hover:bg-surface-2",
                               )}
                             >
                               {n}
@@ -294,7 +294,7 @@ function FilterChip({ href, on, tone, children }: { href: string; on: boolean; t
       aria-current={on ? "true" : undefined}
       className={cn(
         "inline-flex h-9 items-center gap-2 rounded-full border px-4 text-[14.5px] font-[520] whitespace-nowrap transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-        on ? "border-[#e6e8eb] bg-[#e6e8eb] text-[#0b1322]" : "border-[#2a3a52] text-ink hover:border-[#3d5170] hover:bg-[#0f1a2b]",
+        on ? "border-[#e6e8eb] bg-[#e6e8eb] text-[#0b1322]" : "border-rule text-ink hover:border-ink-soft hover:bg-surface-2",
       )}
     >
       {tone && !on ? <Dot tone={tone} /> : null}

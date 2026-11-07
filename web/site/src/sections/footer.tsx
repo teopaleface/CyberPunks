@@ -82,7 +82,7 @@ export function Footer({ screen = false }: { screen?: boolean }) {
               <GlassLink
                 href={href}
                 size="lg"
-                variant="blue"
+                variant="signal"
                 onClick={(e) => {
                   e.preventDefault()
                   navigate(href)

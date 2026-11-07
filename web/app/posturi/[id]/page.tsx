@@ -266,7 +266,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
             const on = chosen.has(o.action);
             return (
               <li key={`${o.action}-${i}`} className="flex items-center gap-3 rounded-[10px] border border-rule bg-surface-2 px-3 py-2 text-[14px]">
-                <span aria-hidden="true" className={`grid size-7 shrink-0 place-items-center rounded-full border text-[13px] font-[650] ${on ? "border-src-a bg-src-a text-white" : "border-[#2a3a52]"}`}>{i + 1}</span>
+                <span aria-hidden="true" className={`grid size-7 shrink-0 place-items-center rounded-full border text-[13px] font-[650] ${on ? "border-src-a bg-src-a text-white" : "border-rule"}`}>{i + 1}</span>
                 <span className="min-w-0 flex-1">
                   {clean(ACTION_RO[o.action] ?? o.action)}
                   <span className="block text-[12.5px] text-ink-soft">{fmtLei(o.cost_lei)}</span>

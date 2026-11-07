@@ -51,7 +51,7 @@ export function Provenance({
         <button
           type="button"
           aria-haspopup="dialog"
-          className="flex w-full flex-col items-start gap-1 rounded-[10px] border border-[#2a3a52] px-3 py-2.5 text-left text-[13.5px] hover:bg-[#0f1a2b]"
+          className="flex w-full flex-col items-start gap-1 rounded-[10px] border border-rule px-3 py-2.5 text-left text-[13.5px] hover:bg-surface-2"
         >
           <span className="flex items-center gap-2 font-[560]">
             <SyntheticGlyph size={14} />
@@ -69,7 +69,7 @@ export function Provenance({
           align="end"
           sideOffset={8}
           collisionPadding={12}
-          className="z-[60] max-w-[360px] rounded-[10px] border border-[#2a3a52] bg-panel p-3.5 text-[14px] leading-snug text-ink shadow-lg outline-hidden"
+          className="z-[60] max-w-[360px] rounded-[10px] border border-rule bg-panel p-3.5 text-[14px] leading-snug text-ink shadow-lg outline-hidden"
         >
         <p>
           Contoarele, posturile de transformare, bazele și echipele sunt sintetice, puse pe harta reală. Vremea și

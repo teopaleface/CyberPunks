@@ -7,7 +7,7 @@ import { cn } from "cn";
 
 export const NAV = [
   { href: "/app", label: "Planul de mâine", short: "Planul", icon: LayoutGrid, match: (p: string) => p === "/app" || p.startsWith("/harta") },
-  { href: "/coada", label: "Nu sunt sigur", short: "Nu sunt sigur", icon: CircleHelp, match: (p: string) => p.startsWith("/coada"), count: "review" as const },
+  { href: "/coada", label: "De verificat", short: "De verificat", icon: CircleHelp, match: (p: string) => p.startsWith("/coada"), count: "review" as const },
   { href: "/posturi", label: "Posturile", short: "Posturile", icon: UtilityPole, match: (p: string) => p.startsWith("/posturi") },
   { href: "/lucrari", label: "Lucrări", short: "Lucrări", icon: Wrench, match: (p: string) => p.startsWith("/lucrari") || p.startsWith("/ordine") },
   { href: "/jurnal", label: "Jurnal", short: "Jurnal", icon: BookOpen, match: (p: string) => p.startsWith("/jurnal") },
@@ -23,67 +23,60 @@ function useNav() {
   return { pathname, href };
 }
 
-/** Meniul din stânga (design app-01): iconiță și nume, rândul activ pe fundal mai deschis. */
+const GROUPS = [
+  { label: "Dispecerat", entries: [0, 1] },
+  { label: "Rețeaua", entries: [2, 3, 5] },
+  { label: "Cum decide agentul", entries: [4, 6, 7] },
+];
+
+/** Meniul urmărește sarcinile dispecerului, cu pagina curentă marcată și prin formă. */
 export function SideNav({ counts }: { counts: { review: number; alerts: number } }) {
   const { pathname, href } = useNav();
   return (
-    <nav aria-label="Ecranele consolei" className="flex flex-col gap-1.5">
-      {NAV.map((n) => {
-        const active = n.match(pathname);
-        const count = n.count ? counts[n.count] : 0;
-        const Icon = n.icon;
-        return (
-          <Link
-            key={n.href}
-            href={href(n.href)}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "flex h-11 items-center gap-3 rounded-[10px] px-3 text-[15px] transition-colors duration-150",
-              active ? "bg-[#1b2434] font-[600] text-ink" : "text-ink-soft hover:bg-[#0f1a2b] hover:text-ink",
-            )}
-          >
-            <Icon aria-hidden="true" size={21} strokeWidth={1.6} className="shrink-0" />
-            <span className="min-w-0 flex-1 whitespace-nowrap">{n.label}</span>
-            {count ? (
-              <span className={cn("shrink-0 rounded-full px-1.5 py-0.5 text-[11.5px] font-[650] tabular-nums", n.count === "review" ? "bg-[#d03c0c] text-white" : "bg-[#1c2a3e] text-ink-soft")}>
-                {count}
-                <span className="sr-only">{n.count === "review" ? " cazuri așteaptă decizia ta" : " alerte"}</span>
-              </span>
-            ) : null}
-          </Link>
-        );
-      })}
+    <nav aria-label="Ecranele consolei" className="space-y-7">
+      {GROUPS.map((group) => (
+        <div key={group.label}>
+          <p className="mb-2 px-3 text-[13px] font-medium text-muted-foreground">{group.label}</p>
+          <div className="space-y-1">
+            {group.entries.map((index) => {
+              const n = NAV[index];
+              const active = n.match(pathname);
+              const count = n.count ? counts[n.count] : 0;
+              const Icon = n.icon;
+              return (
+                <Link
+                  key={n.href}
+                  href={href(n.href)}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "flex min-h-11 items-center gap-3 rounded-xl border px-3 py-2.5 text-[15px] transition-colors duration-150",
+                    active ? "border-action/25 bg-action/10 font-semibold text-action" : "border-transparent text-ink-soft hover:bg-surface-2 hover:text-ink",
+                  )}
+                >
+                  <Icon aria-hidden="true" size={21} strokeWidth={1.6} className="shrink-0" />
+                  <span className="min-w-0 flex-1 whitespace-nowrap">{n.label}</span>
+                  {count ? (
+                    <span className={cn("shrink-0 rounded-md px-2 py-0.5 text-[12px] font-semibold tabular-nums", n.count === "review" ? "bg-action text-primary-foreground" : "bg-surface-2 text-ink-soft")}>
+                      {count}
+                      <span className="sr-only">{n.count === "review" ? " cazuri așteaptă decizia ta" : " alerte"}</span>
+                    </span>
+                  ) : null}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </nav>
   );
 }
 
-/** Pe telefon: trei file sus, restul ecranelor pe bara de jos (design app-14). */
-export function MobileTabs() {
-  const { pathname, href } = useNav();
-  return (
-    <nav aria-label="Ecranele principale" className="flex gap-2 overflow-x-auto px-4 pb-3 md:hidden">
-      {NAV.slice(0, 3).map((n) => {
-        const active = n.match(pathname);
-        return (
-          <Link
-            key={n.href}
-            href={href(n.href)}
-            aria-current={active ? "page" : undefined}
-            className={cn("rounded-[10px] px-3.5 py-2 text-[15px] whitespace-nowrap", active ? "border border-[#2a3a52] bg-[#1b2434] font-[600]" : "text-ink-soft")}
-          >
-            {n.label}
-          </Link>
-        );
-      })}
-    </nav>
-  );
-}
-
+/** Pe telefon, patru destinații frecvente. Meniul din antet include toate ecranele. */
 export function MobileBottomNav() {
   const { pathname, href } = useNav();
   return (
-    <nav aria-label="Celelalte ecrane" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-[#152133] bg-canvas/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-      {NAV.slice(2).map((n) => {
+    <nav aria-label="Ecranele principale" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-rule bg-canvas/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+      {[NAV[0], NAV[1], NAV[2], NAV[5]].map((n) => {
         const active = n.match(pathname);
         const Icon = n.icon;
         return (
@@ -91,7 +84,7 @@ export function MobileBottomNav() {
             key={n.href}
             href={href(n.href)}
             aria-current={active ? "page" : undefined}
-            className={cn("flex flex-col items-center gap-1 px-1 py-2.5 text-center text-[11.5px] leading-tight", active ? "text-ink" : "text-ink-soft")}
+            className={cn("flex min-h-16 flex-col items-center justify-center gap-1 px-1 py-2.5 text-center text-[12px] leading-tight", active ? "bg-action/8 font-semibold text-action" : "text-ink-soft")}
           >
             <Icon aria-hidden="true" size={22} strokeWidth={1.6} />
             {n.short}

@@ -128,7 +128,7 @@ export function PostsScreen({
                 onClick={() => setStatus(on ? "toate" : s.id)}
                 className={cn(
                   "inline-flex h-9 items-center gap-2 rounded-full border px-4 text-[14.5px] font-[520] whitespace-nowrap transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-                  on ? "border-[#e6e8eb] bg-[#e6e8eb] text-[#0b1322]" : "border-[#2a3a52] text-ink hover:border-[#3d5170] hover:bg-[#0f1a2b]",
+                  on ? "border-[#e6e8eb] bg-[#e6e8eb] text-[#0b1322]" : "border-rule text-ink hover:border-ink-soft hover:bg-surface-2",
                 )}
               >
                 <span aria-hidden="true" className={cn("size-2.5 rounded-full", TONE[s.tone].solid)} />
@@ -189,7 +189,7 @@ export function PostsScreen({
               placeholder="Caută post (ex. PT-1269, Afumați)…"
               autoComplete="off"
               spellCheck={false}
-              className="h-11 w-full rounded-[10px] border border-[#2a3a52] bg-surface-2 pr-10 pl-11 text-[14.5px] text-ink placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring [&::-webkit-search-cancel-button]:hidden"
+              className="h-11 w-full rounded-[10px] border border-rule bg-surface-2 pr-10 pl-11 text-[14.5px] text-ink placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring [&::-webkit-search-cancel-button]:hidden"
             />
             {q ? (
               <button type="button" aria-label="Șterge căutarea" onClick={() => setQ("")} className="absolute top-1/2 right-2.5 grid size-7 -translate-y-1/2 place-items-center rounded-full text-ink-soft hover:text-ink focus-visible:outline-2 focus-visible:outline-ring">

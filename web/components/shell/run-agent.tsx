@@ -74,7 +74,7 @@ export function RunAgentButton({ scenario, scenarioLabel }: { scenario: string; 
           <DialogTitle className="text-[22px] font-[650]">Rulează agentul</DialogTitle>
           <DialogDescription className="text-[15px] leading-relaxed">
             Agentul trece singur prin cei patru pași, pentru scenariul „{scenarioLabel}”. Nimeni nu intervine între
-            pași; la final, ce nu e sigur ajunge la tine, în „Nu sunt sigur”.
+            pași; la final, cazurile nesigure ajung la tine, în „De verificat”.
           </DialogDescription>
         </DialogHeader>
 

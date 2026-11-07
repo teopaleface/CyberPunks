@@ -83,7 +83,7 @@ function Field({ label, icon: Icon, children }: { label: string; icon: Component
 }
 
 const TRIGGER =
-  "h-11 w-full rounded-[10px] border-[#2a3a52] bg-surface-2 px-4 text-[15.5px] text-ink hover:bg-[#101d30] dark:bg-surface-2 dark:hover:bg-[#101d30]";
+  "h-11 w-full rounded-[10px] border-rule bg-surface-2 px-4 text-[15.5px] text-ink hover:bg-[#101d30] dark:bg-surface-2 dark:hover:bg-[#101d30]";
 
 const th = "border-b border-rule px-2.5 py-3.5 text-left align-middle text-[15px] font-[600] text-ink";
 
@@ -263,7 +263,7 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
                 placeholder="PT-1269…"
                 spellCheck={false}
                 autoComplete="off"
-                className="h-11 w-full rounded-[10px] border border-[#2a3a52] bg-surface-2 px-4 text-[15.5px] placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring"
+                className="h-11 w-full rounded-[10px] border border-rule bg-surface-2 px-4 text-[15.5px] placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring"
               />
             </Field>
           </div>
@@ -426,7 +426,7 @@ function DecisionRowImpl({
               href={href}
               translate="no"
               title={r.itemTitle ? `${r.workItemId}: ${r.itemTitle}` : r.workItemId ?? undefined}
-              className="inline-flex max-w-full items-center rounded-[8px] border border-[#2a3a52] bg-surface-2 px-2.5 py-1 text-[14px] tabular-nums transition-colors duration-150 hover:border-[#3d5170] hover:bg-[#101d30] focus-visible:outline-2 focus-visible:outline-ring"
+              className="inline-flex max-w-full items-center rounded-[8px] border border-rule bg-surface-2 px-2.5 py-1 text-[14px] tabular-nums transition-colors duration-150 hover:border-ink-soft hover:bg-[#101d30] focus-visible:outline-2 focus-visible:outline-ring"
             >
               <span className="truncate">{r.assetId}</span>
             </Link>
@@ -473,7 +473,7 @@ function DecisionRowImpl({
             aria-expanded={expanded}
             aria-controls={detailId}
             aria-label={expanded ? `Ascunde detaliile pentru ${what}` : `Arată tot rândul pentru ${what}`}
-            className="inline-grid size-9 place-items-center rounded-[8px] text-ink-soft transition-colors duration-150 hover:bg-[#0f1a2b] hover:text-ink focus-visible:outline-2 focus-visible:outline-ring"
+            className="inline-grid size-9 place-items-center rounded-[8px] text-ink-soft transition-colors duration-150 hover:bg-surface-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-ring"
           >
             <ChevronDownIcon className={cn("size-5 transition-transform duration-150", expanded && "rotate-180")} aria-hidden="true" />
           </button>

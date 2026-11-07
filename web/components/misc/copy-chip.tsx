@@ -31,7 +31,7 @@ export function CopyChip({ text, label, className }: { text: string; label: stri
     }, 1800);
   };
   return (
-    <span className={cn("inline-flex max-w-full items-center gap-2 rounded-[8px] border border-[#2a3a52] bg-surface-2 py-1 pr-1 pl-2.5 text-[14px]", className)}>
+    <span className={cn("inline-flex max-w-full items-center gap-2 rounded-[8px] border border-rule bg-surface-2 py-1 pr-1 pl-2.5 text-[14px]", className)}>
       <span translate="no" className="min-w-0 truncate tabular-nums" title={text}>
         {text}
       </span>

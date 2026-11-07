@@ -25,13 +25,16 @@
   --color-surface-2: var(--surface-2);
   --color-violet: var(--violet);
   --color-action: var(--action);
+  --color-action-hover: var(--action-hover);
+  --color-on-action: var(--on-action);
+  --color-track: var(--track);
   --color-ok-ink: var(--ok-ink);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-  --font-heading: var(--font-sans);
-  --font-display: var(--font-display);
+  --font-heading: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-unbounded), var(--font-geist), ui-sans-serif, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -71,23 +74,23 @@
 }
 
 /*
- * Tema „Noapte” (designul lui Teo, 7 nov., 19:00): fundal bleumarin închis, carduri cu colțuri rotunjite,
- * o singură culoare de acțiune (albastru), portocaliu pentru „decide un om”, verde pentru „aprobat”.
- * Culorile surselor vin din design: A albastru, B violet, C chihlimbar. Valorile sunt luate cu pipeta
- * din capturile designului (app-01 … app-14).
+ * Aceeași identitate ca web/site: negru, suprafețe neutre, galben pentru acțiuni.
+ * Sursele rămân distincte: A albastru, B violet, C chihlimbar.
+ * Portocaliul semnalează verificarea de către un om; verdele indică aprobarea.
  */
 :root,
 .dark {
   color-scheme: dark;
-  --canvas: #000c1e;
-  --panel: #061221;
-  --surface-2: #0b1626;
-  --ink: #eef2f7;
-  --ink-soft: #c3ccd8;
-  --rule: #1c2a3e;
-  --grid: #13213a;
-  --idle: #4a5a70;
-  --travel: #8a97aa;
+  --canvas: #000000;
+  --panel: #0b0b0c;
+  --surface-2: #141416;
+  --ink: #f5f5f7;
+  --ink-soft: #c7c7cc;
+  --rule: #2a2a2e;
+  --grid: #202023;
+  --track: #303034;
+  --idle: #74747d;
+  --travel: #a3a3a8;
   --src-a: #3986fc;
   --src-b: #ad5fd6;
   --src-c: #e59b15;
@@ -98,41 +101,43 @@
   --ok: #16a34a;
   --ok-ink: #4ade80;
   --violet: #ad7cfc;
-  --action: #0b46f5;
-  --on-src: #000c1e;
+  --action: #ffc502;
+  --action-hover: #ffdc6b;
+  --on-action: #000000;
+  --on-src: #000000;
   --on-att: #ffffff;
 
   --background: var(--canvas);
   --foreground: var(--ink);
   --card: var(--panel);
   --card-foreground: var(--ink);
-  --popover: #0b1626;
+  --popover: var(--surface-2);
   --popover-foreground: var(--ink);
   --primary: var(--action);
-  --primary-foreground: #ffffff;
-  --secondary: #0f1a2b;
+  --primary-foreground: var(--on-action);
+  --secondary: var(--surface-2);
   --secondary-foreground: var(--ink);
-  --muted: #121e30;
-  --muted-foreground: #8d99ab;
-  --accent: #16233a;
+  --muted: #1b1b1e;
+  --muted-foreground: #a3a3a8;
+  --accent: #242427;
   --accent-foreground: var(--ink);
   --destructive: var(--att);
   --border: var(--rule);
-  --input: #24344b;
-  --ring: #6ea0ff;
+  --input: #444448;
+  --ring: var(--action);
   --chart-1: var(--src-a);
   --chart-2: var(--src-b);
   --chart-3: var(--src-c);
-  --chart-4: #8a97aa;
-  --chart-5: #4a5a70;
+  --chart-4: var(--travel);
+  --chart-5: var(--idle);
   --radius: 0.75rem;
   --sidebar: var(--canvas);
   --sidebar-foreground: var(--ink);
   --sidebar-primary: var(--action);
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1b2434;
+  --sidebar-primary-foreground: var(--on-action);
+  --sidebar-accent: var(--surface-2);
   --sidebar-accent-foreground: var(--ink);
-  --sidebar-border: #152133;
+  --sidebar-border: var(--rule);
   --sidebar-ring: var(--ring);
 }
 
@@ -142,6 +147,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    line-height: 1.6;
   }
   html {
     @apply font-sans;
@@ -174,16 +180,17 @@
     text-wrap: balance;
   }
   ::selection {
-    background: color-mix(in oklab, var(--src-a) 40%, transparent);
+    background: var(--action);
+    color: var(--on-action);
   }
   /* bare de derulare în tonul paginii */
   * {
-    scrollbar-color: #24344b transparent;
+    scrollbar-color: var(--input) transparent;
     scrollbar-width: thin;
   }
 }
 
-/* Cifrele mari și ID-urile (designul „Noapte”, Inter). */
+/* Cifrele mari rămân în Geist pentru a se citi ușor în carduri și tabele. */
 @utility num-wide {
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -329,7 +336,7 @@
   border: 1px solid var(--rule);
   background: var(--popover);
   box-shadow: 0 6px 18px -10px rgb(19 32 42 / 0.45);
-  font-family: var(--font-sans);
+  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   color: var(--ink);
   line-height: 1.25;
 }

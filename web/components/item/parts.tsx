@@ -43,7 +43,7 @@ export function itemHref(id: string, scenario: string, tag?: Tag | null) {
 /** Filtrele din capul paginii: link-uri (adresa păstrează alegerea), doar cele care au carduri. */
 export function ItemChips({ id, scenario, active, tags }: { id: string; scenario: string; active: Tag | null; tags: Set<Tag> }) {
   const base = "inline-flex h-9 items-center gap-2 rounded-full border px-4 text-[14.5px] font-[520] whitespace-nowrap transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
-  const off = "border-[#2a3a52] text-ink hover:border-[#3d5170] hover:bg-[#0f1a2b]";
+  const off = "border-rule text-ink hover:border-ink-soft hover:bg-surface-2";
   const on = "border-[#e6e8eb] bg-[#e6e8eb] text-[#0b1322]";
   return (
     <nav aria-label="Filtrează cardurile" className="flex flex-wrap gap-2.5">
@@ -154,7 +154,7 @@ export function SimilarCard({ w, className }: { w: WorkItem; className?: string 
 /** „Detalii date”: lipsa, sursele, problemele de intrare, sintetic. */
 export function DataCard({ w, className }: { w: WorkItem; className?: string }) {
   const q = w.data_quality;
-  const pill = (t: ReactNode) => <span className="inline-block min-w-16 rounded-full bg-[#121e30] px-3 py-1 text-center text-[14px] ring-1 ring-[#2a3a52]">{t}</span>;
+  const pill = (t: ReactNode) => <span className="inline-block min-w-16 rounded-full bg-surface-2 px-3 py-1 text-center text-[14px] ring-1 ring-[#2a3a52]">{t}</span>;
   return (
     <Card title="Detalii date" icon={Database} iconTone="blue" className={className}>
       <KV k="Lipsă date" v={pill(fmtPercent(q.missing_ratio, 1))} />

@@ -103,7 +103,7 @@ function SourcePill({ s, children }: { s: Source; children: React.ReactNode }) {
 
 function Pale({ children }: { children?: React.ReactNode }) {
   return (
-    <span className="inline-flex min-w-[84px] justify-center rounded-full border border-[#2a3a52] bg-[#121e30] whitespace-nowrap px-2.5 py-1 text-[14px] text-ink-soft">{children ?? "—"}</span>
+    <span className="inline-flex min-w-[84px] justify-center rounded-full border border-rule bg-surface-2 whitespace-nowrap px-2.5 py-1 text-[14px] text-ink-soft">{children ?? "—"}</span>
   );
 }
 
@@ -236,7 +236,7 @@ export function ModelsBoard({
           <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
             <span className="rounded-[12px] border border-[#1f8a4a] bg-[#0b2a18] px-4 py-2 text-[20px] font-[650] tabular-nums">{fmtLei(agent.net)}/zi</span>
             <span className="text-[14px] text-ink-soft">vs.</span>
-            <span className="rounded-[12px] border border-[#2a3a52] px-4 py-2 text-[20px] font-[650] tabular-nums">{fmtLei(best.net)}/zi</span>
+            <span className="rounded-[12px] border border-rule px-4 py-2 text-[20px] font-[650] tabular-nums">{fmtLei(best.net)}/zi</span>
           </div>
           <p className="mt-4 text-center text-[14.5px] leading-snug text-ink-soft">
             Agentul față de cea mai bună strategie simplă ({strategyName(best.key)}).

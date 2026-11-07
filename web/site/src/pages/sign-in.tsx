@@ -162,7 +162,7 @@ export default function SignInPage() {
           Ești conectat ca <span className="font-medium">{displayName(auth.user, auth.profile)}</span> ({auth.user.email}).
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-4">
-          <GlassButton size="lg" variant="blue" onClick={() => navigate(ROUTES.app)}>
+          <GlassButton size="lg" variant="signal" onClick={() => navigate(ROUTES.app)}>
             Deschide aplicația
           </GlassButton>
           <button type="button" onClick={() => auth.signOut()} className="cursor-pointer text-white/80 underline-offset-4 hover:text-white hover:underline">
@@ -242,7 +242,7 @@ export default function SignInPage() {
               {error && <Notice tone="error">{error}</Notice>}
 
               <div className="flex flex-wrap items-center gap-x-6 gap-y-4 pt-2">
-                <GlassButton type="submit" size="lg" variant="blue" disabled={busy || !supabaseReady} aria-busy={busy}>
+                <GlassButton type="submit" size="lg" variant="signal" disabled={busy || !supabaseReady} aria-busy={busy}>
                   {busy && <Loader2 className="size-4 animate-spin" aria-hidden />}
                   {view === "intra"
                     ? busy

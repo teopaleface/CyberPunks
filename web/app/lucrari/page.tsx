@@ -102,7 +102,7 @@ function Content({
               translate="no"
               className={
                 "inline-flex h-9 items-center rounded-full border px-4 text-[14.5px] font-[520] whitespace-nowrap transition-colors duration-150 " +
-                (on ? "border-[#e6e8eb] bg-[#e6e8eb] text-[#0b1322]" : "border-[#2a3a52] text-ink hover:border-[#3d5170] hover:bg-[#0f1a2b]")
+                (on ? "border-[#e6e8eb] bg-[#e6e8eb] text-[#0b1322]" : "border-rule text-ink hover:border-ink-soft hover:bg-surface-2")
               }
             >
               {id}

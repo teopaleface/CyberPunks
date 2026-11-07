@@ -4,7 +4,6 @@ import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { btn } from "@/components/ds";
 import { approvePlan } from "@/lib/data/actions";
 import { fmtTime } from "@/lib/format";
 
@@ -55,12 +54,12 @@ export function ApproveButton({
           }
         })
       }
-      className={`${btn("primary", "lg")} w-full max-md:bg-ok max-md:hover:bg-[#1fb257] @[460px]:h-auto @[460px]:min-h-[58px] @[460px]:flex-1 @[460px]:whitespace-normal @[460px]:py-2 @[460px]:text-[16px] @[460px]:leading-tight`}
+      className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[10px] bg-[#ffc502] px-5 py-3 text-[15px] leading-snug font-[600] text-black transition-colors hover:bg-[#ffdc6b] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
       <Check aria-hidden="true" size={22} strokeWidth={2.2} className="shrink-0" />
       <span>
         {pending ? "Se trimite…" : "Aprobă lista echipelor"}
-        <span className="max-md:hidden" translate="no">
+        <span className="ml-1 text-black/65" translate="no">
           {" "}
           #{tag}
         </span>

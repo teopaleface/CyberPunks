@@ -81,7 +81,7 @@ export function ReviewActions({ workItemId, scenario, layout = "default" }: { wo
             onChange={(e) => setNote(e.target.value)}
             maxLength={2000}
             placeholder="Adaugă o notă…"
-            className="min-h-[68px] rounded-[10px] border-[#2a3a52] bg-surface-2 px-4 py-3 text-[15.5px]"
+            className="min-h-[68px] rounded-[10px] border-rule bg-surface-2 px-4 py-3 text-[15.5px]"
           />
         </div>
         <div className="grid grid-cols-3 gap-3 max-sm:grid-cols-1">

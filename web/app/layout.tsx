@@ -4,15 +4,15 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
-// Aceleași fonturi ca site-ul de prezentare (web/site): Geist pentru text, Unbounded pentru numele produsului.
+// Aceleași fonturi ca web/site: Geist pentru text, Unbounded pentru titlurile paginilor și numele produsului.
 // `latin-ext` aduce ș, ț, ă, â, î cu virgulă.
 const geist = Geist({
-  variable: "--font-sans",
+  variable: "--font-geist",
   subsets: ["latin", "latin-ext"],
   display: "swap",
 });
 const unbounded = Unbounded({
-  variable: "--font-display",
+  variable: "--font-unbounded",
   subsets: ["latin", "latin-ext"],
   weight: ["600", "700"],
   display: "swap",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#000c1e",
+  themeColor: "#000000",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

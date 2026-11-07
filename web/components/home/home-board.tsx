@@ -1,16 +1,15 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronDown, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
-import { Chips } from "@/components/ds/chips";
 import { cn } from "cn";
 import { ITEMS, type HomeFilter } from "./filters";
 
-/** Ce secțiuni arată fiecare filtru. */
+/** Filtrele se aplică detaliilor; propunerea și decizia următoare rămân vizibile. */
 const SHOW: Record<HomeFilter, string[]> = {
-  toate: ["kpis", "map", "crews", "question", "gantt"],
-  lucrari: ["kpis", "question"],
+  toate: ["figures", "map", "crews", "gantt", "meter"],
+  lucrari: ["figures", "question", "meter"],
   echipe: ["crews", "gantt"],
   trasee: ["crews", "gantt"],
   posturi: ["map"],
@@ -19,7 +18,6 @@ const SHOW: Record<HomeFilter, string[]> = {
   tensiune: ["question"],
 };
 
-/** Unde duce linkul de sub filtru (pagina cu toate detaliile). */
 const MORE: Partial<Record<HomeFilter, { href: string; label: string }>> = {
   lucrari: { href: "/lucrari", label: "Vezi toate lucrările" },
   echipe: { href: "/harta", label: "Vezi traseele pe hartă" },
@@ -34,26 +32,30 @@ export function HomeBoard({
   initial,
   suffix,
   kpis,
+  plan,
+  figures,
   map,
   crews,
   question,
+  meter,
   gantt,
   alerts,
 }: {
   initial: HomeFilter;
-  /** `?scenariu=…` pentru linkuri. */
   suffix: string;
   kpis: ReactNode;
+  plan: ReactNode;
+  figures: ReactNode;
   map: ReactNode;
   crews: ReactNode;
-  question: { bodies: { default: ReactNode; storm: ReactNode | null; voltage: ReactNode | null }; rest: ReactNode };
+  question: { default: ReactNode; storm: ReactNode; voltage: ReactNode };
+  meter: ReactNode;
   gantt: ReactNode;
   alerts: ReactNode;
 }) {
   const [filter, setFilter] = useState<HomeFilter>(initial);
-  const all = filter === "toate";
   const shown = new Set(SHOW[filter]);
-  const body = filter === "vreme" ? (question.bodies.storm ?? question.bodies.default) : filter === "tensiune" ? (question.bodies.voltage ?? question.bodies.default) : question.bodies.default;
+  const body = filter === "vreme" ? question.storm : filter === "tensiune" ? question.voltage : question.default;
   const more = MORE[filter];
 
   const pick = (id: HomeFilter) => {
@@ -66,60 +68,62 @@ export function HomeBoard({
 
   return (
     <>
-      <Chips
-        label="Ce arăt pe ecran"
-        items={ITEMS}
-        value={filter}
-        onChange={pick}
-        className="mt-5 max-md:hidden"
-      />
-      <div role="group" aria-label="Ce arăt pe ecran" className="mt-4 hidden gap-2 overflow-x-auto pb-1 max-md:flex">
-        {ITEMS.map((i) => (
-          <button
-            key={i.id}
-            type="button"
-            aria-pressed={filter === i.id}
-            onClick={() => pick(i.id)}
-            className={cn(
-              "h-9 shrink-0 rounded-full border px-4 text-[14px] whitespace-nowrap",
-              filter === i.id ? "border-[#e6e8eb] bg-[#e6e8eb] text-[#0b1322]" : "border-[#2a3a52] text-ink",
-            )}
-          >
-            {i.label}
-          </button>
-        ))}
+      <div className="mt-7">{kpis}</div>
+
+      <div className="mt-5 grid items-start gap-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,1fr)]">
+        <section aria-label="Planul propus" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-6">
+          {plan}
+        </section>
+        <section aria-label="Următoarea decizie" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-6">
+          {question.default}
+        </section>
       </div>
 
-      {shown.has("kpis") ? <div className="mt-5">{kpis}</div> : null}
-      {shown.has("alerts") ? <div className="mt-5">{alerts}</div> : null}
-
-      <div
-        className={cn(
-          "mt-5 grid gap-5",
-          all ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,1fr)]" : "lg:grid-cols-2",
-        )}
-      >
-        {shown.has("map") ? <div className={cn("min-w-0", all && "lg:col-start-1 lg:row-start-1")}>{map}</div> : null}
-        {shown.has("crews") ? <div className={cn("min-w-0", all && "lg:col-start-2 lg:row-start-1")}>{crews}</div> : null}
-        {shown.has("question") ? (
-          <div className={cn("min-w-0", all && "lg:col-start-3 lg:row-span-2 lg:row-start-1", !all && "lg:col-span-2 lg:mx-auto lg:w-full lg:max-w-[520px]")}>
-            <section className="@container flex h-full flex-col rounded-[14px] border border-rule bg-panel">
-              {body}
-              {question.rest}
-            </section>
+      <details id="detalii-plan" open={initial !== "toate"} className="group mt-7 scroll-mt-24 rounded-2xl border border-rule bg-panel">
+        <summary className="flex cursor-pointer list-none items-center gap-3 rounded-2xl p-5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring sm:p-6 [&::-webkit-details-marker]:hidden">
+          <SlidersHorizontal aria-hidden="true" size={20} className="shrink-0 text-ink-soft" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-[17px] font-[550]">Detalii despre plan</span>
+            <span className="mt-1 block text-[14px] leading-relaxed text-ink-soft">Lucrări, echipe, trasee, posturi și alerte. Filtrează ce vrei să verifici.</span>
+          </span>
+          <ChevronDown aria-hidden="true" size={20} className="shrink-0 text-ink-soft transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="border-t border-rule p-5 sm:p-6">
+          <div role="group" aria-label="Filtrează detaliile planului" className="flex flex-wrap gap-2">
+            {ITEMS.map((i) => (
+              <button
+                key={i.id}
+                type="button"
+                aria-pressed={filter === i.id}
+                onClick={() => pick(i.id)}
+                className={cn(
+                  "min-h-10 rounded-lg border px-4 py-2 text-[14px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                  filter === i.id ? "border-[#ffc502] bg-[#ffc502] text-black" : "border-rule bg-surface-2 text-ink-soft hover:bg-white/10 hover:text-ink",
+                )}
+              >
+                {i.label}
+              </button>
+            ))}
           </div>
-        ) : null}
-        {shown.has("gantt") ? <div className={cn("min-w-0", all && "lg:col-span-2 lg:col-start-1 lg:row-start-2", !all && "lg:col-span-2")}>{gantt}</div> : null}
-      </div>
 
-      {more ? (
-        <p className="mt-5">
-          <Link href={`${more.href}${suffix}`} className="inline-flex items-center gap-2 text-[15px] font-[560] text-[#8db8ff] hover:underline focus-visible:outline-2 focus-visible:outline-ring">
-            {more.label}
-            <ArrowRight aria-hidden="true" size={17} />
-          </Link>
-        </p>
-      ) : null}
+          <div className="mt-6 grid items-start gap-5 lg:grid-cols-2">
+            {shown.has("figures") ? <div className="min-w-0 lg:col-span-2">{figures}</div> : null}
+            {shown.has("map") ? <div className="min-w-0">{map}</div> : null}
+            {shown.has("crews") ? <div className="min-w-0">{crews}</div> : null}
+            {shown.has("alerts") ? <div className="min-w-0 lg:col-span-2">{alerts}</div> : null}
+            {shown.has("question") ? <section aria-label="Caz de verificat" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-6">{body}</section> : null}
+            {shown.has("meter") && meter ? <div className="min-w-0">{meter}</div> : null}
+            {shown.has("gantt") ? <div className="min-w-0 lg:col-span-2">{gantt}</div> : null}
+          </div>
+
+          {more ? (
+            <Link href={`${more.href}${suffix}`} className="mt-6 inline-flex min-h-10 items-center gap-2 rounded-lg border border-rule bg-surface-2 px-4 py-2 text-[14px] text-ink hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+              {more.label}
+              <ArrowRight aria-hidden="true" size={16} />
+            </Link>
+          ) : null}
+        </div>
+      </details>
     </>
   );
 }
