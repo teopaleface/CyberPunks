@@ -88,9 +88,10 @@ c-eval:           ## C: evaluarea pe rețele nevăzute și luni nevăzute (repor
 	uv run python -m cyberpunks.c_prosumatori.figures
 c-train:          ## C: modelele finale (models/C/bundle.joblib), fără ziua demo
 	uv run python -m cyberpunks.c_prosumatori.train
-c-predict:        ## C: lucrările pentru demo-vara și maine (outputs/work_items/<s>/C.jsonl, outputs/series/<s>/)
+c-predict:        ## C: lucrările pentru demo-vara și maine (C.jsonl, serii, scara de soluții), raportul ofertelor de baterii
 	uv run python -m cyberpunks.c_prosumatori.predict --scenario demo-vara
 	uv run python -m cyberpunks.c_prosumatori.predict --scenario maine
+	uv run python -m cyberpunks.c_prosumatori.reports_c offers --scenario demo-vara
 c-test:           ## C: testele firului C
 	uv run pytest tests/c
 c-all: c-weather c-sim c-population c-train c-predict c-eval  ## C: tot lanțul, de la date la lucrări (circa 15 minute)

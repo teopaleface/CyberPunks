@@ -32,6 +32,47 @@ def pinball(y: np.ndarray, q: np.ndarray, a: float) -> float:
     return float(np.mean(np.maximum(a * d, (a - 1) * d)))
 
 
+def ece(ex: np.ndarray, p: np.ndarray, bins: int = 10) -> float:
+    """Eroarea de calibrare așteptată: media ponderată a |probabilitate prezisă − frecvență reală| pe 10 coșuri."""
+    idx = np.clip((np.asarray(p) * bins).astype(int), 0, bins - 1)
+    tot = 0.0
+    for k in range(bins):
+        sel = idx == k
+        if sel.any():
+            tot += sel.mean() * abs(float(np.mean(p[sel])) - float(np.mean(ex[sel])))
+    return float(tot)
+
+
+def hourly_eval(n_estimators: int = 300) -> dict:
+    """Modelul orar (seria din grafic) pe rețele nevăzute și luni nevăzute, pe eșantionul orar."""
+    hs = T.load_hourly_sample("train")
+    feats = F.HOURLY_FEATURES
+    tr_p, te_p = hs[hs["date"] < T.SPLIT_DATE], hs[hs["date"] >= T.SPLIT_DATE]
+    parts = []
+    for t in sorted(hs["topology"].unique()):
+        tr, te = tr_p[tr_p.topology != t], te_p[te_p.topology == t]
+        q = {a: T.fit_quantile(tr[feats], tr["vmax"].to_numpy(), a, n_estimators=n_estimators).predict(te[feats]) for a in T.QUANTILES}
+        parts.append(pd.DataFrame({"y": te["vmax"].to_numpy(), "q10": np.minimum(q[0.1], q[0.5]), "q50": q[0.5],
+                                   "q90": np.maximum(q[0.9], q[0.5]), "pvk": te["pvk"].to_numpy(), "topology": t}))
+        print(f"  orar {t}: {len(te)} ore de test", flush=True)
+    r = pd.concat(parts, ignore_index=True)
+    # lărgirea conformală pentru fiecare topologie, din reziduurile celorlalte topologii (fără etichetele ei)
+    e = np.maximum(r.q10 - r.y, r.y - r.q90).to_numpy()
+    margin = np.zeros(len(r))
+    for t in r.topology.unique():
+        other = e[(r.topology != t).to_numpy()]
+        margin[(r.topology == t).to_numpy()] = np.quantile(other, min(1.0, np.ceil((len(other) + 1) * 0.8) / len(other)))
+    lo, hi = r.q10 - margin, r.q90 + margin
+    day = r["pvk"] > 0.05
+    out = {"test_hours": len(r), "mae_vmax_pu": float(np.mean(np.abs(r.y - r.q50))),
+           "mae_vmax_daylight_pu": float(np.mean(np.abs(r.y[day] - r.q50[day]))),
+           "coverage_p10_p90_raw": float(np.mean((r.y >= r.q10) & (r.y <= r.q90))),
+           "coverage_p10_p90": float(np.mean((r.y >= lo) & (r.y <= hi))),
+           "coverage_p10_p90_daylight": float(np.mean((r.y[day] >= lo[day]) & (r.y[day] <= hi[day]))),
+           "cqr_margin_mean_pu": float(margin.mean())}
+    return out
+
+
 def scores(y: np.ndarray, ex: np.ndarray, pred: dict, thr: float = 0.5) -> dict[str, float]:
     from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score
 
@@ -52,14 +93,15 @@ def scores(y: np.ndarray, ex: np.ndarray, pred: dict, thr: float = 0.5) -> dict[
     if 0 < ex.sum() < len(ex):
         out["pr_auc_exceed"] = float(average_precision_score(ex, p))
         out["roc_auc_exceed"] = float(roc_auc_score(ex, p))
+    out["ece_exceed"] = ece(ex, p)
     # zilele care contează pentru decizie: soare la prânz (producție de peste 0,5 kW/kWp)
     return out
 
 
-def evaluate(oof_frac: float = 0.35, monotone: bool = True) -> dict:
+def evaluate(oof_frac: float = 0.35, monotone: bool = True, drop: tuple[str, ...] = (), save: bool = True) -> dict:
     t0 = time.perf_counter()
     df = T.load_daily("train")
-    feats = F.DAILY_FEATURES
+    feats = [f for f in F.DAILY_FEATURES if f not in drop]
     train_period = df[df["date"] < T.SPLIT_DATE]
     test_period = df[df["date"] >= T.SPLIT_DATE]
     topologies = sorted(df["topology"].unique())
@@ -68,7 +110,7 @@ def evaluate(oof_frac: float = 0.35, monotone: bool = True) -> dict:
         tr = train_period[train_period.topology != t]
         te = test_period[test_period.topology == t].copy()
         oof = T.logo_oof(T.sample_for_oof(tr, oof_frac), feats, monotone=monotone)
-        model = T.DailyModel(features=feats, monotone=monotone).fit(tr, calib=oof)
+        model = T.DailyModel(features=list(feats), monotone=monotone).fit(tr, calib=oof)
         base = T.Baseline().fit(tr)
         pm, pr, pb = model.predict(te), model.predict(te, calibrated=False), base.predict(te)
         for k, v in pm.items():
@@ -82,8 +124,31 @@ def evaluate(oof_frac: float = 0.35, monotone: bool = True) -> dict:
         print(f"  {t}: test {len(te)} zile-post, MAE model {np.mean(np.abs(te.vmax_day - te.m_q50)):.4f}, "
               f"baseline {np.mean(np.abs(te.vmax_day - te.b_q50)):.4f}, {time.perf_counter() - t0:.0f} s", flush=True)
     res = pd.concat(parts, ignore_index=True)
-    res.to_parquet(T.DATA_PROCESSED / "C" / "eval_predictions.parquet")
+    if save:
+        res.to_parquet(T.DATA_PROCESSED / "C" / "eval_predictions.parquet")
     return summarize(res, time.perf_counter() - t0)
+
+
+ABLATIONS = {
+    # fără trăsăturile fizice din topologie (sensibilitățile, estimarea liniară a tensiunii, rezistența)
+    "fara_fizica": ("sens_pv_pu", "sens_load_pu", "dv_lin_max", "v_lin_max", "net_kw_per_kva_max", "r_max_ohm"),
+    # fără tensiunea de pornire și priză (ce s-ar întâmpla dacă distribuitorul nu le știe)
+    "fara_tensiune_pornire": ("v0_est", "tap_pos", "v_lin_max"),
+}
+
+
+def ablation(tag: str) -> dict:
+    """Aceeași evaluare, fără un grup de trăsături (sau fără constrângeri monotone); nu atinge metrics.json."""
+    if tag == "fara_monotone":
+        det = evaluate(monotone=False, save=False)
+    else:
+        det = evaluate(drop=ABLATIONS[tag], save=False)
+    keys = ("mae_vmax_pu", "rmse_vmax_pu", "coverage_p10_p90", "pr_auc_exceed", "recall_exceed", "precision_exceed", "brier", "ece_exceed")
+    out = {"tag": tag, "dropped": list(ABLATIONS.get(tag, ())), "model": {k: det["model"].get(k) for k in keys},
+           "by_topology_mae": {t: v["model"]["mae_vmax_pu"] for t, v in det["by_topology"].items()}}
+    OUT.mkdir(parents=True, exist_ok=True)
+    (OUT / f"ablation_{tag}.json").write_text(json.dumps(out, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return out
 
 
 def _pred(res: pd.DataFrame, prefix: str) -> dict:
@@ -119,7 +184,7 @@ def summarize(res: pd.DataFrame, seconds: float) -> dict:
 def write_report(detail: dict, speed: dict | None = None) -> ModelReport:
     m, b = detail["model"], detail["baseline"]
     keys = ["mae_vmax_pu", "rmse_vmax_pu", "pinball_mean", "coverage_p10_p90", "interval_width_pu", "pr_auc_exceed",
-            "roc_auc_exceed", "brier", "recall_exceed", "precision_exceed", "exceed_rate"]
+            "roc_auc_exceed", "brier", "ece_exceed", "recall_exceed", "precision_exceed", "exceed_rate"]
     metrics = {k: round(m[k], 5) for k in keys if k in m}
     metrics.update({f"sunny_{k}": round(detail["model_sunny_days"][k], 5) for k in ("mae_vmax_pu", "pr_auc_exceed", "recall_exceed") if k in detail["model_sunny_days"]})
     base = {k: round(b[k], 5) for k in keys if k in b}
@@ -200,13 +265,25 @@ if __name__ == "__main__":
     ap.add_argument("--oof-frac", type=float, default=0.35)
     ap.add_argument("--no-speed", action="store_true")
     ap.add_argument("--speed-only", action="store_true", help="refolosește metrics_detail.json, măsoară doar viteza")
+    ap.add_argument("--rescore", action="store_true", help="recalculează metricile din predicțiile salvate (fără reantrenare)")
+    ap.add_argument("--hourly", action="store_true", help="evaluează și modelul orar (circa 10 minute)")
+    ap.add_argument("--ablation", choices=["fara_fizica", "fara_tensiune_pornire", "fara_monotone"], default=None)
     a = ap.parse_args()
+    if a.ablation:
+        print(json.dumps(ablation(a.ablation), indent=1, ensure_ascii=False))
+        raise SystemExit(0)
     if a.speed_only:
         det = json.loads((OUT / "metrics_detail.json").read_text())
+    elif a.rescore:
+        old_det = json.loads((OUT / "metrics_detail.json").read_text())
+        det = summarize(pd.read_parquet(T.DATA_PROCESSED / "C" / "eval_predictions.parquet"), old_det.get("seconds", 0.0))
+        det.update({k: old_det[k] for k in ("hourly", "speed") if k in old_det})
     else:
         det = evaluate(oof_frac=a.oof_frac, monotone=not a.no_monotone)
-    spd = None
-    if not a.no_speed and (T.MODEL_DIR / "bundle.joblib").exists():
+    if a.hourly:
+        det["hourly"] = hourly_eval()
+    spd = det.get("speed")
+    if not a.no_speed and not a.rescore and (T.MODEL_DIR / "bundle.joblib").exists():
         spd = speed_test()
         det["speed"] = spd
     rep = write_report(det, spd)
