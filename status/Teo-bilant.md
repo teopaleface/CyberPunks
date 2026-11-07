@@ -1,7 +1,22 @@
 # Status: Teo-bilant
-Actualizat: 2026-11-07 16:12
-Milestone curent: M4 făcut (verificat dintr-o clonă curată); îmbunătățiri
-Gata de merge: da (commit 0e919f7)
+Actualizat: 2026-11-07 16:46
+Milestone curent: M4 făcut; îmbunătățirile cerute la 16:40 terminate. **Sunt liber.**
+Gata de merge: da (commit 15c51e2)
+
+## Răspuns la cererea orchestratorului de la 16:40 (sunt liber)
+1. **Diagnosticele.** Cifrele din cerere erau vechi: clientul la postul greșit e la **0,77** (de la 16:12, cu identificarea topologiei din tensiuni), iar contorul de client la 0,40. Am mai încercat două lucruri pe același test, fără câștig, deci **modelul rămâne cel actual** (F1 macro 0,714):
+   - lot de antrenare nou, cu defecte de contor trase ca la A (`train2`): F1 macro 0,594 singur și 0,706 împreună cu lotul vechi;
+   - ponderile claselor: 0,714-0,716. Contorul de client urcă la 0,43 doar dacă clientul la postul greșit coboară la 0,74.
+   Reproductibil: `uv run python -m cyberpunks.a_bilant.experiments` → `reports/bilant/experiments.md`.
+2. **Cifrele pentru slide** (din `reports/bilant/headline.md`, generat din `metrics.json`):
+   - **„Bilanțul găsește 85% din energia pierdută pe care contoarele nu o văd deloc: ~25.000 lei pe lună pe 300 de posturi.”** (furt înainte de contor, cabluri, contor de post setat greșit, client la postul greșit; A găsește 0 aici prin construcție)
+   - **„48% din energia pierdută nu apare la niciun contor de client.”** (ziua demo)
+   - **„Cauza corectă: F1 0,71, față de 0,48 la regulile clasice.”** Opțional: contorul postului setat greșit e prins în 99% din cazuri, clientul trecut la alt post cu precizie 91%.
+   - De nu pus pe slide ca cifră principală: „cu bilanț față de fără” la clasarea contoarelor (zero câștig cu scorurile reale ale lui A).
+3. **Postul pentru prezentare: PT-1269**, împreună cu **firul C**:
+   - bilanțul: `A-20250708-PT-1269` (`grid_inspection`), pierderi pe cabluri de 2,2 ori normalul, faza estimată ~69% din case (adevărul 76/15/9), în `extra.phase_rebalance_input`;
+   - C: `C-20250708-PT-1269` (tensiune prea mare), cu `phase_rebalance` prima treaptă în `extra.remedy_options`;
+   - mesajul: o singură mutare a câtorva case pe altă fază rezolvă și pierderile (bilanț), și tensiunea (C). Seria: `outputs/series/demo-vara/A-20250708-PT-1269.json`.
 
 ## Postul pentru prezentare și interfață
 - **PT-1269**: dezechilibrul de faze găsit de bilanț e intrarea pentru `phase_rebalance` la C.
@@ -84,5 +99,6 @@ SIMULARE pe date publice. Test: cele 300 de posturi ale registrului C (rețele n
 - 14:30: fuziunea doar confirmă; testul pe mai multe zile trece pe lotul train (lotul hărții are acum defectele lui A, apărute doar în ultimele 60 de zile).
 - 14:35: rezolvarea automată a lui „nu sunt sigur” e oprită (0 din 5 corecte pe demo).
 - 14:35: bilanțul lasă lui A posturile unde A are deja lucrare la om sau pe contor.
+- 16:55: lotul train2 și ponderile claselor încercate pe același test, fără câștig: modelul rămâne neschimbat.
 - 16:20: identificarea topologiei din tensiuni pentru clientul la postul greșit; extinderea regulii de pereche testată și lăsată deoparte (0,567 → 0,574, zgomot).
 - 15:00: trăsătura „oglindă” și legarea perechii pentru clientul la postul greșit; forma orară a lipsei pentru pierderea tehnică; comparația cu normalul fără istoric, scoasă (F1 macro mai mic).
