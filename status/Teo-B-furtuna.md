@@ -1,7 +1,7 @@
 # Status: Teo-B-furtuna
-Actualizat: 2026-11-07 18:10
+Actualizat: 2026-11-07 22:40
 Milestone curent: **B FINAL** (17:35). Modelul nu se mai schimbă; repar doar bug-uri, dacă apar.
-Gata de merge: da (commit 4cee835), B FINAL (reparație de date, modelul neschimbat)
+Gata de merge: da (commit e61d569): varianta europeană SSEN evaluată; agentul rămâne pe modelul pe SUA (B FINAL, neschimbat)
 
 ## Făcut
 - 12:44 Citit memoria, tema, planul, contractele, fixture-urile. `uv sync` și `make check` trec.
@@ -40,6 +40,29 @@ Gata de merge: da (commit 4cee835), B FINAL (reparație de date, modelul neschim
 
 - 18:05 **Reparație de date (QA cap-coadă, 17:55):** seriile lucrărilor B au acum `expected`, adică riscul zilei estimat de model, cu vremea de până la acea oră (0-1, pe toate orele zilei țintă; curba nu scade). La ora 23:00, valoarea e exact scorul din lucrare: diferența e 0,0000 pe toate cele 26 de serii, în ambele scenarii. Exemplu, Timișoara pe 8 iulie: 0,11 noaptea, 0,19 la 14:00, apoi 0,36 la 15:00, când începe ploaia de furtună, și 0,43 de la 16:00. Fereastra seriei e acum ziua țintă, de la 00:00 până a doua zi la 06:00. Seriile pentru `demo-vara` și `maine` sunt regenerate și valide. Am adăugat un test. Modelul e neschimbat (ultima schimbare: 803c29c).
 - 18:05 **Orele sunt corecte: ora României (+03:00 vara)**, pentru că vremea e cerută de la Open-Meteo cu fusul Europe/Bucharest. În arhivă, la Timișoara, rafala maximă e de 50 km/h la 14:00 (47 km/h la 12:00), iar ploaia de furtună începe la 15:00. Explicația pentru juriu e în `docs/QA-JURIU.md`, întrebarea 31: arhiva netezește vijeliile; furtuna reală a avut 90-120 km/h; ICON dădea 68-72 km/h la Reșița, Caransebeș și Deva; ANM avea cod roșu pentru 15:00-21:00; riscul modelului urcă exact la 15:00.
+
+- 22:40 **Sarcina SSEN (aprobată de Teo la 22:05), gata.**
+  - **Date:** avarii reale de joasă tensiune din nordul Scoției (SSEN SHEPD, Zenodo 10.5281/zenodo.23303815, CC BY 4.0), 2016-2025. Md5 verificat pentru SHEPD și SEPD; sumele sunt în `ssen.py` și în `docs/data/B.md`, fișierele nu sunt în git.
+  - **Eticheta:** cel puțin o avarie cu cauză de vreme în district, în ziua respectivă.
+  - **Vremea:** Open-Meteo pe 5 districte (1.307 apeluri, 0 erori). Orkney și Shetland au prea puține avarii de vreme. SEPD (sudul Angliei) a rămas nefolosit: ar fi costat circa 6.300 de apeluri.
+  - **Împărțirea:** antrenare 2016-2023 (14,610 zile-district, 1313 evenimente); test 2024-2025 (3,655 zile, 397 evenimente, prevalență 10.9%).
+  - **Cifre** (`uv run python -m cyberpunks.b_furtuna.ssen evaluate`, `reports/B/metrics_ssen.json` și `metrics_ssen_detail.json`):
+    - Pe Scoția 2024-2025 (PR-AUC): modelul SSEN 0.2961; **modelul pe SUA, fără date europene, 0.2765**; climatologia pe district și lună 0.1609; regula pe rafală 0.2471.
+    - Brier, modelul SSEN față de climatologie: 0.0872 față de 0.0948.
+    - Recall la evenimentele severe (cel puțin 2 avarii pe zi): modelul SSEN 59%, climatologia 40%.
+    - Invers, modelul SSEN pe SUA 2025: PR-AUC 0.1591, față de 0.2777 pentru modelul pe SUA.
+    - România: în Banat, pe 7-8 iulie 2025, modelul SSEN dă 0.094 (sub pragul de 0,16, deci nicio echipă), iar modelul pe SUA 0,308. La Slobozia, pe 17 iulie, modelul SSEN o pune pe locul 2, modelul pe SUA pe locul 1. La viscolul din Dobrogea, pe 26 nov. 2023, modelul SSEN dă 0.732 față de 0.218 în rest, iar modelul pe SUA 0,868 față de 0,092.
+  - **DECIZIA pentru demo** (regulă în cod, `ssen_model.decide`): **agentul rămâne pe modelul pe SUA („B FINAL”)**. Modelul SSEN e păstrat ca variantă evaluată și nu se șterge nimic. Motive:
+    - (1) Modelul SSEN bate modelul pe SUA doar pe testul din Scoția, și la limită (+7%), dar pierde mult pe testul din SUA (0,159 față de 0,278).
+    - (2) Modelul pe SUA, fără să fi văzut date europene, bate climatologia scoțiană cu 72%: e un argument direct pentru transferul în România.
+    - (3) Pe furtuna de vară din Banat, ziua demo, modelul SSEN n-ar trimite nicio echipă, pentru că a învățat mai ales furtunile de iarnă dinspre ocean.
+    - (4) SSEN are doar avarii JT, deci nu dă mărimea avariei de care are nevoie planificatorul.
+    - Modelul livrat e neschimbat (803c29c).
+  - **Verificarea cu cifrele oficiale din România** (`reports/B/backtest_romania.md`, „Ordin de mărime”):
+    - Rețele Electrice Banat, 2025 (anexa 2 ANRE): SAIDI din condiții meteorologice deosebite de 92,87 de minute (rural, JT) și 16,94 (urban, JT); în mediul rural, vremea înseamnă circa o treime din minutele neplanificate.
+    - Furtuna din 7-9 iulie 2025 a afectat circa 40.000 de consumatori, adică 4,1% din Banat; la 8 ore de întrerupere medie (ipoteză), asta înseamnă circa 20 de minute de SAIDI, același ordin de mărime.
+    - ANRE 2025, la nivel național: 236 de minute pe client, din care 91,41 neplanificate (prin Economica).
+  - `docs/QA-JURIU.md`: întrebările 32 (date europene) și 33 (ordinul de mărime cu ANRE). Fișa modelului are secțiunea „Varianta europeană”. B are acum 300 de teste în repo, toate trec.
 
 ## Urmează
 - Nimic planificat: **B FINAL**. Repar doar bug-uri, dacă le găsește cineva la testare. Sunt liber pentru alte sarcini ale echipei.
