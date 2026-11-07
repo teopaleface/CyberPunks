@@ -1,7 +1,7 @@
 # Status: Teo-A-contoare
-Actualizat: 2026-11-07 14:05
-Milestone curent: M2 aproape gata (14:05); M1 gata la 13:33
-Gata de merge: da (commit 827729e)
+Actualizat: 2026-11-07 14:15
+Milestone curent: M2 gata (14:10), M3 în mare parte gata; M1 gata la 13:33
+Gata de merge: da (commit ea3ccff)
 
 ## Făcut
 - 13:30 M0: `docs/research/A.md`, date descărcate cu sume de control (SGCC, 45 de fișiere Low Carbon London).
@@ -20,9 +20,13 @@ Gata de merge: da (commit 827729e)
 - 13:45 M2: 10 features noi (alese pe calibrare), regula VEE completă ca al doilea baseline, metrici pe problemele subtile, praguri conformal noi (1% / 30%), experimente de robustețe (`reports/A/robustness.json`), 10 teste de robustețe.
 - 14:00 Precizia@K = 1,00 verificată (cerința orchestratorului de la 13:55): fără scurgeri, explicată mai jos la Cifre.
 
+- 14:10 `reports/A/error_analysis.md` și `reports/A/model_card.md`, generate de `make a-report` din cifrele scripturilor (nicio cifră scrisă de mână); `select_features.py` arată alegerea features pe calibrare.
+- 14:07 Review independent pornit la Codex (scurgeri, calibrare, bug-uri, afirmații nesusținute); repar ce găsește.
+
 ## Urmează (M2-M3)
-- `reports/A/error_analysis.md` (generat din cifrele scripturilor) și `reports/A/model_card.md`.
-- Încercare: un singur model antrenat pe Londra + SGCC; îl păstrez doar dacă nu strică niciun test.
+- Reparațiile din review-ul Codex.
+- Texte mai clare pentru dispecer: zona gri, procentele absurde la istoric scurt, factori cu valoarea 0, numere cu virgulă; contoarele sigure din afara primelor 150 rămân cu acțiunea lor (capacitatea o decide planificatorul).
+- Figura de calibrare cu bin-uri pe tot intervalul 0-1.
 
 ## Blocaje
 - Niciunul.
@@ -72,3 +76,4 @@ Comanda: `uv run python -m cyberpunks.a_contoare.evaluate --retrain` (cifrele de
 - 13:45 Features noi alese pe setul de calibrare, nu pe test; testul a fost privit o singură dată pe versiune.
 - 13:50 Conformal: alpha_normal 1%, alpha_problem 30% (zona gri 0,12-0,30, cu 16-26% probleme reale), alese pe calibrare și verificate pe test și pe demo.
 - 14:00 Contoarele pe registrul comun C, cu 58,81% din clienți ca grad de integrare (sursă: memory/12).
+- 14:12 Nu combin SGCC și Londra într-un singur model: povestea rămâne clară (modelul agentului pe Londra, aceleași features verificate pe furt real în SGCC), iar un model comun ar putea învăța „ce set de date e” în loc de tipar.
