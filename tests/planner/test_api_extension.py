@@ -104,3 +104,36 @@ def test_api_source_can_be_pinned_to_demo(live, tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("CYBERPUNKS_API_SOURCE", "demo")
     assert client.get("/api/health", params={"scenario": SCENARIO}).json()["mode"] == "demo"
     assert (tmp_path / "demo" / "plans" / SCENARIO / "posts.json").exists()
+
+
+def test_review_through_the_api_replans(live) -> None:
+    """Cap-coadă prin API: dispecerul aprobă un caz din coada „nu sunt sigur” și respinge altul; planul se recalculează,
+    cazul aprobat intră în traseu, cel respins iese, jurnalul păstrează ambele decizii, iar aprobarea veche a planului expiră."""
+    client, _ = live
+    q = {"scenario": SCENARIO}
+    plan = client.get("/api/plan", params=q).json()
+    human = [d for d in plan["decisions"] if d["decision"] == "human_review"]
+    assert len(human) >= 1
+    approved_id = human[0]["work_item_id"]
+    assert client.post("/api/plan/approve", json={"scenario": SCENARIO, "plan_id": plan["plan_id"], "approver": "Ana"}).status_code == 200
+
+    r = client.post(f"/api/review/{approved_id}", params=q, json={"decision": "approve", "reviewer": "Ana", "note": "merg"})
+    assert r.status_code == 200 and r.json()["actor"] == "human" and r.json()["action"] == "review_approve"
+    after = client.get("/api/plan", params=q).json()
+    assert after["plan_id"] != plan["plan_id"]
+    d = next(x for x in after["decisions"] if x["work_item_id"] == approved_id)
+    assert d["rule_id"] == "R-HUMAN-APPROVE" and d["decision"] in ("assigned", "remote_action")
+    if d["decision"] == "assigned":
+        assert any(st["work_item_id"] == approved_id for rt in after["routes"] for st in rt["stops"])
+    assert client.get("/api/plan/approval", params=q).json()["approved"] is False  # planul aprobat nu mai e cel curent
+
+    stop = next(st["work_item_id"] for rt in after["routes"] for st in rt["stops"] if st["work_item_id"] != approved_id)
+    assert client.post(f"/api/review/{stop}", params=q, json={"decision": "reject", "reviewer": "Ana"}).status_code == 200
+    final = client.get("/api/plan", params=q).json()
+    gone = next(x for x in final["decisions"] if x["work_item_id"] == stop)
+    assert gone["rule_id"] == "R-HUMAN-REJECT" and all(st["work_item_id"] != stop for rt in final["routes"] for st in rt["stops"])
+    actions = [a["action"] for a in client.get("/api/audit", params={**q, "work_item_id": approved_id}).json()]
+    assert "review_approve" in actions
+    assert client.post("/api/review/A-20261109-MTR-999999", params=q, json={"decision": "approve"}).status_code == 404
+    assert client.post("/api/review/..%2Fplan", params=q, json={"decision": "approve"}).status_code in (404, 422)
+    assert client.post(f"/api/review/{stop}", params=q, json={"decision": "poate"}).status_code == 422
