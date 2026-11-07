@@ -20,6 +20,8 @@ Gata de merge: da (commit 07f3c87: M1 + posturi + aprobarea listei; ecranele Jur
 - 13:55 M1: detaliul lucrării (`/lucrari/[id]`): graficul pe sursă (A consum cu zilele de zero; B rafale și risc în două grafice, cu fereastra furtunii și pragul; C tensiune cu P10–P90 și limita 1,10), factorii SHAP, cazurile similare, decizia cu regula și pragurile în cuvinte simple, valoarea față de cost, încrederea, urmărirea până la predicție/model/jurnal, datele de intrare, scara de soluții C. Seriile cad pe instantaneu și pe exemplele din fixture-uri.
 - 14:00 Testat pe planul real (316 lucrări, 9 trasee, 61 la om) citit din outputs/ al checkout-ului principal (`DEMO_DIR`): harta pe două straturi (markeri cu literă doar pe trasee, restul puncte MapLibre), încadrare pe trasee, etichete care nu se suprapun.
 - 14:05 Posturile de transformare: harta verde/galben/roșu după lei pe lună (modul „Posturile”), pagina postului (`/posturi/[id]`) cu bilanțul „ieșit din post” față de „suma clienților”, cauza, contoarele de pe post cu confirmarea din bilanț, tensiunea și scara de soluții. Sursa: `GET /posts`, apoi `posts.json` din instantaneu, apoi derivare din lucrări (contoarele A × scor, marcată ca estimare).
+- 14:15 Modul de prezentare `/demo`: tema închisă cu harta de noapte (cererea firului de prezentare), 5 scene cu subtitrare (planul; Nu sunt sigur; de ce a decis agentul; echipa înainte de furtună; ziua echipelor), ← → / 1–5 / `?scena=N` / `?auto=1`, fără insigna Next în capturi.
+- 14:20 Ecranele Modele (A, B, C față de baseline cu cifrele reale din rapoarte, analiza erorilor, agentul față de strategii simple, comenzile de reproducere) și Nu sunt sigur (61 de lucrări, cu Aprobă/Respinge/Amână și notă), făcute de un subagent după convențiile din `web/design/CONVENTIONS.md`.
 - 14:10 Aprobarea listei echipelor, ordinele de lucru PDF (`/ordine/<echipă>`, de la API sau din instantaneu), lei recuperați (din aprobările omului). Reparat: deciziile omului trimit acum scenariul la `POST /review`.
 
 ## Urmează
@@ -31,6 +33,7 @@ Gata de merge: da (commit 07f3c87: M1 + posturi + aprobarea listei; ecranele Jur
 - niciunul
 
 ## Cereri către orchestrator
+- (14:25) Către firul A (date): în `explanation.top_factors[].label_ro` apar procente absurde („Consumul de noapte a crescut cu 18273047% față de istoric”, împărțire la aproape zero) și zecimale cu punct („0.46 din medie”, „9.1 ore”). Interfața le afișează acum protejat („peste 1.000%”, virgulă), dar textul ar trebui reparat la sursă: plafonare la ±1.000% sau formulare relativă („de la aproape zero”), format românesc. La fel în `reports/B/error_analysis.md` („0.16”).
 - (14:10) Către planificator: `POST /api/plan/approve {scenario, plan_id, approver, note}` → `AuditRecord` (actor human, action „plan_approved”), pentru butonul „Aprobă lista echipelor”. Până atunci interfața păstrează aprobarea local și spune asta.
 - (14:10) Către planificator: în instantaneul `outputs/demo/plans/<s>/` și `posts.json` (forma de la `GET /posts`), ca harta posturilor să meargă fără API.
 - (14:10) Planul real stă acum doar în outputs/ al checkout-ului principal; API-ul de pe 8710 (worktree-ul planificatorului) servește încă planul de test cu 7 lucrări. Pentru demo, instantaneul `outputs/demo/` cu planul real ar fi rezerva sigură.
