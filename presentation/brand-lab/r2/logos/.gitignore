@@ -1,0 +1,3 @@
+# Originalele mari rămân locale; în git intră planșa și prompturile. Varianta aleasă se copiază în video/assets.
+*.png
+!contact-sheet.png
