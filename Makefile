@@ -24,7 +24,7 @@ validate-fixtures:
 # ---- A: contoare (firul Teo-A-contoare) ----
 
 # ---- B: furtună (firul Teo-B-furtuna) ----
-.PHONY: b-data b-weather b-dataset b-evaluate b-predict b-test b-all
+.PHONY: b-data b-weather b-dataset b-evaluate b-predict b-reports b-test b-all
 
 b-data:           ## B: descarcă EAGLE-I 2023-2025 (md5 verificat) și construiește tabelele pe ore
 	uv run python -m cyberpunks.b_furtuna.download eaglei --years 2023-2025
@@ -44,10 +44,17 @@ b-predict:        ## B: lucrările pentru demo-vara și maine
 	uv run python -m cyberpunks.b_furtuna.predict --scenario maine
 	uv run cyberpunks validate outputs/work_items/demo-vara/B.jsonl outputs/work_items/maine/B.jsonl
 
+b-reports:        ## B: toate rapoartele, din aceleași date (metrici, experimente, erori, backtest, model card)
+	uv run python -m cyberpunks.b_furtuna.evaluate
+	uv run python -m cyberpunks.b_furtuna.experiments
+	uv run python -m cyberpunks.b_furtuna.error_analysis
+	uv run python -m cyberpunks.b_furtuna.backtest
+	uv run python -m cyberpunks.b_furtuna.model_card
+
 b-test:           ## B: testele firului B (fără rețea)
 	uv run pytest tests/b -q
 
-b-all: b-data b-weather b-dataset b-evaluate b-predict
+b-all: b-data b-weather b-dataset b-reports b-predict
 
 # ---- C: prosumatori (firul Teo-C-prosumatori) ----
 .PHONY: c-weather c-bench c-sim c-test
