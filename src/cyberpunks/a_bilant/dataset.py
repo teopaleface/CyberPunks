@@ -33,8 +33,8 @@ from cyberpunks.common.paths import DATA_PROCESSED
 OUT = DATA_PROCESSED / "bilant"
 WINDOW = 14  # zile: fereastra diagnosticului
 EVAL_EVERY = 7  # o fereastră de evaluare la 7 zile
-SEEDS = {"train": 20261107, "pop": 8112026}
-P_POST = {"train": 0.40, "pop": 0.25}  # ce parte din posturi au o problemă la nivel de post (IPOTEZĂ)
+SEEDS = {"train": 20261107, "pop": 8112026, "train2": 20261108}
+P_POST = {"train": 0.40, "pop": 0.25, "train2": 0.40}  # ce parte din posturi au o problemă la nivel de post (IPOTEZĂ)
 
 
 # ------------------------------------------------------------------------------------------------------------
@@ -42,19 +42,20 @@ P_POST = {"train": 0.40, "pop": 0.25}  # ce parte din posturi au o problemă la 
 # ------------------------------------------------------------------------------------------------------------
 
 
-def train_specs(n_per_topology: int = 50) -> tuple[list[grids.PostSpec], pd.DataFrame]:
-    rng = np.random.default_rng(SEEDS["train"])
+def train_specs(n_per_topology: int = 50, pool: str = "train") -> tuple[list[grids.PostSpec], pd.DataFrame]:
+    rng = np.random.default_rng(SEEDS[pool])
+    prefix = "BT" if pool == "train" else "BT2"
     specs, meta = [], []
     k = 0
     for topo in grids.TOPOLOGIES:
         for i in range(n_per_topology):
-            pid = f"BT-{topo}-{i:03d}"
+            pid = f"{prefix}-{topo}-{i:03d}"
             specs.append(grids.sample_spec(topo, rng, pid, mode="population"))
             meta.append({"post_id": pid, "cluster": f"K{k // 5:03d}", "lat": np.nan, "lon": np.nan})
             k += 1
     # cartierele amestecă topologiile (vecinii nu au aceeași rețea)
     meta = pd.DataFrame(meta)
-    perm = np.random.default_rng(SEEDS["train"] + 1).permutation(len(meta))
+    perm = np.random.default_rng(SEEDS[pool] + 1).permutation(len(meta))
     meta["cluster"] = meta["cluster"].to_numpy()[perm]
     return specs, meta
 
@@ -153,6 +154,10 @@ def plans_for(pool: str, specs: list[grids.PostSpec], meta: pd.DataFrame, n_days
     plans = {s.post_id: P.make_plan(s.post_id, n_customers(s), n_days, rng, p_post_problem=P_POST[pool]) for s in specs}
     if pool == "pop":
         print(f"bilanț: {apply_a_truth(plans, specs, n_days)} probleme de contor luate din adevărul lui A")
+    if pool == "train2":
+        r2 = np.random.default_rng(SEEDS[pool] + 3)
+        for s_ in specs:
+            P.a_like_meter_problems(plans[s_.post_id], n_customers(s_), n_days, r2)
     # clientul la postul greșit: receptorul e un vecin fără altă problemă de post
     nb = neighbors(meta)
     taken = set()
@@ -413,7 +418,7 @@ def cluster_voltage(meta: pd.DataFrame, T: int, seed: int) -> dict[str, np.ndarr
 
 def build(pool: str, workers: int = 4, limit: int | None = None) -> pd.DataFrame:
     wx = world.load_weather()
-    specs, meta = train_specs() if pool == "train" else pop_specs()
+    specs, meta = train_specs(pool=pool) if pool in ("train", "train2") else pop_specs()
     if limit:
         specs, meta = specs[:limit], meta.iloc[:limit]
     plans = plans_for(pool, specs, meta, wx.D)
@@ -488,11 +493,11 @@ def build(pool: str, workers: int = 4, limit: int | None = None) -> pd.DataFrame
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--pool", choices=["train", "pop", "all"], default="all")
+    ap.add_argument("--pool", choices=["train", "train2", "pop", "all"], default="all")
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--limit", type=int, default=None)
     a = ap.parse_args()
-    for pool in (["train", "pop"] if a.pool == "all" else [a.pool]):
+    for pool in (["train", "pop"] if a.pool == "all" else [a.pool]):  # train2: doar pentru experiments.py
         build(pool, a.workers, a.limit)
 
 
