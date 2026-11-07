@@ -1,0 +1,355 @@
+"""Evaluarea agentului: simulare pe mai multe zile, agentul față de strategii simple, pe aceeași lume sintetică.
+
+    uv run python -m cyberpunks.planner.evaluate            # 30 de zile, sămânța 7 → reports/planner/agent_eval.json
+
+Strategii comparate (aceleași echipe, aceleași ture, aceleași restricții de abilități, ferestre și preaviz ANRE):
+- agent:          stratul nostru de decizie (reguli cu prag, citire la distanță, om în buclă) + OR-Tools;
+- top_k_scor:     trimite echipele la lucrările cu scorul cel mai mare, până se umplu turele;
+- primul_venit:   în ordinea în care au sosit lucrările;
+- aleator:        în ordine aleatoare;
+- doar_contoare:  doar sursa A, după scor (cum ar arăta un sistem cu un singur model).
+
+Contabilitatea e prudentă pentru agent: o citire la distanță, un mesaj sau un caz trimis la om nu primesc valoare
+în ziua respectivă (doar costul lor); valoarea vine doar din lucrările făcute de echipe pe probleme reale.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import random
+import statistics
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any
+
+from cyberpunks.common.contracts import DecisionType, WorkItem
+from cyberpunks.common.paths import REPORTS
+from cyberpunks.planner import planner_version
+from cyberpunks.planner.actions import finalize
+from cyberpunks.planner.agent import build_routing
+from cyberpunks.planner.decide import Context, action_cost, decide
+from cyberpunks.planner.ingest import Item
+from cyberpunks.planner.routing import Task, Vehicle, build_problem, minutes_of, solve, solve_greedy
+from cyberpunks.planner.settings import TZ, Settings
+from cyberpunks.planner.simulate import SimDay, generate_day
+
+STRATEGIES = ["agent", "top_k_scor", "primul_venit", "aleator", "doar_contoare"]
+
+
+@dataclass
+class DayResult:
+    value_captured_lei: float = 0.0
+    action_costs_lei: float = 0.0
+    travel_costs_lei: float = 0.0
+    km: float = 0.0
+    visits: int = 0
+    useful_visits: int = 0
+    useless_visits: int = 0
+    urgent_total: int = 0
+    urgent_missed: int = 0
+    storms_true: int = 0
+    storms_covered: int = 0
+    remote_readings: int = 0
+    remote_true: int = 0
+    human_review: int = 0
+    human_true: int = 0
+    notifications: int = 0
+    solve_seconds: float = 0.0
+    by_source_value: dict[str, float] = field(default_factory=lambda: {"A": 0.0, "B": 0.0, "C": 0.0})
+    by_source_visits: dict[str, int] = field(default_factory=lambda: {"A": 0, "B": 0, "C": 0})
+    by_source_useless: dict[str, int] = field(default_factory=lambda: {"A": 0, "B": 0, "C": 0})
+
+    @property
+    def net_value_lei(self) -> float:
+        return self.value_captured_lei - self.action_costs_lei - self.travel_costs_lei
+
+
+def _items(day: SimDay) -> list[Item]:
+    out = []
+    for i, raw in enumerate(day.items, 1):
+        text = json.dumps(raw, ensure_ascii=False, sort_keys=True)
+        out.append(Item(WorkItem.model_validate(raw), hashlib.sha256(text.encode()).hexdigest(), i, "model"))
+    return out
+
+
+def _travel_cost(settings: Settings, routes: list, crews_size: dict[str, int]) -> tuple[float, float]:
+    per_km = settings.econ("travel", "vehicle_cost_lei_per_km", 0.0)
+    per_person_min = settings.econ("crew", "cost_lei_per_person_hour", 0.0) / 60.0
+    km = sum(r.total_km for r in routes)
+    cost = sum(
+        r.total_km * per_km + r.total_travel_min * per_person_min * crews_size[r.vehicle.crew.crew_id] for r in routes
+    )
+    return km, cost
+
+
+def _visit_outcome(res: DayResult, ctx: Context, it: Item, action: str, truth: bool) -> None:
+    wi = it.wi
+    res.visits += 1
+    res.by_source_visits[wi.source.value] += 1
+    res.action_costs_lei += action_cost(ctx, wi, action)
+    if action == "adjust_tap" and wi.effort.requires_planned_outage:
+        res.action_costs_lei += (
+            wi.impact.customers_affected
+            * ctx.settings.econ("voltage", "planned_outage_hours", 1.0)
+            * ctx.settings.econ("storm", "cost_per_customer_hour_lei")
+        )
+    captures = action in ("inspect_on_site", "preposition_crew", "adjust_tap")
+    if truth:
+        res.useful_visits += 1
+        if captures:
+            res.value_captured_lei += wi.impact.value_if_true_lei
+            res.by_source_value[wi.source.value] += wi.impact.value_if_true_lei
+    else:
+        res.useless_visits += 1
+        res.by_source_useless[wi.source.value] += 1
+
+
+def _urgent(it: Item, truth: bool) -> bool:
+    return truth and (it.wi.source.value == "B" or it.wi.impact.safety_flag)
+
+
+def run_agent(day: SimDay, settings: Settings) -> DayResult:
+    items = _items(day)
+    as_of = datetime.combine(day.plan_date - timedelta(days=1), datetime.min.time(), tzinfo=TZ).replace(hour=18)
+    ctx = Context.build(settings, day.plan_date, as_of=as_of)
+    proposals = decide(ctx, items)
+    pb = build_routing(ctx, proposals)
+    rr = solve(
+        pb,
+        solver=str(settings.rule("routing", "solver", default="ortools")),
+        time_limit_s=float(settings.rule("routing", "time_limit_s", default=10)),
+        solution_limit=settings.rule("routing", "solution_limit", default=400),
+    )
+    outcome = finalize(ctx, proposals, rr, {}, datetime.now(TZ))
+    res = DayResult(solve_seconds=rr.solve_seconds)
+    sizes = {c.crew_id: c.size for c in settings.crews}
+    res.km, res.travel_costs_lei = _travel_cost(settings, rr.routes, sizes)
+    by_id = {it.id: it for it in items}
+    for wid, p in outcome.final.items():
+        it, truth = by_id[wid], day.truth[wid]
+        res.urgent_total += _urgent(it, truth)
+        if it.wi.source.value == "B" and truth:
+            res.storms_true += 1
+        if p.decision == DecisionType.assigned:
+            _visit_outcome(res, ctx, it, p.action, truth)
+            if it.wi.source.value == "B" and truth:
+                res.storms_covered += 1
+        else:
+            res.urgent_missed += _urgent(it, truth)
+            if p.decision == DecisionType.remote_action:
+                res.remote_readings += 1
+                res.remote_true += truth
+                res.action_costs_lei += action_cost(ctx, it.wi, "remote_reading")
+            elif p.decision == DecisionType.human_review:
+                res.human_review += 1
+                res.human_true += truth
+            elif p.decision == DecisionType.notify:
+                res.notifications += 1
+                res.action_costs_lei += action_cost(ctx, it.wi, "notify_customers")
+    return res
+
+
+def _baseline_action(it: Item) -> str | None:
+    wi = it.wi
+    if wi.source.value == "A":
+        return "inspect_on_site"
+    if wi.source.value == "B":
+        return "preposition_crew"
+    if wi.recommended_action.value == "adjust_tap" or wi.effort.requires_planned_outage:
+        # o strategie naivă respectă totuși legea: fără preaviz nu se face întreruperea pentru priză
+        return "adjust_tap" if wi.extra.get("planned_outage_notified") else None
+    return "measurement_campaign"
+
+
+def run_baseline(day: SimDay, settings: Settings, strategy: str, seed: int) -> DayResult:
+    items = _items(day)
+    as_of = datetime.combine(day.plan_date - timedelta(days=1), datetime.min.time(), tzinfo=TZ).replace(hour=18)
+    ctx = Context.build(settings, day.plan_date, as_of=as_of)
+    if strategy == "doar_contoare":
+        pool = [it for it in items if it.wi.source.value == "A"]
+    else:
+        pool = list(items)
+    if strategy in ("top_k_scor", "doar_contoare"):
+        pool.sort(key=lambda it: -it.wi.prediction.score)
+    elif strategy == "primul_venit":
+        pool.sort(key=lambda it: it.wi.created_at)
+    elif strategy == "aleator":
+        random.Random(seed).shuffle(pool)
+    start, end = ctx.shift()
+    per_km = settings.econ("travel", "vehicle_cost_lei_per_km", 0.0)
+    per_person_min = settings.econ("crew", "cost_lei_per_person_hour", 0.0) / 60.0
+    vehicles = [
+        Vehicle(
+            c,
+            settings.depots[c.depot_id],
+            minutes_of(start, ctx.plan_date),
+            minutes_of(end, ctx.plan_date),
+            per_km,
+            per_person_min * c.size,
+        )
+        for c in settings.crews
+    ]
+    before = int(settings.rule("storm", "arrive_before_start_min", default=60))
+    tasks, action_of = [], {}
+    n = len(pool)
+    for rank, it in enumerate(pool):
+        action = _baseline_action(it)
+        if action is None:
+            continue
+        wi = it.wi
+        terminal = action == "preposition_crew"
+        latest = end - timedelta(minutes=wi.effort.duration_min)
+        if terminal and wi.time_window is not None:
+            latest = wi.time_window.start.astimezone(TZ) - timedelta(minutes=before)
+        allowed = [
+            v
+            for v, veh in enumerate(vehicles)
+            if wi.effort.crew_skill.value in veh.crew.skills and veh.crew.size >= wi.effort.crew_size
+        ]
+        tasks.append(
+            Task(
+                it.id,
+                wi.location.lat,
+                wi.location.lon,
+                0 if terminal else wi.effort.duration_min,
+                wi.effort.duration_min,
+                wi.effort.crew_skill.value,
+                wi.effort.crew_size,
+                minutes_of(start, ctx.plan_date),
+                minutes_of(latest, ctx.plan_date),
+                terminal,
+                n - rank,
+                True,
+                allowed,
+            )
+        )
+        action_of[it.id] = action
+    pb = build_problem(tasks, vehicles, ctx.travel, 100)
+    t0 = time.perf_counter()
+    rr = solve_greedy(pb)
+    res = DayResult(solve_seconds=time.perf_counter() - t0)
+    sizes = {c.crew_id: c.size for c in settings.crews}
+    res.km, res.travel_costs_lei = _travel_cost(settings, rr.routes, sizes)
+    for it in items:
+        truth = day.truth[it.id]
+        res.urgent_total += _urgent(it, truth)
+        if it.wi.source.value == "B" and truth:
+            res.storms_true += 1
+        if it.id in rr.assigned:
+            _visit_outcome(res, ctx, it, action_of[it.id], truth)
+            if it.wi.source.value == "B" and truth:
+                res.storms_covered += 1
+        else:
+            res.urgent_missed += _urgent(it, truth)
+    return res
+
+
+def _summary(days: list[DayResult]) -> dict[str, Any]:
+    def mean(f) -> float:
+        return round(statistics.fmean(f(d) for d in days), 2)
+
+    def total(f) -> float:
+        return round(sum(f(d) for d in days), 2)
+
+    visits = sum(d.visits for d in days)
+    urgent = sum(d.urgent_total for d in days)
+    storms = sum(d.storms_true for d in days)
+    return {
+        "net_value_lei_total": total(lambda d: d.net_value_lei),
+        "net_value_lei_per_day": mean(lambda d: d.net_value_lei),
+        "net_value_lei_per_day_std": round(statistics.pstdev(d.net_value_lei for d in days), 2),
+        "value_captured_lei_total": total(lambda d: d.value_captured_lei),
+        "costs_lei_total": total(lambda d: d.action_costs_lei + d.travel_costs_lei),
+        "km_total": total(lambda d: d.km),
+        "km_per_day": mean(lambda d: d.km),
+        "visits_total": visits,
+        "useless_visits_total": sum(d.useless_visits for d in days),
+        "useless_visit_rate": round(sum(d.useless_visits for d in days) / visits, 4) if visits else 0.0,
+        "urgent_total": urgent,
+        "urgent_missed_total": sum(d.urgent_missed for d in days),
+        "urgent_missed_rate": round(sum(d.urgent_missed for d in days) / urgent, 4) if urgent else 0.0,
+        "storms_true_total": storms,
+        "storms_covered_total": sum(d.storms_covered for d in days),
+        "remote_readings_total": sum(d.remote_readings for d in days),
+        "remote_readings_true": sum(d.remote_true for d in days),
+        "human_review_total": sum(d.human_review for d in days),
+        "human_review_true": sum(d.human_true for d in days),
+        "notifications_total": sum(d.notifications for d in days),
+        "value_by_source_lei": {s: round(sum(d.by_source_value[s] for d in days), 2) for s in "ABC"},
+        "visits_by_source": {s: sum(d.by_source_visits[s] for d in days) for s in "ABC"},
+        "useless_visits_by_source": {s: sum(d.by_source_useless[s] for d in days) for s in "ABC"},
+        "solve_seconds_mean": round(statistics.fmean(d.solve_seconds for d in days), 3),
+    }
+
+
+def evaluate(
+    days: int = 30, seed: int = 7, n_meters: int = 120, miscalibration: float = 1.0, settings: Settings | None = None
+) -> dict[str, Any]:
+    settings = settings or Settings.load()
+    per_strategy: dict[str, list[DayResult]] = {s: [] for s in STRATEGIES}
+    worlds = []
+    for d in range(days):
+        day = generate_day(d, settings, seed=seed, n_meters=n_meters, miscalibration=miscalibration)
+        worlds.append({"date": day.plan_date.isoformat(), **day.meta})
+        per_strategy["agent"].append(run_agent(day, settings))
+        for s in STRATEGIES[1:]:
+            per_strategy[s].append(run_baseline(day, settings, s, seed * 1000 + d))
+    summary = {s: _summary(r) for s, r in per_strategy.items()}
+    agent_net = summary["agent"]["net_value_lei_total"]
+    for s in STRATEGIES[1:]:
+        base = summary[s]["net_value_lei_total"]
+        summary[s]["agent_minus_strategy_net_lei"] = round(agent_net - base, 2)
+    return {
+        "days": days,
+        "seed": seed,
+        "n_meters_per_day": n_meters,
+        "miscalibration": miscalibration,
+        "strategies": summary,
+        "per_day_net_value_lei": {s: [round(d.net_value_lei, 2) for d in r] for s, r in per_strategy.items()},
+        "worlds": worlds,
+    }
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description="Evaluarea agentului față de strategii simple (lume sintetică).")
+    ap.add_argument("--days", type=int, default=30)
+    ap.add_argument("--seed", type=int, default=7)
+    ap.add_argument("--meters", type=int, default=120, help="câte lucrări A pe zi")
+    ap.add_argument("--out", type=Path, default=REPORTS / "planner" / "agent_eval.json")
+    ap.add_argument("--no-robustness", action="store_true", help="fără rularea cu model supra-încrezător")
+    args = ap.parse_args(argv)
+    t0 = time.perf_counter()
+    settings = Settings.load()
+    main_run = evaluate(args.days, args.seed, args.meters, 1.0, settings)
+    report: dict[str, Any] = {
+        "description": "Agentul față de strategii simple, pe o lume SINTETICĂ cu adevărul cunoscut (scoruri calibrate prin construcție).",
+        "reproduce_cmd": f"uv run python -m cyberpunks.planner.evaluate --days {args.days} --seed {args.seed} --meters {args.meters}",
+        "planner_version": planner_version(),
+        "created_at": datetime.now(TZ).replace(microsecond=0).isoformat(),
+        "synthetic": True,
+        "main": main_run,
+    }
+    if not args.no_robustness:
+        report["robustness_overconfident_model"] = evaluate(
+            max(10, args.days // 3), args.seed + 1, args.meters, 1.6, settings
+        )
+    report["runtime_s"] = round(time.perf_counter() - t0, 1)
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    args.out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    s = main_run["strategies"]
+    print(f"Scris {args.out} ({report['runtime_s']} s)")
+    print(f"{'strategie':<15}{'valoare netă/zi':>17}{'km/zi':>9}{'vizite inutile':>16}{'urgențe ratate':>16}")
+    for name in STRATEGIES:
+        r = s[name]
+        print(
+            f"{name:<15}{r['net_value_lei_per_day']:>17,.0f}{r['km_per_day']:>9,.0f}{r['useless_visit_rate']:>16.1%}{r['urgent_missed_rate']:>16.1%}"
+        )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

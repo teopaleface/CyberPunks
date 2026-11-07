@@ -48,7 +48,8 @@ def test_rules_on_fixtures(out_root: Path) -> None:
     assert d["A-20261109-MTR-027710"].decision.value == "human_review"  # abstain → om
     assert d["A-20261109-MTR-027710"].rule_id == "R-ABSTAIN"
     assert d["A-20261109-MTR-004217"].rule_id == "R-SAFETY" and d["A-20261109-MTR-004217"].decision.value == "assigned"
-    assert d["A-20261109-MTR-019833"].decision.value == "remote_action"  # încredere medie → citire la distanță
+    # încredere medie, dar valoarea netă (~650 lei) trece de marja de siguranță (25% din costul vizitei): echipă
+    assert d["A-20261109-MTR-019833"].rule_id == "R-A-VISIT-MEDIUM" and d["A-20261109-MTR-019833"].decision.value == "assigned"
     # pe valorile din fixture, priza (450 lei + întreruperea pentru 38 de clienți) costă mai mult decât valoarea așteptată
     assert d["C-20261109-PT-1432"].rule_id == "R-C-NOTIFY" and d["C-20261109-PT-1432"].threshold["net_tap_value_lei"] < 0
     for dec in d.values():
@@ -143,6 +144,16 @@ def test_high_confidence_meter_visit_when_worth_it(out_root: Path) -> None:
     assert d[cheap["work_item_id"]].decision.value in ("deferred", "remote_action")  # sub pragul de rentabilitate
     th = d[hi["work_item_id"]].threshold
     assert th["net_value_lei"] > th["min_net_value_lei"] and "breakeven_score" in th
+
+
+def test_medium_confidence_small_value_goes_remote(out_root: Path) -> None:
+    a = fixture_items("A")
+    small = variant(a[1], "MTR-500001", **{"impact.value_if_true_lei": 450.0})  # EV 288 lei, sub costul vizitei + marja
+    dumb = variant(a[1], "MTR-500002", **{"impact.value_if_true_lei": 450.0, "extra": {"smart_meter": False}})
+    write_items(out_root, "A", [small, dumb])
+    d = _decisions(agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root))
+    assert d[small["work_item_id"]].rule_id == "R-A-REMOTE-FIRST" and d[small["work_item_id"]].decision.value == "remote_action"
+    assert d[dumb["work_item_id"]].decision.value != "remote_action"  # contor care nu se citește de la distanță
 
 
 def test_capacity_overflow_falls_back_to_remote_reading(out_root: Path) -> None:

@@ -7,7 +7,8 @@ pentru traseele echipelor. Candidaturile le împarte apoi optimizatorul (routing
 
 Costul unei acțiuni: costul acțiunii (config/economics.yaml) + deplasarea estimată de la cea mai apropiată bază
 cu o echipă potrivită + costul social al unei întreruperi planificate (doar la schimbarea prizei).
-Valoarea netă = expected_value_lei − cost. Prioritatea = valoarea netă × factorul de urgență (× 3 la siguranță).
+Valoarea netă = expected_value_lei − cost (pragul: o echipă merge doar dacă e pozitivă).
+Prioritatea (premiul în trasee) = expected_value_lei − costul acțiunii (× 3 la siguranță); drumul îl socotește solverul.
 """
 
 from __future__ import annotations
@@ -184,14 +185,10 @@ def estimate_costs(ctx: Context, wi: WorkItem, action: str) -> Costs:
     return costs
 
 
-def urgency_factor(ctx: Context, wi: WorkItem) -> float:
-    ref = float(ctx.g("urgency_reference_hours", 24))
-    floor = float(ctx.g("urgency_min_factor", 0.25))
-    return max(floor, min(1.0, ref / wi.impact.urgency_hours))
-
-
-def priority_of(ctx: Context, wi: WorkItem, net: float) -> float:
-    p = max(0.0, net) * urgency_factor(ctx, wi)
+def priority_of(ctx: Context, wi: WorkItem, costs: Costs) -> float:
+    """Premiul din trasee (lei): valoarea așteptată minus costul acțiunii și al întreruperii; drumul îl socotește solverul.
+    La siguranță, prioritatea se înmulțește (config: safety_priority_multiplier)."""
+    p = max(0.0, wi.impact.expected_value_lei - costs.action_cost - costs.outage_cost)
     if wi.impact.safety_flag:
         p *= float(ctx.g("safety_priority_multiplier", 3.0))
     return round(p, 2)
@@ -239,7 +236,6 @@ def _send_time(ctx: Context) -> datetime:
 def _route(ctx: Context, item: Item, rule_id: str, reason: str, action: str, costs: Costs, threshold: dict, **kw: Any) -> Proposal:
     wi = item.wi
     start, end = ctx.shift()
-    net = wi.impact.expected_value_lei - costs.total
     p = Proposal(
         item=item,
         decision=DecisionType.assigned,
@@ -248,7 +244,7 @@ def _route(ctx: Context, item: Item, rule_id: str, reason: str, action: str, cos
         action=action,
         threshold=threshold,
         costs=costs,
-        priority=priority_of(ctx, wi, net),
+        priority=priority_of(ctx, wi, costs),
         route=True,
         earliest=start,
         latest=end - timedelta(minutes=wi.effort.duration_min),
@@ -409,15 +405,26 @@ def rule_meters(ctx: Context, item: Item) -> Proposal:
             {**th, "remote_min_score": remote_min},
             costs=remote,
         )
+    margin = float(ctx.settings.rule("meters", "medium_confidence_margin", default=0.25)) * visit.total
+    th["medium_confidence_margin_lei"] = round(margin, 2)
     if pr.confidence == Confidence.high and net_visit > min_net:
         reason = (
             f"{_factors(wi)}. Scor {pct(pr.score)}, încredere mare. Valoarea așteptată {lei(ev)} depășește costul "
             f"({visit.explain()} = {lei(visit.total)}) cu {lei(net_visit)}."
         )
         return _route(ctx, item, "R-A-VISIT", reason, "inspect_on_site", visit, th, fallback=remote_fallback)
+    if pr.confidence == Confidence.medium and net_visit > min_net + margin:
+        reason = (
+            f"{_factors(wi)}. Scor {pct(pr.score)}, încredere medie, dar valoarea netă a vizitei ({lei(net_visit)}) "
+            f"trece și de marja cerută la încredere medie ({lei(margin)}; costul: {visit.explain()})."
+        )
+        return _route(ctx, item, "R-A-VISIT-MEDIUM", reason, "inspect_on_site", visit, th, fallback=remote_fallback)
     if smart and pr.score >= remote_min and ev - remote.total > 0:
         if pr.confidence == Confidence.medium and net_visit > min_net:
-            why = f"Încredere medie (scor {pct(pr.score)}): întâi citire la distanță ({lei(remote.total)}), fără deplasare."
+            why = (
+                f"Încredere medie (scor {pct(pr.score)}) și valoare netă mică ({lei(net_visit)}, sub marja de {lei(margin)}): "
+                f"întâi citire la distanță ({lei(remote.total)}), fără deplasare."
+            )
         else:
             why = (
                 f"Valoarea așteptată ({lei(ev)}) nu acoperă vizita ({lei(visit.total)}; scorul ar trebui să fie peste "
@@ -684,6 +691,7 @@ RULE_CATALOG: dict[str, str] = {
     "R-WIDE-INTERVAL": "Interval de încredere prea larg: decide un om (sau urmărire).",
     "R-SAFETY": "Risc pentru oameni: prioritate maximă, alertă critică, intră primul în traseu.",
     "R-A-VISIT": "Contor, încredere mare, valoarea așteptată peste costul vizitei: echipă.",
+    "R-A-VISIT-MEDIUM": "Contor, încredere medie, valoarea netă peste marja de siguranță: echipă (citire la distanță dacă nu încape).",
     "R-A-VISIT-NO-REMOTE": "Contor fără citire la distanță, încredere medie, valoare netă pozitivă: echipă.",
     "R-A-REMOTE-FIRST": "Contor, încredere medie sau valoare sub costul vizitei: citire la distanță întâi.",
     "R-A-WATCH": "Contor cu scor mic: urmărire.",

@@ -9,12 +9,11 @@ global:
   max_interval_width: 0.5           # interval de încredere mai larg de 0,5 = modelul nu e sigur, chiar dacă nu s-a abținut
   max_missing_ratio: 0.4            # peste 40% date lipsă la intrare, scorul nu e de încredere
   safety_priority_multiplier: 3.0   # riscul pentru oameni triplează prioritatea și intră primul în traseu
-  urgency_reference_hours: 24       # o lucrare care trebuie făcută în 24 h are factorul de urgență 1
-  urgency_min_factor: 0.25          # factorul de urgență = 24 / urgency_hours, dar nu sub 0,25
   degraded_invalid_share: 0.2       # peste 20% linii respinse, sursa e "degraded"
 
 meters:                             # A
   remote_min_score: 0.3             # sub 0,3, nici citirea la distanță nu merită: contorul intră la urmărire
+  medium_confidence_margin: 0.25    # la încredere medie, vizita trebuie să aducă în plus 25% din costul ei (marjă de siguranță)
   smart_meter_default: true         # dacă lucrarea nu spune altfel (extra.smart_meter), contorul e inteligent și se poate citi de la distanță
 
 storm:                              # B
