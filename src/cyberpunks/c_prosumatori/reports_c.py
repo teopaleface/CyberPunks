@@ -110,10 +110,97 @@ def battery_offers(scenario: str = "demo-vara", top: int = 30) -> str:
     return text
 
 
+# ------------------------------------------------------------------------------------------------
+# raportul de investiții: posturile de modernizat, ordonate
+# ------------------------------------------------------------------------------------------------
+
+
+def investments(year: int = 2025, top: int = 30) -> str:
+    """Modelul pe tot anul pentru fiecare post (zile cu depășire, kWh pierduți, lei), apoi scara de soluții pe cea mai
+    însorită zi de referință pentru posturile cu probleme: cea mai ieftină soluție care ajunge sau investiția."""
+    from cyberpunks.c_prosumatori import actions, connection, posts, weather
+    from cyberpunks.c_prosumatori import features as F
+    from cyberpunks.c_prosumatori import train as T
+
+    reg = posts.load_posts()
+    bundle = T.load_bundle()
+    hw, ref = connection._year_days()
+    X = F.daily_features(reg, hw)
+    p = bundle.daily.predict(X)
+    X = X.assign(p=p["p_exceed"], q90=p["q90"], lost=p["lost_kwh"])
+    eco = actions.economics()
+    agg = X.groupby("post_id").agg(days_over=("p", "sum"), lost_kwh=("lost", "sum"), q90_max=("q90", "max")).reset_index()
+    agg["lost_lei"] = agg.lost_kwh * eco["lost_pv_value_lei_per_kwh"]
+    df = reg.merge(agg, on="post_id")
+    df["complaints_lei"] = df.n_prosumers * actions.ASSUMPTIONS["complaint_rate_season"] * eco["complaint_compensation_lei"] * (df.days_over >= 10)
+    df["value_lei_year"] = df.lost_lei + df.complaints_lei
+    bad = df[df.days_over >= 5].sort_values("value_lei_year", ascending=False)
+    # scara de soluții pe cea mai însorită zi de referință
+    worst_day = max(ref, key=lambda d: float(hw[hw.date == d]["pvk"].max()))
+    start = pd.Timestamp(worst_day, tz="Europe/Bucharest").tz_convert("UTC") + pd.Timedelta(hours=1)
+    wx = weather.archive().reindex(pd.date_range(start, periods=24, freq="h"))
+    day = remedies.day_inputs(worst_day, wx)
+    rows = []
+    for _, r in bad.head(top).iterrows():
+        q90_day = float(X[(X.post_id == r.post_id) & (X.date == worst_day)].q90.iloc[0])
+        lad = remedies.build_ladder(r.post_id, day, q90_day, int(r.n_customers), actions.season_horizon_days(worst_day))
+        cost = sum(o["cost_lei"] for o in lad.options if o["action"] in lad.choice)
+        rows.append({**r.to_dict(), "q90_day": q90_day, "choice": lad.choice, "choice_cost": cost, "reaches": lad.reaches_target,
+                     "upgrade": "transformer_upgrade" in lad.choice or not lad.reaches_target})
+    inv = pd.DataFrame(rows)
+    inv["payback_years"] = inv.choice_cost / inv.value_lei_year.clip(lower=1)
+    n_inv = int(inv.upgrade.sum()) if len(inv) else 0
+    lines = [
+        "# Raportul de investiții: posturile de transformare de modernizat (SINTETIC)",
+        "",
+        (f"Generat de `uv run python -m cyberpunks.c_prosumatori.reports_c investments`. Posturile, rețelele și prosumatorii sunt sintetici; "
+        f"vremea e reală (Open-Meteo, {year})."),
+        "",
+        "## De ce contează",
+        "",
+        ("- Ilfov e primul județ din țară la prosumatori: 21.647, cu 303,81 MW (ANRE, august 2026); București are 8.307 (134,94 MW). "
+        "Ambele sunt în zona Rețele Electrice. La nivel național: 385.791 de prosumatori, 4.281,86 MW, 151.040 cu stocare (ANRE, 31 aug. 2026)."),
+        ("- Planul de dezvoltare Rețele Electrice pomenește posturi noi construite pentru reclamațiile de tensiune. Raportul ăsta arată unde "
+        "ajunge o soluție ieftină și unde e nevoie de investiție."),
+        "",
+        "## Cum am calculat",
+        "",
+        (f"- Modelul C pe toate zilele din {year}, pentru fiecare dintre cele {len(reg)} posturi: zilele așteptate cu depășire (suma "
+        "probabilităților), kWh fotovoltaici pierduți prin oprirea invertoarelor, valoarea lor "
+        f"({fmt(eco['lost_pv_value_lei_per_kwh'])} lei/kWh) și reclamațiile probabile (70 lei, Ord. ANRE 46/2021, la posturile cu cel puțin "
+        "10 zile cu depășire)."),
+        (f"- Pentru posturile cu cel puțin 5 zile cu depășire pe an: scara de soluții pe cea mai însorită zi de referință ({worst_day}), "
+        "cu efectele simulate pe rețeaua postului. Investiție = post nou sau nicio combinație ieftină nu aduce P90 sub 1,10 pu."),
+        "",
+        "## Pe scurt",
+        "",
+        f"- {int((df.days_over >= 1).sum())} posturi din {len(df)} au cel puțin o zi așteptată cu depășire pe an; {len(bad)} au cel puțin 5.",
+        f"- Valoarea pierdută pe an la posturile cu probleme: {_lei(bad.value_lei_year.sum())} lei (energie și reclamații).",
+        (f"- Din primele {len(inv)} posturi, {len(inv) - n_inv} se rezolvă cu soluții ieftine (faze, priză, limită de export, baterii); "
+        f"{n_inv} au nevoie de investiție."),
+        "",
+        f"## Posturile, ordonate după valoarea pierdută pe an (primele {len(inv)})",
+        "",
+        "| # | Post | Zona | kVA | kW panouri | kW/kVA | Zile cu depășire pe an | kWh pierduți pe an | Lei pe an | Soluția (cea mai ieftină care ajunge) | Cost (lei) | Recuperare (ani) | Investiție |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    for i, r in enumerate(inv.itertuples(), 1):
+        lines.append(f"| {i} | {r.post_id} | {r.zone_id} | {r.kva:.0f} | {r.pv_kw:.0f} | {fmt(r.pv_kw_per_kva)} | {fmt(r.days_over, 0)} | "
+                     f"{_lei(r.lost_kwh)} | {_lei(r.value_lei_year)} | {remedies._ro(r.choice)} | {_lei(r.choice_cost)} | "
+                     f"{fmt(r.payback_years, 1)} | {'da' if r.upgrade else 'nu'} |")
+    lines += ["", "Recuperarea = costul soluției / valoarea pierdută pe an. Toate costurile vin din `config/economics.yaml` (IPOTEZĂ unde nu au sursă).", ""]
+    text = "\n".join(lines)
+    OUT.mkdir(parents=True, exist_ok=True)
+    (OUT / "investitii.md").write_text(text, encoding="utf-8")
+    return text
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("what", choices=["offers"])
+    ap.add_argument("what", choices=["offers", "investments"])
     ap.add_argument("--scenario", default="demo-vara")
     args = ap.parse_args()
     if args.what == "offers":
         print(battery_offers(args.scenario)[:1500])
+    elif args.what == "investments":
+        print(investments()[:3000])

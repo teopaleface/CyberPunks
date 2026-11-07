@@ -32,6 +32,10 @@ TZ = ZoneInfo(profiles.TZ)
 DEMO_VARA_FALLBACK = "2025-07-08"  # data aleasă de firul B (status B, 12:58): caniculă și cer senin în București-Ilfov
 LIMIT = actions.LIMIT_PU
 ARCHIVE_END = date(2026, 11, 6)
+CONTEXT_RO = {  # ANRE, aug. 2026 (documentul de research din 7 nov., memory/12-probleme-reale-ppc-2026.md)
+    "Ilfov": "Ilfov e primul județ din țară la prosumatori: 21.647, cu 303,81 MW (ANRE, aug. 2026).",
+    "București": "București are 8.307 prosumatori, cu 134,94 MW (ANRE, aug. 2026); cei mai mulți sunt la case, puțini la blocuri.",
+}
 SOURCES_ARCHIVE = "Open-Meteo Historical Weather (ERA5), CC BY 4.0"
 SOURCES_FORECAST = "Open-Meteo Forecast, CC BY 4.0"
 BASE_SOURCES = [
@@ -359,6 +363,7 @@ def run(scenario: str, date_str: str | None = None) -> Path:
                 "customer_message_ro": actions.customer_message(d, int(st["n_prosumers"]), (h0, h1))
                 if dec.action in ("notify_customers", "adjust_tap") and int(st["n_prosumers"]) > 0 else None,
                 "season_horizon_days": actions.season_horizon_days(d),
+                "context_ro": CONTEXT_RO.get(st["county"]),
                 **(tap_extra(st, d, created) if dec.action == "adjust_tap" or (ladder and "adjust_tap" in ladder.choice) else {}),
                 **(ladder_extra(ladder) if ladder else {}),
             },
@@ -399,6 +404,7 @@ def run(scenario: str, date_str: str | None = None) -> Path:
     month = explain.MONTHS_RO[d.month - 1]
     reason = (f"{len(out_items)} posturi din {len(reg)} au lucrări. Radiația maximă pe panou: {info['gti_max']:.0f} W/m², "
               f"{info['temp_noon']:.0f} °C la prânz, nori {info['cloud_noon']:.0f}%.")
+    reason += " " + CONTEXT_RO["Ilfov"]
     risky = int((X["p_exceed"] >= 0.5).sum())
     reason += f" {risky} posturi au probabilitate de depășire peste 50%."
     if len(out_items) <= 3:
