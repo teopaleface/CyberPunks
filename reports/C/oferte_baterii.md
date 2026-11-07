@@ -25,6 +25,7 @@ Date SINTETICE (posturi, prosumatori, profile). Ziua de calcul: 8 iulie 2025 (sc
 | PT-1072 | IF-VOLUNTARI | 6 | 20 | -0,0101 | 4500 |
 | PT-1075 | IF-CORNETU | 2 | 10 | -0,0136 | 2250 |
 | PT-1076 | IF-CORNETU | 7 | 20 | -0,0091 | 4500 |
+| PT-1082 | IF-1-DECEMBRIE | 5 | 20 | -0,0079 | 4500 |
 | PT-1087 | IF-OTOPENI | 3 | 10 | -0,0101 | 2250 |
 | PT-1119 | IF-STEFANESTII-DE-JOS | 7 | 20 | -0,0041 | 4500 |
 | PT-1131 | IF-CHITILA | 9 | 30 | -0,0103 | 6750 |
@@ -35,7 +36,7 @@ Date SINTETICE (posturi, prosumatori, profile). Ziua de calcul: 8 iulie 2025 (sc
 | PT-1269 | IF-AFUMATI | 12 | 40 | -0,0147 | 9000 |
 | PT-1300 | IF-STEFANESTII-DE-JOS | 11 | 30 | -0,0103 | 6750 |
 
-## Lista pentru PPC Energie (primii 30 din 108, după efectul pe tensiune și venit)
+## Lista pentru PPC Energie (primii 30 din 113, după efectul pe tensiune și venit)
 
 | Prosumator (cod sintetic) | Post | kWp | Baterie (kWh) | kWh stocați la prânz | Efect pe tensiune (pu) | kWh mutați pe an | Economie (lei/an) | Cost / grant (lei) | Recuperare (ani) | Venit PPC (lei) |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -52,6 +53,7 @@ Date SINTETICE (posturi, prosumatori, profile). Ziua de calcul: 8 iulie 2025 (sc
 | PT-1255-P33 | PT-1255 | 12 | 10 | 10,0 | 0,0052 | 628 | 702 | 15000 / 11250 | 5,3 | 2250 |
 | PT-1005-P24 | PT-1005 | 12 | 10 | 10,0 | 0,0050 | 845 | 944 | 15000 / 11250 | 4,0 | 2250 |
 | PT-1300-P22 | PT-1300 | 12 | 10 | 10,0 | 0,0050 | 294 | 328 | 15000 / 11250 | 11,4 | 2250 |
+| PT-1082-P14 | PT-1082 | 10 | 10 | 10,0 | 0,0049 | 769 | 859 | 15000 / 11250 | 4,4 | 2250 |
 | PT-1131-P13 | PT-1131 | 5 | 10 | 10,0 | 0,0049 | 548 | 612 | 15000 / 11250 | 6,1 | 2250 |
 | PT-1076-P31 | PT-1076 | 5 | 10 | 10,0 | 0,0049 | 495 | 552 | 15000 / 11250 | 6,8 | 2250 |
 | PT-1075-P08 | PT-1075 | 6 | 10 | 10,0 | 0,0049 | 448 | 500 | 15000 / 11250 | 7,5 | 2250 |
@@ -60,6 +62,7 @@ Date SINTETICE (posturi, prosumatori, profile). Ziua de calcul: 8 iulie 2025 (sc
 | PT-1252-P28 | PT-1252 | 5 | 10 | 10,0 | 0,0046 | 550 | 614 | 15000 / 11250 | 6,1 | 2250 |
 | PT-1005-P09 | PT-1005 | 12 | 10 | 10,0 | 0,0042 | 1295 | 1446 | 15000 / 11250 | 2,6 | 2250 |
 | PT-1005-P32 | PT-1005 | 6 | 10 | 10,0 | 0,0042 | 816 | 911 | 15000 / 11250 | 4,1 | 2250 |
+| PT-1082-P13 | PT-1082 | 5 | 10 | 9,9 | 0,0041 | 569 | 636 | 15000 / 11250 | 5,9 | 2250 |
 | PT-1147-P24 | PT-1147 | 5 | 10 | 10,0 | 0,0041 | 585 | 653 | 15000 / 11250 | 5,7 | 2250 |
 | PT-1131-P23 | PT-1131 | 10 | 10 | 10,0 | 0,0041 | 681 | 761 | 15000 / 11250 | 4,9 | 2250 |
 | PT-1269-P41 | PT-1269 | 3 | 10 | 9,4 | 0,0040 | 490 | 547 | 15000 / 11250 | 6,9 | 2250 |
@@ -67,11 +70,9 @@ Date SINTETICE (posturi, prosumatori, profile). Ziua de calcul: 8 iulie 2025 (sc
 | PT-1147-P04 | PT-1147 | 3 | 10 | 8,8 | 0,0040 | 571 | 637 | 15000 / 11250 | 5,9 | 2250 |
 | PT-1005-P02 | PT-1005 | 5 | 10 | 10,0 | 0,0040 | 942 | 1052 | 15000 / 11250 | 3,6 | 2250 |
 | PT-1076-P03 | PT-1076 | 5 | 10 | 10,0 | 0,0039 | 850 | 949 | 15000 / 11250 | 4,0 | 2250 |
-| PT-1072-P25 | PT-1072 | 8 | 10 | 10,0 | 0,0038 | 1254 | 1401 | 15000 / 11250 | 2,7 | 2250 |
-| PT-1300-P36 | PT-1300 | 3 | 10 | 8,4 | 0,0037 | 910 | 1017 | 15000 / 11250 | 3,7 | 2250 |
 
 ## Textul ofertei (șablon, fără date personale; cifrele sunt medianele listei)
 
 > Panourile dumneavoastră produc la prânz mai mult decât consumați. În zilele cu soare puternic, tensiunea din rețeaua străzii crește până când invertoarele se opresc singure. O baterie de 10 kWh ar stoca circa 10 kWh la prânz și i-ar folosi seara, când energia e cea mai scumpă și sistemul are cea mai mare nevoie de ea. Cu grantul Casa Verde Baterii 2026, costul dumneavoastră scade la circa 3.750 lei și se recuperează în circa 5 ani. Detalii în magazinele PPC și Flanco.
 
-Total: 108 oferte pe 13 posturi, venit potențial 243.000 lei dacă acceptă toți (72.900 lei la 30%).
+Total: 113 oferte pe 14 posturi, venit potențial 254.250 lei dacă acceptă toți (76.275 lei la 30%).
