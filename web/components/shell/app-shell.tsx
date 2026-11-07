@@ -20,7 +20,7 @@ export function AppShell({ info, fit = false, children }: { info: ShellInfo; fit
         Sari la conținut
       </a>
       <header className="sticky top-0 z-30 flex h-[60px] shrink-0 items-center border-b border-[#152133] bg-canvas/95 backdrop-blur">
-        <div className="flex h-full w-[256px] shrink-0 items-center border-r border-[#152133] px-7 max-md:w-auto max-md:border-r-0 max-md:px-4">
+        <div className="flex h-full w-[224px] shrink-0 items-center border-r border-[#152133] px-7 max-md:w-auto max-md:border-r-0 max-md:px-4">
           <Link href={`/?scenariu=${encodeURIComponent(info.scenario)}`} aria-label="Daybreak, planul de mâine" className="rounded-[6px]">
             <Wordmark />
           </Link>
@@ -32,7 +32,7 @@ export function AppShell({ info, fit = false, children }: { info: ShellInfo; fit
         </div>
       </header>
       <div className={fit ? "flex min-h-0 flex-1" : "flex flex-1"}>
-        <aside className="sticky top-[60px] flex h-[calc(100dvh-60px)] w-[256px] shrink-0 flex-col justify-between gap-6 overflow-y-auto border-r border-[#152133] px-3.5 py-5 max-md:hidden">
+        <aside className="sticky top-[60px] flex h-[calc(100dvh-60px)] w-[224px] shrink-0 flex-col justify-between gap-6 overflow-y-auto border-r border-[#152133] px-3.5 py-5 max-md:hidden">
           <SideNav counts={{ review: info.counts.review, alerts: info.counts.alerts + info.counts.notifications }} />
           <div className="space-y-3 px-1">
             <ScenarioSwitch scenario={info.scenario} scenarios={info.scenarios} />

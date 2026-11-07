@@ -11,7 +11,7 @@ export const NAV = [
   { href: "/posturi", label: "Posturile", short: "Posturile", icon: UtilityPole, match: (p: string) => p.startsWith("/posturi") },
   { href: "/lucrari", label: "Lucrări", short: "Lucrări", icon: Wrench, match: (p: string) => p.startsWith("/lucrari") || p.startsWith("/ordine") },
   { href: "/jurnal", label: "Jurnal", short: "Jurnal", icon: BookOpen, match: (p: string) => p.startsWith("/jurnal") },
-  { href: "/alerte", label: "Alerte și mesaje", short: "Alerte", icon: Bell, match: (p: string) => p.startsWith("/alerte"), count: "alerts" as const },
+  { href: "/alerte", label: "Alerte și mesaje", short: "Alerte", icon: Bell, match: (p: string) => p.startsWith("/alerte") },
   { href: "/modele", label: "Modele", short: "Modele", icon: Layers, match: (p: string) => p.startsWith("/modele") },
   { href: "/demo", label: "Prezentare", short: "Prezentare", icon: Monitor, match: (p: string) => p.startsWith("/demo") },
 ];
@@ -38,7 +38,7 @@ export function SideNav({ counts }: { counts: { review: number; alerts: number }
             href={href(n.href)}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex h-11 items-center gap-3.5 rounded-[10px] px-3.5 text-[15.5px] transition-colors duration-150",
+              "flex h-11 items-center gap-3 rounded-[10px] px-3 text-[15px] transition-colors duration-150",
               active ? "bg-[#1b2434] font-[600] text-ink" : "text-ink-soft hover:bg-[#0f1a2b] hover:text-ink",
             )}
           >

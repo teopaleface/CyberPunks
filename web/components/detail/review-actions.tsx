@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { Check, Clock, NotebookPen, X } from "lucide-react";
+import { btn } from "@/components/ds";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { submitReview } from "@/lib/data/actions";
@@ -11,7 +13,7 @@ import type { ReviewDecision } from "@/lib/data/types";
 const DONE: Record<ReviewDecision, string> = { approve: "Ai aprobat", reject: "Ai respins", defer: "Ai amânat" };
 
 /** Decizia omului: aprobă, respinge sau amână, cu o notă. Se scrie în jurnal cu actor „om”. */
-export function ReviewActions({ workItemId, scenario }: { workItemId: string; scenario?: string }) {
+export function ReviewActions({ workItemId, scenario, layout = "default" }: { workItemId: string; scenario?: string; layout?: "default" | "card" }) {
   const router = useRouter();
   const noteId = useId();
   const itemId = useId();
@@ -34,6 +36,46 @@ export function ReviewActions({ workItemId, scenario }: { workItemId: string; sc
       }
     });
   };
+  if (layout === "card") {
+    return (
+      <div className="space-y-4">
+        <span id={itemId} className="sr-only">
+          lucrarea {workItemId}
+        </span>
+        <div>
+          <label htmlFor={noteId} className="mb-2 flex items-center gap-2.5 text-[15.5px] text-ink">
+            <NotebookPen aria-hidden="true" size={20} strokeWidth={1.7} className="text-ink-soft" />
+            Note
+          </label>
+          <Textarea
+            id={noteId}
+            aria-describedby={itemId}
+            name="nota"
+            autoComplete="off"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            maxLength={2000}
+            placeholder="Adaugă o notă…"
+            className="min-h-[68px] rounded-[10px] border-[#2a3a52] bg-surface-2 px-4 py-3 text-[15.5px]"
+          />
+        </div>
+        <div className="grid grid-cols-3 gap-3 max-sm:grid-cols-1">
+          <button type="button" className={btn("primary", "lg")} onClick={() => act("approve")} disabled={pending} aria-describedby={itemId}>
+            <Check aria-hidden="true" size={22} strokeWidth={2.2} />
+            {acting === "approve" ? "Se trimite…" : "Aprobă"}
+          </button>
+          <button type="button" className={btn("danger", "lg")} onClick={() => act("reject")} disabled={pending} aria-describedby={itemId}>
+            <X aria-hidden="true" size={22} strokeWidth={2.2} />
+            {acting === "reject" ? "Se trimite…" : "Respinge"}
+          </button>
+          <button type="button" className={btn("outline", "lg")} onClick={() => act("defer")} disabled={pending} aria-describedby={itemId}>
+            <Clock aria-hidden="true" size={22} strokeWidth={1.9} />
+            {acting === "defer" ? "Se trimite…" : "Amână"}
+          </button>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="space-y-4">
       <span id={itemId} className="sr-only">
