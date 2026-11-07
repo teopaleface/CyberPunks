@@ -1,7 +1,7 @@
 # Status: Teo-ui
-Actualizat: 2026-11-07 14:10
-Milestone curent: M2 (M0 la 13:50, M1 la 13:55)
-Gata de merge: da (commit 07f3c87: M1 + posturi + aprobarea listei; ecranele Jurnal, Alerte, Modele, Nu sunt sigur încă în lucru la subagenți, compilează)
+Actualizat: 2026-11-07 14:40
+Milestone curent: M3 (M0 13:50, M1 13:55, M2 14:40)
+Gata de merge: da (commit a68f2aa: M2, toate ecranele de bază pe API și pe instantaneu, modul /demo)
 
 ## Făcut
 - 12:45 Citite instrucțiunile, memoria, planul, contractele; `uv sync` și `make check` trec.
@@ -24,8 +24,10 @@ Gata de merge: da (commit 07f3c87: M1 + posturi + aprobarea listei; ecranele Jur
 - 14:20 Ecranele Modele (A, B, C față de baseline cu cifrele reale din rapoarte, analiza erorilor, agentul față de strategii simple, comenzile de reproducere) și Nu sunt sigur (61 de lucrări, cu Aprobă/Respinge/Amână și notă), făcute de un subagent după convențiile din `web/design/CONVENTIONS.md`.
 - 14:10 Aprobarea listei echipelor, ordinele de lucru PDF (`/ordine/<echipă>`, de la API sau din instantaneu), lei recuperați (din aprobările omului). Reparat: deciziile omului trimit acum scenariul la `POST /review`.
 
+- 14:40 M2 gata: ecranele Jurnal (filtre, praguri, urmărire, descărcare JSONL) și Alerte și mesaje (subagent); posturile folosesc bilanțul real (lei pe lună, cauza); test de fum pentru toate ecranele (`make web-smoke`, 12 ecrane); 23 de teste (`make web-test`).
+
 ## Urmează
-- Ecranele Jurnal, Alerte și mesaje, Modele, Nu sunt sigur (la subagenți), apoi review cu `web-design-guidelines` și `impeccable`.
+- M3: audit `impeccable`, rezerva fără API verificată (API oprit), pagina principală mai ușoară (detaliile lucrărilor la cerere), un review independent cu Codex.
 - Scara de soluții C și bilanțul apar automat când firele C și bilanț pun `extra.remedy_options` și lucrările `A_bilant` (componentele sunt gata).
 - Până la 01:00: `/demo` pentru înregistrări, cu varianta întunecată cerută de firul de prezentare.
 
@@ -33,6 +35,7 @@ Gata de merge: da (commit 07f3c87: M1 + posturi + aprobarea listei; ecranele Jur
 - niciunul
 
 ## Cereri către orchestrator
+- (14:40) Către planificator (texte): zecimale cu punct în mesaje și alerte („9.1 ore”, „~38.9 kWh”), plural greșit („1 lucrări așteaptă”, „72 lucrări”: corect „1 lucrare”, „72 de lucrări”), data „marți 08.07.2025” în mesaje (în română: „marți, 8 iulie”). Interfața le arată așa cum vin.
 - (14:35) Către firul bilanț: lucrările `A-<data>-PT-*` au `extra.series_ref = outputs/series/<s>/A-<data>-PT-*.json`, dar fișierele nu există (în `outputs/series/demo-vara/` sunt doar seriile C ale posturilor). Pagina postului are graficul „ieșit din post” (`value`) față de „suma clienților” (`expected`) gata; îi lipsește doar seria. Contractul `Series` cu `flag: "lipsa_peste_normal"` pe zilele cu lipsă peste normal.
 - (14:25) Către firul A (date): în `explanation.top_factors[].label_ro` apar procente absurde („Consumul de noapte a crescut cu 18273047% față de istoric”, împărțire la aproape zero) și zecimale cu punct („0.46 din medie”, „9.1 ore”). Interfața le afișează acum protejat („peste 1.000%”, virgulă), dar textul ar trebui reparat la sursă: plafonare la ±1.000% sau formulare relativă („de la aproape zero”), format românesc. La fel în `reports/B/error_analysis.md` („0.16”).
 - (14:10) Către planificator: `POST /api/plan/approve {scenario, plan_id, approver, note}` → `AuditRecord` (actor human, action „plan_approved”), pentru butonul „Aprobă lista echipelor”. Până atunci interfața păstrează aprobarea local și spune asta.
