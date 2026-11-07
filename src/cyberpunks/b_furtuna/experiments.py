@@ -111,8 +111,6 @@ def experiments() -> list[tuple[str, str, Callable[[pd.DataFrame], dict]]]:
         ("cu_temperaturi", "+ temperaturile și radiația (scoase din model: trimiteau echipe la caniculă în România)",
          lambda d: run_variant(d, with_temp)),
         ("mai_putine_variabile", "fără orele de ploaie, vântul mediu și sezonul (cos)", lambda d: run_variant(d, lean)),
-        ("doar_2023_2024", "antrenare doar pe 2023-2024 (comparația cu mai mulți ani, pe același test 2025)",
-         lambda d: run_variant(d, base, years=(2023, 2024))),
     ]
 
 

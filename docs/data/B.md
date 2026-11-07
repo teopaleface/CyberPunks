@@ -6,7 +6,7 @@ Tot ce folosește modelul B e public. Nicio dată de antrenare nu e sintetică. 
 
 | Sursă | Ce luăm | Licență, citare | Unde ajunge |
 |---|---|---|---|
-| EAGLE-I, ORNL (figshare v4, 25 feb. 2026) | Clienți fără curent pe comitat, la 15 minute, 2023-2025 (descărcăm și 2021-2022) | CC BY 4.0. Brelsford et al. (2024), *Scientific Data* 11:271, https://doi.org/10.1038/s41597-024-03095-5; setul: https://doi.org/10.6084/m9.figshare.24237376.v4 | `data/raw/B/eaglei/` (circa 1,2-1,4 GB pe an, în afara git) |
+| EAGLE-I, ORNL (figshare v4, 25 feb. 2026) | Clienți fără curent pe comitat, la 15 minute, 2023-2025 (2021-2022 n-au fost folosite: vremea lor ar fi depășit cota Open-Meteo) | CC BY 4.0. Brelsford et al. (2024), *Scientific Data* 11:271, https://doi.org/10.1038/s41597-024-03095-5; setul: https://doi.org/10.6084/m9.figshare.24237376.v4 | `data/raw/B/eaglei/` (circa 1,2-1,4 GB pe an, în afara git) |
 | EAGLE-I MCC | Clienți modelați pe comitat (2022), numitorul procentului | idem | idem |
 | EAGLE-I coverage_history, DQI | Acoperirea pe stat și an, indicele de calitate pe regiune FEMA | idem | idem |
 | Open-Meteo Historical Weather API (archive) | 10 variabile zilnice pe centroidul fiecărui comitat, 2022-12-25 – 2025-12-31; aceleași pentru zonele din România (backtest, `demo-vara`) | CC BY 4.0, „Weather data by Open-Meteo.com”, https://open-meteo.com/en/license. Gratuit, necomercial | `data/raw/B/openmeteo/us/` și `data/raw/B/openmeteo/cache/` |

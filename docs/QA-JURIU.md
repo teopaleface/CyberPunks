@@ -61,7 +61,7 @@ Am împărțit județele în 26 de zone de mărimea unui comitat american. Model
 **13. Ce dovadă aveți că merge în România?**
 Am verificat trei furtuni reale din presă:
 - 8 iulie 2025, cod roșu în Banat: riscul mediu e 0,31 în Banat față de 0,07 în rest, cu echipă recomandată în 22 de zone-zi din Banat și în niciuna din rest.
-- 17 iulie 2025, Slobozia: zona iese pe locul 1 din 26.
+- 17 iulie 2025, Slobozia: zona iese pe locul 1 din 26, la egalitate cu Oravița (P = 0,36).
 - 26 noiembrie 2023, viscol în Dobrogea: riscul mediu e 0,87 în Dobrogea față de 0,09 în rest, iar toate cele 10 zone din Dobrogea primesc echipă.
 Fără istoricul RER, verificarea e calitativă. Sursa: `reports/B/backtest_romania.md`.
 
