@@ -109,9 +109,9 @@ export function QueuePanel({
             <ScoreScale score={w.prediction.score} low={w.prediction.interval_low} high={w.prediction.interval_high} threshold={0.5} width={110} tone="att" />
             <span className="num-wide text-[32px]">{fmtScore(w.prediction.score)}</span>
           </div>
-          <p className="col-span-2 col-start-2 text-[15.5px] font-[540]">
+          <p className="col-span-2 col-start-2 text-[15.5px] font-[540] text-pretty">
             {w.prediction.abstain_reason ? sentence(w.prediction.abstain_reason) : sentence(first.reason_ro)}{" "}
-            <span className="font-[400] text-muted-foreground">Decide tu.</span>
+            <span className="font-[400] whitespace-nowrap text-muted-foreground">Decide tu.</span>
           </p>
           <div className="col-span-2 col-start-2 flex flex-wrap items-center gap-2.5">
             <Button size="panel" onClick={() => act("approve")} disabled={pending}>
@@ -355,7 +355,7 @@ export function WorkItemPeek({
           ) : null}
           {slim && !detailError
             ? [0, 1, 2].map((i) => (
-                <div key={i} className="grid grid-cols-[minmax(0,1fr)_140px_48px] items-center gap-x-3" aria-hidden="true">
+                <div key={i} className="grid grid-cols-[minmax(0,1fr)_140px_48px] items-center gap-x-3 max-[1600px]:grid-cols-[minmax(0,1fr)_64px_44px]" aria-hidden="true">
                   <span className="h-3.5 animate-pulse rounded-[2px] bg-muted" style={{ width: `${78 - i * 14}%` }} />
                   <span className="h-2.5 animate-pulse bg-muted" />
                   <span className="h-3.5 animate-pulse rounded-[2px] bg-muted" />
@@ -363,7 +363,7 @@ export function WorkItemPeek({
               ))
             : null}
           {w.explanation.top_factors.slice(0, 4).map((f) => (
-            <div key={f.feature} className="grid grid-cols-[minmax(0,1fr)_140px_48px] items-center gap-x-3">
+            <div key={f.feature} className="grid grid-cols-[minmax(0,1fr)_140px_48px] items-center gap-x-3 max-[1600px]:grid-cols-[minmax(0,1fr)_64px_44px]">
               <span>{factorLabelRo(f.label_ro)}</span>
               <span className="relative h-2.5 bg-muted" aria-hidden="true">
                 <i
