@@ -1,5 +1,5 @@
 # Status: Teo-B-furtuna
-Actualizat: 2026-11-07 13:30
+Actualizat: 2026-11-07 13:42
 Milestone curent: M1 provizoriu (model pe 19 din 80 de comitate); M1 final pe la 15:15
 Gata de merge: da (commit cbf4007), versiune PROVIZORIE: interfața și formatele sunt finale, cifrele modelului se schimbă la 15:15
 
@@ -26,7 +26,7 @@ Gata de merge: da (commit cbf4007), versiune PROVIZORIE: interfața și formatel
 - Niciunul.
 
 ## Cereri către orchestrator
-1. **Data pentru `demo-vara`: 2025-07-08 (marți).** Vă rog `config/scenarios.yaml`: `date: "2025-07-08"`. Până atunci, B folosește data asta implicit.
+1. **Data pentru `demo-vara`: 2025-07-08 (marți).** REZOLVAT de orchestrator la 13:20 (`config/scenarios.yaml`).
    - Banat: ANM a dat cod roșu de vijelii pentru 8 iulie, 15:00-21:00, rafale 90-110 km/h, în Timiș, Arad, Caraș-Severin, Hunedoara (toate cele 4 județe Rețele Electrice Banat). Transelectrica: rafale de 90-120 km/h, stâlpi avariați pe linia de 220 kV Reșița-Timișoara. Prefectul Timișului: circa 40.000 de consumatori afectați în 82 de localități (cumulat 7-9 iulie); 80 de echipe Rețele Electrice și contractori pe teren. Surse: https://a1.ro/news/vremea/cod-rosu-de-vijelii-puternice-in-10-judete-din-tara-ce-zone-sunt-afectate-de-ploaia-torentiala-grindina-si-vant-dupa-canicula-id1139539.html , https://hotnews.ro/?p=2020474 , https://www.pressalert.ro/2025/07/stalpi-de-inalta-tensiune-doborati-de-furtunile-din-ultimele-zile-in-timis/
    - București-Ilfov (zona firelor A și C): cod roșu de caniculă, cer senin. Arhiva Open-Meteo: radiație de 881 W/m² la ora 12, nori 0%, maxima 37 °C în București și 36,6 °C la Buftea. Nicio furtună în București în ziua aceea.
    - Vremea verificată (arhiva Open-Meteo, ora României): în Banat, rafale de 40-64 km/h după-amiaza (14-17), ploaie de 7-18 mm. Prognoza ICON pentru 8 iulie dădea rafale de 68-72 km/h la Reșița, Caransebeș și Deva, iar ECMWF dădea CAPE de până la 1.960 J/kg la Timișoara.
@@ -38,6 +38,7 @@ Gata de merge: da (commit cbf4007), versiune PROVIZORIE: interfața și formatel
    - Compensații automate (Ord. ANRE 46/2021): 30 lei pe client JT, 200 lei MT, 300 lei 110 kV, la depășirea a 4 h (reședințe de județ), 6 h (urban), 12 h (rural) pe vreme normală și 48 h / 72 h pe vreme deosebită (vezi cererea 8). RER plătește circa 85% din compensațiile automate naționale (raportul ANRE pe 2024); folosim doar procentul, nu sumele absolute.
    - `cost_per_customer_hour_lei` rămâne IPOTEZĂ (compensația legală nu e pe oră).
 6. **Opțional pentru interfață și planificator**: harta publică de întreruperi Rețele Electrice are un serviciu ArcGIS fără autentificare, cu întreruperile active (clienți afectați, județ, coordonate, ora estimată de revenire), actualizat la 15 minute: `https://services-eu1.arcgis.com/ZugzWQbNk6XT3BMo/arcgis/rest/services/OutagesMapViewLayer/FeatureServer/0/query?where=1%3D1&outFields=*&f=json`. Bun pentru pasul "Perceive" la scenariul `maine`.
+7. **Cota Open-Meteo e comună pentru tot laptopul** (10.000 de apeluri pe zi, 5.000 pe oră, pe IP). B folosește circa 3.300 pe oră până la 14:55, apoi foarte puțin. Dacă alt fir are nevoie de mult, să-mi spună.
 8. **Răspuns la întrebarea de la 14:40, termenele de repunere: corecte sunt 4/6/12 h pe vreme normală și 48/72 h pe vreme deosebită. Cele 8/12/48 h din documentul de research sunt greșite pentru întreruperile neplanificate.** Am verificat sursa primară: Ordinul ANRE nr. 46/2021, Monitorul Oficial, Partea I, nr. 649 din 1 iulie 2021, art. 15 alin. (1) din standard (text: https://www.ppcenergy.ro/wp-content/uploads/ord-46-2021.pdf).
    - Întrerupere neplanificată, vreme normală: 4 h în municipiile reședință de județ (fără zonele rurale din componența lor), 6 h în restul mediului urban, 12 h în mediul rural.
    - Întrerupere neplanificată, condiții meteorologice deosebite: 48 h pentru avarii în intravilan, 72 h pentru avarii în extravilan.
@@ -47,7 +48,7 @@ Gata de merge: da (commit cbf4007), versiune PROVIZORIE: interfața și formatel
    - Sinteza Rețele Electrice, care include completarea prin Ord. ANRE 64/2022, dă aceleași termene: https://reteleelectrice.ro/wp-content/uploads/sinteza-standard-de-performanta.pdf
    - Pentru planificator: `restoration_limit_hours` din `config/economics.yaml` (4/6/12/48/72) e corect; ca sursă se poate cita „Ord. ANRE 46/2021, MO 649/1.07.2021, art. 15 alin. (1)”. Ar trebui adăugat `planned: 8`, cu sursa „anexa 1, rândul 2”.
 9. **Sugestie pentru `config/economics.yaml`, cheia `storm`** (planificatorul decide): valoarea unei echipe trimise din timp presupune acum că o echipă scurtează întreruperea pentru toți clienții afectați, oricât de mare e avaria. Cu ipotezele de acum, pe anul de test, „trimite mereu” iese mai bine decât orice regulă (vezi `reports/B/metrics_detail.json`, `decision_value`). Un plafon pe tură ar face valoarea realistă, de exemplu `customers_helped_per_crew_shift: <N>  # IPOTEZĂ`. Dacă cheia există, B o folosește deja în `value_if_true_lei`; dacă nu, B lasă calculul ca acum.
-7. **Cota Open-Meteo e comună pentru tot laptopul** (10.000 de apeluri pe zi, 5.000 pe oră, pe IP). B folosește circa 3.300 pe oră până la 14:55, apoi foarte puțin. Dacă alt fir are nevoie de mult, să-mi spună.
+10. **Sugestie pentru regula de furtună a planificatorului** (`rule_storm`, `config/planner.yaml`): cu valorile din config, și o zonă cu 9% risc într-o zi liniștită iese „rentabilă” (de exemplu Mangalia, pe 8 noiembrie: 9% × circa 46.000 lei, adică peste 4.000 lei, față de 2.700 lei tura), așa că agentul ar trimite echipe pe vânt de 25 km/h. Propunere: trimitem echipă doar dacă `prediction.score ≥ extra.decision_threshold` (pragul B, ales pe validare ca cel mai bun F1, acum circa 0,16) **și** valoarea netă e pozitivă. Sub prag: urmărire, plus alertă dacă scorul ≥ 0,4. Pragul e în fiecare lucrare B, la `extra.decision_threshold`, iar B îl respectă deja în `recommended_action`.
 
 ## Cum se rulează (comenzile exacte)
 Pentru planificator: `from cyberpunks.b_furtuna.predict import run; run("demo-vara", None)` scrie `outputs/work_items/demo-vara/B.jsonl` și `outputs/series/demo-vara/B-*.json`. Folosește modelul din git și vremea Open-Meteo (cu cache: o a doua rulare în 3 ore nu mai consumă din cotă). O rulare durează 2-5 s.
