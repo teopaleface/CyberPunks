@@ -214,6 +214,12 @@ export function readFixtureWorkItems(source?: WorkItemSource): Promise<FileRead<
   return readWorkItemFiles((src) => [path.join(fixturesDir(), `work_items_${src}.jsonl`)], source);
 }
 
+/** Seria de exemplu pentru o lucrare din fixture-uri (contracts/fixtures/series_<id>.json). */
+export function readFixtureSeries(workItemId: string): Promise<FileRead<Series> | null> {
+  if (!isSafeSegment(workItemId)) return Promise.resolve(null);
+  return readFirstJson<Series>([path.join(fixturesDir(), `series_${workItemId}.json`)]);
+}
+
 /** Lucrările greșite intenționat (pentru demo-ul „respinsă la intrare”), ca obiecte brute. */
 export async function readFixtureInvalidWorkItems(): Promise<FileRead<JsonlResult<Record<string, unknown>>> | null> {
   return readFirstJsonl<Record<string, unknown>>([path.join(fixturesDir(), "work_items_invalid.jsonl")]);

@@ -199,6 +199,7 @@ export function AlertsPanel({ alerts, onSelect }: { alerts: Alert[]; onSelect: (
 // --------------------------------------------------------------------------------------------
 function costOf(d: Decision | null | undefined): { cost: number; label: string } | null {
   const t = d?.threshold ?? {};
+  if (typeof t.cost_lei === "number") return { cost: t.cost_lei, label: "cost" };
   if (typeof t.visit_cost_lei === "number") return { cost: t.visit_cost_lei, label: "costul vizitei" };
   if (typeof t.preposition_cost_lei === "number") return { cost: t.preposition_cost_lei, label: "costul echipei trimise din timp" };
   if (typeof t.tap_change_visit_cost_lei === "number") return { cost: t.tap_change_visit_cost_lei, label: "costul schimbării prizei" };
