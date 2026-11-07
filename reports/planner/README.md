@@ -6,7 +6,7 @@ Fișiere:
 
 | Fișier | Ce conține | Cum se refac cifrele |
 |---|---|---|
-| `agent_eval.json` | toate cifrele evaluării, pe zile și pe strategii | `uv run python -m cyberpunks.planner.evaluate` (~2 min) |
+| `agent_eval.json` | toate cifrele evaluării, pe zile și pe strategii | `uv run python -m cyberpunks.planner.evaluate` (~1 min) |
 | `agent_eval.md` | tabelele, generate din `agent_eval.json` (nicio cifră scrisă de mână) | aceeași comandă |
 | `solver_benchmark.json` | OR-Tools față de inserarea greedy, pe 100, 200 și 300 de lucrări | `uv run python -m cyberpunks.planner.benchmark` (~6 min) |
 
