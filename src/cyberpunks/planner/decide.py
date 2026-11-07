@@ -221,7 +221,7 @@ def priority_of(ctx: Context, wi: WorkItem, costs: Costs) -> float:
     """Premiul din trasee (lei): valoarea așteptată minus costul acțiunii și al întreruperii; drumul îl socotește solverul.
     La siguranță, prioritatea se înmulțește (config: safety_priority_multiplier)."""
     p = max(0.0, wi.impact.expected_value_lei - costs.action_cost - costs.outage_cost)
-    if wi.impact.safety_flag:
+    if strong_safety(ctx, wi):
         p *= float(ctx.g("safety_priority_multiplier", 3.0))
     return round(p, 2)
 
@@ -333,9 +333,9 @@ def _uncertain_route(ctx: Context, item: Item, rule_id: str, why: str, threshold
     wi = item.wi
     min_ev = float(ctx.g("human_review_min_ev_lei", 150))
     threshold = {**threshold, "human_review_min_ev_lei": min_ev, "expected_value_lei": round(wi.impact.expected_value_lei, 2)}
-    if wi.impact.expected_value_lei >= min_ev or wi.impact.safety_flag:
+    if wi.impact.expected_value_lei >= min_ev or strong_safety(ctx, wi):
         alerts = []
-        if wi.impact.safety_flag:
+        if strong_safety(ctx, wi):
             alerts.append(
                 AlertSpec("critical", f"Siguranță, de decis azi: {_label(wi)}", f"{why} Cazul are risc pentru oameni; un dispecer trebuie să decidă azi.")
             )
@@ -437,9 +437,44 @@ def rule_abstain(ctx: Context, item: Item) -> Proposal | None:
                   "human_review", th)
 
 
+def _fusion_confirmed(wi: WorkItem) -> bool | None:
+    """True/False dacă bilanțul postului a fost comparat cu contorul (confirmă = a urcat scorul); None dacă nu există bilanț."""
+    f = wi.extra.get("fusion")
+    if not isinstance(f, dict) or not isinstance(f.get("a_score"), (int, float)) or not isinstance(f.get("combined_score"), (int, float)):
+        return None
+    return float(f["combined_score"]) > float(f["a_score"]) + 0.005
+
+
 def strong_safety(ctx: Context, wi: WorkItem) -> bool:
-    """Risc pentru oameni cu semnal puternic: safety_flag și scor de cel puțin `safety_min_score` (A, bilanț, C)."""
-    return bool(wi.impact.safety_flag) and wi.source != Source.B and wi.prediction.score >= float(ctx.g("safety_min_score", 0.7))
+    """Risc pentru oameni, cu dovadă: safety_flag, scor de cel puțin `safety_min_score` și, la un contor, o confirmare
+    independentă: bilanțul postului arată energie lipsă (fuziunea a urcat scorul). O manipulare fără energie lipsă la post nu
+    dovedește o legătură ilegală. Fără bilanț pentru post, doar un semnal foarte puternic al modelului A
+    (`safety_unconfirmed_min_score`, încredere mare). Furtul înainte de contor, văzut direct de bilanț, e risc în sine.
+    La B, safety_flag e un avertisment pentru echipă (rafale), nu un caz de siguranță."""
+    if not wi.impact.safety_flag or wi.source == Source.B:
+        return False
+    if wi.prediction.score < float(ctx.g("safety_min_score", 0.7)):
+        return False
+    if wi.source == Source.A and not is_bilant_post(wi):
+        confirmed = _fusion_confirmed(wi)
+        if confirmed is not None:
+            return confirmed
+        return (wi.prediction.score >= float(ctx.g("safety_unconfirmed_min_score", 0.95))
+                and wi.prediction.confidence == Confidence.high)
+    return True
+
+
+def unconfirmed_safety_note(ctx: Context, wi: WorkItem) -> str | None:
+    """De ce un semnal de siguranță nu intră în regimul de siguranță (textul pentru motiv), sau None."""
+    if not wi.impact.safety_flag or wi.source == Source.B or strong_safety(ctx, wi):
+        return None
+    if wi.prediction.score < float(ctx.g("safety_min_score", 0.7)):
+        return f"Semnalul de siguranță al modelului e slab (scor {pct(wi.prediction.score)}, pragul e {pct(float(ctx.g('safety_min_score', 0.7)))}): fără regim de siguranță."
+    if _fusion_confirmed(wi) is False:
+        return ("Modelul A vede semne de manipulare, dar bilanțul postului nu arată energie lipsă: fără dovada unei legături "
+                "ilegale, cazul nu intră în regimul de siguranță; rămâne o verificare obișnuită.")
+    return (f"Semnal de manipulare fără bilanț pentru post și sub pragul de {pct(float(ctx.g('safety_unconfirmed_min_score', 0.95)))} "
+            "cu încredere mare: fără regim de siguranță.")
 
 
 def _data_issue(wi: WorkItem) -> bool:
@@ -477,21 +512,24 @@ def rule_safety(ctx: Context, item: Item) -> Proposal | None:
     """Risc pentru oameni (A: șunt cu risc de incendiu; C). La B, safety_flag înseamnă rafale ≥ 75 km/h, adică lucru
     periculos la înălțime pentru echipă: se tratează în rule_storm ca avertisment, nu ca prioritate obligatorie."""
     wi = item.wi
-    if not wi.impact.safety_flag or wi.source == Source.B:
-        return None
-    if wi.prediction.score < float(ctx.g("safety_min_score", 0.7)):
-        return None  # semnal de siguranță slab: regulile obișnuite, cu prioritatea triplată (priority_of), fără obligativitate
+    if not strong_safety(ctx, wi):
+        return None  # fără dovadă (semnal slab sau neconfirmat de bilanț): regulile obișnuite, fără obligativitate
     action = {Source.A: "inspect_on_site", Source.B: "preposition_crew", Source.C: "measurement_campaign"}[wi.source]
     costs = estimate_costs(ctx, wi, action)
     mult = float(ctx.g("safety_priority_multiplier", 3.0))
-    reason = f"Risc pentru siguranța oamenilor ({_factors(wi, 1)}, scor {pct(wi.prediction.score)}): intră primul în traseu, oricare ar fi costul."
+    evidence = ("confirmat de bilanțul postului" if _fusion_confirmed(wi) else
+                "văzut direct în bilanțul postului" if is_bilant_post(wi) else "semnal foarte puternic, fără bilanț pentru post")
+    reason = (f"Risc pentru siguranța oamenilor ({_factors(wi, 1)}, scor {pct(wi.prediction.score)}, {evidence}): "
+              "intră primul în traseu, oricare ar fi costul.")
     p = _route(ctx, item, "R-SAFETY", reason, action, costs, {"safety_flag": 1.0, "safety_priority_multiplier": mult})
     p.mandatory = bool(ctx.g("safety_mandatory", True))  # siguranța înainte de bani (config: global.safety_mandatory)
     p.priority = max(p.priority or 0.0, round(wi.impact.expected_value_lei * mult, 2))
+    single_model = wi.source == Source.A and not is_bilant_post(wi) and _fusion_confirmed(wi) is None
     p.alerts.append(
         AlertSpec(
             "critical",
-            f"Risc de siguranță: {_label(wi)}",
+            # Fără bilanț pentru post, alerta spune că e doar semnalul (foarte puternic) al unui singur model.
+            f"{'Manipulare probabilă, fără bilanț' if single_model else 'Risc de siguranță'}: {_label(wi)}",
             f"{wi.explanation.summary_ro} Echipa merge fără să atingă instalația până la verificare; lucrul se face doar cu formele de organizare (AL/DV).",
         )
     )
@@ -1325,6 +1363,11 @@ def propose(ctx: Context, item: Item) -> Proposal:
 def decide(ctx: Context, items: list[Item]) -> list[Proposal]:
     proposals = [propose(ctx, it) for it in items]
     for p in proposals:
+        note = unconfirmed_safety_note(ctx, p.wi)
+        if note and p.rule_id != "R-SAFETY":
+            # Semnalul modelului rămâne vizibil în motiv, cu motivul pentru care nu e tratat ca risc pentru oameni.
+            p.reason_ro = f"{p.reason_ro} {note}"
+            p.threshold["safety_flag_unconfirmed"] = 1.0
         # Furtuna cu risc mare, dar cu model nesigur (merge la dispecer înainte de regula de furtună): alerta se vede oricum.
         if p.wi.source == Source.B and not p.alerts and p.decision in (DecisionType.human_review, DecisionType.deferred):
             p.alerts = storm_alerts(ctx, p.wi, unsure=True)

@@ -146,8 +146,9 @@ agent-eval:       ## evaluarea agentului față de strategii simple (reports/pla
 solver-bench:     ## OR-Tools față de greedy pe 100-300 de lucrări (reports/planner/solver_benchmark.json)
 	uv run python -m cyberpunks.planner.benchmark
 
-demo-snapshot:    ## copiază planul demo-vara în outputs/demo/ (intră în git; interfața îl folosește ca rezervă)
+demo-snapshot:    ## copiază planurile demo-vara și maine în outputs/demo/ (intră în git; interfața îl folosește ca rezervă)
 	uv run python -m cyberpunks.planner.snapshot --scenario demo-vara
+	uv run python -m cyberpunks.planner.snapshot --scenario maine --series plan
 
 api-demo:         ## API-ul pe instantaneul din git (outputs/demo/), fără să ruleze modelele
 	CYBERPUNKS_API_SOURCE=demo uv run uvicorn cyberpunks.api.app:app --host 127.0.0.1 --port 8710
@@ -159,8 +160,9 @@ demo-ports:       ## verifică dacă porturile demo-ului (API 8710, consola 3710
 	  fi; \
 	done
 
-demo: demo-ports  ## DEMO: planul real pentru demo-vara, apoi API-ul (8710) și consola de producție (3710), în paralel; Ctrl-C le oprește
+demo: demo-ports  ## DEMO: planurile reale (demo-vara și maine, cu prognoza de mâine), apoi API-ul (8710) și consola (3710); Ctrl-C le oprește
 	uv run cyberpunks run --scenario demo-vara
+	-uv run cyberpunks run --scenario maine
 	$(MAKE) -j2 api web-demo
 
 demo-offline: demo-ports  ## DEMO fără modele: API-ul pe instantaneul din git și consola de producție (fără Rulează și fără aprobări)

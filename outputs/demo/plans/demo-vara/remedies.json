@@ -27,7 +27,8 @@
     "inverter_trips_avoided": 25.0,
     "crew_steps": [
       "phase_rebalance"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + baterii + limită de injecție"
   },
   {
     "post_id": "PT-1076",
@@ -57,7 +58,8 @@
     "inverter_trips_avoided": 16.0,
     "crew_steps": [
       "phase_rebalance"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + baterii + limită de injecție"
   },
   {
     "post_id": "PT-1300",
@@ -87,7 +89,8 @@
     "inverter_trips_avoided": 8.0,
     "crew_steps": [
       "phase_rebalance"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + baterii + limită de injecție"
   },
   {
     "post_id": "PT-1147",
@@ -118,7 +121,8 @@
     "crew_steps": [
       "phase_rebalance",
       "adjust_tap"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
   },
   {
     "post_id": "PT-1131",
@@ -142,7 +146,8 @@
     "inverter_trips_avoided": 15.0,
     "crew_steps": [
       "phase_rebalance"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + limită de injecție"
   },
   {
     "post_id": "PT-1075",
@@ -173,7 +178,8 @@
     "crew_steps": [
       "phase_rebalance",
       "adjust_tap"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
   },
   {
     "post_id": "PT-1072",
@@ -204,7 +210,8 @@
     "crew_steps": [
       "phase_rebalance",
       "adjust_tap"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
   },
   {
     "post_id": "PT-1005",
@@ -226,7 +233,8 @@
     "invest": false,
     "battery": null,
     "inverter_trips_avoided": 4.0,
-    "crew_steps": []
+    "crew_steps": [],
+    "title_ro": "Soluție: mesaje Ore Smart + limită de injecție"
   },
   {
     "post_id": "PT-1255",
@@ -257,7 +265,8 @@
     "crew_steps": [
       "phase_rebalance",
       "adjust_tap"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
   },
   {
     "post_id": "PT-1119",
@@ -282,7 +291,8 @@
     "crew_steps": [
       "phase_rebalance",
       "adjust_tap"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + priza transformatorului"
   },
   {
     "post_id": "PT-1087",
@@ -307,7 +317,8 @@
     "crew_steps": [
       "phase_rebalance",
       "adjust_tap"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + priza transformatorului"
   },
   {
     "post_id": "PT-1263",
@@ -336,7 +347,8 @@
     "inverter_trips_avoided": 18.0,
     "crew_steps": [
       "adjust_tap"
-    ]
+    ],
+    "title_ro": "Soluție: priza transformatorului + baterii"
   },
   {
     "post_id": "PT-1252",
@@ -361,7 +373,8 @@
     "crew_steps": [
       "phase_rebalance",
       "adjust_tap"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + priza transformatorului"
   },
   {
     "post_id": "PT-1082",
@@ -392,6 +405,7 @@
     "crew_steps": [
       "phase_rebalance",
       "adjust_tap"
-    ]
+    ],
+    "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
   }
 ]

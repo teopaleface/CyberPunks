@@ -47,7 +47,8 @@ def test_rules_on_fixtures(out_root: Path) -> None:
     d = _decisions(agent.run("demo-vara", mode="fixtures", out_root=out_root))
     assert d["A-20261109-MTR-027710"].decision.value == "human_review"  # abstain → om
     assert d["A-20261109-MTR-027710"].rule_id == "R-ABSTAIN"
-    assert d["A-20261109-MTR-004217"].rule_id == "R-SAFETY" and d["A-20261109-MTR-004217"].decision.value == "assigned"
+    # semnal de manipulare 0,87 fără bilanț pentru post: sub pragul de 0,95 pentru regimul de siguranță fără confirmare
+    assert d["A-20261109-MTR-004217"].rule_id != "R-SAFETY" and "fără regim de siguranță" in d["A-20261109-MTR-004217"].reason_ro
     # încredere medie, dar valoarea netă (~650 lei) trece de marja de siguranță (25% din costul vizitei): echipă
     assert d["A-20261109-MTR-019833"].rule_id == "R-A-VISIT-MEDIUM" and d["A-20261109-MTR-019833"].decision.value == "assigned"
     # pe valorile din fixture, priza (450 lei + întreruperea pentru 38 de clienți) costă mai mult decât valoarea așteptată
