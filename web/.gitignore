@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# worker-ul MapLibre, copiat din node_modules la dev/build (scripts/copy-maplibre-worker.ts)
+/public/maplibre/

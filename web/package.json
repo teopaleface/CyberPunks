@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3710",
-    "build": "next build",
+    "dev": "bun scripts/copy-maplibre-worker.ts && next dev -p 3710",
+    "build": "bun scripts/copy-maplibre-worker.ts && next build",
     "start": "next start -p 3710",
     "lint": "eslint",
     "gen:types": "bun scripts/gen-types.ts",
-    "test": "bun test"
+    "test": "bun test",
+    "worker": "bun scripts/copy-maplibre-worker.ts"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

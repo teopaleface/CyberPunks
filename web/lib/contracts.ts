@@ -234,6 +234,14 @@ export interface PlanSummary {
 export interface Route {
   crew_id: string;
   depot_id: string;
+  /**
+   * Plecarea din bază
+   */
+  depart_at?: string | null;
+  /**
+   * Întoarcerea în bază
+   */
+  return_at?: string | null;
   stops: Stop[];
   total_km: number;
   total_work_min: number;

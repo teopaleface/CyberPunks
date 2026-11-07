@@ -234,6 +234,12 @@ export function demoDir(): string {
 export interface DemoCandidates {
   plan: string[];
   audit: string[];
+  /** Formatul stabilit în docs/CONTRACTS.md: toate lucrările într-un singur fișier. */
+  combinedWorkItems: string[];
+  /** Timpii ultimei rulări (Perceive, Estimate, Decide, Act). */
+  run: string[];
+  /** Lucrările respinse la intrare. */
+  quarantine: string[];
   workItems: (source: WorkItemSource) => string[];
   series: (workItemId: string) => string[];
   metrics: (source: WorkItemSource | "planner") => string[];
@@ -258,12 +264,24 @@ export async function demoCandidates(scenario: string): Promise<DemoCandidates> 
 
   return {
     plan: pick(
-      [safe, [path.join(base, scenario, "plan.json"), path.join(base, "plans", scenario, "plan.json")]],
+      [safe, [path.join(base, "plans", scenario, "plan.json"), path.join(base, scenario, "plan.json")]],
       [flat, [path.join(base, "plan.json")]],
     ),
     audit: pick(
-      [safe, [path.join(base, scenario, "audit.jsonl"), path.join(base, "plans", scenario, "audit.jsonl")]],
+      [safe, [path.join(base, "plans", scenario, "audit.jsonl"), path.join(base, scenario, "audit.jsonl")]],
       [flat, [path.join(base, "audit.jsonl")]],
+    ),
+    combinedWorkItems: pick(
+      [safe, [path.join(base, "plans", scenario, "work_items.jsonl"), path.join(base, scenario, "work_items.jsonl")]],
+      [flat, [path.join(base, "work_items.jsonl")]],
+    ),
+    run: pick(
+      [safe, [path.join(base, "plans", scenario, "run.json"), path.join(base, scenario, "run.json")]],
+      [flat, [path.join(base, "run.json")]],
+    ),
+    quarantine: pick(
+      [safe, [path.join(base, "plans", scenario, "quarantine.jsonl"), path.join(base, scenario, "quarantine.jsonl")]],
+      [flat, [path.join(base, "quarantine.jsonl")]],
     ),
     workItems: (source) =>
       pick(
@@ -291,8 +309,16 @@ export async function demoCandidates(scenario: string): Promise<DemoCandidates> 
         : [],
     metrics: (source) =>
       source === "planner"
-        ? [path.join(base, "metrics", "planner.json"), repoPath("reports", "planner", "agent_eval.json")]
-        : [path.join(base, "metrics", `${source}.json`), repoPath("reports", source, "metrics.json")],
+        ? [
+            path.join(base, "reports", "planner", "agent_eval.json"),
+            path.join(base, "metrics", "planner.json"),
+            repoPath("reports", "planner", "agent_eval.json"),
+          ]
+        : [
+            path.join(base, "reports", source, "metrics.json"),
+            path.join(base, "metrics", `${source}.json`),
+            repoPath("reports", source, "metrics.json"),
+          ],
   };
 }
 
@@ -324,7 +350,32 @@ export async function readDemoWorkItems(
   source?: WorkItemSource,
 ): Promise<FileRead<JsonlResult<WorkItem>> | null> {
   const candidates = await demoCandidates(scenario);
+  const combined = await readFirstJsonl<Record<string, unknown>>(candidates.combinedWorkItems);
+  if (combined) {
+    const file = combined.files[0];
+    const split = splitWorkItems(combined.data.records, file);
+    const records = source ? split.records.filter((w) => w.source === source) : split.records;
+    return { data: { records, errors: [...combined.data.errors, ...split.errors] }, files: combined.files };
+  }
   return readWorkItemFiles(candidates.workItems, source);
+}
+
+/** Timpii ultimei rulări salvate (outputs/demo/plans/<s>/run.json). Null dacă lipsesc. */
+export async function readDemoRun(scenario: string): Promise<FileRead<Record<string, unknown>> | null> {
+  try {
+    return await readFirstJson<Record<string, unknown>>((await demoCandidates(scenario)).run);
+  } catch {
+    return null;
+  }
+}
+
+/** Lucrările respinse la intrare din instantaneul demo, ca obiecte brute. */
+export async function readDemoQuarantine(scenario: string): Promise<FileRead<JsonlResult<Record<string, unknown>>> | null> {
+  try {
+    return await readFirstJsonl<Record<string, unknown>>((await demoCandidates(scenario)).quarantine);
+  } catch {
+    return null;
+  }
 }
 
 export async function readDemoAudit(scenario: string): Promise<FileRead<JsonlResult<AuditRecord>> | null> {

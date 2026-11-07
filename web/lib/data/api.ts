@@ -262,6 +262,8 @@ export function normalizeScenarios(payload: unknown, url = "/scenarios"): Scenar
       label_ro: typeof v.label_ro === "string" ? v.label_ro : id,
       date: v.date == null ? null : String(v.date),
       weather: v.weather == null ? null : String(v.weather),
+      ...(typeof v.has_plan === "boolean" ? { hasPlan: v.has_plan } : {}),
+      ...(typeof v.mode === "string" ? { mode: v.mode } : {}),
     };
   };
   const container = isRecord(payload) && payload.scenarios !== undefined ? payload.scenarios : payload;
@@ -269,7 +271,7 @@ export function normalizeScenarios(payload: unknown, url = "/scenarios"): Scenar
     return container.flatMap((entry): ScenarioInfo[] => {
       if (typeof entry === "string") return [fromEntry(entry, {})];
       if (!isRecord(entry)) return [];
-      const id = entry.id ?? entry.scenario ?? entry.name;
+      const id = entry.scenario_id ?? entry.id ?? entry.scenario ?? entry.name;
       return typeof id === "string" ? [fromEntry(id, entry)] : [];
     });
   }

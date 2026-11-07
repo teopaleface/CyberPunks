@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // generate sau statice, nu cod de-al nostru
+    "public/maplibre/**",
+    "design/**",
   ]),
 ]);
 

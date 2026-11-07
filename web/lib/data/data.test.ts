@@ -22,8 +22,8 @@ describe("fixtures", () => {
   test("planul are 4 decizii și 2 trasee", async () => {
     const plan = await readFixturePlan();
     expect(plan).not.toBeNull();
-    expect(plan!.data.decisions).toHaveLength(4);
-    expect(plan!.data.routes).toHaveLength(2);
+    expect(plan!.data.decisions).toHaveLength(8);
+    expect(plan!.data.routes).toHaveLength(3);
     expect(plan!.files).toEqual(["contracts/fixtures/plan_example.json"]);
   });
 
@@ -43,7 +43,7 @@ describe("fixtures", () => {
 
   test("auditul are 4 înregistrări", async () => {
     const audit = await readFixtureAudit();
-    expect(audit!.data.records).toHaveLength(4);
+    expect(audit!.data.records).toHaveLength(8);
   });
 });
 
@@ -63,10 +63,10 @@ describe("getPlanView cu fixtures", () => {
     expect(view.source).toBe("fixtures");
     expect(view.degradedReason).toBeUndefined();
     const data = view.data!;
-    expect(Object.keys(data.decisionsByWorkItemId)).toHaveLength(4);
-    expect(data.routes).toHaveLength(2);
+    expect(Object.keys(data.decisionsByWorkItemId)).toHaveLength(8);
+    expect(data.routes).toHaveLength(3);
     for (const route of data.routes) {
-      expect(route.depot?.depot_id).toBe("D-BUC-V");
+      expect(route.depot?.depot_id).toBe(route.depot_id);
       expect(route.crew?.crew_id).toBe(route.crew_id);
       for (const stop of route.stops) {
         expect(Number.isFinite(stop.lat)).toBe(true);
@@ -76,9 +76,10 @@ describe("getPlanView cu fixtures", () => {
       expect(route.path).toHaveLength(route.stops.length + 2);
     }
     expect(data.unresolvedStopIds).toEqual([]);
-    const unplanned = data.unplannedItems.map((w) => w.work_item_id);
-    expect(unplanned).toContain("B-20261109-IF-SNAGOV");
-    expect(unplanned).toContain("C-20261109-PT-0877");
+    // Planul de test are acum o decizie pentru fiecare lucrare (orchestrator, 13:20).
+    expect(data.unplannedItems).toHaveLength(0);
+    expect(data.decisionsByWorkItemId["B-20261109-IF-SNAGOV"]?.decision).toBe("deferred");
+    expect(data.decisionsByWorkItemId["C-20261109-PT-0877"]?.decision).toBe("notify");
     expect(data.alertsByWorkItemId["B-20261109-CT-MEDGIDIA"]).toHaveLength(1);
     expect(data.invalidItems).toHaveLength(1);
     expect(data.crews.length).toBeGreaterThan(0);
@@ -111,7 +112,7 @@ describe("auto, cu API-ul oprit", () => {
     const view = await getPlanView(NO_DEMO, { mode: "auto" });
     const elapsed = performance.now() - started;
     expect(view.source).toBe("fixtures");
-    expect(view.data?.routes).toHaveLength(2);
+    expect(view.data?.routes).toHaveLength(3);
     expect(view.degradedReason).toContain("API-ul nu răspunde");
     expect(elapsed).toBeLessThan(2000);
   });

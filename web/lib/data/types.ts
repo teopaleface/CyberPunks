@@ -85,6 +85,10 @@ export interface ScenarioInfo {
   weather?: string | null;
   /** Există instantaneu demo pentru scenariu (outputs/demo). */
   hasDemo?: boolean;
+  /** API: scenariul are deja un plan calculat. */
+  hasPlan?: boolean;
+  /** API: „live” (modelele rulează) sau „fixtures”. */
+  mode?: string;
 }
 
 export interface Depot {
