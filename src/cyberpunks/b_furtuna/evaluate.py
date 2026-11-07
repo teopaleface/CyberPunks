@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import average_precision_score, brier_score_loss, log_loss, precision_recall_curve, roc_auc_score
 
-from cyberpunks.b_furtuna import dataset
+from cyberpunks.b_furtuna import dataset, plotstyle
 from cyberpunks.b_furtuna.model import MODEL_ID, QUANTILES, BModel, best_f1_threshold, shap_values, train
 from cyberpunks.common import config
 from cyberpunks.common.contracts import ModelReport
@@ -254,30 +254,35 @@ def loso(df_train: pd.DataFrame, df_test: pd.DataFrame) -> dict:
 
 
 def figures(te: pd.DataFrame, p: dict[str, np.ndarray], model: BModel) -> list[str]:
+    plotstyle.apply()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     y = te["event"].to_numpy()
     files = []
-    # curbele precizie-recall
-    fig, ax = plt.subplots(figsize=(6, 4.5))
-    names = {"model": "Model LightGBM", "clim_county_month": "Climatologie comitat × lună",
-             "clim_month": "Climatologie pe lună", "gust_rule": "Regula pe rafală"}
-    for k, label in names.items():
-        if k in p:
-            prec, rec, _ = precision_recall_curve(y, p[k])
-            ax.plot(rec, prec, label=f"{label} (AP {average_precision_score(y, p[k]):.3f})", lw=2 if k == "model" else 1.2)
-    ax.axhline(y.mean(), color="grey", ls=":", label=f"Prevalență {y.mean():.3f}")
-    ax.set_xlabel("Recall (avarii prinse)")
-    ax.set_ylabel("Precizie (alerte corecte)")
-    ax.set_title(f"Test pe {TEST_YEAR} (an nevăzut), vârf ≥ 1% din clienți")
-    ax.legend(fontsize=8)
+    # curbele precizie-recall: modelul albastru, baseline-urile în ordinea fixă a paletei
+    fig, ax = plt.subplots(figsize=(6.4, 4.6))
+    names = [("model", "Model (LightGBM calibrat)"), ("clim_county_month", "Climatologie comitat × lună"),
+             ("clim_month", "Climatologie pe lună"), ("gust_rule", "Regula pe rafală")]
+    for (k, label), color in zip(names, plotstyle.SERIES, strict=True):
+        prec, rec, _ = precision_recall_curve(y, p[k])
+        ax.plot(rec, prec, color=color, lw=2.6 if k == "model" else 1.6, zorder=3 if k == "model" else 2,
+                label=f"{label}: PR-AUC {average_precision_score(y, p[k]):.3f}")
+    ax.axhline(y.mean(), color=plotstyle.NEUTRAL, ls=(0, (2, 2)), lw=1.2, label=f"Ghicit la întâmplare: {y.mean():.3f}")
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, min(1.0, max(0.6, float(ax.get_ylim()[1]))))
+    ax.set_xlabel("Recall: ce parte din avarii prindem")
+    ax.set_ylabel("Precizie: ce parte din alerte sunt corecte")
+    ax.set_title(f"Test pe {TEST_YEAR}, an nevăzut: vârf ≥ 1% din clienți", loc="left")
+    ax.legend(loc="upper right")
     fig.tight_layout()
-    fig.savefig(OUT_DIR / "fig_pr_curves.png", dpi=130)
+    fig.savefig(OUT_DIR / "fig_pr_curves.png", dpi=150)
     plt.close(fig)
     files.append("fig_pr_curves.png")
     # calibrarea
-    fig, ax = plt.subplots(figsize=(5, 4.5))
+    fig, ax = plt.subplots(figsize=(5.2, 4.6))
     bins = np.linspace(0, 1, 11)
-    for k, label in [("model", "Model (calibrat)"), ("clim_month", "Climatologie pe lună")]:
+    ax.plot([0, 1], [0, 1], color=plotstyle.NEUTRAL, ls=(0, (2, 2)), lw=1.2, label="Calibrare perfectă")
+    for (k, label), color in zip([("model", "Model (calibrat)"), ("clim_month", "Climatologie pe lună")],
+                                 [plotstyle.SERIES[0], plotstyle.SERIES[2]], strict=True):
         idx = np.digitize(p[k], bins) - 1
         xs, ys = [], []
         for b in range(10):
@@ -285,43 +290,48 @@ def figures(te: pd.DataFrame, p: dict[str, np.ndarray], model: BModel) -> list[s
             if msk.sum() >= 20:
                 xs.append(p[k][msk].mean())
                 ys.append(y[msk].mean())
-        ax.plot(xs, ys, "o-", label=label)
-    ax.plot([0, 1], [0, 1], "k:", lw=1)
-    ax.set_xlabel("Probabilitate prezisă")
-    ax.set_ylabel("Frecvență observată")
-    ax.set_title(f"Calibrare pe {TEST_YEAR}")
-    ax.legend(fontsize=8)
+        ax.plot(xs, ys, "o-", color=color, ms=8, mec=plotstyle.SURFACE, mew=2, label=label)
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.set_xlabel("Probabilitatea prezisă")
+    ax.set_ylabel("Cât de des s-a întâmplat")
+    ax.set_title(f"Calibrare pe {TEST_YEAR} (grupe de cel puțin 20 de zile)", loc="left")
+    ax.legend(loc="upper left")
     fig.tight_layout()
-    fig.savefig(OUT_DIR / "fig_reliability.png", dpi=130)
+    fig.savefig(OUT_DIR / "fig_reliability.png", dpi=150)
     plt.close(fig)
     files.append("fig_reliability.png")
     # rata evenimentelor pe intervale de rafală, față de probabilitatea medie prezisă
-    bins = pd.cut(te["gust_max"], GUST_BINS, right=False)
-    g = pd.DataFrame({"bin": bins, "y": y, "p": p["model"]}).groupby("bin", observed=True).agg(
+    gb = pd.cut(te["gust_max"], GUST_BINS, right=False)
+    g = pd.DataFrame({"bin": gb, "y": y, "p": p["model"]}).groupby("bin", observed=True).agg(
         rata=("y", "mean"), p=("p", "mean"), n=("y", "size"))
     g = g[g["n"] >= 20]
-    fig, ax = plt.subplots(figsize=(6.5, 4))
+    fig, ax = plt.subplots(figsize=(6.6, 4.2))
     xs = np.arange(len(g))
-    ax.bar(xs - 0.2, g["rata"], width=0.4, label="Frecvența reală a avariilor", color="#c8553d")
-    ax.bar(xs + 0.2, g["p"], width=0.4, label="Probabilitatea medie prezisă", color="#2f6db5")
-    ax.set_xticks(xs, [f"{int(b.left)}-{int(b.right) if b.right < 1000 else '+'}" for b in g.index], fontsize=8)
+    w = 0.38
+    ax.bar(xs - w / 2 - 0.01, g["rata"], width=w, color=plotstyle.SERIES[1], label="Cât de des au fost avarii")
+    ax.bar(xs + w / 2 + 0.01, g["p"], width=w, color=plotstyle.MODEL, label="Probabilitatea medie prezisă")
+    ax.set_xticks(xs, [f"{int(b.left)}-{int(b.right)}" if b.right < 1000 else f"≥ {int(b.left)}" for b in g.index])
     ax.set_xlabel("Rafala maximă a zilei (km/h)")
     ax.set_ylabel("Zile cu vârf ≥ 1% din clienți")
-    ax.set_title(f"Test {TEST_YEAR}: avarii după rafală (n ≥ 20 zile pe interval)")
-    ax.legend(fontsize=8)
+    ax.set_title(f"Test {TEST_YEAR}: avariile cresc cu rafala", loc="left")
+    ax.grid(axis="x", visible=False)
+    ax.legend(loc="upper left")
     fig.tight_layout()
-    fig.savefig(OUT_DIR / "fig_gust_bins.png", dpi=130)
+    fig.savefig(OUT_DIR / "fig_gust_bins.png", dpi=150)
     plt.close(fig)
     files.append("fig_gust_bins.png")
-    # importanța SHAP
+    # importanța SHAP (o singură serie: fără legendă)
     sv = shap_values(model, te)[:, :-1]
-    imp = pd.Series(np.abs(sv).mean(axis=0), index=model.features).sort_values()
-    fig, ax = plt.subplots(figsize=(6, 5))
-    imp.plot.barh(ax=ax, color="#2f6db5")
-    ax.set_xlabel("Contribuția medie |SHAP| (log-odds)")
-    ax.set_title(f"Ce contează pentru risc (test {TEST_YEAR})")
+    imp = pd.Series(np.abs(sv).mean(axis=0), index=[plotstyle.FEATURE_RO.get(f, f) for f in model.features])
+    imp = imp.sort_values()
+    fig, ax = plt.subplots(figsize=(6.2, 5.2))
+    ax.barh(imp.index, imp.to_numpy(), color=plotstyle.MODEL, height=0.7)
+    ax.grid(axis="y", visible=False)
+    ax.set_xlabel("Contribuția medie la risc, |SHAP| (log-odds)")
+    ax.set_title(f"Ce contează pentru risc (test {TEST_YEAR})", loc="left")
     fig.tight_layout()
-    fig.savefig(OUT_DIR / "fig_shap_importance.png", dpi=130)
+    fig.savefig(OUT_DIR / "fig_shap_importance.png", dpi=150)
     plt.close(fig)
     files.append("fig_shap_importance.png")
     return files

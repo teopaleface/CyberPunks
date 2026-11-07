@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from cyberpunks.b_furtuna import predict, romania
+from cyberpunks.b_furtuna import plotstyle, predict, romania
 from cyberpunks.b_furtuna.model import BModel
 from cyberpunks.common import config
 from cyberpunks.common.paths import OUTPUTS, REPORTS
@@ -79,24 +79,33 @@ def run() -> pd.DataFrame:
 
 
 def figure(df: pd.DataFrame, thr: float) -> None:
+    plotstyle.apply()
     order = df[df["date"] == DAYS[2]].sort_values(["region", "p"], ascending=[True, False])["zone_id"].tolist()
     piv = df.pivot(index="zone_id", columns="date", values="p").loc[order]
     act = df.pivot(index="zone_id", columns="date", values="action").loc[order]
-    fig, ax = plt.subplots(figsize=(7.5, 9))
-    im = ax.imshow(piv.to_numpy(), cmap="OrRd", vmin=0, vmax=max(0.6, float(piv.max().max())), aspect="auto")
+    vmax = max(0.6, float(piv.max().max()))
+    fig, ax = plt.subplots(figsize=(7.4, 9.2))
+    im = ax.imshow(piv.to_numpy(), cmap=plotstyle.RISK_CMAP, vmin=0, vmax=vmax, aspect="auto")
+    ax.grid(False)
     ax.set_xticks(range(len(DAYS)), [d.strftime("%d.%m") for d in DAYS])
     ax.set_yticks(range(len(order)), order, fontsize=8)
+    ax.tick_params(length=0)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
     for i in range(len(order)):
         for j in range(len(DAYS)):
+            v = float(piv.iloc[i, j])
             a = act.iloc[i, j]
-            mark = "E" if a == "preposition_crew" else ("?" if a == "human_review" else "")
-            ax.text(j, i, f"{piv.iloc[i, j]:.2f}{(' ' + mark) if mark else ''}", ha="center", va="center", fontsize=7,
-                    color="black")
-    ax.set_title(f"Risc de avarii pe zone, 6-10 iulie 2025\nE = echipă trimisă din timp (P ≥ {thr:.2f}), ? = decide omul",
-                 fontsize=10)
-    fig.colorbar(im, ax=ax, shrink=0.6, label="P(vârf ≥ 1% din clienți)")
+            mark = " E" if a == "preposition_crew" else (" ?" if a == "human_review" else "")
+            ink = plotstyle.SURFACE if v / vmax > 0.55 else plotstyle.TEXT
+            ax.text(j, i, f"{v:.2f}{mark}", ha="center", va="center", fontsize=7.5, color=ink)
+    ax.set_title(f"Riscul de avarii pe zone, 6-10 iulie 2025\nE = echipă trimisă din timp (P ≥ {thr:.2f}), "
+                 "? = decide omul", loc="left", fontsize=10)
+    cb = fig.colorbar(im, ax=ax, shrink=0.55, pad=0.02)
+    cb.set_label("P(vârf ≥ 1% din clienți)", color=plotstyle.TEXT_2)
+    cb.outline.set_visible(False)
     fig.tight_layout()
-    fig.savefig(OUT_FIG, dpi=130)
+    fig.savefig(OUT_FIG, dpi=150)
     plt.close(fig)
 
 
