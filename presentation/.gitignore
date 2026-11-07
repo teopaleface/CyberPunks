@@ -1,0 +1,8 @@
+# Fișiere temporare HyperFrames și randări intermediare (exporturile finale stau în presentation/exports/)
+video/.hyperframes/
+video/renders/
+video/boards/.film.html
+video/boards/.posed.html
+# Muzica se regenerează din compose.py; în git intră doar varianta comprimată folosită în video
+music/out/*.wav
+music/out/stems/
