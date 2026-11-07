@@ -174,6 +174,16 @@ function labelHtml(item: MapItem): string {
   return `<div class="lab"><span class="t">${esc(item.title)}</span>${sub}</div>`;
 }
 
+export interface MapPadding {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
+
+// sus: butoanele de regiune; dreapta: harta mică a zonei
+const DEFAULT_PADDING: MapPadding = { top: 76, bottom: 64, left: 56, right: 330 };
+
 export function PlanMap({
   items,
   routes,
@@ -185,6 +195,7 @@ export function PlanMap({
   mode = "items",
   onPostClick,
   theme = "light",
+  padding = DEFAULT_PADDING,
   className,
 }: {
   items: MapItem[];
@@ -197,6 +208,8 @@ export function PlanMap({
   mode?: "items" | "posts";
   onPostClick?: (id: string) => void;
   theme?: "light" | "dark";
+  /** Marginile încadrării; în modul de prezentare jos e loc pentru subtitrare. */
+  padding?: MapPadding;
   className?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -207,14 +220,14 @@ export function PlanMap({
   const onPostRef = useRef(onPostClick);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
-  const latest = useRef({ items, routes, depots, bounds, selectedId, posts, mode });
+  const latest = useRef({ items, routes, depots, bounds, selectedId, posts, mode, padding });
 
   useEffect(() => {
     onSelectRef.current = onSelect;
     onPostRef.current = onPostClick;
   });
   useEffect(() => {
-    latest.current = { items, routes, depots, bounds, selectedId, posts, mode };
+    latest.current = { items, routes, depots, bounds, selectedId, posts, mode, padding };
   });
 
   // creează harta o singură dată
@@ -236,7 +249,7 @@ export function PlanMap({
             [b[0], b[1]],
             [b[2], b[3]],
           ],
-          fitBoundsOptions: { padding: { top: 76, bottom: 64, left: 56, right: 330 } },
+          fitBoundsOptions: { padding: latest.current.padding },
           attributionControl: false,
           fadeDuration: 0,
           dragRotate: false,
@@ -477,9 +490,9 @@ export function PlanMap({
         [bounds[0], bounds[1]],
         [bounds[2], bounds[3]],
       ],
-      { padding: { top: 76, bottom: 64, left: 56, right: 330 }, duration: reduce ? 0 : 800, maxZoom: 13.2 },
+      { padding, duration: reduce ? 0 : 800, maxZoom: 13.2 },
     );
-  }, [ready, bounds]);
+  }, [ready, bounds, padding]);
 
   return (
     <div className={className}>

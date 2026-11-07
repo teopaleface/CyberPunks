@@ -32,6 +32,9 @@ function shortDepot(label: string): string {
     .replace(/^Baza București /, "Baza ");
 }
 
+// în modul de prezentare, subtitrarea stă jos, peste hartă: încadrarea îi lasă loc
+const SCENE_MAP_PADDING = { top: 76, bottom: 160, left: 56, right: 330 };
+
 export interface PostsInfo {
   posts: PostSummary[];
   derived: boolean;
@@ -128,10 +131,15 @@ export function PlanScreen({
     [data.regionOf, region, setRegion, scene],
   );
 
+  // în prezentare, încadrarea cuprinde și lucrarea scenei (de exemplu un caz „Nu sunt sigur” din afara traseelor)
+  const sceneItem = scene?.selected ? itemsById[scene.selected] : undefined;
   const bounds: Bounds = useMemo(() => {
-    if (region === ALL) return RE_BOUNDS;
-    return data.regions.find((r) => r.id === region)?.bounds ?? RE_BOUNDS;
-  }, [region, data.regions]);
+    const base = region === ALL ? RE_BOUNDS : (data.regions.find((r) => r.id === region)?.bounds ?? RE_BOUNDS);
+    if (!sceneItem || region === ALL) return base;
+    const { lon, lat } = sceneItem.location;
+    const m = 0.08; // ~8 km de margine în jurul lucrării
+    return [Math.min(base[0], lon - m), Math.min(base[1], lat - m), Math.max(base[2], lon + m), Math.max(base[3], lat + m)];
+  }, [region, data.regions, sceneItem]);
 
   const mapItems: MapItem[] = useMemo(
     () =>
@@ -240,6 +248,7 @@ export function PlanScreen({
             mode={mode}
             onPostClick={(id) => router.push(`/posturi/${encodeURIComponent(id)}`)}
             theme={theme}
+            padding={scene ? SCENE_MAP_PADDING : undefined}
           />
           <div className="absolute top-4 left-4 flex flex-col items-start gap-2">
             <RegionChips regions={data.regions} region={region} onChange={setRegion} totalItems={data.items.length} />
