@@ -1,7 +1,16 @@
 # Status: Teo-bilant
-Actualizat: 2026-11-07 17:36
+Actualizat: 2026-11-07 17:57
 Milestone curent: M4 făcut; contorul martor și Weave gata (termen 20:00). **Sunt liber**, de acum doar reparații.
-Gata de merge: da (commit a95ea59)
+Gata de merge: da (commit 55eab83)
+
+## Răspuns la QA de la 17:55: gata de merge, sunt liber
+1. **Siguranța:** bilanțul marca `safety_flag` pe toate furturile înainte de contor, adică **31** de lucrări. Regula nouă (`predict.safety`) marchează doar riscul real pentru oameni, și numai când modelul e sigur (≥ 90%, fără „nu sunt sigur”):
+   - furt înainte de contor cu consum nemăsurat constant, zi și noapte, de cel puțin ~0,5 kW (≥ 12 kWh/zi, cel puțin 20% noaptea): probabil legătură directă la rețea;
+   - pierdere tehnică cu pierderi pe cabluri de cel puțin 3 ori normalul: o îmbinare se poate încălzi.
+   **Cifra nouă pentru planificator: 6 lucrări de bilanț cu `safety_flag` în demo-vara** (din 75). 5 din 6 sunt furturi constante reale în simulare. Motivul e în `extra.safety_reason_ro` și în rezumatul lucrării.
+   **Atenție:** restul alertei vine de la A, care marchează **175** de contoare (`label == "tamper"` și scor ≥ 0,5). E regula lui A, nu a mea. De transmis firului A dacă alerta trebuie să scadă mai mult.
+2. **Probabilitățile:** scorul și probabilitățile afișate sunt plafonate la **0,99**, iar în text apare „peste 99%”. Plafonarea e și în fuziune (scorul combinat ≤ 0,99) și în `extra.diagnosis_proba`. Niciun text al bilanțului nu mai scrie „100%”.
+- Teste: plafonarea și regula de siguranță au test nou; `make check`: 288 trec.
 
 ## Răspuns la cererea orchestratorului de la 17:25 (contorul martor, Weave): gata, sunt liber
 **Ce s-a schimbat**
@@ -132,6 +141,7 @@ SIMULARE pe date publice. Test: cele 300 de posturi ale registrului C (rețele n
 - 14:30: fuziunea doar confirmă; testul pe mai multe zile trece pe lotul train (lotul hărții are acum defectele lui A, apărute doar în ultimele 60 de zile).
 - 14:35: rezolvarea automată a lui „nu sunt sigur” e oprită (0 din 5 corecte pe demo).
 - 14:35: bilanțul lasă lui A posturile unde A are deja lucrare la om sau pe contor.
+- 18:00: `safety_flag` doar pentru risc real (31 → 6); probabilitățile afișate ≤ 0,99.
 - 17:30: regula contorului martor (0,5%, pe ultimele 3 zile) peste model; eroarea contoarelor de balanță 0,07% (diferența normală martor ~0,1%, mentorul PPC); Weave doar ca verificare de realism.
 - 17:15: fără fișiere grele în git: modelele și datele bilanțului rămân în afara git, refăcute din comenzi.
 - 16:55: lotul train2 și ponderile claselor încercate pe același test, fără câștig: modelul rămâne neschimbat.
