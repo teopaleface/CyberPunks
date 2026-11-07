@@ -4,9 +4,10 @@ SIMULARE pe date publice, gândită pentru datele PPC. Fiecare caz e verificat c
 
 ## 1. Contorul (A) și bilanțul se confirmă
 
-- Lucrarea A `A-20250708-MTR-005967` (contorul MTR-005967, postul **PT-1116**): Posibilă intervenție la contor (53%): în medie 4,4 ore pe zi cu consum exact zero, la rând; variația în cursul zilei e 127% din cea obișnuită. Recomand: verificare la fața locului. Lipsesc ~2,0 kWh pe zi față de normal.
-- Bilanțul postului PT-1116: lipsa a crescut cu ~7.1 kWh/zi în ultima săptămână; consumul contorului a scăzut cu ~4.8 kWh/zi.
-- Scorul A 0.53 devine 0.78 după fuziune (`fuse`, regula R-FUSION-BILANT). Adevărul lui A: problema `h3`.
+- Lucrarea A `A-20250708-MTR-011937` (contorul MTR-011937, postul **PT-1224**): Contor probabil defect (94%): consum zero în ultimele 5 zile; doar 86% valori diferite în ultimele 4 săptămâni. Recomand: verificare la fața locului. Lipsesc ~0,3 kWh pe zi față de normal.
+- Bilanțul postului PT-1224: lipsa a crescut cu ~43.7 kWh/zi în ultima săptămână; consumul contorului a scăzut cu ~40.2 kWh/zi.
+- Scorul A 0.71 devine 0.96 după fuziune (`fuse`, regula R-FUSION-BILANT). Adevărul lui A: problema `zero`.
+- Bilanțul are și lucrarea lui pe post: Postul PT-1224: ~148 lei pe lună pierduți peste normal. Nu sunt sigur de cauză (cauza cea mai probabilă are sub 50%): contor de client defect sau manipulat 29% sau pierdere tehnică (cablu, faze dezechilibrate) 26%. Decide un om.
 
 ## 2. Dezechilibrul de faze, intrare pentru scara de soluții (C)
 
@@ -28,5 +29,5 @@ SIMULARE pe date publice, gândită pentru datele PPC. Fiecare caz e verificat c
 
 ## Lista zilei, pe scurt
 
-- 74 lucrări de bilanț; 74 sunt pe posturi care chiar au cel puțin o problemă ascunsă.
-- Acțiuni: inspect_on_site 27, remote_reading 19, office_correction 13, grid_inspection 10, human_review 5.
+- 76 lucrări de bilanț; 76 sunt pe posturi care chiar au cel puțin o problemă ascunsă.
+- Acțiuni: inspect_on_site 27, remote_reading 21, office_correction 13, grid_inspection 10, human_review 5.
