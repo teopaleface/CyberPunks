@@ -106,3 +106,29 @@ def test_autumn_dst_repeated_hour_is_summed_for_aware_timestamps() -> None:
     assert any("ora de iarnă" in i for i in issues)
     assert hh[0, 6] == pytest.approx(0.4)  # 03:00-03:30 ora locală, de două ori
     assert np.nansum(hh[0]) == pytest.approx(0.2 * 50)  # ziua are 25 de ore = 50 de intervale
+
+
+def test_labels_never_show_absurd_percentages() -> None:
+    """Niciun factor nu ajunge la dispecer cu un procent peste 1.000% (bug văzut în coada „nu sunt sigur”)."""
+    import re
+
+    from cyberpunks.a_contoare.features import FEATURE_INFO, label_ro
+
+    for feature in FEATURE_INFO:
+        for v in (182730.47, 1e6, 253592.62, -1e6, 50.0, 1e-9):
+            text = label_ro(feature, v)
+            assert all(int(n) <= 1000 for n in re.findall(r"(\d+)%", text)), (feature, v, text)
+    assert "de peste 10 ori" in label_ro("night_share_change", 182730.47)
+
+
+def test_night_share_change_needs_real_night_history() -> None:
+    """Numitor minim: fără consum de noapte în istoric (sub 0,1 kWh), schimbarea de noapte e NaN, nu 18.273.047%."""
+    prof = np.r_[np.zeros(12), np.full(36, 0.3)]  # istoric: zero exact noaptea
+    base = np.tile(prof, (1, 56, 1))
+    recent = np.tile(np.full(48, 0.3), (1, 28, 1))  # acum consumă și noaptea
+    f = intraday_features(recent, base)
+    assert np.isnan(f.loc[0, "night_share_change"])
+    x = np.full((1, 180), 10.0)
+    x[0, :152] = 0.0  # istoric zero, apoi consum
+    d = daily_features(x, np.full(180, 10.0))
+    assert d.loc[0, "recent_vs_base"] <= 10.0

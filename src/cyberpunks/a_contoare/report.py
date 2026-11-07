@@ -453,7 +453,7 @@ def build_model_card() -> str:
     sub, leak = L["subtle_only"], full.get("leakage_checks", {})
     curve = {r["missing_days_share"]: r for r in rob.get("missing_data_curve", [])}
     lines = [
-        "# Model card: `a-lgbm`, contoare defecte sau manipulate (firul A, Tura de mâine)",
+        "# Model card: `a-lgbm`, contoare defecte sau manipulate (firul A, Daybreak)",
         "",
         (f"Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metrics_full.json` "
         f"({full['created_at']}). Formatul urmează Mitchell et al. 2019, \"Model Cards for Model Reporting\"."),
