@@ -192,7 +192,7 @@ export default function SignInPage() {
 
       {localPreview && (
         <p className="mb-6 text-sm text-foreground/70">
-          Local preview uses separate accounts.{" "}
+          Account data in this preview is stored locally.{" "}
           <a href="https://daybreak.ghiseateodor245.workers.dev/intra" className="text-foreground underline underline-offset-4">Open live sign in</a>
         </p>
       )}
