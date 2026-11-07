@@ -30,6 +30,17 @@ voltage:                            # C
   notify_window: ["11:00", "15:00"] # fereastra de soare pentru mesajul către prosumatori, dacă lucrarea nu are time_window
   notify_send_time: "18:00"         # mesajele pentru mâine pleacă azi la 18:00 (doar demo)
 
+bilant:                             # bilanț pe post (lucrări A în A_bilant.jsonl)
+  visit_min_score: 0.0              # la nivel de post nu batem la ușa unui client, deci fără pragul etic al contoarelor
+
+remedy:                             # scara de soluții pentru tensiune (C)
+  max_combination: 3                # câte trepte se combină cel mult (efectele se adună: P90 = P90 inițial + suma efectelor)
+  crew_steps_need_notice: [adjust_tap, phase_rebalance]   # trepte cu întrerupere planificată: preaviz ANRE
+
+posts:                              # harta posturilor din interfață, după lei pierduți pe lună (bilanț)
+  yellow_lei_month: 200             # IPOTEZĂ: de aici postul e galben
+  red_lei_month: 600                # exemplul din conceptul lui Teo ("aproximativ 600 lei pe lună"): de aici postul e roșu
+
 routing:
   solver: ortools                   # ortools | greedy
   time_limit_s: 10                  # după atât, se păstrează cea mai bună soluție găsită
