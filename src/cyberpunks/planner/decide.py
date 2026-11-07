@@ -524,10 +524,12 @@ def rule_safety(ctx: Context, item: Item) -> Proposal | None:
     p = _route(ctx, item, "R-SAFETY", reason, action, costs, {"safety_flag": 1.0, "safety_priority_multiplier": mult})
     p.mandatory = bool(ctx.g("safety_mandatory", True))  # siguranța înainte de bani (config: global.safety_mandatory)
     p.priority = max(p.priority or 0.0, round(wi.impact.expected_value_lei * mult, 2))
+    single_model = wi.source == Source.A and not is_bilant_post(wi) and _fusion_confirmed(wi) is None
     p.alerts.append(
         AlertSpec(
             "critical",
-            f"Risc de siguranță: {_label(wi)}",
+            # Fără bilanț pentru post, alerta spune că e doar semnalul (foarte puternic) al unui singur model.
+            f"{'Manipulare probabilă, fără bilanț' if single_model else 'Risc de siguranță'}: {_label(wi)}",
             f"{wi.explanation.summary_ro} Echipa merge fără să atingă instalația până la verificare; lucrul se face doar cu formele de organizare (AL/DV).",
         )
     )

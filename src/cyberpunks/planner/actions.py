@@ -257,7 +257,12 @@ def combined_status(loads: dict[str, SourceLoad], source: str) -> str:
 
 
 GROUP_TITLES = {
-    "Risc de siguranță": ("critical", "{n} cazuri cu risc de siguranță", "Intră primele în trasee, oricare ar fi costul: {labels}."),
+    "Risc de siguranță": ("critical", "{n} cazuri cu risc de siguranță",
+                          ("Cu dovadă din bilanțul postului (energie lipsă confirmată sau furt înainte de contor). "
+                          "Intră primele în trasee, oricare ar fi costul: {labels}.")),
+    "Manipulare probabilă, fără bilanț": ("critical", "{n} semnale foarte puternice de manipulare, fără confirmarea bilanțului",
+                                          ("Bilanțul nu are date pentru posturile lor; modelul de contoare dă scor foarte mare, cu încredere "
+                                          "mare. Intră în regimul de siguranță până la confirmare: {labels}.")),
     "Siguranță, de decis azi": ("critical", "{n} cazuri de siguranță de decis azi", "Modelul nu e sigur, dar e risc pentru oameni: {labels}."),
     "Risc de avarii": ("warning", "Risc de avarii în {n} zone", "Zonele cu probabilitate peste pragul de alertă: {labels}."),
 }
