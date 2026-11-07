@@ -1,75 +1,60 @@
 ---
-format: 1920x1080
-duration: 30s
-message: "Un scor de 0,87 nu e un plan. Tura de mâine face planul echipelor, îl verifică și întreabă un om când nu e sigură."
-arc: Cârlig → Trei probleme, aceleași echipe → Consola → Agentul (Perceive, Estimate, Decide, Act) → Răsplata → Bilanțul → Tensiunea → Omul → Dovada → Logo
-audience: juriul PPC la SmartHack XI 2026
-music: originală, 120 BPM (o bătaie = 0,5 s = 15 cadre; o măsură = 2 s), -14 LUFS la export
-reference: presentation/research/REFERINTA-trust.md (gramatica filmului Trust "Meme trading is instant")
+format: 1920x1080, 30 fps
+duration: ~31 s
+product: Daybreak (fostul „Tura de mâine”, decizia lui Teo din 7 nov.)
+language: engleză pe ecran, cel mult 5 cuvinte pe cadru
+audience: juriul PPC la SmartHack XI 2026 și oricine nu știe nimic despre rețele
+music: „POWER” (instrumental), doar în exportul local; exportul versionat are altă muzică
+status: DOAR STRUCTURA. Filmul e oprit până aprobă Teo cadrele statice.
 ---
 
-Varianta 2 (după referința lui Teo, 14:30). Fond alb pur, text uriaș în cerneala produsului, obiecte 3D, consola reală, final pe cerneală. Culorile A, B, C apar doar în capturile din produs; în rest alb, cerneală și soarele din logo. Etichetele mici au cel puțin 28 px. Cadrele-cheie: `boards/kf/`.
+# Daybreak: structura filmului (varianta 4)
 
-## Frame 1 — Cârligul (0-3s)
+Ce e aici: ordinea scenelor, textul de pe ecran, ce informație duce fiecare scenă și de unde vine fiecare afirmație.
 
-- duration: 3s
-- reads: "Un scor de 0,87" (0,0-1,4 s); "nu e" (1,5-1,9 s); "un plan." (2,0-2,9 s)
-- sound: lovituri pe 0,0 / 0,5 / 1,5 / 2,0 (accent)
-- src: compositions/k1-carlig.html
+Ce nu e aici: culorile, logoul, imaginile și obiectele 3D. Le alege Teo din cadrele generate în firul lateral (`presentation/frames-codex/v1/`, `presentation/brand-lab/r2/`). Până atunci nu fixăm nimic din aspect în scene. Logoul cu soarele peste traseu e respins: pe cadre apare doar cuvântul „Daybreak”.
 
-## Frame 2 — Trei probleme, aceleași echipe (3-6,5s)
+Povestea urmează cele 10 cadre din `presentation/frames-codex/v1/FRAMES.md` (problema → cine o are → produsul → cum merge → încrederea → rezultatul → pentru cine e). Textele de mai jos sunt copiate de acolo. Ce propun să se schimbe e la final, în „Observații pentru firul lateral”.
 
-- duration: 3.5s
-- reads: "Contoare." (3,0) "Furtuni." (3,5) "Tensiune." (4,0) "Aceleași echipe." (4,5-5,9); "Imagini generate cu AI" (28 px)
-- sound: lovituri pe fiecare cuvânt; accent pe 4,5; ridicare spre 6,5
-- scene: obiectele 3D (contor, nor de furtună, panou solar, cască) intră rotindu-se din colțuri; la final zboară în consolă și devin markeri
-- src: compositions/k2-semnale.html
+| # | Cadrul | Textul de pe ecran | Ce află privitorul | Sursa afirmației |
+|---|---|---|---|---|
+| 1 | f01 | `Storm hits Banat.` | S-a întâmplat ceva real, azi-vară. | Cod roșu ANM de vijelii pe 8 iulie 2025, în toate cele 4 județe Rețele Electrice Banat (`docs/research/B.md`, secțiunea 3) |
+| 2 | f02 | `Homes go dark.` | Oamenii rămân fără curent. | Prefectul Timișului: circa 40.000 de consumatori afectați, cumulat 7-9 iulie 2025 (`docs/research/B.md`, pressalert.ro). Fără cifră pe ecran |
+| 3 | f03 | `Where do crews go first?` | Problema dispecerului: echipele sunt puține, lucrările multe. | Tema PPC (`memory/07-tema-ppc.md`) |
+| 4 | f04 | `Fallen poles.` / `Stolen power.` / `Too much sun.` | Trei feluri de lucrări pentru aceleași echipe. | Problemele B (furtuna), A (contoarele) și C (prosumatorii) |
+| 5 | f05 | `Daybreak` / `Tomorrow's crews, planned tonight.` | Numele și promisiunea. | Agentul face planul seara, pentru dimineața următoare |
+| 6 | f06 | `One click. Every crew planned.` | Cum se folosește: un buton. | Butonul „Rulează agentul” din consolă |
+| 7 | f07 | `Every crew knows where to go.` | Rezultatul planului: fiecare echipă are traseul ei. | Planul pentru 8 iulie 2025 (`outputs/demo/plans/demo-vara/plan.json`) |
+| 8 | f08 | `Not sure? It asks you.` | Omul rămâne la decizie. | Coada „Nu sunt sigur” din consolă (regula R-LOW-CONFIDENCE) |
+| 9 | f09 | `+49%` / `more value. Same crews.` / `30-day simulation` | Dovada, cu cifra noastră. | `reports/planner/agent_eval.json` prin `presentation/scripts/cifre_film.py` (nu se scrie de mână) |
+| 10 | f10 | `Daybreak` / `For Rețele Electrice dispatchers` / `CyberPunks · SmartHack 2026` | Pentru cine e și cine l-a făcut. | — |
 
-## Frame 3 — Consola reală (6,5-8s)
+## Cifra din cadrul 9
 
-- duration: 1.5s
-- scene: consola reală (captură din http://localhost:3710/, planul pentru 8 iulie 2025, date sintetice pe hartă reală), ca un ecran pe alb; inele pe markeri; zoom în "Rulează agentul"
-- sound: intră ritmul (kick pe fiecare bătaie)
-- src: compositions/k3-consola.html
+- Acum: +49% (agentul 1.051.842 lei față de 706.556 lei la „primul venit, primul servit”, cea mai bună strategie simplă; 30 de zile, sămânța 7, 120 de contoare).
+- Comanda care o refăce: `uv run python -m cyberpunks.planner.evaluate --days 30 --seed 7 --meters 120`.
+- E provizorie: se recitește din `reports/` după 21:30, la fiecare export.
 
-## Frame 4 — Agentul lucrează (8-11,5s)
+## Ritmul (pentru când repornim filmul)
 
-- duration: 3.5s
-- reads: "Rulează agentul" (8,0-9,2); "Perceive" (9,5) "Estimate" (10,0) "Decide" (10,5) "Act" (11,0)
-- sound: apăsarea pe 9,0; motivul de 4 note pe 9,5 / 10 / 10,5 / 11
-- src: compositions/k4-agent.html
+Fără aliniere până la aprobare. Ca plan: în „POWER” tobele intră la 9,47 s, iar după ele o măsură are 3,12 s. Numele cade pe intrarea tobelor, iar fiecare cadru de după nume ține câte o măsură:
 
-## Frame 5 — Răsplata (11,5-14,5s)
+| Cadrele | Timp |
+|---|---|
+| f01-f04 (cârligul și problemele, pe intro și pe creștere) | 0-9,47 s |
+| f05 numele, pe intrarea tobelor | 9,47-12,59 s |
+| f06 un clic | 12,59-15,71 s |
+| f07 harta | 15,71-18,83 s |
+| f08 „Not sure?”, pe pauza piesei; clicul pe Approve aduce înapoi tobele | 18,83-21,94 s |
+| f09 cifra | 21,94-25,06 s |
+| f10 finalul, ținut cel puțin 3 s | 25,06-~31 s |
 
-- duration: 3s
-- reads: cifrele zilei din consolă, harta cu traseele; "Un plan." (13,0) "9 echipe." (13,5); cifra din outputs/demo/plans/demo-vara/plan.json (summary.crews_used), scrisă de scripts/cifre_film.py
-- src: compositions/k5-harta.html
+Tranzițiile: aceeași direcție peste tot (spre stânga), tăieturi din mers, fără cadre goale la tăietură (intrarea începe deja la jumătatea drumului), cursorul mare apasă butoanele din cadrele 6 și 8.
 
-## Frame 6 — Bilanțul (14,5-17,5s)
+## Observații pentru firul lateral (textele din FRAMES.md)
 
-- duration: 3s
-- reads: "Bilanțul confirmă." (14,5-17,3); etichete "ieșit din post", "facturat", "lipsă"; "date sintetice, ilustrativ"
-- scene: cele două curbe se despart, lipsa se colorează cu soarele; ilustrativ până intră bilanțul calculat în consolă
-- src: compositions/k6-lucrare.html
-
-## Frame 7 — Tensiunea (17,5-20,5s)
-
-- duration: 3s
-- reads: "Cea mai ieftină soluție." (17,5-20,3); "1,10"; "Alte faze pentru 3 case" (18,75)
-- scene: curba trece de 1,10 la prânz, apoi coboară sub limită după soluție (curba de după e ilustrativă; seria vine din fixture-ul sintetic al lui C)
-- src: compositions/k7-tensiune.html
-
-## Frame 8 — Omul decide (20,5-24s)
-
-- duration: 3.5s
-- reads: "Nu sunt sigur." (20,5-21,3); cardul real din consolă (21,3-21,7); "Aprobă" apăsat de deget (22,0); "Aprobat de dispecer" (22,3-23,4)
-- sound: tobele scad la cardul "Nu sunt sigur"; accent pe apăsare (22,0); ridicare spre 24,0
-- scene: pastila "Aprobat" crește și acoperă tot cadrul: trecerea spre finalul pe cerneală
-- src: compositions/k8-om.html
-
-## Frame 9 — Dovada și logoul (24-30s)
-
-- duration: 6s
-- reads: cifra (24,0-26,4), din reports/planner/agent_eval.json prin scripts/cifre_film.py (provizorie până la 21:30); logoul cu soarele care răsare (26,5); "CyberPunks · SmartHack XI 2026 · tema PPC" (27,1-30)
-- sound: drop pe 24,0; lovitura finală pe 26,5; liniște de la 29,9
-- src: compositions/k9-final.html
+1. f07 are 6 cuvinte (`Every crew knows where to go.`), peste regula de 5. Propun `Every crew knows where.`
+2. f09: nota de subsol ar trebui să spună și cu ce comparăm: `30-day simulation vs. first come, first served`. Cifra e provizorie până după 21:30.
+3. f08: în consolă butoanele sunt Aprobă, Respinge și Amână. `Skip` nu există; ar merge `Later` (Amână) sau `Reject` (Respinge).
+4. f01: data `July 8, 2025` (subtitlu mic) ar arăta că ziua e reală. E opțională.
+5. f10: numele oficial e SmartHack XI 2026.

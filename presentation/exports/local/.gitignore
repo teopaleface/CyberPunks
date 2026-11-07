@@ -1,0 +1,3 @@
+# Exporturile cu muzică comercială: doar local, nu intră în git și nici în exporturile versionate.
+*
+!.gitignore

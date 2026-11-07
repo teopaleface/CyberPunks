@@ -1,6 +1,8 @@
 # Stilul video-ului de 30 de secunde
 
-Video-ul "Tura de mâine" urmează articolul lui leo (@leomeethewoo), "Make your product videos look expensive (Apple Framework)", 25 sep. 2026: https://x.com/leomeethewoo/status/2103529310208606701 . Mai jos sunt regulile lui, rezumate de noi, și felul în care le aplicăm. Orice alegere din video trebuie să se poată justifica de aici.
+> Notă (7 nov., 15:55): numele produsului e acum **Daybreak**, iar identitatea (logo, paletă, imagini) se reface în firul lateral (`presentation/brand-lab/r2/`, `presentation/frames-codex/v1/`). Paleta de mai jos e a variantelor vechi.
+
+Video-ul "Daybreak" (fostul "Tura de mâine") urmează articolul lui leo (@leomeethewoo), "Make your product videos look expensive (Apple Framework)", 25 sep. 2026: https://x.com/leomeethewoo/status/2103529310208606701 . Mai jos sunt regulile lui, rezumate de noi, și felul în care le aplicăm. Orice alegere din video trebuie să se poată justifica de aici.
 
 ## Regulile lui leo, pe scurt
 
@@ -15,7 +17,7 @@ Video-ul "Tura de mâine" urmează articolul lui leo (@leomeethewoo), "Make your
 
 ### Povestea, într-o frază
 
-Filmul merge de la noapte la dimineață: seara, 2 milioane de contoare trimit date; un scor singur nu trimite pe nimeni nicăieri; agentul face planul; dimineața echipele pleacă. "Tura de mâine" chiar asta înseamnă.
+Filmul merge de la noapte la dimineață: seara, 2 milioane de contoare trimit date; un scor singur nu trimite pe nimeni nicăieri; agentul face planul; dimineața echipele pleacă. "Daybreak" (zorii) chiar asta înseamnă.
 
 ### Cele 3 culori (aceleași ca în produs)
 

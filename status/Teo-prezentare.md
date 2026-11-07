@@ -1,6 +1,6 @@
 # Status: Teo-prezentare
-Actualizat: 2026-11-07 14:37
-Milestone curent: filmul nou, varianta 3 (simplă, fără jargon): textul celor 6 momente așteaptă "da" de la Teo
+Actualizat: 2026-11-07 15:58
+Milestone curent: filmul e OPRIT (decizia lui Teo): doar cadre statice, până le aprobă. Produsul se numește Daybreak, textele din film sunt în engleză. Aspectul (logo, culori, imagini) se reface în firul lateral; eu țin structura filmului.
 Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul comun)
 
 ## Făcut
@@ -27,9 +27,16 @@ Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul co
 - Abilități folosite la varianta 3 (până acum): `hyperframes`, `motion-doctrine`, `reference-to-motion` (structura cârligului din referință). La animare: `apple-design`, `apple-launch-film`, `cut-the-curve`, `seam-craft`, `oversized-cursor`, `motion-effects`, `milestone-reveal`, `gsap-timeline`/`gsap-core`/`gsap-performance`.
 - 14:37 Greșeală reparată: commitul 2625d9e a inclus din greșeală folderele de lucru 3D (154 MB, 365 de fișiere, o arhivă de 47 MB). Scoase din urmărire și ignorate (commit 9d973f2). Rămân în istorie: vezi cererea către orchestrator.
 
+- 15:05 Varianta 3 terminată ca cadre cheie (36 s, scenele c1-c7, `presentation/scripts/build_film_v3.py`): textele în zona sigură a cadrului, fiecare rând stă cât să fie citit, `hyperframes check` fără erori. Commit b0537d5.
+- 15:10 Teo a ales muzica: "POWER" (Kanye West, instrumental), doar pentru prezentarea din sală. Copia pentru HyperFrames e în `presentation/video/assets/audio/local/`, iar exporturile cu ea merg în `presentation/exports/local/`; amândouă sunt ignorate de git (au propriul `.gitignore`). Bătăile, măsurate din fișier: 77 BPM, o măsură de 3,12 s, tobele intră la 9,475 s.
+- 15:20 Teo a oprit filmul: fără MP4 și fără aliniere pe "POWER" până aprobă cadrele statice. N-am randat nimic.
+- 15:40 Trei schițe HTML de cadre (hook, produs, hartă), în engleză, cu harta desenată din nou: `presentation/video/boards/v4/` (`presentation/scripts/build_boards_v4.py`). Puse pe pauză după decizia de la 15:35; nu le-am trimis lui Teo.
+- 15:55 Structura filmului Daybreak pe cele 10 cadre din `presentation/frames-codex/v1/FRAMES.md`: `presentation/video/STORYBOARD.md` (textul de pe ecran, ce află privitorul, sursa fiecărei afirmații, ritmul propus pe "POWER" pentru când repornim). Acolo sunt și 5 observații pentru textele din FRAMES.md.
+- Abilități folosite la cadrele variantei 3: `hyperframes`, `hyperframes-cli` (check, snapshot), `motion-doctrine`, `apple-design`, `apple-launch-film`, `launch-video`, `oversized-cursor`, `reference-to-motion`. La schițele variantei 4: `apple-design`, `apple-launch-film`, `frontend-design`, `hyperframes-cli`.
+
 ## Urmează
-- Arăt storyboard-ul lui Teo (gata înainte de 15:00).
-- Repar ce găsesc review-urile, apoi v0.1.
+- Aștept alegerea lui Teo din firul lateral (logoul nou, paleta, cadrele Codex). După "da": scenele HyperFrames după cadrele aprobate, apoi filmul, în două exporturi: local cu "POWER" și versionat cu muzică fără drepturi de autor.
+- Slideurile, cu numele Daybreak.
 - Slideurile: șablonul HTML și `build_slides.py`, care citește cifrele din `reports/` (fără cifre scrise de mână), export PDF.
 - După 01:00: capturi reale din consolă (cadrele 5 și 6); după 21:30: cifra față de baseline din `reports/` (cadrul 7).
 
@@ -37,6 +44,8 @@ Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul co
 - Niciunul.
 
 ## Cereri către orchestrator
+- NUME NOU (15:30): Teo a schimbat numele produsului în **Daybreak** (în locul lui "Tura de mâine"). De schimbat: interfața (titlul paginii, antetul, `web/public/brand/`), README-ul și slideurile (pe ale mele le schimb eu); decizia intră în `memory/journal.md`. Atenție: logoul cu soarele peste traseu e respins, cu toate variantele lui. Logoul nou îl alege Teo dintre conceptele din `presentation/brand-lab/r2/logos/` (firul lateral), așa că în `web/public/brand/` deocamdată se schimbă doar numele.
+- Pentru jurnal (n-am voie în `memory/`): la 14:46 agentul de muzică a compus varianta de 120 BPM (`presentation/music/compose_kinetic.py`, CC0, 30,000 s, -16,0 LUFS); de la 15:10 filmul folosește "POWER" local, iar varianta de 120 BPM rămâne de rezervă.
 - ISTORIE: commitul 2625d9e de pe `Teo-prezentare` conține din greșeală `presentation/assets/3d-astra/` și `presentation/assets/3d-sol/` (154 MB, inclusiv `3d-sol.zip` de 47 MB). Le-am scos din urmărire în 9d973f2, dar sunt în istorie. Înainte de repo-ul public (decizia lui Teo de la 11:00): `git filter-repo --path presentation/assets/3d-astra --path presentation/assets/3d-sol --invert-paths` pe ramurile care conțin commitul, apoi force-push (eu n-am voie). Dacă faceți merge din `Teo-prezentare` în `Teo` înainte de curățare, istoria crește cu 154 MB.
 - Bug vizibil pentru juriu, în consola reală (coada "Nu sunt sigur", `/coada`): factori de tipul "Consumul de noapte a crescut cu 18273047% față de istoric" (și 25359262%, 19488814%). Probabil împărțire la un istoric aproape zero în textul factorului (firul A sau șablonul de text). Ar trebui plafonat sau formulat altfel ("de la aproape zero").
 - Pagina postului (`/posturi/PT-0267`) spune "Bilanțul pe acest post nu e calculat încă": filmul folosește deocamdată curbe ilustrative pentru bilanț; când intră bilanțul în consolă, capturez pagina reală.
@@ -65,3 +74,10 @@ Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul co
 - 13:35 Produsul are prioritate: filmul preia fontul (Archivo), cerneala, hârtia și logoul interfeței. Acțiunile agentului sunt în hârtie (alb), ca traseele în cerneală din consolă; chihlimbarul doar pentru soare, zori și sursa C. Filmul rămâne pe fundal închis (noaptea → zorii), iar capturile deschise din consolă vor intra ca "ecranul dispecerului".
 - 13:35 Scena semnalelor are 3,75 s (1,25 s pe semnal, ca textele să se poată citi), scena agentului 6,25 s; pașii Perceive, Estimate, Decide, Act cad la 16,25 / 17,5 / 18,75 / 20,0 s.
 - 14:30 Abilități noi pentru HyperFrames, instalate la nivel de utilizator (`~/.claude/skills`), nu în repo. HeyGen hyperframes @336abaa (Apache-2.0): hyperframes, hyperframes-cli, hyperframes-registry, media-use, reverse-any-video, style-sampling, slideshow, plus doctrina lor de mișcare (motion-doctrine, seam-craft, cut-the-curve, oversized-cursor). charlie947/motion-graphics-skills @229022e (MIT): apple-launch-film, launch-video, reference-to-motion, milestone-reveal, animated-chart, motion-effects, motion-brief-writer, motion-prompt-writer, brand-intake, title-sequence-3d. greensock/gsap-skills @aed9cfd (MIT): gsap-core, gsap-timeline, gsap-utils, gsap-performance, gsap-plugins. Respins imMamdouhaboammar/motion-graphics-skills: licență proprietară.
+
+- 15:10 Muzica: "POWER" (instrumental) doar în exportul local pentru sală; nu intră în git și nici în exporturile versionate (acolo merge muzică fără drepturi de autor).
+- 15:20 Filmul e oprit până aprobă Teo cadrele statice.
+- 15:30 Numele produsului: Daybreak. Toate textele din film în engleză, cel mult 5 cuvinte pe cadru.
+- 15:30 Respinse: logoul cu soarele peste traseu (cu variantele lui) și planșa `presentation/brand-lab/daybreak-directions.*`. Identitatea se reface în firul lateral; până alege Teo, nu fixăm culori, logo sau 3D în scene. Pe cadre apare doar cuvântul "Daybreak".
+- 15:35 Cadrele se generează cu Codex image (stil Apple, colorate), în firul lateral: `presentation/frames-codex/v1/` (nu scriu acolo).
+- 15:45 "Homes go dark" (fostul "Zeci de mii de case fără curent"): sursa e prefectul Timișului, circa 40.000 de consumatori afectați, cumulat 7-9 iulie 2025 (`docs/research/B.md`). Pe ecran rămâne fără cifră.
