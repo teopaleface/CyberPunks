@@ -1,0 +1,50 @@
+{
+  "contract_version": "1.0",
+  "source": "A",
+  "model_id": "a-lgbm",
+  "model_version": "a-lgbm@b08b584",
+  "task": "clasificare dezechilibrată: contor normal / defect / manipulat (scor calibrat de problemă, clasament sub capacitate)",
+  "dataset": [
+    "Low Carbon London, UK Power Networks, consum real la 30 min, CC BY 4.0 (London Datastore); defecte și furturi injectate de noi (SINTETIC)",
+    "SGCC, State Grid Corporation of China, consum zilnic cu etichete reale de furt (Zheng et al. 2018, IEEE TII, DOI 10.1109/TII.2017.2785963); metricile sgcc_* sunt ale modelului a-lgbm-sgcc"
+  ],
+  "split": "Londra: gospodării nevăzute și perioadă ulterioară (test sept. 2013 - feb. 2014, antrenare dec. 2012 - aug. 2013); SGCC: 20% din clienți, stratificat, nevăzuți. K = 1% din contoare.",
+  "test_size": 21503,
+  "primary_metric": "precision_at_k",
+  "metrics": {
+    "precision_at_k": 1.0,
+    "recall_at_k": 0.2178,
+    "pr_auc": 0.6687,
+    "roc_auc": 0.9066,
+    "value_at_k_lei": 92357.31,
+    "brier": 0.0234,
+    "ece": 0.0043,
+    "sgcc_precision_at_k": 0.7647,
+    "sgcc_recall_at_k": 0.0899,
+    "sgcc_pr_auc": 0.3671,
+    "sgcc_roc_auc": 0.8025,
+    "iforest_precision_at_k": 0.0923,
+    "iforest_recall_at_k": 0.0201,
+    "iforest_pr_auc": 0.2072,
+    "iforest_roc_auc": 0.7754,
+    "sgcc_iforest_precision_at_k": 0.1294,
+    "sgcc_iforest_recall_at_k": 0.0152,
+    "sgcc_iforest_pr_auc": 0.0976,
+    "sgcc_iforest_roc_auc": 0.5468
+  },
+  "baseline_id": "regula-vee (zero >= 7 zile sau scădere >= 50% față de propriul istoric)",
+  "baseline_metrics": {
+    "precision_at_k": 0.5231,
+    "recall_at_k": 0.1139,
+    "pr_auc": 0.2026,
+    "roc_auc": 0.6958,
+    "value_at_k_lei": 71386.3,
+    "sgcc_precision_at_k": 0.0353,
+    "sgcc_recall_at_k": 0.0041,
+    "sgcc_pr_auc": 0.0795,
+    "sgcc_roc_auc": 0.4958
+  },
+  "synthetic_share": 0.6059,
+  "created_at": "2026-11-07T13:24:03+02:00",
+  "reproduce_cmd": "uv run python -m cyberpunks.a_contoare.evaluate --retrain"
+}

@@ -22,8 +22,56 @@ validate-fixtures:
 	uv run cyberpunks validate contracts/fixtures/work_items_A.jsonl contracts/fixtures/work_items_B.jsonl contracts/fixtures/work_items_C.jsonl
 
 # ---- A: contoare (firul Teo-A-contoare) ----
+.PHONY: a-data a-train a-evaluate a-predict a-release a-test a-all
+a-data:           ## A: descarcă SGCC și Low Carbon London (SHA-256), construiește features și eșantioanele
+	uv run python -m cyberpunks.a_contoare.download
+	uv run python -m cyberpunks.a_contoare.sgcc
+	uv run python -m cyberpunks.a_contoare.lcl
+a-train:          ## A: antrenează a-lgbm (Londra, probleme injectate) și a-lgbm-sgcc (SGCC, furt real)
+	uv run python -m cyberpunks.a_contoare.train
+a-evaluate:       ## A: evaluarea pe test separat -> reports/A/metrics.json, metrics_full.json, figuri
+	uv run python -m cyberpunks.a_contoare.evaluate
+a-predict:        ## A: lucrările pentru demo-vara și maine (merge și fără a-data, din pachetul demo din git)
+	uv run python -m cyberpunks.a_contoare.predict --scenario demo-vara
+	uv run python -m cyberpunks.a_contoare.predict --scenario maine
+a-release:        ## A: modelul și pachetul demo care intră în git (models/release/A, data/samples/A)
+	uv run python -m cyberpunks.a_contoare.train --release
+a-test:           ## A: testele firului A
+	uv run pytest tests/a
+a-all: a-data a-train a-evaluate a-predict  ## A: totul, de la zero (~5 minute)
 
 # ---- B: furtună (firul Teo-B-furtuna) ----
+.PHONY: b-data b-weather b-dataset b-evaluate b-predict b-reports b-test b-all
+
+b-data:           ## B: descarcă EAGLE-I 2023-2025 (md5 verificat) și construiește tabelele pe ore
+	uv run python -m cyberpunks.b_furtuna.download eaglei --years 2023-2025
+	uv run python -m cyberpunks.b_furtuna.eaglei hourly --years 2023-2025
+
+b-weather:        ## B: vremea istorică Open-Meteo pentru cele 80 de comitate (~6.300 de apeluri, în ritm lent)
+	uv run python -m cyberpunks.b_furtuna.openmeteo us-history
+
+b-dataset:        ## B: tabelul comitat × zi
+	uv run python -m cyberpunks.b_furtuna.dataset
+
+b-evaluate:       ## B: antrenare 2023-2024, test 2025 și state nevăzute -> reports/B/metrics.json
+	uv run python -m cyberpunks.b_furtuna.evaluate
+
+b-predict:        ## B: lucrările pentru demo-vara și maine
+	uv run python -m cyberpunks.b_furtuna.predict --scenario demo-vara
+	uv run python -m cyberpunks.b_furtuna.predict --scenario maine
+	uv run cyberpunks validate outputs/work_items/demo-vara/B.jsonl outputs/work_items/maine/B.jsonl
+
+b-reports:        ## B: toate rapoartele, din aceleași date (metrici, experimente, erori, backtest, model card)
+	uv run python -m cyberpunks.b_furtuna.evaluate
+	uv run python -m cyberpunks.b_furtuna.experiments
+	uv run python -m cyberpunks.b_furtuna.error_analysis
+	uv run python -m cyberpunks.b_furtuna.backtest
+	uv run python -m cyberpunks.b_furtuna.model_card
+
+b-test:           ## B: testele firului B (fără rețea)
+	uv run pytest tests/b -q
+
+b-all: b-data b-weather b-dataset b-reports b-predict
 
 # ---- C: prosumatori (firul Teo-C-prosumatori) ----
 .PHONY: c-weather c-bench c-sim c-population c-eval c-train c-predict c-figures c-test c-all

@@ -7,7 +7,8 @@ pentru traseele echipelor. Candidaturile le împarte apoi optimizatorul (routing
 
 Costul unei acțiuni: costul acțiunii (config/economics.yaml) + deplasarea estimată de la cea mai apropiată bază
 cu o echipă potrivită + costul social al unei întreruperi planificate (doar la schimbarea prizei).
-Valoarea netă = expected_value_lei − cost. Prioritatea = valoarea netă × factorul de urgență (× 3 la siguranță).
+Valoarea netă = expected_value_lei − cost (pragul: o echipă merge doar dacă e pozitivă).
+Prioritatea (premiul în trasee) = expected_value_lei − costul acțiunii (× 3 la siguranță); drumul îl socotește solverul.
 """
 
 from __future__ import annotations
@@ -184,14 +185,10 @@ def estimate_costs(ctx: Context, wi: WorkItem, action: str) -> Costs:
     return costs
 
 
-def urgency_factor(ctx: Context, wi: WorkItem) -> float:
-    ref = float(ctx.g("urgency_reference_hours", 24))
-    floor = float(ctx.g("urgency_min_factor", 0.25))
-    return max(floor, min(1.0, ref / wi.impact.urgency_hours))
-
-
-def priority_of(ctx: Context, wi: WorkItem, net: float) -> float:
-    p = max(0.0, net) * urgency_factor(ctx, wi)
+def priority_of(ctx: Context, wi: WorkItem, costs: Costs) -> float:
+    """Premiul din trasee (lei): valoarea așteptată minus costul acțiunii și al întreruperii; drumul îl socotește solverul.
+    La siguranță, prioritatea se înmulțește (config: safety_priority_multiplier)."""
+    p = max(0.0, wi.impact.expected_value_lei - costs.action_cost - costs.outage_cost)
     if wi.impact.safety_flag:
         p *= float(ctx.g("safety_priority_multiplier", 3.0))
     return round(p, 2)
@@ -236,10 +233,23 @@ def _send_time(ctx: Context) -> datetime:
 # ------------------------------------------------------------------ regulile
 
 
+def _cost_keys(costs: Costs | None) -> dict[str, float]:
+    """Costul folosit la decizie, scris în `threshold` (cerut de interfață): total, acțiune, deplasare, întrerupere."""
+    if costs is None:
+        return {}
+    out = {"cost_lei": round(costs.total, 2), "action_cost_lei": round(costs.action_cost, 2)}
+    if costs.travel_cost:
+        out["travel_cost_lei"] = round(costs.travel_cost, 2)
+        out["travel_km_est"] = round(costs.travel_km, 2)
+    if costs.outage_cost:
+        out["outage_cost_lei"] = round(costs.outage_cost, 2)
+    return out
+
+
 def _route(ctx: Context, item: Item, rule_id: str, reason: str, action: str, costs: Costs, threshold: dict, **kw: Any) -> Proposal:
     wi = item.wi
     start, end = ctx.shift()
-    net = wi.impact.expected_value_lei - costs.total
+    threshold = {**threshold, **_cost_keys(costs)}
     p = Proposal(
         item=item,
         decision=DecisionType.assigned,
@@ -248,7 +258,7 @@ def _route(ctx: Context, item: Item, rule_id: str, reason: str, action: str, cos
         action=action,
         threshold=threshold,
         costs=costs,
-        priority=priority_of(ctx, wi, net),
+        priority=priority_of(ctx, wi, costs),
         route=True,
         earliest=start,
         latest=end - timedelta(minutes=wi.effort.duration_min),
@@ -259,7 +269,8 @@ def _route(ctx: Context, item: Item, rule_id: str, reason: str, action: str, cos
 
 
 def _final(item: Item, decision: DecisionType, rule_id: str, reason: str, action: str, threshold: dict | None = None, **kw: Any) -> Proposal:
-    p = Proposal(item=item, decision=decision, rule_id=rule_id, reason_ro=reason, action=action, threshold=threshold or {})
+    threshold = {**(threshold or {}), **_cost_keys(kw.get("costs"))}
+    p = Proposal(item=item, decision=decision, rule_id=rule_id, reason_ro=reason, action=action, threshold=threshold)
     for k, v in kw.items():
         setattr(p, k, v)
     return p
@@ -354,8 +365,10 @@ def rule_uncertain(ctx: Context, item: Item) -> Proposal | None:
 
 
 def rule_safety(ctx: Context, item: Item) -> Proposal | None:
+    """Risc pentru oameni (A: șunt cu risc de incendiu; C). La B, safety_flag înseamnă rafale ≥ 75 km/h, adică lucru
+    periculos la înălțime pentru echipă: se tratează în rule_storm ca avertisment, nu ca prioritate obligatorie."""
     wi = item.wi
-    if not wi.impact.safety_flag:
+    if not wi.impact.safety_flag or wi.source == Source.B:
         return None
     action = {Source.A: "inspect_on_site", Source.B: "preposition_crew", Source.C: "measurement_campaign"}[wi.source]
     costs = estimate_costs(ctx, wi, action)
@@ -409,15 +422,45 @@ def rule_meters(ctx: Context, item: Item) -> Proposal:
             {**th, "remote_min_score": remote_min},
             costs=remote,
         )
+    margin = float(ctx.settings.rule("meters", "medium_confidence_margin", default=0.25)) * visit.total
+    th["medium_confidence_margin_lei"] = round(margin, 2)
+    visit_min = float(ctx.settings.rule("meters", "visit_min_score", default=0.0))
+    th["visit_min_score"] = visit_min
+    if pr.score < visit_min and smart and pr.score >= remote_min and ev - remote.total > 0:
+        return _final(
+            item,
+            DecisionType.remote_action,
+            "R-A-REMOTE-FIRST",
+            f"Scor {pct(pr.score)}: e mai probabil ca clientul să nu aibă nicio problemă (pragul pentru o vizită e {pct(visit_min)}), "
+            f"așa că nu trimitem echipa la ușa lui. Întâi citire la distanță ({lei(remote.total)}); vizita doar dacă se confirmă.",
+            "remote_reading",
+            {**th, "remote_min_score": remote_min},
+            costs=remote,
+        )
+    if pr.score < visit_min:
+        return _final(
+            item, DecisionType.deferred, "R-A-WATCH",
+            f"Scor {pct(pr.score)}, sub pragul pentru o vizită ({pct(visit_min)}), iar contorul nu se poate citi de la distanță: urmărire.",
+            "watchlist", {**th, "remote_min_score": remote_min},
+        )
     if pr.confidence == Confidence.high and net_visit > min_net:
         reason = (
             f"{_factors(wi)}. Scor {pct(pr.score)}, încredere mare. Valoarea așteptată {lei(ev)} depășește costul "
             f"({visit.explain()} = {lei(visit.total)}) cu {lei(net_visit)}."
         )
         return _route(ctx, item, "R-A-VISIT", reason, "inspect_on_site", visit, th, fallback=remote_fallback)
+    if pr.confidence == Confidence.medium and net_visit > min_net + margin:
+        reason = (
+            f"{_factors(wi)}. Scor {pct(pr.score)}, încredere medie, dar valoarea netă a vizitei ({lei(net_visit)}) "
+            f"trece și de marja cerută la încredere medie ({lei(margin)}; costul: {visit.explain()})."
+        )
+        return _route(ctx, item, "R-A-VISIT-MEDIUM", reason, "inspect_on_site", visit, th, fallback=remote_fallback)
     if smart and pr.score >= remote_min and ev - remote.total > 0:
         if pr.confidence == Confidence.medium and net_visit > min_net:
-            why = f"Încredere medie (scor {pct(pr.score)}): întâi citire la distanță ({lei(remote.total)}), fără deplasare."
+            why = (
+                f"Încredere medie (scor {pct(pr.score)}) și valoare netă mică ({lei(net_visit)}, sub marja de {lei(margin)}): "
+                f"întâi citire la distanță ({lei(remote.total)}), fără deplasare."
+            )
         else:
             why = (
                 f"Valoarea așteptată ({lei(ev)}) nu acoperă vizita ({lei(visit.total)}; scorul ar trebui să fie peste "
@@ -449,12 +492,25 @@ def rule_meters(ctx: Context, item: Item) -> Proposal:
 # ---- B: furtună
 
 
+def storm_onset(wi: WorkItem) -> datetime | None:
+    """Începutul estimat al furtunii: extra.storm_onset (firul B), altfel începutul ferestrei de timp."""
+    raw = wi.extra.get("storm_onset")
+    if isinstance(raw, str):
+        try:
+            t = datetime.fromisoformat(raw)
+            return t if t.tzinfo else t.replace(tzinfo=TZ)
+        except ValueError:
+            pass
+    return wi.time_window.start if wi.time_window is not None else None
+
+
 def _storm_window(ctx: Context, p: Proposal) -> None:
     wi = p.wi
     before = int(ctx.settings.rule("storm", "arrive_before_start_min", default=60))
     start, _ = ctx.shift()
-    if wi.time_window is not None:
-        p.latest = wi.time_window.start.astimezone(TZ) - timedelta(minutes=before)
+    onset = storm_onset(wi)
+    if onset is not None:
+        p.latest = onset.astimezone(TZ) - timedelta(minutes=before)
     p.earliest = start
     p.terminal = True
     p.threshold.setdefault("arrive_before_start_min", float(before))
@@ -470,7 +526,11 @@ def rule_storm(ctx: Context, item: Item) -> Proposal:
     ev = wi.impact.expected_value_lei
     net = ev - costs.total
     tw = wi.time_window
-    window_ro = f"Fereastra de risc: {hhmm(tw.start.astimezone(TZ))}-{hhmm(tw.end.astimezone(TZ))}" if tw else "Fereastra de risc: mâine"
+    onset = storm_onset(wi)
+    if onset is not None and tw is not None:
+        window_ro = f"Furtuna e așteptată de la {hhmm(onset.astimezone(TZ))} (fereastra {hhmm(tw.start.astimezone(TZ))}-{hhmm(tw.end.astimezone(TZ))})"
+    else:
+        window_ro = f"Fereastra de risc: {hhmm(tw.start.astimezone(TZ))}-{hhmm(tw.end.astimezone(TZ))}" if tw else "Fereastra de risc: mâine"
     p90 = f"; în scenariul pesimist (P90), {num(pr.point_interval[1])} clienți fără curent" if pr.point_interval else ""
     risk = f"{_factors(wi).capitalize()}. {window_ro}. Probabilitate de avarii {pct(pr.score)}{p90}."
     th = {
@@ -497,6 +557,12 @@ def rule_storm(ctx: Context, item: Item) -> Proposal:
             alerts=alerts,
         )
     reason = f"{risk} Valoarea așteptată {lei(ev)} depășește costul turei ({lei(costs.total)}) cu {lei(net)}."
+    if wi.recommended_action != RecommendedAction.preposition_crew:
+        reason += f" Modelul a recomandat „{ACTION_RO.get(wi.recommended_action.value, wi.recommended_action.value)}”; decide pragul de cost."
+    if wi.impact.safety_flag:
+        gust = wi.extra.get("gust_max_kmh")
+        reason += f" Rafale{f' de {num(float(gust))} km/h' if isinstance(gust, (int, float)) else ' puternice'}: echipa nu lucrează la înălțime până scade vântul."
+        th["crew_safety_gusts"] = 1.0
     p = _route(ctx, item, "R-B-PREPOSITION", reason, "preposition_crew", costs, th, alerts=alerts)
     _storm_window(ctx, p)
     return p
@@ -684,6 +750,7 @@ RULE_CATALOG: dict[str, str] = {
     "R-WIDE-INTERVAL": "Interval de încredere prea larg: decide un om (sau urmărire).",
     "R-SAFETY": "Risc pentru oameni: prioritate maximă, alertă critică, intră primul în traseu.",
     "R-A-VISIT": "Contor, încredere mare, valoarea așteptată peste costul vizitei: echipă.",
+    "R-A-VISIT-MEDIUM": "Contor, încredere medie, valoarea netă peste marja de siguranță: echipă (citire la distanță dacă nu încape).",
     "R-A-VISIT-NO-REMOTE": "Contor fără citire la distanță, încredere medie, valoare netă pozitivă: echipă.",
     "R-A-REMOTE-FIRST": "Contor, încredere medie sau valoare sub costul vizitei: citire la distanță întâi.",
     "R-A-WATCH": "Contor cu scor mic: urmărire.",

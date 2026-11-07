@@ -20,3 +20,21 @@ depots:
   - {depot_id: "D-BUC-E", label_ro: "Bază operativă București Est (simulată)", lat: 44.4310, lon: 26.1650, region: muntenia_sud}
   - {depot_id: "D-CTA", label_ro: "Bază operativă Constanța (simulată)", lat: 44.1733, lon: 28.6383, region: dobrogea}
   - {depot_id: "D-TM", label_ro: "Bază operativă Timișoara (simulată)", lat: 45.7537, lon: 21.2257, region: banat}
+  - {depot_id: "D-ARD", label_ro: "Bază operativă Arad (simulată)", lat: 46.1866, lon: 21.3123, region: banat}
+  - {depot_id: "D-RES", label_ro: "Bază operativă Reșița (simulată)", lat: 45.3008, lon: 21.8892, region: banat}
+  - {depot_id: "D-DEV", label_ro: "Bază operativă Deva (simulată)", lat: 45.8781, lon: 22.9116, region: banat}
+# Clienții Rețele Electrice pe județ, la 31.12.2024 (total 3.180.331). SURSĂ: Planul de dezvoltare RER 2026-2035,
+# tabelele 2.1-2.3: https://www.reteleelectrice.ro/wp-content/uploads/plan-dezvoltare-re-consultare.pdf
+# (preluat de firul B; Giurgiu are mai mulți clienți decât locuitori, anomalie semnalată de B și folosită ca atare).
+customers_by_county:
+  București: 1061381
+  Ilfov: 126526
+  Giurgiu: 318642
+  Constanța: 351735
+  Tulcea: 103832
+  Călărași: 129626
+  Ialomița: 120907
+  Timiș: 371306
+  Arad: 223282
+  Caraș-Severin: 149668
+  Hunedoara: 223426

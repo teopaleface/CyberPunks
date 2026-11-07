@@ -146,7 +146,8 @@ def _decide_and_act(
     plan_dir: Path, timings: dict[str, float], meta: dict[str, Any], append_audit: bool, solver: str | None,
 ) -> RunResult:
     t0 = time.perf_counter()
-    overrides = load_overrides(plan_dir)
+    # Deciziile omului se reaplică doar la replanificare; o rulare nouă pornește de la zero (cele vechi rămân în history/).
+    overrides = load_overrides(plan_dir) if append_audit else {}
     ctx = Context.build(settings, plan_date, as_of=as_of, overrides=overrides)
     items = [it for s in "ABC" for it in loads[s].items]
     proposals = decide(ctx, items)
@@ -253,6 +254,14 @@ def run(
 
     t1 = time.perf_counter()
     picks = estimate(scenario, plan_date, mode, out_root)
+    fixture_date = _fixture_date()
+    if mode == "auto" and date is None and fixture_date and fixture_date != plan_date and all(p.origin == "missing" for p in picks.values()):
+        # Niciun model nu are încă ieșiri pentru data scenariului: planul rulează pe exemple, marcat clar (surse "degraded").
+        note = f"nicio ieșire de model pentru {plan_date.isoformat()}; plan pe exemplele din contracts/fixtures/ ({fixture_date.isoformat()})"
+        plan_date = fixture_date
+        picks = estimate(scenario, plan_date, "fixtures", out_root)
+        for pick in picks.values():
+            pick.note = f"{note}; {pick.note}"
     timings["estimate"] = round(time.perf_counter() - t1, 3)
 
     plan_dir = out_root / "plans" / scenario
