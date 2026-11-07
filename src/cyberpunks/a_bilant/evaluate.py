@@ -17,8 +17,14 @@ from zoneinfo import ZoneInfo
 import numpy as np
 import pandas as pd
 
+from cyberpunks.a_bilant import diagnose as G
 from cyberpunks.a_bilant import features as F
+from cyberpunks.a_bilant import fusion_eval as FE
 from cyberpunks.a_bilant import normal as N
+from cyberpunks.a_bilant import windows as W
+from cyberpunks.a_bilant.fuse import combine_arrays
+from cyberpunks.a_bilant.problems import CLASSES
+from cyberpunks.common.config import load as load_config
 from cyberpunks.common.contracts import ModelReport
 from cyberpunks.common.paths import REPORTS
 
@@ -93,6 +99,94 @@ def fig_normal(tec: pd.DataFrame) -> None:
     plt.close(fig)
 
 
+def value_at_k(win: pd.DataFrame, score: np.ndarray, k: int = 10) -> float:
+    """Ce parte din excesul real (kWh) al zilei e în primele k posturi după scor (media pe zilele de evaluare)."""
+    vals = []
+    for _, g in win.assign(_s=score).groupby("day"):
+        tot = g["true_excess_kwh"].abs().sum()
+        if tot <= 0:
+            continue
+        vals.append(g.nlargest(k, "_s")["true_excess_kwh"].abs().sum() / tot)
+    return float(np.mean(vals))
+
+
+def eval_diagnosis(wtr: pd.DataFrame, wte: pd.DataFrame) -> tuple[dict, dict, G.Diagnoser, pd.DataFrame]:
+    from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
+
+    diag = G.fit(wtr)
+    proba = diag.proba(wte)
+    dec = G.decide(proba, wte)
+    y = wte["true_class"].to_numpy()
+    lab = dec["label"].to_numpy()
+    rl = G.rules(wte).to_numpy()
+    m = {
+        "diagnoza_macro_f1": float(f1_score(y, lab, average="macro")),
+        "diagnoza_accuracy": float(accuracy_score(y, lab)),
+        "diagnoza_abstain_rate": float(dec["abstain"].mean()),
+        "diagnoza_macro_f1_fara_abtineri": float(f1_score(y[~dec["abstain"]], lab[~dec["abstain"]], average="macro")),
+        "diagnoza_value_at_10_posts": value_at_k(wte, (dec["p_problem"] * wte["r_mean_kwh"].abs()).to_numpy()),
+    }
+    b = {
+        "diagnoza_macro_f1": float(f1_score(y, rl, average="macro")),
+        "diagnoza_accuracy": float(accuracy_score(y, rl)),
+        "diagnoza_value_at_10_posts": value_at_k(wte, np.where(rl != "normal", wte["r_mean_kwh"].abs(), 0.0)),
+    }
+    for c, f in zip(CLASSES, f1_score(y, lab, average=None, labels=list(CLASSES)), strict=True):
+        m[f"diagnoza_f1_{c}"] = float(f)
+    for c, f in zip(CLASSES, f1_score(y, rl, average=None, labels=list(CLASSES)), strict=True):
+        b[f"diagnoza_f1_{c}"] = float(f)
+    cm = pd.DataFrame(confusion_matrix(y, lab, labels=list(CLASSES)), index=list(CLASSES), columns=list(CLASSES))
+    return m, b, diag, cm
+
+
+def fig_confusion(cm: pd.DataFrame) -> None:
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    short = ["normal", "contor client", "furt înainte", "tehnică", "post greșit", "contor post"]
+    norm = cm.div(cm.sum(1).clip(lower=1), axis=0)
+    fig, ax = plt.subplots(figsize=(7, 5.6))
+    ax.imshow(norm.to_numpy(), cmap="Blues", vmin=0, vmax=1)
+    for i in range(len(cm)):
+        for j in range(len(cm)):
+            ax.text(j, i, f"{int(cm.iat[i, j])}", ha="center", va="center", fontsize=8, color="white" if norm.iat[i, j] > 0.5 else "#222")
+    ax.set_xticks(range(len(cm)), short, rotation=30, ha="right", fontsize=8)
+    ax.set_yticks(range(len(cm)), short, fontsize=8)
+    ax.set_xlabel("diagnosticul modelului")
+    ax.set_ylabel("cauza reală (din construcție)")
+    ax.set_title("Diagnosticul cauzei pe rețele nevăzute (SIMULARE)", fontsize=10)
+    fig.tight_layout()
+    fig.savefig(OUT / "diagnosis_confusion.png", dpi=130)
+    plt.close(fig)
+    cm.to_csv(OUT / "diagnosis_confusion.csv")
+
+
+def fig_fusion(with_b: dict, without: dict) -> None:
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    ks = list(FE.KS)
+    fig, ax = plt.subplots(1, 2, figsize=(10, 4))
+    x = np.arange(len(ks))
+    ax[0].bar(x - 0.2, [without[f"precision_at_{k}"] * 100 for k in ks], 0.4, label="doar scorul contorului (A)", color="#a0aec0")
+    ax[0].bar(x + 0.2, [with_b[f"precision_at_{k}"] * 100 for k in ks], 0.4, label="A + bilanțul postului", color="#2b6cb0")
+    ax[0].set_xticks(x, [f"primele {k}" for k in ks])
+    ax[0].set_ylabel("% contoare verificate cu problemă reală")
+    ax[0].legend(fontsize=8)
+    ax[1].bar(x - 0.2, [without[f"value_lei_per_day_at_{k}"] for k in ks], 0.4, color="#a0aec0")
+    ax[1].bar(x + 0.2, [with_b[f"value_lei_per_day_at_{k}"] for k in ks], 0.4, color="#2b6cb0")
+    ax[1].set_xticks(x, [f"primele {k}" for k in ks])
+    ax[1].set_ylabel("lei recuperați pe zi de verificări")
+    fig.suptitle("Cu bilanț față de fără, pe aceleași contoare și zile (SIMULARE; scoruri A simulate)", fontsize=10)
+    fig.tight_layout()
+    fig.savefig(OUT / "fusion_with_vs_without.png", dpi=130)
+    plt.close(fig)
+
+
 def main() -> None:
     tr = F.load_pool("train")
     te = F.load_pool("pop")
@@ -101,17 +195,59 @@ def main() -> None:
     models["cold"].save("normal_cold")
     fig_normal(tec)
     sha = git_sha()
+
+    # diagnosticul: ferestre de 14 zile; pe antrenare cu pierderea normală prezisă fără ca postul să fi fost văzut
+    wtr = W.build_windows(tr, W.oof_normal(tr), "train")
+    wte = W.build_windows(te, N.predict_any(models, te), "pop")
+    from cyberpunks.common.paths import DATA_PROCESSED
+
+    wtr.to_parquet(DATA_PROCESSED / "bilant" / "windows_train.parquet")
+    md, bd, diag, cm = eval_diagnosis(wtr, wte)
+    proba = diag.proba(wte)
+    wte.join(G.decide(proba, wte)).join(proba.add_prefix("p_")).assign(rule=G.rules(wte)).to_parquet(DATA_PROCESSED / "bilant" / "windows_pop.parquet")
+    tec.to_parquet(DATA_PROCESSED / "bilant" / "normal_test_pop.parquet")
+    diag.save()
+    fig_confusion(cm)
+    metrics.update(md)
+    baseline.update(bd)
+    metrics["diagnoza_test_windows"] = float(len(wte))
+
+    # fuziunea cu A: incertitudinea creșterii lipsei, măsurată pe ferestrele normale de antrenare
+    nrm = wtr[wtr["true_class"] == "normal"]
+    sig = {"delta": float(np.std(nrm["delta_kwh"] / (nrm["width_kwh"] / 2.56))), "level": float(np.std(nrm["r_mean_kwh"] / (nrm["width_kwh"] / 2.56)))}
+    (N.MODEL_DIR / "fusion_sigma.json").write_text(json.dumps(sig))
+    (N.MODEL_DIR / "version.json").write_text(json.dumps({"version": f"bilant-diagnoza-lgbm@{sha}"}))
+    eco = load_config("economics")
+    price = float(eco["energy"]["loss_cost_lei_per_kwh"])
+    horizon = int(eco["meters"]["detection_horizon_days"])
+    # (a) mai multe zile, scoruri A simulate, pe lotul train (problemele de contor apar pe tot anul; pierderea normală
+    # prezisă fără ca postul să fi fost văzut). Lotul pop are acum defectele reale ale lui A, apărute în ultimele 60 de zile.
+    t = FE.meter_table("train", wtr, sig["delta"])
+    fw, fwo = FE.evaluate(t, price, horizon)
+    fs, fso = FE.evaluate(t, price, horizon, target_auc=FE.A_SGCC_AUC)
+    fig_fusion(fw, fwo)
+    a_sc, _, _ = FE.simulate_a_scores(t)
+    t.assign(a=a_sc, fused=combine_arrays(a_sc, t["excess"].to_numpy(), t["sigma"].to_numpy(), np.maximum(t["drop"].to_numpy(), 0.0))).to_parquet(DATA_PROCESSED / "bilant" / "fusion_meters_train.parquet")
+    metrics.update({f"fuziune_sgcc_{k}": v for k, v in fs.items() if not k.startswith("info_")})
+    baseline.update({f"fuziune_sgcc_{k}": v for k, v in fso.items()})
+    # (b) ziua demo, scorurile REALE ale lui A pe cele ~15.850 de contoare
+    real = FE.evaluate_real_a(wte, sig["delta"], price, horizon)
+    metrics.update({f"fuziune_a_real_{k}": v for k, v in real.items()})
+    # (c) energia pe care contoarele nu o văd (doar bilanțul o vede), ziua demo
+    metrics.update({f"invizibil_{k}": v for k, v in FE.invisible_energy(te, int(te["day"].max())).items()})
+    metrics.update({f"fuziune_{k}": v for k, v in fw.items()})
+    baseline.update({f"fuziune_{k}": v for k, v in fwo.items()})
     report = ModelReport(
         source="A",
-        model_id="bilant-normal-lgbm",
-        model_version=f"bilant-normal-lgbm@{sha}",
-        task="regresie cuantilă (P10/P50/P90): pierderea normală pe post și zi, kWh",
+        model_id="bilant-lgbm",
+        model_version=f"bilant-lgbm@{sha}",
+        task="bilanț pe post: pierderea normală (regresie cuantilă P10/P50/P90), diagnosticul cauzei (clasificare în 6 clase), fuziunea cu scorul contoarelor A (clasament în primele K)",
         dataset=DATASET,
-        split="antrenare: 300 de posturi sintetice noi (lotul train); test: cele 300 de posturi din registrul C (rețele nevăzute), zilele fără probleme ascunse, cu cel puțin 21 de zile de istoric",
+        split="antrenare: 300 de posturi sintetice noi (lotul train); test: cele 300 de posturi din registrul C (rețele nevăzute). Pierderea normală: zilele fără probleme, cu cel puțin 21 de zile de istoric (test_size). Diagnosticul: ferestre de 14 zile, la 7 zile. Fuziunea: contoarele lotului de test, problemele apărute în ultimele 2-12 zile, K contoare verificate pe zi; scorurile A sunt simulate la ROC-AUC 0,907 (cel raportat de A)",
         test_size=int(metrics["normal_test_days"]),
-        primary_metric="normal_mae_kwh_day",
+        primary_metric="fuziune_precision_at_10",
         metrics={k: round(float(v), 4) for k, v in metrics.items()},
-        baseline_id="fizic-i2r (a·ΣP²·R/U² + b·nr. contoare, cele mai mici pătrate); al doilea reper: procent-fix",
+        baseline_id="fuziune_*: doar scorul A, fără bilanț; normal_*: formula fizică I²R (a·ΣP²·R/U² + b·nr. contoare); diagnoza_*: tabelul de reguli din concept; procent_fix_*: în metrics, al doilea reper pentru normal",
         baseline_metrics={k: round(float(v), 4) for k, v in baseline.items()},
         synthetic_share=1.0,
         created_at=datetime.now(ZoneInfo("Europe/Bucharest")).replace(microsecond=0),

@@ -1,0 +1,78 @@
+{
+  "note": "toate cifrele sunt pe o validare din setul de antrenare (20% din clienți / gospodării, ținute deoparte); K = 1%; 'în primele 5%' = ce parte ajunge în top 5%",
+  "sgcc": {
+    "vechi": {
+      "pr_auc": 0.3834,
+      "roc_auc": 0.8156,
+      "precision_at_k": 0.7647,
+      "recall_at_k": 0.0899,
+      "n_features": 19
+    },
+    "nou": {
+      "pr_auc": 0.4267,
+      "roc_auc": 0.8382,
+      "precision_at_k": 0.7451,
+      "recall_at_k": 0.0876,
+      "n_features": 27
+    }
+  },
+  "lcl": {
+    "vechi": {
+      "pr_auc": 0.8952,
+      "roc_auc": 0.8888,
+      "precision_at_k": 1.0,
+      "recall_at_k": 0.0229,
+      "n_features": 30,
+      "auc_by_kind": {
+        "clock_drift": 0.6041,
+        "drift": 0.7426,
+        "bypass": 0.8179,
+        "h1": 0.8869,
+        "night": 0.8064,
+        "h6": 0.9094
+      },
+      "auc_benign_vs_normal": {
+        "vacation": 0.4781,
+        "occupancy_change": 0.619
+      }
+    },
+    "nou": {
+      "pr_auc": 0.9022,
+      "roc_auc": 0.8956,
+      "precision_at_k": 1.0,
+      "recall_at_k": 0.0229,
+      "n_features": 40,
+      "auc_by_kind": {
+        "clock_drift": 0.6307,
+        "drift": 0.7659,
+        "bypass": 0.8237,
+        "h1": 0.8923,
+        "night": 0.8148,
+        "h6": 0.9038
+      },
+      "auc_benign_vs_normal": {
+        "vacation": 0.5369,
+        "occupancy_change": 0.6459
+      }
+    },
+    "nou_fara_sezoniere_brute": {
+      "pr_auc": 0.8978,
+      "roc_auc": 0.8892,
+      "precision_at_k": 1.0,
+      "recall_at_k": 0.0229,
+      "n_features": 36,
+      "auc_by_kind": {
+        "clock_drift": 0.6111,
+        "drift": 0.7464,
+        "bypass": 0.809,
+        "h1": 0.878,
+        "night": 0.8063,
+        "h6": 0.9028
+      },
+      "auc_benign_vs_normal": {
+        "vacation": 0.5136,
+        "occupancy_change": 0.6501
+      }
+    }
+  }
+}

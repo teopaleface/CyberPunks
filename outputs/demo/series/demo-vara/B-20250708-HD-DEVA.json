@@ -1,0 +1,360 @@
+{
+ "contract_version": "1.0",
+ "work_item_id": "B-20250708-HD-DEVA",
+ "source": "B",
+ "title_ro": "Rafale de vânt pe ore, Zona Deva (Hunedoara)",
+ "unit": "km/h",
+ "points": [
+  {
+   "t": "2025-07-07T12:00:00+03:00",
+   "value": 30.6,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-07T13:00:00+03:00",
+   "value": 29.5,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-07T14:00:00+03:00",
+   "value": 31.3,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-07T15:00:00+03:00",
+   "value": 34.9,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-07T16:00:00+03:00",
+   "value": 41.0,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-07T17:00:00+03:00",
+   "value": 42.8,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-07T18:00:00+03:00",
+   "value": 54.0,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-07T19:00:00+03:00",
+   "value": 64.1,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-07T20:00:00+03:00",
+   "value": 43.9,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-07T21:00:00+03:00",
+   "value": 25.2,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-07T22:00:00+03:00",
+   "value": 9.0,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-07T23:00:00+03:00",
+   "value": 5.0,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T00:00:00+03:00",
+   "value": 5.8,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T01:00:00+03:00",
+   "value": 5.0,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T02:00:00+03:00",
+   "value": 3.6,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T03:00:00+03:00",
+   "value": 4.7,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T04:00:00+03:00",
+   "value": 7.2,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T05:00:00+03:00",
+   "value": 8.3,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T06:00:00+03:00",
+   "value": 13.3,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T07:00:00+03:00",
+   "value": 16.2,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T08:00:00+03:00",
+   "value": 17.6,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T09:00:00+03:00",
+   "value": 21.6,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T10:00:00+03:00",
+   "value": 24.1,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T11:00:00+03:00",
+   "value": 27.0,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T12:00:00+03:00",
+   "value": 27.7,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T13:00:00+03:00",
+   "value": 31.7,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T14:00:00+03:00",
+   "value": 29.2,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T15:00:00+03:00",
+   "value": 45.0,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T16:00:00+03:00",
+   "value": 46.8,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T17:00:00+03:00",
+   "value": 57.2,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "ploaie 8 mm"
+  },
+  {
+   "t": "2025-07-08T18:00:00+03:00",
+   "value": 42.5,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": "ploaie 6 mm"
+  },
+  {
+   "t": "2025-07-08T19:00:00+03:00",
+   "value": 20.2,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T20:00:00+03:00",
+   "value": 12.6,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T21:00:00+03:00",
+   "value": 9.4,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T22:00:00+03:00",
+   "value": 5.8,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-08T23:00:00+03:00",
+   "value": 5.8,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-09T00:00:00+03:00",
+   "value": 4.7,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-09T01:00:00+03:00",
+   "value": 5.8,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-09T02:00:00+03:00",
+   "value": 15.1,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-09T03:00:00+03:00",
+   "value": 7.9,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-09T04:00:00+03:00",
+   "value": 12.2,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  },
+  {
+   "t": "2025-07-09T05:00:00+03:00",
+   "value": 13.7,
+   "expected": null,
+   "low": null,
+   "high": null,
+   "flag": null
+  }
+ ],
+ "thresholds": {
+  "rafala_inceput_furtuna_kmh": 45.0,
+  "rafala_periculoasa_kmh": 75.0
+ },
+ "annotations": [
+  {
+   "t": "2025-07-08T16:00:00+03:00",
+   "label_ro": "echipa pe poziție (cu o oră înainte)"
+  },
+  {
+   "t": "2025-07-08T17:00:00+03:00",
+   "label_ro": "începutul furtunii (estimat)"
+  }
+ ],
+ "synthetic": false
+}

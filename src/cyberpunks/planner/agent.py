@@ -84,13 +84,31 @@ def _fixture_date() -> Date | None:
     return infer_plan_date(list(FIXTURES.values()))
 
 
-def estimate(scenario: str, plan_date: Date | None, mode: Mode, out_root: Path) -> dict[str, SourcePick]:
+def _fresh_output(path: Path, plan_date: Date | None, max_age_hours: float) -> bool:
+    """O ieșire existentă e refolosibilă dacă e pentru aceeași zi și nu e mai veche de `max_age_hours`."""
+    if plan_date is None or not path.exists():
+        return False
+    if time.time() - path.stat().st_mtime > max_age_hours * 3600:
+        return False
+    return infer_plan_date([path]) == plan_date
+
+
+def estimate(scenario: str, plan_date: Date | None, mode: Mode, out_root: Path, settings: Settings | None = None) -> dict[str, SourcePick]:
     picks: dict[str, SourcePick] = {}
     fixture_date = _fixture_date()
+    settings = settings or Settings.load()
+    slow = set(settings.rule("estimate", "reuse_fresh_output", default=[]) or [])
+    max_age = float(settings.rule("estimate", "max_age_hours", default=12))
     for src, module in PREDICTORS.items():
         existing = _work_items_file(out_root, scenario, src)
         t0 = time.perf_counter()
         note = ""
+        if mode == "auto" and src in slow and _fresh_output(existing, plan_date, max_age):
+            # Model lent (de exemplu bilanțul, ~4 minute): ieșirea lui pentru aceeași zi, din ultimele ore, se refolosește.
+            ran_at = datetime.fromtimestamp(existing.stat().st_mtime, TZ).strftime("%H:%M")
+            picks[src] = SourcePick(existing, "model", f"ieșirea modelului {src} pentru aceeași zi, rulată la {ran_at} (model lent, refolosit)",
+                                    time.perf_counter() - t0)
+            continue
         if mode == "auto" and plan_date is not None:
             try:
                 mod = importlib.import_module(module)
@@ -102,7 +120,7 @@ def estimate(scenario: str, plan_date: Date | None, mode: Mode, out_root: Path) 
                     path = Path(runner(scenario, plan_date.isoformat()))
                     picks[src] = SourcePick(path, "model", f"rulat {module}.run", time.perf_counter() - t0)
                     continue
-                except Exception as exc:  # noqa: BLE001 - un model căzut nu oprește planul
+                except (Exception, SystemExit) as exc:  # noqa: BLE001 - un model căzut (chiar cu SystemExit) nu oprește planul
                     note = f"modelul {src} a dat eroare: {type(exc).__name__}: {str(exc)[:200]}"
         if mode != "fixtures" and existing.exists():
             origin: Origin = "stale" if note and "eroare" in note else "model"
@@ -133,10 +151,11 @@ def build_routing(ctx: Context, proposals: list) -> Any:
         if not p.route:
             continue
         wi = p.wi
-        skill = p.skill or wi.effort.crew_skill.value
+        required = p.skills_required or frozenset({p.skill or wi.effort.crew_skill.value})
+        skill = "+".join(sorted(required))
         size = p.crew_size or wi.effort.crew_size
         duration = p.duration_min or wi.effort.duration_min
-        allowed = [v for v, veh in enumerate(vehicles) if skill in veh.crew.skills and veh.crew.size >= size]
+        allowed = [v for v, veh in enumerate(vehicles) if required <= veh.crew.skills and veh.crew.size >= size]
         tasks.append(
             Task(
                 id=p.id, lat=wi.location.lat, lon=wi.location.lon,
@@ -147,6 +166,42 @@ def build_routing(ctx: Context, proposals: list) -> Any:
             )
         )
     return build_problem(tasks, vehicles, ctx.travel, scale)
+
+
+def _unique_quarantine_ids(loads: dict[str, SourceLoad]) -> None:
+    """Fiecare decizie are un ID unic: o linie respinsă nu ia ID-ul unei lucrări valide sau al altei linii respinse,
+    nici din alt fișier (A.jsonl și A_bilant.jsonl au aceeași sursă)."""
+    used = {it.id for load in loads.values() for it in load.items}
+    for key, load in loads.items():
+        for q in load.quarantined:
+            qid = q.work_item_id
+            if qid in used:
+                base = qid.split("~", 1)[0]
+                qid = f"{base}~{key}-linia{q.line}"
+                n = 2
+                while qid in used:
+                    qid, n = f"{base}~{key}-linia{q.line}-{n}", n + 1
+            q.work_item_id = qid
+            used.add(qid)
+
+
+def replay_fusion(items: list[Item], path: Path) -> tuple[list[Item], list[tuple[Item, BilantFusion]], dict[str, Any]]:
+    """Fuziunea salvată la rulare, aplicată din nou la replanificare (aceleași intrări → aceleași decizii)."""
+    saved = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            row = json.loads(line)
+            saved[row["work_item_id"]] = row
+    out, events = [], []
+    for it in items:
+        row = saved.get(it.id)
+        if row is None or row.get("sha256") != it.sha256:
+            out.append(it)
+            continue
+        fused = Item(WorkItem.model_validate(row["item"]), it.sha256, it.line_no, it.origin)
+        out.append(fused)
+        events.append((fused, BilantFusion.model_validate(row["fusion"])))
+    return out, events, {"status": "ok (reluată din rulare)", "fused": len(events), "rejected": 0}
 
 
 def _module_available(name: str) -> bool:
@@ -234,8 +289,15 @@ def _decide_and_act(
     # Deciziile omului se reaplică doar la replanificare; o rulare nouă pornește de la zero (cele vechi rămân în history/).
     overrides = load_overrides(plan_dir) if append_audit else {}
     ctx = Context.build(settings, plan_date, as_of=as_of, overrides=overrides)
+    _unique_quarantine_ids(loads)
     items = [it for key in loads for it in loads[key].items]
-    items, fusion_events, fusion_meta = apply_fusion(items, scenario, plan_date)
+    plan_dir.mkdir(parents=True, exist_ok=True)
+    if append_audit and (plan_dir / "fusion.jsonl").exists():
+        items, fusion_events, fusion_meta = replay_fusion(items, plan_dir / "fusion.jsonl")  # replanificarea refolosește fuziunea rulării
+    else:
+        items, fusion_events, fusion_meta = apply_fusion(items, scenario, plan_date)
+        write_jsonl(plan_dir / "fusion.jsonl", [{"work_item_id": it.id, "sha256": it.sha256, "item": it.wi.model_dump(mode="json"),
+                                                 "fusion": f.model_dump(mode="json")} for it, f in fusion_events])
     proposals = decide(ctx, items)
     pb = build_routing(ctx, proposals)
     rr = solve(
@@ -249,7 +311,7 @@ def _decide_and_act(
     t1 = time.perf_counter()
     generated_at = datetime.now(TZ).replace(microsecond=0)
     outcome = finalize(ctx, proposals, rr, loads, generated_at)
-    plan_id = f"PLAN-{scenario}-{plan_date:%Y%m%d}-{generated_at:%H%M%S}"
+    plan_id = f"PLAN-{scenario}-{plan_date:%Y%m%d}-{generated_at:%H%M%S}-{uuid.uuid4().hex[:4]}"
     plan = build_plan(ctx, scenario, plan_id, planner_version(), generated_at, outcome, loads)
 
     plan_dir.mkdir(parents=True, exist_ok=True)
@@ -297,10 +359,15 @@ def _decide_and_act(
         }
     )
     write_json(plan_dir / "remedies.json", meta["remedies"])
+    from cyberpunks.planner.posts import overview as posts_overview
+
+    write_json(plan_dir / "posts.json", posts_overview(plan.model_dump(mode="json"), [it.wi.model_dump(mode="json") for it in items], settings))
+    actions = {wid: p.action for wid, p in outcome.final.items()}
+    write_json(plan_dir / "actions.json", actions)
     try:
         from cyberpunks.planner.workorders import write_work_orders
 
-        meta["work_orders"] = [p.name for p in write_work_orders(plan, items, plan_dir, settings)]
+        meta["work_orders"] = [p.name for p in write_work_orders(plan, items, plan_dir, settings, actions=actions)]
     except ImportError:
         meta["work_orders"] = []
     try:
@@ -356,7 +423,7 @@ def run(
     timings["perceive"] = round(time.perf_counter() - t0, 3)
 
     t1 = time.perf_counter()
-    picks = estimate(scenario, plan_date, mode, out_root)
+    picks = estimate(scenario, plan_date, mode, out_root, settings)
     fixture_date = _fixture_date()
     if mode == "auto" and date is None and fixture_date and fixture_date != plan_date and all(picks[k].origin == "missing" for k in "ABC"):
         # Niciun model nu are încă ieșiri pentru data scenariului: planul rulează pe exemple, marcat clar (surse "degraded").

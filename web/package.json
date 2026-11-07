@@ -9,7 +9,8 @@
     "lint": "eslint",
     "gen:types": "bun scripts/gen-types.ts",
     "test": "bun test",
-    "worker": "bun scripts/copy-maplibre-worker.ts"
+    "worker": "bun scripts/copy-maplibre-worker.ts",
+    "smoke": "bun scripts/smoke.ts"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

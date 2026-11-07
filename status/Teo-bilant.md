@@ -1,40 +1,52 @@
 # Status: Teo-bilant
-Actualizat: 2026-11-07 13:45
-Milestone curent: M1 făcut, lucrez la M2
-Gata de merge: da (commit 545dd7b)
+Actualizat: 2026-11-07 14:38
+Milestone curent: M3 făcut (robustețe, analiza erorilor, planul B), M4 aproape (docs, fișa modelului)
+Gata de merge: da (commit 35eb179)
 
-## Făcut
-- Faza 0: `docs/research/bilant.md` (rezumat), `bilant_lit.md` (CPT RER, NTL, client la postul greșit, cu surse), `bilant_faze.md` (fazele: formula ajustată pe 768 de rulări `runpp_3ph`).
-- Lumea simulată (`a_bilant/world.py`, `problems.py`): posturile din registrul C, calculul de rețea al lui C, pierderile pe fiecare cablu din curenți, corecția de faze, contorul de bilanț, contoarele clienților (bidirecționale la prosumatori, goluri, erori), tensiunea în contor; 5 probleme ascunse din tabelul conceptului.
-- Setul (`a_bilant/dataset.py`): 300 de posturi `train` (sintetice noi) + cele 300 din registrul C (`pop`, test pe rețele nevăzute), 373 de zile (2024-07-01 … 2025-07-08, ziua demo). Rulează în ~1 minut pe 4 procese.
-- Modelul 1, pierderea normală (`a_bilant/normal.py`): LightGBM cuantile P10/P50/P90 + interval calibrat (conformal); două variante, cu istoricul postului și fără (post nou). Baseline-uri: procent fix și formula fizică I²R.
-- `reports/bilant/metrics.json` (ModelReport valid, `source: A`, `model_id: bilant-normal-lgbm`), `reports/bilant/normal_loss.png`, teste în `tests/bilant/` (8, trec), secțiunea Bilanț în Makefile.
+## Răspuns la cererea orchestratorului de la 14:20
+1. **`git merge Teo` făcut.** Contoarele lui A sunt acum pe posturile registrului C. Fuziunea le folosește direct; „legătura aproximativă” mai rămâne doar pentru un `post_id` necunoscut.
+2. **Lumea bilanțului are acum exact defectele lui A.** Contorul k al lui A pe un post = clientul k din simulare, cu același tip și aceeași zi de început (`dataset.apply_a_truth`, din `A_ground_truth.csv`, 865 de probleme). Lipsa din bilanț corespunde deci defectelor reale ale lui A.
+3. **Evaluarea „cu bilanț față de fără”, refăcută** (`reports/bilant/model_card.md`, tabelul complet; `metrics.json`, `fuziune_*`, `fuziune_sgcc_*`, `fuziune_a_real_*`):
+   - scor A simulat, calitatea lui A pe Londra (AUC 0,907), mai multe zile: precizia în primele 10 crește de la 10,2% la **12,2%** (în primele 20: de la 6,4% la 7,7%; 50: de la 4,0% la 4,5%; 100: de la 2,6% la 2,7%). Deplasări degeaba evitate: 0,2-0,3 pe zi. Lei pe zi în primele 10: de la 824 la 855; în primele 50: de la 1.177 la 1.458;
+   - aceeași comparație la calitatea lui A pe SGCC (AUC 0,80): în primele 10, de la 2,5% la **4,0%**, iar lei pe zi cresc de la 126 la **456**;
+   - **scorurile reale ale lui A**, ziua demo, 15.850 de contoare: precizie 100% cu și fără bilanț până la K = 300; la K = 500: 93,0% fără, 90,6% cu. **Câștig zero.** A e deja precis în vârf, iar cele două lumi (curbele din Londra ale lui A, SimBench la bilanț) împart doar contorul și ziua;
+   - **cifra 0,15 față de 0,09 nu mai e valabilă.** Venea din coborârea scorului contoarelor pe posturi curate (concedii), iar pe scorurile reale ale lui A coborârea strica (AUC 0,918 → 0,907). Fuziunea **doar confirmă** acum (AUC 0,919, nu ascunde niciun contor găsit de A). Am încercat și o fuziune învățată, validată pe posturi lăsate deoparte: AUC 0,915, tot fără câștig.
+   - **Ce propun pentru prezentare:** bilanțul vede **48% din energia pierdută** pe care niciun contor de client nu o vede (furt înainte de contor 595 kWh/zi, pierderi tehnice peste normal 861, client la postul greșit 309; contoarele defecte 1.892 kWh/zi, ziua demo, `invizibil_*`). În plus spune cauza pe post (F1 0,61 față de 0,48 la reguli).
+4. **Trimiterile la om:** bilanțul și A nu mai trimit același post la om (suprapunere **0**, verificat pe demo-vara). Bilanțul lasă lui A 6 posturi „nu sunt sigur” unde A trimite deja un contor la om, plus 57 de posturi de tip „contor de client” unde A are deja lucrarea pe contor (`extra.left_to_A` în starea postului; fuziunea confirmă lucrarea lui A). Bilanțul trimite la om **11** posturi; A trimite 117. Am încercat ca bilanțul să rezolve „nu sunt sigur” al lui A (citire la distanță în loc de om), dar cele 5 cazuri rezolvate pe demo nu aveau nicio problemă reală. Codul există, e oprit (`fuse.RESOLVE_ABSTAIN = False`). Restul de ~186 la om din plan nu vine din bilanț: 11 sunt ale mele, 117 ale lui A (după fuziune la fel), restul sunt B/C/planificator.
 
-## Urmează (M2, 21:30)
-- Modelul 2, diagnosticul cauzei (clasificator pe fereastra de 14 zile) față de tabelul de reguli din concept; potrivirea clientului (tensiune și curbă).
-- `fuse.fuse`, cifra „cu bilanț față de fără” (precizia în primele K, deplasări degeaba), `predict.run` → `outputs/work_items/demo-vara/A_bilant.jsonl` + serii.
+## Făcut (de la M2)
+- Robustețe (`inputs.py`): contor de post lipsă → planul B; ore dublate; Wh → kWh; polaritate inversată; ore lipsă. Legate în rularea zilnică, cu 3 cazuri de test vizibile în demo (PT-1003 Wh, PT-1007 fără contor de post, PT-1011 ore dublate).
+- Clientul suspect, din semne clare (zero, blocat, negativ) înainte de scădere: corect în 21 din 45 de posturi, față de 4 din 45 cu metoda veche.
+- Planul B (`reports/bilant/plan_b.md`): montând contoare la 20% din posturi după model, găsești 36% din energia lipsă (la întâmplare 20%, posturile mari întâi 23%); ~3.530 lei pe an per contor, față de ~1.960. Gradul de integrare 56-67% e în raport.
+- Analiza erorilor (`reports/bilant/error_analysis.md`), fișa pentru prezentare (`reports/bilant/demo_posts.md`, cazuri verificate cu adevărul), fișa modelului, `docs/data/bilant.md`, verdictele după vizită ca etichete (`feedback.py`).
+- Teste: 24 în `tests/bilant/` (redenumite `test_bilant_*` după conflictul de nume cu A); `make check`: 225 trec.
+
+## Urmează
+- M4: verificare dintr-o clonă curată (`make c-weather bilant-data bilant-eval bilant-predict`), ultimele retușuri la documentație.
+- Dacă e timp: clientul la postul greșit (F1 0,37) și contorul de client în lumea cu defectele lui A (F1 0,33; multe tipuri ale lui A nu schimbă totalul zilei).
 
 ## Blocaje
 - Niciunul.
 
 ## Cereri către orchestrator
-1. **Posturi diferite la A și la C.** A folosește posturile lui (`data/samples/A/posts.csv`, PT-0001…, ~400) și contoarele `MTR-*` legate de ele; registrul comun e al lui C (PT-1001…PT-1300). Ca fuziunea bilanț + A să găsească aceleași posturi, A trebuie să-și lege contoarele de `post_id`-urile lui C. Până atunci `fuse` leagă un post A necunoscut de cel mai apropiat post din registrul C, marcat ca legătură aproximativă.
-2. Când C publică `posts.py`/`load_posts()` și A are `inject.py`/`predict.py` în `Teo`, vă rog merge în `Teo`. Până atunci registrul vine dintr-o copie (`data/samples/bilant/posts_C_registry_copy.csv`).
-3. `memory/journal.md`: „Bilanț M1: pierderea normală simulată are mediana 3,8% din energia care trece prin post (reper RER: CPT 8,66% în 2023, 63,54% pe JT, inclusiv pierderile comerciale); modelul cu istoric greșește cu 5,2 kWh/zi față de 14,7 la formula fizică.”
+1. **Prezentarea:** cifra pentru bilanț e „vede 48% din energia pierdută pe care contoarele nu o văd” plus planul B (36% față de 20%). Cifra „cu bilanț față de fără” doar ca sensibilitate: câștig când modelul de contoare e mai slab (SGCC: lei în primele 10 de 3,6 ori), zero cu scorurile actuale ale lui A. Vă rog transmiteți firului de prezentare.
+2. **Planificatorul:** ordinea contează pentru deduplicare. `cyberpunks.a_contoare.predict` trebuie să ruleze înaintea `cyberpunks.a_bilant.predict` (bilanțul citește `A.jsonl` ca să nu dubleze). Apoi `fuse`.
+3. **C:** `extra.phase_rebalance_input` pe lucrările `pierdere_tehnica` (PT-1269: pierderi de 2,2 ori normalul, faza estimată ~68%, adevărul 76/15/9).
+4. **`memory/journal.md`:** „14:37 bilanț: fuziunea doar confirmă (pe scorurile reale ale lui A, coborârea strica clasamentul); cifra 0,15/0,09 retrasă; cifra pentru prezentare: 48% din energia pierdută e invizibilă la contoare.”
 
 ## Cum se rulează (comenzile exacte)
-- `make bilant-data` (sau `uv run python -m cyberpunks.a_bilant.dataset --workers 4`); cere meteo C în `data/raw/C` (`make c-weather`).
-- `make bilant-eval` (sau `uv run python -m cyberpunks.a_bilant.evaluate`)
-- `make bilant-test`
+- `make c-weather` (o dată), `make bilant-data` (~1 min), `make bilant-eval` (~5 min: modele, metrici, planul B, analiza erorilor), `make bilant-predict`, `uv run python -m cyberpunks.a_bilant.demo_story`, `make bilant-test`.
+- Lotul hărții citește `outputs/work_items/demo-vara/A_ground_truth.csv`; dacă lipsește, rulează singur `a_contoare.predict`.
 
-## Cifre (doar din scripturi, cu comanda)
-Comanda: `uv run python -m cyberpunks.a_bilant.dataset && uv run python -m cyberpunks.a_bilant.evaluate`. Test: 61.123 de zile curate pe 300 de posturi nevăzute (registrul C). SIMULARE.
-- Pierderea normală, eroarea medie (MAE): **5,18 kWh/zi** (14,6% din pierderea medie de 35,6 kWh/zi), acoperirea intervalului P10-P90: 83,6%.
-- Fără istoricul postului: 12,36 kWh/zi, acoperire 83,7%.
-- Baseline formula fizică I²R: 14,72 kWh/zi; procent fix: 19,75 kWh/zi.
-- Pierderea normală simulată: mediana 3,8% din energia care trece prin post.
+## Cifre (doar din scripturi, cu comanda `make bilant-data bilant-eval`)
+SIMULARE pe date publice. Test: cele 300 de posturi ale registrului C (rețele nevăzute).
+- Pierderea normală: MAE 5,30 kWh/zi (formula fizică 14,91; procent fix 20,59); fără istoric 12,56; acoperirea P10-P90 88,1%; mediana pierderii 3,8% din energia care trece prin post.
+- Diagnosticul: F1 macro 0,61 față de 0,48 la reguli; furt înainte de contor 0,66 față de 0,35; contor de post ×2 0,99; se abține în 15,1% din ferestre.
+- Energia invizibilă la contoare: 48%. Planul B: 36% față de 20%. Fuziunea: tabelul de mai sus.
 
 ## Decizii (cu ora)
-- 13:35: lucrez pe registrul de posturi al lui C; calculul de rețea al lui C e echilibrat, deci fazele le adaug cu formula din `bilant_faze.md`.
-- 13:45: calibrare ×2,5 (±35% între posturi) a pierderilor din SimBench, ca mediana să fie ~3-4% (IPOTEZĂ, sub CPT-ul RER care include și furtul).
-- 13:50: două modele de pierdere normală (cu istoric, fără istoric), nu unul cu augmentare (augmentarea strica modelul principal: 6,2 în loc de 5,2 kWh/zi).
+- 13:35-14:04: vezi istoricul (registrul C, calibrarea ×2,5, două modele normale, creșterea lipsei în fuziune, contorul ×2 valorează 2 deplasări, întâi citire la distanță).
+- 14:25: defectele lui A intră în lumea bilanțului (contorul k = clientul k), ca fuziunea să fie testată pe aceleași probleme.
+- 14:30: fuziunea doar confirmă; testul pe mai multe zile trece pe lotul train (lotul hărții are acum defectele lui A, apărute doar în ultimele 60 de zile).
+- 14:35: rezolvarea automată a lui „nu sunt sigur” e oprită (0 din 5 corecte pe demo).
+- 14:35: bilanțul lasă lui A posturile unde A are deja lucrare la om sau pe contor.

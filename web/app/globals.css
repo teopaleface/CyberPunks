@@ -124,6 +124,7 @@
 
 /* Varianta închisă (pentru video, opțională). Culorile surselor sunt pașii validați pe fundal închis. */
 .dark {
+  color-scheme: dark;
   --canvas: #0a1521;
   --panel: #0f1d2b;
   --ink: #e9eef2;
@@ -184,6 +185,19 @@
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button,
+  a,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
   }
   ::selection {
     background: color-mix(in oklab, var(--src-a) 22%, transparent);
@@ -274,7 +288,7 @@
   color: var(--att-ink);
   font-weight: 560;
 }
-.plan-map .mk[data-pinned="1"] .lab,
+.plan-map[data-near] .mk[data-pinned="1"] .lab,
 .plan-map .mk[data-selected="1"] .lab,
 .plan-map .mk:hover .lab,
 .plan-map .mk:focus-visible .lab {
@@ -328,4 +342,66 @@
   box-shadow: none;
   border: 1px solid var(--rule);
   background: var(--panel);
+}
+
+/* Informațiile de la trecerea mouse-ului peste punctele hărții */
+.plan-pop .maplibregl-popup-content {
+  padding: 5px 9px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+  background: var(--popover);
+  box-shadow: 0 6px 18px -10px rgb(19 32 42 / 0.45);
+  font-family: var(--font-sans);
+  color: var(--ink);
+  line-height: 1.25;
+}
+.plan-pop .maplibregl-popup-tip {
+  display: none;
+}
+.plan-pop .t {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  font-stretch: 88%;
+}
+.plan-pop .s {
+  display: block;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+.plan-pop .s.att {
+  color: var(--att-ink);
+  font-weight: 560;
+}
+
+/* Modul „Posturi”: markerii lucrărilor se ascund, bazele rămân */
+.plan-map[data-posts] .mk.item {
+  display: none;
+}
+
+/* Modul de prezentare: zona despre care se vorbește primește un contur discret */
+.spot {
+  position: relative;
+}
+.spot::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  pointer-events: none;
+  animation: spot-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.spot-att::after {
+  border-color: var(--att);
+}
+@keyframes spot-in {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

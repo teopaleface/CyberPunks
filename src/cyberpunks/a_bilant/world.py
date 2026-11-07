@@ -234,7 +234,7 @@ def simulate(spec: grids.PostSpec, wx: Weather, plan: P.PostPlan, cluster_mv: np
             on = wx.local_day >= pr.onset_day
             before = rec[i].copy()
             rec[i] = P.apply_meter_problem(rec[i], on, pr.params, wx.local_day)
-            deficit += np.where(on, before - rec[i], 0.0)
+            deficit += np.where(on, np.nan_to_num(before - rec[i]), 0.0)
     # rotunjire la rezoluția contorului (0,001 kWh)
     rec = np.round(rec, 3)
     # goluri de comunicație (problemă de date, nu de energie)

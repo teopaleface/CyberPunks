@@ -1,7 +1,7 @@
 # Status: Teo-B-furtuna
-Actualizat: 2026-11-07 13:42
+Actualizat: 2026-11-07 13:54
 Milestone curent: M1 provizoriu (model pe 19 din 80 de comitate); M1 final pe la 15:15
-Gata de merge: da (commit cbf4007), versiune PROVIZORIE: interfața și formatele sunt finale, cifrele modelului se schimbă la 15:15
+Gata de merge: da (commit a402296), versiune PROVIZORIE: formatele și `run()` sunt finale; modelul și cifrele se schimbă la M1 final (~15:30)
 
 ## Făcut
 - 12:44 Citit memoria, tema, planul, contractele, fixture-urile. `uv sync` și `make check` trec.
@@ -16,6 +16,9 @@ Gata de merge: da (commit cbf4007), versiune PROVIZORIE: interfața și formatel
 - 13:25 Teste B (17, fără rețea): vreme lipsă, valori imposibile, zonă în afara antrenării, rafale extreme, surse meteo în dezacord, lipsa vremii orare, cache și rețea picată. Secțiunea B din `Makefile`. `docs/data/B.md`.
 - 13:28 Analiza erorilor (`reports/B/error_analysis.md`), experimente (`reports/B/experiments.json`), backtest pe 6-10 iulie 2025 (`reports/B/backtest_romania.md`). Începutul furtunii se estimează după prima oră cu ploaie sau rafală foarte puternică: 15:00 la Timișoara și Reșița, 17:00 la Deva (codul roșu ANM: 15-21).
 - 13:30 **Modelul e livrat în git** (`models/release/b_model.joblib`, 1,1 MB), ca planificatorul să poată apela `run()` fără să refacă datele.
+
+- 13:35-13:54 Calibrare conformală a cuantilelor (acoperirea P10-P90 pe 2025: 82%, față de 62% fără). Evaluare cu echipe puține și în lei. Verificare pe evenimente reale cunoscute din SUA: gheața din Michigan (feb. 2023), tornadele din 31 martie 2023, Helene (sept. 2024). Al doilea caz în backtest: Slobozia, 17 iulie 2025. Figuri cu paletă validată pentru daltonism. Model card generat din metrici. Termenele ANRE verificate în sursa primară (cererea 8). Test cap-coadă cu planificatorul (cererea 11).
+- 13:54 **Temperaturile și radiația au fost scoase din model.** Pe 36 de comitate, PR-AUC pe 2025 scade de la 0,258 la 0,250 (−3%). În schimb, pe 8 iulie 2025 riscul mediu e 0,31 în Banat față de 0,07 în Dobrogea și 0,04 în Muntenia (înainte: 0,34 față de 0,11), iar nicio zonă cu caniculă nu mai trece de prag. Cifra finală vine din `reports/B/experiments.json`, varianta `cu_temperaturi`.
 
 ## Urmează
 - 14:55 Se termină vremea pentru toate cele 80 de comitate. Reantrenez, rulez experimentele, actualizez metricile, lucrările și modelul, apoi „Gata de merge” final pentru M1.
@@ -49,6 +52,11 @@ Gata de merge: da (commit cbf4007), versiune PROVIZORIE: interfața și formatel
    - Pentru planificator: `restoration_limit_hours` din `config/economics.yaml` (4/6/12/48/72) e corect; ca sursă se poate cita „Ord. ANRE 46/2021, MO 649/1.07.2021, art. 15 alin. (1)”. Ar trebui adăugat `planned: 8`, cu sursa „anexa 1, rândul 2”.
 9. **Sugestie pentru `config/economics.yaml`, cheia `storm`** (planificatorul decide): valoarea unei echipe trimise din timp presupune acum că o echipă scurtează întreruperea pentru toți clienții afectați, oricât de mare e avaria. Cu ipotezele de acum, pe anul de test, „trimite mereu” iese mai bine decât orice regulă (vezi `reports/B/metrics_detail.json`, `decision_value`). Un plafon pe tură ar face valoarea realistă, de exemplu `customers_helped_per_crew_shift: <N>  # IPOTEZĂ`. Dacă cheia există, B o folosește deja în `value_if_true_lei`; dacă nu, B lasă calculul ca acum.
 10. **Sugestie pentru regula de furtună a planificatorului** (`rule_storm`, `config/planner.yaml`): cu valorile din config, și o zonă cu 9% risc într-o zi liniștită iese „rentabilă” (de exemplu Mangalia, pe 8 noiembrie: 9% × circa 46.000 lei, adică peste 4.000 lei, față de 2.700 lei tura), așa că agentul ar trimite echipe pe vânt de 25 km/h. Propunere: trimitem echipă doar dacă `prediction.score ≥ extra.decision_threshold` (pragul B, ales pe validare ca cel mai bun F1, acum circa 0,16) **și** valoarea netă e pozitivă. Sub prag: urmărire, plus alertă dacă scorul ≥ 0,4. Pragul e în fiecare lucrare B, la `extra.decision_threshold`, iar B îl respectă deja în `recommended_action`.
+
+11. **Test cap-coadă pe `demo-vara` (13:49, pe ramura B, cu codul planificatorului din `Teo`): important pentru povestea demo-ului.** `uv run cyberpunks run --scenario demo-vara` merge. B dă 26 de lucrări valide, carantina 0, iar Bucureștiul merge la om.
+   - Planificatorul pune singura echipă din Banat (E-TM-1) la Timișoara (40%). Deva și Ineu (57%), Reșița și Lugoj (46%) rămân „amânate, fără capacitate” și primesc doar alertă.
+   - Echipele libere din București și Constanța pleacă spre GR-GIURGIU (15%), GR-BOLINTIN-VALE (15%) și CT-CONSTANTA (14%): risc din caniculă, fără furtună, dar cu valoarea așteptată peste costul turei.
+   - Pe scurt: în ziua codului roșu din Banat, agentul trimite 3 din 4 echipe la caniculă în Muntenia și Dobrogea. Remediile sunt la planificator: echipe simulate în Banat (cererea 2) și pragul B (cererea 10). La B: verific pe datele complete cât din risc vine din temperaturi (experimentul `fara_temperaturi`) și, dacă pierderea e mică, scot temperaturile din model.
 
 ## Cum se rulează (comenzile exacte)
 Pentru planificator: `from cyberpunks.b_furtuna.predict import run; run("demo-vara", None)` scrie `outputs/work_items/demo-vara/B.jsonl` și `outputs/series/demo-vara/B-*.json`. Folosește modelul din git și vremea Open-Meteo (cu cache: o a doua rulare în 3 ore nu mai consumă din cotă). O rulare durează 2-5 s.

@@ -7,11 +7,11 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { Alert, Decision, WorkItem } from "@/lib/contracts";
 import { submitReview } from "@/lib/data/actions";
-import { ACTION_RO, CONFIDENCE_RO, DECISION_LABEL_RO, outcomeRo, predictionLabelRo, ruleRo } from "@/lib/data/labels";
+import { factorLabelRo, ACTION_RO, CONFIDENCE_RO, DECISION_LABEL_RO, outcomeRo, predictionLabelRo, ruleRo } from "@/lib/data/labels";
 import type { ReviewDecision } from "@/lib/data/types";
 import { fmtDec, fmtInt, fmtLei, fmtScore, fmtTime, sentence } from "@/lib/format";
 import { markerKind, markerSvg } from "@/lib/marker-svg";
-import { itemPlace, itemTitle } from "@/lib/plan-screen";
+import { isSlim, itemPlace, itemTitle } from "@/lib/plan-screen";
 import { ScoreScale } from "./score-scale";
 
 function Marker({ w, decision, selected = false }: { w: WorkItem; decision?: Decision | null; selected?: boolean }) {
@@ -37,11 +37,13 @@ export function QueuePanel({
   itemsById,
   scenario,
   onSelect,
+  recovered,
 }: {
   queue: Decision[];
   itemsById: Record<string, WorkItem>;
   scenario: string;
   onSelect: (id: string) => void;
+  recovered?: { count: number; lei: number };
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -53,7 +55,7 @@ export function QueuePanel({
     if (!first) return;
     setActing(decision);
     startTransition(async () => {
-      const result = await submitReview(first.work_item_id, decision, "");
+      const result = await submitReview(first.work_item_id, decision, "", scenario);
       setActing(null);
       if (result.ok) {
         toast.success(`${REVIEW_DONE[decision]} ${first.work_item_id}`, {
@@ -77,7 +79,16 @@ export function QueuePanel({
             {queue.length}
           </span>
         ) : null}
-        {first ? <span className="ml-auto truncate text-[14px] text-muted-foreground">regula {first.rule_id}</span> : null}
+        <span className="ml-auto truncate text-[14px] text-muted-foreground">
+          {recovered && recovered.count > 0 ? (
+            <>
+              confirmate de om: <b className="font-[620] text-ink tabular-nums">{recovered.count}</b>, cca{" "}
+              <b className="font-[620] text-ink tabular-nums">{fmtLei(recovered.lei)}</b> recuperați
+            </>
+          ) : first ? (
+            `regula ${first.rule_id}`
+          ) : null}
+        </span>
       </div>
       {!first || !w ? (
         <p className="mt-2 text-[15px] text-muted-foreground">
@@ -89,7 +100,7 @@ export function QueuePanel({
             <Marker w={w} decision={first} />
           </button>
           <div className="min-w-0">
-            <div className="code-id truncate text-[16px]">{w.work_item_id}</div>
+            <div className="code-id truncate text-[16px]" translate="no">{w.work_item_id}</div>
             <div className="truncate text-[14.5px] text-muted-foreground">
               {itemTitle(w)}, {itemPlace(w)}
             </div>
@@ -167,7 +178,7 @@ export function AlertsPanel({ alerts, onSelect }: { alerts: Alert[]; onSelect: (
           <li key={a.alert_id}>
             <div className="flex items-center gap-2.5">
               <SeverityIcon severity={a.severity} />
-              <h3 className="truncate text-[17px] font-[620]">{a.title_ro}</h3>
+              <h3 className="min-w-0 truncate text-[17px] font-[620]">{a.title_ro}</h3>
               <span className="sr-only">, {SEVERITY_RO[a.severity]}</span>
               {a.work_item_ids?.[0] ? (
                 <button
@@ -199,6 +210,7 @@ export function AlertsPanel({ alerts, onSelect }: { alerts: Alert[]; onSelect: (
 // --------------------------------------------------------------------------------------------
 function costOf(d: Decision | null | undefined): { cost: number; label: string } | null {
   const t = d?.threshold ?? {};
+  if (typeof t.cost_lei === "number") return { cost: t.cost_lei, label: "cost" };
   if (typeof t.visit_cost_lei === "number") return { cost: t.visit_cost_lei, label: "costul vizitei" };
   if (typeof t.preposition_cost_lei === "number") return { cost: t.preposition_cost_lei, label: "costul echipei trimise din timp" };
   if (typeof t.tap_change_visit_cost_lei === "number") return { cost: t.tap_change_visit_cost_lei, label: "costul schimbării prizei" };
@@ -224,7 +236,9 @@ export function WorkItemPeek({
   decision,
   crewInfo,
   scenario,
+  highlight = false,
 }: {
+  highlight?: boolean;
   w: WorkItem | null;
   decision: Decision | null;
   crewInfo: { crewId: string; seq: number; start: string; end: string } | null;
@@ -238,6 +252,7 @@ export function WorkItemPeek({
     );
   }
   const p = w.prediction;
+  const slim = isSlim(w);
   const maxContribution = Math.max(0.0001, ...w.explanation.top_factors.map((f) => Math.abs(f.contribution)));
   const cost = costOf(decision);
   const ev = w.impact.expected_value_lei;
@@ -246,11 +261,11 @@ export function WorkItemPeek({
   const scoreMin = typeof decision?.threshold?.score_min === "number" ? decision.threshold.score_min : null;
   const ruleText = ruleRo(decision?.rule_id);
   return (
-    <section aria-labelledby="peek-title" className="min-h-0 flex-1 overflow-y-auto px-7 pt-3.5 pb-5">
+    <section aria-labelledby="peek-title" className={"min-h-0 flex-1 overflow-y-auto px-7 pt-3.5 pb-5" + (highlight ? " spot" : "")}>
       <div className="grid grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-x-3">
         <Marker w={w} decision={decision} selected />
         <div className="min-w-0">
-          <h2 id="peek-title" className="code-id truncate text-[18px]">
+          <h2 id="peek-title" className="code-id truncate text-[18px]" translate="no">
             {w.work_item_id}
           </h2>
           <p className="truncate text-[14.5px] text-muted-foreground">
@@ -304,10 +319,19 @@ export function WorkItemPeek({
         </dd>
 
         <dt>De ce</dt>
-        <dd className="space-y-1.5">
+        <dd className="space-y-1.5" aria-busy={slim}>
+          {slim
+            ? [0, 1, 2].map((i) => (
+                <div key={i} className="grid grid-cols-[minmax(0,1fr)_140px_48px] items-center gap-x-3" aria-hidden="true">
+                  <span className="h-3.5 animate-pulse rounded-[2px] bg-muted" style={{ width: `${78 - i * 14}%` }} />
+                  <span className="h-2.5 animate-pulse bg-muted" />
+                  <span className="h-3.5 animate-pulse rounded-[2px] bg-muted" />
+                </div>
+              ))
+            : null}
           {w.explanation.top_factors.slice(0, 4).map((f) => (
             <div key={f.feature} className="grid grid-cols-[minmax(0,1fr)_140px_48px] items-center gap-x-3">
-              <span>{sentence(f.label_ro).replace(/\.$/, "")}</span>
+              <span>{factorLabelRo(f.label_ro)}</span>
               <span className="relative h-2.5 bg-muted" aria-hidden="true">
                 <i
                   className="absolute inset-y-0 left-0 bg-ink"
@@ -372,7 +396,8 @@ export function WorkItemPeek({
             </>
           ) : null}
           <span className="mt-1 block">
-            {w.data_quality.synthetic ? "Activ sintetic" : "Date reale"}, surse: {w.data_quality.data_sources.join(", ")}
+            {w.data_quality.synthetic ? "Activ sintetic" : "Date reale"}
+            {w.data_quality.data_sources.length ? `, surse: ${w.data_quality.data_sources.join(", ")}` : ""}
             {w.created_at ? `; estimat la ${fmtTime(w.created_at)}` : ""}.
           </span>
           <Link

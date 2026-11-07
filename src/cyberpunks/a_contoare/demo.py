@@ -57,8 +57,10 @@ class DemoPopulation:
 
 
 def load_topology() -> tuple[pd.DataFrame, pd.DataFrame]:
-    meters = pd.read_csv(SAMPLES_A / "meters.csv")
-    posts = pd.read_csv(SAMPLES_A / "posts.csv")
+    """(contoare, posturi): contoarele A pe posturile din registrul comun al firului C."""
+    from cyberpunks.a_contoare.topology import load_topology as _load
+
+    posts, meters = _load()
     return meters, posts
 
 

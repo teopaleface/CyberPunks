@@ -1,0 +1,359 @@
+{
+  "description": "OR-Tools (setările din config/planner.yaml și 30 s fără limită de soluții) față de inserarea greedy, pe lucrări SINTETICE.",
+  "reproduce_cmd": "uv run python -m cyberpunks.planner.benchmark --sizes 100,200,300 --seeds 1,2,3",
+  "config": {
+    "time_limit_s": 10.0,
+    "solution_limit": 400
+  },
+  "machine": {
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "python": "3.12.13"
+  },
+  "planner_version": "planner@0.1.0+3bf95f5",
+  "created_at": "2026-11-07T13:31:32+02:00",
+  "synthetic": true,
+  "rows": [
+    {
+      "n_tasks": 100,
+      "crews": 11,
+      "seed": 1,
+      "greedy": {
+        "solver": "greedy",
+        "status": "OK",
+        "seconds": 0.002,
+        "assigned": 15,
+        "dropped": 85,
+        "value_collected_lei": 14849.83,
+        "travel_cost_lei": 1637.28,
+        "net_value_lei": 13212.55,
+        "km": 319.4
+      },
+      "ortools_config": {
+        "solver": "ortools",
+        "status": "SUCCESS",
+        "seconds": 1.578,
+        "assigned": 17,
+        "dropped": 83,
+        "value_collected_lei": 15344.44,
+        "travel_cost_lei": 1411.6,
+        "net_value_lei": 13932.84,
+        "km": 258.1
+      },
+      "ortools_30s": {
+        "solver": "ortools",
+        "status": "SUCCESS",
+        "seconds": 30.002,
+        "assigned": 17,
+        "dropped": 83,
+        "value_collected_lei": 15344.44,
+        "travel_cost_lei": 1411.6,
+        "net_value_lei": 13932.84,
+        "km": 258.1
+      }
+    },
+    {
+      "n_tasks": 100,
+      "crews": 11,
+      "seed": 2,
+      "greedy": {
+        "solver": "greedy",
+        "status": "OK",
+        "seconds": 0.002,
+        "assigned": 14,
+        "dropped": 86,
+        "value_collected_lei": 25717.97,
+        "travel_cost_lei": 1812.27,
+        "net_value_lei": 23905.7,
+        "km": 357.4
+      },
+      "ortools_config": {
+        "solver": "ortools",
+        "status": "SUCCESS",
+        "seconds": 1.391,
+        "assigned": 17,
+        "dropped": 83,
+        "value_collected_lei": 25884.02,
+        "travel_cost_lei": 1287.61,
+        "net_value_lei": 24596.41,
+        "km": 224.9
+      },
+      "ortools_30s": {
+        "solver": "ortools",
+        "status": "SUCCESS",
+        "seconds": 29.999,
+        "assigned": 17,
+        "dropped": 83,
+        "value_collected_lei": 26129.71,
+        "travel_cost_lei": 1324.25,
+        "net_value_lei": 24805.46,
+        "km": 230.5
+      }
+    },
+    {
+      "n_tasks": 100,
+      "crews": 11,
+      "seed": 3,
+      "greedy": {
+        "solver": "greedy",
+        "status": "OK",
+        "seconds": 0.002,
+        "assigned": 12,
+        "dropped": 88,
+        "value_collected_lei": 22253.88,
+        "travel_cost_lei": 1814.86,
+        "net_value_lei": 20439.02,
+        "km": 371.5
+      },
+      "ortools_config": {
+        "solver": "ortools",
+        "status": "SUCCESS",
+        "seconds": 1.497,
+        "assigned": 16,
+        "dropped": 84,
+        "value_collected_lei": 23279.55,
+        "travel_cost_lei": 1312.44,
+        "net_value_lei": 21967.11,
+        "km": 233.0
+      },
+      "ortools_30s": {
+        "solver": "ortools",
+        "status": "SUCCESS",
+        "seconds": 30.002,
+        "assigned": 17,
+        "dropped": 83,
+        "value_collected_lei": 23477.91,
+        "travel_cost_lei": 1397.0,
+        "net_value_lei": 22080.91,
+        "km": 254.2
+      }
+    },
+    {
+      "n_tasks": 200,
+      "crews": 11,
+      "seed": 1,
+      "greedy": {
+        "solver": "greedy",
+        "status": "OK",
+        "seconds": 0.005,
+        "assigned": 14,
+        "dropped": 186,
+        "value_collected_lei": 24583.78,
+        "travel_cost_lei": 1639.69,
+        "net_value_lei": 22944.09,
+        "km": 317.3
+      },
+      "ortools_config": {
+        "solver": "ortools",
+        "status": "SUCCESS",
+        "seconds": 8.954,
+        "assigned": 18,
+        "dropped": 182,
+        "value_collected_lei": 26419.87,
+        "travel_cost_lei": 1226.62,
+        "net_value_lei": 25193.25,
+        "km": 212.9
+      },
+      "ortools_30s": {
+        "solver": "ortools",
+        "status": "SUCCESS",
+        "seconds": 30.024,
+        "assigned": 18,
+        "dropped": 182,
+        "value_collected_lei": 26419.87,
+        "travel_cost_lei": 1226.62,
+        "net_value_lei": 25193.25,
+        "km": 212.9
+      }
+    },
+    {
+      "n_tasks": 200,
+      "crews": 11,
+      "seed": 2,
+      "greedy": {
+        "solver": "greedy",
+        "status": "OK",
+        "seconds": 0.005,
+        "assigned": 14,
+        "dropped": 186,
+        "value_collected_lei": 29403.86,
+        "travel_cost_lei": 1564.41,
+        "net_value_lei": 27839.45,
+        "km": 303.8
+      },
+      "ortools_config": {
+        "solver": "ortools",
+        "status": "SUCCESS",
+        "seconds": 3.505,
+        "assigned": 18,
+        "dropped": 182,
+        "value_collected_lei": 30806.97,
+        "travel_cost_lei": 1288.29,
+        "net_value_lei": 29518.68,
+        "km": 217.4
+      },
+      "ortools_30s": {
+        "solver": "ortools",
+        "status": "SUCCESS",
+        "seconds": 30.01,
+        "assigned": 18,
+        "dropped": 182,
+        "value_collected_lei": 30806.97,
+        "travel_cost_lei": 1288.29,
+        "net_value_lei": 29518.68,
+        "km": 217.4
+      }
+    },
+    {
+      "n_tasks": 200,
+      "crews": 11,
+      "seed": 3,
+      "greedy": {
+        "solver": "greedy",
+        "status": "OK",
+        "seconds": 0.003,
+        "assigned": 13,
+        "dropped": 187,
+        "value_collected_lei": 24940.5,
+        "travel_cost_lei": 1698.66,
+        "net_value_lei": 23241.84,
+        "km": 340.9
+      },
+      "ortools_config": {
+        "solver": "ortools",
+        "status": "SUCCESS",
+        "seconds": 3.235,
+        "assigned": 16,
+        "dropped": 184,
+        "value_collected_lei": 26711.88,
+        "travel_cost_lei": 1485.53,
+        "net_value_lei": 25226.35,
+        "km": 273.7
+      },
+      "ortools_30s": {
+        "solver": "ortools",
+        "status": "SUCCESS",
+        "seconds": 30.009,
+        "assigned": 16,
+        "dropped": 184,
+        "value_collected_lei": 26708.79,
+        "travel_cost_lei": 1444.73,
+        "net_value_lei": 25264.06,
+        "km": 265.3
+      }
+    },
+    {
+      "n_tasks": 300,
+      "crews": 11,
+      "seed": 1,
+      "greedy": {
+        "solver": "greedy",
+        "status": "OK",
+        "seconds": 0.006,
+        "assigned": 13,
+        "dropped": 287,
+        "value_collected_lei": 28188.91,
+        "travel_cost_lei": 1825.61,
+        "net_value_lei": 26363.3,
+        "km": 372.7
+      },
+      "ortools_config": {
+        "solver": "ortools",
+        "status": "SUCCESS",
+        "seconds": 8.254,
+        "assigned": 18,
+        "dropped": 282,
+        "value_collected_lei": 32803.55,
+        "travel_cost_lei": 1313.59,
+        "net_value_lei": 31489.96,
+        "km": 221.6
+      },
+      "ortools_30s": {
+        "solver": "ortools",
+        "status": "SUCCESS",
+        "seconds": 30.016,
+        "assigned": 18,
+        "dropped": 282,
+        "value_collected_lei": 32803.55,
+        "travel_cost_lei": 1313.59,
+        "net_value_lei": 31489.96,
+        "km": 221.6
+      }
+    },
+    {
+      "n_tasks": 300,
+      "crews": 11,
+      "seed": 2,
+      "greedy": {
+        "solver": "greedy",
+        "status": "OK",
+        "seconds": 0.006,
+        "assigned": 15,
+        "dropped": 285,
+        "value_collected_lei": 35267.6,
+        "travel_cost_lei": 1573.12,
+        "net_value_lei": 33694.48,
+        "km": 289.1
+      },
+      "ortools_config": {
+        "solver": "ortools",
+        "status": "SUCCESS",
+        "seconds": 7.201,
+        "assigned": 18,
+        "dropped": 282,
+        "value_collected_lei": 37344.94,
+        "travel_cost_lei": 1222.16,
+        "net_value_lei": 36122.78,
+        "km": 202.9
+      },
+      "ortools_30s": {
+        "solver": "ortools",
+        "status": "SUCCESS",
+        "seconds": 30.029,
+        "assigned": 18,
+        "dropped": 282,
+        "value_collected_lei": 37344.94,
+        "travel_cost_lei": 1222.16,
+        "net_value_lei": 36122.78,
+        "km": 202.9
+      }
+    },
+    {
+      "n_tasks": 300,
+      "crews": 11,
+      "seed": 3,
+      "greedy": {
+        "solver": "greedy",
+        "status": "OK",
+        "seconds": 0.006,
+        "assigned": 12,
+        "dropped": 288,
+        "value_collected_lei": 41548.1,
+        "travel_cost_lei": 1805.99,
+        "net_value_lei": 39742.11,
+        "km": 365.9
+      },
+      "ortools_config": {
+        "solver": "ortools",
+        "status": "SUCCESS",
+        "seconds": 7.422,
+        "assigned": 16,
+        "dropped": 284,
+        "value_collected_lei": 44118.15,
+        "travel_cost_lei": 1481.28,
+        "net_value_lei": 42636.87,
+        "km": 277.1
+      },
+      "ortools_30s": {
+        "solver": "ortools",
+        "status": "SUCCESS",
+        "seconds": 30.032,
+        "assigned": 16,
+        "dropped": 284,
+        "value_collected_lei": 44118.15,
+        "travel_cost_lei": 1481.28,
+        "net_value_lei": 42636.87,
+        "km": 277.1
+      }
+    }
+  ]
+}
