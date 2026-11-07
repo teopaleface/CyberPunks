@@ -1,4 +1,7 @@
 import { requireConsole } from "@/lib/server/operations";
+import preparedOrders from "@/lib/generated/order-pages.json";
+import type { PlanView } from "@/lib/data/types";
+import type { ShellInfo } from "@/lib/server/queries";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -11,6 +14,8 @@ import { AppShell } from "@/components/shell/app-shell";
 import { buildOrder, pickCrew } from "@/lib/orders-view";
 import { itemPlace, itemTitle } from "@/lib/plan-screen";
 import { loadPlanView, loadShellInfo, resolveScenario } from "@/lib/server/queries";
+
+type OrderData = Pick<PlanView, "routes" | "workItemsById" | "decisionsByWorkItemId"> & { plan: Pick<PlanView["plan"], "plan_date"> };
 
 export const metadata: Metadata = { title: "Work items" };
 
@@ -34,7 +39,12 @@ async function Orders({ searchParams }: { searchParams: PageProps<"/lucrari">["s
   await requireConsole();
   await connection();
   const scenario = await resolveScenario(searchParams);
-  const [{ info }, view, params] = await Promise.all([loadShellInfo(scenario), loadPlanView(scenario), searchParams]);
+  const compiled = process.env.DATA_ASSETS === "1" && process.env.DATA_SOURCE === "demo"
+    ? (preparedOrders as unknown as Record<string, { info: ShellInfo; data: OrderData }>)[scenario]
+    : undefined;
+  const [{ info }, view, params] = compiled
+    ? [compiled, { data: compiled.data }, await searchParams] as const
+    : await Promise.all([loadShellInfo(scenario), loadPlanView(scenario), searchParams]);
   const data = view.data;
   const sc = `scenariu=${encodeURIComponent(scenario)}`;
   const routes = data?.routes.filter((r) => r.stops.length > 0) ?? [];
@@ -65,7 +75,7 @@ function Content({
   sc,
   stopParam,
 }: {
-  data: NonNullable<Awaited<ReturnType<typeof loadPlanView>>["data"]>;
+  data: OrderData;
   route: NonNullable<Awaited<ReturnType<typeof loadPlanView>>["data"]>["routes"][number];
   crewId: string;
   routes: string[];

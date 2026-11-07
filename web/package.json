@@ -12,7 +12,7 @@
     "worker": "bun scripts/copy-maplibre-worker.ts",
     "smoke": "bun scripts/smoke.ts",
     "landing": "bun scripts/build-landing.ts --force",
-    "cf:build": "bun scripts/copy-maplibre-worker.ts && bun scripts/build-landing.ts && bun scripts/cloudflare-data.ts && CF_BUILD=1 opennextjs-cloudflare build",
+    "cf:build": "bun scripts/copy-maplibre-worker.ts && bun scripts/build-landing.ts && bun scripts/cloudflare-data.ts && bun scripts/prepare-order-pages.ts && CF_BUILD=1 opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare preview",
     "cf:deploy": "opennextjs-cloudflare deploy"
   },
