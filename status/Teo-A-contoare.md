@@ -1,7 +1,7 @@
 # Status: Teo-A-contoare
-Actualizat: 2026-11-07 14:24
-Milestone curent: M2 gata (14:10), M3 în mare parte gata; M1 gata la 13:33
-Gata de merge: da (commit f4aee2e)
+Actualizat: 2026-11-07 15:30
+Milestone curent: M3 gata (15:25); M4 în lucru (verificarea dintr-o clonă curată rulează)
+Gata de merge: da (commit f01a8f2)
 
 ## Făcut
 - 13:30 M0: `docs/research/A.md`, date descărcate cu sume de control (SGCC, 45 de fișiere Low Carbon London).
@@ -23,7 +23,11 @@ Gata de merge: da (commit f4aee2e)
 - 14:10 `reports/A/error_analysis.md` și `reports/A/model_card.md`, generate de `make a-report` din cifrele scripturilor (nicio cifră scrisă de mână); `select_features.py` arată alegerea features pe calibrare.
 - 14:00-14:14 Review independent (Codex, gpt-6.1-sol): 12 probleme găsite, toate tratate (commit f77f935). Cele mai importante: referința vecinilor SGCC calcula și din clienții de test (acum doar antrenare); conformal se potrivea pe scorul deja calibrat (acum pe scorul brut, garanția e validă); cuantila conformal cu o poziție prea sus; acoperirea mulțimii era numită „recunoaștere sigură”; unitatea suspectă se repara în tăcere (acum merge la om); oprirea timpurie amesteca gospodăriile. Runda 2 (14:16-14:22): 9 din 12 confirmate, 3 completate (commit f4aee2e). Features se aleg acum pe o validare din antrenare, nu pe calibrare. Acoperirea conformal e descrisă ca empirică, pentru că ferestrele de calibrare repetă gospodăriile. Împărțirile sunt doar pe gospodării. Furtul sigur nu mai cade din listă.
 
-## Urmează (M2-M3)
+- 15:20 M3: figurile pentru prezentare în `reports/A/figures/`. `headline_precision.png`: furt real 0,81 față de 0,04 / 0,11, probleme subtile 0,61 față de 0,06 / 0,02. `ranking_at_k.png`: precizie și recall pe toată lista. `false_alarms_by_consumption.png`: pe SGCC, regula simplă trimite echipa la 19,4% dintre consumatorii foarte mici fără problemă, modelul la 0,4%. Paleta e validată cu scriptul dataviz.
+- 15:25 Verificarea fuziunii cu bilanțul pe testul A (`fusion_check.py`, `reports/A/fusion_check.json`, `error_analysis.md` secțiunea 9); observațiile sunt mai jos, la „Cereri către orchestrator”.
+- 15:16 Clonă curată (de pe GitHub): `uv sync` în 25 s; `make a-predict` dă aceleași 524 / 563 de lucrări din pachetul din git; `make a-test` trece (89 de teste). `make a-all` de la zero rulează.
+
+## Urmează (M3-M4)
 - Lustruire pentru prezentare (figuri), M4: README-ul secțiunii, curățenie.
 - Când îmi cereți: legarea cu fuziunea bilanțului (nu schimb nimic din partea mea, doar verific împreună).
 
@@ -31,6 +35,14 @@ Gata de merge: da (commit f4aee2e)
 - Niciunul.
 
 ## Cereri către orchestrator
+- **Observații pentru firul bilanț** (fuziunea verificată pe testul A: populația demo, adevărul injectat; formula `fuse.combine_arrays` neschimbată; bilanțul postului construit din energia nemăsurată, cu zgomotul pierderilor normale sigma = 1 / 2 / 4% din consumul postului):
+  - Vârful listei nu se schimbă: precizia@10 și @100 rămân 1,00, pentru că defectele evidente sunt deja primele. PR-AUC crește puțin (0,707 → 0,715 pe demo-vara, 0,679 → 0,688 pe maine, la sigma 2%).
+  - **Ajută la** defectele care pierd multă energie: la sigma 1%, contor oprit 53% confirmate, citiri negative 55%, valoare blocată 27%. Pe acestea însă A le prinde oricum.
+  - **Ajută puțin la furt:** 21-29% confirmate la sigma 1%, 5-11% la 2%. Pierderea unui singur contor (câțiva kWh/zi) e mică față de zgomotul postului (2% din ~1.000 kWh/zi).
+  - **Nu poate ajuta** la tiparele care nu schimbă energia: profil aplatizat 4%, profil inversat 7%, ceas decalat 8%, goluri 1%, salturi 6%. Bine că fuziunea doar confirmă și nu coboară scorul.
+  - **Risc:** bilanțul confirmă POSTUL, nu contorul. Pe un post cu energie lipsă, vecinii fără problemă cu o scădere naturală sunt confirmați și ei: concediu 24%, schimbarea ocupanților 14% la sigma 1%. Sugestie: când mai multe contoare marcate de A stau pe același post, lipsa postului să se împartă între ele (suma lipsurilor estimate față de E), nu să confirme fiecare contor separat.
+  - În zona gri a lui A, cele confirmate au tot ~14% probleme reale (demo-vara), deci confirmarea nu le separă. Asta susține `RESOLVE_ABSTAIN = False`.
+  - Pe ce merge bine: fuziunea ridică defectele confirmate. La precizia@100 calculată doar pe defecte, 0,90 → 0,94; doar pe furt, 0,10 → 0,05, pentru că defectele urcă peste furturi.
 - Informare pentru planificator și interfață: A trimite acum ~520-560 de lucrări pe zi (înainte ~250-280). Sunt cele mai valoroase 250, plus toate furturile sigure, plus zona gri și datele insuficiente (la om). Planificatorul alege după capacitate; `extra.selection` spune de ce a intrat fiecare (`action`, `watch`, `unsure`, `data`).
 - Făcut: contoarele A folosesc `post_id` din registrul C (`data/samples/C/posts.csv`); citesc CSV-ul direct, ca să nu import pandapower prin `posts.py`. Dacă C schimbă registrul, regenerez cu `uv run python -m cyberpunks.a_contoare.topology`.
 - Pentru firul bilanț: API-ul public pe care îl importă rămâne la fel. `inject.py`: `inject`, `sample_kind`, `sample_and_inject`, `Injection`, `KIND_*`, `PARAMS`. `lcl.py`: `load_lcl`, `daily_from_halfhours`, `build_samples`, `kind_probs`, `value_lei`. Am adăugat `lcl.quantize(hh)` și `lcl.economics()`. **Sfat:** după orice injecție, rotunjiți cu `quantize()`, altfel modelul învață valorile nerotunjite în loc de tipar (ni s-a întâmplat).
