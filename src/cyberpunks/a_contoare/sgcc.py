@@ -5,8 +5,9 @@
 Ce face:
 - citește `data/raw/A/sgcc/data.csv` (vezi download.py), sortează coloanele de zile (în fișier sunt în ordine
   alfabetică) și pune NaN pentru ziua care lipsește (2016-09-18), ca grila să fie regulată;
-- calculează features zilnice pe toată perioada (ca în literatură), cu "vecinii" = mediana zilnică a tuturor
-  clienților (scoate sezonul și sărbătorile, de exemplu Anul Nou chinezesc);
+- calculează features zilnice pe toată perioada (ca în literatură), cu "vecinii" = mediana zilnică a clienților
+  DE ANTRENARE (scoate sezonul și sărbătorile, de exemplu Anul Nou chinezesc), aceeași referință pentru toate
+  seturile, ca testul să nu influențeze features-urile de antrenare;
 - împarte pe clienți, stratificat după etichetă: 60% antrenare, 20% calibrare, 20% test (seed fix).
 """
 
@@ -63,12 +64,13 @@ def build_features(force: bool = False) -> pd.DataFrame:
     if SGCC_FEATURES.exists() and not force:
         return pd.read_parquet(SGCC_FEATURES)
     cons, flag, _days, x = load_sgcc()
+    split = split_customers(flag)
     with np.errstate(all="ignore"):
-        peer = np.nanmedian(x, axis=0)
+        peer = np.nanmedian(x[split == "train"], axis=0)  # referința vecinilor: DOAR clienții de antrenare
     feats = daily_features(x, peer)
     feats.insert(0, "customer_id", cons.to_numpy())
     feats["label"] = flag
-    feats["split"] = split_customers(flag)
+    feats["split"] = split
     feats["sgcc_row"] = np.arange(len(flag))
     PROCESSED_A.mkdir(parents=True, exist_ok=True)
     feats.to_parquet(SGCC_FEATURES, index=False)

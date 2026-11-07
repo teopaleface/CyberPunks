@@ -22,7 +22,7 @@ def demo_items() -> tuple[list[WorkItem], str]:
 
 def test_items_exist_and_valid(demo_items) -> None:
     items, _ = demo_items
-    assert 50 <= len(items) <= 300
+    assert 50 <= len(items) <= 500  # 250 cu acțiune + 40 de urmărit + 40 la om (zona gri) + date insuficiente
     assert all(w.source.value == "A" and w.kind.value == "meter_inspection" for w in items)
 
 
@@ -66,4 +66,5 @@ def test_series_written_for_each_item(demo_items) -> None:
 def test_summary_counts(demo_items) -> None:
     items, _ = demo_items
     summary = json.loads((ROOT / "outputs/work_items/demo-vara/A_summary.json").read_text(encoding="utf-8"))
-    assert summary["meters_scored"] == 10_000 and summary["work_items"] == len(items)
+    n_meters = len((ROOT / "data/samples/A/meters.csv").read_text(encoding="utf-8").splitlines()) - 1
+    assert summary["meters_scored"] == n_meters and summary["work_items"] == len(items)
