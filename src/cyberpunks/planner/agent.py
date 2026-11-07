@@ -341,6 +341,9 @@ def _decide_and_act(
         }
     )
     write_json(plan_dir / "remedies.json", meta["remedies"])
+    from cyberpunks.planner.posts import overview as posts_overview
+
+    write_json(plan_dir / "posts.json", posts_overview(plan.model_dump(mode="json"), [it.wi.model_dump(mode="json") for it in items], settings))
     actions = {wid: p.action for wid, p in outcome.final.items()}
     write_json(plan_dir / "actions.json", actions)
     try:

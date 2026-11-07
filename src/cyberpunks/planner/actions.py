@@ -110,11 +110,15 @@ def finalize(
             continue
         why = routing.dropped.get(p.id, "capacity")
         if p.mandatory:
+            # Obligatorie, dar nu încape: verificare de la distanță acum (la contoare și posturi), prima în planul următor,
+            # și o singură alertă critică de întăriri pentru dispecer (nu câte o decizie pe fiecare caz).
+            remote_ok = p.wi.source.value == "A"
             final[p.id] = _final(
-                p.item, DecisionType.human_review, "R-SAFETY-NO-CREW",
-                f"{p.reason_ro} Nicio echipă potrivită nu poate ajunge mâine: decide dispecerul azi (de exemplu ore suplimentare).",
-                p.action, p.threshold, alerts=p.alerts + [AlertSpec("critical", f"Caz fără echipă: {p.wi.location.label or p.wi.asset_id}", "Lucrare obligatorie (siguranță sau aprobată de om) care nu încape în turele de mâine.")],
-                priority=p.priority,
+                p.item, DecisionType.remote_action if remote_ok else DecisionType.deferred, "R-SAFETY-NO-CREW",
+                f"{p.reason_ro} Nicio echipă potrivită nu are loc mâine: "
+                + ("citire la distanță acum (evenimente, consum), " if remote_ok else "")
+                + "prima în planul următor; dispecerul primește cererea de întăriri.",
+                "remote_reading" if remote_ok else p.action, p.threshold, alerts=p.alerts, priority=p.priority,
             )
             continue
         if p.fallback is not None:
@@ -292,6 +296,12 @@ def _global_alerts(ctx: Context, final: dict[str, Proposal], loads: dict[str, So
     invalid = [q.work_item_id for load in loads.values() for q in load.quarantined]
     if invalid:
         add_alert(AlertSpec("warning", f"{len(invalid)} intrări greșite în carantină", "Nu intră în plan; motivele sunt în jurnal și în lista de carantină."), invalid)
+    no_crew = [p for p in final.values() if p.rule_id == "R-SAFETY-NO-CREW"]
+    if no_crew:
+        names = ", ".join((p.wi.location.label or p.wi.asset_id) for p in no_crew[:5]) + (f" și încă {len(no_crew) - 5}" if len(no_crew) > 5 else "")
+        add_alert(AlertSpec("critical", f"Întăriri necesare: {len(no_crew)} cazuri de siguranță nu încap în turele de mâine",
+                            f"Au primit o citire la distanță și trec primele în planul următor. Propun ore suplimentare sau echipe din alte baze: {names}."),
+                  [p.id for p in no_crew])
     capped = [p for p in final.values() if p.rule_id == "R-B-REGION-CAP"]
     if capped:
         regions = sorted({(ctx.settings.regions.get(ctx.settings.region_of_county(p.wi.location.county) or "", {}) or {}).get("label_ro", "zona necunoscută")

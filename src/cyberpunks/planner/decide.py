@@ -415,20 +415,39 @@ def rule_abstain(ctx: Context, item: Item) -> Proposal | None:
     wi = item.wi
     if not wi.prediction.abstain:
         return None
-    alerts = []
-    if wi.impact.safety_flag:
-        alerts.append(
-            AlertSpec("critical", f"Siguranță, de decis azi: {_label(wi)}", f"Modelul nu e sigur ({wi.prediction.abstain_reason}), dar cazul are risc pentru oameni.")
-        )
-    return _final(
-        item,
-        DecisionType.human_review,
-        "R-ABSTAIN",
-        f"Modelul nu e sigur: {_strip_unsure(wi.prediction.abstain_reason)}. Decide un om.",
-        "human_review",
-        {"abstain": 1.0},
-        alerts=alerts,
-    )
+    why = _strip_unsure(wi.prediction.abstain_reason)
+    ev = wi.impact.expected_value_lei
+    min_ev = float(ctx.g("human_review_min_ev_lei", 150))
+    th = {"abstain": 1.0, "expected_value_lei": round(ev, 2), "human_review_min_ev_lei": min_ev}
+    if strong_safety(ctx, wi):
+        alerts = [AlertSpec("critical", f"Siguranță, de decis azi: {_label(wi)}", f"Modelul nu e sigur ({why}), dar cazul are risc pentru oameni.")]
+        return _final(item, DecisionType.human_review, "R-ABSTAIN", f"Modelul nu e sigur: {why}. E risc pentru oameni: decide un om azi.",
+                      "human_review", th, alerts=alerts)
+    if _data_issue(wi):
+        costs = estimate_costs(ctx, wi, "office_correction")
+        issues = "; ".join(wi.data_quality.input_issues[:2]) or why
+        return _final(item, DecisionType.remote_action, "R-ABSTAIN-DATA",
+                      f"Modelul nu e sigur din cauza datelor de intrare ({issues}). Nu e o decizie pentru dispecer: datele se corectează "
+                      f"în sistemul de măsurare (birou, {lei(costs.total)}), apoi contorul e evaluat din nou.", "office_correction", th, costs=costs)
+    if ev < min_ev:
+        return _final(item, DecisionType.deferred, "R-ABSTAIN-WATCH",
+                      f"Modelul nu e sigur: {why}. Valoarea așteptată ({lei(ev)}) e sub pragul pentru timpul unui om ({lei(min_ev)}): "
+                      "rămâne la urmărire, fără vizită și fără să încarce coada dispecerului.", "watchlist", th)
+    return _final(item, DecisionType.human_review, "R-ABSTAIN", f"Modelul nu e sigur: {why}. Valoarea așteptată {lei(ev)}: decide un om.",
+                  "human_review", th)
+
+
+def strong_safety(ctx: Context, wi: WorkItem) -> bool:
+    """Risc pentru oameni cu semnal puternic: safety_flag și scor de cel puțin `safety_min_score` (A, bilanț, C)."""
+    return bool(wi.impact.safety_flag) and wi.source != Source.B and wi.prediction.score >= float(ctx.g("safety_min_score", 0.7))
+
+
+def _data_issue(wi: WorkItem) -> bool:
+    """Abținere din cauza datelor (unitate sau multiplicator greșit etc.), semnalată de model."""
+    if wi.extra.get("selection") == "data":
+        return True
+    text = " ".join(wi.data_quality.input_issues).lower()
+    return any(k in text for k in ("unitate", "multiplicator", "1.000 de ori"))
 
 
 def rule_data_quality(ctx: Context, item: Item) -> Proposal | None:
@@ -460,6 +479,8 @@ def rule_safety(ctx: Context, item: Item) -> Proposal | None:
     wi = item.wi
     if not wi.impact.safety_flag or wi.source == Source.B:
         return None
+    if wi.prediction.score < float(ctx.g("safety_min_score", 0.7)):
+        return None  # semnal de siguranță slab: regulile obișnuite, cu prioritatea triplată (priority_of), fără obligativitate
     action = {Source.A: "inspect_on_site", Source.B: "preposition_crew", Source.C: "measurement_campaign"}[wi.source]
     costs = estimate_costs(ctx, wi, action)
     mult = float(ctx.g("safety_priority_multiplier", 3.0))
@@ -862,7 +883,11 @@ def rule_remedy_ladder(ctx: Context, item: Item, th: dict[str, float]) -> Propos
     s = ctx.settings
     pr = wi.prediction
     limit = s.econ("voltage", "overvoltage_limit_pu", 1.10)
-    base = pr.point_interval[1] if pr.point_interval else (pr.point_estimate if pr.point_estimate is not None else max(o.p90_after_pu - o.effect_pu for o in opts))
+    ladder_base = wi.extra.get("ladder_base_p90_pu")  # P90 al modelului plus dezechilibrul estimat pe faze (firul C)
+    if isinstance(ladder_base, (int, float)) and 0.5 < float(ladder_base) < 1.5:
+        base = float(ladder_base)
+    else:
+        base = pr.point_interval[1] if pr.point_interval else (pr.point_estimate if pr.point_estimate is not None else max(o.p90_after_pu - o.effect_pu for o in opts))
     max_k = int(s.rule("remedy", "max_combination", default=3))
     upgrade = RecommendedAction.transformer_upgrade
     opts = _one_scenario_per_message(ctx, opts)
@@ -1134,7 +1159,29 @@ def propose(ctx: Context, item: Item) -> Proposal:
 def decide(ctx: Context, items: list[Item]) -> list[Proposal]:
     proposals = [propose(ctx, it) for it in items]
     cap_storm_per_region(ctx, proposals)
+    cap_human_queue(ctx, proposals)
     return proposals
+
+
+def cap_human_queue(ctx: Context, proposals: list[Proposal]) -> None:
+    """Omul e și el o resursă limitată: cel mult `human_review_max_per_day` cazuri pe zi în coada „nu sunt sigur”.
+    Siguranța și cererile de întăriri rămân mereu; restul, ordonat după valoarea așteptată, până se umple coada.
+    Ce nu încape rămâne la urmărire și revine în planul următor."""
+    cap = int(ctx.g("human_review_max_per_day", 25))
+    queue = [i for i, p in enumerate(proposals) if p.decision == DecisionType.human_review]
+    # Ordinea în coadă: risc pentru oameni, apoi cererile de întăriri pentru furtună, apoi valoarea așteptată.
+    queue.sort(key=lambda i: (not strong_safety(ctx, proposals[i].wi), proposals[i].rule_id != "R-B-REGION-CAP",
+                              -proposals[i].wi.impact.expected_value_lei))
+    for i in queue[cap:]:
+        p = proposals[i]
+        remote = p.wi.source == Source.A and strong_safety(ctx, p.wi)
+        proposals[i] = _final(
+            p.item, DecisionType.remote_action if remote else DecisionType.deferred, "R-HUMAN-QUEUE-FULL",
+            f"{p.reason_ro} Dar coada dispecerului e plină azi ({cap} cazuri, în ordinea riscului și a valorii): "
+            + ("citire la distanță acum, apoi revine în planul următor." if remote else "rămâne la urmărire și revine în planul următor."),
+            "remote_reading" if remote else "watchlist", {**p.threshold, "human_review_max_per_day": float(cap)}, alerts=p.alerts,
+            costs=estimate_costs(ctx, p.wi, "remote_reading") if remote else None,
+        )
 
 
 RULE_CATALOG: dict[str, str] = {
@@ -1176,4 +1223,7 @@ RULE_CATALOG: dict[str, str] = {
     "R-BILANT-WATCH": "Bilanț: valoarea nu acoperă deplasarea, postul rămâne la urmărire.",
     "R-BILANT-REVIEW": "Bilanț: cauza nu e clară, decide un om.",
     "R-REMEDY-LADDER": "Tensiune: cea mai ieftină combinație de trepte care aduce P90 sub 1,10 pu; explică de ce nu una mai ieftină.",
+    "R-ABSTAIN-DATA": "Modelul s-a abținut din cauza datelor de intrare: corectare în biroul de date, nu decizie de dispecer.",
+    "R-ABSTAIN-WATCH": "Modelul s-a abținut, dar valoarea e sub pragul pentru timpul unui om: urmărire.",
+    "R-HUMAN-QUEUE-FULL": "Coada dispecerului are o capacitate pe zi; cazurile cu valoare mai mică revin în planul următor.",
 }

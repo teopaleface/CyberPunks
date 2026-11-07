@@ -16,6 +16,7 @@ outputs/ și outputs/demo/ au aceeași structură:
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
@@ -141,6 +142,12 @@ class Store:
         self.reports = reports
 
     def view(self, scenario: str) -> ScenarioView:
+        """CYBERPUNKS_API_SOURCE alege sursa: auto (rulare locală, apoi instantaneu, apoi exemple), demo, live sau fixtures."""
+        source = os.environ.get("CYBERPUNKS_API_SOURCE", "auto").strip().lower()
+        if source == "demo" and (self.demo / "plans" / scenario / "plan.json").exists():
+            return ScenarioView(scenario, "demo", self.demo)
+        if source == "fixtures":
+            return ScenarioView(scenario, "fixtures", self.outputs)
         if (self.outputs / "plans" / scenario / "plan.json").exists():
             return ScenarioView(scenario, "live", self.outputs)
         if (self.demo / "plans" / scenario / "plan.json").exists():

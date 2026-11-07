@@ -316,6 +316,44 @@ def approve_route(crew_id: str, req: ApproveRequest, scenario: str = Query(DEFAU
         _run_lock.release()
 
 
+class PlanApproveRequest(BaseModel):
+    scenario: str = DEFAULT_SCENARIO
+    plan_id: str = Field(min_length=1, max_length=120)
+    approver: str = Field(default="dispecer", min_length=1, max_length=100)
+    note: str | None = Field(default=None, max_length=2000)
+
+
+@api.post("/plan/approve")
+def approve_plan(req: PlanApproveRequest) -> dict[str, Any]:
+    """Dispecerul aprobă planul întreg: AuditRecord cu actor human, action plan_approved. 409 dacă planul s-a schimbat."""
+    from cyberpunks.planner import feedback
+
+    scenario = _scenario(req.scenario)
+    if store.view(scenario).mode != "live":
+        raise HTTPException(409, "aprobarea cere o rulare a agentului (POST /api/run)")
+    if not _run_lock.acquire(timeout=30):
+        raise HTTPException(409, "agentul rulează; încearcă din nou")
+    try:
+        record = feedback.approve_plan(scenario, req.plan_id, req.approver, req.note, out_root=store.outputs)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    finally:
+        _run_lock.release()
+    return record.model_dump(mode="json")
+
+
+@api.get("/plan/approval")
+def plan_approval(scenario: str = DEFAULT_SCENARIO) -> dict[str, Any]:
+    """Aprobarea planului curent: {plan_id, approver, ts, stale} sau {approved: false}."""
+    from cyberpunks.planner import feedback
+
+    view = store.view(_scenario(scenario))
+    found = None if view.mode == "fixtures" else feedback.plan_approval(scenario, out_root=view.root)
+    return {"approved": bool(found) and not found["stale"], **(found or {})}
+
+
 @api.get("/approvals")
 def approvals(scenario: str = DEFAULT_SCENARIO) -> list[dict[str, Any]]:
     from cyberpunks.planner import feedback
