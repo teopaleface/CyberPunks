@@ -1,0 +1,177 @@
+{
+  "trials": 29,
+  "n_train": 93051,
+  "households_train": 4914,
+  "validation": "20% din gospodăriile de antrenare (întregi), prevalența adusă la 5%; PR-AUC pe problemele subtile",
+  "val_subtle_pr_auc": {
+    "livrat": 0.5749,
+    "gasit": 0.586
+  },
+  "params_livrat": {
+    "learning_rate": 0.03,
+    "num_leaves": 31,
+    "min_child_samples": 40,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "reg_lambda": 1.0,
+    "class_weight": "balanced"
+  },
+  "params_gasit": {
+    "learning_rate": 0.027375470555574665,
+    "num_leaves": 75,
+    "min_child_samples": 201,
+    "subsample": 0.9284020404063531,
+    "colsample_bytree": 0.6290653523719228,
+    "reg_lambda": 0.5433140830152321,
+    "class_weight": "balanced"
+  },
+  "test": {
+    "livrat": {
+      "subtle_precision_at_k": 0.8906,
+      "subtle_recall_at_k": 0.2984,
+      "subtle_pr_auc": 0.5175,
+      "subtle_precision_at_5pct": 0.3541,
+      "pr_auc": 0.7344
+    },
+    "gasit": {
+      "subtle_precision_at_k": 0.8672,
+      "subtle_recall_at_k": 0.2906,
+      "subtle_pr_auc": 0.5057,
+      "subtle_precision_at_5pct": 0.3495,
+      "pr_auc": 0.7258
+    },
+    "delta_subtle_pr_auc_ci90": [
+      -0.0218,
+      -0.0029
+    ]
+  },
+  "importanta_parametrilor": {
+    "reg_lambda": 0.366,
+    "subsample": 0.273,
+    "colsample_bytree": 0.233,
+    "num_leaves": 0.055,
+    "min_child_samples": 0.05,
+    "learning_rate": 0.023,
+    "class_weight": 0.0
+  },
+  "istoric": [
+    {
+      "n": 0,
+      "val": 0.5749
+    },
+    {
+      "n": 1,
+      "val": 0.5718
+    },
+    {
+      "n": 2,
+      "val": 0.5722
+    },
+    {
+      "n": 3,
+      "val": 0.5736
+    },
+    {
+      "n": 4,
+      "val": 0.5737
+    },
+    {
+      "n": 5,
+      "val": 0.5788
+    },
+    {
+      "n": 6,
+      "val": 0.5745
+    },
+    {
+      "n": 7,
+      "val": 0.5645
+    },
+    {
+      "n": 8,
+      "val": 0.5562
+    },
+    {
+      "n": 9,
+      "val": 0.5695
+    },
+    {
+      "n": 10,
+      "val": 0.5758
+    },
+    {
+      "n": 11,
+      "val": 0.5776
+    },
+    {
+      "n": 12,
+      "val": 0.5797
+    },
+    {
+      "n": 13,
+      "val": 0.5794
+    },
+    {
+      "n": 14,
+      "val": 0.5728
+    },
+    {
+      "n": 15,
+      "val": 0.5795
+    },
+    {
+      "n": 16,
+      "val": 0.576
+    },
+    {
+      "n": 17,
+      "val": 0.5797
+    },
+    {
+      "n": 18,
+      "val": 0.581
+    },
+    {
+      "n": 19,
+      "val": 0.5853
+    },
+    {
+      "n": 20,
+      "val": 0.5795
+    },
+    {
+      "n": 21,
+      "val": 0.5809
+    },
+    {
+      "n": 22,
+      "val": 0.5783
+    },
+    {
+      "n": 23,
+      "val": 0.586
+    },
+    {
+      "n": 24,
+      "val": 0.5815
+    },
+    {
+      "n": 25,
+      "val": 0.5844
+    },
+    {
+      "n": 26,
+      "val": 0.5808
+    },
+    {
+      "n": 27,
+      "val": 0.5782
+    },
+    {
+      "n": 28,
+      "val": 0.582
+    }
+  ],
+  "etichete": "SINTETICE: probleme injectate peste consum real",
+  "note": "experiment pe ramura Eden"
+}
