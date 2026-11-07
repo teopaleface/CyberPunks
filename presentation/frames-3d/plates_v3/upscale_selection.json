@@ -1,0 +1,12 @@
+{
+  "p01_storm": "lanczos",
+  "p02_dark": "lanczos",
+  "p03_meter": "lanczos",
+  "p03_solar": "lanczos",
+  "p04_wide": "lanczos",
+  "p06_unfold": "lanczos",
+  "p07_map": "lanczos",
+  "p10_house": "lanczos",
+  "p11_dawn": "lanczos",
+  "p12_day": "lanczos"
+}

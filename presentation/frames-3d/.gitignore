@@ -14,3 +14,7 @@ threejs/film/assets/frames3d/
 styleframes/frames/
 objects/**/spin/
 objects/**/tumble/
+plates_v3/up/
+plates_v3/cut/
+plates_v3/raw/*.png
+audio/local/
