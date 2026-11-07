@@ -32,7 +32,7 @@ def top_factors(model: BModel, rows: pd.DataFrame, k: int = 4) -> list[list[Fact
         for f, c in chosen:
             text, val = label_ro(f, row)
             factors.append(Factor(feature=f, label_ro=text, value=val, contribution=round(float(c), 4)))
-        if abs(season) > 0.05 and len(factors) < 8:
+        if season > 0.05 and len(factors) < 8:  # textul spune că sezonul crește riscul, deci doar când chiar îl crește
             month = pd.Timestamp(row["date"]).month
             text = "sezonul de vară: frunziș bogat, furtuni convective" if month in (5, 6, 7, 8, 9) else (
                 "sezonul rece: gheață și zăpadă posibile" if month in (12, 1, 2, 3) else "sezonul de tranziție")
@@ -75,15 +75,22 @@ def similar_cases(model: BModel, rows: pd.DataFrame, k: int = 3) -> list[list[Si
     return out
 
 
+def _ro_int(n: int) -> str:
+    return f"{n:,}".replace(",", ".")
+
+
 def summary_ro(p: float, row: pd.Series, onset_hour: int | None, cases: list[SimilarCase], abstain: bool,
-               customers_p50: int) -> str:
-    g = row.get("gust_max")
+               customers_p50: int, factors: list[Factor] | None = None) -> str:
+    """Fraza din șablon. Cifrele vin din cod; factorii principali sunt cei cu cea mai mare contribuție SHAP."""
     parts = [f"Risc de {p:.0%} ca peste 1% din clienții zonei să rămână fără curent."]
-    if g is not None and not np.isnan(g):
-        when = f" în jurul orei {onset_hour}:00" if onset_hour is not None else ""
-        parts.append(f"Rafale de până la {g:.0f} km/h{when}, {row.get('precip_48h', 0):.0f} mm de ploaie în 48 de ore.")
+    drivers = [f.label_ro for f in (factors or []) if f.contribution > 0][:2]
+    if drivers:
+        parts.append("Contează cel mai mult: " + " și ".join(drivers) + ".")
+    g = row.get("gust_max")
+    if g is not None and not pd.isna(g) and onset_hour is not None and p >= 0.15:
+        parts.append(f"Furtuna e așteptată în jurul orei {onset_hour}:00, cu rafale de până la {g:.0f} km/h.")
     if p >= 0.15:
-        parts.append(f"Dacă se produce, estimăm circa {customers_p50:,} clienți afectați la vârf.".replace(",", "."))
+        parts.append(f"Dacă se produce, estimăm circa {_ro_int(customers_p50)} clienți afectați la vârf.")
     if cases:
         bad = sum(c.outcome != "fara_avarii_semnificative" for c in cases)
         parts.append(f"În {bad} din {len(cases)} zile asemănătoare din istoric au fost avarii.")

@@ -48,8 +48,10 @@ from cyberpunks.common.paths import OUTPUTS, work_items_path
 
 TZ = ZoneInfo("Europe/Bucharest")
 DEMO_VARA_DATE = "2025-07-08"  # aleasă de firul B (vezi docs/research/B.md, secțiunea 3)
-ONSET_GUST_KMH = 45.0
-ONSET_PRECIP_MM = 2.0
+ONSET_GUST_KMH = 45.0  # pragul afișat pe grafic
+ONSET_PRECIP_MM = 2.0  # de la câți mm pe oră marcăm ploaia pe grafic
+STORM_GUST_KMH = 55.0
+STORM_RAIN_MM = 1.0
 SAFETY_GUST_KMH = 75.0  # peste această rafală, lucrul la înălțime e periculos: semnalăm planificatorului
 DISAGREE_WIDTH = 0.35  # lățimea intervalului de probabilitate de la care spunem "nu sunt sigur"
 DATA_SOURCES = [
@@ -87,14 +89,22 @@ def decision_time(target: date, mode: str) -> datetime:
 
 
 def storm_onset(h: pd.DataFrame, target: date) -> tuple[datetime, int]:
-    """Prima oră din ziua țintă cu rafale ≥ 45 km/h sau ploaie ≥ 2 mm; altfel ora rafalei maxime."""
-    default = datetime.combine(target, time(14, 0), tzinfo=TZ), 14  # furtunile de vară vin de obicei după-amiaza
+    """Începutul estimat al furtunii în ziua țintă (ora României).
+
+    Prima oră de la 06:00 cu ploaie ≥ 1 mm sau cu rafală ≥ max(55 km/h, 90% din maximul zilei). Pe căldură, rafalele
+    trec de 45 km/h încă de la prânz din amestecul aerului, deci ploaia marchează mai bine sosirea furtunii.
+    Fără astfel de ore: ora rafalei maxime. Fără date: 14:00 (furtunile de vară vin de obicei după-amiaza).
+    """
+    default = datetime.combine(target, time(14, 0), tzinfo=TZ), 14
     if h.empty or "time" not in h:
         return default
-    day = h[h["time"].dt.date == target].sort_values("time")
+    day = h[(h["time"].dt.date == target) & (h["time"].dt.hour >= 6)].sort_values("time")
     if day.empty or day["wind_gusts_10m"].isna().all():
         return default
-    hit = day[(day["wind_gusts_10m"] >= ONSET_GUST_KMH) | (day["precipitation"].fillna(0) >= ONSET_PRECIP_MM)]
+    gmax = float(day["wind_gusts_10m"].max())
+    strong = day["wind_gusts_10m"] >= max(STORM_GUST_KMH, 0.9 * gmax)
+    rain = day["precipitation"].fillna(0) >= STORM_RAIN_MM
+    hit = day[strong | rain]
     t = hit["time"].iloc[0] if not hit.empty else day.loc[day["wind_gusts_10m"].idxmax(), "time"]
     t = pd.Timestamp(t).to_pydatetime().replace(tzinfo=TZ)
     return t, t.hour
@@ -299,7 +309,7 @@ def build_items(model: BModel, zones: list[romania.Zone], feats: pd.DataFrame, h
             explanation=Explanation(
                 top_factors=factors[i],
                 similar_cases=cases[i],
-                summary_ro=explain.summary_ro(float(p[i]), row, onset_h, cases[i], abstain, int(cust[1])),
+                summary_ro=explain.summary_ro(float(p[i]), row, onset_h, cases[i], abstain, int(cust[1]), factors[i]),
             ),
             data_quality=DataQuality(
                 missing_ratio=round(float(missing.iloc[i].mean()), 3),

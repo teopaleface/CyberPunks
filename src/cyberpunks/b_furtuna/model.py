@@ -21,7 +21,8 @@ from cyberpunks.b_furtuna.features import FEATURES, MONOTONE
 from cyberpunks.common.paths import MODELS
 
 MODEL_ID = "b-lgbm-quantile"
-MODEL_PATH = MODELS / "B" / "b_model.joblib"
+# Modelul livrat stă în git (models/release/, comprimat), ca planificatorul să poată rula B fără să refacă datele.
+MODEL_PATH = MODELS / "release" / "b_model.joblib"
 QUANTILES = (0.1, 0.5, 0.9)
 N_THREADS = 4  # mașina e împărțită de 6 fire
 
@@ -108,7 +109,7 @@ class BModel:
     # -- salvare ---------------------------------------------------------------------------
     def save(self, path: Path = MODEL_PATH) -> Path:
         path.parent.mkdir(parents=True, exist_ok=True)
-        joblib.dump(self, path)
+        joblib.dump(self, path, compress=3)
         return path
 
     @staticmethod
@@ -194,7 +195,7 @@ CASE_FEATURES = ["gust_max", "gust_prev", "precip_48h", "precip_7d", "snow_3d", 
                  "doy_sin", "doy_cos"]
 
 
-def case_library(df: pd.DataFrame, n_calm: int = 8000, seed: int = 42) -> tuple[pd.DataFrame, dict]:
+def case_library(df: pd.DataFrame, n_calm: int = 4000, seed: int = 42) -> tuple[pd.DataFrame, dict]:
     """Toate zilele cu eveniment plus un eșantion de zile fără, cu vremea și ce s-a întâmplat."""
     ev = df[df["event"] == 1]
     calm = df[df["event"] == 0]
