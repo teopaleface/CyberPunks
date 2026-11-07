@@ -1,70 +1,70 @@
 {
-  "mode": "existing",
+  "mode": "auto",
   "sources": {
     "A": {
       "origin": "model",
       "status": "ok",
-      "note": "ieșirea existentă a modelului",
-      "valid": 524,
+      "note": "rulat cyberpunks.a_contoare.predict.run",
+      "valid": 532,
       "invalid": 0,
       "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/demo-vara/A.jsonl",
-      "seconds": 0.0,
+      "seconds": 9.714,
       "optional": false
     },
     "A_bilant": {
       "origin": "model",
       "status": "ok",
-      "note": "ieșirea existentă a modelului",
+      "note": "ieșirea modelului A_bilant pentru aceeași zi, rulată la 15:16 (model lent, refolosit)",
       "valid": 98,
       "invalid": 0,
       "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/demo-vara/A_bilant.jsonl",
-      "seconds": 0.0,
+      "seconds": 0.004,
       "optional": false
     },
     "B": {
       "origin": "model",
       "status": "ok",
-      "note": "ieșirea existentă a modelului",
+      "note": "rulat cyberpunks.b_furtuna.predict.run",
       "valid": 26,
       "invalid": 0,
       "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/demo-vara/B.jsonl",
-      "seconds": 0.0,
+      "seconds": 0.143,
       "optional": false
     },
     "C": {
       "origin": "model",
       "status": "ok",
-      "note": "ieșirea existentă a modelului",
+      "note": "rulat cyberpunks.c_prosumatori.predict.run",
       "valid": 41,
       "invalid": 0,
       "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/demo-vara/C.jsonl",
-      "seconds": 0.0,
+      "seconds": 4.825,
       "optional": false
     }
   },
   "day_context": [
-    "Contoare și posturi: 622 lucrări; 29 în trasee, 485 verificări de la distanță sau corecții în birou, 17 la dispecer.",
+    "Contoare și posturi: 630 lucrări; 17 în trasee, 504 verificări de la distanță sau corecții în birou, 17 la dispecer.",
     "Furtună: 26 zone analizate, cel mai mare risc 58%; 3 echipe trimise din timp.",
     "Tensiune: 41 posturi cu risc din 300 (soare pe panou până la 956 W/m² la prânz, 35 °C): 0 echipe, 18 mesaje către prosumatori, 23 posturi la urmărire."
   ],
-  "plan_id": "PLAN-demo-vara-20250708-152504-8c55",
+  "plan_id": "PLAN-demo-vara-20250708-162906-54c5",
   "scenario": "demo-vara",
   "plan_date": "2025-07-08",
   "as_of": "2025-07-07T18:00:00+03:00",
-  "generated_at": "2026-11-07T15:25:04+02:00",
-  "planner_version": "planner@0.1.0+9884d3d",
+  "generated_at": "2026-11-07T16:29:06+02:00",
+  "planner_version": "planner@0.1.0+34ba7c5",
   "solver": {
     "name": "ortools",
     "status": "SUCCESS",
-    "seconds": 10.047,
-    "objective_lei": 9100104343.29,
-    "tasks": 304,
+    "seconds": 7.64,
+    "objective_lei": 100167052.26,
+    "tasks": 293,
     "crews": 11
   },
   "overrides": 0,
   "fusion": {
     "status": "ok",
-    "fused": 522,
+    "fused": 530,
     "rejected": 0
   },
   "remedies": [
@@ -108,7 +108,7 @@
         "offer_battery",
         "export_limit"
       ],
-      "cost_lei": 8586.84,
+      "cost_lei": 8586.83,
       "p90_before_pu": 1.1612,
       "p90_after_pu": 1.0939,
       "why_not_cheaper": [
@@ -198,7 +198,7 @@
         "phase_rebalance",
         "export_limit"
       ],
-      "cost_lei": 9068.56,
+      "cost_lei": 9068.57,
       "p90_before_pu": 1.1552,
       "p90_after_pu": 1.0958,
       "why_not_cheaper": [
@@ -444,9 +444,9 @@
     "E-RS-1.pdf"
   ],
   "timings": {
-    "perceive": 0.007,
-    "estimate": 0.0,
-    "decide": 10.396,
-    "act": 1.229
+    "perceive": 0.009,
+    "estimate": 14.687,
+    "decide": 7.844,
+    "act": 0.991
   }
 }

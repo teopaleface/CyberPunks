@@ -55,7 +55,7 @@
   {
    "t": "2025-07-08T06:00:00+03:00",
    "value": null,
-   "expected": 1.0247,
+   "expected": 1.0252,
    "low": 1.0198,
    "high": 1.0328,
    "flag": null

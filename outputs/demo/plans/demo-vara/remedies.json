@@ -39,7 +39,7 @@
       "offer_battery",
       "export_limit"
     ],
-    "cost_lei": 8586.84,
+    "cost_lei": 8586.83,
     "p90_before_pu": 1.1612,
     "p90_after_pu": 1.0939,
     "why_not_cheaper": [
@@ -129,7 +129,7 @@
       "phase_rebalance",
       "export_limit"
     ],
-    "cost_lei": 9068.56,
+    "cost_lei": 9068.57,
     "p90_before_pu": 1.1552,
     "p90_after_pu": 1.0958,
     "why_not_cheaper": [
