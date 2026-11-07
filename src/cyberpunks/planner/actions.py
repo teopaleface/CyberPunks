@@ -124,7 +124,7 @@ def finalize(
         if p.fallback is not None:
             fb = p.fallback
             fb.priority = p.priority
-            fb.alerts = p.alerts + fb.alerts
+            fb.alerts = p.alerts + [a for a in fb.alerts if a not in p.alerts]  # fără aceeași alertă de două ori
             if why != "capacity":
                 fb.reason_ro = f"{DROP_PREFIX.get(why, '')} {fb.reason_ro}".strip()
             final[p.id] = fb

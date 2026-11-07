@@ -7,6 +7,7 @@ fără LLM. Apare ca alertă informativă („Contextul zilei”), în raportul 
 from __future__ import annotations
 
 import json
+import math
 from collections import Counter
 from datetime import date
 from pathlib import Path
@@ -21,13 +22,22 @@ PV_SEASON = range(3, 10)  # martie-septembrie: sezonul cu prânzuri însorite (a
 
 
 def _summary(path_str: str | None, name: str) -> dict[str, Any]:
+    """Rezumatul publicat de un fir lângă lucrările lui; orice lipsă sau formă greșită înseamnă „fără rezumat”, nu o eroare."""
     if not path_str:
         return {}
     p = Path(path_str).parent / name
     try:
-        return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+        data = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
     except (OSError, ValueError):
         return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _num(value: Any) -> float | None:
+    """Un număr finit sau None (textele, valorile booleene, NaN și infinitul nu trec)."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return float(value) if math.isfinite(value) else None
 
 
 def day_context(ctx: Context, final: dict[str, Proposal], sources: dict[str, dict[str, Any]]) -> list[str]:
@@ -61,25 +71,31 @@ def day_context(ctx: Context, final: dict[str, Proposal], sources: dict[str, dic
     c = by_src.get(Source.C.value, [])
     if c:
         summary = _summary((sources.get("C") or {}).get("path"), "C_summary.json")
-        posts = summary.get("posts")
-        weather = summary.get("weather") or {}
+        posts = _num(summary.get("posts"))
+        weather = summary.get("weather") if isinstance(summary.get("weather"), dict) else {}
+        gti, temp = _num(weather.get("gti_max")), _num(weather.get("temp_noon"))
         crews = sum(1 for p in c if p.decision == DecisionType.assigned)
         notify = sum(1 for p in c if p.decision == DecisionType.notify)
         watch = sum(1 for p in c if p.decision == DecisionType.deferred)
-        head = f"Tensiune: {len(c)} posturi cu risc" + (f" din {posts}" if posts else "")
+        head = f"Tensiune: {len(c)} posturi cu risc" + (f" din {round(posts)}" if posts else "")
         sun = ""
-        if weather.get("gti_max") is not None:
-            sun = f" (soare pe panou până la {num(float(weather['gti_max']))} W/m² la prânz" + (
-                f", {num(float(weather['temp_noon']))} °C" if weather.get("temp_noon") is not None else "") + ")"
+        if gti is not None:
+            sun = f" (soare pe panou până la {num(gti)} W/m² la prânz" + (f", {num(temp)} °C" if temp is not None else "") + ")"
+        # Motivele urmăririi vin din regulile chiar aplicate, nu din lună: fiecare număr e un număr de decizii.
+        rules = Counter(p.rule_id for p in c if p.decision == DecisionType.deferred)
+        below = rules.get("R-C-WATCH", 0)
+        unsure = sum(n for r, n in rules.items() if r.startswith(("R-WIDE-INTERVAL", "R-LOW-CONFIDENCE")))
+        why = [f"{below} sub prag sau sub limită chiar și în scenariul pesimist" if below else "",
+               f"{unsure} cu incertitudine prea mare" if unsure else "",
+               f"{watch - below - unsure} din alte motive" if watch - below - unsure > 0 else ""]
+        why_ro = f" ({', '.join(x for x in why if x)})" if watch else ""
+        tally = f"{watch} posturi rămân la urmărire{why_ro}, {notify} primesc mesaje către prosumatori, {crews} primesc echipă."
         if d.month not in PV_SEASON:
-            horizon = [p.wi.extra.get("season_horizon_days") for p in c if isinstance(p.wi.extra.get("season_horizon_days"), (int, float))]
-            left = f"; mai sunt ~{round(min(horizon))} zile de soare puternic până la primăvară" if horizon else ""
-            lines.append(
-                f"{head}{sun}. În {month} sezonul fotovoltaic e la final{left}: o echipă pentru priză sau faze nu se mai plătește, "
-                f"deci agentul trimite {notify} mesaje către prosumatori, pune {watch} posturi la urmărire și {crews} echipe."
-            )
+            horizon = [h for h in (_num(p.wi.extra.get("season_horizon_days")) for p in c) if h is not None]
+            left = f"; mai sunt ~{round(min(horizon))} zile cu soare puternic în sezonul acesta" if horizon else ""
+            lines.append(f"{head}{sun}. În {month} sezonul fotovoltaic e la final{left}: {tally}")
         else:
-            lines.append(f"{head}{sun}: {crews} echipe, {notify} mesaje către prosumatori, {watch} posturi la urmărire.")
+            lines.append(f"{head}{sun}: {tally}")
     for key, info in sources.items():
         if key == "A_bilant" and info.get("origin") == "missing" and "eroare" in (info.get("note") or ""):
             lines.append("Bilanțul pe post n-a rulat pentru ziua asta (eroare a modelului); planul de contoare merge fără confirmarea bilanțului.")
