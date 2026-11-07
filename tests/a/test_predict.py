@@ -66,5 +66,5 @@ def test_series_written_for_each_item(demo_items) -> None:
 def test_summary_counts(demo_items) -> None:
     items, _ = demo_items
     summary = json.loads((ROOT / "outputs/work_items/demo-vara/A_summary.json").read_text(encoding="utf-8"))
-    n_meters = sum(1 for _ in open(ROOT / "data/samples/A/meters.csv", encoding="utf-8")) - 1
+    n_meters = len((ROOT / "data/samples/A/meters.csv").read_text(encoding="utf-8").splitlines()) - 1
     assert summary["meters_scored"] == n_meters and summary["work_items"] == len(items)
