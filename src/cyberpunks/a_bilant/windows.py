@@ -48,7 +48,9 @@ WIN_FEATURES = [
     "width_kwh",
     "hist_days",
     "delta_kwh",
+    "delta_long_kwh",
 ]
+LONG_REF = (90, 62)  # referința lungă: zilele e-90..e-62 (înaintea problemelor apărute în ultimele două luni)
 METER_MATERIAL_KWH = 1.0  # sub 1 kWh/zi lipsă, un contor de client nu se vede în bilanț: eticheta rămâne „normal”
 
 
@@ -122,6 +124,8 @@ def build_windows(d: pd.DataFrame, pred: pd.DataFrame, pool: str, days: list[int
             # abaterea fixă a postului față de model se anulează
             ref = g.loc[e - 34 : e - 14, "r"]
             delta = float(g.loc[e - 6 : e, "r"].mean() - ref.mean()) if len(ref) >= 7 else 0.0
+            ref_l = g.loc[e - LONG_REF[0] : e - LONG_REF[1], "r"]
+            delta_long = float(g.loc[e - 6 : e, "r"].mean() - ref_l.mean()) if len(ref_l) >= 14 else delta
             try:
                 v = vc.loc[(p, e)]
                 vmin, vgap = float(v["vcorr_min"]), float(v["vcorr_med"] - v["vcorr_min"])
@@ -162,6 +166,7 @@ def build_windows(d: pd.DataFrame, pred: pd.DataFrame, pool: str, days: list[int
                     "width_kwh": float((w["p90"] - w["p10"]).mean()),
                     "hist_days": float(lab["hist_days"]),
                     "delta_kwh": delta,
+                    "delta_long_kwh": delta_long,
                     "true_class": cls,
                     "true_excess_kwh": ex,
                 }

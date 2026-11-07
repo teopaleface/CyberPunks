@@ -16,13 +16,13 @@ Gradul de integrare a contoarelor inteligente la 31 decembrie 2025 (infobuz, pri
 
 | metoda | primele 29 posturi (10%) | primele 57 posturi (20%) | primele 95 posturi (33%) | primele 126 posturi (44%) |
 |---|---|---|---|---|
-| model (planul B) | 20.8% | 32.4% | 48.0% | 58.1% |
-| posturile mari întâi | 15.6% | 22.4% | 33.5% | 43.1% |
-| pierderea tehnică estimată întâi | 12.1% | 25.6% | 42.9% | 52.8% |
-| la întâmplare (media a 200 de trageri) | 10.3% | 19.6% | 33.1% | 44.3% |
+| model (planul B) | 19.8% | 35.8% | 45.9% | 56.0% |
+| posturile mari întâi | 15.2% | 22.6% | 39.9% | 45.5% |
+| pierderea tehnică estimată întâi | 13.0% | 27.1% | 51.2% | 59.2% |
+| la întâmplare (media a 200 de trageri) | 10.3% | 19.8% | 33.2% | 44.4% |
 
-- Cu modelul, primele 20% din posturi (57) acoperă **32%** din energia lipsă, față de 20% la întâmplare și 22% la „posturile mari întâi”.
-- Un contor de bilanț montat după clasament găsește în medie ~3,608 lei pe an de energie lipsă (la 0.7 lei/kWh, `config/economics.yaml`), față de ~2,212 lei pe an la un post ales la întâmplare.
+- Cu modelul, primele 20% din posturi (57) acoperă **36%** din energia lipsă, față de 20% la întâmplare și 23% la „posturile mari întâi”.
+- Un contor de bilanț montat după clasament găsește în medie ~3,532 lei pe an de energie lipsă (la 0.7 lei/kWh, `config/economics.yaml`), față de ~1,962 lei pe an la un post ales la întâmplare.
 - Clasamentul complet: `reports/bilant/plan_b_ranking.csv`; curbele: `reports/bilant/plan_b.png`.
 
 ## Limite

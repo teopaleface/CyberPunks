@@ -94,9 +94,65 @@ def n_customers(spec: grids.PostSpec) -> int:
     return len(grids.base_net(spec.topology).load)
 
 
+A_TRUTH_SCENARIO = "demo-vara"  # adevărul lui A e pentru ziua demo, ultima zi a simulării
+
+
+def a_truth() -> pd.DataFrame | None:
+    """Adevărul injectat de firul A (contor, post, tip, de câte zile), scris de `a_contoare.predict`."""
+    from cyberpunks.common.paths import OUTPUTS
+
+    path = OUTPUTS / "work_items" / A_TRUTH_SCENARIO / "A_ground_truth.csv"
+    if not path.exists():
+        try:
+            from cyberpunks.a_contoare import predict as a_predict
+
+            a_predict.run(A_TRUTH_SCENARIO)
+        except Exception as exc:  # noqa: BLE001 - fără A, lotul rămâne cu problemele noastre de contor
+            print(f"bilanț: adevărul lui A nu e disponibil ({exc}); contoarele primesc probleme proprii")
+            return None
+    return pd.read_csv(path) if path.exists() else None
+
+
+def apply_a_truth(plans: dict[str, P.PostPlan], specs: list[grids.PostSpec], n_days: int) -> int:
+    """Pune în lumea bilanțului exact contoarele cu probleme ale lui A: al k-lea contor A al postului = clientul k.
+
+    Problemele de contor proprii (aleatoare) ale postului se înlocuiesc cu ale lui A, ca bilanțul să vadă aceeași
+    energie lipsă pe care A o caută. Comportamentele benigne ale lui A (concediu, ocupare schimbată) intră la fel.
+    Întoarce câte probleme de contor au venit de la A.
+    """
+    t = a_truth()
+    if t is None:
+        return 0
+    ncust = {s.post_id: n_customers(s) for s in specs}
+    seed = np.random.default_rng(SEEDS["pop"] + 7)
+    n = 0
+    for pid, g in t.sort_values("meter_id").groupby("post_id"):
+        if pid not in plans:
+            continue
+        plan = plans[pid]
+        plan.problems = [p for p in plan.problems if p.kind not in ("meter_fault", "meter_tamper")]
+        plan.benign = []
+        for k, r in enumerate(g.itertuples(index=False)):
+            if k >= ncust[pid]:
+                break
+            ago = int(r.true_onset_days_ago)
+            onset = max(1, n_days - 1 - max(ago, 0))
+            if r.true_family in ("faulty", "tamper") and r.true_problem == 1 and not str(r.true_kind).endswith("_terminat"):
+                kind = "meter_fault" if r.true_family == "faulty" else "meter_tamper"
+                plan.problems.append(P.Problem(kind, onset, k, {"type": str(r.true_kind), "seed": int(seed.integers(0, 2**31 - 1)), "meter_id": r.meter_id}))
+                n += 1
+            elif r.true_kind == "vacation":
+                plan.benign.append((k, "concediu", onset, 14, 0.15))
+            elif r.true_kind == "occupancy_change":
+                plan.benign.append((k, "ocupare_schimbata", onset, None, 0.6))
+    return n
+
+
 def plans_for(pool: str, specs: list[grids.PostSpec], meta: pd.DataFrame, n_days: int) -> dict[str, P.PostPlan]:
     rng = np.random.default_rng(SEEDS[pool] + 99)
     plans = {s.post_id: P.make_plan(s.post_id, n_customers(s), n_days, rng, p_post_problem=P_POST[pool]) for s in specs}
+    if pool == "pop":
+        print(f"bilanț: {apply_a_truth(plans, specs, n_days)} probleme de contor luate din adevărul lui A")
     # clientul la postul greșit: receptorul e un vecin fără altă problemă de post
     nb = neighbors(meta)
     taken = set()

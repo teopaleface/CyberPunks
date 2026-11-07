@@ -50,6 +50,8 @@ def fit(win: pd.DataFrame, seed: int = 0) -> Diagnoser:
     # clase echilibrate: problemele rare cântăresc cât cele dese
     counts = np.bincount(y, minlength=len(CLASSES)).astype(float)
     w = (len(y) / (len(CLASSES) * np.maximum(counts, 1)))[y]
+    if "weight" in win.columns:  # verdictele după vizită (feedback.windows_with_verdicts) cântăresc mai mult
+        w = w * win["weight"].to_numpy()
     m = lgb.LGBMClassifier(
         objective="multiclass",
         n_estimators=400,

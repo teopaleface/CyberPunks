@@ -22,42 +22,29 @@ def main(scenario: str = "demo-vara") -> None:
     items = [json.loads(x) for x in (OUTPUTS / "work_items" / scenario / "A_bilant.jsonl").read_text().splitlines() if x.strip()]
     by = {x["asset_id"]: x for x in items}
     plans = json.loads((DATA_PROCESSED / "bilant" / "pop" / "plans.json").read_text())
-    fm = pd.read_parquet(DATA_PROCESSED / "bilant" / "fusion_meters_pop.parquet")
-    D = int(fm["day"].max())
-    fm["rank_a"] = fm.groupby("day")["a"].rank(ascending=False)
-    fm["rank_f"] = fm.groupby("day")["fused"].rank(ascending=False)
     md = [f"# Posturile pentru prezentare ({scenario})", "", "SIMULARE pe date publice, gândită pentru datele PPC. Fiecare caz e verificat cu problema ascunsă de noi (adevărul din construcție). Comanda: `uv run python -m cyberpunks.a_bilant.demo_story`.", ""]
 
-    def bad_meters(pid: str) -> set[int]:
-        return {p["customer"] for p in plans[pid]["problems"] if p["kind"] in ("meter_fault", "meter_tamper")}
-
-    # 1. confirmarea: contorul suspect corect, cu scăderea cea mai apropiată de lipsa postului
-    cands = []
-    for x in items:
-        e = x["extra"]
-        if x["prediction"]["label"] != "contor_client" or "suspect_meter" not in e:
-            continue
-        c = int(e["suspect_meter"][-3:])
-        if c not in bad_meters(x["asset_id"]):
-            continue
-        r = x["prediction"]["point_estimate"]
-        cands.append((abs(abs(e["suspect_meter_drop_kwh_day"]) - abs(r)) / max(abs(r), 1), x))
-    md += ["## 1. Contorul și bilanțul se confirmă", ""]
-    if cands:
-        _, x = min(cands, key=lambda t: t[0])
-        e = x["extra"]
-        pid = x["asset_id"]
-        c = int(e["suspect_meter"][-3:])
-        kind = next(p for p in plans[pid]["problems"] if p.get("customer") == c and p["kind"] in ("meter_fault", "meter_tamper"))
-        row = fm[(fm["post_id"] == pid) & (fm["customer"] == c) & (fm["day"] == D)]
+    # 1. confirmarea: o lucrare REALĂ a lui A, pe un post unde bilanțul confirmă, cu problemă reală (adevărul lui A)
+    md += ["## 1. Contorul (A) și bilanțul se confirmă", ""]
+    real = pd.read_parquet(DATA_PROCESSED / "bilant" / "fusion_real_a_demo.parquet")
+    a_path = OUTPUTS / "work_items" / scenario / "A.jsonl"
+    a_items = {json.loads(x)["asset_id"]: json.loads(x) for x in a_path.read_text().splitlines() if x.strip()} if a_path.exists() else {}
+    # și contorul din lumea bilanțului trebuie să fi scăzut cât lipsa (altfel confirmarea e o coincidență)
+    consistent = (real["drop"] > 2) & ((real["drop"] - real["excess"]).abs() < 0.5 * real["excess"].abs().clip(lower=2))
+    cand = real[real["truth"] & (real["fused"] > real["a"] + 0.05) & real["meter_id"].isin(a_items) & consistent]
+    if len(cand):
+        r = cand.assign(gain=cand["fused"] - cand["a"]).sort_values("gain", ascending=False).iloc[0]
+        ai = a_items[r["meter_id"]]
+        pid = r["post_id"]
         md += [
-            f"- **{pid}**, lucrarea `{x['work_item_id']}`: {x['explanation']['summary_ro']}",
-            f"- Contorul suspect: `{e['suspect_meter']}` ({e['suspect_meter_reason_ro']}), consum dispărut ~{abs(e['suspect_meter_drop_kwh_day']):.1f} kWh/zi; lipsa peste normal la post: ~{x['prediction']['point_estimate']:.1f} kWh/zi.",
-            f"- Adevărul: contorul are problema `{kind['params']['type']}` ({kind['kind']}) din ziua {kind['onset_day']} a simulării. Recomandarea: {x['recommended_action']} (întâi citirea la distanță).",
+            f"- Lucrarea A `{ai['work_item_id']}` (contorul {r['meter_id']}, postul **{pid}**): {ai['explanation']['summary_ro']}",
+            f"- Bilanțul postului {pid}: lipsa a crescut cu ~{r['excess']:.1f} kWh/zi în ultima săptămână; consumul contorului a scăzut cu ~{r['drop']:.1f} kWh/zi.",
+            f"- Scorul A {r['a']:.2f} devine {r['fused']:.2f} după fuziune (`fuse`, regula R-FUSION-BILANT). Adevărul lui A: problema `{r['kind']}`.",
         ]
-        if len(row):
-            rr = row.iloc[0]
-            md.append(f"- Scorul de tip A (SIMULAT, calibrat la ROC-AUC 0,907) {rr['a']:.2f} devine {rr['fused']:.2f} cu bilanțul; locul în lista zilei: {int(rr['rank_a'])} → {int(rr['rank_f'])} din {int((fm['day'] == D).sum())} contoare.")
+        if pid in by:
+            md.append(f"- Bilanțul are și lucrarea lui pe post: {by[pid]['explanation']['summary_ro']}")
+    else:
+        md.append("- Nicio lucrare A cu confirmare puternică azi.")
     md.append("")
 
     # 2. fazele: pierdere tehnică cu dezechilibru real

@@ -13,10 +13,12 @@ from cyberpunks.common.paths import CONTRACTS
 
 def test_combine_confirms_and_refutes():
     up, lr_up = fuse.combine(0.5, excess_kwh=8.0, sigma_kwh=2.0, meter_deficit_kwh=8.0)
-    down, lr_down = fuse.combine(0.5, excess_kwh=0.0, sigma_kwh=2.0, meter_deficit_kwh=8.0)
+    down, lr_down = fuse.combine(0.5, excess_kwh=0.0, sigma_kwh=2.0, meter_deficit_kwh=8.0, demote=True)
+    kept, lr_kept = fuse.combine(0.5, excess_kwh=0.0, sigma_kwh=2.0, meter_deficit_kwh=8.0)
     same, lr0 = fuse.combine(0.5, excess_kwh=5.0, sigma_kwh=2.0, meter_deficit_kwh=0.0)
     assert up > 0.8 and lr_up > 0
     assert down < 0.2 and lr_down < 0
+    assert kept == pytest.approx(0.5) and lr_kept == 0.0  # implicit: bilanțul doar confirmă
     assert same == pytest.approx(0.5) and lr0 == pytest.approx(0.0)
     assert abs(lr_up) <= fuse.LOG_LR_CAP and abs(lr_down) <= fuse.LOG_LR_CAP
 
@@ -66,3 +68,22 @@ def test_unknown_post_keeps_a_score(items_and_state):
     w = fuse.fuse([WorkItem.model_validate(data)], "demo-vara", "2025-07-08")[0]
     assert w.prediction.score == pytest.approx(items[1].prediction.score)
     assert w.extra["fusion_approx_post"] is True
+
+
+def test_strong_confirmation_resolves_abstain(items_and_state, monkeypatch):
+    monkeypatch.setattr(fuse, "RESOLVE_ABSTAIN", True)
+    items = items_and_state
+    data = items[0].model_dump(mode="json")
+    data["prediction"].update({"abstain": True, "abstain_reason": "test", "confidence": "low", "score": 0.5, "interval_low": 0.3, "interval_high": 0.7})
+    data["recommended_action"] = "human_review"
+    w = fuse.fuse([WorkItem.model_validate(data)], "demo-vara", "2025-07-08")[0]
+    assert not w.prediction.abstain and w.recommended_action.value == "remote_reading"
+    assert w.extra["fusion_resolved_abstain"] is True
+
+
+def test_abstain_stays_with_human_by_default(items_and_state):
+    data = items_and_state[0].model_dump(mode="json")
+    data["prediction"].update({"abstain": True, "abstain_reason": "test", "confidence": "low", "score": 0.5, "interval_low": 0.3, "interval_high": 0.7})
+    data["recommended_action"] = "human_review"
+    w = fuse.fuse([WorkItem.model_validate(data)], "demo-vara", "2025-07-08")[0]
+    assert w.prediction.abstain and w.recommended_action.value == "human_review"

@@ -41,7 +41,8 @@ def main() -> None:
     base = DATA_PROCESSED / "bilant"
     win = pd.read_parquet(base / "windows_pop.parquet")
     tec = pd.read_parquet(base / "normal_test_pop.parquet")
-    fm = pd.read_parquet(base / "fusion_meters_pop.parquet")
+    fm = pd.read_parquet(base / "fusion_meters_train.parquet")
+    real = pd.read_parquet(base / "fusion_real_a_demo.parquet")
     plans = json.loads((base / "pop" / "plans.json").read_text())
     posts = pd.read_parquet(base / "pop" / "posts.parquet").set_index("post_id")
     md = ["# Analiza erorilor: bilanț pe post", "", "SIMULARE pe date publice, gândită pentru datele PPC. Test: cele 300 de posturi din registrul C (rețele nevăzute la antrenare). Comanda: `make bilant-eval`.", ""]
@@ -120,16 +121,30 @@ def main() -> None:
     pos = fm[fm["truth"]]
     up = (pos["rank_f"] < pos["rank_a"]).mean()
     small = pos[pos["drop"] < 2]
-    share = fm["drop"] / fm["before"].abs().clip(lower=0.5)
-    benign = fm[(fm["benign"] != "") & (share > 0.5) & ~fm["truth"]]
+    real["confirmed"] = real["fused"] > real["a"] + 1e-9
+    by_kind = real[real["truth"]].groupby("kind").agg(contoare=("truth", "size"), confirmate=("confirmed", "mean")).sort_values("contoare", ascending=False)
+    by_kind.index.name = "tipul problemei (A)"
+    fp = real[~real["truth"]]
     md += [
         "## 3. Fuziunea cu A (cu bilanț față de fără)",
         "",
+        "Regula din producție: bilanțul doar confirmă (urcă scorul), nu coboară niciodată un contor găsit de A.",
+        "",
+        "### Pe mai multe zile, scoruri A simulate (lotul train)",
+        "",
         f"- Contoarele cu problemă reală urcă în clasament după fuziune în {up:.0%} din cazuri.",
         f"- Cele care nu urcă au de obicei o lipsă mică: {len(small)} din {len(pos)} au sub 2 kWh/zi consum dispărut. Creșterea lipsei la post nu se deosebește atunci de zgomot (incertitudinea pe 7 zile e de câțiva kWh/zi).",
-        f"- Consumul scăzut real (concediu, ocupare schimbată, cu consumul scăzut la mai puțin de jumătate și fără defect): {len(benign)} rânduri contor-zi. Mediana rangului lor trece de la {benign['rank_a'].median():.0f} la {benign['rank_f'].median():.0f} după fuziune (rang mai mare = mai jos în listă); în primele 20 pe zi ajung {((benign['rank_a'] <= 20).sum() / fm['day'].nunique()):.1f} fără bilanț și {((benign['rank_f'] <= 20).sum() / fm['day'].nunique()):.1f} cu bilanț.",
-        "- Furtul înainte de contor ridică scorul tuturor contoarelor cu scădere de pe acel post, chiar dacă nu sunt de vină. De aceea fuziunea compară mărimea: urcă doar contorul a cărui scădere se potrivește cu lipsa.",
-        "- Limită: scorurile A sunt simulate (vezi `fusion_eval.py`). Cifra se reface cu scorurile reale ale lui A când contoarele lui sunt legate de posturile registrului C.",
+        "",
+        "### Ziua demo, scorurile reale ale lui A (lotul pop)",
+        "",
+        f"- Din {int(real['truth'].sum())} contoare cu problemă reală, bilanțul confirmă {real.loc[real['truth'], 'confirmed'].mean():.0%}; din {len(fp)} fără problemă, confirmă {fp['confirmed'].mean():.0%}. Bilanțul confirmă deci de {real.loc[real['truth'], 'confirmed'].mean() / max(fp['confirmed'].mean(), 1e-9):.1f} ori mai des un contor cu problemă reală.",
+        "",
+        "Pe tipuri de problemă (cele care nu schimbă totalul zilei, ca profilul inversat sau ceasul decalat, nu pot fi confirmate de bilanț):",
+        "",
+        _tbl(by_kind),
+        "",
+        "- De ce câștigul e mic cu scorurile reale: A e deja foarte precis în vârful listei (100% în primele 200 de contoare), iar defectele lui A apar pe posturi cu câte 3-4 contoare cu probleme deodată (5,5% din contoare). Creșterea lipsei de la post e suma lor, deci nu spune care contor e de vină. Mai mult, curbele de consum ale lui A (Londra) nu sunt curbele clienților din lumea bilanțului; cele două lumi împart doar contorul cu problemă și ziua în care a apărut.",
+        "- Limită: scorurile din testul pe mai multe zile sunt simulate (`fusion_eval.py`).",
         "",
     ]
     (OUT / "error_analysis.md").write_text("\n".join(md) + "\n", encoding="utf-8")

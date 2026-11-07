@@ -23,7 +23,8 @@ from cyberpunks.a_bilant.fuse import combine_arrays
 from cyberpunks.common.paths import DATA_PROCESSED
 
 A_TARGET_AUC = 0.907  # reports/A/metrics.json, roc_auc pe Londra
-KS = (10, 20, 50)
+KS = (10, 20, 50, 100)
+A_SGCC_AUC = 0.8025  # reports/A/metrics.json, sgcc_roc_auc: modelul A pe date reale de furt (mai greu)
 FIRST_DAY = 100
 
 
@@ -88,8 +89,8 @@ def simulate_a_scores(t: pd.DataFrame, seed: int = 7, target_auc: float = A_TARG
     return 1 / (1 + np.exp(-(base + sd * z))), float(sd), float(auc)
 
 
-def evaluate(t: pd.DataFrame, price_lei_kwh: float, horizon_days: int) -> tuple[dict, dict]:
-    a, sd, auc = simulate_a_scores(t)
+def evaluate(t: pd.DataFrame, price_lei_kwh: float, horizon_days: int, target_auc: float = A_TARGET_AUC) -> tuple[dict, dict]:
+    a, sd, auc = simulate_a_scores(t, target_auc=target_auc)
     t = t.assign(a=a, fused=combine_arrays(a, t["excess"].to_numpy(), t["sigma"].to_numpy(), np.maximum(t["drop"].to_numpy(), 0.0)))
     with_b, without = {}, {}
     for K in KS:
@@ -109,6 +110,7 @@ def evaluate(t: pd.DataFrame, price_lei_kwh: float, horizon_days: int) -> tuple[
         with_b[f"wasted_trips_per_day_at_{K}"] = float(np.mean(wf))
         without[f"value_lei_per_day_at_{K}"] = float(np.mean(va))
         with_b[f"value_lei_per_day_at_{K}"] = float(np.mean(vf))
+        with_b[f"wasted_trips_avoided_per_day_at_{K}"] = float(np.mean(wa) - np.mean(wf))
     benign_mask = t["benign"] != ""
     for name, col, out in (("a", "a", without), ("fused", "fused", with_b)):
         out["roc_auc"] = float(roc_auc_score(t["truth"], t[col]))
@@ -116,3 +118,72 @@ def evaluate(t: pd.DataFrame, price_lei_kwh: float, horizon_days: int) -> tuple[
         out["benign_in_top20_per_day"] = float((top["benign"] != "").sum() / t["day"].nunique())
     info = {"a_sim_noise_sd": sd, "a_sim_auc": auc, "eval_days": int(t["day"].nunique()), "meters": int(t.groupby("day").size().mean()), "positives_per_day": float(t.groupby("day")["truth"].sum().mean()), "benign_share": float(benign_mask.mean())}
     return {**with_b, **{f"info_{k}": v for k, v in info.items()}}, without
+
+
+KS_REAL = (10, 20, 50, 100, 200, 300, 500)
+
+
+def evaluate_real_a(win: pd.DataFrame, sigma_delta_scale: float, price_lei_kwh: float, horizon_days: int, pool: str = "pop") -> dict:
+    """Ziua demo, cu scorurile REALE ale modelului A (`A_ground_truth.csv`, toate cele ~15.850 de contoare).
+
+    Contorul k al lui A pe un post e clientul k din lumea bilanțului (`dataset.apply_a_truth`), deci defectele lui A
+    lasă energie lipsă în bilanțul postului. Lipsa estimată a contorului = scăderea consumului lui față de propriul
+    istoric (ce vede distribuitorul). Pozitive = contoarele cu problemă reală după adevărul lui A.
+    """
+    from cyberpunks.a_bilant.dataset import a_truth
+
+    t = a_truth()
+    if t is None:
+        return {}
+    cust = np.load(DATA_PROCESSED / "bilant" / pool / "cust_daily.npz")
+    e = int(win["day"].max())
+    w = win[win["day"] == e].set_index("post_id")
+    rows = []
+    for pid, g in t.sort_values("meter_id").groupby("post_id"):
+        if pid not in w.index or pid not in cust.files:
+            continue
+        cd = cust[pid].astype(float)
+        k = np.arange(min(len(g), cd.shape[0]))
+        before = cd[k, e - 34 : e - 13].mean(1)
+        after = cd[k, e - 6 : e + 1].mean(1)
+        gg = g.iloc[: len(k)]
+        rows.append(pd.DataFrame({"meter_id": gg["meter_id"].to_numpy(), "post_id": pid, "a": gg["score"].to_numpy(), "truth": gg["true_problem"].to_numpy() == 1,
+                                  "kwh_lost": gg["true_kwh_lost"].to_numpy(), "kind": gg["true_kind"].to_numpy(), "drop": before - after,
+                                  "excess": float(w.loc[pid, "delta_kwh"]), "sigma": float(w.loc[pid, "width_kwh"]) / 2.56 * sigma_delta_scale}))
+    m = pd.concat(rows, ignore_index=True)
+    m["fused"] = combine_arrays(m["a"].to_numpy(), m["excess"].to_numpy(), m["sigma"].to_numpy(), np.maximum(m["drop"].to_numpy(), 0.0))
+    out = {"meters": float(len(m)), "positives": float(m["truth"].sum()), "roc_auc_a": float(roc_auc_score(m["truth"], m["a"])), "roc_auc_fused": float(roc_auc_score(m["truth"], m["fused"]))}
+    for K in KS_REAL:
+        ta, tf = m.nlargest(K, "a"), m.nlargest(K, "fused")
+        out[f"precision_at_{K}_a"] = float(ta["truth"].mean())
+        out[f"precision_at_{K}_fused"] = float(tf["truth"].mean())
+        out[f"wasted_trips_at_{K}_a"] = float(K - ta["truth"].sum())
+        out[f"wasted_trips_at_{K}_fused"] = float(K - tf["truth"].sum())
+        out[f"value_lei_at_{K}_a"] = float(ta.loc[ta["truth"], "kwh_lost"].clip(lower=0).sum() * price_lei_kwh)
+        out[f"value_lei_at_{K}_fused"] = float(tf.loc[tf["truth"], "kwh_lost"].clip(lower=0).sum() * price_lei_kwh)
+    # zona „nu sunt sigur” a lui A: câte trimiteri la om rezolvă bilanțul și cât de des e problemă reală acolo
+    from cyberpunks.a_bilant.fuse import RESOLVE_ABSTAIN_LOG_LR
+
+    unsure = m[t.set_index("meter_id").loc[m["meter_id"], "conformal"].to_numpy() == "unsure"]
+    a = np.clip(unsure["a"], 1e-4, 1 - 1e-4)
+    f = np.clip(unsure["fused"], 1e-4, 1 - 1e-4)
+    llr = np.log(f / (1 - f)) - np.log(a / (1 - a))
+    res = unsure[llr >= RESOLVE_ABSTAIN_LOG_LR - 1e-9]
+    out["unsure_meters"] = float(len(unsure))
+    out["unsure_true_rate"] = float(unsure["truth"].mean())
+    out["unsure_resolved"] = float(len(res))
+    out["unsure_resolved_true_rate"] = float(res["truth"].mean()) if len(res) else 0.0
+    m.to_parquet(DATA_PROCESSED / "bilant" / "fusion_real_a_demo.parquet")
+    return out
+
+
+def invisible_energy(daily: pd.DataFrame, day: int, window: int = 14) -> dict:
+    """Pe ultimele `window` zile: ce parte din energia pierdută peste normal (adevărul din construcție) nu se vede la
+    niciun contor de client (furt înainte de contor, pierderi tehnice peste normal, client la postul greșit)."""
+    w = daily[(daily["day"] > day - window) & (daily["day"] <= day)]
+    meter = w["true_meter_deficit_kwh"].clip(lower=0).sum()
+    theft = w["true_theft_kwh"].sum()
+    tech = (w["true_line_kwh"] - w["true_line_base_kwh"]).clip(lower=0).sum()
+    moved = w["true_moved_out_kwh"].abs().sum()  # energia contată la postul greșit (prosumatorii pot avea net negativ)
+    tot = meter + theft + tech + moved
+    return {"share_invisible_to_meters": float((theft + tech + moved) / tot) if tot else 0.0, "lost_kwh_day_meters": float(meter / window), "lost_kwh_day_theft": float(theft / window), "lost_kwh_day_technical": float(tech / window), "lost_kwh_day_wrong_post": float(moved / window)}
