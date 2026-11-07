@@ -114,3 +114,19 @@ def test_pair_consistency_links_donor_to_receiver():
     assert out["label"].tolist() == ["client_post_gresit", "client_post_gresit", "furt_inainte_contor"]
     assert out["pair_linked"].tolist() == [True, False, False]
     assert not out["abstain"].iloc[0]
+
+
+def test_martor_rule():
+    from cyberpunks.a_bilant import martor
+    from cyberpunks.a_bilant.diagnose import apply_martor_rule
+
+    m = np.array([100.0, 120.0, 90.0, 110.0])
+    assert martor.martor_diff(m * 1.001, m) < martor.MARTOR_DIFF_LIMIT  # 0,1%: normal
+    assert martor.martor_diff(m * 2.0, m) > martor.MARTOR_DIFF_LIMIT  # cazul „2×”
+    assert np.isnan(martor.martor_diff(m, np.full(4, np.nan)))
+    win = pd.DataFrame({"martor_diff": [0.9, 0.001, np.nan, 0.001]})
+    dec = pd.DataFrame({"label": ["normal", "contor_bilant_setat", "contor_bilant_setat", "furt_inainte_contor"], "second": ["furt_inainte_contor", "furt_inainte_contor", "normal", "normal"],
+                        "p_label": [0.6, 0.7, 0.7, 0.8], "p_second": [0.3, 0.2, 0.2, 0.1], "p_problem": [0.4, 0.9, 0.9, 0.9], "abstain": [False] * 4, "abstain_reason": [""] * 4})
+    out = apply_martor_rule(win, dec)
+    assert out["label"].tolist() == ["contor_bilant_setat", "furt_inainte_contor", "contor_bilant_setat", "furt_inainte_contor"]
+    assert out["martor_rule"].tolist() == ["diferenta_peste_clasa", "contor_balanta_confirmat", "fara_martor", "in_clasa"]

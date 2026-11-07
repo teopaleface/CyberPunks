@@ -36,7 +36,7 @@ def clean(balance: pd.Series | None, customers: pd.Series, has_prosumers: bool =
     issues: list[str] = []
     cust = customers[~customers.index.duplicated(keep="first")].sort_index().astype(float)
     if balance is None or len(balance) == 0 or balance.isna().all():
-        issues.append("contorul de bilanț al postului lipsește sau nu transmite: planul B (energia intrată estimată din modelul rețelei)")
+        issues.append("contorul de balanță al postului lipsește sau nu transmite: planul B (energia intrată estimată din modelul rețelei)")
         return CleanResult(pd.Series(np.nan, index=cust.index), cust, False, [], issues)
     dup = int(balance.index.duplicated().sum())
     bal = balance[~balance.index.duplicated(keep="first")].sort_index().astype(float)

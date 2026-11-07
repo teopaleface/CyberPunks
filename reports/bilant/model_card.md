@@ -2,15 +2,20 @@
 
 **Simulare pe date publice, gândită pentru datele PPC.** Toate cifrele de aici vin din `make bilant-data bilant-eval` (`reports/bilant/metrics.json`). Datele de test sunt 100% sintetice.
 
+## Baza legală
+
+Codul de măsurare a energiei electrice (ANRE, Ord. 103/2015, copie: https://reteleelectrice.ro/wp-content/uploads/cod-masurare-2015.pdf): „Sistemele de măsurare inteligentă trebuie să permită integrarea a cel puţin un contor de balanţă la fiecare post de transformare, pentru a facilita identificarea pierderilor tehnice şi netehnice.” Același cod definește contorul martor: „contor de energie electrică având rolul de a măsura energia electrică în paralel cu contorul de decontare”, cu cel puțin aceeași clasă de exactitate, pe aceleași circuite.
+
 ## Ce face
 
 Pentru fiecare post de transformare și fiecare zi:
 
-1. **Bilanțul**: lipsa = energia ieșită din post (contorul de bilanț) − suma contoarelor clienților din bază, în kWh și lei.
+1. **Bilanțul**: lipsa = energia ieșită din post (contorul de balanță) − suma contoarelor clienților din bază, în kWh și lei.
 2. **Pierderea normală** (modelul 1): cât ar trebui să lipsească azi la acest post, cu interval P10-P90.
 3. **Diagnosticul** (modelul 2): de ce lipsește mai mult. Șase clase: normal, contor de client, furt înainte de contor, pierdere tehnică, client la postul greșit, contorul postului setat greșit.
 4. **Lucrarea**: valoarea = probabilitatea × energia lipsă × prețul. Acțiunile, de la ieftin la scump: întâi citire la distanță, apoi verificare, echipă de rețea, corecție în birou fără deplasare, urmărire, decizie umană.
-5. **Fuziunea cu A**: confirmă sau infirmă contoarele marcate de modelul A, după cât lipsește la postul lor.
+5. **Regula contorului martor** (unde postul are martor): dacă contorul de balanță și martorul diferă cu peste 0,5% (clasa de exactitate), contorul de balanță e defect sau setat greșit. E o regulă, nu un model. Mentorul PPC: diferența normală e ~0,1%. Atenție: pragul de 0,5% nu se folosește la bilanțul post − clienți, unde pierderea normală e de câteva procente.
+6. **Fuziunea cu A**: confirmă sau infirmă contoarele marcate de modelul A, după cât lipsește la postul lor.
 
 Deciziile le iau modelele noastre și regulile scrise în cod. LLM-ul nu decide nimic aici.
 
@@ -30,25 +35,26 @@ Pe lotul hărții, defectele de contor sunt exact cele ale firului A (`A_ground_
 
 | Ce | Modelul nostru | Metoda simplă |
 |---|---|---|
-| Pierderea normală, MAE (kWh/zi) | **5,30** (14% din 37,0) | formula fizică I²R 14,91; procent fix 20,59 |
-| Același, fără istoricul postului | 12,56 | - |
+| Pierderea normală, MAE (kWh/zi) | **5,40** (15% din 37,0) | formula fizică I²R 14,92; procent fix 20,62 |
+| Același, fără istoricul postului | 12,49 | - |
 | Acoperirea intervalului P10-P90 | 88,1% | formula fizică 86,6% (interval de ~10 ori mai larg) |
-| Diagnosticul, F1 macro | **0,71** | tabelul de reguli din concept 0,48 |
-| Diagnosticul, exactitate | 0,83 | 0,78 |
+| Diagnosticul, F1 macro (model + regula martorului) | **0,70** | tabelul de reguli din concept 0,48 |
+| Diagnosticul, exactitate | 0,82 | 0,78 |
+| Regula contorului martor (posturile cu martor): contoare de balanță setate greșit prinse | **98%**, 0 alarme false | doar modelul: F1 0,97; cu regula 0,99 |
 | Primele 10 posturi pe zi prind din energia lipsă | 85% | 80% |
 | **Energia pierdută pe care niciun contor de client nu o vede** (furt înainte de contor, pierderi tehnice peste normal, client la postul greșit), ziua demo | **48%** | o vede doar bilanțul |
-| Planul B: energia lipsă găsită cu contoare la 20% din posturi | **36%** | la întâmplare 20%; posturile mari întâi 23% |
+| Planul B: energia lipsă găsită cu contoare de balanță la 20% din posturi | **30%** | la întâmplare 20%; posturile mari întâi 23% |
 
-F1 pe clase (model / reguli): contor de post setat greșit 0,99 / 0,87, normal 0,91 / 0,90, client la postul greșit 0,77 / 0,34, furt înainte de contor 0,70 / 0,35, pierdere tehnică 0,52 / 0,28, contor de client 0,40 / 0,16. Clientul la postul greșit a urcat de la 0,32 la 0,77 în trei pași: trăsătura „oglindă” (lipsa zilnică la un post corelată negativ cu surplusul vecinului), legarea celor două capete ale perechii (`diagnose.pair_consistency`) și identificarea topologiei din tensiuni (contorul cu tensiunea cea mai ciudată seamănă mai bine cu un vecin decât cu postul lui; `dataset.voltage_topology`).
+F1 pe clase (model / reguli): contor de balanță setat greșit 0,99 / 0,87, normal 0,91 / 0,90, client la postul greșit 0,76 / 0,34, furt înainte de contor 0,67 / 0,35, pierdere tehnică 0,51 / 0,28, contor de client 0,38 / 0,16. Față de versiunea de la 16:12 (0,71), lumea simulată s-a schimbat: eroarea contoarelor de balanță e acum 0,07% (diferența normală martor − contor ~0,1%, cât a spus mentorul PPC), deci testul e altul. Pe același test nou, modelul fără regula martorului dă 0,703, iar cu regulă 0,704. Clientul la postul greșit a urcat de la 0,32 la ~0,77 în trei pași: trăsătura „oglindă” (lipsa zilnică la un post corelată negativ cu surplusul vecinului), legarea celor două capete ale perechii (`diagnose.pair_consistency`) și identificarea topologiei din tensiuni (contorul cu tensiunea cea mai ciudată seamănă mai bine cu un vecin decât cu postul lui; `dataset.voltage_topology`).
 
 ### Ce vede doar bilanțul (A are 0 prin construcție)
 
 | Cauza | Postul găsit | și cauza corectă | Energia lipsă găsită |
 |---|---|---|---|
-| furt înainte de contor | 74% | 55% | 86% |
-| pierdere tehnică (cabluri, faze) | 64% | 42% | 95% |
-| contorul postului setat greșit | 99% | 99% | (lipsă doar pe hârtie) |
-| client la postul greșit | 53% | 42% | 72% |
+| furt înainte de contor | 74% | 54% | 85% |
+| pierdere tehnică (cabluri, faze) | 64% | 43% | 94% |
+| contorul de balanță setat greșit | 99% | 98% | (lipsă doar pe hârtie) |
+| client la postul greșit | 54% | 41% | 72% |
 | **total** | | | **85%, ~25.000 lei pe lună** pe cele 300 de posturi |
 
 Din posturile marcate, 13% sunt de fapt normale. Figura: `reports/bilant/bilant_only_causes.png`.
@@ -78,7 +84,7 @@ Modelul se abține și trimite la om (`human_review`) când:
 - primele două cauze sunt la mai puțin de 15 puncte;
 - intervalul pierderii normale e de peste 3 ori mai larg decât lipsa.
 
-Se abține în 12,7% din ferestre; detaliile sunt în `reports/bilant/error_analysis.md`. Posturile fără contor de bilanț nu primesc lucrare de pierderi: trec pe planul B.
+Se abține în 12,7% din ferestre; detaliile sunt în `reports/bilant/error_analysis.md`. Posturile fără contor de balanță nu primesc lucrare de pierderi: trec pe planul B.
 
 ## Limite cunoscute
 

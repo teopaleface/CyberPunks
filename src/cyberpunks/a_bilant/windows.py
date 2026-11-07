@@ -20,6 +20,7 @@ import pandas as pd
 
 from cyberpunks.a_bilant import normal as N
 from cyberpunks.a_bilant.dataset import WINDOW, eval_days
+from cyberpunks.a_bilant.martor import martor_diff
 from cyberpunks.common.paths import DATA_PROCESSED
 
 WIN_FEATURES = [
@@ -245,6 +246,8 @@ def build_windows(d: pd.DataFrame, pred: pd.DataFrame, pool: str, days: list[int
                     "loss_ratio_cv": float(np.std(ratio_d) / max(abs(np.mean(ratio_d)), 0.1)),
                     "ratio_vs_gis": ratio_gis,
                     "r_vs_gis_kwh": r_gis,
+                    # regula martorului pe ultimele 3 zile: un contor stricat acum se vede din a doua zi
+                    "martor_diff": martor_diff(w["bal_kwh"].tail(3), w["martor_kwh"].tail(3)) if "martor_kwh" in w else float("nan"),
                     "volt_elsewhere": v_else,
                     "volt_claimed": v_claim,
                     "quad_ratio": q_ratio,

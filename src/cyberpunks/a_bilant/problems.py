@@ -8,7 +8,7 @@ Clasele diagnosticului (tabelul din conceptul lui Teo, `memory/11-bilant-pe-post
 | `furt_inainte_contor`  | consum nemăsurat legat direct la rețea, constant sau cu profil de casă, de la o zi | echipa de control |
 | `pierdere_tehnica`     | dezechilibru mare de faze sau îmbinare degradată: pierderea crește cu pătratul încărcării | echipa de rețea |
 | `client_post_gresit`   | un client al postului X apare în bază la postul vecin Y (X are lipsă, Y are surplus) | corecție în birou |
-| `contor_bilant_setat`  | contorul de bilanț numără exact de 2 ori mai mult (raport de transformare greșit) | echipa de contoare |
+| `contor_bilant_setat`  | contorul de balanță numără exact de 2 ori mai mult (raport de transformare greșit) | echipa de contoare |
 
 Defectele și manipulările de contor vin direct din generatorul firului A (`cyberpunks.a_contoare.inject`: zero, stuck,
 negative, h1, bypass), cu parametrii trași de el, aplicate pe valori orare. Plajele parametrilor sunt IPOTEZE (vezi docs/data/bilant.md).
@@ -27,7 +27,7 @@ CLASS_RO = {
     "furt_inainte_contor": "furt înainte de contor",
     "pierdere_tehnica": "pierdere tehnică (cablu, faze dezechilibrate)",
     "client_post_gresit": "client trecut la postul greșit în bază",
-    "contor_bilant_setat": "contorul de bilanț al postului setat greșit",
+    "contor_bilant_setat": "contorul de balanță al postului setat greșit",
 }
 KIND_CLASS = {
     "meter_fault": "contor_client",

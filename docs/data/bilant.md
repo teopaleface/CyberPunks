@@ -58,7 +58,7 @@ Pentru fiecare post, fiecare oră:
    - variația din interiorul orei: × 1,3 (IPOTEZĂ);
    - calibrarea: × 2,5, cu ±35% între posturi (lognormală; IPOTEZĂ). Acoperă ce nu are SimBench: branșamente, îmbinări vechi, conductori îmbătrâniți. Cu ea, mediana pierderii tehnice ajunge la 3,8% din energia care trece prin post. Reperul: CPT Muntenia 8,66% în 2023, din care 63,54% pe joasă tensiune; CPT-ul include și pierderile comerciale.
 4. Consumul propriu al contoarelor, nemăsurat: 1,5 W pe contor (IPOTEZĂ; IEC 62053-21 permite până la 2 W).
-5. Contorul de bilanț al postului (pe joasă tensiune): energia netă ieșită spre clienți (consum minus injecția prosumatorilor), cu o eroare fixă N(0; 0,2%) (clasa 0,5S, IPOTEZĂ).
+5. Contorul de balanță al postului (pe joasă tensiune): energia netă ieșită spre clienți (consum minus injecția prosumatorilor), cu o eroare fixă N(0; 0,07%). La jumătate din posturi (IPOTEZĂ) există și un **contor martor** (Codul de măsurare ANRE, Ord. 103/2015: măsoară în paralel, pe aceleași circuite), cu eroarea lui fixă N(0; 0,07%), neatins de setarea greșită a contorului de balanță. Diferența normală dintre ele are abaterea standard ~0,1%, cât a spus mentorul PPC. Regula din `martor.py`: diferența pe ultimele 3 zile peste 0,5% (clasa de exactitate) înseamnă contor de balanță defect sau setat greșit. Pragul de 0,1-0,5% nu se aplică bilanțului post − clienți, unde pierderea normală e de câteva procente.
 6. Contoarele clienților: energia netă (bidirecționale la prosumatori), cu eroare fixă N(0; 0,4%) (clasa 1, IPOTEZĂ), rotunjite la 0,001 kWh. 3% din contoare au 1-3 goluri de comunicație de 1-5 zile, completate din aceeași oră de acum 7 zile.
 7. Tensiunea măsurată în contor: tensiunea nodului plus zgomot N(0; 0,002 pu). Posturile din același cartier au o variație comună pe medie tensiune (AR(1)).
 8. Comportamente benigne, care schimbă consumul real: concediu (3% din clienți, 7-21 de zile la 15% din consum) și ocupare schimbată (1%, ×0,5 sau ×1,5 permanent).
@@ -87,11 +87,15 @@ O problemă de post apare la 40% din posturile de antrenare și la 25% din postu
 
 Contorul de post lipsă trece postul pe planul B. Orele dublate se curăță. Unitățile Wh se convertesc în kWh. Polaritatea inversată se corectează. Orele lipsă (sub 10% din zi) se completează din ziua precedentă; peste 10%, ziua iese din bilanț. Fiecare corecție apare în `data_quality.input_issues`. În demo, PT-1003 (Wh), PT-1007 (fără contor de post) și PT-1011 (ore dublate) sunt cazuri de test simulate.
 
+## Verificarea de realism cu date reale (Weave, UK)
+
+`uv run python -m cyberpunks.a_bilant.weave_check` descarcă mostra Weave (o zi, 2024-02-12, ~38 MB, în `data/raw/bilant/weave/`, în afara git; sha256 `b4f4717e929d7c9bf1cbc1d8bf99c954cede6b2237fb0d6810820f2d22e8729c`) și compară forma zilnică a curbelor a ~42.000 de posturi reale din UK cu cele 300 de posturi simulate (`reports/bilant/weave_check.md`, `.png`). Weave e folosit doar ca reper pentru formă, citat; licența nu e declarată, deci nu intră în antrenare și nu dă etichete. Fișierul complet (~700 MB) nu e descărcat. Folosirea Weave pentru profilele de încărcare din simulare rămâne o îmbunătățire viitoare.
+
 ## Ce se schimbă pe date PPC
 
-- Lumea simulată se înlocuiește cu datele reale: contorul de bilanț la 15 minute, contoarele clienților, lista client → post, GIS-ul. Modelele și trăsăturile rămân.
+- Lumea simulată se înlocuiește cu datele reale: contorul de balanță la 15 minute, contoarele clienților, lista client → post, GIS-ul. Modelele și trăsăturile rămân.
 - Eticheta pierderii normale e lipsa măsurată în perioadele verificate. Etichetele diagnosticului vin din verdictele echipelor după vizită (`feedback.py`).
-- De întrebat la mentor: câte posturi au azi contor de bilanț (concentratorul de date nu e contor de bilanț)? Cât de bună e lista client → post?
+- De întrebat la mentor: câte posturi au azi contor de balanță (concentratorul de date nu e contor de balanță)? Cât de bună e lista client → post?
 
 ## Verificarea dintr-o clonă curată (7 nov. 2026, 16:10)
 

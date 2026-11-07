@@ -1,4 +1,4 @@
-"""Trăsăturile bilanțului, doar din ce știe distribuitorul: contorul de bilanț, contoarele clienților din bază,
+"""Trăsăturile bilanțului, doar din ce știe distribuitorul: contorul de balanță, contoarele clienților din bază,
 datele din GIS (lungimea și tipul cablurilor, transformatorul, numărul de clienți) și vremea.
 
 Adevărul din construcție (coloanele `true_*`) se folosește doar pentru etichete, niciodată ca trăsătură.

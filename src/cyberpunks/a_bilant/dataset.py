@@ -5,7 +5,7 @@
 - `pop`: cele 300 de posturi din registrul comun al firului C (harta din București-Ilfov), cu vecinii după distanță.
   Rețelele lor nu se văd la antrenare: testul e pe rețele nevăzute.
 
-Pentru fiecare post și fiecare zi (2024-07-01 … 2025-07-08): energia ieșită din post (contorul de bilanț), suma
+Pentru fiecare post și fiecare zi (2024-07-01 … 2025-07-08): energia ieșită din post (contorul de balanță), suma
 contoarelor clienților din bază, golurile de date, semnalele contoarelor (zero, blocat, negativ noaptea), tensiunile
 și adevărul din construcție (pierderea tehnică, furtul, consumul nemăsurat, clasa problemei).
 
@@ -297,6 +297,7 @@ def run_post(args: tuple[dict, dict, str]) -> dict:
             "day": np.arange(D),
             "date": wx.days,
             "bal_kwh": dsum(w.balance_kwh),
+            "martor_kwh": dsum(w.martor_kwh) if w.static["has_martor"] else np.nan,
             "db_kwh": dsum(db),
             "imp_kwh": dsum(np.maximum(db, 0)),
             "exp_kwh": dsum(np.maximum(-db, 0)),
