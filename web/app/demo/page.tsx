@@ -52,7 +52,7 @@ async function Demo({ searchParams }: { searchParams: PageProps<"/demo">["search
       data={data}
       geo={geo}
       generatedAt={view.data.plan.generated_at}
-      postsInfo={posts ? { posts: posts.data, derived: posts.derived, lossCostNote: posts.lossCost?.note ?? null } : undefined}
+      postsInfo={posts ? { posts: posts.data, derived: posts.derived, lossCostNote: posts.lossCost?.note ?? null, thresholds: posts.thresholds } : undefined}
       initialScene={scene}
       auto={params.auto === "1"}
     />

@@ -246,3 +246,32 @@ describe("instantaneul demo", () => {
     expect(plan.source).toBe("fixtures");
   });
 });
+
+describe("posturile din planificator", () => {
+  test("culorile fără diacritice devin culorile interfeței; lipsă, din pierdere", async () => {
+    const { normalizePostColor, colorFor } = await import("./posts");
+    expect(normalizePostColor("rosu", 5019)).toBe("roșu");
+    expect(normalizePostColor("roșu", 5019)).toBe("roșu");
+    expect(normalizePostColor("Galben", 300)).toBe("galben");
+    expect(normalizePostColor(undefined, 650)).toBe("roșu");
+    expect(normalizePostColor("necunoscut", 120)).toBe("verde");
+    expect(normalizePostColor("mov", null)).toBe("necunoscut");
+    // aceleași praguri ca config/planner.yaml: galben de la 200, roșu de la 600
+    expect(colorFor(199.66)).toBe("verde");
+    expect(colorFor(210.44)).toBe("galben");
+    expect(colorFor(621.7)).toBe("roșu");
+  });
+
+  test("pragurile vin din config/planner.yaml", async () => {
+    const { readPostThresholds } = await import("./files");
+    expect(await readPostThresholds()).toEqual({ yellow: 200, red: 600 });
+  });
+
+  test("cauza din bilanț: codurile devin cuvinte, textul rămâne", async () => {
+    const { postDiagnosisRo } = await import("./posts");
+    expect(postDiagnosisRo("furt_inainte_contor")).toBe("furt înainte de contor");
+    expect(postDiagnosisRo("pierdere_tehnica")).not.toContain("_");
+    expect(postDiagnosisRo("Furt înainte de contor")).toBe("Furt înainte de contor");
+    expect(postDiagnosisRo(null)).toBeNull();
+  });
+});

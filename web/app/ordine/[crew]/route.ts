@@ -43,9 +43,9 @@ export async function GET(request: Request, ctx: RouteContext<"/ordine/[crew]">)
     path.join(root, scenario, "work_orders", `${crew}.pdf`),
   ]) {
     // calea trebuie să rămână în dosarul instantaneului
-    if (!path.resolve(file).startsWith(root + path.sep)) continue;
+    if (!path.resolve(/*turbopackIgnore: true*/ file).startsWith(root + path.sep)) continue;
     try {
-      const pdf = await readFile(file);
+      const pdf = await readFile(/*turbopackIgnore: true*/ file);
       return new Response(new Uint8Array(pdf), {
         headers: { "content-type": "application/pdf", "content-disposition": `inline; filename="ordin-de-lucru-${crew}.pdf"` },
       });

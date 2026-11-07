@@ -10,10 +10,10 @@ import { AppShell } from "@/components/shell/app-shell";
 import type { WorkItem } from "@/lib/contracts";
 import { getSeries } from "@/lib/data";
 import { clampPercentRo, factorLabelRo, DECISION_LABEL_RO, predictionLabelRo, ruleRo } from "@/lib/data/labels";
-import { POST_COLOR_THRESHOLDS, getPosts } from "@/lib/data/posts";
+import { getPosts } from "@/lib/data/posts";
 import { getRemedies } from "@/lib/data/remedies";
 import { BILANT_LABEL, bilantFusion, remedyOptions } from "@/lib/extras";
-import { fmtDec, fmtInt, fmtLei, fmtScore, sentence } from "@/lib/format";
+import { fmtDec, fmtInt, fmtScore, sentence } from "@/lib/format";
 import { markerKind, markerSvg } from "@/lib/marker-svg";
 import { loadPlanView, loadShellInfo, resolveScenario } from "@/lib/server/queries";
 
@@ -81,6 +81,8 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
   const bilantDecision = bilant ? decisions[bilant.work_item_id] : undefined;
   const cDecision = cItem ? decisions[cItem.work_item_id] : undefined;
   const options = cItem ? remedyOptions(cItem) : [];
+  // lipsa pe zi: din /posts, altfel din estimarea bilanțului (media pe 14 zile)
+  const lossKwhDay = post.loss_kwh_day ?? bilant?.prediction.point_estimate ?? null;
 
   return (
     <AppShell info={info}>
@@ -123,7 +125,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
                 <>
                   <SeriesChart series={bilantSeries.data} workItem={bilant!} />
                   <div className="mt-2">
-                    <SeriesLegend source="A" bilant={isBilantSeries(bilantSeries.data)} />
+                    <SeriesLegend source="A" bilant={isBilantSeries(bilantSeries.data)} series={bilantSeries.data} />
                   </div>
                 </>
               ) : (
@@ -228,18 +230,24 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
             <dl className="mt-2 grid grid-cols-[180px_minmax(0,1fr)] gap-x-4 text-[15px] [&>dd]:border-t [&>dd]:border-rule [&>dd]:py-1.5 [&>dt]:border-t [&>dt]:border-rule [&>dt]:py-1.5 [&>dt]:text-muted-foreground">
               <dt>Pierderi pe lună</dt>
               <dd>
-                {post.loss_lei_month != null ? fmtLei(post.loss_lei_month) : "necunoscute"}
+                {post.loss_lei_month != null ? `${fmtInt(post.loss_lei_month)} lei` : "necunoscute"}
                 {post.derived ? <span className="block text-[13.5px] text-muted-foreground">estimat din contoarele semnalate de A</span> : null}
               </dd>
               <dt>Lipsă pe zi</dt>
-              <dd>{post.loss_kwh_day != null ? `${fmtDec(post.loss_kwh_day, 1)} kWh` : "–"}</dd>
+              <dd>
+                {lossKwhDay == null
+                  ? "–"
+                  : lossKwhDay >= 0
+                    ? `${fmtDec(lossKwhDay, 1)} kWh peste pierderea normală`
+                    : `fără lipsă; clienții arată cu ${fmtDec(-lossKwhDay, 1)} kWh mai mult`}
+              </dd>
               <dt>Contoare semnalate</dt>
               <dd>{fmtInt(post.meters_flagged ?? 0)}</dd>
               <dt>Tensiune maximă P90</dt>
               <dd>{post.voltage_p90_pu != null ? `${fmtDec(post.voltage_p90_pu, 3).replace(/0$/, "")} pu (limita 1,10)` : "–"}</dd>
               <dt>Culoarea pe hartă</dt>
               <dd>
-                {status.label}; praguri de afișare: {POST_COLOR_THRESHOLDS.yellow} și {POST_COLOR_THRESHOLDS.red} lei pe lună
+                {status.label}; praguri de afișare: {posts.thresholds.yellow} și {posts.thresholds.red} lei pe lună
               </dd>
             </dl>
           </section>
