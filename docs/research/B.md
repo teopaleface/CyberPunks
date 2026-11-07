@@ -109,12 +109,23 @@ Calculat pe 2023, pe comitatele din cele 8 state cu 10.000-600.000 de clienți (
 
 - **Clienți pe județ** (31.12.2024), din Planul de dezvoltare RER 2026-2035, tabelele 2.1-2.3 (https://www.reteleelectrice.ro/wp-content/uploads/plan-dezvoltare-re-consultare.pdf). Total 3.180.331. București 1.061.381; Ilfov 126.526; Giurgiu 318.642; Constanța 351.735; Tulcea 103.832; Călărași 129.626; Ialomița 120.907; Timiș 371.306; Arad 223.282; Caraș-Severin 149.668; Hunedoara 223.426. Pe regiuni: Muntenia 1.506.549, Banat 967.682, Dobrogea 706.100. Planul are și km de linii MT aeriene pe județ, utili mai târziu pentru vulnerabilitate.
 - **Mărimea zonelor:** județele au 3.500-8.700 km², adică de 2-4 ori mai mult decât un comitat american tipic. Le împărțim în 26 de zone de circa 2.000-3.000 km², numite după orașul principal (`data/samples/B/zones_ro.yaml`). Clienții pe zonă se aproximează din populația orașului plus o parte egală din restul județului și sunt etichetați „APROXIMARE”.
-- **Fiabilitate:** SAIDI neplanificat 2024 (ANRE, prin presă): Banat 105 min, Dobrogea 80, Muntenia 74 (https://www.economica.net/romanii-au-stat-fara-electricitate-in-medie-aproape-patru-ore-in-2024-situatie-putin-mai-buna-fata-de-anul-precedent-care-este-situatia-pentru-fiecare-zona-din-tara_856544.html). PPC, semestrul I 2026: SAIDI 35 min, SAIFI 0,90 (https://www.economica.net/ppc-si-a-prezentat-rezultatele-pentru-semstrul-i-din-2026-si-a-anuntat-ce-profit-pe-tot-anul-tinteste-si-ce-dividende-a-pregatit_965752.html/amp). Partea din SAIDI cauzată de vremea extremă nu e publică (neverificat).
-- **Compensații** (Ord. ANRE 46/2021, https://reteleelectrice.ro/wp-content/uploads/sinteza-standard-de-performanta.pdf):
-  - Restabilirea alimentării trebuie să se facă în 4 h în reședințele de județ, 6 h în restul mediului urban și 12 h în cel rural, pe vreme normală. Pe vreme deosebită termenul e de 48 h în intravilan și 72 h în extravilan.
-  - La depășire, clientul primește 30 lei la JT, 200 lei la MT, 300 lei la 110 kV.
-  - În 2024, RER a plătit circa 23 mil. lei compensații (https://www.forbes.ro/?p=458099).
-  - Compensația legală nu e un cost pe oră, deci costul pe client-oră din `config/economics.yaml` rămâne IPOTEZĂ.
+- **Fiabilitate, 2024:** sursele dau cifre diferite, așa că nu le amestecăm.
+  - Documentul de research aprobat de Teo (`memory/12-probleme-reale-ppc-2026.md`, neverificat): Muntenia, SAIDI neplanificat 95,14 min și SAIFI neplanificat 2,29; Banat și Dobrogea, SAIDI 79,9 min și SAIFI 2,3-2,55.
+  - Economica, pe cifre ANRE: SAIDI neplanificat Banat 105 min, Dobrogea 80, Muntenia 74 (https://www.economica.net/romanii-au-stat-fara-electricitate-in-medie-aproape-patru-ore-in-2024-situatie-putin-mai-buna-fata-de-anul-precedent-care-este-situatia-pentru-fiecare-zona-din-tara_856544.html).
+  - Diferența vine probabil din definiții (cu sau fără evenimentele meteo deosebite și forța majoră). Neverificat.
+  - PPC, semestrul I 2026, pentru toată distribuția din România: SAIDI 35 min, SAIFI 0,90 (https://www.economica.net/ppc-si-a-prezentat-rezultatele-pentru-semstrul-i-din-2026-si-a-anuntat-ce-profit-pe-tot-anul-tinteste-si-ce-dividende-a-pregatit_965752.html/amp).
+  - Din 2025 până în 2029, ANRE leagă rentabilitatea distribuitorului de un indicator compus (calitate, regenerabile, digitalizare), după documentul de research (neverificat).
+  - Partea din SAIDI cauzată de vremea extremă nu e publică.
+- **Termenele de restabilire și compensațiile**, din sursa primară (verificată la 13:40): Ordinul ANRE nr. 46/2021, Monitorul Oficial, Partea I, nr. 649 din 1 iulie 2021, standardul, art. 15 alin. (1) și anexa nr. 1. Text: https://www.ppcenergy.ro/wp-content/uploads/ord-46-2021.pdf
+  - Întrerupere **neplanificată**, vreme normală: 4 h în municipiile reședință de județ (fără zonele lor rurale), 6 h în restul mediului urban, 12 h în mediul rural.
+  - Întrerupere neplanificată, condiții meteorologice deosebite: 48 h dacă avariile sunt în zona intravilană, 72 h dacă sunt în extravilan.
+  - Termenele curg din momentul în care distribuitorul a aflat de întrerupere (art. 15 alin. (2)).
+  - Întrerupere **planificată**: 8 h, indiferent de zonă (anexa 1, rândul 2). Cele „8 h urban” din alte surse sunt fie termenul pentru întreruperile planificate, fie standardul vechi.
+  - Compensația la depășire, pentru fiecare dintre aceste termene: 30 lei la JT, 200 lei la MT, 300 lei la 110 kV.
+  - Sinteza RER, care include completarea prin Ord. ANRE 64/2022, dă aceleași termene: https://reteleelectrice.ro/wp-content/uploads/sinteza-standard-de-performanta.pdf
+- **Cât plătește RER:** circa 85% din compensațiile automate plătite la nivel național, după raportul ANRE pe 2024 (preluat în `memory/12-probleme-reale-ppc-2026.md`). Sumele absolute diferă între surse, așa că folosim doar procentul.
+- Compensația legală nu e un cost pe oră, deci costul pe client-oră din `config/economics.yaml` rămâne IPOTEZĂ.
+- **De ce contează pentru PPC:** întreruperile și compensațiile automate (problema D1 din documentul de research) sunt pe lista problemelor neacoperite de cele 9 proiecte AI ale PPC. Furtunile sunt cauza lor cea mai vizibilă, iar termenul de 48 h pe vreme deosebită e cel pe care echipele trimise din timp îl apără.
 - **Harta publică de întreruperi** RER (https://www.reteleelectrice.ro/intreruperi/) e alimentată de un serviciu ArcGIS fără autentificare, cu întreruperile active: clienți afectați, județ, coordonate, ora estimată de revenire. Nu are istoric, dar e o sursă posibilă de calibrare dacă e arhivată la 15 minute.
 
 ## 6. Designul modelului (rezultat din cercetare)
