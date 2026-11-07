@@ -1,7 +1,7 @@
 # Status: Teo-ui
-Actualizat: 2026-11-07 18:50
-Milestone curent: trecerea de simplificare cerută de Teo (până la 22:00), după M4; înghețarea de la 20:00 nu se aplică acestei treceri
-Gata de merge: da (commit 9483c87: reparațiile din QA-ul de la 17:55, primul ecran simplu ales de Teo, navigarea cu trei intrări, De decis / lucrarea / postul cu verdictul întâi, /demo cu subtitrarea pe banda ei, review-ul final reparat, capturile noi)
+Actualizat: 2026-11-07 19:10
+Milestone curent: designul „Noapte” cerut de Teo la 18:55 (14 imagini), aplicat pe toate ecranele; lucru în curs
+Gata de merge: nu încă (redesign în lucru; ultima versiune bună: 63fac7a)
 
 ## Făcut
 - 12:45 Citite instrucțiunile, memoria, planul, contractele; `uv sync` și `make check` trec.
@@ -57,6 +57,8 @@ Gata de merge: da (commit 9483c87: reparațiile din QA-ul de la 17:55, primul ec
 - 18:40 `/demo`: scenele 1 și 2 pe noul prim ecran, în tema închisă; scenele 3–5 pe harta mare; subtitrarea scenei pe o bandă opacă a ei, nu peste hartă.
 - 18:50 Posturi, simplificat la fel: o frază („22 de posturi pierd mult: peste 600 de lei pe lună.”), lista cu cele mai mari pierderi, în lei rotunjiți, tabelul complet cu cifrele exacte la cerere.
 - 18:45 Review `web-design-guidelines` pe ecranele noi (0 grave, 8 medii, toate reparate), testul de fum 15/15 (cu `/harta`), 50 de teste, consola fără erori; capturile noi pentru slideuri (15) în `web/design/captures/`.
+- 18:55 Teo a trimis 14 imagini de design („Noapte”: fundal bleumarin închis, meniu în stânga, carduri, pastile, indicatori semicirculari) și a cerut consola „identic așa”. Decizie: aspectul din imagini, datele reale din API (imaginile au cifre inventate de generator, de ex. „1.284 posturi”, „PT-1223 Domnești”, rânduri de jurnal; nu le copiem).
+- 19:01 Fundația: tema închisă (culori luate cu pipeta din imagini), fontul Inter, meniul din stânga cu cele opt ecrane, filele Consola / Rezultate / Rulează / Vezi demo, căutarea (⌘K), pe telefon bara de jos; piesele comune în `web/components/ds/`. Șase subagenți refac în paralel ecranele (planul, Nu sunt sigur + Rulare agent, posturile, lucrările A/B/C, jurnal + alerte + modele, ordinul de lucru + prezentarea).
 
 ## Urmează
 - Până la 20:00: captura paginii unui post cu graficul bilanțului, dacă seriile ajung în API sau în instantaneu; altfel nimic nou, doar ce găsește testarea.
