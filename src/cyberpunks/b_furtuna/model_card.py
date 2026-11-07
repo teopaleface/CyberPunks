@@ -55,6 +55,18 @@ def run() -> str:
         "(P10/P50/P90). Agentul folosește estimarea ca să trimită echipe din timp (`preposition_crew`) sau, când nu e sigur, "
         "să lase decizia dispecerului (`human_review`)."),
         "",
+        "",
+        "## De ce contează pentru PPC",
+        "",
+        ("- Întreruperile și compensațiile automate sunt pe lista problemelor neacoperite de cele 9 proiecte AI ale PPC "
+        "(`memory/12-probleme-reale-ppc-2026.md`, problema D1)."),
+        "- Rețele Electrice plătește circa 85% din compensațiile automate naționale (raportul ANRE pe 2024).",
+        ("- Standardul ANRE (Ord. 46/2021, art. 15) cere restabilirea în 4/6/12 h pe vreme normală și în 48/72 h pe vreme "
+        "deosebită; la depășire, fiecare client JT primește automat 30 lei. O echipă aflată deja în zonă scurtează "
+        "restabilirea exact în zilele în care rețeaua e cea mai solicitată."),
+        ("- PPC are din noiembrie 2025 un sistem nou de gestionare a echipelor de teren (WFM). Modelul îi dă ce-i lipsește: "
+        "unde și când vor fi avarii mâine, cu cât de sigur e."),
+        "",
         "- **Utilizatori:** dispecerii Rețele Electrice, prin planificator și interfață.",
         "- **Nu e pentru:** decizii automate fără om, despăgubiri, evaluarea clienților. Nu folosește date personale.",
         "",
