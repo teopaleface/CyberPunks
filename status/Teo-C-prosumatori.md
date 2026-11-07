@@ -1,7 +1,7 @@
 # Status: Teo-C-prosumatori
-Actualizat: 2026-11-07 14:40
+Actualizat: 2026-11-07 14:41
 Milestone curent: M3 în lucru (M2 terminat la 14:11; M3 aproape gata: analiza erorilor, investiții, racordări, teste)
-Gata de merge: da (commit 10c68ae: M2 complet, M3 aproape gata; `make check` trece, 175 de teste)
+Gata de merge: nu, până la 15:05 (refac simulările și evaluarea după corecturile din review; ultimul commit bun pentru merge rămâne 1ae727f)
 
 ## Făcut
 - M0 (13:10): calcul de rețea vectorizat verificat față de pandapower, prima rețea simulată, `docs/research/C.md`.
@@ -40,7 +40,14 @@ Gata de merge: da (commit 10c68ae: M2 complet, M3 aproape gata; `make check` tre
   - teste noi: `tests/c/test_remedies.py`, `tests/c/test_connection.py`.
 - 14:30 Ablații: fără trăsăturile fizice din topologie MAE 0,0119 pu (de 2,2 ori mai mare) și PR-AUC 0,384 (sub baseline); fără tensiunea de pornire și priză MAE 0,0205. Modelul are nevoie de topologia din GIS și de priza fiecărui post.
 - 14:38 Interval conformal pe grupe de rețea: acoperire 82,1%, rural3 de la 73% la 80%. `reports/C/README.md`: C pe o pagină, pentru prezentare.
-- 14:20 Review independent de cod cerut la Codex (rulează).
+- 14:20-14:39 Review independent de cod (Codex): 8 probleme reale, toate reparate în 71d74ed, cu teste:
+  - cascada de opriri ale invertoarelor era plafonată la 10 pe oră (subestima energia pierdută);
+  - energia pierdută la oprire contabilizată consecvent cu bateria (invertor hibrid, IPOTEZĂ notată);
+  - intervalul orar era calibrat și cu reziduuri din perioada de test (scurgere de informație); acum doar din antrenare;
+  - o margine conformală negativă ar fi putut încrucișa cuantilele;
+  - mesajele de grup: energia mutată se păstrează exact; bateriile: economia ține cont de limita de putere și de pierderi;
+  - fereastra care se termină la miezul nopții.
+  - Refac tot lanțul (simulări, evaluare, model, lucrări, rapoarte); cifrele noi vin la 15:05.
 
 ## Urmează
 - Corecturile din review-ul Codex.
