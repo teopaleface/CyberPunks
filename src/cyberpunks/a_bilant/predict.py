@@ -322,13 +322,13 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
             if len(factors) == 5:
                 break
         lei_month = 0.0 if label == "contor_bilant_setat" else excess * 30 * eco["price"]
-        who = f", {CLASS_RO[label]} la clientul {extra['suspect_meter']} ({extra['suspect_meter_reason_ro']})" if label == "contor_client" and "suspect_meter" in extra else f", {CLASS_RO[label]}"
+        who = f"{CLASS_RO[label]}, probabil clientul {extra['suspect_meter']} ({extra['suspect_meter_reason_ro']})" if label == "contor_client" and "suspect_meter" in extra else CLASS_RO[label]
         if r["abstain"]:
             summary = f"Postul {pid}: ~{lei_month:.0f} lei pe lună pierduți peste normal. Nu sunt sigur de cauză ({r['abstain_reason']}): {CLASS_RO[label]} {r['p_label']:.0%} sau {CLASS_RO[r['second']]} {r['p_second']:.0%}. Decide un om."
         elif label == "contor_bilant_setat":
             summary = f"Postul {pid}: contorul postului arată de {r['bal_db_ratio']:.2f} ori suma clienților ({r['p_label']:.0%} contor de post setat greșit). Lipsa de ~{r['r_mean_kwh']:.0f} kWh/zi e doar pe hârtie. Recomand: {ACTION_RO[action]} (raportul de transformare)."
         else:
-            summary = f"Postul {pid}: ~{lei_month:.0f} lei pe lună, {r['p_label']:.0%}{who}. Recomand: {ACTION_RO[action]}."
+            summary = f"Postul {pid}: ~{lei_month:.0f} lei pe lună pierduți peste normal. Cauza probabilă ({r['p_label']:.0%}): {who}. Recomand: {ACTION_RO[action]}."
         wid = f"A-{target:%Y%m%d}-{pid}"
         miss = float(np.clip(r["miss_share_w"], 0, 1))
         item = {
