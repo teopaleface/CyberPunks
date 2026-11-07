@@ -133,7 +133,7 @@ HITS = [
     (9.0, "curent_furat", "„Curent furat.” (al doilea obiect 3D)", "step", None),
     (10.0, "prea_mult_soare", "„Prea mult soare.” (panoul solar)", "step", None),
     (11.0, "riser", "riser și rafală de snare spre 12,0", "build", None),
-    (12.0, "tura_de_maine", "„Tura de mâine face planul.” (soarele logoului răsare)", "lift", None),
+    (12.0, "tura_de_maine", "„Tura de mâine face planul.” (soarele logoului răsare)", "lift", BIG_A),
     (15.0, "consola", "consola apare", "accent", None),
     (16.0, "ruleaza", "CLIC pe „Rulează agentul”", "press", ["F#4", "A4", "E5"]),
     (16.5, "traseu_1", "traseele echipelor se desenează (1/4)", "note", ["B4"]),

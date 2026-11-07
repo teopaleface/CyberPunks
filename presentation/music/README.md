@@ -41,7 +41,7 @@ Doar verificările, pe fișierele existente: `uv run python presentation/music/a
 | `waveform_v3.png`, `spectrogram_v3.png` | graficele, cu liniile de măsură și loviturile filmului |
 | `report_v3.json` | toate măsurătorile; la `checks`, fiecare cerință cu „trece” sau „nu trece” |
 
-În git intră m4a-ul, mp4-ul, `cues_v3.json`, graficele și raportul. WAV-urile și `stems_v3/` se refac identic din cod (vezi `presentation/.gitignore`).
+În git intră m4a-ul, `cues_v3.json`, graficele și raportul. WAV-urile, `stems_v3/` și copia mp4 rămân locale și se refac din cod (vezi `presentation/.gitignore`).
 
 ### Forma piesei
 
