@@ -2,7 +2,7 @@
   "contract_version": "1.0",
   "source": "A",
   "model_id": "bilant-lgbm",
-  "model_version": "bilant-lgbm@480c26e",
+  "model_version": "bilant-lgbm@1da1471",
   "task": "bilanț pe post: pierderea normală (regresie cuantilă P10/P50/P90), diagnosticul cauzei (clasificare în 6 clase), fuziunea cu scorul contoarelor A (clasament în primele K)",
   "dataset": [
     "SimBench 1-LV-* (rețele de joasă tensiune și profile de consum, ODbL), variante SINTETICE construite de firul C",
@@ -89,6 +89,6 @@
     "fuziune_benign_in_top20_per_day": 0.8
   },
   "synthetic_share": 1.0,
-  "created_at": "2026-11-07T14:10:21+02:00",
+  "created_at": "2026-11-07T14:20:08+02:00",
   "reproduce_cmd": "uv run python -m cyberpunks.a_bilant.dataset && uv run python -m cyberpunks.a_bilant.evaluate"
 }
