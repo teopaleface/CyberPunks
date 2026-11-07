@@ -132,6 +132,42 @@ FEATURE_INFO: dict[str, FeatureInfo] = {
         "Un contor sănătos urmează aceleași zile reci sau calde ca vecinii; unul blocat nu.",
         lambda v: f"seamănă cu vecinii în proporție de {_pct(max(v, 0))}% (corelație)",
     ),
+    "max_drop_peer": FeatureInfo(
+        "Scăderea bruscă măsurată față de vecini nu se confundă cu vara sau cu sărbătorile.",
+        lambda v: f"față de vecini, o scădere bruscă de {_pct(v)}%",
+    ),
+    "peer_ratio_slope": FeatureInfo(
+        "O alunecare lentă față de vecini arată un contor care înregistrează tot mai puțin sau un furt instalat treptat.",
+        lambda v: (
+            f"față de vecini, consumul scade cu {_pct(v)}% pe lună"
+            if v < 0
+            else f"față de vecini, consumul crește cu {_pct(v)}% pe lună"
+        ),
+    ),
+    "half_ratio": FeatureInfo(
+        "Compară a doua jumătate a perioadei cu prima: prinde schimbările de nivel lente sau vechi.",
+        lambda v: f"ultimele 3 luni: {_pct(v)}% din consumul primelor 3",
+    ),
+    "low_day_share": FeatureInfo(
+        "Multe zile sub jumătate din consumul obișnuit arată opriri repetate ale contorului.",
+        lambda v: f"{_pct(v)}% din zile sub jumătate din consumul obișnuit",
+    ),
+    "gap_count": FeatureInfo(
+        "Multe goluri scurte, separate, arată o comunicație instabilă (modul sau semnal slab).",
+        lambda v: f"{_n(v, 'gol separat', 'goluri separate')} în date",
+    ),
+    "q10_over_median": FeatureInfo(
+        "Zilele cele mai slabe, raportate la o zi obișnuită: aproape de zero la opriri, aproape de 1 la valori plate.",
+        lambda v: f"zilele slabe au {_pct(v)}% din consumul obișnuit",
+    ),
+    "q90_over_median": FeatureInfo(
+        "Zilele cele mai mari, raportate la o zi obișnuită: prea mari la salturi, prea mici la valori plate.",
+        lambda v: f"zilele mari au de {v:.1f} ori consumul obișnuit",
+    ),
+    "weekly_autocorr": FeatureInfo(
+        "O casă are ritm de săptămână (weekend diferit); un contor blocat sau o citire falsă nu are.",
+        lambda v: f"ritmul săptămânal seamănă {_pct(max(v, 0))}% cu săptămâna anterioară",
+    ),
     "level_kwh": FeatureInfo(
         "Nivelul de consum contează pentru valoarea pierderii, dar consumul mic nu e dovadă de furt.",
         lambda v: f"consum obișnuit: {v:.1f} kWh pe zi",
@@ -181,6 +217,14 @@ FEATURE_INFO: dict[str, FeatureInfo] = {
         "Intervalele de 30 de minute de zeci de ori peste normal sunt erori de măsură.",
         lambda v: f"{_n(v, 'interval', 'intervale')} de 30 de minute cu salturi imposibile",
     ),
+    "profile_lag": FeatureInfo(
+        "Dacă profilul zilei se potrivește cu cel obișnuit doar mutat cu câteva ore, ceasul contorului e decalat.",
+        lambda v: f"profilul zilei pare mutat cu {abs(v) / 2:.1f} ore față de obicei",
+    ),
+    "profile_lag_gain": FeatureInfo(
+        "Cât de mult se potrivește mai bine profilul după mutare: separă ceasul decalat de schimbările de obicei.",
+        lambda v: f"profilul se potrivește cu {_pct(v)} puncte mai bine dacă îl muți în timp",
+    ),
     "flat_slot_share_recent": FeatureInfo(
         "Aceeași valoare la fiecare 30 de minute arată o citire repetată (contor blocat).",
         lambda v: f"{_pct(v)}% din intervale repetă exact valoarea anterioară",
@@ -207,6 +251,14 @@ DAILY_FEATURES = [
     "peer_ratio_change",
     "peer_corr",
     "level_kwh",
+    "max_drop_peer",
+    "peer_ratio_slope",
+    "half_ratio",
+    "low_day_share",
+    "gap_count",
+    "q10_over_median",
+    "q90_over_median",
+    "weekly_autocorr",
 ]
 INTRADAY_FEATURES = [
     "night_share_recent",
@@ -220,6 +272,8 @@ INTRADAY_FEATURES = [
     "negative_slot_share",
     "spike_slot_count",
     "flat_slot_share_recent",
+    "profile_lag",
+    "profile_lag_gain",
 ]
 ALL_FEATURES = DAILY_FEATURES + INTRADAY_FEATURES
 
@@ -304,6 +358,30 @@ def _row_corr(a: np.ndarray, b: np.ndarray) -> np.ndarray:
         r = cov / np.sqrt((da**2).sum(axis=1) * (db**2).sum(axis=1))
     r[(cnt < 10) | ~np.isfinite(r)] = np.nan
     return r
+
+
+def _weekly_slope(a: np.ndarray, already_log: bool = False) -> np.ndarray:
+    """Panta medianelor săptămânale (log), ca schimbare relativă pe 30 de zile."""
+    n, w = a.shape
+    n_weeks = w // 7
+    if n_weeks < 4:
+        return np.full(n, np.nan)
+    weeks = a[:, w - n_weeks * 7 :].reshape(n, n_weeks, 7)
+    wm = _nanmedian(weeks, axis=2)
+    if not already_log:
+        wm = np.log1p(np.clip(wm, 0, None))
+    t_idx = np.arange(n_weeks, dtype=float)
+    m = ~np.isnan(wm)
+    cnt = m.sum(axis=1)
+    tm = np.where(m, t_idx, 0).sum(axis=1) / np.maximum(cnt, 1)
+    ym = np.where(m, wm, 0).sum(axis=1) / np.maximum(cnt, 1)
+    dt = np.where(m, t_idx - tm[:, None], 0)
+    dy = np.where(m, wm - ym[:, None], 0)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        slope_week = (dt * dy).sum(axis=1) / (dt**2).sum(axis=1)
+    slope = np.expm1(slope_week * 30 / 7)
+    slope[cnt < 4] = np.nan
+    return np.clip(slope, -1.0, 5.0)
 
 
 # --------------------------------------------------------------------------------------------
@@ -408,6 +486,42 @@ def daily_features(x: np.ndarray, peer: np.ndarray | None = None, recent: int = 
             out[k] = np.full(n, np.nan)
 
     out["level_kwh"] = med_b if b.shape[1] else med_all
+
+    # scăderea bruscă și panta, raportate la vecini (scot sezonul: vara, sărbătorile)
+    if peer is not None:
+        ratio = _safe_ratio(x, p + EPS)
+        drops_p = []
+        for t in range(90, w - 28 + 1, 7):
+            before = _nanmedian(ratio[:, t - 90 : t])
+            after = _nanmedian(ratio[:, t : t + 28])
+            drops_p.append(1.0 - _safe_ratio(after, before + EPS))
+        if drops_p:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", RuntimeWarning)
+                out["max_drop_peer"] = np.clip(np.nanmax(np.vstack(drops_p), axis=0), -5.0, 1.0)
+        else:
+            out["max_drop_peer"] = np.full(n, np.nan)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            log_ratio = np.log((np.clip(x, 0, None) + 0.05) / (np.clip(p, 0, None) + 0.05))
+        out["peer_ratio_slope"] = _weekly_slope(log_ratio[:, -min(w, 84) :], already_log=True)
+    else:
+        out["max_drop_peer"] = np.full(n, np.nan)
+        out["peer_ratio_slope"] = np.full(n, np.nan)
+
+    half = w // 2
+    out["half_ratio"] = _safe_ratio(_nanmedian(x[:, half:]), _nanmedian(x[:, :half]) + EPS)
+    with np.errstate(invalid="ignore"):
+        low = (x < 0.5 * med_all[:, None]) & valid
+    out["low_day_share"] = np.where(n_valid > 0, low.sum(axis=1) / np.maximum(n_valid, 1), np.nan)
+    miss = (~valid).astype(np.int8)
+    out["gap_count"] = ((np.diff(miss, axis=1) == 1).sum(axis=1) + miss[:, 0]).astype(float)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        q10 = np.nanpercentile(x, 10, axis=1)
+        q90 = np.nanpercentile(x, 90, axis=1)
+    out["q10_over_median"] = _safe_ratio(q10, np.abs(med_all) + 0.1)
+    out["q90_over_median"] = _safe_ratio(q90, np.abs(med_all) + 0.1)
+    out["weekly_autocorr"] = _row_corr(x[:, 7:], x[:, :-7]) if w > 21 else np.full(n, np.nan)
     df = pd.DataFrame(out, columns=DAILY_FEATURES)
     return df.astype("float32")
 
@@ -459,6 +573,21 @@ def intraday_features(recent: np.ndarray, base: np.ndarray) -> pd.DataFrame:
     shift = np.minimum(diff, 48 - diff).astype(float)
     shift[np.all(np.isnan(prof_r), axis=1) | np.all(np.isnan(prof_b), axis=1)] = np.nan
     out["peak_shift"] = shift
+
+    # decalajul de ceas: cu cât trebuie mutat profilul obișnuit ca să se potrivească cu cel recent
+    def _z(a: np.ndarray) -> np.ndarray:
+        mu = np.nanmean(a, axis=1, keepdims=True)
+        sd = np.nanstd(a, axis=1, keepdims=True)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            return (a - mu) / np.where(sd > 1e-9, sd, np.nan)
+
+    zr, zb = _z(prof_r), _z(prof_b)
+    lags = np.arange(-6, 7)
+    corr = np.stack([np.nanmean(zr * np.roll(zb, int(k), axis=1), axis=1) for k in lags], axis=1)  # (n, 13)
+    ok = np.isfinite(corr).all(axis=1)
+    best = np.where(ok, np.argmax(np.nan_to_num(corr, nan=-9), axis=1), 6)
+    out["profile_lag"] = np.where(ok, lags[best].astype(float), np.nan)
+    out["profile_lag_gain"] = np.where(ok, corr[np.arange(n), best] - corr[:, 6], np.nan)
 
     flat_r = recent.reshape(n, -1)
     valid_r = ~np.isnan(flat_r)

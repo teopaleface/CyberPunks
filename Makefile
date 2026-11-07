@@ -95,6 +95,15 @@ c-test:           ## C: testele firului C
 	uv run pytest tests/c
 c-all: c-weather c-sim c-population c-train c-predict c-eval  ## C: tot lanțul, de la date la lucrări (circa 15 minute)
 
+# ---- Bilanț pe post (firul Teo-bilant) ----
+.PHONY: bilant-data bilant-eval bilant-test
+bilant-data:      ## Bilanț: lumea simulată, 600 de posturi cu probleme ascunse (data/processed/bilant), cel mult 4 procese
+	uv run python -m cyberpunks.a_bilant.dataset --workers 4
+bilant-eval:      ## Bilanț: modelele și metodele simple, reports/bilant/metrics.json și figurile
+	uv run python -m cyberpunks.a_bilant.evaluate
+bilant-test:      ## Bilanț: testele firului
+	uv run pytest tests/bilant
+
 # ---- Planificator și API (firul Teo-planificator) ----
 .PHONY: api api-dev run-demo test-planner
 
@@ -111,5 +120,14 @@ test-planner:     ## testele planificatorului și ale API-ului
 	uv run pytest tests/planner
 
 # ---- Interfață (firul Teo-ui) ----
+.PHONY: web web-install web-build web-test
+web-install:      ## instalează dependențele consolei (bun; merge și npm install în web/)
+	cd web && bun install
+web: web-install  ## pornește consola dispecerului pe http://localhost:3710 (API-ul pe 8710 e opțional)
+	cd web && bun run dev
+web-build: web-install  ## build de producție al consolei
+	cd web && bun run build
+web-test:         ## testele consolei (stratul de date: API, instantaneu demo, fixture-uri)
+	cd web && bun test
 
 # ---- Prezentare (firul Teo-prezentare) ----

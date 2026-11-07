@@ -1,0 +1,309 @@
+"use client";
+
+import dynamic from "next/dynamic";
+import { useCallback, useMemo, useState } from "react";
+import { cn } from "cn";
+import type { WorkItem } from "@/lib/contracts";
+import { DECISION_LABEL_RO } from "@/lib/data/labels";
+import { hhmm, minutesOfDay } from "@/lib/format";
+import { markerKind, markerSvg } from "@/lib/marker-svg";
+import { RE_BOUNDS, itemTitle, type PlanScreenData } from "@/lib/plan-screen";
+import type { LocatorGeo } from "@/lib/server/geo";
+import { Feeders } from "./feeders";
+import type { Bounds, MapItem } from "./plan-map";
+import { AlertsPanel, QueuePanel, WorkItemPeek } from "./rail";
+
+// MapLibre e greu (~800 KB): se încarcă doar în browser, după restul ecranului.
+const PlanMap = dynamic(() => import("./plan-map").then((m) => m.PlanMap), {
+  ssr: false,
+  loading: () => <div className="absolute inset-0 animate-pulse bg-canvas" aria-hidden="true" />,
+});
+
+const ALL = "toata_zona";
+
+function shortDepot(label: string): string {
+  return label
+    .replace(/^Bază operativă\s*/i, "Baza ")
+    .replace(/\s*\(simulată\)/i, "")
+    .replace(/^Baza București /, "Baza ");
+}
+
+export function PlanScreen({
+  data,
+  geo,
+  initialSelected,
+  theme = "light",
+}: {
+  data: PlanScreenData;
+  geo: LocatorGeo | null;
+  initialSelected: string | null;
+  theme?: "light" | "dark";
+}) {
+  const itemsById = useMemo(() => Object.fromEntries(data.items.map((w) => [w.work_item_id, w])) as Record<string, WorkItem>, [data.items]);
+  const stopInfo = useMemo(() => {
+    const m = new Map<string, { crewId: string; seq: number; start: number; end: number }>();
+    for (const r of data.routes) {
+      for (const s of r.stops) {
+        const start = minutesOfDay(s.eta);
+        m.set(s.work_item_id, { crewId: r.crew_id, seq: s.seq, start, end: start + s.duration_min });
+      }
+    }
+    return m;
+  }, [data.routes]);
+
+  const [selected, setSelected] = useState<string | null>(initialSelected);
+  const [region, setRegion] = useState<string>(() => {
+    const r = initialSelected ? data.regionOf[initialSelected] : null;
+    return r ?? data.defaultRegion;
+  });
+
+  const select = useCallback(
+    (id: string) => {
+      setSelected(id);
+      const r = data.regionOf[id];
+      setRegion((cur) => (cur === ALL || !r || r === cur ? cur : r));
+      const url = new URL(window.location.href);
+      url.searchParams.set("lucrare", id);
+      window.history.replaceState(window.history.state, "", url);
+    },
+    [data.regionOf],
+  );
+
+  const bounds: Bounds = useMemo(() => {
+    if (region === ALL) return RE_BOUNDS;
+    return data.regions.find((r) => r.id === region)?.bounds ?? RE_BOUNDS;
+  }, [region, data.regions]);
+
+  const mapItems: MapItem[] = useMemo(
+    () =>
+      data.items.map((w) => {
+        const d = data.decisions[w.work_item_id];
+        const kind = markerKind(d?.decision);
+        const stop = stopInfo.get(w.work_item_id);
+        let sub: string | undefined;
+        if (stop) sub = `${stop.crewId}, ${hhmm(stop.start)}`;
+        else if (d) sub = DECISION_LABEL_RO[d.decision];
+        else sub = "fără decizie";
+        return {
+          id: w.work_item_id,
+          source: w.source,
+          lat: w.location.lat,
+          lon: w.location.lon,
+          kind,
+          title: w.asset_type === "meter" ? w.asset_id : itemTitle(w),
+          sub,
+          pinned: kind === "assigned" || kind === "human",
+          attention: kind === "human",
+        };
+      }),
+    [data.items, data.decisions, stopInfo],
+  );
+  const mapRoutes = useMemo(() => data.routes.map((r) => ({ crewId: r.crew_id, path: r.path })), [data.routes]);
+  const mapDepots = useMemo(
+    () => data.depots.map((d) => ({ id: d.depot_id, label: shortDepot(d.label_ro), lat: d.lat, lon: d.lon })),
+    [data.depots],
+  );
+
+  const queue = useMemo(
+    () => Object.values(data.decisions).filter((d) => d.decision === "human_review"),
+    [data.decisions],
+  );
+  const selItem = selected ? (itemsById[selected] ?? null) : null;
+  const selStop = selected ? stopInfo.get(selected) : undefined;
+
+  return (
+    <>
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_clamp(460px,38vw,732px)]">
+        <div className="relative min-h-0 overflow-hidden border-r border-rule">
+          <PlanMap
+            className="absolute inset-0"
+            items={mapItems}
+            routes={mapRoutes}
+            depots={mapDepots}
+            bounds={bounds}
+            selectedId={selected}
+            onSelect={select}
+            theme={theme}
+          />
+          <RegionChips regions={data.regions} region={region} onChange={setRegion} totalItems={data.items.length} />
+          <Legend />
+          {geo ? (
+            <Locator
+              geo={geo}
+              data={data}
+              region={region}
+              bounds={bounds}
+              onRegion={setRegion}
+              itemsById={itemsById}
+            />
+          ) : null}
+        </div>
+        <aside className="flex min-h-0 flex-col bg-panel" aria-label="Decizii care cer atenție">
+          <QueuePanel queue={queue} itemsById={itemsById} scenario={data.scenario} onSelect={select} />
+          <AlertsPanel alerts={data.alerts} onSelect={select} />
+          <WorkItemPeek
+            w={selItem}
+            decision={selected ? (data.decisions[selected] ?? null) : null}
+            crewInfo={selStop ? { crewId: selStop.crewId, seq: selStop.seq, start: hhmm(selStop.start), end: hhmm(selStop.end) } : null}
+            scenario={data.scenario}
+          />
+        </aside>
+      </div>
+      <Feeders
+        routes={data.routes}
+        itemsById={itemsById}
+        decisions={data.decisions}
+        depots={data.depots}
+        crews={data.crews}
+        shift={data.shift}
+        quarantine={data.quarantine}
+        selectedId={selected}
+        onSelect={select}
+      />
+    </>
+  );
+}
+
+function RegionChips({
+  regions,
+  region,
+  onChange,
+  totalItems,
+}: {
+  regions: PlanScreenData["regions"];
+  region: string;
+  onChange: (id: string) => void;
+  totalItems: number;
+}) {
+  const chips = [{ id: ALL, label: "Toată zona", count: totalItems }, ...regions.map((r) => ({ id: r.id, label: r.label, count: r.itemCount }))];
+  return (
+    <div role="group" aria-label="Zona arătată pe hartă" className="absolute top-4 left-4 flex overflow-hidden rounded-[4px] border border-rule bg-panel text-[14.5px]">
+      {chips.map((c) => (
+        <button
+          key={c.id}
+          type="button"
+          aria-pressed={region === c.id}
+          onClick={() => onChange(c.id)}
+          className={cn(
+            "flex h-10 items-center gap-2 border-l border-rule px-3.5 whitespace-nowrap transition-colors duration-150 first:border-l-0",
+            region === c.id ? "bg-ink font-[600] text-panel" : "font-[500] text-ink hover:bg-muted",
+          )}
+        >
+          {c.label}
+          <span className={cn("tabular-nums", region === c.id ? "text-panel/75" : "text-muted-foreground")}>{c.count}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function Legend() {
+  const sm = (html: string) => (
+    <span
+      className="block size-[22px] shrink-0 [&>svg]:block"
+      dangerouslySetInnerHTML={{ __html: html.replace('width="36" height="36"', 'width="22" height="22"').replace('viewBox="0 0 36 36"', 'viewBox="5 5 26 26"') }}
+    />
+  );
+  const items: [string, string][] = [
+    [markerSvg({ source: "A", r: 9 }), "Contoare"],
+    [markerSvg({ source: "B", r: 9 }), "Furtună"],
+    [markerSvg({ source: "C", r: 9 }), "Tensiune"],
+    [markerSvg({ source: "A", kind: "human", r: 9 }), "Decide un om"],
+    [markerSvg({ source: "C", kind: "remote", r: 9 }), "Fără echipă"],
+    [markerSvg({ source: "B", kind: "pending", r: 9 }), "Amânată"],
+  ];
+  return (
+    <div className="absolute bottom-7 left-4 flex items-center gap-4 rounded-[4px] border border-rule bg-panel/95 px-3 py-1.5 text-[13.5px]">
+      {items.map(([html, label]) => (
+        <span key={label} className="flex items-center gap-1.5 whitespace-nowrap">
+          {sm(html)}
+          {label}
+        </span>
+      ))}
+      <span className="flex items-center gap-1.5 whitespace-nowrap text-muted-foreground">
+        <svg width="22" height="10" viewBox="0 0 26 12" aria-hidden="true">
+          <path d="M1 9 Q13 0 25 9" fill="none" style={{ stroke: "var(--ink)" }} strokeWidth="2.2" />
+        </svg>
+        ordinea opririlor, nu drumul
+      </span>
+    </div>
+  );
+}
+
+function Locator({
+  geo,
+  data,
+  region,
+  bounds,
+  onRegion,
+  itemsById,
+}: {
+  geo: LocatorGeo;
+  data: PlanScreenData;
+  region: string;
+  bounds: Bounds;
+  onRegion: (id: string) => void;
+  itemsById: Record<string, WorkItem>;
+}) {
+  const [w, s, e, n] = geo.bounds;
+  const px = (lon: number) => ((lon - w) / (e - w)) * geo.width;
+  const py = (lat: number) => ((n - lat) / (n - s)) * geo.height;
+  const label = region === ALL ? "Toată zona Rețele Electrice" : `Harta arată: ${data.regions.find((r) => r.id === region)?.label ?? region}`;
+  const items = Object.values(itemsById);
+  return (
+    <div className="absolute top-4 right-4 w-[292px] rounded-[4px] border border-rule bg-panel/95">
+      <div className="flex items-baseline justify-between border-b border-rule px-3 pt-2 pb-1.5 text-[14px]">
+        <b className="font-[600]">Zona Rețele Electrice</b>
+        <span className="text-muted-foreground">{label.replace("Harta arată: ", "")}</span>
+      </div>
+      <svg width="100%" viewBox={`-6 -6 ${geo.width + 12} ${geo.height + 12}`} role="group" aria-label={label} className="block">
+        {geo.counties.map((c) => (
+          <path
+            key={c.name}
+            d={c.d}
+            onClick={c.region ? () => onRegion(c.region!) : undefined}
+            className={c.region ? "cursor-pointer" : undefined}
+            style={{
+              fill: c.region ? (c.region === region ? "color-mix(in oklab, var(--ink) 16%, var(--panel))" : "var(--muted)") : "var(--panel)",
+              stroke: "var(--rule)",
+              strokeWidth: 0.6,
+            }}
+          >
+            <title>{c.region ? `${c.name}, ${data.regions.find((r) => r.id === c.region)?.label ?? ""}` : c.name}</title>
+          </path>
+        ))}
+        {region !== ALL ? (
+          <rect
+            x={px(bounds[0])}
+            y={py(bounds[3])}
+            width={Math.max(3, px(bounds[2]) - px(bounds[0]))}
+            height={Math.max(3, py(bounds[1]) - py(bounds[3]))}
+            fill="none"
+            style={{ stroke: "var(--ink)" }}
+            strokeWidth={1.4}
+          />
+        ) : null}
+        {data.depots.map((d) => (
+          <rect key={d.depot_id} x={px(d.lon) - 2} y={py(d.lat) - 5} width={4} height={10} style={{ fill: "var(--ink)" }} />
+        ))}
+        {items.map((it) => (
+          <circle
+            key={it.work_item_id}
+            cx={px(it.location.lon)}
+            cy={py(it.location.lat)}
+            r={it.source === "B" ? 4.5 : 3}
+            style={{ fill: `var(--src-${it.source.toLowerCase()})`, stroke: "var(--panel)" }}
+            strokeWidth={1}
+          />
+        ))}
+      </svg>
+      <div className="flex gap-3 border-t border-rule px-3 py-1.5 text-[13px] text-muted-foreground">
+        {data.regions.map((r) => (
+          <button key={r.id} type="button" onClick={() => onRegion(r.id)} className={cn("underline-offset-4 hover:text-ink hover:underline", r.id === region && "font-[600] text-ink")}>
+            {r.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}

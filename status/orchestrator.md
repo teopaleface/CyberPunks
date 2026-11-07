@@ -12,6 +12,7 @@ Actualizat: 2026-11-07 12:43
 ## Riscuri
 - Mac-ul era pe baterie la 12:46 (85%). Teo trebuie să-l pună la încărcat și să lase capacul deschis, altfel firele se opresc.
 ## Merge-uri făcute
+- 13:55: C (M1), A (M1), B (M1 provizoriu), bilanț (M1), planificator, interfață (M0). 165 de teste trec. Rulaj: A 249, B 26, C 41, 40 în trasee. Reparat: bilanțul lipsă nu mai degradează sursa A.
 - 13:40: Teo-A-contoare (M1), Teo-B-furtuna (M1 provizoriu), Teo-planificator (M2 parțial), Teo-C-prosumatori în Teo. 138 de teste trec. Primul rulaj cu modele reale: A 249 și B 26 de lucrări, 33 în trasee, 9 echipe.
 - 13:20: Teo-planificator (M1) și Teo-C-prosumatori (M0) în Teo; make check: 38 de teste trec; `cyberpunks run --scenario demo-vara` merge (fără lucrări reale încă: A, B, C nu au ieșiri pe 2025-07-08 în Teo).
 ## Probleme de integrare
