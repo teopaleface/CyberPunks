@@ -35,3 +35,13 @@ Demo-ul are 5 minute, deci slideurile sunt sprijin: cele marcate "principal" se 
 - `build_slides.py`: citește `reports/`, scrie `slides.html` din șablon, exportă PDF-ul cu Chrome headless în `presentation/exports/`.
 - Capturile din consolă (după 01:00, din modul `/demo`): planul pe hartă, detaliul unei lucrări, bilanțul unui post, scara de soluții, coada "Nu sunt sigur".
 - Verificarea fiecărei cifre înainte de export (scriptul tipărește tabelul cifrelor cu fișierul din care vine fiecare).
+
+
+## Cifre provizorii de folosit (orchestrator, 14:20; finale după 21:30)
+
+- A: NU folosim precizia@K de 1,00 (vine din defectele evidente de pe Londra, vezi `reports/A/error_analysis.md`). Cifrele cinstite: pe problemele subtile 0,61 față de 0,02 la regula simplă; pe SGCC, cu etichete reale, 0,81 față de 0,11.
+- B: PR-AUC 0,24 față de 0,13 (climatologia), provizoriu.
+- C: eroarea la tensiunea maximă 0,0054 pu față de 0,0227 la metoda simplă.
+- Bilanțul: cifra "cu bilanț față de fără" se reface.
+- Agentul: 42 de lucrări în traseele a 9 echipe (rulajul pe 8 iulie 2025); valoarea netă +49% față de cea mai bună strategie simplă, pe o lume sintetică de 30 de zile (`reports/planner/agent_eval.json`).
+- Standardul de repunere (Ord. ANRE 46/2021, art. 15, sursa primară): 4/6/12 h pe vreme normală (reședințe de județ, urban, rural) și 48/72 h pe vreme deosebită. NU 8/12/48 h, cum scria documentul de research.
