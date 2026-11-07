@@ -1,22 +1,25 @@
 import type { Metadata, Viewport } from "next";
-import { Figtree } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
 /*
- * Fontul: Figtree (OFL), ales ca alternativă liberă la PingLCG, fontul proprietar PPC.
- * Verificat în fișierele woff2: ș, ț, Ș, Ț cu virgulă (U+0219, U+021B, U+0218, U+021A) în
- * subsetul latin-ext, ă, â, î în latin; cifre tabulare (tnum).
+ * Fontul: pe Mac și iPhone, fontul sistemului (SF Pro, cu dimensiuni optice), ca în stilul Apple cerut
+ * de Teo (17:55). Pe celelalte sisteme, Inter (OFL), cel mai apropiat font liber de SF Pro.
+ * Inter nu se preîncarcă: pe Mac nu se descarcă deloc. Diacriticele ș/ț (virgulă dedesubt) sunt
+ * verificate în ambele (numele „Rețele Electrice” apare pe pagină).
  */
-const figtree = Figtree({
+const inter = Inter({
   subsets: ["latin", "latin-ext"],
-  variable: "--font-figtree",
+  variable: "--font-inter",
   display: "swap",
+  preload: false,
+  axes: ["opsz"],
 });
 
 export const metadata: Metadata = {
-  title: "Daybreak: echipele de mâine, planificate în seara asta",
+  title: "Daybreak: tomorrow’s crews, planned tonight",
   description:
-    "Agentul care decide în fiecare seară unde merg mâine echipele de teren Rețele Electrice. Proiect CyberPunks pentru SmartHack XI 2026, tema PPC. Nu este un produs oficial PPC.",
+    "An AI agent that decides every evening where the Rețele Electrice field crews go the next morning. A CyberPunks project for SmartHack XI 2026, PPC track. Not an official PPC product.",
 };
 
 export const viewport: Viewport = {
@@ -26,7 +29,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ro" className={figtree.variable}>
+    <html lang="en" className={inter.variable}>
       <body>{children}</body>
     </html>
   );

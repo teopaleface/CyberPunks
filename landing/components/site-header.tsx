@@ -1,36 +1,32 @@
-import { REPO_URL } from "./hero";
+export const REPO_URL = "https://github.com/teopaleface/CyberPunks";
 
 const LINKS = [
-  { href: "#problema", label: "Problema" },
-  { href: "#agentul", label: "Agentul" },
-  { href: "#sursele", label: "Sursele" },
-  { href: "#rezultate", label: "Rezultate" },
-  { href: "#demo", label: "Demo" },
-  { href: "#echipa", label: "Echipa" },
+  { href: "#problem", label: "Problem" },
+  { href: "#how", label: "How it works" },
+  { href: "#sources", label: "Models" },
+  { href: "#results", label: "Results" },
+  { href: "#team", label: "Team" },
 ];
 
-/** Antetul: doar cuvântul „Daybreak” (identitatea vizuală o alege Teo separat), legăturile și repo-ul. */
+/** Bara de sus, ca bara de produs Apple: material translucid, numele produsului, legăturile, un buton. */
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-50 border-b border-rule/70 bg-night/75 backdrop-blur-md supports-[backdrop-filter]:bg-night/60">
+    <header className="sticky top-0 z-50 border-b border-hairline bg-night/70 backdrop-blur-xl backdrop-saturate-150 supports-[backdrop-filter]:bg-night/55">
       <a
-        href="#continut"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:rounded-md focus:bg-ink focus:px-3 focus:py-2 focus:text-night"
+        href="#content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-3 focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-night"
       >
-        Sari la conținut
+        Skip to content
       </a>
-      <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-8 px-5 sm:px-8 xl:px-12 2xl:max-w-[1680px]">
-        <a href="#top" className="text-[1.3rem] font-bold tracking-[-0.03em] text-ink" aria-label="Daybreak, începutul paginii">
+      <div className="mx-auto flex h-[52px] max-w-[1180px] items-center gap-6 px-5 sm:px-8">
+        <a href="#top" className="text-[1.3rem] font-semibold tracking-[-0.025em] text-ink">
           Daybreak
         </a>
-        <nav aria-label="Secțiuni" className="hidden flex-1 md:block">
-          <ul className="flex items-center gap-1">
+        <nav aria-label="Sections" className="ml-auto hidden md:block">
+          <ul className="flex items-center gap-7">
             {LINKS.map((l) => (
               <li key={l.href}>
-                <a
-                  href={l.href}
-                  className="rounded-md px-3 py-2 text-[0.95rem] text-ink-2 transition-colors duration-150 hover:bg-night-3 hover:text-ink"
-                >
+                <a href={l.href} className="text-[0.82rem] text-ink-2 transition-colors duration-200 hover:text-ink">
                   {l.label}
                 </a>
               </li>
@@ -38,10 +34,10 @@ export function SiteHeader() {
           </ul>
         </nav>
         <a
-          href={REPO_URL}
-          className="ml-auto inline-flex h-9 items-center rounded-md border border-rule-strong px-3.5 text-[0.92rem] font-medium text-ink transition-colors duration-150 hover:border-ink-3 hover:bg-night-3 md:ml-0"
+          href="#demo"
+          className="ml-auto inline-flex h-7 items-center rounded-full bg-ppc-energy px-3.5 text-[0.8rem] font-medium text-white transition-[background-color,transform] duration-150 ease-out hover:bg-ppc-energy-hover active:scale-[0.96] md:ml-0"
         >
-          GitHub
+          Watch demo
         </a>
       </div>
     </header>

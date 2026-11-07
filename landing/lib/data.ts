@@ -29,7 +29,8 @@ export type ItemState = "route" | "human" | "remote" | "deferred" | "notify";
 interface WorkItem {
   work_item_id: string;
   source: Source;
-  location: { lat: number; lon: number; county?: string };
+  location: { lat: number; lon: number; county?: string; label?: string };
+  prediction?: { score?: number; confidence?: string; model_id?: string };
 }
 interface Decision {
   work_item_id: string;
@@ -250,6 +251,76 @@ export function loadHeroMap(): HeroMapData {
   };
 }
 
+function layer(it: { src: Source; state: ItemState }): number {
+  if (it.state === "route" || it.state === "human") return 10 + rank(it.state);
+  return it.src === "C" ? 5 : rank(it.state);
+}
+
 function rank(s: ItemState): number {
   return { deferred: 0, notify: 1, remote: 2, human: 3, route: 4 }[s];
+}
+
+/* ------------------------------------------------------------------ harta orașului (secțiunea „How it works”) */
+
+export interface CityMapData {
+  width: number;
+  height: number;
+  pitch: number;
+  dots: string;
+  items: { x: number; y: number; src: Source; state: ItemState; score: number }[];
+  routes: { d: string; crew: string; km: number }[];
+  depots: { x: number; y: number }[];
+  counts: { items: number; route: number; human: number; remote: number; crews: number; km: number };
+}
+
+// București și Ilfov, unde stau contoarele (A) și posturile (C) din scenariul demo
+const CITY_BOUNDS: [number, number, number, number] = [25.84, 44.24, 26.36, 44.6];
+
+export function loadCityMap(): CityMapData | null {
+  const demo = loadDemoPlan();
+  const geo = readJson<{ features: CountyFeature[] }>(path.join(process.cwd(), "data", "ro-judete.json"));
+  if (!demo || !geo) return null;
+  const width = 1000;
+  const pitch = 14;
+  const proj = makeProjection(CITY_BOUNDS, width);
+  const area = geo.features.filter((f) => ["București", "Ilfov"].includes(f.properties.name));
+  const dots = dotRowsPath(area, proj, pitch).d;
+  const inBox = (lat: number, lon: number) => lon >= CITY_BOUNDS[0] && lon <= CITY_BOUNDS[2] && lat >= CITY_BOUNDS[1] && lat <= CITY_BOUNDS[3];
+  const items = [...demo.items.values()]
+    .filter((it) => it.source !== "B" && inBox(it.location.lat, it.location.lon))
+    .map((it) => ({
+      x: proj.x(it.location.lon),
+      y: proj.y(it.location.lat),
+      src: it.source,
+      state: demo.state.get(it.work_item_id) ?? ("deferred" as ItemState),
+      score: Math.max(0, Math.min(1, it.prediction?.score ?? 0.5)),
+    }))
+    // ordinea desenării: lucrările stinse jos, posturile C peste lucrările de bilanț de pe același post,
+    // cazurile pentru om și opririle din trasee deasupra
+    .sort((a, b) => layer(a) - layer(b));
+  const routes: CityMapData["routes"] = [];
+  const depots: CityMapData["depots"] = [];
+  const seen = new Set<string>();
+  for (const r of demo.plan.routes) {
+    const dep = demo.depots.get(r.depot_id);
+    if (!dep || !inBox(dep.lat, dep.lon)) continue;
+    const stops = r.stops.map((st) => demo.items.get(st.work_item_id)).filter((x): x is WorkItem => !!x);
+    const pts = [dep, ...stops.map((st) => st.location), dep];
+    routes.push({ d: `M${pts.map((pt) => `${proj.x(pt.lon).toFixed(1)},${proj.y(pt.lat).toFixed(1)}`).join("L")}`, crew: r.crew_id, km: r.total_km });
+    if (!seen.has(r.depot_id)) {
+      seen.add(r.depot_id);
+      depots.push({ x: proj.x(dep.lon), y: proj.y(dep.lat) });
+    }
+  }
+  const s = demo.plan.summary;
+  return {
+    width,
+    height: proj.height,
+    pitch,
+    dots,
+    items,
+    routes,
+    depots,
+    counts: { items: s.items_in, route: s.assigned, human: s.human_review, remote: s.remote_actions, crews: s.crews_used, km: s.total_km },
+  };
 }
