@@ -23,23 +23,23 @@ export function MobileMenu({ info }: { info: ShellInfo }) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <button type="button" aria-label="Deschide meniul consolei" className="grid size-11 place-items-center rounded-full border border-rule text-ink hover:bg-surface-2 md:hidden">
+        <button type="button" aria-label="Open navigation" className="grid size-11 place-items-center rounded-full border border-rule text-ink hover:bg-surface-2 md:hidden">
           <Menu aria-hidden="true" size={20} strokeWidth={1.8} />
         </button>
       </SheetTrigger>
       <SheetContent side="right" className="w-[88%] max-w-[360px] gap-5 overflow-y-auto border-rule bg-panel p-5 text-ink">
-        <SheetTitle>Meniu</SheetTitle>
-        <SheetDescription className="sr-only">Secțiunile consolei, scenariul și proveniența datelor.</SheetDescription>
-        <nav aria-label="Secțiunile" className="flex flex-col gap-1">
+        <SheetTitle>Menu</SheetTitle>
+        <SheetDescription className="sr-only">Workspace navigation, scenario and data sources.</SheetDescription>
+        <nav aria-label="Workspace navigation" className="flex flex-col gap-1">
           {links.map((l) => (
             <Link key={l.label} href={l.href} onClick={() => setOpen(false)} aria-current={l.on ? "page" : undefined} className={`${item} ${l.on ? "bg-action/10 font-semibold text-action" : "text-ink-soft"}`}>
               {l.label}
             </Link>
           ))}
-          <a href="/intra" className={`${item} text-ink-soft`}>Contul meu</a>
+          <a href="/intra" className={`${item} text-ink-soft`}>Account</a>
         </nav>
         <div className="space-y-3">
-          <p className="text-[13px] text-ink-soft">Scenariul</p>
+          <p className="text-[13px] text-ink-soft">Scenario</p>
           <ScenarioSwitch scenario={info.scenario} scenarios={info.scenarios} />
           <Provenance {...info.provenance} />
         </div>

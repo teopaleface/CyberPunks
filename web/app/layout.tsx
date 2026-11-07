@@ -20,11 +20,11 @@ const unbounded = Unbounded({
 
 export const metadata: Metadata = {
   title: {
-    default: "Daybreak, consola dispecerului",
+    default: "Daybreak",
     template: "%s, Daybreak",
   },
   description:
-    "Agentul care decide unde merg mâine echipele de teren Rețele Electrice, din trei modele ML antrenate de echipa CyberPunks (SmartHack XI 2026, tema PPC).",
+    "Plan field crew routes from meter faults, storm risks and voltage forecasts. Built by CyberPunks for SmartHack XI 2026.",
   applicationName: "Daybreak",
 };
 
@@ -34,7 +34,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ro" className={`${geist.variable} ${unbounded.variable} dark h-full antialiased`}>
+    <html lang="en" className={`${geist.variable} ${unbounded.variable} dark h-full antialiased`}>
       <body className="min-h-full bg-canvas text-ink">
         <TooltipProvider delayDuration={250}>{children}</TooltipProvider>
         <Toaster position="bottom-right" />

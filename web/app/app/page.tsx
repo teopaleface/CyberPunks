@@ -1,4 +1,5 @@
-import { ArrowRight, Bell } from "lucide-react";
+import { englishText } from "@/lib/english";
+import { ArrowRight } from "lucide-react";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -37,10 +38,10 @@ function topAlert(alerts: Alert[]): { id: string; lead: string; text: string } |
   if (storms[0]) {
     const a = storms[0];
     const win = /fereastra (\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/.exec(a.body_ro);
-    return { id: a.alert_id, lead: "Avertizare de furtună", text: `${clean(a.title_ro)}${win ? `, ${win[1]}–${win[2]}` : ""}.` };
+    return { id: a.alert_id, lead: "Storm warning", text: `${englishText(clean(a.title_ro))}${win ? `, ${win[1]}–${win[2]}` : ""}.` };
   }
   const crit = alerts.find((a) => a.severity === "critical");
-  return crit ? { id: crit.alert_id, lead: "Atenție", text: `${clean(crit.title_ro)}.` } : null;
+  return crit ? { id: crit.alert_id, lead: "Warning", text: `${englishText(clean(crit.title_ro))}.` } : null;
 }
 
 async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchParams"] }) {
@@ -61,13 +62,12 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchP
     return (
       <AppShell info={info}>
         <div className="mx-auto max-w-[680px] px-7 py-20">
-          <h1 className="text-[30px] font-[620]">Nu există încă un plan pentru „{label}”</h1>
+          <h1 className="text-[30px] font-[620]">No plan yet for &quot;{englishText(label)}&quot;</h1>
           <p className="mt-3 text-[18px] leading-relaxed text-muted-foreground">
-            Agentul n-a rulat încă pentru acest scenariu{view.degradedReason ? ` (${view.degradedReason})` : ""}. Pornește-l acum sau
-            alege alt scenariu din antet.
+            The agent has not run for this scenario yet{view.degradedReason ? ` (${englishText(view.degradedReason)})` : ""}. Run the agent or select another scenario in the menu.
           </p>
           <div className="mt-6">
-            <RunAgentButton scenario={scenario} scenarioLabel={label} />
+            <RunAgentButton scenario={scenario} scenarioLabel={englishText(label)} />
           </div>
         </div>
       </AppShell>
@@ -78,7 +78,6 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchP
   const briefing = toBriefing(data);
   const lines = crewLines(data);
   const dots = await getRomaniaDots();
-  const scenarioLabel = info.scenarios.find((s) => s.id === scenario)?.label ?? scenario;
 
   // aprobarea listei: din jurnal (API) sau, dacă API-ul n-o are încă, din cookie-ul acestui browser
   const fromAudit = view.data.audit.find(
@@ -119,17 +118,17 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchP
   const suffix = `?scenariu=${encodeURIComponent(scenario)}`;
 
   const alerts = (
-    <Card title="Alerte" icon={Bell} iconTone="grey">
+    <Card title="Alerts">
       <ul className="divide-y divide-rule">
         {data.alerts.slice(0, 6).map((a) => (
           <li key={a.alert_id} className="flex items-center gap-3 py-2.5 text-[15px]">
             <Pill size="sm" tone={a.severity === "critical" ? "red" : a.severity === "warning" ? "amber" : "grey"}>
-              {a.severity === "critical" ? "Critică" : a.severity === "warning" ? "Atenție" : "Info"}
+              {a.severity === "critical" ? "Critical" : a.severity === "warning" ? "Warning" : "Info"}
             </Pill>
-            <span className="min-w-0 flex-1">{a.title_ro}</span>
+            <span className="min-w-0 flex-1">{englishText(a.title_ro)}</span>
           </li>
         ))}
-        {data.alerts.length === 0 ? <li className="py-2 text-ink-soft">Nicio alertă.</li> : null}
+        {data.alerts.length === 0 ? <li className="py-2 text-ink-soft">No alerts.</li> : null}
       </ul>
     </Card>
   );
@@ -138,10 +137,7 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchP
     <AppShell info={info}>
       <div className="mx-auto w-full max-w-[1440px] px-8 pt-7 pb-14 max-md:px-4">
         {banner ? <AlertBanner key={banner.id} id={`${scenario}:${banner.id}`} lead={banner.lead} text={banner.text} /> : null}
-        <PageTitle title="Planul de mâine" subtitle={`${dateLong}.${info.provenance.syntheticItems ? " Date sintetice incluse." : ""}`} />
-        <p className="mt-4 max-w-[84ch] text-[16px] leading-relaxed text-ink-soft">
-          Agentul propune traseele de mâine și verificările la distanță. Tu decizi cazurile incerte.
-        </p>
+        <PageTitle title="Plan" subtitle={`${dateLong}.${info.provenance.syntheticItems ? " Includes synthetic data." : ""}`} />
         <HomeBoard
           key={`${scenario}:${data.planId}`}
           initial={initial}
@@ -150,29 +146,20 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchP
           figures={<PlanFigures s={data.summary} />}
           plan={
             <>
-              <h2 className="text-[17px] font-[550]">Planul propus</h2>
-              <p className="mt-4 text-[23px] leading-[1.3] font-[550] tracking-[-0.02em]">{approval ? "Lista echipelor este aprobată." : "Verifică lista echipelor."}</p>
+              <h2 className="text-[23px] leading-[1.3] font-[550] tracking-[-0.02em]">Crew assignments</h2>
               <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
-                Aprobarea se referă la lista echipelor pentru mâine. Fiecare caz care așteaptă un om se decide din pagina lui.
+                {data.routes.filter((r) => r.stops.length > 0).length} crew routes ready. Approval covers crew assignments only; review cases separately.
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
                 <Link href={`/harta${suffix}`} className="inline-flex min-h-11 items-center gap-2 rounded-[10px] border border-rule bg-surface-2 px-4 py-2.5 text-[14px] text-ink hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-                  Verifică traseele
+                  Review routes
                   <ArrowRight aria-hidden="true" size={16} />
-                </Link>
-                <Link href={`/lucrari${suffix}`} className="inline-flex min-h-11 items-center gap-2 rounded-[10px] border border-rule bg-surface-2 px-4 py-2.5 text-[14px] text-ink hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-                  Toate lucrările
                 </Link>
               </div>
               <div className="mt-5 border-t border-rule pt-5">
                 <ApproveButton scenario={scenario} planId={data.planId} approvedAt={approval?.at ?? null} approvedLocal={approval?.local ?? false} />
               </div>
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-[13px] leading-relaxed text-ink-soft">Ai schimbat datele? Cere un plan nou.</p>
-                <div className="[&_button]:min-h-10 [&_button]:border-rule [&_button]:bg-surface-2 [&_button]:text-[14px] [&_button]:text-ink [&_button:hover]:bg-white/10">
-                  <RunAgentButton scenario={scenario} scenarioLabel={scenarioLabel} />
-                </div>
-              </div>
+
             </>
           }
           map={<RomaniaCard map={dots} scenario={scenario} />}
@@ -181,9 +168,9 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchP
           alerts={alerts}
           meter={meter ? <SelectedMeter item={meter} scenario={scenario} /> : null}
           question={{
-            default: <QuestionBody item={first} scenario={scenario} reason={briefing.next?.what} />,
-            storm: <QuestionBody item={storm} scenario={scenario} emptyText="Nu există cazuri de furtună care așteaptă decizia ta." />,
-            voltage: <QuestionBody item={voltage} scenario={scenario} emptyText="Nu există cazuri de tensiune care așteaptă decizia ta." />,
+            default: <QuestionBody item={first} scenario={scenario} reason={briefing.next?.what ? englishText(briefing.next.what) : undefined} />,
+            storm: <QuestionBody item={storm} scenario={scenario} emptyText="No storm cases need your decision." />,
+            voltage: <QuestionBody item={voltage} scenario={scenario} emptyText="No voltage cases need your decision." />,
           }}
         />
       </div>
@@ -194,7 +181,7 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchP
 /** Aceeași așezare ca ecranul, ca nimic să nu sară când vin datele. */
 function PlanSkeleton() {
   return (
-    <div role="status" className="flex min-h-dvh flex-col" aria-busy="true" aria-label="Se încarcă planul de mâine…">
+    <div role="status" className="flex min-h-dvh flex-col" aria-busy="true" aria-label="Loading tomorrow's plan…">
       <div className="h-16 shrink-0 border-b border-rule bg-panel" />
       <div className="mx-auto w-full max-w-[1440px] px-8 pt-7 max-md:px-4">
         <div className="h-[58px] animate-pulse rounded-[14px] bg-panel motion-reduce:animate-none" />

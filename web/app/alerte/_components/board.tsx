@@ -1,3 +1,4 @@
+import { englishText } from "@/lib/english";
 import {
   BoltIcon,
   ChartColumnIcon,
@@ -40,9 +41,9 @@ interface Props {
 
 /** Ce așteaptă decizia, pe scurt: contorul, postul cu locul lui, zona. */
 function pendingTitle(w: WorkItem): string {
-  if (w.asset_type === "meter") return `Contor ${w.asset_id}`;
+  if (w.asset_type === "meter") return `Meter ${w.asset_id}`;
   if (w.asset_type === "transformer_post") return itemPlace(w);
-  return itemTitle(w);
+  return englishText(itemTitle(w));
 }
 
 const q = (s: string) => `?scenariu=${encodeURIComponent(s)}`;
@@ -51,7 +52,7 @@ const lucrare = (id: string, s: string) => `/lucrari/${encodeURIComponent(id)}${
 function DraftPill({ size = "md" }: { size?: "sm" | "md" }) {
   return (
     <Pill tone="violet" icon={FileTextIcon} size={size}>
-      Ne trimis – ciornă
+      Unsent draft
     </Pill>
   );
 }
@@ -122,38 +123,38 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
       node: (
         <Card className="rounded-[18px]" bodyClassName="flex h-full flex-col gap-3 p-5">
           <Eyebrow icon={CloudLightningIcon} tone="blue">
-            Alertă meteorologică
+            Weather alert
           </Eyebrow>
-          <h2 className="text-[26px] leading-tight font-[700] tracking-[-0.02em]">{storm.title_ro}</h2>
+          <h2 className="text-[26px] leading-tight font-[700] tracking-[-0.02em]">{englishText(storm.title_ro)}</h2>
           {window ? (
             <p className="flex items-center gap-3 text-[28px] leading-none font-[700] tracking-[-0.02em] tabular-nums">
               <ClockIcon size={28} aria-hidden="true" />
               <span>
-                <span className="sr-only">Fereastra de risc: </span>
+                <span className="sr-only">Risk window: </span>
                 {window}
               </span>
             </p>
           ) : null}
-          <p className="max-w-[60ch] text-[16px] leading-relaxed text-ink-soft">{storm.body_ro}</p>
+          <p className="max-w-[60ch] text-[16px] leading-relaxed text-ink-soft">{englishText(storm.body_ro)}</p>
           <div className="mt-auto flex flex-col gap-3 pt-1">
             <div>
               {waiting ? (
                 <Pill tone="orange" icon={CircleUserRoundIcon} size="lg">
-                  Decizie umană: în așteptare
+                  Human decision pending
                 </Pill>
               ) : stormDecision ? (
                 <Pill tone="green" size="lg">
-                  Decizia: {DECISION_LABEL_RO[stormDecision.decision]}
+                  Decision: {DECISION_LABEL_RO[stormDecision.decision]}
                 </Pill>
               ) : null}
             </div>
             <div className="flex flex-wrap gap-3">
               <Link href={lucrare(stormId, scenario)} className={btn("primary")}>
-                Vezi lucrarea
+                View work item
               </Link>
               {waiting ? (
                 <Link href={`/coada${q(scenario)}`} className={btn("danger")}>
-                  Deschide „Nu sunt sigur”
+                  Open review queue
                 </Link>
               ) : null}
             </div>
@@ -172,14 +173,14 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
         <Card className="rounded-[18px]" bodyClassName="flex h-full flex-col gap-3 p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <Eyebrow icon={MessageSquareIcon} tone="violet">
-              Mesaj de grup țintit
+              Targeted group message
             </Eyebrow>
             <DraftPill />
           </div>
           <h2 className="text-[26px] leading-tight font-[700] tracking-[-0.02em]">
-            Către prosumatorii de la <span translate="no">{msg.asset_id}</span>
+            To prosumers at <span translate="no">{msg.asset_id}</span>
           </h2>
-          <p className="text-[16px] leading-relaxed text-ink-soft">{msg.message_ro}</p>
+          <p className="text-[16px] leading-relaxed text-ink-soft">{englishText(msg.message_ro)}</p>
           <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-3 pt-1">
             <span className="flex items-center gap-2.5 text-[17px] font-[600]">
               <MapPinIcon size={20} aria-hidden="true" className="text-[#8db8ff]" />
@@ -187,15 +188,16 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
             </span>
             {p90 !== null ? (
               <>
-                <Stat icon={ZapIcon} tone="amber" value={`${p90} V`} label="P90 actual" />
-                <Stat icon={BoltIcon} tone="blue" value={`> ${limit} V`} label="Limita" />
+                <Stat icon={ZapIcon} tone="amber" value={`${p90} V`} label="Current P90" />
+                <Stat icon={BoltIcon} tone="blue" value={`${limit} V`} label="Limit" />
+                <Stat icon={ZapIcon} tone="amber" value={`${p90 > limit ? "+" : ""}${p90 - limit} V`} label="Above limit" />
               </>
             ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <CopyMessage text={msg.message_ro} noteId="demo-nota" />
+            <CopyMessage text={englishText(msg.message_ro)} noteId="demo-nota" />
             <p id="demo-nota" className="text-[14.5px] text-ink-soft">
-              În demo nu se trimite nimic.
+              Demo messages are not sent.
             </p>
           </div>
         </Card>
@@ -213,28 +215,28 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
         <Card className="rounded-[18px]" bodyClassName="flex h-full flex-col gap-3 p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <Eyebrow icon={GiftIcon} tone="amber">
-              Oferte baterii
+              Battery offers
             </Eyebrow>
             <DraftPill />
           </div>
-          <h2 className="text-[26px] leading-tight font-[700] tracking-[-0.02em]">PPC Energie: oferte de baterii</h2>
           <p className="text-[16px] text-ink-soft">
-            Pentru prosumatorii din {offers.length === 1 ? "1 post" : `${fmtInt(offers.length)} posturi`} unde bateria coboară tensiunea de la prânz.
+            For prosumers at {offers.length === 1 ? "1 substation" : `${fmtInt(offers.length)} substations`} where batteries reduce midday voltage.
           </p>
           <div className="grid grid-cols-1 gap-4 pt-1 sm:grid-cols-3">
-            <Stat icon={UsersIcon} tone="blue" value={fmtInt(tot.c)} label="prosumatori" />
-            <Stat icon={ChartColumnIcon} tone="green" value={`${fmtInt(tot.kwh)} kWh`} label="baterii în total" />
-            <Stat icon={CoinsIcon} tone="amber" value={fmtLei(tot.lei)} label="venit estimat" />
+            <Stat icon={UsersIcon} tone="blue" value={fmtInt(tot.c)} label="prosumers" />
+            <Stat icon={ChartColumnIcon} tone="green" value={`${fmtInt(tot.kwh)} kWh`} label="batteries in total" />
+            <Stat icon={CoinsIcon} tone="amber" value={fmtLei(tot.lei)} label="estimated revenue" />
           </div>
+          <p className="text-[13px] leading-relaxed text-ink-soft">Revenue sums remedy estimates. Offer acceptance is a configured assumption.</p>
           <div className="mt-auto flex flex-wrap gap-3 pt-2">
             <Link href={`/posturi/${encodeURIComponent(top.post_id)}${q(scenario)}`} className={btn("primary")}>
-              Vezi postul <span translate="no">{top.post_id}</span>
+              View substation <span translate="no">{top.post_id}</span>
             </Link>
             <DetailDialog
-              trigger="Detalii"
+              trigger="Details"
               triggerClassName={btn("outline")}
-              title="Oferte de baterii pentru PPC Energie"
-              description="Posturile unde o baterie la prosumatori coboară tensiunea, cu efectul pe P90 și venitul estimat."
+              title="Battery offers for PPC Energie"
+              description="Substations where batteries reduce voltage, with P90 effect and estimated revenue."
             >
               <BatteryOffers remedies={remedies} scenario={scenario} bare />
             </DetailDialog>
@@ -248,9 +250,9 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
   const firstOf = (aud: Notification["audience"]) => notifications.find((n) => n.audience === aud);
   const statusRows: { key: string; icon: typeof ZapIcon; tone: Tone; text: ReactNode; pill: ReactNode }[] = [];
   if (storm) {
-    statusRows.push({ key: "al", icon: BoltIcon, tone: "blue", text: storm.title_ro, pill: <Pill tone="blue" size="sm">Alertă în consolă</Pill> });
+    statusRows.push({ key: "al", icon: BoltIcon, tone: "blue", text: englishText(storm.title_ro), pill: <Pill tone="blue" size="sm">Console alert</Pill> });
   }
-  for (const [aud, label] of [["echipa", "Mesaj către echipă"], ["prosumatori", "Mesaj către prosumatori"], ["clienti_zona", "Mesaj către clienții din zonă"]] as const) {
+  for (const [aud, label] of [["echipa", "Crew message"], ["prosumatori", "Prosumer message"], ["clienti_zona", "Message to local customers"]] as const) {
     const n = firstOf(aud);
     const count = notifications.filter((x) => x.audience === aud).length;
     if (n) {
@@ -261,7 +263,7 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
         text: (
           <>
             {label}: <span translate="no">{n.asset_id}</span>
-            {count > 1 ? <span className="text-ink-soft"> și încă {fmtInt(count - 1)}</span> : null}
+            {count > 1 ? <span className="text-ink-soft"> and another {fmtInt(count - 1)}</span> : null}
           </>
         ),
         pill: <DraftPill size="sm" />,
@@ -269,7 +271,7 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
     }
   }
   if (offers.length) {
-    statusRows.push({ key: "of", icon: GiftIcon, tone: "amber", text: "Oferte baterii – PPC Energie", pill: <DraftPill size="sm" /> });
+    statusRows.push({ key: "of", icon: GiftIcon, tone: "amber", text: "Battery offers · PPC Energie", pill: <DraftPill size="sm" /> });
   }
   if (statusRows.length) {
     cards.push({
@@ -277,7 +279,7 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
       tags: ["trimiteri", "mesaje"],
       span: "lg:col-span-3",
       node: (
-        <Card title="Starea trimiterilor" icon={FileTextIcon} className="rounded-[18px]">
+        <Card title="Delivery status" icon={FileTextIcon} className="rounded-[18px]">
           <ul className="flex flex-col gap-2.5">
             {statusRows.map((r) => (
               <li key={r.key} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-[12px] border border-rule bg-surface-2 px-4 py-3">
@@ -289,53 +291,7 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-[14px] text-ink-soft">Consola nu trimite mesaje în demo; alertele rămân în consolă, la dispecerat.</p>
-        </Card>
-      ),
-    });
-  }
-
-  if (msgRemedy && p90 !== null) {
-    const over = p90 - limit;
-    cards.push({
-      id: "indicatori",
-      tags: ["mesaje", "alerte"],
-      span: "lg:col-span-2",
-      node: (
-        <Card title={<><span translate="no">{msgRemedy.post_id}</span>: indicatori</>} icon={MapPinIcon} className="rounded-[18px]">
-          <dl className="flex flex-col gap-2.5">
-            {[
-              ["Tensiunea P90 actuală", `${p90} V`, "blue" as Tone],
-              ["Limita de tensiune", `${limit} V`, "violet" as Tone],
-              ["Depășire", over > 0 ? `+${over} V` : `${over} V`, "amber" as Tone],
-            ].map(([k, v, tone]) => (
-              <div key={k as string} className="flex items-center justify-between gap-3 border-b border-rule pb-2.5 last:border-b-0 last:pb-0">
-                <dt className="text-[16px]">{k}</dt>
-                <dd>
-                  <Pill tone={tone as Tone} size="lg" className="min-w-[96px] justify-center tabular-nums">
-                    {v}
-                  </Pill>
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </Card>
-      ),
-    });
-  }
-
-  if (offers.length) {
-    cards.push({
-      id: "venit",
-      tags: ["oferte"],
-      span: "lg:col-span-2",
-      node: (
-        <Card title="Venit estimat" icon={ChartColumnIcon} className="rounded-[18px]">
-          <p className="text-[40px] leading-tight font-[700] tracking-[-0.02em] tabular-nums">{fmtLei(tot.lei)}</p>
-          <p className="mt-2 text-[16px] leading-relaxed text-ink-soft">
-            Din oferte de baterii: {fmtInt(tot.c)} prosumatori vizați, {fmtInt(tot.kwh)} kWh de baterii, în {offers.length === 1 ? "1 post" : `${fmtInt(offers.length)} posturi`}. Venitul e suma estimărilor
-            din scara de soluții; rata de acceptare e o ipoteză din config.
-          </p>
+          <p className="mt-3 text-[14px] text-ink-soft">Demo messages are not sent. Alerts stay in the dispatcher console.</p>
         </Card>
       ),
     });
@@ -348,13 +304,13 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
       span: "lg:col-span-2",
       node: (
         <Card
-          title="Decizii necesare"
+          title="Decisions needed"
           icon={CircleUserRoundIcon}
           iconTone="orange"
           className="rounded-[18px]"
           action={
             <Link href={`/coada${q(scenario)}`} className="text-[14.5px] font-[600] text-[#8db8ff] underline decoration-rule underline-offset-4 hover:decoration-current">
-              Toate ({fmtInt(pending.length)})
+              All ({fmtInt(pending.length)})
             </Link>
           }
         >
@@ -367,13 +323,13 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
                     {w ? pendingTitle(w) : <span translate="no">{id}</span>}
                   </Link>
                   <Pill tone="amber" size="sm" icon={ClockIcon}>
-                    În așteptare
+                    Pending
                   </Pill>
                 </li>
               );
             })}
           </ul>
-          {pending.length > PENDING_SHOWN ? <p className="mt-2 text-[14px] text-ink-soft">Încă {fmtInt(pending.length - PENDING_SHOWN)} în coadă.</p> : null}
+          {pending.length > PENDING_SHOWN ? <p className="mt-2 text-[14px] text-ink-soft">Another {fmtInt(pending.length - PENDING_SHOWN)} in the queue.</p> : null}
         </Card>
       ),
     });
@@ -381,13 +337,13 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
 
   return (
     <ChipGrid
-      label="Filtrează cardurile"
+      label="Filter cards"
       chips={[
-        { id: "alerte", label: "Alerte", tone: "blue" },
-        { id: "mesaje", label: "Mesaje", tone: "violet" },
-        { id: "oferte", label: "Oferte", tone: "amber" },
-        { id: "decizii", label: "Decizii umane", tone: "orange" },
-        { id: "trimiteri", label: "Trimiteri", tone: "blue" },
+        { id: "alerte", label: "Alerts", tone: "blue" },
+        { id: "mesaje", label: "Messages", tone: "violet" },
+        { id: "oferte", label: "Offers", tone: "amber" },
+        { id: "decizii", label: "Human decisions", tone: "orange" },
+        { id: "trimiteri", label: "Deliveries", tone: "blue" },
       ]}
       cards={cards}
     />

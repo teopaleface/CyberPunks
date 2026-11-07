@@ -22,7 +22,7 @@ describe("ordinul de lucru", () => {
     expect(o.returnEstimated).toBe(true);
     expect(o.stops[0].costLei).toBe(293);
     const c = buildChecklist(o);
-    expect(c[0].text).toBe("Confirmare sosire la PT-1");
-    expect(c.at(-1)?.text.startsWith("Întoarcere la bază")).toBe(true);
+    expect(c[0].text).toBe("Confirm arrival at PT-1");
+    expect(c.at(-1)?.text.startsWith("Return to depot")).toBe(true);
   });
 });

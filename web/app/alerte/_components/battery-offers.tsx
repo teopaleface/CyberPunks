@@ -25,11 +25,10 @@ export function BatteryOffers({ remedies, scenario, bare = false }: { remedies: 
       <div className={bare ? "flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 px-6 pt-1 pb-3" : "flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 px-7 pt-5 pb-3"}>
         <div>
           <h2 id="battery-title" className="text-[20px] font-[650]">
-            Oferte de baterii pentru PPC Energie <span className="text-[16px] font-[500] text-muted-foreground">{rows.length}</span>
+            Battery offers for PPC Energie <span className="text-[16px] font-[500] text-muted-foreground">{rows.length}</span>
           </h2>
           <p className="mt-1 max-w-[86ch] text-[15px] text-muted-foreground">
-            Posturile unde o baterie la prosumatori coboară tensiunea de la prânz. Lista merge la PPC Energie (magazinele PPC și
-            Flanco); în total {fmtInt(totals.customers)} clienți, {fmtInt(totals.kwh)} kWh de baterii, venit estimat {fmtLei(totals.revenue)}.
+            Substations where prosumer batteries reduce midday voltage. Offers are intended for PPC Energie and Flanco stores; total {fmtInt(totals.customers)} customers, {fmtInt(totals.kwh)} kWh of batteries, estimated revenue {fmtLei(totals.revenue)}.
           </p>
         </div>
         <DemoStamp />
@@ -38,13 +37,13 @@ export function BatteryOffers({ remedies, scenario, bare = false }: { remedies: 
         <table className="w-full min-w-[880px] border-collapse text-[15px]">
           <thead>
             <tr className="border-y border-rule text-left text-[13.5px] text-muted-foreground">
-              <th scope="col" className="py-2 pr-4 font-[500]">Postul</th>
-              <th scope="col" className="py-2 pr-4 text-right font-[500]">Clienți vizați</th>
-              <th scope="col" className="py-2 pr-4 text-right font-[500]">Baterii</th>
-              <th scope="col" className="py-2 pr-4 text-right font-[500]">Tensiunea P90</th>
-              <th scope="col" className="py-2 pr-4 text-right font-[500]">Venit estimat</th>
-              <th scope="col" className="py-2 pr-4 text-right font-[500]">Recuperare pentru client</th>
-              <th scope="col" className="py-2 font-[500]">Combinația aleasă</th>
+              <th scope="col" className="py-2 pr-4 font-[500]">Substation</th>
+              <th scope="col" className="py-2 pr-4 text-right font-[500]">Target customers</th>
+              <th scope="col" className="py-2 pr-4 text-right font-[500]">Batteries</th>
+              <th scope="col" className="py-2 pr-4 text-right font-[500]">P90 voltage</th>
+              <th scope="col" className="py-2 pr-4 text-right font-[500]">Estimated revenue</th>
+              <th scope="col" className="py-2 pr-4 text-right font-[500]">Customer payback</th>
+              <th scope="col" className="py-2 font-[500]">Selected combination</th>
             </tr>
           </thead>
           <tbody>
@@ -62,14 +61,14 @@ export function BatteryOffers({ remedies, scenario, bare = false }: { remedies: 
                   {fmtDec(r.p90_before_pu, 3)} → <b className="font-[620]">{fmtDec(r.p90_after_pu, 3)}</b>
                 </td>
                 <td className="py-2.5 pr-4 text-right tabular-nums">{fmtLei(r.battery?.revenue_lei ?? 0)}</td>
-                <td className="py-2.5 pr-4 text-right tabular-nums">{r.battery?.payback_years != null ? `${fmtDec(r.battery.payback_years, 1)} ani` : "–"}</td>
-                <td className="py-2.5 text-[14px] text-muted-foreground">{plural(r.chosen.length, "treaptă", "trepte")}, {fmtLei(r.cost_lei)}</td>
+                <td className="py-2.5 pr-4 text-right tabular-nums">{r.battery?.payback_years != null ? `${fmtDec(r.battery.payback_years, 1)} years` : "–"}</td>
+                <td className="py-2.5 text-[14px] text-muted-foreground">{plural(r.chosen.length, "step", "steps")}, {fmtLei(r.cost_lei)}</td>
               </tr>
             ))}
           </tbody>
         </table>
         <p className="mt-2 text-[13.5px] text-muted-foreground">
-          Efectul pe tensiune e cel al combinației alese de agent, calculat cu modelul de rețea al firului C; rata de acceptare a ofertei e o ipoteză din config.
+          Voltage effects come from the agent&apos;s selected combination and the model C grid calculation. Offer acceptance is a configured assumption.
         </p>
       </div>
     </section>

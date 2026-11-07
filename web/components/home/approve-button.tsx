@@ -1,5 +1,6 @@
 "use client";
 
+import { englishText } from "@/lib/english";
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -30,8 +31,8 @@ export function ApproveButton({
       <p role="status" className="flex min-h-12 items-center justify-center gap-2.5 rounded-[10px] border border-[#1f8a4a] bg-[#0b2a18] px-4 py-2 text-center text-[15px] text-[#7ee2a0]">
         <Check aria-hidden="true" size={20} strokeWidth={2.2} className="shrink-0" />
         <span>
-          <b className="font-[620]">Lista aprobată</b> la {fmtTime(state.at)}
-          <span className="block text-[13px] opacity-80">{state.local ? "doar în acest browser" : "scrisă în jurnal"}</span>
+          <b className="font-[620]">Assignments approved</b>  at {fmtTime(state.at)}
+          <span className="block text-[13px] opacity-80">{state.local ? "Saved in this browser only" : "Recorded in the audit log"}</span>
         </span>
       </p>
     );
@@ -45,12 +46,12 @@ export function ApproveButton({
           const r = await approvePlan(scenario, planId);
           if (r.ok) {
             setState({ at: r.at, local: r.local });
-            toast.success("Ai aprobat lista echipelor pentru mâine", {
-              description: r.local ? "API-ul nu are încă aprobarea; o păstrez în acest browser." : "Aprobarea a intrat în jurnal.",
+            toast.success("Tomorrow's crew assignments approved", {
+              description: r.local ? "The API does not support approval yet. Saved in this browser only." : "Approval recorded in the audit log.",
             });
             router.refresh();
           } else {
-            toast.error("Aprobarea nu s-a salvat", { description: r.error });
+            toast.error("Approval was not saved", { description: englishText(r.error) });
           }
         })
       }
@@ -58,7 +59,7 @@ export function ApproveButton({
     >
       <Check aria-hidden="true" size={22} strokeWidth={2.2} className="shrink-0" />
       <span>
-        {pending ? "Se trimite…" : "Aprobă lista echipelor"}
+        {pending ? "Sending…" : "Approve crew assignments"}
         <span className="ml-1 text-black/65" translate="no">
           {" "}
           #{tag}

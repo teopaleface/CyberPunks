@@ -1,3 +1,4 @@
+import { englishText } from "@/lib/english";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -30,7 +31,7 @@ export default function WorkItemPage({ params, searchParams }: PageProps<"/lucra
     <Suspense
       fallback={
         <div role="status" className="min-h-dvh bg-canvas" aria-busy="true">
-          <span className="sr-only">Se încarcă lucrarea…</span>
+          <span className="sr-only">Loading work item…</span>
         </div>
       }
     >
@@ -60,13 +61,13 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
         <div className={PAGE}>
           <div className="mx-auto max-w-[680px] py-14">
             <Link href={`/app?scenariu=${encodeURIComponent(scenario)}`} className="text-[15px] underline decoration-rule underline-offset-4 hover:text-ink">
-              Înapoi la planul de mâine
+              Back to tomorrow&apos;s plan
             </Link>
             <h1 className="mt-6 text-[28px] font-[700] tracking-[-0.02em]">
-              Lucrarea <span translate="no">{id}</span> nu există în scenariul „{scenario}”
+              Work item <span translate="no">{id}</span> not found in scenario &quot;{scenario}&quot;
             </h1>
             <p className="mt-3 text-[16px] text-ink-soft">
-              Poate a fost respinsă la intrare sau vine din alt scenariu. Verifică jurnalul deciziilor sau alege alt scenariu din antet.
+              Check the decision history or select another scenario. The work item may have been rejected on input.
             </p>
           </div>
         </div>
@@ -93,13 +94,13 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
   const active = filter && tags.has(filter) ? filter : null;
   const visible = active ? cards.filter((c) => c.tags.includes(active)) : cards;
 
-  const syn = w.data_quality.synthetic ? " (sintetic)" : "";
+  const syn = w.data_quality.synthetic ? " (synthetic)" : "";
   const id_ = (s: string) => <span translate="no">{s}</span>;
   const post = postOf(w);
   const bilant = isBilantPost(w);
   const title =
     w.source === "B" ? (
-      <>Lucrare furtună: {localityOf(w)}.</>
+      <>Storm work item: {localityOf(w)}.</>
     ) : w.source === "C" || bilant ? (
       <>
         {id_(w.asset_id)} {localityOf(w)}
@@ -114,12 +115,12 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
     );
   const subtitle =
     w.source === "B" ? (
-      "Lucrare generată sintetic pentru planificarea intervențiilor în context de furtună."
+      "Synthetic work item for storm intervention planning."
     ) : w.source === "C" ? (
-      "Analiză tensiuni, risc și soluții pentru ziua de mâine."
+      "Tomorrow's voltage risk and remedy options."
     ) : (
       <>
-        Predicții, recomandări, rute, urme de decizie. Model: {id_(w.prediction.model_version)}.
+        Prediction, recommendation and decision evidence. Model: {id_(w.prediction.model_version)}.
       </>
     );
   const Icon = w.source === "B" ? CloudLightning : w.source === "C" ? Zap : bilant ? GaugeIcon : UtilityPole;
@@ -130,7 +131,7 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
         <PageTitle title={title} subtitle={subtitle} icon={Icon} />
         {invalid ? (
           <p className="mt-4">
-            <Pill tone="orange" size="lg">Respinsă la intrare: date greșite</Pill>
+            <Pill tone="orange" size="lg">Rejected on input: invalid data</Pill>
           </p>
         ) : null}
         <div className="mt-5">
@@ -138,8 +139,8 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
         </div>
         <CardGrid cards={visible} />
         <p className="mt-6 text-[13px] text-ink-soft">
-          Lucrarea <span translate="no">{w.work_item_id}</span>. Datele vin din: {SOURCE_LABEL_RO[result.source]}
-          {result.degradedReason ? `. ${result.degradedReason}` : ""}.
+          Work item <span translate="no">{w.work_item_id}</span>. Data source: {englishText(SOURCE_LABEL_RO[result.source])}
+          {result.degradedReason ? `. ${englishText(result.degradedReason)}` : ""}.
         </p>
       </div>
     </AppShell>

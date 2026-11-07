@@ -2,6 +2,7 @@
  * Verdictul unei lucrări într-o frază: ce se întâmplă și cât de sigur e modelul, apoi (opțional) ce a hotărât agentul.
  * Funcții pure, construite doar din câmpuri reale (nimic inventat); cifrele exacte rămân în detaliile tehnice.
  */
+import { englishText } from "@/lib/english";
 import type { Decision, WorkItem } from "@/lib/contracts";
 import { ACTION_RO, DECISION_LABEL_RO, predictionLabelRo } from "@/lib/data/labels";
 import { fmtDec } from "@/lib/format";
@@ -24,12 +25,12 @@ export interface VerdictOptions {
 
 /** Trepte, pe scurt, ca să încapă într-o frază. */
 const STEP_SHORT: Record<string, string> = {
-  phase_rebalance: "reechilibrarea fazelor",
-  offer_battery: "oferta de baterii",
-  export_limit: "limitarea injecției",
-  notify_customers: "mesaje către clienți",
-  adjust_tap: "schimbarea prizei",
-  transformer_upgrade: "transformator mai mare",
+  phase_rebalance: "phase rebalancing",
+  offer_battery: "battery offer",
+  export_limit: "export limit",
+  notify_customers: "customer messages",
+  adjust_tap: "tap adjustment",
+  transformer_upgrade: "larger transformer",
 };
 
 export function stepRo(action: string): string {
@@ -37,7 +38,7 @@ export function stepRo(action: string): string {
 }
 
 const num = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
-const lower = (s: string) => s.charAt(0).toLocaleLowerCase("ro-RO") + s.slice(1);
+const lower = (s: string) => s.charAt(0).toLocaleLowerCase("en-GB") + s.slice(1);
 
 /** Ora sosirii echipei, din motivul deciziei („… sosire la 14:00.”). */
 function arrivalTime(decision: Decision | null): string | null {
@@ -56,22 +57,22 @@ function decisionInWords(w: WorkItem, decision: Decision | null): string | undef
   switch (decision.decision) {
     case "assigned":
       return decision.crew_id
-        ? `Agentul: echipa ${decision.crew_id}${eta ? ` ajunge la ${eta}` : " e trimisă"}.`
-        : "Agentul: intră în traseu.";
+        ? `Agent: crew ${decision.crew_id}${eta ? ` arrives at ${eta}` : " is dispatched"}.`
+        : "Agent: assigned to a route.";
     case "remote_action":
       return /plan(ul)? următor/.test(decision.reason_ro)
-        ? "Agentul: citire la distanță azi; vizita rămâne pentru planul următor."
-        : "Agentul: citire la distanță, fără vizită.";
+        ? "Agent: remote reading today; visit carried over to the next plan."
+        : "Agent: remote reading, no visit.";
     case "human_review":
-      return "Agentul nu e sigur: decide un om.";
+      return "The agent needs a human decision.";
     case "deferred":
-      return "Agentul: amânată, nu intră în planul de mâine.";
+      return "Agent: deferred from tomorrow's plan.";
     case "notify":
-      return "Agentul: trimite mesaj către clienți.";
+      return "Agent: send a customer message.";
     case "rejected_invalid":
-      return "Respinsă la intrare: datele sunt greșite.";
+      return "Rejected at intake: invalid data.";
     default:
-      return `Agentul: ${DECISION_LABEL_RO[decision.decision] ?? w.recommended_action}.`;
+      return `Agent: ${DECISION_LABEL_RO[decision.decision] ?? w.recommended_action}.`;
   }
 }
 
@@ -82,8 +83,8 @@ export function verdictRo(w: WorkItem, decision: Decision | null, opts: VerdictO
 
   // contor: defect sau manipulat
   if (w.asset_type === "meter") {
-    const what = p.label === "faulty" ? "pare defect" : p.label === "tamper" ? "pare manipulat" : predictionLabelRo(p.label);
-    return { headline: `Contorul ${w.asset_id} ${what}, cu ${conf}.`, detail: decisionInWords(w, decision) };
+    const what = p.label === "faulty" ? "appears faulty" : p.label === "tamper" ? "shows signs of tampering" : predictionLabelRo(p.label);
+    return { headline: `Meter ${w.asset_id} ${what}, with ${conf}.`, detail: decisionInWords(w, decision) };
   }
 
   // bilanțul pe post
@@ -91,10 +92,10 @@ export function verdictRo(w: WorkItem, decision: Decision | null, opts: VerdictO
     const lei = extra.lei_per_month;
     const causeFull = predictionLabelRo(p.label);
     const cause = opts.longCause ? causeFull : causeFull.replace(/\s*\([^)]*\)\s*$/, "");
-    if (p.label === "normal") return { headline: `Postul ${w.asset_id} are pierderi normale, cu ${conf}.`, detail: decisionInWords(w, decision) };
-    const loss = num(lei) ? `pierde ${approxLei(lei)} pe lună` : "pierde energie peste normal";
+    if (p.label === "normal") return { headline: `Substation ${w.asset_id} has normal losses, with ${conf}.`, detail: decisionInWords(w, decision) };
+    const loss = num(lei) ? `loses ${approxLei(lei)} per month` : "has excess energy losses";
     return {
-      headline: `Postul ${w.asset_id} ${loss}. ${opts.longCause ? "Cauza" : "Cauza probabilă"}: ${cause}.`,
+      headline: `Substation ${w.asset_id} ${loss}. ${opts.longCause ? "Cause" : "Likely cause"}: ${cause}.`,
       detail: decisionInWords(w, decision),
     };
   }
@@ -102,12 +103,12 @@ export function verdictRo(w: WorkItem, decision: Decision | null, opts: VerdictO
   // furtună peste o zonă
   if (w.source === "B") {
     const title = itemTitle(w);
-    const headline = `${title}: risc de avarii la furtună, cu ${conf}.`;
+    const headline = `${title}: storm outage risk, with ${conf}.`;
     const eta = arrivalTime(decision);
     if (decision?.decision === "assigned" && decision.crew_id) {
       const start = /T(\d{2}:\d{2})/.exec(w.time_window?.start ?? "")?.[1];
-      const before = eta && start && toMinutes(eta) < toMinutes(start) ? ", înainte de fereastra de risc" : "";
-      return { headline, detail: `Echipa ${decision.crew_id} ${eta ? `ajunge la ${eta}${before}` : "e trimisă din timp în zonă"}.` };
+      const before = eta && start && toMinutes(eta) < toMinutes(start) ? ", before the risk window" : "";
+      return { headline, detail: `Crew ${decision.crew_id} ${eta ? `arrives at ${eta}${before}` : "is prepositioned in the area"}.` };
     }
     return { headline, detail: decisionInWords(w, decision) };
   }
@@ -115,19 +116,19 @@ export function verdictRo(w: WorkItem, decision: Decision | null, opts: VerdictO
   // tensiune pe post
   if (w.source === "C") {
     const limit = decision?.threshold?.overvoltage_limit_pu;
-    const headline = `Postul ${w.asset_id}: tensiunea trece de limita de ${fmtDec(num(limit) ? limit : 1.1, 2)} la prânz, cu ${conf}.`;
+    const headline = `Substation ${w.asset_id}: voltage exceeds the limit of ${fmtDec(num(limit) ? limit : 1.1, 2)} at midday, with ${conf}.`;
     const chosen = opts.chosen ?? [];
     const cost = opts.costLei ?? decision?.threshold?.remedy_cost_lei;
     if (chosen.length) {
-      return { headline, detail: `Soluția aleasă: ${chosen.map(stepRo).join(" + ")}${num(cost) ? `, ${approxLei(cost)}` : ""}.` };
+      return { headline, detail: `Chosen remedy: ${chosen.map(stepRo).join(" + ")}${num(cost) ? `, ${approxLei(cost)}` : ""}.` };
     }
     return { headline, detail: decisionInWords(w, decision) };
   }
 
   // rezervă
   return {
-    headline: `${itemTitle(w)}: ${predictionLabelRo(p.label)}, cu ${conf}.`,
-    detail: decision ? `Decizia: ${lower(DECISION_LABEL_RO[decision.decision])}.` : undefined,
+    headline: `${itemTitle(w)}: ${predictionLabelRo(p.label)}, with ${conf}.`,
+    detail: decision ? `Decision: ${lower(DECISION_LABEL_RO[decision.decision])}.` : undefined,
   };
 }
 
@@ -144,13 +145,13 @@ export interface PostVerdictInput {
 /** Verdictul paginii unui post: banii pierduți, cauza, apoi soluția aleasă pentru tensiune. */
 export function postVerdictRo(i: PostVerdictInput): Verdict {
   const loss = num(i.lossLeiMonth) && i.lossLeiMonth > 0 ? i.lossLeiMonth : null;
-  const cause = i.causeRo ? ` Cauza: ${i.causeRo}.` : "";
-  const headline = loss != null ? `Postul ${i.postId} pierde ${approxLei(loss)} pe lună.${cause}` : `Postul ${i.postId}: bilanțul nu arată pierderi peste normal.${cause}`;
+  const cause = i.causeRo ? ` Cause: ${englishText(i.causeRo)}.` : "";
+  const headline = loss != null ? `Substation ${i.postId} loses ${approxLei(loss)} per month.${cause}` : `Substation ${i.postId}: the energy balance shows no excess losses.${cause}`;
   let detail: string | undefined;
   if (i.chosen?.length) {
-    detail = `Soluția aleasă pentru tensiune: ${i.chosen.map(stepRo).join(" + ")}${num(i.costLei) ? `, ${approxLei(i.costLei)}` : ""}.`;
+    detail = `Chosen voltage remedy: ${i.chosen.map(stepRo).join(" + ")}${num(i.costLei) ? `, ${approxLei(i.costLei)}` : ""}.`;
   } else if (num(i.metersFlagged) && i.metersFlagged > 0) {
-    detail = `${i.metersFlagged === 1 ? "Un contor semnalat" : `${i.metersFlagged} contoare semnalate`} pe post.`;
+    detail = `${i.metersFlagged === 1 ? "One flagged meter" : `${i.metersFlagged} flagged meters`} at this substation.`;
   }
   return { headline, detail };
 }

@@ -269,7 +269,7 @@ describe("posturile din planificator", () => {
 
   test("cauza din bilanț: codurile devin cuvinte, textul rămâne", async () => {
     const { postDiagnosisRo } = await import("./posts");
-    expect(postDiagnosisRo("furt_inainte_contor")).toBe("furt înainte de contor");
+    expect(postDiagnosisRo("furt_inainte_contor")).toBe("theft before the meter");
     expect(postDiagnosisRo("pierdere_tehnica")).not.toContain("_");
     expect(postDiagnosisRo("Furt înainte de contor")).toBe("Furt înainte de contor");
     expect(postDiagnosisRo(null)).toBeNull();

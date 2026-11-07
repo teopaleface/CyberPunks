@@ -501,12 +501,12 @@ export function PlanMap({
 
   return (
     <div className={className}>
-      <div ref={containerRef} className="plan-map h-full w-full" aria-label="Harta planului" role="region" />
+      <div ref={containerRef} className="plan-map h-full w-full" aria-label="Plan map" role="region" />
       {failed ? (
         <div role="alert" className="absolute inset-0 grid place-items-center bg-canvas/80 p-8 text-center text-[15px]">
           <p>
-            Harta nu s-a putut încărca (dalele OpenFreeMap nu răspund). Planul e întreg în linia de timp și în lista din
-            dreapta.
+
+            Map tiles could not load from OpenFreeMap. The full plan remains available in the timeline and list.
           </p>
         </div>
       ) : null}

@@ -1,5 +1,6 @@
 "use client";
 
+import { englishText } from "@/lib/english";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Play, SlidersHorizontal } from "lucide-react";
@@ -11,10 +12,10 @@ import type { RunTimings } from "@/lib/data/types";
 import { fmtSeconds } from "@/lib/format";
 
 const STEPS: { key: keyof RunTimings; name: string }[] = [
-  { key: "perceive", name: "Percepe" },
-  { key: "estimate", name: "Estimează" },
+  { key: "perceive", name: "Perceive" },
+  { key: "estimate", name: "Estimate" },
   { key: "decide", name: "Decide" },
-  { key: "act", name: "Acționează" },
+  { key: "act", name: "Act" },
 ];
 
 type State = { kind: "idle" } | { kind: "done"; planId: string; timings: RunTimings } | { kind: "error"; message: string };
@@ -29,10 +30,10 @@ export function RunButton({ scenario }: { scenario: string }) {
       const r = await runAgent(scenario);
       if (r.ok) {
         setState({ kind: "done", planId: r.plan_id, timings: r.timings });
-        toast.success("Planul de mâine s-a actualizat", { description: `Plan nou: ${r.plan_id}` });
+        toast.success("Tomorrow's plan updated", { description: `New plan: ${r.plan_id}` });
         router.refresh();
       } else {
-        setState({ kind: "error", message: r.error });
+        setState({ kind: "error", message: englishText(r.error) });
       }
     });
   };
@@ -41,13 +42,14 @@ export function RunButton({ scenario }: { scenario: string }) {
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
       <button type="button" onClick={start} disabled={pending} className={btn("primary", "md")}>
         <Play aria-hidden="true" size={17} strokeWidth={2} fill="currentColor" />
-        {pending ? "Rulează…" : "Rulează agentul"}
+        {pending ? "Running…" : "Run agent"}
       </button>
       <div aria-live="polite" className="text-[14.5px] text-ink-soft">
-        {pending ? "Agentul trece prin cei patru pași…" : null}
+        {pending ? "The agent is running through the four steps…" : null}
         {state.kind === "done" ? (
           <>
-            Gata în <b className="text-ink tabular-nums">{fmtSeconds(total)}</b>:{" "}
+
+            Completed in <b className="text-ink tabular-nums">{fmtSeconds(total)}</b>:{" "}
             {STEPS.map((s, i) => (
               <span key={s.key}>
                 {i ? ", " : ""}
@@ -57,7 +59,7 @@ export function RunButton({ scenario }: { scenario: string }) {
             .
           </>
         ) : null}
-        {state.kind === "error" ? <span role="alert" className="text-att-ink">Agentul n-a rulat: {state.message}</span> : null}
+        {state.kind === "error" ? <span role="alert" className="text-att-ink">Agent did not run: {state.message}</span> : null}
       </div>
     </div>
   );
@@ -76,28 +78,30 @@ export function ParamsButton({ rows }: { rows: ParamRow[] }) {
       <DialogTrigger asChild>
         <button type="button" className={btn("outline", "md")}>
           <SlidersHorizontal aria-hidden="true" size={17} strokeWidth={1.8} />
-          Parametri
+
+          Parameters
         </button>
       </DialogTrigger>
       <DialogContent className="max-w-[640px] gap-4 rounded-[14px] border-rule bg-panel p-7">
         <DialogHeader>
-          <DialogTitle className="text-[22px] font-[650]">Parametrii agentului</DialogTitle>
+          <DialogTitle className="text-[22px] font-[650]">Agent parameters</DialogTitle>
           <DialogDescription className="text-[15px]">
-            Pragurile din <span className="code-id" translate="no">config/planner.yaml</span>. Se citesc din fișier și nu se schimbă de aici.
+
+            Thresholds from <span className="code-id" translate="no">config/planner.yaml</span>. Read from the file. They cannot be changed here.
           </DialogDescription>
         </DialogHeader>
         {rows.length ? (
           <dl className="divide-y divide-rule border-y border-rule">
             {rows.map((r) => (
-              <div key={r.label} className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-6 gap-y-0.5 py-3">
-                <dt className="text-[15.5px] font-[560]">{r.label}</dt>
+              <div key={englishText(r.label)} className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-6 gap-y-0.5 py-3">
+                <dt className="text-[15.5px] font-[560]">{englishText(r.label)}</dt>
                 <dd className="text-right text-[16px] font-[650] tabular-nums">{r.value}</dd>
-                <dd className="col-span-2 text-[13.5px] text-ink-soft">{r.note}</dd>
+                <dd className="col-span-2 text-[13.5px] text-ink-soft">{englishText(r.note)}</dd>
               </div>
             ))}
           </dl>
         ) : (
-          <p className="text-[15px] text-ink-soft">Fișierul de parametri nu a putut fi citit.</p>
+          <p className="text-[15px] text-ink-soft">Could not read the parameter file.</p>
         )}
       </DialogContent>
     </Dialog>

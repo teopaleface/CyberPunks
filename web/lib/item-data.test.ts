@@ -12,9 +12,9 @@ describe("item-data", () => {
     expect(localityOf(w({ asset_type: "zone", location: { zone_id: "Z", label: "Zona Timișoara (Timiș)" } as never }))).toBe("Timișoara");
   });
   test("procente și interval", () => {
-    expect(pctText(1)).toBe("peste 99%");
+    expect(pctText(1)).toBe("above 99%");
     expect(pctText(0.58)).toBe("58%");
-    expect(intervalText(0.98, 1)).toBe("peste 98%");
+    expect(intervalText(0.98, 1)).toBe("above 98%");
     expect(intervalText(0.5, 0.8)).toBe("50–80%");
     expect(intervalText(null, 1)).toBeNull();
   });
@@ -24,8 +24,8 @@ describe("item-data", () => {
   });
   test("seria: frază și rafală", () => {
     const s = { points: [{ t: "2025-05-24", value: 1, flag: "negativ" }, { t: "2025-05-25", value: 9 }], annotations: [{ t: "2025-05-24T00:00:00", label_ro: "apar citiri negative" }] } as unknown as Series;
-    expect(seriesSentence(s).headline).toContain("Apar citiri negative din");
-    expect(seriesSentence(s).detail).toBe("1 din 2 zile cu citiri negative.");
+    expect(seriesSentence(s).headline).toContain("Negative readings start from");
+    expect(seriesSentence(s).detail).toBe("1 of 2 days with negative readings.");
     expect(maxGust(s)).toEqual({ value: 9, t: "2025-05-25" });
     expect(seriesSentence(null).detail).toBeNull();
   });

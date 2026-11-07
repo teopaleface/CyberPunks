@@ -36,35 +36,35 @@ export function zoneName(w: WorkItem): string {
 
 /** Scorul ca procent întreg; 100% devine „peste 99%”. */
 export function pctText(ratio: number): string {
-  return ratio >= 0.995 ? "peste 99%" : `${Math.round(ratio * 100)}%`;
+  return ratio >= 0.995 ? "above 99%" : `${Math.round(ratio * 100)}%`;
 }
 
 /** Intervalul scorului în cuvinte: „98–100%”, sau „peste 98%” când ajunge la capăt. */
 export function intervalText(low?: number | null, high?: number | null): string | null {
   if (low == null || high == null) return null;
   const lo = Math.round(low * 100);
-  if (high >= 0.995) return `peste ${lo}%`;
+  if (high >= 0.995) return `above ${lo}%`;
   return `${lo}–${Math.round(high * 100)}%`;
 }
 
 const FLAG_RO: Record<string, string> = {
-  negativ: "citiri negative",
-  zero: "consum zero",
-  gol: "zile fără date",
-  salt: "salturi de consum",
-  peste_limita: "peste limită",
+  negativ: "negative readings",
+  zero: "zero consumption",
+  gol: "days without data",
+  salt: "consumption jumps",
+  peste_limita: "above the limit",
 };
 
 /** O frază despre serie, din adnotările și semnele ei reale. */
 export function seriesSentence(series: Series | null): { headline: string; detail: string | null } {
-  if (!series) return { headline: "Seria nu e disponibilă.", detail: null };
+  if (!series) return { headline: "Series unavailable.", detail: null };
   const a = series.annotations?.[0];
   const counts = new Map<string, number>();
   for (const p of series.points) if (p.flag) counts.set(p.flag, (counts.get(p.flag) ?? 0) + 1);
   const top = [...counts.entries()].sort((x, y) => y[1] - x[1])[0];
-  const when = a ? (isWholeDay(String(a.t)) ? `din ${fmtDayMonth(String(a.t))}` : `la ${fmtTime(String(a.t))}`) : null;
-  const headline = a ? `${sentence(clampPercentRo(a.label_ro)).replace(/\.$/, "")}${when ? ` ${when}` : ""}.` : top ? `Semne în serie: ${FLAG_RO[top[0]] ?? top[0]}.` : "Consum fără semne speciale.";
-  const detail = top ? `${top[1]} din ${series.points.length} zile cu ${FLAG_RO[top[0]] ?? top[0]}.` : null;
+  const when = a ? (isWholeDay(String(a.t)) ? `from ${fmtDayMonth(String(a.t))}` : `at ${fmtTime(String(a.t))}`) : null;
+  const headline = a ? `${sentence(clampPercentRo(a.label_ro)).replace(/\.$/, "")}${when ? ` ${when}` : ""}.` : top ? `Signals in the series: ${FLAG_RO[top[0]] ?? top[0]}.` : "No unusual consumption signals.";
+  const detail = top ? `${top[1]} of ${series.points.length} days with ${FLAG_RO[top[0]] ?? top[0]}.` : null;
   return { headline, detail };
 }
 
@@ -107,25 +107,25 @@ export interface MetricRow {
 }
 
 type Fmt = (v: number) => string;
-const pct: Fmt = (v) => (v >= 0.995 ? "peste 99%" : fmtPercent(v, 1));
+const pct: Fmt = (v) => (v >= 0.995 ? "above 99%" : fmtPercent(v, 1));
 const dec3: Fmt = (v) => fmtDec(v, 3);
 const pu: Fmt = (v) => `${fmtDec(v, 4)} pu`;
 
 const METRIC_ROWS: Record<Source, { key: string; label: string; fmt: Fmt }[]> = {
   A: [
-    { key: "precision_at_k", label: "Precizie la selecție", fmt: pct },
-    { key: "recall_at_k", label: "Acoperire la selecție", fmt: pct },
+    { key: "precision_at_k", label: "Precision at selection", fmt: pct },
+    { key: "recall_at_k", label: "Recall at selection", fmt: pct },
     { key: "pr_auc", label: "PR-AUC", fmt: dec3 },
   ],
   B: [
-    { key: "pr_auc", label: "PR-AUC (furtună)", fmt: dec3 },
-    { key: "recall_at_thr", label: "Acoperire la prag", fmt: pct },
+    { key: "pr_auc", label: "PR-AUC (storm)", fmt: dec3 },
+    { key: "recall_at_thr", label: "Recall at threshold", fmt: pct },
     { key: "roc_auc", label: "ROC-AUC", fmt: dec3 },
   ],
   C: [
-    { key: "mae_vmax_pu", label: "Eroare tensiune", fmt: pu },
-    { key: "pr_auc_exceed", label: "PR-AUC depășire", fmt: dec3 },
-    { key: "recall_exceed", label: "Acoperire depășiri", fmt: pct },
+    { key: "mae_vmax_pu", label: "Voltage error", fmt: pu },
+    { key: "pr_auc_exceed", label: "PR-AUC for exceedances", fmt: dec3 },
+    { key: "recall_exceed", label: "Exceedance recall", fmt: pct },
   ],
 };
 
@@ -163,15 +163,15 @@ export function voltageContributions(w: WorkItem): { key: string; pu: number }[]
 }
 
 export const CONTRIBUTION_RO: Record<string, string> = {
-  fizica: "Fizica rețelei (panouri, sarcină)",
-  panouri: "Panouri solare",
-  soare: "Soare",
-  temperatura: "Temperatură",
-  pornire: "Tensiune la pornire",
-  retea: "Rețea (lungime, rezistență)",
-  consum: "Consum",
-  baterii: "Baterii",
-  perioada: "Perioada din an",
+  fizica: "Grid physics (solar panels, load)",
+  panouri: "Solar panels",
+  soare: "Sunlight",
+  temperatura: "Temperature",
+  pornire: "Starting voltage",
+  retea: "Grid (length, resistance)",
+  consum: "Consumption",
+  baterii: "Batteries",
+  perioada: "Time of year",
 };
 
 /** Costul cu care se compară valoarea așteptată, din pragurile deciziei. */
@@ -186,14 +186,14 @@ export function ruleCost(t: Record<string, number> | undefined): number | null {
 export type Tag = "predictii" | "recomandari" | "rute" | "urme" | "reguli" | "scoruri" | "harti" | "tensiune";
 
 export const TAG_CHIPS: { id: Tag; label: string; tone: "blue" | "violet" | "amber" | "orange" }[] = [
-  { id: "predictii", label: "Predicții", tone: "blue" },
-  { id: "recomandari", label: "Recomandări", tone: "violet" },
-  { id: "rute", label: "Rute", tone: "blue" },
-  { id: "urme", label: "Urme de decizie", tone: "amber" },
-  { id: "reguli", label: "Reguli", tone: "orange" },
-  { id: "scoruri", label: "Scoruri", tone: "blue" },
-  { id: "harti", label: "Hărți", tone: "violet" },
-  { id: "tensiune", label: "Tensiune", tone: "amber" },
+  { id: "predictii", label: "Predictions", tone: "blue" },
+  { id: "recomandari", label: "Recommendations", tone: "violet" },
+  { id: "rute", label: "Routes", tone: "blue" },
+  { id: "urme", label: "Decision trace", tone: "amber" },
+  { id: "reguli", label: "Rules", tone: "orange" },
+  { id: "scoruri", label: "Scores", tone: "blue" },
+  { id: "harti", label: "Maps", tone: "violet" },
+  { id: "tensiune", label: "Voltage", tone: "amber" },
 ];
 
 /** Filtrul din adresă (?vedere=), doar dacă e o etichetă cunoscută. */

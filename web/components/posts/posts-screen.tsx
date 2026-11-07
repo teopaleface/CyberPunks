@@ -19,7 +19,7 @@ export interface RegionInfo {
 
 const COLOR_HEX: Record<PostColor, string> = { verde: "#22c55e", galben: "#eab308", roșu: "#ef4444", necunoscut: "#4a5a70" };
 const COLOR_TEXT: Record<PostColor, string> = { verde: "text-[#4ade80]", galben: "text-[#facc15]", roșu: "text-[#f87171]", necunoscut: "text-ink-soft" };
-const COLOR_NAME: Record<PostColor, string> = { verde: "sub 200 de lei", galben: "între 200 și 600 de lei", roșu: "peste 600 de lei", necunoscut: "fără bilanț" };
+const COLOR_NAME: Record<PostColor, string> = { verde: "Under RON 200", galben: "RON 200 to 600", roșu: "Over RON 600", necunoscut: "No energy balance" };
 const REGION_TONES: Tone[] = ["blue", "violet", "amber"];
 const STATUS_ITEMS: { id: Exclude<StatusFilter, "toate">; tone: Tone }[] = [
   { id: "verde", tone: "green" },
@@ -81,11 +81,11 @@ export function PostsScreen({
     const maxLoss = Math.max(1, ...filtered.map((r) => r.loss ?? 0));
     return filtered.map((r) => {
       const parts: string[] = [];
-      if (r.loss != null) parts.push(`${fmtInt(r.loss)} lei pe lună pierduți${derived ? " (estimat din A)" : ""}`);
-      if (r.meters) parts.push(plural(r.meters, "contor semnalat", "contoare semnalate"));
-      if (r.voltage != null) parts.push(`tensiune P90 ${fmtDec(r.voltage, 3).replace(/0$/, "")} pu`);
+      if (r.loss != null) parts.push(`${fmtInt(r.loss)} RON lost per month${derived ? " (estimated from model A)" : ""}`);
+      if (r.meters) parts.push(plural(r.meters, "flagged meter", "flagged meters"));
+      if (r.voltage != null) parts.push(`P90 voltage ${fmtDec(r.voltage, 3).replace(/0$/, "")} pu`);
       if (r.diagnosis) parts.push(r.diagnosis);
-      return { id: r.id, lat: r.lat, lon: r.lon, color: r.color, title: r.title, sub: parts.join("; ") || "fără semnale", weight: Math.sqrt((r.loss ?? 0) / maxLoss) };
+      return { id: r.id, lat: r.lat, lon: r.lon, color: r.color, title: r.title, sub: parts.join("; ") || "No signals", weight: Math.sqrt((r.loss ?? 0) / maxLoss) };
     });
   }, [filtered, derived]);
   const bounds = useMemo(() => boundsOfRows(filtered, RE_BOUNDS), [filtered]);
@@ -98,7 +98,7 @@ export function PostsScreen({
     sort.key !== key ? <ArrowUpDown aria-hidden="true" size={13} /> : sort.dir === "asc" ? <ArrowUp aria-hidden="true" size={13} /> : <ArrowDown aria-hidden="true" size={13} />;
   const ariaSort = (key: "post" | "loss") => (sort.key === key ? (sort.dir === "asc" ? "ascending" : "descending") : "none");
 
-  const regionItems = [{ id: "toate", label: "Toate" }, ...regions.map((r) => ({ id: r.id, label: r.label, count: rows.filter((x) => x.region === r.id).length }))];
+  const regionItems = [{ id: "toate", label: "All" }, ...regions.map((r) => ({ id: r.id, label: r.label, count: rows.filter((x) => x.region === r.id).length }))];
   const regionRows = regions
     .map((r, i) => ({ ...r, tone: REGION_TONES[i % REGION_TONES.length], sum: filtered.filter((x) => x.region === r.id).reduce((s, x) => s + (x.loss ?? 0), 0), n: filtered.filter((x) => x.region === r.id).length }))
     .filter((r) => r.n > 0);
@@ -109,17 +109,17 @@ export function PostsScreen({
     <>
       <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3">
         <Chips
-          label="Regiune"
+          label="Region"
           value={region}
           onChange={setRegion}
           items={regionItems.map((r) => ({ ...r, tone: undefined }))}
         />
         <span className="h-7 w-px bg-rule max-md:hidden" aria-hidden="true" />
-        <div role="group" aria-label="Status estimat" className="flex flex-wrap items-center gap-2.5">
-          <span className="text-[14.5px] text-ink-soft">Status estimat</span>
+        <div role="group" aria-label="Estimated status" className="flex flex-wrap items-center gap-2.5">
+          <span className="text-[14.5px] text-ink-soft">Estimated status</span>
           {STATUS_ITEMS.map((s) => {
             const on = status === s.id;
-            const label = s.id === "verde" ? `< ${fmtInt(thresholds.yellow)} lei` : s.id === "galben" ? `${fmtInt(thresholds.yellow)}–${fmtInt(thresholds.red)} lei` : `> ${fmtInt(thresholds.red)} lei`;
+            const label = s.id === "verde" ? `< ${fmtInt(thresholds.yellow)} RON` : s.id === "galben" ? `${fmtInt(thresholds.yellow)}–${fmtInt(thresholds.red)} RON` : `> ${fmtInt(thresholds.red)} RON`;
             return (
               <button
                 key={s.id}
@@ -140,7 +140,7 @@ export function PostsScreen({
       </div>
 
       <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
-        <Card title="Hartă geografică: pierderi estimate (lei/lună)" icon={MapIcon} iconTone="violet" className="flex min-h-[340px] flex-col xl:h-[460px]" bodyClassName="relative min-h-0 flex-1 !p-0 px-0">
+        <Card title="Estimated losses by location (RON/month)" icon={MapIcon} iconTone="violet" className="flex min-h-[340px] flex-col xl:h-[460px]" bodyClassName="relative min-h-0 flex-1 !p-0 px-0">
           <div className="relative mx-5 mt-0 mb-5 h-[calc(100%-1.25rem)] min-h-[280px] overflow-hidden rounded-[10px] border border-rule max-xl:h-[300px]">
             <PlanMap
               items={[]}
@@ -156,12 +156,12 @@ export function PostsScreen({
               padding={{ top: 28, bottom: 28, left: 28, right: 28 }}
               className="absolute inset-0"
             />
-            <div className="absolute bottom-3 left-3 rounded-[10px] border border-rule bg-panel/95 px-3.5 py-2.5 text-[13.5px]" role="group" aria-label="Legenda hărții">
-              <p className="mb-1 font-[600]">Lei pierduți pe lună</p>
+            <div className="absolute bottom-3 left-3 rounded-[10px] border border-rule bg-panel/95 px-3.5 py-2.5 text-[13.5px]" role="group" aria-label="Map legend">
+              <p className="mb-1 font-[600]">RON lost per month</p>
               {(["verde", "galben", "roșu"] as const).map((c) => (
                 <p key={c} className="flex items-center gap-2 leading-[1.55]">
                   <span aria-hidden="true" className="size-3 rounded-full" style={{ background: COLOR_HEX[c] }} />
-                  {c === "verde" ? `sub ${fmtInt(thresholds.yellow)}` : c === "galben" ? `${fmtInt(thresholds.yellow)}–${fmtInt(thresholds.red)}` : `peste ${fmtInt(thresholds.red)}`}
+                  {c === "verde" ? `below ${fmtInt(thresholds.yellow)}` : c === "galben" ? `${fmtInt(thresholds.yellow)}–${fmtInt(thresholds.red)}` : `above ${fmtInt(thresholds.red)}`}
                 </p>
               ))}
             </div>
@@ -169,16 +169,17 @@ export function PostsScreen({
         </Card>
 
         <Card
-          title="Lista posturi"
+          title="Substation list"
           icon={ListFilter}
           iconTone="blue"
           className="flex min-h-[340px] flex-col xl:h-[460px]"
           bodyClassName="flex min-h-0 flex-1 flex-col"
-          action={<span className="text-[14.5px] font-[400] text-ink-soft tabular-nums">{plural(filtered.length, "post", "posturi")}</span>}
+          action={<span className="text-[14.5px] font-[400] text-ink-soft tabular-nums">{plural(filtered.length, "substation", "substations")}</span>}
         >
           <div className="relative">
             <label htmlFor={searchId} className="sr-only">
-              Caută post
+
+              Search substations
             </label>
             <Search aria-hidden="true" size={18} className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-ink-soft" />
             <input
@@ -186,13 +187,13 @@ export function PostsScreen({
               type="search"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Caută post (ex. PT-1269, Afumați)…"
+              placeholder="Search substations (e.g. PT-1269, Afumați)…"
               autoComplete="off"
               spellCheck={false}
               className="h-11 w-full rounded-[10px] border border-rule bg-surface-2 pr-10 pl-11 text-[14.5px] text-ink placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring [&::-webkit-search-cancel-button]:hidden"
             />
             {q ? (
-              <button type="button" aria-label="Șterge căutarea" onClick={() => setQ("")} className="absolute top-1/2 right-2.5 grid size-7 -translate-y-1/2 place-items-center rounded-full text-ink-soft hover:text-ink focus-visible:outline-2 focus-visible:outline-ring">
+              <button type="button" aria-label="Clear search" onClick={() => setQ("")} className="absolute top-1/2 right-2.5 grid size-7 -translate-y-1/2 place-items-center rounded-full text-ink-soft hover:text-ink focus-visible:outline-2 focus-visible:outline-ring">
                 <X aria-hidden="true" size={16} />
               </button>
             ) : null}
@@ -203,17 +204,19 @@ export function PostsScreen({
                 <tr className="border-b border-rule">
                   <th scope="col" aria-sort={ariaSort("post")} className="py-2 pr-2 font-[500]">
                     <button type="button" onClick={() => toggleSort("post")} className="inline-flex items-center gap-1.5 hover:text-ink focus-visible:outline-2 focus-visible:outline-ring">
-                      Post {sortIcon("post")}
+
+                      Substation {sortIcon("post")}
                     </button>
                   </th>
-                  <th scope="col" className="px-2 py-2 font-[500]">Regiune</th>
-                  <th scope="col" className="px-2 py-2 font-[500]">Localitate</th>
+                  <th scope="col" className="px-2 py-2 font-[500]">Region</th>
+                  <th scope="col" className="px-2 py-2 font-[500]">Locality</th>
                   <th scope="col" aria-sort={ariaSort("loss")} className="px-2 py-2 text-right font-[500] whitespace-normal">
                     <button type="button" onClick={() => toggleSort("loss")} className="inline-flex items-center gap-1.5 hover:text-ink focus-visible:outline-2 focus-visible:outline-ring">
-                      Pierderi (lei/lună) {sortIcon("loss")}
+
+                      Losses (RON/month) {sortIcon("loss")}
                     </button>
                   </th>
-                  <th scope="col" className="py-2 pl-2 font-[500]">Recomandare</th>
+                  <th scope="col" className="py-2 pl-2 font-[500]">Recommendation</th>
                 </tr>
               </thead>
               <tbody>
@@ -240,7 +243,8 @@ export function PostsScreen({
                 {!sorted.length ? (
                   <tr>
                     <td colSpan={5} className="py-8 text-center text-ink-soft">
-                      Niciun post nu se potrivește cu filtrele.
+
+                      No substations match these filters.
                     </td>
                   </tr>
                 ) : null}
@@ -251,11 +255,11 @@ export function PostsScreen({
       </div>
 
       <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-2 xl:grid-cols-[1fr_1.2fr_1fr]">
-        <Card title="Rezumat financiar" icon={ChartColumn} iconTone="blue">
+        <Card title="Estimated losses" icon={ChartColumn} iconTone="blue">
           <div className="rounded-[10px] border border-rule bg-surface-2 px-4 py-3">
-            <p className="text-[14.5px] text-ink-soft">Pierderi estimate total{derived ? " (din contoarele A)" : ""}</p>
+            <p className="text-[14.5px] text-ink-soft">Total estimated losses{derived ? " (from model A meters)" : ""}</p>
             <p className="mt-0.5 text-[30px] leading-tight font-[700] tracking-[-0.02em] tabular-nums">
-              {lei2(total)} <span className="text-[20px] font-[600]">lei/lună</span>
+              {lei2(total)} <span className="text-[20px] font-[600]">RON/month</span>
             </p>
           </div>
           <ul className="mt-2.5 space-y-2">
@@ -263,23 +267,23 @@ export function PostsScreen({
               <li key={r.id} className="flex items-center gap-3 rounded-[10px] border border-rule bg-surface-2 px-3.5 py-2 text-[14.5px]">
                 <span aria-hidden="true" className={cn("size-3 rounded-full", TONE[r.tone].solid)} />
                 <span className="flex-1 whitespace-nowrap">{r.label}</span>
-                <span className="font-[500] whitespace-nowrap tabular-nums">{lei2(r.sum)} <span className="text-ink-soft">lei/lună</span></span>
+                <span className="font-[500] whitespace-nowrap tabular-nums">{lei2(r.sum)} <span className="text-ink-soft">RON/month</span></span>
               </li>
             ))}
-            {!regionRows.length ? <li className="text-[14.5px] text-ink-soft">Niciun post în filtrele alese.</li> : null}
+            {!regionRows.length ? <li className="text-[14.5px] text-ink-soft">No substations in the selected filters.</li> : null}
           </ul>
         </Card>
 
-        <Card title="Distribuție posturi după pierderi" icon={ChartPie} iconTone="blue">
+        <Card title="Substations by loss level" icon={ChartPie} iconTone="blue">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3 max-sm:justify-center">
-            <Donut parts={donutParts} center={fmtInt(filtered.length)} sub={filtered.length === 1 ? "post" : "posturi"} size={116} />
+            <Donut parts={donutParts} center={fmtInt(filtered.length)} sub={filtered.length === 1 ? "substation" : "substations"} size={116} />
             <ul className="min-w-[170px] flex-1 space-y-2.5 text-[14.5px]">
               {(["verde", "galben", "roșu", "necunoscut"] as const)
                 .filter((c) => counts[c] > 0 || c !== "necunoscut")
                 .map((c) => (
                   <li key={c} className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-x-3">
                     <span aria-hidden="true" className="size-3 rounded-full" style={{ background: COLOR_HEX[c] }} />
-                    <span>{c === "necunoscut" ? "fără bilanț" : c === "verde" ? `sub ${fmtInt(thresholds.yellow)}` : c === "galben" ? `${fmtInt(thresholds.yellow)}–${fmtInt(thresholds.red)}` : `peste ${fmtInt(thresholds.red)}`}</span>
+                    <span>{c === "necunoscut" ? "No energy balance" : c === "verde" ? `below ${fmtInt(thresholds.yellow)}` : c === "galben" ? `${fmtInt(thresholds.yellow)}–${fmtInt(thresholds.red)}` : `above ${fmtInt(thresholds.red)}`}</span>
                     <span className="text-right font-[600] tabular-nums">{fmtInt(counts[c])}</span>
                     <span className="w-[52px] text-right text-ink-soft tabular-nums">{pct(counts[c])}</span>
                   </li>
@@ -288,12 +292,12 @@ export function PostsScreen({
           </div>
         </Card>
 
-        <Card title="Decizie umană" icon={UserRound} iconTone="blue" className="lg:col-span-2 xl:col-span-1">
+        <Card title="Human decision" icon={UserRound} iconTone="blue" className="lg:col-span-2 xl:col-span-1">
           <div className="rounded-[10px] border border-rule bg-surface-2 px-4 py-3.5">
             <p className="text-[22px] leading-tight font-[700] tracking-[-0.015em]">
-              {overRed ? `${plural(overRed, "post depășește", "posturi depășesc")} ${fmtInt(thresholds.red)} lei/lună.` : `Niciun post nu depășește ${fmtInt(thresholds.red)} lei/lună.`}
+              {overRed ? `${plural(overRed, "substation exceeds", "substations exceed")} ${fmtInt(thresholds.red)} RON/month.` : `No substation exceeds ${fmtInt(thresholds.red)} RON/month.`}
             </p>
-            <p className="mt-1.5 text-[14.5px] text-ink-soft">Verifică situația și confirmă acțiunea pentru planul de mâine.</p>
+            <p className="mt-1.5 text-[14.5px] text-ink-soft">Review the evidence before confirming tomorrow&apos;s action.</p>
             <div className="mt-3.5 flex flex-wrap gap-2.5">
               <button
                 type="button"
@@ -301,16 +305,18 @@ export function PostsScreen({
                 disabled={!overRed}
                 onClick={() => (setRegionState("toate"), setStatusState("roșu"), setQState(""), persist({ region: "toate", status: "roșu", q: "" }))}
               >
-                Arată doar posturile peste {fmtInt(thresholds.red)} lei
+
+                Show only substations above {fmtInt(thresholds.red)}  RON
               </button>
               <Link href={`/coada?scenariu=${encodeURIComponent(scenario)}`} className={btn("outline")}>
-                Vezi lucrările de decis
+
+                Review pending work items
               </Link>
             </div>
           </div>
         </Card>
       </div>
-      <p className="sr-only" aria-live="polite">{plural(filtered.length, "post afișat", "posturi afișate")}</p>
+      <p className="sr-only" aria-live="polite">{plural(filtered.length, "substation shown", "substations shown")}</p>
     </>
   );
 }

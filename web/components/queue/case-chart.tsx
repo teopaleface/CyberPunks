@@ -39,7 +39,7 @@ export function CaseChart({ data, unit, color, limit, label }: { data: CasePoint
           <Tooltip
             cursor={{ stroke: "#3d5170" }}
             contentStyle={{ background: "#0b1626", border: "1px solid #2a3a52", borderRadius: 10, color: "#eef2f7", fontSize: 13 }}
-            formatter={(v) => [`${String(v).replace(".", ",")} ${unit}`, ""]}
+            formatter={(v) => [`${String(v)} ${unit}`, ""]}
             separator=""
           />
           <Area type="monotone" dataKey="v" stroke={color} strokeWidth={2} fill={`url(#${gid})`} dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />

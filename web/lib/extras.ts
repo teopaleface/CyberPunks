@@ -60,7 +60,7 @@ export function isBilantPost(w: WorkItem): boolean {
   return w.source === "A" && w.asset_type === "transformer_post";
 }
 
-export const BILANT_LABEL = "Simulare pe date publice, gândită pentru datele PPC";
+export const BILANT_LABEL = "Simulation using public data, designed for PPC data";
 
 /**
  * P90 de pornire al scării de soluții (punctul gol): `extra.ladder_base_p90_pu`, baza din care pornesc treptele;

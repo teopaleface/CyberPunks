@@ -16,14 +16,14 @@ export interface SectionDef {
 }
 
 const CHIPS: { id: PostSection; label: string; tone?: Tone }[] = [
-  { id: "toate", label: "Toate" },
-  { id: "bilant", label: "Bilanț", tone: "blue" },
-  { id: "contoare", label: "Contoare", tone: "violet" },
-  { id: "tensiune", label: "Tensiune", tone: "amber" },
-  { id: "cauze", label: "Cauze", tone: "blue" },
-  { id: "remediere", label: "Remediere", tone: "violet" },
-  { id: "lucrari", label: "Lucrări", tone: "amber" },
-  { id: "jurnal", label: "Jurnal", tone: "blue" },
+  { id: "toate", label: "All" },
+  { id: "bilant", label: "Energy balance", tone: "blue" },
+  { id: "contoare", label: "Meters", tone: "violet" },
+  { id: "tensiune", label: "Voltage", tone: "amber" },
+  { id: "cauze", label: "Causes", tone: "blue" },
+  { id: "remediere", label: "Remedies", tone: "violet" },
+  { id: "lucrari", label: "Work items", tone: "amber" },
+  { id: "jurnal", label: "Audit log", tone: "blue" },
 ];
 
 /** Filtrele paginii postului: ascund cardurile (fără să le scoată din pagină), iar alegerea stă în URL. */
@@ -53,7 +53,7 @@ export function PostSections({ sections, stare, initial }: { sections: SectionDe
   }, []);
   return (
     <>
-      <Chips label="Părți ale paginii" items={CHIPS} value={section} onChange={choose} className="mt-5" />
+      <Chips label="Page sections" items={CHIPS} value={section} onChange={choose} className="mt-5" />
       <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)_minmax(0,1fr)]">
         <div className={cn("contents", section !== "toate" && section !== "bilant" && "hidden")}>{stare}</div>
         {sections.map((s) => {

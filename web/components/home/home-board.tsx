@@ -9,23 +9,21 @@ import { ITEMS, type HomeFilter } from "./filters";
 /** Filtrele se aplică detaliilor; propunerea și decizia următoare rămân vizibile. */
 const SHOW: Record<HomeFilter, string[]> = {
   toate: ["figures", "map", "crews", "gantt", "meter", "alerts"],
-  lucrari: ["figures", "question", "meter"],
+  lucrari: ["figures", "meter"],
   echipe: ["crews", "gantt"],
   trasee: ["crews", "gantt"],
   posturi: ["map"],
-  alerte: ["alerts", "question"],
+  alerte: ["alerts"],
   vreme: ["question"],
   tensiune: ["question"],
 };
 
 const MORE: Partial<Record<HomeFilter, { href: string; label: string }>> = {
-  lucrari: { href: "/lucrari", label: "Vezi toate lucrările" },
-  echipe: { href: "/harta", label: "Vezi traseele pe hartă" },
-  trasee: { href: "/harta", label: "Vezi traseele pe hartă" },
-  posturi: { href: "/posturi", label: "Vezi toate posturile" },
-  alerte: { href: "/alerte", label: "Vezi toate alertele" },
-  vreme: { href: "/harta", label: "Vezi zonele de furtună pe hartă" },
-  tensiune: { href: "/lucrari", label: "Vezi lucrările de tensiune" },
+  lucrari: { href: "/lucrari", label: "All work items" },
+  posturi: { href: "/posturi", label: "All substations" },
+  alerte: { href: "/alerte", label: "All alerts" },
+  vreme: { href: "/harta", label: "View storm areas on the map" },
+  tensiune: { href: "/lucrari", label: "View voltage work items" },
 };
 
 export function HomeBoard({
@@ -53,7 +51,7 @@ export function HomeBoard({
   gantt: ReactNode;
   alerts: ReactNode;
 }) {
-  const [filter, setFilter] = useState<HomeFilter>(initial);
+  const [filter, setFilter] = useState<HomeFilter>(initial === "trasee" ? "echipe" : initial);
   const shown = new Set(SHOW[filter]);
   const body = filter === "vreme" ? question.storm : filter === "tensiune" ? question.voltage : question.default;
   const more = MORE[filter];
@@ -69,10 +67,10 @@ export function HomeBoard({
   return (
     <div className="flex flex-col">
       <div className="order-1 mt-6 grid items-start gap-6 md:order-2 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,1fr)]">
-        <section aria-label="Următoarea decizie" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-6 sm:p-7">
+        <section aria-label="Next decision" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-6 sm:p-7">
           {question.default}
         </section>
-        <section aria-label="Planul propus" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-6 sm:p-7 xl:order-first">
+        <section aria-label="Proposed plan" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-6 sm:p-7 xl:order-first">
           {plan}
         </section>
       </div>
@@ -83,13 +81,13 @@ export function HomeBoard({
         <summary className="flex cursor-pointer list-none items-center gap-3 rounded-2xl p-5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring sm:p-6 [&::-webkit-details-marker]:hidden">
           <SlidersHorizontal aria-hidden="true" size={20} className="shrink-0 text-ink-soft" />
           <span className="min-w-0 flex-1">
-            <span className="block text-[17px] font-[550]">Detalii despre plan</span>
-            <span className="mt-1 block text-[14px] leading-relaxed text-ink-soft">Lucrări, echipe, trasee, posturi și alerte. Filtrează ce vrei să verifici.</span>
+            <span className="block text-[17px] font-[550]">Plan details</span>
+            <span className="mt-1 block text-[14px] leading-relaxed text-ink-soft">Review work, crews, routes, substations and alerts.</span>
           </span>
           <ChevronDown aria-hidden="true" size={20} className="shrink-0 text-ink-soft transition-transform group-open:rotate-180" />
         </summary>
         <div className="border-t border-rule p-5 sm:p-6">
-          <div role="group" aria-label="Filtrează detaliile planului" className="flex flex-wrap gap-2">
+          <div role="group" aria-label="Filter plan details" className="flex flex-wrap gap-2">
             {ITEMS.map((i) => (
               <button
                 key={i.id}
@@ -111,7 +109,7 @@ export function HomeBoard({
             {shown.has("map") ? <div className="min-w-0">{map}</div> : null}
             {shown.has("crews") ? <div className="min-w-0">{crews}</div> : null}
             {shown.has("alerts") ? <div className="min-w-0 lg:col-span-2">{alerts}</div> : null}
-            {shown.has("question") ? <section aria-label="Caz de verificat" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-6">{body}</section> : null}
+            {shown.has("question") ? <section aria-label="Case to review" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-6">{body}</section> : null}
             {shown.has("meter") && meter ? <div className="min-w-0">{meter}</div> : null}
             {shown.has("gantt") ? <div className="min-w-0 lg:col-span-2">{gantt}</div> : null}
           </div>

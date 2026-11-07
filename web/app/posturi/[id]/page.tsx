@@ -1,3 +1,4 @@
+import { englishText } from "@/lib/english";
 import { ClipboardList, HardHat, Layers, ChevronRight, Gauge, ScrollText, Search, UtilityPole, Waypoints, Zap, Network, SlidersHorizontal, Link2, MapPin, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -30,7 +31,7 @@ function safeDecode(value: string): string {
 export default function PostPage({ params, searchParams }: PageProps<"/posturi/[id]">) {
   return (
     <Suspense fallback={<div role="status" className="min-h-dvh bg-canvas" aria-busy="true">
-        <span className="sr-only">Se încarcă postul…</span>
+        <span className="sr-only">Loading substation…</span>
       </div>}>
       <Post params={params} searchParams={searchParams} />
     </Suspense>
@@ -44,10 +45,10 @@ const CAUSE_ICON: Record<string, typeof Zap> = {
   client_post_gresit: Link2,
   contor_bilant_setat: Gauge,
 };
-const BAND_TONE: Record<string, Tone> = { Probabil: "blue", Posibil: "violet", "Puțin probabil": "grey" };
+const BAND_TONE: Record<string, Tone> = { Likely: "blue", Possible: "violet", Unlikely: "grey" };
 const PIN_TEXT = { verde: "text-[#4ade80]", galben: "text-[#facc15]", roșu: "text-[#f87171]", necunoscut: "text-ink-soft" } as const;
 
-const clean = (t: string) => { const x = t.replace(/\.\s*$/, "").trim(); return x.charAt(0).toUpperCase() + x.slice(1); };
+const clean = (t: string) => { const x = englishText(t).replace(/\.\s*$/, "").trim(); return x.charAt(0).toUpperCase() + x.slice(1); };
 const short = (t: string) => clean(t.replace(/\s*\([^)]*\)/g, ""));
 
 async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "params" | "searchParams">) {
@@ -72,10 +73,10 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
       <AppShell info={info}>
         <div className="mx-auto w-full max-w-[680px] px-8 py-16 max-md:px-4">
           <Link href={`/posturi${q}`} className="text-[15px] underline decoration-rule underline-offset-4">
-            Înapoi la posturi
+            Back to substations
           </Link>
-          <h1 className="mt-6 text-[26px] font-[650]">Postul {id} nu apare în scenariul „{scenario}”</h1>
-          <p className="mt-3 text-[16px] text-muted-foreground">Alege un post din lista posturilor sau de pe hartă.</p>
+          <h1 className="mt-6 text-[26px] font-[650]">Substation {id} not found in scenario &quot;{scenario}&quot;</h1>
+          <p className="mt-3 text-[16px] text-muted-foreground">Choose a substation from the list or map.</p>
         </div>
       </AppShell>
     );
@@ -99,66 +100,66 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
   const label = bilant?.prediction.label;
   const normal = label === "normal";
   const headline = !bilant
-    ? `Fără bilanț la ${post.post_id}.`
+    ? `No energy balance for ${post.post_id}.`
     : normal
-      ? `Bilanț în limite la ${post.post_id}.`
-      : `${short(predictionLabelRo(label!))} la ${post.post_id}.`;
+      ? `Energy balance within limits at ${post.post_id}.`
+      : `${short(predictionLabelRo(label!))} at ${post.post_id}.`;
   const detail = !bilant
-    ? "Bilanțul pe acest post nu e calculat încă; contoarele sunt semnalate separat."
+    ? "Energy balance not calculated yet. Meters are flagged separately."
     : normal
-      ? "Ce iese din post se potrivește cu suma clienților."
-      : "Iese din post mai mult decât suma clienților, peste banda normală.";
+      ? "Substation output matches total customer consumption."
+      : "Substation output exceeds total customer consumption beyond the normal range.";
 
   let pill: { tone: Tone; text: string } | null = null;
   if (bd) {
     pill =
-      bd.decision === "human_review" ? { tone: "orange", text: "Necesită decizie umană" }
-      : bd.decision === "assigned" ? { tone: "blue", text: crew ? `În traseu, ${crew}` : "În traseu" }
-      : bd.decision === "remote_action" ? { tone: "violet", text: "Verificare la distanță" }
-      : bd.decision === "deferred" ? { tone: "grey", text: "Amânată" }
+      bd.decision === "human_review" ? { tone: "orange", text: "Human decision required" }
+      : bd.decision === "assigned" ? { tone: "blue", text: crew ? `On route, ${crew}` : "On route" }
+      : bd.decision === "remote_action" ? { tone: "violet", text: "Remote check" }
+      : bd.decision === "deferred" ? { tone: "grey", text: "Deferred" }
       : { tone: "grey", text: sentence(DECISION_LABEL_RO[bd.decision]) };
   }
 
   const stare = (
-    <Card title="Stare post" icon={ClipboardList} iconTone="blue" id="stare" className="h-full">
+    <Card title="Substation status" icon={ClipboardList} iconTone="blue" id="stare" className="h-full">
       <p className="text-[21px] leading-tight font-[700] tracking-[-0.015em]">{headline}</p>
       <p className="mt-1.5 text-[15px] text-ink-soft">{detail}</p>
       <dl className="mt-4 grid grid-cols-2 gap-4">
         <div className="flex items-center gap-3">
           <UtilityPole aria-hidden="true" size={30} strokeWidth={1.5} className={PIN_TEXT[color]} />
           <div>
-            <dt className="text-[13px] text-ink-soft">Post</dt>
+            <dt className="text-[13px] text-ink-soft">Substation</dt>
             <dd className="font-[650]" translate="no">{post.post_id}</dd>
           </div>
         </div>
         <div className="flex items-center gap-3 border-l border-rule pl-4">
           <MapPin aria-hidden="true" size={26} strokeWidth={1.5} className="text-ink-soft" />
           <div className="min-w-0">
-            <dt className="text-[13px] text-ink-soft">Locație</dt>
-            <dd className="truncate font-[650]">{place || "fără locație în registru"}</dd>
+            <dt className="text-[13px] text-ink-soft">Location</dt>
+            <dd className="truncate font-[650]">{place || "no location in the register"}</dd>
           </div>
         </div>
       </dl>
       {post.loss_lei_month != null ? (
         <p className="mt-3 text-[14.5px] text-ink-soft">
-          Pierdere estimată: <b className="font-[650] text-ink">{approxLei(post.loss_lei_month)} pe lună</b>
-          {post.derived ? " (din contoarele A)" : ""}.
+          Estimated loss: <b className="font-[650] text-ink">{approxLei(post.loss_lei_month)} per month</b>
+          {post.derived ? " (from model A meters)" : ""}.
         </p>
       ) : null}
       {pill ? <div className="mt-3"><Pill tone={pill.tone} size="lg">{pill.text}</Pill></div> : null}
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <a href="#cauze" className={btn("primary", "md")}>Analizează</a>
+        <a href="#cauze" className={btn("primary", "md")}>Investigate</a>
         {bilant ? (
-          <Link href={wi(bilant)} className={btn(bd?.decision === "human_review" ? "danger" : "outline", "md")}>Vezi lucrarea</Link>
+          <Link href={wi(bilant)} className={btn(bd?.decision === "human_review" ? "danger" : "outline", "md")}>View work item</Link>
         ) : cItem ? (
-          <Link href={wi(cItem)} className={btn("outline", "md")}>Vezi lucrarea</Link>
+          <Link href={wi(cItem)} className={btn("outline", "md")}>View work item</Link>
         ) : null}
       </div>
     </Card>
   );
 
   const chart = (
-    <Card title="Bilanț: ieșit din post vs. suma clienților" icon={TrendingUp} iconTone="blue" className="h-full">
+    <Card title="Substation output vs. customer consumption" icon={TrendingUp} iconTone="blue" className="h-full">
       {bilantSeries?.data && bilant ? (
         <>
           <SeriesChart series={bilantSeries.data} workItem={bilant} />
@@ -168,21 +169,21 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
         </>
       ) : (
         <div role="status" className="py-6 text-[15px]">
-          <p className="font-[560]">{bilant ? "Seria bilanțului pentru grafic nu e publicată încă." : "Bilanțul pe acest post nu e calculat încă."}</p>
+          <p className="font-[560]">{bilant ? "Energy balance time series not published yet." : "Energy balance not calculated yet."}</p>
           <p className="mt-1 text-ink-soft">
             {bilant
-              ? "Cifrele și cauza vin deja din bilanț; graficul apare când firul bilanțului publică seria."
-              : `Până vine bilanțul, pierderea afișată e estimată din contoarele semnalate de modelul A${posts.lossCost ? ` (kWh pe zi × scor × 30 de zile × ${fmtDec(posts.lossCost.value, 2)} lei/kWh)` : ""}.`}
+              ? "Balance results are available; the chart awaits its time series."
+              : `Until the balance is available, loss is estimated from meters flagged by model A${posts.lossCost ? ` (daily kWh × score × 30 days × ${fmtDec(posts.lossCost.value, 2)} lei/kWh)` : ""}.`}
           </p>
         </div>
       )}
-      <p className="mt-2 text-[12.5px] text-muted-foreground">{BILANT_LABEL}</p>
+      <p className="mt-2 text-[12.5px] text-muted-foreground">{englishText(BILANT_LABEL)}</p>
     </Card>
   );
 
   const causes = bilant ? causeProbs(bilant.extra) : [];
   const causeCard = (
-    <Card title="Cauze (din bilanț)" icon={Search} iconTone="blue" id="cauze" className="h-full scroll-mt-20">
+    <Card title="Estimated causes" icon={Search} iconTone="blue" id="cauze" className="h-full scroll-mt-20">
       {causes.length ? (
         <ul className="space-y-2">
           {causes.slice(0, 5).map((c) => {
@@ -193,28 +194,28 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
                 <Icon aria-hidden="true" size={20} strokeWidth={1.6} className="shrink-0 text-src-a" />
                 <span className="min-w-0 flex-1">{clean(predictionLabelRo(c.key))}</span>
                 <span className="sr-only">{roundPct(c.p)}</span>
-                <Pill tone={BAND_TONE[band]} size="sm">{band}</Pill>
+                <Pill tone={BAND_TONE[band]} size="sm">{englishText(band)}</Pill>
               </li>
             );
           })}
         </ul>
       ) : (
-        <p className="py-4 text-[15px] text-ink-soft">{bilant ? "Bilanțul nu a publicat probabilitățile pe cauze." : "Fără bilanț, nu putem separa pierderea normală de furt, contoare defecte sau clienți trecuți la postul greșit."}</p>
+        <p className="py-4 text-[15px] text-ink-soft">{bilant ? "Cause probabilities not published yet." : "Without an energy balance, normal losses cannot be separated from theft, faulty meters or incorrectly linked customers."}</p>
       )}
-      <p className="mt-3 text-[12.5px] text-muted-foreground">Probabilități estimate de model; niciuna nu e confirmată de un om.</p>
+      <p className="mt-3 text-[12.5px] text-muted-foreground">Model estimates. No cause has been confirmed by a person.</p>
     </Card>
   );
 
   const meterCard = (
-    <Card title="Contoare în post" icon={Gauge} iconTone="blue" className="h-full">
+    <Card title="Meters at this substation" icon={Gauge} iconTone="blue" className="h-full">
       {meters.length ? (
         <table className="w-full text-[14px]">
           <thead className="text-left text-[13px] text-ink-soft">
             <tr className="border-b border-rule">
-              <th scope="col" className="py-1.5 font-[500]">Contor</th>
-              <th scope="col" className="py-1.5 font-[500]">Stare</th>
-              <th scope="col" className="py-1.5 text-right font-[500]">Scor</th>
-              <th scope="col" className="w-7"><span className="sr-only">Deschide</span></th>
+              <th scope="col" className="py-1.5 font-[500]">Meter</th>
+              <th scope="col" className="py-1.5 font-[500]">Status</th>
+              <th scope="col" className="py-1.5 text-right font-[500]">Score</th>
+              <th scope="col" className="w-7"><span className="sr-only">Open</span></th>
             </tr>
           </thead>
           <tbody>
@@ -226,7 +227,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
                 </td>
                 <td className="py-2 text-right"><Pill tone="grey" size="sm">{roundPct(w.prediction.score)}</Pill></td>
                 <td className="py-2 text-right">
-                  <Link href={wi(w)} aria-label={`Deschide lucrarea contorului ${w.asset_id}`} className="inline-grid size-7 place-items-center rounded-full hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-ring">
+                  <Link href={wi(w)} aria-label={`Open work item for meter ${w.asset_id}`} className="inline-grid size-7 place-items-center rounded-full hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-ring">
                     <ChevronRight aria-hidden="true" size={18} />
                   </Link>
                 </td>
@@ -235,13 +236,13 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
           </tbody>
         </table>
       ) : (
-        <p className="py-4 text-[15px] text-ink-soft">Niciun contor de sub acest post nu e semnalat de modelul A.</p>
+        <p className="py-4 text-[15px] text-ink-soft">No meters at this substation are flagged by model A.</p>
       )}
     </Card>
   );
 
   const voltageCard = (
-    <Card title="Tensiunea la prânz (P10–P90)" icon={Zap} iconTone="amber" className="h-full">
+    <Card title="Midday voltage (P10–P90)" icon={Zap} iconTone="amber" className="h-full">
       {cItem && cSeries?.data ? (
         <>
           <SeriesChart series={cSeries.data} workItem={cItem} />
@@ -249,7 +250,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
         </>
       ) : (
         <p role="status" className="py-4 text-[15px] text-ink-soft">
-          {cItem ? "Seria de tensiune nu e publicată încă." : "Acest post nu are lucrare de tensiune: nu se măsoară supratensiune aici."}
+          {cItem ? "Voltage time series not published yet." : "No voltage work item exists for this substation. This does not confirm that voltage is within limits."}
         </p>
       )}
     </Card>
@@ -259,7 +260,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
   const cChoice = cItem ? remedies?.data.find((r) => r.work_item_id === cItem.work_item_id) : undefined;
   const chosen = new Set(cItem ? ladderChoice(cItem, cChoice) : []);
   const ladderCard = (
-    <Card title="Scară de remediere" icon={Layers} iconTone="violet" className="h-full">
+    <Card title="Remedy options" icon={Layers} iconTone="violet" className="h-full">
       {options.length ? (
         <ol className="space-y-2">
           {options.map((o, i) => {
@@ -271,7 +272,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
                   {clean(ACTION_RO[o.action] ?? o.action)}
                   <span className="block text-[12.5px] text-ink-soft">{fmtLei(o.cost_lei)}</span>
                 </span>
-                <Pill tone={on ? "blue" : "grey"} size="sm">{on ? "Ales" : o.p90_after_pu >= 1.1 ? "Nu ajunge" : "Neales"}</Pill>
+                <Pill tone={on ? "blue" : "grey"} size="sm">{on ? "Selected" : o.p90_after_pu >= 1.1 ? "Insufficient" : "Not selected"}</Pill>
               </li>
             );
           })}
@@ -280,32 +281,32 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
         <div className="flex items-center gap-3 rounded-[10px] border border-rule bg-surface-2 px-3 py-2.5 text-[14.5px]">
           <span aria-hidden="true" className="grid size-7 place-items-center rounded-full border border-src-a bg-src-a text-[13px] font-[650] text-white">1</span>
           <span className="flex-1">{clean(ACTION_RO[bilant.recommended_action] ?? bilant.recommended_action)}</span>
-          <Pill tone="blue" size="sm">Recomandat</Pill>
+          <Pill tone="blue" size="sm">Recommended</Pill>
         </div>
       ) : (
-        <p className="py-4 text-[15px] text-ink-soft">Nicio remediere propusă încă pentru acest post.</p>
+        <p className="py-4 text-[15px] text-ink-soft">No remedy proposed for this substation yet.</p>
       )}
     </Card>
   );
 
   const work = [bilant && { w: bilant, d: bd }, cItem && { w: cItem, d: cd }].filter((x): x is { w: WorkItem; d: typeof bd } => Boolean(x));
   const decisionText = work.length
-    ? work.map(({ w, d }) => `${w.source === "C" ? "Tensiune" : "Bilanț"}: ${d ? DECISION_LABEL_RO[d.decision] : "fără decizie"}`).join("; ") + "."
-    : "Postul nu are încă nicio lucrare în plan.";
+    ? work.map(({ w, d }) => `${w.source === "C" ? "Voltage" : "Energy balance"}: ${d ? englishText(DECISION_LABEL_RO[d.decision]) : "no decision"}`).join("; ") + "."
+    : "No work items for this substation in the plan yet.";
   const works = (
     <Card className="h-full" bodyClassName="flex flex-wrap items-center gap-x-6 gap-y-3 !py-4">
       <div className="flex items-center gap-3">
         <HardHat aria-hidden="true" size={30} strokeWidth={1.5} className="text-att-ink" />
-        <h2 className="text-[19px] font-[700]">Lucrări</h2>
+        <h2 className="text-[19px] font-[700]">Work items</h2>
       </div>
       <span className="h-8 w-px bg-rule max-md:hidden" aria-hidden="true" />
       <p className="min-w-[220px] flex-1 text-[15.5px]">{sentence(decisionText)}</p>
       <div className="flex flex-wrap items-center gap-2.5">
         {bd?.decision === "human_review" && bilant ? <ReviewActions workItemId={bilant.work_item_id} scenario={scenario} /> : null}
         {work.map(({ w }) => (
-          <Link key={w.work_item_id} href={wi(w)} className={btn("outline")}>{work.length > 1 ? `Vezi lucrarea (${w.source === "C" ? "tensiune" : "bilanț"})` : "Vezi lucrarea"}</Link>
+          <Link key={w.work_item_id} href={wi(w)} className={btn("outline")}>{work.length > 1 ? `View work item (${w.source === "C" ? "voltage" : "energy balance"})` : "View work item"}</Link>
         ))}
-        {crew ? <Link href={`/ordine/${encodeURIComponent(crew)}${q}`} className={btn("primary")}>Ordin de lucru</Link> : null}
+        {crew ? <Link href={`/ordine/${encodeURIComponent(crew)}${q}`} className={btn("primary")}>Work order</Link> : null}
       </div>
     </Card>
   );
@@ -313,19 +314,19 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
   const ids = new Set([bilant?.work_item_id, cItem?.work_item_id, ...meters.map((m) => m.work_item_id)].filter(Boolean) as string[]);
   const audit = (view.data?.audit ?? []).filter((a) => a.work_item_id && ids.has(a.work_item_id)).toSorted((a, b) => b.ts.localeCompare(a.ts)).slice(0, 8);
   const journal = (
-    <Card title="Jurnal" icon={ScrollText} iconTone="blue">
+    <Card title="History" icon={ScrollText} iconTone="blue">
       {audit.length ? (
         <ul className="divide-y divide-rule text-[14.5px]">
           {audit.map((a) => (
             <li key={a.audit_id} className="flex flex-wrap items-baseline gap-x-4 gap-y-0.5 py-2">
               <span className="w-[220px] whitespace-nowrap text-ink-soft tabular-nums">{fmtMoment(a.ts)}</span>
               <span className="flex-1">{sentence(auditActionRo(a.action))}</span>
-              <span className="text-ink-soft">{a.actor === "human" ? "om" : "agent"}</span>
+              <span className="text-ink-soft">{a.actor === "human" ? "human" : "agent"}</span>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="text-[15px] text-ink-soft">Nicio intrare în jurnal pentru lucrările acestui post.</p>
+        <p className="text-[15px] text-ink-soft">No history for this substation&apos;s work items.</p>
       )}
     </Card>
   );
@@ -345,12 +346,12 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
       <div className="mx-auto w-full max-w-[1520px] px-8 pt-7 pb-14 max-md:px-4">
         <PageTitle
           icon={UtilityPole}
-          title={`Post ${post.post_id}${place ? ` ${place}` : ""}${post.synthetic !== false ? " (sintetic)" : ""}`}
-          subtitle="Bilanț, contoare, tensiune, cauze și remediere."
+          title={`Substation ${post.post_id}${place ? ` ${place}` : ""}${post.synthetic !== false ? " (synthetic)" : ""}`}
+          subtitle="Energy balance, meters and voltage evidence."
         />
         <PostSections sections={sections} stare={stare} initial={parseSection(typeof sp.sectiune === "string" ? sp.sectiune : null)} />
         <p className="mt-5 text-[13px] text-muted-foreground">
-          Postul e unitatea comună: contoarele (A), bilanțul și tensiunea (C) se întâlnesc aici. {fmtInt(post.meters_flagged ?? 0)} contoare semnalate.
+          Linked work at this substation. {fmtInt(post.meters_flagged ?? 0)} flagged meters.
         </p>
       </div>
     </AppShell>

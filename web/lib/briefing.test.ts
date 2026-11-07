@@ -14,6 +14,6 @@ const item = (o: Partial<WorkItem> & { label: string; county?: string }): WorkIt
 
 describe("briefingul", () => {
   test("titlul cazului poartă și locul", () => {
-    expect(placeOf(item({ label: "Zona Ineu (Arad)" }))).toBe("Zona Ineu, Arad");
+    expect(placeOf(item({ label: "Zona Ineu (Arad)" }))).toBe("Ineu area, Arad");
   });
 });

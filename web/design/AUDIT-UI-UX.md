@@ -1,33 +1,30 @@
-# Audit UI/UX Daybreak
+# Daybreak UI/UX audit
 
-7 noiembrie 2026. Audit și modificări locale pe ramura Teo, la cererea lui Teo.
+7 November 2026. The product UI is English. Chat and project notes may remain Romanian.
 
-## Concluzie
+## What was wrong
 
-Landingul integrat în `web/site` este reperul vizual. Consola avea altă paletă, o legătură incorectă între variabilele fonturilor și prea multe informații prezentate simultan. Am păstrat compoziția landingului și am adus identitatea lui în consolă.
+The earlier pass aligned fonts and colours but kept controls without checking whether they helped a dispatcher. This revision audits the task each element supports.
 
-## Ce am găsit și ce am schimbat
+1. **The desktop header repeated context.** “Consola dispecerului” described the page without helping a decision. Global search competed with page-specific filters and navigation. Both are removed, together with the desktop header. The page now starts 72 px higher. Daybreak remains in the sidebar; mobile retains a compact brand and menu bar.
+2. **The workspace mixed operations with presentation tools.** The main menu now has five operational destinations. Activity, models and agent runs sit under “Agent tools”. Demo remains a route but is removed from everyday navigation. Account and data source information stay in the sidebar footer.
+3. **The home screen repeated controls and tutorial copy.** Generating another plan belongs in the agent tools, not beside every approval. Home keeps the proposed assignments, the next review case and the plan summary. Empty plans retain a way to run the agent.
+4. **Two filters did the same job.** Crews and routes selected the same content and opened the same destination. They are consolidated into one visible option, with old query links retained.
+5. **Technical evidence competed with action.** Review pages put reasons and decisions first. Model details and evidence remain available on demand. Operational facts, safety warnings and synthetic-data labels are preserved.
+6. **The landing repeated claims and screen previews.** Static mock screens and the unvalidated claim that one rule works in three countries do not demonstrate the actual product. They are removed from the main reading flow. Input requirements, model evidence and the real workspace remain accessible.
+7. **Presentation copy and forced scrolling slowed reading.** Landing sections use standard page scrolling. Product copy states what the system does, and avoids claims beyond the available evaluation.
+8. **The product mixed languages.** Page copy, navigation, dialogs, accessibility labels, formatting and known generated explanations are presented in English. Contract field names, IDs, links, model outputs and source data remain unchanged. Place names retain their proper spelling. Original research documents may remain in Romanian and are identified as source material.
 
-1. **Două identități vizuale.** Landingul are fundal negru, suprafețe neutre, Geist pentru corp și Unbounded pentru titluri. Consola avea bleumarin, butoane albastre și titluri fără aceeași personalitate. Acum ambele folosesc negru, alb și galben `#ffc502` pentru acțiuni. Sursele A/B/C și stările de siguranță păstrează culori distincte, însoțite de text.
-2. **Fonturi legate incorect.** Variabilele Tailwind `--font-sans` și `--font-display` se refereau la ele însele. Acum folosesc variabile separate pentru fonturile încărcate. Browserul confirmă Geist în corp și Unbounded la titlul paginii. Cardurile și cifrele rămân în Geist.
-3. **Primul ecran era aglomerat.** Șase cifre, opt filtre, hartă, echipe, cronologie, scor și acțiuni se concurau în trei coloane. Acum sunt trei cifre cu etichete complete, planul propus și următorul caz de decis. Harta, cronologia, celelalte cifre și toate filtrele sunt în secțiunea „Detalii despre plan”.
-4. **Aprobarea planului se amesteca cu un caz individual.** Sunt acum două carduri separate, care explică ce aprobi. „Analizează și decide” deschide exact cazul afișat, cu scenariul păstrat. Butonul aprobării și cel al rulării folosesc aceleași acțiuni de server ca înainte.
-5. **Navigare repetată și nume ambigue.** Am grupat meniul în Dispecerat, Rețeaua și Cum decide agentul. „Nu sunt sigur” devine „De verificat”. Pe telefon există patru destinații frecvente jos și toate ecranele în meniul de sus. Căutarea rămâne accesibilă și prin tastatură.
-6. **Decizia era prea jos pe telefon.** La 390 × 844, cardul următorului caz apare înaintea planului și a cifrelor. Butonul „Analizează și decide” este vizibil pe primul ecran.
-7. **Coada de verificare repeta cifrele și ascundea butoanele sub detalii.** Am scos rezumatul duplicat al categoriilor, am pus datele și graficul într-o secțiune care se deschide și am adus acțiunile lângă motiv. Coloana care afișa scorul predicției se numește acum „Scor model”, nu „Încredere”. Selecția rândului este neutră; punctul sursei își păstrează culoarea.
-8. **Landingul avea încă butoane albastre de cont.** Contul, intrarea și acțiunea din subsol folosesc acum galben cu text negru. Hero-ul, efectele și compoziția paginii sunt păstrate.
+## Verification
 
-## Verificări
+The integrated Next build, TypeScript, ESLint, 76 tests and whitespace checks pass. The landing build also passes; its existing bundle-size warning remains.
 
-- Build Next.js și build Vite reușite. Vite avertizează în continuare că pachetul JavaScript principal depășește 500 kB.
-- TypeScript, ESLint pe componentele modificate și `git diff --check` pentru `web` trec.
-- Cele 72 de teste existente ale interfeței trec. Testele cu exemple sunt teste unitare; verificarea vizuală folosește API-ul local existent, fără a declanșa rulări sau aprobări.
-- Fonturile, culorile, cardurile principale și stările de navigare au fost verificate în Helium, prin CDP, cu capturi randate. Cele nouă pagini principale, detaliile unei lucrări A și B, un post și modul demo nu depășesc lățimea ecranului la 1440 și la 390 px. Căutarea după PT-1182 întoarce postul și lucrările lui, iar meniul mobil conține toate destinațiile.
-- Galbenul `#ffc502` cu text negru are contrast 13,24:1. Reperul pentru text normal este 4,5:1 în [WCAG 2.2](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html). Aceasta este verificarea combinației de culori, nu o certificare de accesibilitate a întregii aplicații.
+Twenty active routes were checked in the browser at 1440 px and 390 px, including the three case types and expanded evidence. All use `lang="en"` and fit without horizontal overflow. Final screenshots were inspected for the landing, plan, review queue and mobile plan. The three original research download links contain non-empty Markdown and explicitly identify the Romanian source language.
 
-## Limite și lucruri rămase
+Known source templates are translated at display boundaries. Unknown future explanations and user-written notes remain unchanged rather than receiving invented translations. Proper place names retain their original spelling.
 
-- Nu am publicat schimbările. Nu am testat scrierea aprobărilor, rularea agentului, autentificarea sau trimiterea mesajelor.
-- Landingul ascunde bara de derulare și ignoră intenționat preferința sistemului pentru reducerea animațiilor, conform setării existente de demo. Auditul le consemnează; nu am schimbat această alegere.
-- Printarea și dispozitivele fizice nu au fost verificate.
-- La început exista un conflict Git în `memory/journal.md` și modificări de conturi/API. Alt fir le-a integrat în timpul lucrului, în commitul `a1862c1`; acest task nu a rezolvat conflictul și nu a modificat logica de conturi/API. Nu s-a făcut push sau deploy pentru acest audit.
+Verification is local, against the existing planner API, without running the agent, submitting reviews, approving plans or sending messages. Browser viewport checks are not physical-device testing. Printing and authentication writes were not exercised.
+
+## Scope
+
+No deployment, authentication logic or model/planner changes are authorised by this UI task. The existing black, yellow, Geist and Unbounded identity is retained. This audit does not claim physical-device acceptance or a full accessibility certification.

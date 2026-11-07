@@ -1,9 +1,8 @@
-import { ClipboardCheck, Download } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { btn, PageTitle } from "@/components/ds";
+import { PageTitle } from "@/components/ds";
 import { OrderPaper } from "@/components/orders/order-paper";
 import { OrderSide } from "@/components/orders/order-side";
 import { PrintButton } from "@/components/orders/print-button";
@@ -12,7 +11,7 @@ import { buildOrder, pickCrew } from "@/lib/orders-view";
 import { itemPlace, itemTitle } from "@/lib/plan-screen";
 import { loadPlanView, loadShellInfo, resolveScenario } from "@/lib/server/queries";
 
-export const metadata: Metadata = { title: "Lucrări" };
+export const metadata: Metadata = { title: "Work items" };
 
 // la tipărire rămâne doar foaia: restul paginii (cadrul, meniul, coloana din dreapta) se ascunde
 const PRINT_CSS = `@media print {
@@ -24,7 +23,7 @@ const PRINT_CSS = `@media print {
 
 export default function OrdersPage({ searchParams }: PageProps<"/lucrari">) {
   return (
-    <Suspense fallback={<div role="status" className="min-h-dvh bg-canvas" aria-busy="true"><span className="sr-only">Se încarcă ordinul de lucru…</span></div>}>
+    <Suspense fallback={<div role="status" className="min-h-dvh bg-canvas" aria-busy="true"><span className="sr-only">Loading work order…</span></div>}>
       <Orders searchParams={searchParams} />
     </Suspense>
   );
@@ -44,8 +43,8 @@ async function Orders({ searchParams }: { searchParams: PageProps<"/lucrari">["s
       <div className="mx-auto w-full max-w-[1520px] px-8 pt-7 pb-14 max-md:px-4">
         {!data || !route || !crewId ? (
           <>
-            <PageTitle title="Ordin de lucru (printabil)." icon={ClipboardCheck} />
-            <p className="mt-6 text-[17px] text-ink-soft">Nu există încă un traseu pentru „{scenario}”. Rulează agentul din consolă, apoi revino aici.</p>
+            <PageTitle title="Printable work order" />
+            <p className="mt-6 text-[17px] text-ink-soft">No route yet for &quot;{scenario}&quot;. Run the agent from the console, then return here.</p>
           </>
         ) : (
           <Content data={data} route={route} crewId={crewId} routes={routes.map((r) => r.crew_id)} scenario={scenario} sc={sc} stopParam={typeof params.oprire === "string" ? params.oprire : undefined} />
@@ -78,20 +77,12 @@ function Content({
     <>
       <style>{PRINT_CSS}</style>
       <PageTitle
-        icon={ClipboardCheck}
-        title={<>Ordin de lucru (printabil)</>}
-        subtitle="Fișă de execuție pentru intervenție pe traseu."
-        actions={
-          <>
-            <PrintButton />
-            <a href={`/ordine/${encodeURIComponent(crewId)}?${sc}`} download className={btn("primary")}>
-              <Download aria-hidden="true" size={19} strokeWidth={1.8} />
-              Descarcă PDF
-            </a>
-          </>
-        }
+
+        title={<>Work order</>}
+        subtitle="Crew route and intervention details."
+        actions={<PrintButton />}
       />
-      <nav aria-label="Alege echipa" className="mt-5 flex flex-wrap gap-2.5">
+      <nav aria-label="Choose crew" className="mt-5 flex flex-wrap gap-2.5">
         {routes.map((id) => {
           const on = id === crewId;
           return (

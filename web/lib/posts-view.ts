@@ -58,10 +58,10 @@ export function postPlace(p: Pick<PostSummary, "label" | "post_id" | "zone_id">)
 }
 
 export const RECOMMENDATION: Record<PostColor, { label: string; tone: "amber" | "violet" | "blue" | "grey" }> = {
-  roșu: { label: "Verificare", tone: "amber" },
-  galben: { label: "Analiză", tone: "violet" },
-  verde: { label: "Menținere", tone: "blue" },
-  necunoscut: { label: "Fără bilanț", tone: "grey" },
+  roșu: { label: "Inspect", tone: "amber" },
+  galben: { label: "Investigate", tone: "violet" },
+  verde: { label: "Monitor", tone: "blue" },
+  necunoscut: { label: "No energy balance", tone: "grey" },
 };
 
 export type StatusFilter = "toate" | "verde" | "galben" | "roșu";
@@ -113,11 +113,11 @@ export function boundsOfRows(rows: { lat: number; lon: number }[], fallback: [nu
   return [w - m, s - m, e + m, n + m];
 }
 
-export type CauseBand = "Probabil" | "Posibil" | "Puțin probabil";
+export type CauseBand = "Likely" | "Possible" | "Unlikely";
 
 /** Cuvântul pentru probabilitate: nu „Confirmat”, fiindcă nu a confirmat un om. */
 export function causeBand(p: number): CauseBand {
-  return p >= 0.6 ? "Probabil" : p >= 0.2 ? "Posibil" : "Puțin probabil";
+  return p >= 0.6 ? "Likely" : p >= 0.2 ? "Possible" : "Unlikely";
 }
 
 export function causeProbs(extra: unknown): { key: string; p: number }[] {

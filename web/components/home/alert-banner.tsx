@@ -31,7 +31,7 @@ export function AlertBanner({ id, lead, text }: { id: string; lead: string; text
       </p>
       <button
         type="button"
-        aria-label="Închide avertizarea"
+        aria-label="Dismiss warning"
         onClick={() => {
           sessionStorage.setItem(key, "1");
           window.dispatchEvent(new Event(EVENT));

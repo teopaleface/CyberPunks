@@ -1,6 +1,7 @@
 "use client";
 
 import { useId } from "react";
+import { englishText } from "@/lib/english";
 import { Popover } from "radix-ui";
 import { PROVENANCE_SHORT_RO, SOURCE_LABEL_RO } from "@/lib/data/labels";
 import type { DataSource } from "@/lib/data/types";
@@ -55,7 +56,7 @@ export function Provenance({
         >
           <span className="flex items-center gap-2 font-[560]">
             <SyntheticGlyph size={14} />
-            {allSynthetic || totalItems === 0 ? "Date sintetice" : `Date sintetice: ${syntheticItems} din ${totalItems}`}
+            {totalItems === 0 ? "No plan loaded" : allSynthetic ? "Synthetic data" : syntheticItems > 0 ? "Includes synthetic data" : "Data sources"}
           </span>
           <span className="flex items-center gap-2 text-ink-soft">
             <span className={`size-2 rounded-full ${DOT[source]}`} aria-hidden="true" />
@@ -72,14 +73,13 @@ export function Provenance({
           className="z-[60] max-w-[360px] rounded-[10px] border border-rule bg-panel p-3.5 text-[14px] leading-snug text-ink shadow-lg outline-hidden"
         >
         <p>
-          Contoarele, posturile de transformare, bazele și echipele sunt sintetice, puse pe harta reală. Vremea și
-          rețelele de test vin din surse publice, citate la fiecare lucrare.
+          Meters, substations, depots and crews are synthetic, placed on a real map. Weather and test networks use public sources cited on each work item.
         </p>
         <p className="mt-2">
-          Planul vine din: <b>{SOURCE_LABEL_RO[source]}</b>
-          {detail ? <span className="block opacity-80">{detail}</span> : null}
+          Plan source: <b>{SOURCE_LABEL_RO[source]}</b>
+          {detail ? <span className="block opacity-80">{englishText(detail)}</span> : null}
         </p>
-        {degradedReason ? <p className="mt-2">{degradedReason}</p> : null}
+        {degradedReason ? <p className="mt-2">{englishText(degradedReason)}</p> : null}
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>

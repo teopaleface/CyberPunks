@@ -28,10 +28,10 @@ export function CopyMessage({ text, noteId }: { text: string; noteId: string }) 
     <>
       <button type="button" onClick={copy} aria-describedby={noteId} className={btn("primary")}>
         {state === "ok" ? <CheckIcon size={18} aria-hidden="true" /> : <CopyIcon size={18} aria-hidden="true" />}
-        {state === "ok" ? "Mesaj copiat" : "Copiază mesajul"}
+        {state === "ok" ? "Message copied" : "Copy message"}
       </button>
       <span role="status" className="sr-only">
-        {state === "ok" ? "Mesajul a fost copiat." : state === "fail" ? "Copierea nu a reușit." : ""}
+        {state === "ok" ? "Message copied." : state === "fail" ? "Copy failed." : ""}
       </span>
     </>
   );

@@ -93,10 +93,10 @@ export interface CheckItem {
 export function buildChecklist(order: OrderView): CheckItem[] {
   const out: CheckItem[] = [];
   for (const s of order.stops) {
-    out.push({ id: `sosire-${s.workItemId}`, text: `Confirmare sosire la ${s.assetId}` });
-    if (s.predictionLabel) out.push({ id: `verif-${s.workItemId}`, text: `Verificare ${s.predictionLabel} la ${s.assetId}` });
+    out.push({ id: `sosire-${s.workItemId}`, text: `Confirm arrival at ${s.assetId}` });
+    if (s.predictionLabel) out.push({ id: `verif-${s.workItemId}`, text: `Inspect ${s.predictionLabel} at ${s.assetId}` });
   }
-  out.push({ id: "jurnal", text: "Actualizare jurnal de intervenție" });
-  out.push({ id: "intoarcere", text: `Întoarcere la bază${order.returnAt ? ` (${fmtTime(order.returnAt)})` : ""}` });
+  out.push({ id: "jurnal", text: "Update the intervention log" });
+  out.push({ id: "intoarcere", text: `Return to depot${order.returnAt ? ` (${fmtTime(order.returnAt)})` : ""}` });
   return out;
 }

@@ -1,3 +1,4 @@
+import { englishText } from "@/lib/english";
 import Link from "next/link";
 import { Check, ClipboardCheck, Layers, Map as MapIcon, Sparkles, TriangleAlert, Zap, Cpu, SlidersHorizontal, FileText } from "lucide-react";
 import { ReviewActions } from "@/components/detail/review-actions";
@@ -27,15 +28,15 @@ function StateCard({ ctx }: { ctx: ItemCtx }) {
   const { w, decision, scenario } = ctx;
   const p = w.prediction;
   return (
-    <Card title="Stare post" icon={ClipboardCheck} iconTone="blue" className="w-full">
+    <Card title="Substation status" icon={ClipboardCheck} iconTone="blue" className="w-full">
       <Headline className="text-[24px]"><span translate="no">{w.asset_id}</span> {localityOf(w)}</Headline>
-      <p className="mt-1 text-[15.5px] text-ink-soft">Risc de depășire a limitei de tensiune.</p>
+      <p className="mt-1 text-[15.5px] text-ink-soft">Risk of exceeding the voltage limit.</p>
       <div className="mt-4 grid grid-cols-2 gap-4">
         <div>
           <Stat label="Model">{pctText(p.score)}</Stat>
           <Pill size="sm" tone="grey" className="mt-1.5">{confidenceWord(p.confidence, p.score)}</Pill>
         </div>
-        <Stat label="Valoare așteptată">{fmtLei(w.impact.expected_value_lei)}</Stat>
+        <Stat label="Expected value">{fmtLei(w.impact.expected_value_lei)}</Stat>
       </div>
       <div className="mt-4"><DecisionPill decision={decision} /></div>
       <div className="mt-4 flex flex-wrap gap-3">
@@ -45,11 +46,11 @@ function StateCard({ ctx }: { ctx: ItemCtx }) {
           <>
             {decision?.decision === "assigned" && decision.crew_id ? (
               <Link href={`/ordine/${encodeURIComponent(decision.crew_id)}?scenariu=${encodeURIComponent(scenario)}`} className={btn("primary")}>
-                <FileText aria-hidden="true" size={18} /> Ordin de lucru
+                <FileText aria-hidden="true" size={18} />  Work order
               </Link>
             ) : null}
             <Link href={`/harta?lucrare=${encodeURIComponent(w.work_item_id)}&scenariu=${encodeURIComponent(scenario)}`} className={btn("outline")}>
-              <MapIcon aria-hidden="true" size={18} /> Vezi pe hartă
+              <MapIcon aria-hidden="true" size={18} />  View on map
             </Link>
           </>
         )}
@@ -65,24 +66,24 @@ function VoltageCard({ ctx }: { ctx: ItemCtx }) {
   const points = (series?.points ?? []).map((p) => ({ t: String(p.t), value: volts(p.value), expected: volts(p.expected), low: volts(p.low), high: volts(p.high) }));
   const limitV = puToVolts(limitPu);
   return (
-    <Card title="Tensiune P10–P90" icon={Zap} iconTone="blue" action={<Pill tone="amber">Limită: {limitV} V</Pill>} className="w-full">
+    <Card title="P10–P90 voltage" icon={Zap} iconTone="blue" action={<Pill tone="amber">Limit: {limitV} V</Pill>} className="w-full">
       <p className="text-[16px] font-[600]">
         {before != null ? (
           <>
             P90: {pu3(before)} ({puToVolts(before)} V){after != null && chosen.length ? <> → {pu3(after)} ({puToVolts(after)} V)</> : null}
           </>
         ) : (
-          "P90 nu e disponibil"
+          "P90 unavailable"
         )}
       </p>
       <div className="mt-2">
         {points.length ? (
-          <MiniChart points={points} unit="V" color="var(--violet)" hours limit={limitV} limitLabel={`Limită ${limitV} V`} height={210} label={series?.title_ro ?? "Tensiune pe ore"} />
+          <MiniChart points={points} unit="V" color="var(--violet)" hours limit={limitV} limitLabel={`Limit ${limitV} V`} height={210} label={englishText(series?.title_ro ?? "Hourly voltage")} />
         ) : (
-          <p className="py-10 text-center text-[15px] text-ink-soft">Seria de tensiune nu e disponibilă.</p>
+          <p className="py-10 text-center text-[15px] text-ink-soft">Voltage data is unavailable.</p>
         )}
       </div>
-      <p className="mt-1 text-[13px] text-ink-soft">Linia e P50, banda P10–P90; 1 pu = 230 V.{series?.synthetic ? " Date sintetice." : ""}</p>
+      <p className="mt-1 text-[13px] text-ink-soft">The line is P50; the band is P10–P90. 1 pu = 230 V.{series?.synthetic ? " Synthetic data." : ""}</p>
     </Card>
   );
 }
@@ -91,7 +92,7 @@ function LadderCard({ ctx }: { ctx: ItemCtx }) {
   const { chosen, options, cost } = derive(ctx);
   const rows = chosen.map((a) => ({ a, o: options.find((x) => x.action === a) }));
   return (
-    <Card title="Scara de remedii (analizată)" icon={Layers} iconTone="blue" className="w-full">
+    <Card title="Remedies considered" icon={Layers} iconTone="blue" className="w-full">
       {rows.length ? (
         <>
           <ul className="space-y-2.5">
@@ -101,7 +102,7 @@ function LadderCard({ ctx }: { ctx: ItemCtx }) {
                 <span className="min-w-0 flex-1 text-[15.5px] leading-snug font-[550]">
                   {stepRo(a).charAt(0).toLocaleUpperCase("ro-RO") + stepRo(a).slice(1)}
                   {a === "offer_battery" && ctx.remedy?.battery?.revenue_lei ? (
-                    <span className="block text-[13px] font-[400] text-ink-soft">Venit estimat: {fmtLei(ctx.remedy.battery.revenue_lei)}</span>
+                    <span className="block text-[13px] font-[400] text-ink-soft">Estimated revenue: {fmtLei(ctx.remedy.battery.revenue_lei)}</span>
                   ) : null}
                 </span>
                 {o ? <Pill tone="grey" className="tabular-nums">{fmtLei(o.cost_lei)}</Pill> : null}
@@ -114,7 +115,7 @@ function LadderCard({ ctx }: { ctx: ItemCtx }) {
           </div>
         </>
       ) : (
-        <p className="py-8 text-center text-[16px] text-ink-soft">Agentul nu a ales încă o combinație de remedii.</p>
+        <p className="py-8 text-center text-[16px] text-ink-soft">The agent has not chosen a remedy combination yet.</p>
       )}
     </Card>
   );
@@ -132,7 +133,7 @@ function ContributionsCard({ ctx }: { ctx: ItemCtx }) {
     </tr>
   );
   return (
-    <Card title="Contribuții la tensiune" icon={SlidersHorizontal} iconTone="violet" className="w-full">
+    <Card title="Voltage contributions" icon={SlidersHorizontal} iconTone="violet" className="w-full">
       {rows.length ? (
         <>
           <table className="w-full text-[15px]">
@@ -147,13 +148,13 @@ function ContributionsCard({ ctx }: { ctx: ItemCtx }) {
           </table>
           {rest.length ? (
             <details className="mt-1 text-[14px] text-ink-soft">
-              <summary className="cursor-pointer list-none py-1 underline decoration-rule underline-offset-4 hover:text-ink focus-visible:outline-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">Încă {rest.length} factori mici</summary>
+              <summary className="cursor-pointer list-none py-1 underline decoration-rule underline-offset-4 hover:text-ink focus-visible:outline-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">Another {rest.length}  minor factors</summary>
               <table className="w-full text-[15px] text-ink"><tbody>{rest.map(row)}</tbody></table>
             </details>
           ) : null}
         </>
       ) : (
-        <p className="py-6 text-center text-[16px] text-ink-soft">Contribuțiile nu sunt disponibile.</p>
+        <p className="py-6 text-center text-[16px] text-ink-soft">Contributions are unavailable.</p>
       )}
     </Card>
   );
@@ -164,21 +165,21 @@ function MessageCard({ ctx }: { ctx: ItemCtx }) {
   const note = ctx.notifications.find((n) => n.work_item_id === ctx.w.work_item_id && n.message_ro === msg);
   return (
     <Card
-      title="Alerte și mesaje"
+      title="Alerts and messages"
       icon={TriangleAlert}
       iconTone="amber"
       className="w-full border-att/50 bg-[linear-gradient(180deg,#1d1209,#061221_70%)]"
     >
       {msg ? (
         <>
-          <p className="text-[19px] leading-snug font-[650] tracking-[-0.01em]">{msg}</p>
+          <p className="text-[19px] leading-snug font-[650] tracking-[-0.01em]">{englishText(msg)}</p>
           <p className="mt-3 text-[14px] text-ink-soft">
-            {note ? `Către ${note.audience === "prosumatori" ? "prosumatori" : note.audience === "echipa" ? "echipă" : "clienții zonei"}` : "Previzualizare"}
-            {note?.demo_only ? ", demo: nu se trimite nimic în afară" : ""}.
+            {note ? `To ${note.audience === "prosumatori" ? "solar customers" : note.audience === "echipa" ? "crew" : "customers in the area"}` : "Preview"}
+            {note?.demo_only ? ", demo: nothing is sent externally" : ""}.
           </p>
         </>
       ) : (
-        <p className="py-6 text-[16px] text-ink-soft">Pentru această lucrare nu există mesaje către clienți.</p>
+        <p className="py-6 text-[16px] text-ink-soft">No customer messages for this work item.</p>
       )}
     </Card>
   );
@@ -189,20 +190,20 @@ function RecommendCard({ ctx }: { ctx: ItemCtx }) {
   const verdict = verdictRo(ctx.w, ctx.decision, { chosen, costLei: cost });
   const limitV = puToVolts(limitPu);
   const title = chosen.length
-    ? `Aplică ${chosen.map(stepRo).join(" + ")}${cost != null ? ` (cost total ${fmtLei(cost)})` : ""}.`
+    ? `Apply ${chosen.map(stepRo).join(" + ")}${cost != null ? ` (total cost ${fmtLei(cost)})` : ""}.`
     : verdict.headline;
   const sub =
     chosen.length && before != null && after != null
-      ? `Reduce vârful de tensiune de la ${puToVolts(before)} V la ${puToVolts(after)} V (P90), ${after <= limitPu ? "sub" : "peste"} limita de ${limitV} V.`
+      ? `Reduces peak voltage from ${puToVolts(before)} V to ${puToVolts(after)} V (P90), ${after <= limitPu ? "below" : "above"} limit of ${limitV} V.`
       : verdict.detail ?? null;
   return (
-    <Card title="Recomandare" icon={Layers} iconTone="blue" className="w-full">
+    <Card title="Recommendation" icon={Layers} iconTone="blue" className="w-full">
       <div className="flex flex-wrap items-center gap-4 rounded-[12px] border border-rule bg-surface-2 p-4">
         <div className="min-w-0 flex-1 basis-72">
           <Headline>{title}</Headline>
           {sub ? <p className="mt-1.5 text-[15.5px] text-ink-soft">{sub}</p> : null}
         </div>
-        <Pill tone="green" size="lg" icon={Sparkles}>Recomandarea agentului</Pill>
+        <Pill tone="green" size="lg" icon={Sparkles}>Agent recommendation</Pill>
       </div>
     </Card>
   );
@@ -212,15 +213,15 @@ function VoltageModelCard({ ctx }: { ctx: ItemCtx }) {
   const p = ctx.w.prediction;
   return (
     <Card title="Model" icon={Cpu} iconTone="blue" className="w-full">
-      <Headline className="text-[20px]">Risc de depășire a tensiunii</Headline>
+      <Headline className="text-[20px]">Risk of exceeding the voltage limit</Headline>
       <p className="mt-0.5 text-[13.5px] text-ink-soft" translate="no">{p.model_version}</p>
       <div className="mt-3 grid grid-cols-2 gap-4 rounded-[12px] border border-rule bg-surface-2 p-3.5">
         <div>
-          <p className="text-[14px] text-ink-soft">Scor</p>
+          <p className="text-[14px] text-ink-soft">Score</p>
           <Pill tone="violet" size="lg" className="mt-1 text-[20px] font-[700]">{pctText(p.score)}</Pill>
         </div>
         <div>
-          <p className="text-[14px] text-ink-soft">Valoare așteptată</p>
+          <p className="text-[14px] text-ink-soft">Expected value</p>
           <Pill tone="amber" size="lg" className="mt-1 text-[20px] font-[700] tabular-nums">{fmtLei(ctx.w.impact.expected_value_lei)}</Pill>
         </div>
       </div>
