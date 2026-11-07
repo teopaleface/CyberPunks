@@ -2,6 +2,8 @@
 
 Rescris pe 7 nov. 2026, după anunțarea temei (`07-tema-ppc.md`). Varianta de dinainte de temă e în istoricul git. Încă nu e o decizie: echipa alege, iar alegerea intră în `journal.md`.
 
+Actualizare 12:06, după PDF-ul oficial: exemplele PPC descriu aproape cuvânt cu cuvânt direcția A ("ce clienți trebuie verificați", "detecție de anomalii cu etichete puține", "ranking sub constrângeri de capacitate", "un scor de anomalie de 0,87 nu îi spune unui tehnician unde să meargă mâine dimineață"). A trece pe primul loc la relevanță. C rămâne alternativa mai originală.
+
 Filtrul: model ML propriu cu test separat și baseline, agent care face acțiuni, date publice sau sintetice, relevanță credibilă pentru PPC. Am evitat să copiem proiecte pe care PPC le are deja în producție (lista în `08-ppc-workshop-ai.md`).
 
 ## Comparație rapidă
@@ -16,7 +18,7 @@ Filtrul: model ML propriu cu test separat și baseline, agent care face acțiuni
 | F. Stații de încărcare: cerere și defecte | PPC Blue | Medie | Bună | Bună | Medie | Da, din SUA și UK |
 | G. Risc de neplată sau programarea consumului în orele ieftine | PPC Energy | Medie: suprapunere cu AI Claims Agent și myEnergy Coach | Slabă spre medie: doar date sintetice sau din altă țară | Bună | Medie | Parțial |
 
-## A. Contoare defecte sau manipulate, plus echipele de verificare (recomandată, la egalitate cu C)
+## A. Contoare defecte sau manipulate, plus echipele de verificare (recomandată, prima)
 
 - Problema PPC: au peste 2 milioane de contoare care trimit 96 de citiri pe zi. În prezentare au scris că urmează "anomaly detection on meter behaviour, predictive monitoring of faulty meters". În Grecia au avut loturi întregi de contoare defecte (până la 250.000 de puncte). Detectarea fraudei există deja (Energy Anomaly Detection, în producție), deci accentul nostru e pe contoare defecte, pe manipulare și pe decizia de după: pe cine trimiți să verifice, azi.
 - Perceive: consumul pe fiecare contor (la 15 sau 30 de minute, sau zilnic), golurile din date, comparația cu vecinii de pe același post de transformare.
@@ -39,7 +41,7 @@ Filtrul: model ML propriu cu test separat și baseline, agent care face acțiuni
 - Agent: mută echipele în zonele cu risc înainte de furtună, în limita capacității, trimite alerte, face raport.
 - Date: EAGLE-I (întreruperi în SUA pe comitat, la 15 minute, 2014-2024) și vremea istorică de la Open-Meteo. Slăbiciunea: datele sunt din SUA. Pentru demo am mapa rezultatele pe județele din Muntenia, Banat și Dobrogea, cu date sintetice etichetate ca atare.
 
-## C. Prosumatorii ridică tensiunea: posturi de transformare în pericol mâine (recomandată, la egalitate cu A)
+## C. Prosumatorii ridică tensiunea: posturi de transformare în pericol mâine (alternativa, mai originală)
 
 Găsită la a doua căutare, 7 nov. 2026.
 

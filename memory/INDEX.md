@@ -10,7 +10,7 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 | `04-surse-de-date.md` | API-uri publice (Transelectrica, Open-Meteo, ENTSO-E) și seturi de date pentru antrenat modele (SGCC, Londra, EAGLE-I, PVGIS) |
 | `05-unghiuri-pentru-idei.md` | Direcțiile de proiect după temă, comparate pe grila PPC, cu recomandarea |
 | `06-intrebari-deschise.md` | Ce s-a aflat, ce e de decis și ce mai e de întrebat |
-| `07-tema-ppc.md` | **Tema PPC**, cerințele obligatorii, grila de 100 de puncte, termenele, checklist |
+| `07-tema-ppc.md` | **Tema PPC** (slideuri plus PDF-ul oficial): cerințe obligatorii, ce înseamnă proiect complet, grila de 100 de puncte, termene, checklist |
 | `08-ppc-workshop-ai.md` | Workshopul PPC: cifre, platforma de date a contoarelor, cele 9 proiecte AI ale lor, guvernanță și EU AI Act |
 | `09-rsystems-workshop.md` | Workshopul R Systems: codul decide, modelul formulează; verificări în cod |
 | `journal.md` | Ce s-a întâmplat și ce s-a decis, cu ora |
@@ -29,4 +29,4 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 - Premii PPC: 1.500 € (marele premiu), 1.000 € (locul 2). O echipă ia un singur premiu.
 - Tema: un agent AI bazat pe un model ML antrenat de noi, care decide și acționează pe o problemă reală de energie (Perceive, Estimate, Decide, Act). Doar date publice sau sintetice.
 - Jurizare PPC: 25 relevanță, 25 calitate ML, 25 agent, 10 robustețe, 10 explicabilitate, 5 demo și repo.
-- Predare: repo GitHub până duminică, 8 nov., la 12:00. Demo live de la 13:00: 5 minute plus 2 minute de întrebări.
+- Predare: repo GitHub **public**, cu commit-uri pe parcursul celor 24 de ore, până duminică, 8 nov., la 12:00. Demo live de la 13:00: 5 minute plus 2 minute de întrebări.

@@ -39,7 +39,7 @@ Starea la 7 nov. 2026, ora 11:50. Tema și criteriile de jurizare se anunță ab
 
 ## Reguli care contează pentru noi
 
-- Proiectul se urcă pe GitHub, iar organizatorii și juriul trebuie să aibă acces. Altă platformă doar cu acordul organizatorilor. Repo-ul nostru e privat, deci la final trebuie dat acces juriului (colaboratori) sau făcut public.
+- Proiectul se urcă pe GitHub, iar organizatorii și juriul trebuie să aibă acces. Altă platformă doar cu acordul organizatorilor. PDF-ul oficial PPC cere repo public, cu commit-uri făcute pe parcursul celor 24 de ore (vezi `07-tema-ppc.md`).
 - Biblioteci open-source: permise, cu respectarea licenței. Echipa răspunde dacă folosește cod, texte sau imagini ale altora fără drept.
 - Regulamentul nu spune nimic despre cod scris înainte de eveniment și nici despre unelte AI. De întrebat organizatorii dacă e nevoie.
 - Drepturile de autor (cod, prezentare, design) rămân la membrii echipei. ASMI și partenerul care a dat tema primesc doar dreptul de a rula și evalua proiectul și de a-l prezenta (nume, descriere scurtă, capturi de ecran). Orice altă folosire cere contract direct cu echipa.
