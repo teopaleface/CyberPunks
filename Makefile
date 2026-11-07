@@ -51,17 +51,21 @@ a-test:           ## A: testele firului A
 a-all: a-data a-train a-evaluate a-robustness a-select a-predict a-figures a-fusion a-report  ## A: totul, de la zero (~9 minute)
 
 # ---- B: furtună (firul Teo-B-furtuna) ----
-.PHONY: b-data b-weather b-dataset b-evaluate b-predict b-reports b-test b-all
+.PHONY: b-data b-weather b-dataset b-repro b-evaluate b-predict b-reports b-test b-all
 
 b-data:           ## B: descarcă EAGLE-I 2023-2025 (md5 verificat) și construiește tabelele pe ore
 	uv run python -m cyberpunks.b_furtuna.download eaglei --years 2023-2025
 	uv run python -m cyberpunks.b_furtuna.eaglei hourly --years 2023-2025
 
-b-weather:        ## B: vremea istorică Open-Meteo pentru cele 80 de comitate (~6.300 de apeluri, în ritm lent)
+b-weather:        ## B (opțional, vremea e în git): reface vremea din Open-Meteo (~7.300 de apeluri, ~2 h)
 	uv run python -m cyberpunks.b_furtuna.openmeteo us-history
 
-b-dataset:        ## B: tabelul comitat × zi
+b-dataset:        ## B (opțional, tabelul e în git): reface tabelul comitat × zi (cere make b-data)
 	uv run python -m cyberpunks.b_furtuna.dataset
+
+b-repro:          ## B, calea scurtă pentru juriu: reface metricile din tabelul din git, fără descărcări (~3 min)
+	uv run python -m cyberpunks.b_furtuna.evaluate
+	uv run cyberpunks validate reports/B/metrics.json
 
 b-evaluate:       ## B: antrenare 2023-2024, test 2025 și state nevăzute -> reports/B/metrics.json
 	uv run python -m cyberpunks.b_furtuna.evaluate

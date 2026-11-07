@@ -20,10 +20,12 @@ import pandas as pd
 
 from cyberpunks.b_furtuna import eaglei
 from cyberpunks.b_furtuna.download import EAGLEI_DIR
-from cyberpunks.common.paths import DATA_RAW, DATA_SAMPLES
+from cyberpunks.common.paths import DATA_SAMPLES
 
-GAZETTEER = DATA_RAW / "B" / "census" / "2024_Gaz_counties_national.txt"
+# Lista comitatelor (US Census Bureau, 2024 Gazetteer, domeniu public), în git ca arhivă de 141 KB:
+GAZETTEER = DATA_SAMPLES / "B" / "2024_Gaz_counties_national.zip"
 GAZETTEER_URL = "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2024_Gazetteer/2024_Gaz_counties_national.zip"
+GAZETTEER_MD5 = "886d8dbb34f7f8b18b615002e8cf7dc5"
 SAMPLE_CSV = DATA_SAMPLES / "B" / "us_counties.csv"
 
 
@@ -34,7 +36,7 @@ def load_mcc() -> pd.DataFrame:
 
 
 def load_gazetteer() -> pd.DataFrame:
-    gz = pd.read_csv(GAZETTEER, sep="\t", dtype={"GEOID": str})
+    gz = pd.read_csv(GAZETTEER, sep="\t", dtype={"GEOID": str}, compression="zip")
     gz.columns = [c.strip() for c in gz.columns]
     gz = gz.rename(
         columns={"GEOID": "fips", "USPS": "state", "NAME": "county", "INTPTLAT": "lat", "INTPTLONG": "lon"}
