@@ -78,6 +78,8 @@ uv run python -m cyberpunks.c_prosumatori.reports_c investments         # report
 uv run python -m cyberpunks.c_prosumatori.connection --post PT-1020 --kwp 25
 ```
 
+Verificat dintr-o clonă curată (7 nov., 16:00): `make c-weather c-sim c-population c-train c-predict c-eval` refac `reports/C/metrics.json`; 29 din 30 de cifre ies identic, iar eroarea de calibrare (ECE) diferă la a cincea zecimală (0,00316 față de 0,00317), din rotunjirile LightGBM pe mai multe fire de execuție. Timpii depind de cât de ocupată e mașina.
+
 Dintr-o clonă curată, `predict.py` merge și fără pașii grei: modelul e în `models/release/C/`, registrul posturilor în `data/samples/C/posts.csv`, mostra pentru cazurile similare în `data/samples/C/similar_cases.parquet`; vremea se descarcă de la Open-Meteo.
 
 ## Ce iese
