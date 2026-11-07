@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -13,7 +14,9 @@ DATA_PROCESSED = ROOT / "data" / "processed"  # în afara git
 DATA_SAMPLES = ROOT / "data" / "samples"  # mostre mici, în git
 MODELS = ROOT / "models"  # artefacte; doar models/release/ intră în git
 REPORTS = ROOT / "reports"  # metrici, grafice, analize de erori (în git)
-OUTPUTS = ROOT / "outputs"  # ieșiri generate; doar outputs/demo/ intră în git
+# A runtime may isolate predictions and operations without changing release data.
+# Existing commands keep the original output directory unless explicitly configured.
+OUTPUTS = Path(os.environ.get("CYBERPUNKS_OUTPUT_ROOT", str(ROOT / "outputs"))).expanduser().resolve()
 
 
 def work_items_path(scenario: str, source: str) -> Path:
