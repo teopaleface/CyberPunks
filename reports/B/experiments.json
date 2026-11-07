@@ -1,0 +1,65 @@
+[
+  {
+    "varianta": "baza",
+    "ce": "features-urile din features.py, constrângeri monotone",
+    "pr_auc": 0.2467,
+    "brier": 0.0902,
+    "prevalence": 0.1083
+  },
+  {
+    "varianta": "fara_monotonie",
+    "ce": "fără constrângeri monotone",
+    "pr_auc": 0.2481,
+    "brier": 0.0898,
+    "prevalence": 0.1083
+  },
+  {
+    "varianta": "fara_intarzieri",
+    "ce": "fără vremea din zilele precedente",
+    "pr_auc": 0.2451,
+    "brier": 0.0903,
+    "prevalence": 0.1083
+  },
+  {
+    "varianta": "doar_vreme",
+    "ce": "fără mărimea și densitatea zonei",
+    "pr_auc": 0.2333,
+    "brier": 0.0906,
+    "prevalence": 0.1083
+  },
+  {
+    "varianta": "clima_locala",
+    "ce": "+ rafala față de clima comitatului (medie, p95 pe anii de antrenare)",
+    "pr_auc": 0.2431,
+    "brier": 0.0899,
+    "prevalence": 0.1083
+  },
+  {
+    "varianta": "ploaie_extra",
+    "ce": "+ intensitatea ploii și ploaia pe 30 de zile",
+    "pr_auc": 0.2462,
+    "brier": 0.0899,
+    "prevalence": 0.1083
+  },
+  {
+    "varianta": "prag_2pct",
+    "ce": "evenimentul la ≥ 2% din clienți (în loc de 1%)",
+    "pr_auc": 0.1664,
+    "brier": 0.0578,
+    "prevalence": 0.0643
+  },
+  {
+    "varianta": "prag_5pct",
+    "ce": "evenimentul la ≥ 5% din clienți",
+    "pr_auc": 0.0691,
+    "brier": 0.023,
+    "prevalence": 0.0237
+  },
+  {
+    "varianta": "arbori_mai_mari",
+    "ce": "num_leaves 31, min_data_in_leaf 20",
+    "pr_auc": 0.2346,
+    "brier": 0.0905,
+    "prevalence": 0.1083
+  }
+]
