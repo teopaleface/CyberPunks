@@ -77,7 +77,8 @@ def run() -> pd.DataFrame:
             rows.append({
                 "date": d, "zone_id": z.zone_id, "county": z.county, "region": z.region,
                 "p": it.prediction.score, "lo": it.prediction.interval_low, "hi": it.prediction.interval_high,
-                "action": it.recommended_action, "gust": it.extra["gust_max_kmh"], "precip48": it.extra["precip_48h_mm"],
+                "action": getattr(it.recommended_action, "value", it.recommended_action),
+                "gust": it.extra["gust_max_kmh"], "precip48": it.extra["precip_48h_mm"],
                 "cust_p50": it.impact.customers_affected, "zone_customers": z.customers,
                 "onset": it.extra["storm_onset"][11:16], "reason": it.prediction.abstain_reason or "",
             })
