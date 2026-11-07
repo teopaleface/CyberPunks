@@ -134,4 +134,6 @@ def label_ro(feature: str, row: pd.Series) -> tuple[str, float | str | None]:
         v = row.get(feature)
     if v is None or (isinstance(v, float) and np.isnan(v)):
         return f"{feature}: lipsă", None
+    if feature == "log_customers":
+        return f"mărimea zonei ({round(v):,} clienți)".replace(",", "."), round(float(v), 2)
     return LABELS_RO.get(feature, feature + " {v}").format(v=float(v)), round(float(v), 2)

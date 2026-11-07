@@ -77,6 +77,9 @@ def similar_cases(model: BModel, rows: pd.DataFrame, k: int = 3) -> list[list[Si
     return out
 
 
+CALM_P = 0.10  # sub acest risc, cu vânt slab și fără ploaie, fraza spune „vreme liniștită”
+
+
 def _ro_int(n: int) -> str:
     return f"{n:,}".replace(",", ".")
 
@@ -85,9 +88,15 @@ def summary_ro(p: float, row: pd.Series, onset_hour: int | None, cases: list[Sim
                customers_p50: int, factors: list[Factor] | None = None) -> str:
     """Fraza din șablon. Cifrele vin din cod; factorii principali sunt cei cu cea mai mare contribuție SHAP."""
     parts = [f"Risc de {p:.0%} ca peste 1% din clienții zonei să rămână fără curent."]
-    drivers = [f.label_ro for f in (factors or []) if f.contribution > 0][:2]
-    if drivers:
-        parts.append("Contează cel mai mult: " + " și ".join(drivers) + ".")
+    g0, pr0 = row.get("gust_max"), row.get("precip_48h")
+    calm = p < CALM_P and pd.notna(g0) and float(g0) < 45 and (pd.isna(pr0) or float(pr0) < 10)
+    if calm:
+        rain = "fără ploaie" if pd.isna(pr0) or float(pr0) < 1 else f"{float(pr0):.0f} mm de ploaie în 48 de ore"
+        parts.append(f"Vreme liniștită: rafale de până la {float(g0):.0f} km/h, {rain}. Echipele rămân la lucrările obișnuite.")
+    else:
+        drivers = [f.label_ro for f in (factors or []) if f.contribution > 0][:2]
+        if drivers:
+            parts.append("Contează cel mai mult: " + " și ".join(drivers) + ".")
     g = row.get("gust_max")
     if g is not None and not pd.isna(g) and onset_hour is not None and p >= 0.15:
         parts.append(f"Furtuna e așteptată în jurul orei {onset_hour}:00, cu rafale de până la {g:.0f} km/h.")

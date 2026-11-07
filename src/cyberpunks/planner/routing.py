@@ -227,7 +227,10 @@ def solve_greedy(pb: Problem) -> RoutingResult:
 # ------------------------------------------------------------------ OR-Tools
 
 
-def solve_ortools(pb: Problem, time_limit_s: float = 10.0, solution_limit: int | None = 400) -> RoutingResult | None:
+def solve_ortools(pb: Problem, time_limit_s: float = 10.0, solution_limit: int | None = 400,
+                  initial: dict[int, list[int]] | None = None) -> RoutingResult | None:
+    """VRP cu premii, ferestre de timp și abilități. Cu `initial` (echipă -> lucrări), căutarea pornește de la acele
+    trasee; dacă nu se pot citi ca soluție validă, pornește de la zero."""
     from ortools.constraint_solver import pywrapcp, routing_enums_pb2
 
     t0 = _time.perf_counter()
@@ -274,7 +277,8 @@ def solve_ortools(pb: Problem, time_limit_s: float = 10.0, solution_limit: int |
             routing.ActiveVar(index).SetValue(0)
             continue
         tdim.CumulVar(index).SetRange(task.earliest, task.latest)
-        routing.AddDisjunction([index], MANDATORY_PENALTY if task.mandatory else max(0, task.penalty))
+        # Obligatoriu: penalitate uriașă plus premiul real, ca între două lucrări obligatorii solverul s-o aleagă pe cea mai valoroasă.
+        routing.AddDisjunction([index], (MANDATORY_PENALTY if task.mandatory else 0) + max(0, task.penalty))
         routing.VehicleVar(index).SetValues([-1] + list(task.allowed))  # -1 = nefăcut; restul = echipele potrivite
         if task.terminal:
             routing.NextVar(index).SetValues([index] + [routing.End(v) for v in task.allowed])
@@ -285,7 +289,15 @@ def solve_ortools(pb: Problem, time_limit_s: float = 10.0, solution_limit: int |
     params.time_limit.FromMilliseconds(max(1, int(time_limit_s * 1000)))
     if solution_limit:
         params.solution_limit = int(solution_limit)
-    solution = routing.SolveWithParameters(params)
+    solution = None
+    if initial:
+        routing.CloseModelWithParameters(params)
+        start_routes = [[manager.NodeToIndex(pb.node_of_task(k)) for k in initial.get(v, [])] for v in range(nv)]
+        start = routing.ReadAssignmentFromRoutes(start_routes, True)
+        if start is not None:
+            solution = routing.SolveFromAssignmentWithParameters(start, params)
+    if solution is None:
+        solution = routing.SolveWithParameters(params)
     elapsed = _time.perf_counter() - t0
     if solution is None:
         return None
@@ -359,19 +371,66 @@ def _arrivals_unchecked(pb: Problem, v: int, seq: list[int]) -> list[int]:
     return out
 
 
+def _subproblem(pb: Problem, keep: list[int]) -> Problem:
+    """Aceleași echipe și baze, doar lucrările `keep` (matricea se taie, nu se recalculează)."""
+    nd = len(pb.depot_nodes)
+    nodes = list(range(nd)) + [nd + k for k in keep]
+    m = Matrix([], TravelModel())
+    m.km = [[pb.matrix.km[a][b] for b in nodes] for a in nodes]
+    m.minutes = [[pb.matrix.minutes[a][b] for b in nodes] for a in nodes]
+    m.minutes_f = [[pb.matrix.minutes_f[a][b] for b in nodes] for a in nodes]
+    return Problem([pb.tasks[k] for k in keep], pb.vehicles, dict(pb.depot_nodes), m, pb.value_scale)
+
+
+def solve_ortools_safety_first(pb: Problem, time_limit_s: float = 10.0, solution_limit: int | None = 400) -> RoutingResult | None:
+    """Două faze. Întâi doar lucrările obligatorii (siguranța): intră câte încap în ture. Apoi toate lucrările, pornind de la
+    traseele lor; penalitatea uriașă a obligatoriilor face ca faza a doua să nu scoată niciuna. Într-o singură fază, căutarea
+    se poate bloca la o soluție cu o lucrare obligatorie mai puțin, deși ar fi încăput."""
+    mandatory = [k for k, t in enumerate(pb.tasks) if t.mandatory]
+    first: RoutingResult | None = None
+    initial: dict[int, list[int]] | None = None
+    if mandatory and len(mandatory) < len(pb.tasks):
+        first = solve_ortools(_subproblem(pb, mandatory), time_limit_s, solution_limit)
+        if first is not None and first.routes:
+            pos = {t.id: k for k, t in enumerate(pb.tasks)}
+            vehicle = {veh.crew.crew_id: v for v, veh in enumerate(pb.vehicles)}
+            initial = {vehicle[r.vehicle.crew.crew_id]: [pos[st.task_id] for st in r.stops] for r in first.routes}
+    t0 = _time.perf_counter()
+    res = solve_ortools(pb, time_limit_s, solution_limit, initial=initial)
+    if res is not None and initial:
+        res.solve_seconds = round(_time.perf_counter() - t0 + (first.solve_seconds if first else 0.0), 3)
+    return res
+
+
 def solve(pb: Problem, solver: str = "ortools", time_limit_s: float = 10.0, solution_limit: int | None = 400) -> RoutingResult:
-    """OR-Tools, cu rezerva greedy dacă nu găsește soluție în timpul dat (sau dacă așa cere config-ul)."""
+    """OR-Tools (întâi siguranța, apoi restul), cu rezerva greedy dacă nu găsește soluție (sau dacă așa cere config-ul).
+    Se păstrează soluția mai bună dintre cele două (vezi solution_value)."""
     if solver == "ortools":
         try:
-            res = solve_ortools(pb, time_limit_s, solution_limit)
+            res = solve_ortools_safety_first(pb, time_limit_s, solution_limit)
         except Exception as exc:  # noqa: BLE001 - orice eroare a solverului trebuie să lase loc rezervei
             res = None
             fallback_note = f"OR-Tools a dat eroare: {exc}"
         else:
             fallback_note = "OR-Tools nu a găsit soluție în timpul dat"
-        if res is not None:
-            return res
         greedy = solve_greedy(pb)
-        greedy.status = f"FALLBACK ({fallback_note})"
-        return greedy
+        if res is None:
+            greedy.status = f"FALLBACK ({fallback_note})"
+            return greedy
+        # Plasă de siguranță ieftină (greedy durează milisecunde): dacă în timpul dat OR-Tools a găsit o soluție mai slabă
+        # decât greedy, planul folosește soluția greedy și spune asta în status.
+        if solution_value(pb, greedy) > solution_value(pb, res):
+            greedy.status = f"GREEDY_BETTER (OR-Tools {res.status} în {res.solve_seconds:.1f} s a dat o soluție mai slabă)"
+            greedy.solve_seconds += res.solve_seconds
+            return greedy
+        return res
     return solve_greedy(pb)
+
+
+def solution_value(pb: Problem, res: RoutingResult) -> tuple[int, float]:
+    """Criteriul comun pentru două soluții: (lucrări obligatorii făcute, premiile lucrărilor făcute minus drumul, în lei)."""
+    idx = {t.id: k for k, t in enumerate(pb.tasks)}
+    vehicle = {veh.crew.crew_id: v for v, veh in enumerate(pb.vehicles)}
+    done = [pb.tasks[idx[tid]] for tid in res.assigned]
+    travel = sum(route_cost_lei(pb, vehicle[r.vehicle.crew.crew_id], [idx[s.task_id] for s in r.stops]) for r in res.routes)
+    return sum(t.mandatory for t in done), round(sum(max(0, t.penalty) for t in done) / pb.value_scale - travel, 2)

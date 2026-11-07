@@ -79,3 +79,16 @@ def test_storm_below_model_threshold_is_not_prepositioned(out_root: Path) -> Non
     d = _decisions(agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root))[calm["work_item_id"]]
     assert d.rule_id == "R-B-BELOW-THRESHOLD" and d.decision.value == "deferred"
     assert d.threshold["preposition_min_score"] == 0.16  # pragul modelului B, mai mare decât cel din config
+
+
+def test_mandatory_safety_has_a_daily_quota(out_root: Path) -> None:
+    cap = int(Settings.load().rule("global", "safety_max_mandatory_per_day"))
+    a = fixture_items("A")[0]  # tamper cu safety_flag
+    rows = [variant(a, f"MTR-S{i:03d}", **{"prediction.score": 0.9 + i / 1000, "prediction.confidence": "high",
+                                          "location.lat": 44.40 + 0.003 * i}) for i in range(cap + 5)]
+    write_items(out_root, "A", rows)
+    d = _decisions(agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root))
+    over = [x for x in d.values() if x.rule_id == "R-SAFETY-OVER-CAP"]
+    assert len(over) == 5  # cele cu scorul cel mai mic peste cotă
+    kept = [x for x in d.values() if x.rule_id in ("R-SAFETY", "R-SAFETY-NO-CREW")]
+    assert len(kept) == cap

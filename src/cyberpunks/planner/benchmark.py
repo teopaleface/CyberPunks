@@ -27,6 +27,7 @@ from cyberpunks.planner.routing import (
     build_problem,
     minutes_of,
     route_cost_lei,
+    solve,
     solve_greedy,
     solve_ortools,
 )
@@ -101,7 +102,7 @@ def main(argv: list[str] | None = None) -> int:
         for seed in [int(x) for x in args.seeds.split(",")]:
             pb, prize = build_tasks(settings, n, seed)
             greedy = score(pb, solve_greedy(pb), prize)
-            ort_cfg = solve_ortools(pb, limit, sol_limit)
+            ort_cfg = solve(pb, "ortools", limit, sol_limit)  # exact ce folosește agentul (întâi siguranța, comparat cu greedy)
             ort_long = solve_ortools(pb, 30.0, None)
             row = {"n_tasks": len(pb.tasks), "crews": len(pb.vehicles), "seed": seed, "greedy": greedy,
                    "ortools_config": score(pb, ort_cfg, prize) if ort_cfg else None,
@@ -112,7 +113,7 @@ def main(argv: list[str] | None = None) -> int:
                   f"ortools(config) {oc.get('net_value_lei', 0):>10,.0f} lei {oc.get('seconds', 0):.2f}s | "
                   f"ortools(30s) {(row['ortools_30s'] or {}).get('net_value_lei', 0):>10,.0f} lei")
     report = {
-        "description": "OR-Tools (setările din config/planner.yaml și 30 s fără limită de soluții) față de inserarea greedy, pe lucrări SINTETICE.",
+        "description": "OR-Tools ca în agent (setările din config/planner.yaml, întâi siguranța, comparat cu greedy) și OR-Tools 30 s fără limită de soluții, față de inserarea greedy, pe lucrări SINTETICE.",
         "reproduce_cmd": f"uv run python -m cyberpunks.planner.benchmark --sizes {args.sizes} --seeds {args.seeds}",
         "config": {"time_limit_s": limit, "solution_limit": sol_limit},
         "machine": {"platform": platform.platform(), "python": platform.python_version()},

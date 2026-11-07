@@ -1,6 +1,6 @@
-# Model card: `a-lgbm`, contoare defecte sau manipulate (firul A, Tura de mâine)
+# Model card: `a-lgbm`, contoare defecte sau manipulate (firul A, Daybreak)
 
-Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metrics_full.json` (2026-11-07T15:13:09+02:00). Formatul urmează Mitchell et al. 2019, "Model Cards for Model Reporting".
+Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metrics_full.json` (2026-11-07T16:13:05+02:00). Formatul urmează Mitchell et al. 2019, "Model Cards for Model Reporting".
 
 ## Pe scurt
 
@@ -10,7 +10,7 @@ Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metric
 
 ## Detalii
 
-- Versiuni: `a-lgbm@c670b95` (agentul) și `a-lgbm-sgcc@c670b95` (reperul pe etichete reale).
+- Versiuni: `a-lgbm@72c4d15` (agentul) și `a-lgbm-sgcc@72c4d15` (reperul pe etichete reale).
 - Tip: LightGBM (arbori de decizie cu gradient), 3 clase (normal / defect / manipulare), ponderi pe clase, oprire timpurie pe gospodării separate; calibrare Venn-ABERS (pe grilă, abatere măsurată față de calculul exact); "nu sunt sigur" prin conformal Mondrian pe scorul brut (alpha 1% normal, 30% problemă).
 - Intrare: consumul unui contor pe 180 de zile (citiri la 30 de minute) și mediana vecinilor de pe același post; 40 de features, fiecare cu motivul scris (`features.py`, `FEATURE_INFO`).
 - Rulează local, pe 4 nuclee, fără niciun API extern. Scorarea a 15.850 de contoare durează ~10 secunde.
@@ -39,18 +39,18 @@ Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metric
 
 | Set de test | Model | Regula simplă | Regula VEE completă | IsolationForest |
 |---|---|---|---|---|
-| SGCC, furt real (8.475 de clienți): precizia@K | 0,81 | 0,04 | 0,11 | 0,16 |
+| SGCC, furt real (8.475 de clienți): precizia@K | 0,80 | 0,04 | 0,11 | 0,16 |
 | SGCC: PR-AUC / ROC-AUC | 0,40 / 0,82 | 0,08 / 0,50 | 0,10 / 0,56 | 0,11 / 0,59 |
 | Londra, sintetic (13.028 de eșantioane): precizia@K | 1,00 | 0,46 | 0,53 | 0,06 |
-| Londra: PR-AUC / ROC-AUC | 0,67 / 0,91 | 0,19 / 0,70 | 0,26 / 0,80 | 0,17 / 0,78 |
-| Londra, doar problemele subtile: precizia@K | 0,61 | 0,06 | 0,02 | 0,04 |
+| Londra: PR-AUC / ROC-AUC | 0,68 / 0,91 | 0,19 / 0,70 | 0,26 / 0,80 | 0,18 / 0,78 |
+| Londra, doar problemele subtile: precizia@K | 0,62 | 0,07 | 0,02 | 0,04 |
 
-- Calibrare (Londra, test): Brier 0,023, ECE 0,004. Conformal (acoperirea empirică a mulțimii, pe test): 99% la normale (țintă 99%), 70% la probleme (țintă 70%). Ca decizii: 60% din probleme recunoscute sigur, precizia deciziilor "problemă" 75%, 1% din contoarele normale declarate "problemă", 2% "nu sunt sigur".
-- Scurgeri: nicio gospodărie sau client în două seturi; referința vecinilor SGCC doar din antrenare; cu etichete amestecate, PR-AUC pe test cade la prevalență (0,046 pe Londra, 0,105 pe SGCC). Testul cu etichete amestecate e o verificare de bun-simț, nu o dovadă (error_analysis.md, secțiunea 1).
-- Precizia@K = 1,00 pe Londra vine din defectele evidente care umplu vârful listei. La K = numărul de probleme, precizia e 0,64. Detalii în `error_analysis.md`, secțiunea 2.
+- Calibrare (Londra, test): Brier 0,023, ECE 0,004. Conformal (acoperirea empirică a mulțimii, pe test): 99% la normale (țintă 99%), 69% la probleme (țintă 70%). Ca decizii: 59% din probleme recunoscute sigur, precizia deciziilor "problemă" 74%, 1% din contoarele normale declarate "problemă", 2% "nu sunt sigur".
+- Scurgeri: nicio gospodărie sau client în două seturi; referința vecinilor SGCC doar din antrenare; cu etichete amestecate, PR-AUC pe test cade la prevalență (0,047 pe Londra, 0,105 pe SGCC). Testul cu etichete amestecate e o verificare de bun-simț, nu o dovadă (error_analysis.md, secțiunea 1).
+- Precizia@K = 1,00 pe Londra vine din defectele evidente care umplu vârful listei. La K = numărul de probleme, precizia e 0,66. Detalii în `error_analysis.md`, secțiunea 2.
 - Figuri: `reports/A/figures/headline_precision.png`, `ranking_at_k.png`, `false_alarms_by_consumption.png`, `calibration.png`, `detection_by_kind.png`.
-- Date lipsă (populația demo): PR-AUC 0,68 -> 0,58 -> 0,55 la 0 / 30 / 50% zile lipsă. Peste 2/3 lipsă, agentul se abține și trimite la om.
-- Fuziunea cu bilanțul pe post (verificată pe testul A, bilanț cu sigma 2%): precizia@10 1,00 -> 1,00, PR-AUC 0,707 -> 0,715. Confirmă mai ales defectele cu pierdere mare de energie, rar furtul, niciodată tiparele fără pierdere de energie (`error_analysis.md`, secțiunea 9).
+- Date lipsă (populația demo): PR-AUC 0,69 -> 0,59 -> 0,56 la 0 / 30 / 50% zile lipsă. Peste 2/3 lipsă, agentul se abține și trimite la om.
+- Fuziunea cu bilanțul pe post (verificată pe testul A, bilanț cu sigma 2%): precizia@10 1,00 -> 1,00, PR-AUC 0,718 -> 0,721. Confirmă mai ales defectele cu pierdere mare de energie, rar furtul, niciodată tiparele fără pierdere de energie (`error_analysis.md`, secțiunea 9).
 
 ## Limite
 

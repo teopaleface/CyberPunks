@@ -2,28 +2,28 @@
   {
     "notification_id": "N-1",
     "audience": "echipa",
-    "asset_id": "TM-TIMISOARA",
-    "message_ro": "Mâine, echipa E-TM-1: fiți în Zona Timișoara (Timiș) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-    "scheduled_for": "2026-11-07T15:26:04+02:00",
-    "work_item_id": "B-20250708-TM-TIMISOARA",
+    "asset_id": "CS-ORAVITA",
+    "message_ro": "Mâine, echipa E-RS-1: fiți în Zona Oravița (Caraș-Severin) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
+    "scheduled_for": "2026-11-07T16:30:06+02:00",
+    "work_item_id": "B-20250708-CS-ORAVITA",
     "demo_only": true
   },
   {
     "notification_id": "N-2",
     "audience": "echipa",
-    "asset_id": "AR-ARAD",
-    "message_ro": "Mâine, echipa E-AR-1: fiți în Zona Arad (Arad) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-    "scheduled_for": "2026-11-07T15:26:04+02:00",
-    "work_item_id": "B-20250708-AR-ARAD",
+    "asset_id": "TM-TIMISOARA",
+    "message_ro": "Mâine, echipa E-TM-1: fiți în Zona Timișoara (Timiș) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
+    "scheduled_for": "2026-11-07T16:30:06+02:00",
+    "work_item_id": "B-20250708-TM-TIMISOARA",
     "demo_only": true
   },
   {
     "notification_id": "N-3",
     "audience": "echipa",
-    "asset_id": "TM-LUGOJ",
-    "message_ro": "Mâine, echipa E-RS-1: fiți în Zona Lugoj (Timiș) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-    "scheduled_for": "2026-11-07T15:26:04+02:00",
-    "work_item_id": "B-20250708-TM-LUGOJ",
+    "asset_id": "AR-ARAD",
+    "message_ro": "Mâine, echipa E-AR-1: fiți în Zona Arad (Arad) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
+    "scheduled_for": "2026-11-07T16:30:06+02:00",
+    "work_item_id": "B-20250708-AR-ARAD",
     "demo_only": true
   },
   {

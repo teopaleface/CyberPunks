@@ -34,6 +34,19 @@ CASE2_PRESS = ("2025-07-17 (seara)", "Ialomița (Slobozia)",
                "intervenții ale pompierilor. Articolul nu dă cifre despre curent."),
                ("https://stirileprotv.ro/stiri/actualitate/furtuna-a-facut-pagube-majore-in-slobozia-peste-50-de-copaci-au-"
                "fost-doborati-de-vant-si-mai-multe-strazi-au-fost-inundate.html"))
+# Al treilea caz, de iarnă: viscolul din Dobrogea, 26-27 noiembrie 2023
+CASE3_DAYS = [date(2023, 11, d) for d in (24, 25, 26, 27, 28)]
+CASE3_REGION = "dobrogea"
+CASE3_PRESS = [
+    ("2023-11-26, 02:00-16:00", "Constanța, Tulcea, Călărași, Ialomița (și alte 4 județe)",
+     "ANM: cod portocaliu de viscol, rafale de 75-85 km/h, vizibilitate sub 50 m.",
+     "https://radioconstanta.ro/2023/11/24/constanta-tulcea-anm-a-emis-un-cod-portocaliu-de-viscol"),
+    ("2023-11-27/28", "Dobrogea",
+     ("Rețele Electrice Dobrogea, la o actualizare de la ora 13:00: circa 61.000 de clienți din 99 de localități fără "
+      "curent (32.000 Constanța, 19.000 Tulcea, 9.000 Călărași, 1.000 Ialomița); echipe suplimentare aduse din Muntenia și Banat."),
+     ("https://www.economica.net/retele-electrice-dobrogea-a-reconectat-la-retea-80-dintre-clientii-care-au-ramas-fara-"
+     "curent-in-ultimele-zile-49-000-de-consumatori-inca-nu-au-lumina_709345.html")),
+]
 OUT_MD = REPORTS / "B" / "backtest_romania.md"
 OUT_FIG = REPORTS / "B" / "fig_backtest_zones.png"
 OUT_ITEMS = OUTPUTS / "work_items" / "backtest-2025-07"
@@ -55,21 +68,18 @@ PRESS = [
 ]
 
 
-def run() -> pd.DataFrame:
-    model = BModel.load()
-    econ = config.load("economics")["storm"]
-    zones = romania.load_zones()
-    all_days = DAYS + CASE2_DAYS
-    wx, issues = romania.weather_daily_range(zones, all_days[0] - timedelta(days=romania.LAG_DAYS), all_days[-1])
-    hourly = romania.weather_hourly_range(zones, all_days[0] - timedelta(days=1), all_days[-1] + timedelta(days=1))
-    mdaily = predict.hist_models_daily(zones, all_days[0] - timedelta(days=1), all_days[-1])
+def _predict_days(model: BModel, econ: dict, zones: list, days: list[date]) -> list[dict]:
+    """Agentul pentru fiecare zi din `days` (rulat în seara de dinainte), cu vremea cerută o singură dată pe interval."""
+    wx, issues = romania.weather_daily_range(zones, days[0] - timedelta(days=romania.LAG_DAYS), days[-1])
+    hourly = romania.weather_hourly_range(zones, days[0] - timedelta(days=1), days[-1] + timedelta(days=1))
+    mdaily = predict.hist_models_daily(zones, days[0] - timedelta(days=1), days[-1])
     OUT_ITEMS.mkdir(parents=True, exist_ok=True)
     rows = []
-    for d in all_days:
+    for d in days:
         feats = predict.target_features(zones, wx, d)
         lo, hi, src = predict.uncertainty(model, zones, feats, d, "historical", mdaily=mdaily)
         created = predict.decision_time(d, "historical")
-        items, _ = predict.build_items(model, zones, feats, hourly, d, "historical", created, econ, "backtest-2025-07",
+        items, _ = predict.build_items(model, zones, feats, hourly, d, "historical", created, econ, "backtest",
                                        lo, hi, src, issues)
         (OUT_ITEMS / f"B-{d.isoformat()}.jsonl").write_text("".join(it.model_dump_json() + "\n" for it in items),
                                                             encoding="utf-8")
@@ -82,6 +92,15 @@ def run() -> pd.DataFrame:
                 "cust_p50": it.impact.customers_affected, "zone_customers": z.customers,
                 "onset": it.extra["storm_onset"][11:16], "reason": it.prediction.abstain_reason or "",
             })
+    return rows
+
+
+def run() -> pd.DataFrame:
+    model = BModel.load()
+    econ = config.load("economics")["storm"]
+    zones = romania.load_zones()
+    rows = _predict_days(model, econ, zones, DAYS + CASE2_DAYS)
+    rows += _predict_days(model, econ, zones, CASE3_DAYS)
     df = pd.DataFrame(rows)
     figure(df[df["date"].isin(DAYS)], model.decision_threshold)
     write_md(df, model)
@@ -202,6 +221,29 @@ def write_md(df: pd.DataFrame, model: BModel) -> None:
         "",
         (f"Pe 17 iulie, Slobozia a fost pe locul {rank17} din 26 de zone după risc (P = {tgt.loc[d17, 'p']:.2f}). "
          "Nu avem cifre despre clienții fără curent, deci verificăm doar dacă zona lovită iese în față."),
+        "",
+    ]
+    c3 = df[df["date"].isin(CASE3_DAYS)]
+    lines += ["## Al treilea caz, de iarnă: viscolul din Dobrogea, 26-27 noiembrie 2023", "",
+              "| Ziua | Unde | Ce s-a întâmplat | Sursa |", "|---|---|---|---|"]
+    lines += [f"| {d} | {w} | {t} | {u} |" for d, w, t, u in CASE3_PRESS]
+    lines += ["", ("| Ziua | Dobrogea: P medie | Dobrogea: echipe recomandate | Dobrogea: rafala maximă (km/h) | "
+              "Restul: P medie | Primele 3 zone |"), "|---|---|---|---|---|---|"]
+    for d in CASE3_DAYS:
+        g = c3[c3["date"] == d]
+        dob, rest = g[g["region"] == CASE3_REGION], g[g["region"] != CASE3_REGION]
+        top = ", ".join(f"{r.zone_id} {r.p:.2f}" for r in g.sort_values("p", ascending=False).head(3).itertuples())
+        gmax = dob["gust"].dropna().max()
+        lines.append(f"| {d:%d.%m.%Y} | {dob['p'].mean():.2f} | {(dob['action'] == 'preposition_crew').sum()} din {len(dob)} | "
+                     f"{gmax:.0f} | {rest['p'].mean():.2f} | {top} |")
+    d26 = c3[c3["date"].isin(CASE3_DAYS[2:4])]
+    dob26, rest26 = d26[d26["region"] == CASE3_REGION], d26[d26["region"] != CASE3_REGION]
+    lines += [
+        "",
+        (f"Pe 26-27 noiembrie, riscul mediu în Dobrogea a fost {dob26['p'].mean():.2f}, față de {rest26['p'].mean():.2f} "
+         "în Muntenia și Banat. "
+         + ("Zona lovită iese în față și iarna." if dob26["p"].mean() > rest26["p"].mean()
+            else "Modelul NU scoate în față zona lovită: vezi limitele (zăpada e punctul slab).")),
 
         "",
     ]

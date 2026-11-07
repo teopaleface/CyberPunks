@@ -42,37 +42,37 @@ Corect, după cât timp a trecut de la apariția problemei (fereastra are 14 zil
 
 | de când există problema | ferestre | corect_model | corect_reguli |
 |---|---|---|---|
-| 0-3 zile | 231 | 0.59 | 0.14 |
-| 4-7 | 257 | 0.62 | 0.15 |
-| 8-14 | 327 | 0.64 | 0.24 |
-| 15-30 | 445 | 0.67 | 0.29 |
-| 31-90 | 833 | 0.61 | 0.38 |
-| peste 90 | 1262 | 0.51 | 0.25 |
+| 0-3 zile | 231 | 0.64 | 0.14 |
+| 4-7 | 257 | 0.63 | 0.15 |
+| 8-14 | 327 | 0.67 | 0.24 |
+| 15-30 | 445 | 0.69 | 0.29 |
+| 31-90 | 833 | 0.70 | 0.38 |
+| peste 90 | 1262 | 0.62 | 0.25 |
 
 Corect, după mărimea lipsei reale:
 
 | lipsa reală | ferestre | corect_model | corect_reguli |
 |---|---|---|---|
-| sub 2 kWh/zi | 273 | 0.30 | 0.01 |
-| 2-5 | 492 | 0.47 | 0.06 |
-| 5-10 | 489 | 0.47 | 0.10 |
-| 10-25 | 844 | 0.51 | 0.23 |
-| peste 25 | 1257 | 0.78 | 0.51 |
+| sub 2 kWh/zi | 273 | 0.37 | 0.01 |
+| 2-5 | 492 | 0.58 | 0.06 |
+| 5-10 | 489 | 0.58 | 0.10 |
+| 10-25 | 844 | 0.60 | 0.23 |
+| peste 25 | 1257 | 0.82 | 0.51 |
 
 Confuziile cele mai dese:
 
-- pierdere normală → contor de client defect sau manipulat: 976 ferestre
-- client trecut la postul greșit în bază → contor de client defect sau manipulat: 284 ferestre
-- contor de client defect sau manipulat → pierdere normală: 220 ferestre
-- client trecut la postul greșit în bază → pierdere normală: 206 ferestre
-- furt înainte de contor → contor de client defect sau manipulat: 188 ferestre
-- pierdere tehnică (cablu, faze dezechilibrate) → pierdere normală: 104 ferestre
-- pierdere normală → pierdere tehnică (cablu, faze dezechilibrate): 94 ferestre
-- pierdere tehnică (cablu, faze dezechilibrate) → contor de client defect sau manipulat: 84 ferestre
+- pierdere normală → contor de client defect sau manipulat: 1002 ferestre
+- contor de client defect sau manipulat → pierdere normală: 229 ferestre
+- furt înainte de contor → contor de client defect sau manipulat: 194 ferestre
+- client trecut la postul greșit în bază → pierdere normală: 154 ferestre
+- client trecut la postul greșit în bază → contor de client defect sau manipulat: 149 ferestre
+- pierdere tehnică (cablu, faze dezechilibrate) → pierdere normală: 97 ferestre
+- pierdere tehnică (cablu, faze dezechilibrate) → contor de client defect sau manipulat: 78 ferestre
+- contor de client defect sau manipulat → furt înainte de contor: 72 ferestre
 
-- „Nu sunt sigur”: modelul se abține în 13.1% din ferestre. Acolo ar fi avut dreptate în 27% din cazuri, iar în rest în 89%. Abținerea scoate deci cazurile grele și le trimite la om.
+- „Nu sunt sigur”: modelul se abține în 12.7% din ferestre. Acolo ar fi avut dreptate în 33% din cazuri, iar în rest în 90%. Abținerea scoate deci cazurile grele și le trimite la om.
 - Problemele foarte noi (0-3 zile) se văd greu: fereastra are încă puține zile cu problemă. Cele foarte vechi (peste 90 de zile) intră treptat în istoricul postului, care învață „normalul” cu tot cu problemă. Pe date reale, istoricul trebuie învățat doar din perioade verificate (după vizita echipei), nu din toate zilele.
-- Cele mai dese confuzii sunt între contorul de client și pierderea normală, în ambele sensuri. Cauza e mărimea: un contor de client lipsește adesea doar câțiva kWh pe zi, cât eroarea pierderii normale (vezi tabelul pe mărimi). Sub 2 kWh/zi, modelul are dreptate doar în 30% din cazuri.
+- Cele mai dese confuzii sunt între contorul de client și pierderea normală, în ambele sensuri. Cauza e mărimea: un contor de client lipsește adesea doar câțiva kWh pe zi, cât eroarea pierderii normale (vezi tabelul pe mărimi). Sub 2 kWh/zi, modelul are dreptate doar în 37% din cazuri.
 - Clientul la postul greșit se confundă cel mai des cu contorul de client: la postul cu lipsă, un client „dispare” din bază, iar semnătura seamănă cu un contor oprit. Le desparte vecinul cu surplus egal, dar semnalul dispare când vecinul are și el o problemă sau când surplusul e mic față de eroarea pierderii normale.
 - Contorul de post setat greșit (×2) e prins aproape mereu: raportul post/clienți e un semnal foarte curat.
 
@@ -116,10 +116,10 @@ Pe tipuri de problemă (cele care nu schimbă totalul zilei, ca profilul inversa
 
 ### Unde ajută
 
-- **Cauzele pe care contoarele nu le văd deloc.** Doar contoarele (modelul A) găsesc 0 din aceste probleme, prin construcție: nu au cum să vadă un branșament direct, un cablu care pierde sau un contor de post setat greșit. Bilanțul găsește postul în: furt înainte de contor 74% (cauza corectă 55%), pierdere tehnică 65% (42%), contorul postului setat greșit 99% (99%), client la postul greșit 50% (30%) din ferestrele de test.
-- Energia: bilanțul găsește 85% din energia lipsă din aceste cauze, adică ~25.010 lei pe lună pe cele 300 de posturi ale hărții (la 0,70 lei/kWh). Din posturile marcate, 13% sunt de fapt normale.
+- **Cauzele pe care contoarele nu le văd deloc.** Doar contoarele (modelul A) găsesc 0 din aceste probleme, prin construcție: nu au cum să vadă un branșament direct, un cablu care pierde sau un contor de post setat greșit. Bilanțul găsește postul în: furt înainte de contor 74% (cauza corectă 55%), pierdere tehnică 64% (42%), contorul postului setat greșit 99% (99%), client la postul greșit 53% (42%) din ferestrele de test.
+- Energia: bilanțul găsește 85% din energia lipsă din aceste cauze, adică ~25.137 lei pe lună pe cele 300 de posturi ale hărții (la 0,70 lei/kWh). Din posturile marcate, 13% sunt de fapt normale.
 - Pe ziua demo, 48% din energia pierdută peste normal nu apare la niciun contor de client.
-- Diagnosticul cauzei bate tabelul de reguli din concept: F1 macro 0,67 față de 0,48. Clientul la postul greșit: 0,57 (reguli 0,34), după trăsătura „oglindă” (lipsa la un post și surplusul la vecin, zi de zi) și legarea celor două capete ale perechii. Pierderea tehnică: 0,46 (reguli 0,28).
+- Diagnosticul cauzei bate tabelul de reguli din concept: F1 macro 0,71 față de 0,48. Clientul la postul greșit: 0,77 (reguli 0,34), după trăsătura „oglindă” (lipsa la un post și surplusul la vecin, zi de zi) și legarea celor două capete ale perechii. Pierderea tehnică: 0,52 (reguli 0,28).
 - Planul B (unde montăm întâi contoarele de bilanț): `reports/bilant/plan_b.md`.
 - Când modelul de contoare e mai slab (calitatea SGCC, AUC 0,80), confirmarea din bilanț ridică lei recuperați în primele 10 verificări pe zi de la 126 la 456.
 
@@ -130,5 +130,5 @@ Pe tipuri de problemă (cele care nu schimbă totalul zilei, ca profilul inversa
 - De ce: un post are adesea mai multe contoare cu probleme deodată, iar lipsa de la post e suma lor, deci nu arată care contor e de vină. Problemele mici (sub 2 kWh/zi) se pierd în zgomotul pierderii normale. Tipurile care nu schimbă totalul zilei (profil inversat, ceas decalat, salturi) nu se văd deloc în bilanț.
 - **Să coboare scorul unui contor** pe un post fără lipsă: pe scorurile reale ale lui A asta strica lista (AUC 0,918 → 0,907), așa că fuziunea doar confirmă.
 - **Să rezolve „nu sunt sigur” al lui A:** pe ziua demo, 0 din 5 cazuri corecte. Funcția e oprită.
-- Contorul de client în lumea cu defectele lui A: F1 0,38. Multe tipuri ale lui A au lipsă mică sau zero la totalul zilei.
+- Contorul de client în lumea cu defectele lui A: F1 0,40. Multe tipuri ale lui A au lipsă mică sau zero la totalul zilei.
 

@@ -72,3 +72,20 @@ Generat de `uv run python -m cyberpunks.b_furtuna.backtest`. Pentru fiecare zi, 
 
 Pe 17 iulie, Slobozia a fost pe locul 1 din 26 de zone după risc (P = 0.36). Nu avem cifre despre clienții fără curent, deci verificăm doar dacă zona lovită iese în față.
 
+## Al treilea caz, de iarnă: viscolul din Dobrogea, 26-27 noiembrie 2023
+
+| Ziua | Unde | Ce s-a întâmplat | Sursa |
+|---|---|---|---|
+| 2023-11-26, 02:00-16:00 | Constanța, Tulcea, Călărași, Ialomița (și alte 4 județe) | ANM: cod portocaliu de viscol, rafale de 75-85 km/h, vizibilitate sub 50 m. | https://radioconstanta.ro/2023/11/24/constanta-tulcea-anm-a-emis-un-cod-portocaliu-de-viscol |
+| 2023-11-27/28 | Dobrogea | Rețele Electrice Dobrogea, la o actualizare de la ora 13:00: circa 61.000 de clienți din 99 de localități fără curent (32.000 Constanța, 19.000 Tulcea, 9.000 Călărași, 1.000 Ialomița); echipe suplimentare aduse din Muntenia și Banat. | https://www.economica.net/retele-electrice-dobrogea-a-reconectat-la-retea-80-dintre-clientii-care-au-ramas-fara-curent-in-ultimele-zile-49-000-de-consumatori-inca-nu-au-lumina_709345.html |
+
+| Ziua | Dobrogea: P medie | Dobrogea: echipe recomandate | Dobrogea: rafala maximă (km/h) | Restul: P medie | Primele 3 zone |
+|---|---|---|---|---|---|
+| 24.11.2023 | 0.06 | 0 din 10 | 61 | 0.04 | TL-BABADAG 0.10, CS-ORAVITA 0.06, CT-CONSTANTA 0.06 |
+| 25.11.2023 | 0.13 | 2 din 10 | 62 | 0.05 | CT-CONSTANTA 0.20, TL-BABADAG 0.17, CT-MANGALIA 0.16 |
+| 26.11.2023 | 0.87 | 10 din 10 | 104 | 0.09 | CT-CONSTANTA 0.99, CT-MEDGIDIA 0.96, CT-MANGALIA 0.96 |
+| 27.11.2023 | 0.41 | 9 din 10 | 54 | 0.05 | CT-CONSTANTA 0.85, CT-MANGALIA 0.58, TL-TULCEA 0.49 |
+| 28.11.2023 | 0.18 | 4 din 10 | 75 | 0.12 | CS-RESITA 0.58, CT-CONSTANTA 0.43, CT-MANGALIA 0.43 |
+
+Pe 26-27 noiembrie, riscul mediu în Dobrogea a fost 0.64, față de 0.07 în Muntenia și Banat. Zona lovită iese în față și iarna.
+

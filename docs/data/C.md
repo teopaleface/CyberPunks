@@ -44,6 +44,8 @@ Convenții de timp: totul e în UTC, „ora care se încheie” (valoarea de la 
 ## Scara de soluții și rapoartele (după model)
 
 - **Scara de soluții** (`remedies.py`): pentru fiecare post cu P90 peste 1,10 pu, simularea fizică a postului în ziua țintă se rulează de bază și cu fiecare soluție; efectul (în pu) se aplică peste P90 al modelului. Treptele: 3 case mutate pe altă fază (dezechilibru estimat analitic, plafonat la 0,02 pu după EN 50160), o treaptă de priză, mesaje de grup (participare 10/20/30%, consumul mutat din seară, aceeași energie), baterii 5/10/15 kWh pe profilul fiecărui prosumator, limită de export, post nou. Costurile vin din `config/economics.yaml` (secțiunile `voltage` și `remedies`).
+- **Legătura cu bilanțul**: dacă `outputs/work_items/<scenariu>/A_bilant.jsonl` are pentru post `extra.phase_rebalance_input` (partea din case pe faza cea mai încărcată, estimată de bilanț), dezechilibrul din scară urmează această repartiție și treapta „faze” are încredere medie; altfel fazele se atribuie la întâmplare și încrederea e mică.
+- **Mesaje și urmărire în afara sezonului**: în martie-octombrie mesajul pleacă de la 5% risc, în noiembrie-februarie doar de la 20% (IPOTEZĂ: fără mesaje inutile); un post e urmărit dacă riscul trece de 5% sau intervalul atinge 1,10 pu.
 - **Ofertele de baterii** (`reports_c.py offers`): pe profilul anual (2025) al fiecărui prosumator de pe posturile cu risc; economia = energia livrată seara × prețul de cumpărare − energia PV folosită la încărcare × valoarea ei; grantul Casa Verde Baterii 2026 din config.
 - **Investițiile** (`reports_c.py investments`): modelul pe toate zilele din 2025 pentru fiecare post, apoi scara pe cea mai însorită zi de referință.
 - **Cererile de racordare** (`connection.py`): modelul înainte și după racordare pe cele mai însorite 15 zile din sezonul 2025 și pe tot anul, plus calculul de rețea pentru limita de injecție.
@@ -77,6 +79,8 @@ uv run python -m cyberpunks.c_prosumatori.error_analysis                # report
 uv run python -m cyberpunks.c_prosumatori.reports_c investments         # reports/C/investitii.md
 uv run python -m cyberpunks.c_prosumatori.connection --post PT-1020 --kwp 25
 ```
+
+Verificat dintr-o clonă curată (7 nov., 16:00): `make c-weather c-sim c-population c-train c-predict c-eval` refac `reports/C/metrics.json`; 29 din 30 de cifre ies identic, iar eroarea de calibrare (ECE) diferă la a cincea zecimală (0,00316 față de 0,00317), din rotunjirile LightGBM pe mai multe fire de execuție. Timpii depind de cât de ocupată e mașina.
 
 Dintr-o clonă curată, `predict.py` merge și fără pașii grei: modelul e în `models/release/C/`, registrul posturilor în `data/samples/C/posts.csv`, mostra pentru cazurile similare în `data/samples/C/similar_cases.parquet`; vremea se descarcă de la Open-Meteo.
 

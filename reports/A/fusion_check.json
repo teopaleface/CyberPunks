@@ -4,10 +4,10 @@
     "meters": 15850,
     "real_problems": 865,
     "sigma_1pct": {
-      "roc_auc_a": 0.9178,
-      "roc_auc_fused": 0.9168,
-      "pr_auc_a": 0.7068,
-      "pr_auc_fused": 0.7065,
+      "roc_auc_a": 0.9168,
+      "roc_auc_fused": 0.9152,
+      "pr_auc_a": 0.7178,
+      "pr_auc_fused": 0.7084,
       "precision_at_10_a": 1.0,
       "precision_at_10_fused": 1.0,
       "precision_at_20_a": 1.0,
@@ -43,26 +43,26 @@
         "occupancy_change": 0.1427
       },
       "gray_zone": {
-        "meters": 537.0,
-        "real_problem_share": 0.1434,
-        "confirmed": 113.3333,
-        "real_problem_share_if_confirmed": 0.1449,
-        "real_problem_share_if_not_confirmed": 0.1433
+        "meters": 558.0,
+        "real_problem_share": 0.1362,
+        "confirmed": 115.0,
+        "real_problem_share_if_confirmed": 0.1274,
+        "real_problem_share_if_not_confirmed": 0.1384
       },
-      "precision_at_100_doar_furt_a": 0.1,
-      "precision_at_100_doar_furt_fused": 0.0567,
-      "roc_auc_doar_furt_a": 0.8902,
-      "roc_auc_doar_furt_fused": 0.891,
-      "precision_at_100_doar_defecte_a": 0.9,
-      "precision_at_100_doar_defecte_fused": 0.9433,
-      "roc_auc_doar_defecte_a": 0.9181,
-      "roc_auc_doar_defecte_fused": 0.9158
+      "precision_at_100_doar_furt_a": 0.12,
+      "precision_at_100_doar_furt_fused": 0.0833,
+      "roc_auc_doar_furt_a": 0.889,
+      "roc_auc_doar_furt_fused": 0.8895,
+      "precision_at_100_doar_defecte_a": 0.88,
+      "precision_at_100_doar_defecte_fused": 0.9167,
+      "roc_auc_doar_defecte_a": 0.9173,
+      "roc_auc_doar_defecte_fused": 0.9143
     },
     "sigma_2pct": {
-      "roc_auc_a": 0.9178,
-      "roc_auc_fused": 0.9178,
-      "pr_auc_a": 0.7068,
-      "pr_auc_fused": 0.7145,
+      "roc_auc_a": 0.9168,
+      "roc_auc_fused": 0.9166,
+      "pr_auc_a": 0.7178,
+      "pr_auc_fused": 0.7205,
       "precision_at_10_a": 1.0,
       "precision_at_10_fused": 1.0,
       "precision_at_20_a": 1.0,
@@ -98,26 +98,26 @@
         "occupancy_change": 0.041
       },
       "gray_zone": {
-        "meters": 537.0,
-        "real_problem_share": 0.1434,
-        "confirmed": 44.3333,
-        "real_problem_share_if_confirmed": 0.1289,
-        "real_problem_share_if_not_confirmed": 0.1448
+        "meters": 558.0,
+        "real_problem_share": 0.1362,
+        "confirmed": 42.6667,
+        "real_problem_share_if_confirmed": 0.1483,
+        "real_problem_share_if_not_confirmed": 0.1352
       },
-      "precision_at_100_doar_furt_a": 0.1,
-      "precision_at_100_doar_furt_fused": 0.0533,
-      "roc_auc_doar_furt_a": 0.8902,
-      "roc_auc_doar_furt_fused": 0.8914,
-      "precision_at_100_doar_defecte_a": 0.9,
-      "precision_at_100_doar_defecte_fused": 0.9467,
-      "roc_auc_doar_defecte_a": 0.9181,
-      "roc_auc_doar_defecte_fused": 0.9172
+      "precision_at_100_doar_furt_a": 0.12,
+      "precision_at_100_doar_furt_fused": 0.0667,
+      "roc_auc_doar_furt_a": 0.889,
+      "roc_auc_doar_furt_fused": 0.89,
+      "precision_at_100_doar_defecte_a": 0.88,
+      "precision_at_100_doar_defecte_fused": 0.9333,
+      "roc_auc_doar_defecte_a": 0.9173,
+      "roc_auc_doar_defecte_fused": 0.9163
     },
     "sigma_4pct": {
-      "roc_auc_a": 0.9178,
-      "roc_auc_fused": 0.9181,
-      "pr_auc_a": 0.7068,
-      "pr_auc_fused": 0.7164,
+      "roc_auc_a": 0.9168,
+      "roc_auc_fused": 0.9169,
+      "pr_auc_a": 0.7178,
+      "pr_auc_fused": 0.7238,
       "precision_at_10_a": 1.0,
       "precision_at_10_fused": 1.0,
       "precision_at_20_a": 1.0,
@@ -153,30 +153,30 @@
         "occupancy_change": 0.0083
       },
       "gray_zone": {
-        "meters": 537.0,
-        "real_problem_share": 0.1434,
-        "confirmed": 10.0,
-        "real_problem_share_if_confirmed": 0.134,
-        "real_problem_share_if_not_confirmed": 0.1436
+        "meters": 558.0,
+        "real_problem_share": 0.1362,
+        "confirmed": 7.3333,
+        "real_problem_share_if_confirmed": 0.2143,
+        "real_problem_share_if_not_confirmed": 0.135
       },
-      "precision_at_100_doar_furt_a": 0.1,
-      "precision_at_100_doar_furt_fused": 0.0733,
-      "roc_auc_doar_furt_a": 0.8902,
-      "roc_auc_doar_furt_fused": 0.8913,
-      "precision_at_100_doar_defecte_a": 0.9,
-      "precision_at_100_doar_defecte_fused": 0.9267,
-      "roc_auc_doar_defecte_a": 0.9181,
-      "roc_auc_doar_defecte_fused": 0.9177
+      "precision_at_100_doar_furt_a": 0.12,
+      "precision_at_100_doar_furt_fused": 0.1,
+      "roc_auc_doar_furt_a": 0.889,
+      "roc_auc_doar_furt_fused": 0.8899,
+      "precision_at_100_doar_defecte_a": 0.88,
+      "precision_at_100_doar_defecte_fused": 0.9,
+      "roc_auc_doar_defecte_a": 0.9173,
+      "roc_auc_doar_defecte_fused": 0.9167
     }
   },
   "maine": {
     "meters": 15850,
     "real_problems": 780,
     "sigma_1pct": {
-      "roc_auc_a": 0.9162,
-      "roc_auc_fused": 0.915,
-      "pr_auc_a": 0.679,
-      "pr_auc_fused": 0.6881,
+      "roc_auc_a": 0.9172,
+      "roc_auc_fused": 0.9166,
+      "pr_auc_a": 0.6887,
+      "pr_auc_fused": 0.697,
       "precision_at_10_a": 1.0,
       "precision_at_10_fused": 1.0,
       "precision_at_20_a": 1.0,
@@ -186,7 +186,7 @@
       "precision_at_100_a": 1.0,
       "precision_at_100_fused": 1.0,
       "precision_at_250_a": 1.0,
-      "precision_at_250_fused": 0.9973,
+      "precision_at_250_fused": 1.0,
       "confirmed_share": {
         "furt_real": 0.1733,
         "defect_real": 0.2329,
@@ -212,26 +212,26 @@
         "occupancy_change": 0.09
       },
       "gray_zone": {
-        "meters": 340.0,
-        "real_problem_share": 0.2176,
-        "confirmed": 40.3333,
-        "real_problem_share_if_confirmed": 0.2811,
-        "real_problem_share_if_not_confirmed": 0.2091
+        "meters": 333.0,
+        "real_problem_share": 0.2192,
+        "confirmed": 35.6667,
+        "real_problem_share_if_confirmed": 0.291,
+        "real_problem_share_if_not_confirmed": 0.2108
       },
-      "precision_at_100_doar_furt_a": 0.11,
-      "precision_at_100_doar_furt_fused": 0.0533,
-      "roc_auc_doar_furt_a": 0.8988,
-      "roc_auc_doar_furt_fused": 0.8988,
-      "precision_at_100_doar_defecte_a": 0.89,
-      "precision_at_100_doar_defecte_fused": 0.9467,
-      "roc_auc_doar_defecte_a": 0.9111,
-      "roc_auc_doar_defecte_fused": 0.9091
+      "precision_at_100_doar_furt_a": 0.12,
+      "precision_at_100_doar_furt_fused": 0.0633,
+      "roc_auc_doar_furt_a": 0.9014,
+      "roc_auc_doar_furt_fused": 0.9021,
+      "precision_at_100_doar_defecte_a": 0.88,
+      "precision_at_100_doar_defecte_fused": 0.9367,
+      "roc_auc_doar_defecte_a": 0.9108,
+      "roc_auc_doar_defecte_fused": 0.9095
     },
     "sigma_2pct": {
-      "roc_auc_a": 0.9162,
-      "roc_auc_fused": 0.9156,
-      "pr_auc_a": 0.679,
-      "pr_auc_fused": 0.6884,
+      "roc_auc_a": 0.9172,
+      "roc_auc_fused": 0.9169,
+      "pr_auc_a": 0.6887,
+      "pr_auc_fused": 0.6978,
       "precision_at_10_a": 1.0,
       "precision_at_10_fused": 1.0,
       "precision_at_20_a": 1.0,
@@ -267,26 +267,26 @@
         "occupancy_change": 0.028
       },
       "gray_zone": {
-        "meters": 340.0,
-        "real_problem_share": 0.2176,
-        "confirmed": 5.3333,
-        "real_problem_share_if_confirmed": 0.5476,
-        "real_problem_share_if_not_confirmed": 0.2121
+        "meters": 333.0,
+        "real_problem_share": 0.2192,
+        "confirmed": 4.6667,
+        "real_problem_share_if_confirmed": 0.6389,
+        "real_problem_share_if_not_confirmed": 0.2132
       },
-      "precision_at_100_doar_furt_a": 0.11,
-      "precision_at_100_doar_furt_fused": 0.07,
-      "roc_auc_doar_furt_a": 0.8988,
-      "roc_auc_doar_furt_fused": 0.8987,
-      "precision_at_100_doar_defecte_a": 0.89,
-      "precision_at_100_doar_defecte_fused": 0.93,
-      "roc_auc_doar_defecte_a": 0.9111,
-      "roc_auc_doar_defecte_fused": 0.9101
+      "precision_at_100_doar_furt_a": 0.12,
+      "precision_at_100_doar_furt_fused": 0.0733,
+      "roc_auc_doar_furt_a": 0.9014,
+      "roc_auc_doar_furt_fused": 0.9023,
+      "precision_at_100_doar_defecte_a": 0.88,
+      "precision_at_100_doar_defecte_fused": 0.9267,
+      "roc_auc_doar_defecte_a": 0.9108,
+      "roc_auc_doar_defecte_fused": 0.9098
     },
     "sigma_4pct": {
-      "roc_auc_a": 0.9162,
-      "roc_auc_fused": 0.916,
-      "pr_auc_a": 0.679,
-      "pr_auc_fused": 0.6874,
+      "roc_auc_a": 0.9172,
+      "roc_auc_fused": 0.9171,
+      "pr_auc_a": 0.6887,
+      "pr_auc_fused": 0.6965,
       "precision_at_10_a": 1.0,
       "precision_at_10_fused": 1.0,
       "precision_at_20_a": 1.0,
@@ -322,20 +322,20 @@
         "occupancy_change": 0.007
       },
       "gray_zone": {
-        "meters": 340.0,
-        "real_problem_share": 0.2176,
+        "meters": 333.0,
+        "real_problem_share": 0.2192,
         "confirmed": 0.3333,
         "real_problem_share_if_confirmed": 0.0,
-        "real_problem_share_if_not_confirmed": 0.2178
+        "real_problem_share_if_not_confirmed": 0.2194
       },
-      "precision_at_100_doar_furt_a": 0.11,
-      "precision_at_100_doar_furt_fused": 0.08,
-      "roc_auc_doar_furt_a": 0.8988,
-      "roc_auc_doar_furt_fused": 0.8989,
-      "precision_at_100_doar_defecte_a": 0.89,
-      "precision_at_100_doar_defecte_fused": 0.92,
-      "roc_auc_doar_defecte_a": 0.9111,
-      "roc_auc_doar_defecte_fused": 0.9106
+      "precision_at_100_doar_furt_a": 0.12,
+      "precision_at_100_doar_furt_fused": 0.09,
+      "roc_auc_doar_furt_a": 0.9014,
+      "roc_auc_doar_furt_fused": 0.9019,
+      "precision_at_100_doar_defecte_a": 0.88,
+      "precision_at_100_doar_defecte_fused": 0.91,
+      "roc_auc_doar_defecte_a": 0.9108,
+      "roc_auc_doar_defecte_fused": 0.9104
     }
   }
 }
