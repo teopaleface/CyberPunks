@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from cyberpunks.b_furtuna.features import label_ro
-from cyberpunks.b_furtuna.model import CASE_FEATURES, BModel, shap_values
+from cyberpunks.b_furtuna.model import CASE_FEATURES, CASE_WEIGHTS, BModel, shap_values
 from cyberpunks.common.contracts import Factor, SimilarCase
 
 
@@ -25,6 +25,8 @@ def top_factors(model: BModel, rows: pd.DataFrame, k: int = 4) -> list[list[Fact
         g2 = contrib.pop("gust_max_2d", 0.0)
         key = "gust_max" if (row.get("gust_max") or 0) >= (row.get("gust_prev") or 0) else "gust_prev"
         contrib[key] = contrib.get(key, 0.0) + g2
+        # ploaia zilei e inclusă în ploaia pe 48 h: un singur factor, ca să nu apară de două ori aceeași ploaie
+        contrib["precip_48h"] = contrib.get("precip_48h", 0.0) + contrib.pop("precip", 0.0)
         ranked = sorted(contrib.items(), key=lambda kv: kv[1], reverse=True)
         positive = [(f, c) for f, c in ranked if c > 0.01]
         chosen = positive[:k] if positive else sorted(contrib.items(), key=lambda kv: abs(kv[1]), reverse=True)[:k]
@@ -50,7 +52,7 @@ def similar_cases(model: BModel, rows: pd.DataFrame, k: int = 3) -> list[list[Si
     sd = np.array([model.case_scale[f][1] for f in CASE_FEATURES])
     L = (lib[CASE_FEATURES].to_numpy(dtype=float) - mu) / sd
     L = np.nan_to_num(L)
-    w = np.array([2.0, 1.0, 1.5, 0.7, 1.0, 1.0, 0.7, 0.5, 0.7, 0.7])  # rafala și ploaia contează cel mai mult
+    w = np.array([CASE_WEIGHTS[f] for f in CASE_FEATURES])  # rafala și ploaia contează cel mai mult
     out = []
     for _, row in rows.iterrows():
         x = np.nan_to_num((row[CASE_FEATURES].to_numpy(dtype=float) - mu) / sd)
@@ -75,6 +77,9 @@ def similar_cases(model: BModel, rows: pd.DataFrame, k: int = 3) -> list[list[Si
     return out
 
 
+CALM_P = 0.10  # sub acest risc, cu vânt slab și fără ploaie, fraza spune „vreme liniștită”
+
+
 def _ro_int(n: int) -> str:
     return f"{n:,}".replace(",", ".")
 
@@ -83,9 +88,15 @@ def summary_ro(p: float, row: pd.Series, onset_hour: int | None, cases: list[Sim
                customers_p50: int, factors: list[Factor] | None = None) -> str:
     """Fraza din șablon. Cifrele vin din cod; factorii principali sunt cei cu cea mai mare contribuție SHAP."""
     parts = [f"Risc de {p:.0%} ca peste 1% din clienții zonei să rămână fără curent."]
-    drivers = [f.label_ro for f in (factors or []) if f.contribution > 0][:2]
-    if drivers:
-        parts.append("Contează cel mai mult: " + " și ".join(drivers) + ".")
+    g0, pr0 = row.get("gust_max"), row.get("precip_48h")
+    calm = p < CALM_P and pd.notna(g0) and float(g0) < 45 and (pd.isna(pr0) or float(pr0) < 10)
+    if calm:
+        rain = "fără ploaie" if pd.isna(pr0) or float(pr0) < 1 else f"{float(pr0):.0f} mm de ploaie în 48 de ore"
+        parts.append(f"Vreme liniștită: rafale de până la {float(g0):.0f} km/h, {rain}. Echipele rămân la lucrările obișnuite.")
+    else:
+        drivers = [f.label_ro for f in (factors or []) if f.contribution > 0][:2]
+        if drivers:
+            parts.append("Contează cel mai mult: " + " și ".join(drivers) + ".")
     g = row.get("gust_max")
     if g is not None and not pd.isna(g) and onset_hour is not None and p >= 0.15:
         parts.append(f"Furtuna e așteptată în jurul orei {onset_hour}:00, cu rafale de până la {g:.0f} km/h.")

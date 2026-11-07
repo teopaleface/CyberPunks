@@ -21,14 +21,17 @@ import pandas as pd
 from cyberpunks.b_furtuna import eaglei, openmeteo
 from cyberpunks.b_furtuna.features import FEATURES, clean_weather, make_features
 from cyberpunks.b_furtuna.us_sample import SAMPLE_CSV
-from cyberpunks.common.paths import DATA_PROCESSED
+from cyberpunks.common.paths import DATA_SAMPLES
 
 EVENT_THRESHOLD = 0.01  # vârful zilei ≥ 1% din clienții zonei
+STUCK_MIN_DAYS = 4  # același vârf (≥ 0,5% din clienți) atâtea zile la rând = hartă înghețată
 SEVERE_THRESHOLD = 0.05
 EXTREME_THRESHOLD = 0.10
 LAG_DAYS = 7  # primele zile din fiecare interval de vreme servesc doar pentru întârzieri (ploaia pe 7 zile etc.)
-OUT = DATA_PROCESSED / "B" / "us_county_day.parquet"
-SUMMARY = DATA_PROCESSED / "B" / "us_county_day_summary.json"
+# Tabelul procesat stă în git (~3 MB, derivat din EAGLE-I și Open-Meteo, ambele CC BY 4.0): evaluarea se reface fără
+# descărcări. Se regenerează cu `make b-data b-dataset`.
+OUT = DATA_SAMPLES / "B" / "us_county_day.parquet"
+SUMMARY = DATA_SAMPLES / "B" / "us_county_day_summary.json"
 
 
 def _stuck_days(daily: pd.DataFrame) -> pd.Series:
@@ -37,8 +40,8 @@ def _stuck_days(daily: pd.DataFrame) -> pd.Series:
     same = (daily["out_max"] == daily.groupby("fips")["out_max"].shift(1)) & (daily["pct_out_max"] >= 0.005)
     run_id = (~same).cumsum()
     run_len = same.groupby(run_id).transform("size")
-    # un șir de k zile identice are k-1 valori `same`=True; marcăm și prima zi din șir
-    flag = same & (run_len >= 3)
+    # run_len = numărul de zile din șir (prima zi plus cele identice cu ziua de dinainte); cerem cel puțin 4
+    flag = same & (run_len >= STUCK_MIN_DAYS)
     first = flag.groupby(run_id).transform("any") & ~same
     return (flag | first).reindex(daily.index)
 
@@ -110,7 +113,7 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     df, summary = build(args.min_cov)
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    df.to_parquet(OUT, index=False)
+    df.to_parquet(OUT, index=False, compression="zstd")
     SUMMARY.write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
     print(json.dumps(summary, indent=2, ensure_ascii=False))
     print(f"-> {OUT}")

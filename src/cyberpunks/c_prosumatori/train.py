@@ -142,6 +142,18 @@ class Baseline:
 # ------------------------------------------------------------------------------------------------
 
 
+def widen(q10: np.ndarray, q50: np.ndarray, q90: np.ndarray, margin) -> tuple[np.ndarray, np.ndarray]:
+    """Corecția conformală a intervalului, aceeași la predicție și la evaluare: lărgire (sau strângere) cu marginea,
+    fără să treacă de P50."""
+    return np.minimum(q10 - margin, q50), np.maximum(q90 + margin, q50)
+
+
+def _conformal_q(e: np.ndarray, level: float = 0.8) -> float:
+    """Cuantila conformală (cu corecția pentru eșantion finit) a reziduurilor de neconformitate."""
+    n = len(e)
+    return float(np.quantile(e, min(1.0, np.ceil((n + 1) * level) / n))) if n else 0.0
+
+
 @dataclass
 class DailyModel:
     features: list[str]
@@ -151,6 +163,10 @@ class DailyModel:
     cqr_margin: float = 0.0  # lărgirea intervalului P10-P90 (conformal), pu
     lost_model: object = None
     monotone: bool = True
+    # conformal pe grupe (Mondrian): margini separate după cât de mult ridică panourile tensiunea (sens_pv_pu),
+    # ca intervalul să fie mai lat pe rețelele slabe și mai îngust pe cele puternice
+    cqr_edges: list = field(default_factory=list)
+    cqr_margins: list = field(default_factory=list)
 
     def fit(self, df: pd.DataFrame, calib: pd.DataFrame | None = None) -> DailyModel:
         X, y = df[self.features], df["vmax_day"].to_numpy()
@@ -167,9 +183,21 @@ class DailyModel:
         from sklearn.isotonic import IsotonicRegression
 
         self.iso = IsotonicRegression(out_of_bounds="clip", y_min=0.0, y_max=1.0).fit(oof["raw_p"], oof["exceed"])
-        e = np.maximum(oof["q10"] - oof["vmax_day"], oof["vmax_day"] - oof["q90"])
-        n = len(e)
-        self.cqr_margin = float(np.quantile(e, min(1.0, np.ceil((n + 1) * 0.8) / n)))
+        e = np.maximum(oof["q10"] - oof["vmax_day"], oof["vmax_day"] - oof["q90"]).to_numpy()
+        self.cqr_margin = _conformal_q(e)
+        if "sens_pv_pu" in oof and "sens_pv_pu" in self.features:  # grupele doar după ce vede și modelul
+            sens = oof["sens_pv_pu"].to_numpy()
+            self.cqr_edges = [float(x) for x in np.quantile(sens, [0.25, 0.5, 0.75])]
+            g = np.searchsorted(self.cqr_edges, sens, side="right")
+            self.cqr_margins = [_conformal_q(e[g == k]) if (g == k).sum() >= 500 else self.cqr_margin for k in range(4)]
+
+    def margins(self, df: pd.DataFrame) -> np.ndarray:
+        """Lărgirea conformală pentru fiecare rând: pe grupa de sensibilitate a rețelei, altfel cea globală."""
+        edges, margins = getattr(self, "cqr_edges", []), getattr(self, "cqr_margins", [])
+        if edges and margins and "sens_pv_pu" in df and "sens_pv_pu" in self.features:
+            g = np.searchsorted(edges, df["sens_pv_pu"].to_numpy(), side="right")
+            return np.asarray(margins)[g]
+        return np.full(len(df), self.cqr_margin)
 
     def predict(self, df: pd.DataFrame, calibrated: bool = True) -> dict[str, np.ndarray]:
         X = df[self.features]
@@ -179,7 +207,9 @@ class DailyModel:
         raw_p = self.clf.predict_proba(X)[:, 1]
         out = {"q10": q10, "q50": q50, "q90": q90, "raw_p": raw_p}
         if calibrated:
-            out["q10"], out["q90"] = q10 - self.cqr_margin, q90 + self.cqr_margin
+            m = self.margins(df)
+            # o margine negativă (interval prea larg) poate strânge intervalul, dar nu are voie să încrucișeze P50
+            out["q10"], out["q90"] = widen(q10, q50, q90, m)
             out["p_exceed"] = self.iso.predict(raw_p) if self.iso is not None else raw_p
         else:
             out["p_exceed"] = raw_p
@@ -204,6 +234,7 @@ def logo_oof(df: pd.DataFrame, features: list[str], monotone: bool = True, topol
                     "q90": qm[0.9].predict(te[features]),
                     "vmax_day": te["vmax_day"].to_numpy(),
                     "exceed": te["exceed"].to_numpy(),
+                    "sens_pv_pu": te["sens_pv_pu"].to_numpy(),
                     "topology": t,
                 }
             )
@@ -244,17 +275,35 @@ def load_hourly_sample(pool: str = "train", day_frac: float = 0.12, night_frac: 
 class HourlyModel:
     features: list[str]
     models: dict = field(default_factory=dict)
+    cqr_margin: float = 0.0  # lărgirea conformală a intervalului P10-P90, din predicții pe topologii nevăzute
 
-    def fit(self, df: pd.DataFrame) -> HourlyModel:
+    def fit(self, df: pd.DataFrame, calib_frac: float = 0.3) -> HourlyModel:
         X, y = df[self.features], df["vmax"].to_numpy()
         for q in QUANTILES:
             self.models[q] = fit_quantile(X, y, q, monotone=False, n_estimators=400)
+        self.cqr_margin = hourly_logo_margin(df.sample(frac=calib_frac, random_state=3), self.features)
         return self
 
     def predict(self, df: pd.DataFrame) -> dict[str, np.ndarray]:
         X = df[self.features]
         q = {a: self.models[a].predict(X) for a in QUANTILES}
-        return {"q10": np.minimum(q[0.1], q[0.5]), "q50": q[0.5], "q90": np.maximum(q[0.9], q[0.5])}
+        m = getattr(self, "cqr_margin", 0.0)
+        q10, q50, q90 = np.minimum(q[0.1], q[0.5]), q[0.5], np.maximum(q[0.9], q[0.5])
+        lo, hi = widen(q10, q50, q90, m)
+        return {"q10": lo, "q50": q50, "q90": hi}
+
+
+def hourly_logo_margin(df: pd.DataFrame, feats: list[str], level: float = 0.8) -> float:
+    """Marginea conformală pentru modelul orar: reziduuri out-of-fold pe topologii lăsate deoparte."""
+    errs = []
+    for t in sorted(df["topology"].unique()):
+        tr, te = df[df.topology != t], df[df.topology == t]
+        lo = fit_quantile(tr[feats], tr["vmax"].to_numpy(), 0.1, n_estimators=300).predict(te[feats])
+        hi = fit_quantile(tr[feats], tr["vmax"].to_numpy(), 0.9, n_estimators=300).predict(te[feats])
+        y = te["vmax"].to_numpy()
+        errs.append(np.maximum(lo - y, y - hi))
+    e = np.concatenate(errs)
+    return float(np.quantile(e, min(1.0, np.ceil((len(e) + 1) * level) / len(e))))
 
 
 # ------------------------------------------------------------------------------------------------
@@ -297,12 +346,20 @@ def train_final(exclude_dates: list[str] | None = None, oof_frac: float = 0.35) 
                            "excluded_dates": exclude_dates or [], "seconds": round(time.perf_counter() - t0, 1)})
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     joblib.dump(b, MODEL_DIR / "bundle.joblib", compress=3)
-    (MODEL_DIR / "bundle.json").write_text(json.dumps({"version": version, "cqr_margin": daily.cqr_margin, **b.trained_on}, indent=2))
+    (MODEL_DIR / "bundle.json").write_text(json.dumps({"version": version, "cqr_margin": daily.cqr_margin,
+                                                        "cqr_margin_hourly": hourly.cqr_margin, **b.trained_on}, indent=2))
     return b
 
 
+RELEASE_DIR = MODELS / "release" / "C"
+
+
 def load_bundle() -> Bundle:
-    return joblib.load(MODEL_DIR / "bundle.joblib")
+    """Modelul antrenat local (models/C) sau, într-o clonă curată, versiunea din git (models/release/C)."""
+    for d in (MODEL_DIR, RELEASE_DIR):
+        if (d / "bundle.joblib").exists():
+            return joblib.load(d / "bundle.joblib")
+    raise FileNotFoundError("Lipsește modelul C: rulați `make c-sim c-population c-train` (sau `make c-all`).")
 
 
 if __name__ == "__main__":

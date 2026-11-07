@@ -24,17 +24,21 @@ from cyberpunks.a_contoare.model import MeterModel
 LCL_CLASSES = ["normal", "faulty", "tamper"]
 FAMILY_TO_Y = {"normal": 0, "faulty": 1, "tamper": 2}
 DETERMINISTIC = {"deterministic": True, "force_col_wise": True}
-# Pragurile conformal: alpha mic pentru "normal" (rar declarăm normal un contor cu problemă reală),
-# alpha mai mare pentru "problemă" (acceptăm să ratăm o parte, ca să nu trimitem totul la om).
-ALPHA_NORMAL = 0.05
-ALPHA_PROBLEM = 0.20
+# Pragurile conformal (alese pe calibrare, verificate pe test și pe demo; vezi reports/A/error_analysis.md):
+# - alpha_normal = 1%: mulțimea de predicție conține "normal" pentru cel puțin ~99% din contoarele normale, deci
+#   cel mult ~1% din ele sunt declarate sigur "problemă" (spre echipă). Alte contoare normale pot ajunge totuși
+#   la om, prin zona gri sau din lipsă de date: rata reală se măsoară și se raportează separat;
+# - alpha_problem = 30%: mulțimea conține "problemă" pentru cel puțin ~70% din problemele reale (acoperire, nu
+#   recunoaștere sigură: o parte din ele cad în zona gri și merg la om).
+ALPHA_NORMAL = 0.01
+ALPHA_PROBLEM = 0.30
 
 
 def train_lcl(samples: pd.DataFrame | None = None) -> MeterModel:
     s = lcl.build_samples() if samples is None else samples
     tr, ca = s[s.split == "train"].reset_index(drop=True), s[s.split == "cal"].reset_index(drop=True)
     y = tr["family"].map(FAMILY_TO_Y).to_numpy()
-    m = MeterModel("a-lgbm", ALL_FEATURES, LCL_CLASSES).fit(tr, y, params=DETERMINISTIC)
+    m = MeterModel("a-lgbm", ALL_FEATURES, LCL_CLASSES).fit(tr, y, params=DETERMINISTIC, groups=tr["household"].to_numpy())
     m.calibrate(ca, ca["problem"].to_numpy(), alpha_normal=ALPHA_NORMAL, alpha_problem=ALPHA_PROBLEM)
     m.meta.update({"dataset": "Low Carbon London + probleme injectate (sintetic)", "n_samples_train": len(tr)})
     m.save()

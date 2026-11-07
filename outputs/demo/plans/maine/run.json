@@ -1,0 +1,83 @@
+{
+  "mode": "auto",
+  "sources": {
+    "A": {
+      "origin": "model",
+      "status": "ok",
+      "note": "rulat cyberpunks.a_contoare.predict.run",
+      "valid": 577,
+      "invalid": 0,
+      "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/maine/A.jsonl",
+      "seconds": 9.229,
+      "optional": false
+    },
+    "A_bilant": {
+      "origin": "missing",
+      "status": "missing",
+      "note": "modelul A_bilant a dat eroare: LightGBMError: The number of features in data (36) is not the same as it was in training data (25).\nYou can set ``predict_disable_shape_check=true`` to discard this error, but please be aware what you are doing.; fișierul lipsește",
+      "valid": 0,
+      "invalid": 0,
+      "path": null,
+      "seconds": 3.372,
+      "optional": true
+    },
+    "B": {
+      "origin": "model",
+      "status": "ok",
+      "note": "rulat cyberpunks.b_furtuna.predict.run",
+      "valid": 26,
+      "invalid": 0,
+      "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/maine/B.jsonl",
+      "seconds": 3.519,
+      "optional": false
+    },
+    "C": {
+      "origin": "model",
+      "status": "ok",
+      "note": "rulat cyberpunks.c_prosumatori.predict.run",
+      "valid": 21,
+      "invalid": 0,
+      "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/maine/C.jsonl",
+      "seconds": 1.086,
+      "optional": false
+    }
+  },
+  "day_context": [
+    "Contoare și posturi: 577 lucrări; 22 în trasee, 411 verificări de la distanță sau corecții în birou, 7 la dispecer.",
+    "Furtună: vreme liniștită în cele 26 zone; cel mai mare risc de avarii e 6%, sub pragul de alertă (40%). Nicio echipă trimisă din timp.",
+    "Tensiune: 21 posturi cu risc din 300 (soare pe panou până la 727 W/m² la prânz, 8 °C). În noiembrie sezonul fotovoltaic e la final; mai sunt ~10 zile cu soare puternic în sezonul acesta: 17 posturi rămân la urmărire (9 sub prag sau sub limită chiar și în scenariul pesimist, 8 cu incertitudine prea mare), 4 primesc mesaje către prosumatori, 0 primesc echipă.",
+    "Bilanțul pe post n-a rulat pentru ziua asta (eroare a modelului); planul de contoare merge fără confirmarea bilanțului."
+  ],
+  "plan_id": "PLAN-maine-20261108-182027-e324",
+  "scenario": "maine",
+  "plan_date": "2026-11-08",
+  "as_of": "2026-11-07T18:00:00+02:00",
+  "generated_at": "2026-11-07T18:20:27+02:00",
+  "planner_version": "planner@0.1.0+e7b7c7d",
+  "solver": {
+    "name": "ortools",
+    "status": "SUCCESS",
+    "seconds": 2.516,
+    "objective_lei": 99060.08,
+    "tasks": 246,
+    "crews": 11
+  },
+  "overrides": 0,
+  "fusion": {
+    "status": "ok",
+    "fused": 0,
+    "rejected": 0
+  },
+  "remedies": [],
+  "work_orders": [
+    "E-BV-1.pdf",
+    "E-BV-2.pdf",
+    "E-BE-1.pdf"
+  ],
+  "timings": {
+    "perceive": 0.008,
+    "estimate": 17.205,
+    "decide": 2.707,
+    "act": 0.794
+  }
+}

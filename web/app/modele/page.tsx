@@ -1,0 +1,108 @@
+import { readText } from "@/lib/server/read-file";
+import path from "node:path";
+import { connection } from "next/server";
+import { Suspense } from "react";
+import { PageTitle } from "@/components/ds";
+import { Disclosure } from "@/components/simple/disclosure";
+import { AppShell } from "@/components/shell/app-shell";
+import type { Source } from "@/lib/contracts";
+import { REPO_ROOT, getMetrics } from "@/lib/data";
+import { SOURCE_LABEL_RO } from "@/lib/data/labels";
+import { sentence } from "@/lib/format";
+import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
+import { SOURCE_ORDER } from "@/lib/sources";
+import { ModelsBoard } from "./_components/board";
+import { ErrorAnalysis } from "./_components/error-analysis";
+import { ModelColumn } from "./_components/model-column";
+import { PlannerSection } from "./_components/planner-section";
+
+const WRAP = "mx-auto w-full max-w-[1520px] px-8 pt-7 pb-14 max-md:px-4";
+
+export default function ModelsPage({ searchParams }: PageProps<"/modele">) {
+  return (
+    <Suspense fallback={<div role="status" className="min-h-dvh bg-canvas" aria-busy="true">
+        <span className="sr-only">Se încarcă modelele…</span>
+      </div>}>
+      <Models searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+/** reports/<X>/error_analysis.md din repo, dacă există (scris de scriptul de analiză al modelului). */
+async function readErrorAnalysis(source: Source): Promise<string | null> {
+  try {
+    const text = await readText(path.join(REPO_ROOT, "reports", source, "error_analysis.md"));
+    return text.trim() ? text : null;
+  } catch {
+    return null;
+  }
+}
+
+async function Models({ searchParams }: { searchParams: PageProps<"/modele">["searchParams"] }) {
+  await connection();
+  const scenario = await resolveScenario(searchParams);
+  const [{ info }, metrics, ...analyses] = await Promise.all([loadShellInfo(scenario), getMetrics(), ...SOURCE_ORDER.map(readErrorAnalysis)]);
+  const bundle = metrics.data;
+  const analysisBy = Object.fromEntries(SOURCE_ORDER.map((s, i) => [s, analyses[i]])) as Record<Source, string | null>;
+  const published = SOURCE_ORDER.filter((s) => bundle[s]);
+
+  return (
+    <AppShell info={info}>
+      <div className={WRAP}>
+        <PageTitle
+          title="Modele vs. reguli simple."
+          subtitle="Compară performanța modelelor cu reguli simple, arată câștigul agentului, analizează erorile și spune cum refaci cifrele."
+        />
+        <ModelsBoard bundle={bundle} planner={bundle.planner} analysisBy={analysisBy} />
+
+        <p className="mt-5 text-[13.5px] text-muted-foreground">
+          {published.length === 3
+            ? "Toate cele trei rapoarte sunt publicate"
+            : published.length
+              ? `Publicate: ${published.join(", ")}`
+              : "Niciun raport publicat încă"}
+          . Rapoartele vin din: {SOURCE_LABEL_RO[metrics.source]}
+          {metrics.degradedReason ? `. ${sentence(metrics.degradedReason).replace(/\.$/, "")}` : ""}.
+        </p>
+
+        <div className="mt-6">
+          <Disclosure title="Detaliile fiecărui model" hint="Setul de test, baseline-ul, toate metricile, sursele de date">
+            <div className="grid grid-cols-1 gap-y-10 xl:grid-cols-3 xl:gap-x-0 xl:divide-x xl:divide-rule">
+              {SOURCE_ORDER.map((s, i) => (
+                <div key={s} className={i === 0 ? "min-w-0 xl:pr-9" : i === 2 ? "min-w-0 xl:pl-9" : "min-w-0 xl:px-9"}>
+                  <ModelColumn source={s} report={bundle[s]} hasAnalysis={Boolean(analysisBy[s])} />
+                </div>
+              ))}
+            </div>
+          </Disclosure>
+          <Disclosure title="Analiza erorilor, pe larg" hint="Textul din rapoarte, fără schimbări">
+            {SOURCE_ORDER.some((s) => analysisBy[s]) ? (
+              <div className="space-y-8">
+                {SOURCE_ORDER.map((s) => {
+                  const md = analysisBy[s];
+                  return md ? <ErrorAnalysis key={s} source={s} md={md} /> : null;
+                })}
+                {SOURCE_ORDER.some((s) => !analysisBy[s]) ? (
+                  <p className="text-[14.5px] text-muted-foreground">
+                    Încă nepublicate:{" "}
+                    {SOURCE_ORDER.filter((s) => !analysisBy[s])
+                      .map((s) => `reports/${s}/error_analysis.md`)
+                      .join(", ")}
+                    .
+                  </p>
+                ) : null}
+              </div>
+            ) : (
+              <p className="text-[15px] text-muted-foreground">
+                Nicio analiză a erorilor nu e publicată încă. Fișierele așteptate: <span className="dense">reports/&lt;A|B|C&gt;/error_analysis.md</span>.
+              </p>
+            )}
+          </Disclosure>
+          <Disclosure title="Agentul față de strategii simple, pe larg" hint="Toate strategiile, robustețea, ipotezele">
+            <PlannerSection planner={bundle.planner} />
+          </Disclosure>
+        </div>
+      </div>
+    </AppShell>
+  );
+}

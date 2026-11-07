@@ -1,0 +1,12 @@
+{
+  "version": "c-lgbm@b0868c2",
+  "cqr_margin": 0.004856574972628074,
+  "cqr_margin_hourly": 0.0037406841767344133,
+  "rows_daily": 671520,
+  "rows_hourly": 1176509,
+  "posts": 480,
+  "excluded_dates": [
+    "2025-07-08"
+  ],
+  "seconds": 155.2
+}

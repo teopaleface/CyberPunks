@@ -22,7 +22,7 @@ def demo_items() -> tuple[list[WorkItem], str]:
 
 def test_items_exist_and_valid(demo_items) -> None:
     items, _ = demo_items
-    assert 50 <= len(items) <= 300
+    assert 50 <= len(items) <= 800  # 250 cu acțiune + furturile sigure + 40 de urmărit + 40 la om + date insuficiente
     assert all(w.source.value == "A" and w.kind.value == "meter_inspection" for w in items)
 
 
@@ -66,4 +66,28 @@ def test_series_written_for_each_item(demo_items) -> None:
 def test_summary_counts(demo_items) -> None:
     items, _ = demo_items
     summary = json.loads((ROOT / "outputs/work_items/demo-vara/A_summary.json").read_text(encoding="utf-8"))
-    assert summary["meters_scored"] == 10_000 and summary["work_items"] == len(items)
+    n_meters = len((ROOT / "data/samples/A/meters.csv").read_text(encoding="utf-8").splitlines()) - 1
+    assert summary["meters_scored"] == n_meters and summary["work_items"] == len(items)
+
+
+def test_safety_flag_only_for_physical_bypass(demo_items) -> None:
+    """Steagul de siguranță doar la ocolirea fizică (risc de incendiu), nu la orice furt (QA, 17:55: 103 cazuri pe zi)."""
+    from cyberpunks.a_contoare.predict import SAFETY_MIN_SCORE, SAFETY_PATTERNS
+
+    items, _ = demo_items
+    flagged = [w for w in items if w.impact.safety_flag]
+    assert len(flagged) <= 60
+    for w in flagged:
+        assert w.prediction.label == "tamper" and w.prediction.score >= SAFETY_MIN_SCORE
+        assert w.extra["tamper_pattern"] in SAFETY_PATTERNS
+
+
+def test_onset_annotation_is_first_low_day() -> None:
+    """Adnotarea "consumul scade sub normal" cade pe prima zi a căderii, nu cu zile mai devreme (QA, 17:55)."""
+    import numpy as np
+
+    from cyberpunks.a_contoare.predict import onset_index
+
+    ratio = np.r_[np.full(10, 1.1), np.full(20, 0.4)]
+    ratio[5] = 0.6  # o zi izolată mai jos nu e începutul căderii
+    assert onset_index(ratio) == 10

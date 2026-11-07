@@ -14,9 +14,23 @@ from cyberpunks.common.contracts import AuditRecord, Plan, Series, WorkItem
 
 @pytest.fixture()
 def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
-    # outputs/ gol și fără instantaneu demo: API-ul trebuie să cadă pe contracts/fixtures/
+    # Exemplele din contracts/fixtures/ doar la cerere explicită (dezvoltarea interfeței), niciodată în locul unui plan real.
+    monkeypatch.setenv("CYBERPUNKS_API_SOURCE", "fixtures")
     monkeypatch.setattr(app_mod, "store", Store(outputs=tmp_path / "out", demo=tmp_path / "demo", reports=tmp_path / "rep"))
     return TestClient(app_mod.app)
+
+
+def test_without_any_plan_the_api_never_serves_the_fixtures(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """QA-ul orchestratorului (17:55): scenariul `maine` arăta exemplele de test ca plan real."""
+    monkeypatch.delenv("CYBERPUNKS_API_SOURCE", raising=False)
+    monkeypatch.setattr(app_mod, "store", Store(outputs=tmp_path / "out", demo=tmp_path / "demo", reports=tmp_path / "rep"))
+    c = TestClient(app_mod.app)
+    assert c.get("/api/health", params={"scenario": "maine"}).json()["mode"] == "none"
+    plan = Plan.model_validate(c.get("/api/plan", params={"scenario": "maine"}).json())
+    assert plan.decisions == [] and plan.routes == [] and plan.plan_id == "FARA-PLAN-maine"
+    assert set(plan.sources_status.values()) == {"missing"} and "Rulează agentul" in plan.alerts[0].body_ro
+    assert c.get("/api/work-items", params={"scenario": "maine"}).json() == []
+    assert "MTR-004217" not in c.get("/api/plan", params={"scenario": "maine"}).text  # contorul din exemple
 
 
 def test_health_reports_fixture_mode(client: TestClient) -> None:

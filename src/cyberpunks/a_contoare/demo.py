@@ -57,8 +57,10 @@ class DemoPopulation:
 
 
 def load_topology() -> tuple[pd.DataFrame, pd.DataFrame]:
-    meters = pd.read_csv(SAMPLES_A / "meters.csv")
-    posts = pd.read_csv(SAMPLES_A / "posts.csv")
+    """(contoare, posturi): contoarele A pe posturile din registrul comun al firului C."""
+    from cyberpunks.a_contoare.topology import load_topology as _load
+
+    posts, meters = _load()
     return meters, posts
 
 
@@ -176,6 +178,12 @@ def build_population(target: date, scenario: str = "demo", n_meters: int | None 
             start = int(rng.integers(WINDOW - 60, WINDOW - 3))
         new, info = inj.inject(win, kind, rng, start)
         new = quantize(new)
+        # energia din ultimele 4 săptămâni, cum o vede bilanțul postului: consumul real trece prin post, contorul
+        # raportează mai puțin (sau mai mult); zilele fără citiri le estimează VEE, deci nu apar ca pierdere
+        tru_d, rec_d = np.nansum(win[-RECENT:], axis=1), np.nansum(new[-RECENT:], axis=1)
+        day_ok = np.isfinite(new[-RECENT:]).sum(axis=1) >= 40
+        true_recent = float(np.mean(tru_d))
+        loss_recent = float(np.mean(np.where(day_ok, tru_d - rec_d, 0.0)))
         active = info.kind != "none" and info.end_day > WINDOW - RECENT
         family = info.family if active else "normal"
         lost = info.kwh_true - info.kwh_recorded
@@ -202,6 +210,8 @@ def build_population(target: date, scenario: str = "demo", n_meters: int | None 
                 "true_kwh_lost": round(float(lost), 3),
                 "true_value_lei": value_lei(lost, n_aff, family, info.kind) if family in ("faulty", "tamper") else 0.0,
                 "input_issue": input_issue,
+                "true_recent_kwh_day": round(true_recent, 3),
+                "true_recent_loss_kwh_day": round(loss_recent, 3),
             }
         )
     truth = pd.DataFrame(rows).sort_values("idx").reset_index(drop=True)

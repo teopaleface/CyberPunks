@@ -43,10 +43,12 @@ from cyberpunks.common.contracts import Series, WorkItem
 from cyberpunks.common.paths import OUTPUTS, work_items_path
 
 TZ = ZoneInfo("Europe/Bucharest")
-MAX_ACTION = 150  # lucrări sigure trimise planificatorului (cele mai valoroase)
-MAX_WATCHLIST = 40  # următoarele, de urmărit fără vizită
+MAX_ACTION = 250  # lucrări sigure cu acțiune (cele mai valoroase); capacitatea zilei o aplică planificatorul
+MAX_WATCHLIST = 40  # lucrări sigure, dar cu valoare prea mică pentru o deplasare acum: urmărire
+WATCH_EV_SHARE = 0.2  # valoare așteptată sub 20% din costul unei vizite: nu merită deplasarea acum
 MAX_REVIEW = 40  # cazuri "nu sunt sigur" trimise la om
 MIN_REVIEW_SCORE = 0.10  # sub acest scor, un caz nesigur nu merită timpul unui om
+MIN_REVIEW_VALUE_LEI = 10.0  # și nici dacă valoarea așteptată e de câțiva lei
 SERIES_DAYS = 60
 LOW_LEVEL_QUANTILE = 0.20  # chintila de jos a consumului: furtul suspectat merge întâi la om (etică)
 DATA_SOURCES = [
@@ -61,6 +63,38 @@ ACTION_RO = {
     "human_review": "decide un om",
 }
 LABEL_RO = {"faulty": "contor probabil defect", "tamper": "posibilă intervenție la contor"}
+
+
+# Riscul de siguranță (incendiu) vine din ocolirea FIZICĂ a contorului: o punte sau un comutator improvizat care duce
+# tot curentul pe lângă contor. Manipulările de date (profil aplatizat, inversat) nu au acest risc. Regula, verificată
+# pe populațiile demo (adevărul injectat): "opriri zilnice" = în medie cel puțin 3 ore pe zi de zero exact, la
+# aceleași ore, deși casa consumă (contorul e scurtcircuitat), plus ocolirea parțială sigură (nivel scăzut brusc,
+# forma zilei păstrată). Pe 8 iulie 2025: 175 de steaguri cu regula veche (orice furt cu scor >= 0,5), ~33 cu aceasta.
+SAFETY_MIN_SCORE = 0.8
+SAFETY_PATTERNS = ("ocolire_comutata", "ocolire_partiala")
+TAMPER_PATTERN_RO = {
+    "ocolire_comutata": "contorul nu înregistrează nimic câteva ore pe zi, la aceleași ore (punte sau comutator "
+                        "improvizat): risc de incendiu",
+    "ocolire_partiala": "consumul a scăzut brusc și a rămas jos, cu forma zilei păstrată (o parte din curent ocolește "
+                        "contorul): risc de incendiu",
+    "profil_manipulat": "profilul zilei e aplatizat, inversat sau mutat (manipulare de date, fără risc de incendiu)",
+    "neclar": "tipar de furt neclar (fără risc de incendiu identificat)",
+}
+
+
+def tamper_pattern(f: pd.Series) -> str:
+    """Tiparul unui furt suspectat, din features (reguli scrise, explicabile)."""
+    zero_run = f.get("zero_slot_run_recent", np.nan)
+    if np.isfinite(zero_run) and zero_run >= 6:  # >= 3 ore pe zi de zero exact
+        return "ocolire_comutata"
+    cv_ratio = f.get("intraday_cv_ratio", np.nan)
+    corr = f.get("profile_corr", np.nan)
+    if (np.isfinite(cv_ratio) and cv_ratio < 0.5) or (np.isfinite(corr) and corr < 0.5) or f.get("peak_shift", 0) >= 8:
+        return "profil_manipulat"
+    dropped = (f.get("peer_ratio_change", np.nan) <= 0.75) or (f.get("recent_vs_base", np.nan) <= 0.75)
+    if dropped and np.isfinite(corr) and corr >= 0.85 and (not np.isfinite(cv_ratio) or 0.6 <= cv_ratio <= 1.6):
+        return "ocolire_partiala"
+    return "neclar"
 
 
 def _confidence(score: float, decision: str) -> str:
@@ -135,19 +169,43 @@ def _flags(x: np.ndarray, expected: np.ndarray) -> list[str | None]:
     return out
 
 
+def onset_index(ratio: np.ndarray, threshold: float = 0.7, ahead: int = 7) -> int | None:
+    """Prima zi de la care consumul stă sub `threshold` din normal: ziua însăși e jos și mediana zilelor care
+    urmează (fereastră înainte, nu înapoi) e jos. Așa adnotarea cade pe prima zi a căderii, nu cu zile mai devreme."""
+    r = pd.Series(ratio)
+    ahead_med = r[::-1].rolling(ahead, min_periods=3).median()[::-1]
+    ok = (r < threshold) & (ahead_med < threshold)
+    hits = np.flatnonzero(ok.to_numpy())
+    return int(hits[0]) if hits.size else None
+
+
+def _run_start(flags: list[str | None], flag: str) -> int | None:
+    """Începutul ultimului șir de cel puțin 2 zile la rând cu `flag` (problema de acum, nu o zi izolată de demult)."""
+    start = None
+    best = None
+    for i, f in enumerate(flags + [None]):
+        if f == flag and start is None:
+            start = i
+        elif f != flag and start is not None:
+            if i - start >= 2:
+                best = start
+            start = None
+    return best
+
+
 def _annotations(days: pd.DatetimeIndex, x: np.ndarray, expected: np.ndarray, flags: list[str | None]) -> list[dict]:
     notes = []
     for flag, text in (("zero", "începe consumul zero"), ("gol", "încep lipsurile de date"),
                        ("plat", "începe valoarea repetată"), ("negativ", "apar citiri negative")):
-        idx = [i for i, f in enumerate(flags) if f == flag]
-        if len(idx) >= 2:
-            notes.append({"t": days[idx[0]].date().isoformat(), "label_ro": text})
+        i = _run_start(flags, flag)
+        if i is not None:
+            notes.append({"t": days[i].date().isoformat(), "label_ro": text})
     if not notes:
         with np.errstate(all="ignore"):
-            r = pd.Series(x / np.where(expected > 1e-6, expected, np.nan)).rolling(7, min_periods=4).median()
-        low = np.flatnonzero((r < 0.7).to_numpy())
-        if low.size:
-            notes.append({"t": days[max(0, low[0] - 6)].date().isoformat(), "label_ro": "consumul scade sub normal"})
+            ratio = x / np.where(expected > 1e-6, expected, np.nan)
+        i = onset_index(ratio)
+        if i is not None:
+            notes.append({"t": days[i].date().isoformat(), "label_ro": "consumul scade sub normal"})
     return notes[:3]
 
 
@@ -232,9 +290,14 @@ def run(scenario: str, date: str | None = None) -> Path:
     data_ab = tab.index[tab["data_abstain"].notna()]
     sure = tab[(tab["conformal"] == "problem") & tab["data_abstain"].isna()].sort_values("expected_value", ascending=False)
     unsure = tab[(tab["conformal"] == "unsure") & tab["data_abstain"].isna() & (tab["score"] >= MIN_REVIEW_SCORE)]
+    unsure = unsure[unsure["expected_value"] >= MIN_REVIEW_VALUE_LEI]
     unsure = unsure.sort_values("expected_value", ascending=False).head(MAX_REVIEW)
-    action_idx = list(sure.index[:MAX_ACTION])
-    watch_idx = list(sure.index[MAX_ACTION : MAX_ACTION + MAX_WATCHLIST])
+    # furtul sigur se verifică oricum (risc de siguranță: bypass, conexiuni improvizate), chiar la valoare mică
+    worth = (sure["expected_value"] >= WATCH_EV_SHARE * econ["visit_cost_lei"]) | (sure["label"] == "tamper")
+    action_idx = list(sure.index[worth.to_numpy()][:MAX_ACTION])
+    # siguranța înaintea plafonului: niciun furt sigur nu cade din listă (se adaugă după cele mai valoroase 250)
+    action_idx += [i for i in sure.index[(sure["label"] == "tamper").to_numpy()] if i not in set(action_idx)]
+    watch_idx = list(sure.index[~worth.to_numpy()][:MAX_WATCHLIST])
     chosen = [(i, "action") for i in action_idx] + [(i, "watch") for i in watch_idx]
     chosen += [(i, "unsure") for i in unsure.index] + [(i, "data") for i in data_ab]
 
@@ -243,6 +306,10 @@ def run(scenario: str, date: str | None = None) -> Path:
     factors = top_factors(model, feats.loc[rows.index], labels, k=5)
     ref = pd.read_parquet(SIMILAR_REF) if SIMILAR_REF.exists() else build_samples().query("split == 'cal'")
     sim = SimilarCases.fit(ref, model.features).query(feats.loc[rows.index], k=3)
+    # fără date suficiente, "cazurile similare" ar compara golul cu golul: nu le arătăm
+    sim = [[] if why == "data" else cases for (_, why), cases in zip(chosen, sim, strict=True)]
+    p_lo = min(model.meta.get("p_threshold_problem", 0.0), model.meta.get("p_threshold_normal", 1.0))
+    p_hi = max(model.meta.get("p_threshold_problem", 0.0), model.meta.get("p_threshold_normal", 1.0))
 
     items, series = [], {}
     ymd = target.strftime("%Y%m%d")
@@ -260,8 +327,8 @@ def run(scenario: str, date: str | None = None) -> Path:
             abstain, reason = True, str(r["data_abstain"])
         elif why == "unsure":
             abstain = True
-            reason = (f"nu sunt sigur: scorul {score:.2f} e în zona în care, pe datele de calibrare, modelul nu poate "
-                      "separa contoarele normale de cele cu probleme (conformal)")
+            reason = (f"probabilitatea de problemă e {score:.0%}: sub {p_lo:.0%} contorul ar fi sigur normal, peste "
+                      f"{p_hi:.0%} sigur o problemă; între ele, pe datele de calibrare se amestecă cele două")
         guard = False
         if label == "tamper" and not abstain and feats.loc[i, "level_kwh"] <= low_level_cut:
             guard, abstain = True, True
@@ -274,16 +341,18 @@ def run(scenario: str, date: str | None = None) -> Path:
         elif why == "watch":
             action = "watchlist"
         elif label == "tamper":
-            action = "inspect_on_site" if r["expected_value"] >= 0.25 * econ["visit_cost_lei"] or score >= 0.5 else "watchlist"
+            action = "inspect_on_site"  # posibilă intervenție: risc de siguranță, se verifică la fața locului
         elif r["comm_down"]:
             action = "inspect_on_site"
         elif feats.loc[i, "missing_recent"] >= 0.15 or score < 0.5:
             action = "remote_reading"
         else:
             action = "inspect_on_site"
+        pattern = tamper_pattern(feats.loc[i]) if label == "tamper" else None
+        safety = bool(label == "tamper" and score >= SAFETY_MIN_SCORE and pattern in SAFETY_PATTERNS)
         if action == "inspect_on_site":
             duration, size = int(econ["service_time_min"]), 2
-            urgency = 72.0 if label == "tamper" else 120.0
+            urgency = 48.0 if safety else (72.0 if label == "tamper" else 120.0)
         elif action == "remote_reading":
             duration, size, urgency = 5, 1, 48.0
         elif action == "watchlist":
@@ -294,11 +363,13 @@ def run(scenario: str, date: str | None = None) -> Path:
         value = float(r["value_if_true"])
         top_txt = "; ".join(f["label_ro"] for f in fac[:2])
         if abstain:
-            summary = f"Nu sunt sigur ({reason}). Scor {score:.0%}. {top_txt}."
+            summary = f"Nu sunt sigur: {reason}. Semne: {top_txt}. Decide un om."
         else:
             summary = f"{LABEL_RO[label].capitalize()} ({score:.0%}): {top_txt}. Recomand: {ACTION_RO[action]}."
         if deficit > 0:
-            summary += f" Lipsesc ~{deficit:.1f} kWh pe zi față de normal."
+            summary += f" Lipsesc ~{f'{deficit:.1f}'.replace('.', ',')} kWh pe zi față de normal."
+        if safety:
+            summary += f" Risc de siguranță: {TAMPER_PATTERN_RO[pattern]}."
         conf = "low" if abstain else _confidence(score, str(r["conformal"]))
         item = {
             "contract_version": "1.0",
@@ -334,7 +405,7 @@ def run(scenario: str, date: str | None = None) -> Path:
                 "value_if_true_lei": value,
                 "customers_affected": 1,
                 "urgency_hours": urgency,
-                "safety_flag": bool(label == "tamper" and score >= 0.5),
+                "safety_flag": safety,
                 "assumptions_ref": "meters",
             },
             "effort": {"duration_min": duration, "crew_skill": "metering", "crew_size": size, "requires_planned_outage": False},
@@ -360,6 +431,8 @@ def run(scenario: str, date: str | None = None) -> Path:
                 "comm_down": bool(r["comm_down"]),
                 "level_kwh_day": round(float(feats.loc[i, "level_kwh"]), 3) if np.isfinite(feats.loc[i, "level_kwh"]) else None,
                 "low_consumption_guard": guard,
+                "tamper_pattern": pattern,
+                "tamper_pattern_ro": TAMPER_PATTERN_RO.get(pattern),
             },
         }
         items.append(WorkItem.model_validate(item))

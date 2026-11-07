@@ -5,7 +5,7 @@ Intrarea: un tabel zilnic pe locație cu variabilele Open-Meteo din `openmeteo.D
 `customers` și `area_km2` ale zonei. Ieșirea: coloanele din `FEATURES`.
 
 Codul meteo (`weather_code`) NU intră în model: arhiva nu are niciodată coduri de furtună (95-99),
-prognoza le are, deci ar fi o diferență între antrenare și producție.
+prognoza le are, deci ar fi o diferență între antrenare și producție. Nici temperaturile: vezi FEATURE_SPEC.
 """
 
 from __future__ import annotations
@@ -26,10 +26,9 @@ FEATURE_SPEC: list[tuple[str, int]] = [
     ("snow", 1),  # ninsoare azi, cm
     ("snow_3d", 1),  # ninsoare în 3 zile, cm
     ("ice_proxy", 1),  # ploaie (mm) într-o zi cu minima sub 0,5 °C: risc de chiciură sau polei
-    ("tmax", 0),
-    ("tmin", 0),
-    ("t_range", 0),
-    ("srad", 0),  # radiația solară, MJ/m²: zile fierbinți și însorite, instabilitate convectivă
+    # Temperaturile și radiația (tmax, tmin, t_range, srad) au fost scoase la 13:55: pe testul din SUA aduceau ~3% PR-AUC,
+    # dar în România trimiteau echipe la caniculă (verile de acolo sunt mai calde decât ce a văzut modelul).
+    # Le păstrăm calculate mai jos pentru experimente (`experiments.py`, varianta „cu_temperaturi”).
     ("doy_sin", 0),  # sezonul (frunzișul)
     ("doy_cos", 0),
     ("log_customers", 0),  # mărimea zonei
@@ -135,4 +134,6 @@ def label_ro(feature: str, row: pd.Series) -> tuple[str, float | str | None]:
         v = row.get(feature)
     if v is None or (isinstance(v, float) and np.isnan(v)):
         return f"{feature}: lipsă", None
+    if feature == "log_customers":
+        return f"mărimea zonei ({round(v):,} clienți)".replace(",", "."), round(float(v), 2)
     return LABELS_RO.get(feature, feature + " {v}").format(v=float(v)), round(float(v), 2)

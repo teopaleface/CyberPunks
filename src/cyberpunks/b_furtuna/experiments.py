@@ -35,6 +35,20 @@ def add_gust_climate(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def add_gust_tail(df: pd.DataFrame) -> pd.DataFrame:
+    """Cât trece rafala peste 60 km/h (0 sub prag): o variabilă dedicată cozii, unde modelul subestima."""
+    df["gust_excess60"] = (df["gust_max"] - 60).clip(lower=0)
+    return df
+
+
+def add_snow_extra(df: pd.DataFrame) -> pd.DataFrame:
+    """Zăpada udă (ninsoare cu minima ≥ −3 °C și maxima ≤ 3 °C, care se lipește de linii) și viscolul (ninsoare și
+    rafale ≥ 50 km/h). Încercate pentru punctul slab al modelului, zăpada."""
+    df["wet_snow"] = np.where((df["temperature_2m_min"] >= -3) & (df["temperature_2m_max"] <= 3), df["snow_3d"], 0.0)
+    df["snow_wind"] = np.where(df["gust_max_2d"] >= 50, df["snow_3d"], 0.0)
+    return df
+
+
 def add_precip_extra(df: pd.DataFrame) -> pd.DataFrame:
     df = df.sort_values(["fips", "date"])
     df["precip_intensity"] = df["precip"] / df["precip_hours"].clip(lower=1)
@@ -43,11 +57,11 @@ def add_precip_extra(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def run_variant(df: pd.DataFrame, spec: list[tuple[str, int]], event_col: str = "event", monotone: bool = True,
-                params_over: dict | None = None) -> dict:
+                params_over: dict | None = None, years: tuple[int, ...] | None = None) -> dict:
     feats = [f for f, _ in spec]
     params = {**bm.CLF_PARAMS, **(params_over or {})}
     params["monotone_constraints"] = [m for _, m in spec] if monotone else [0] * len(spec)
-    tr = df[df["year"].isin(train_years(df))].reset_index(drop=True)
+    tr = df[df["year"].isin(years or train_years(df))].reset_index(drop=True)
     te = df[df["year"] == TEST_YEAR].reset_index(drop=True)
     y_tr, y_te = tr[event_col].to_numpy(), te[event_col].to_numpy()
 
@@ -72,9 +86,14 @@ def experiments() -> list[tuple[str, str, Callable[[pd.DataFrame], dict]]]:
     no_lags = [(f, m) for f, m in base if f not in ("gust_prev", "gust_max_2d", "precip_7d", "snow_3d")]
     weather_only = [(f, m) for f, m in base if f not in ("log_customers", "log_density")]
     clim = base + [("gust_anom", 1), ("gust_ratio_p95", 1)]
+    tail = base + [("gust_excess60", 1)]
+    snow_extra = base + [("wet_snow", 1), ("snow_wind", 1)]
+    with_temp = base + [("tmax", 0), ("tmin", 0), ("t_range", 0), ("srad", 0)]
+    lean = [(f, m) for f, m in base if f not in ("precip_hours", "wind_max", "doy_cos")]
     extra = base + [("precip_intensity", 1), ("precip_30d", 0)]
     return [
-        ("baza", "features-urile din features.py, constrângeri monotone", lambda d: run_variant(d, base)),
+        ("baza", "modelul livrat: vânt, ploaie, zăpadă, polei, sezon, mărimea zonei; constrângeri monotone",
+         lambda d: run_variant(d, base)),
         ("fara_monotonie", "fără constrângeri monotone", lambda d: run_variant(d, base, monotone=False)),
         ("fara_intarzieri", "fără vremea din zilele precedente", lambda d: run_variant(d, no_lags)),
         ("doar_vreme", "fără mărimea și densitatea zonei", lambda d: run_variant(d, weather_only)),
@@ -87,6 +106,11 @@ def experiments() -> list[tuple[str, str, Callable[[pd.DataFrame], dict]]]:
          lambda d: run_variant(d.assign(ev5=(d["pct_out_max"] >= 0.05).astype(int)), base, event_col="ev5")),
         ("arbori_mai_mari", "num_leaves 31, min_data_in_leaf 20",
          lambda d: run_variant(d, base, params_over={"num_leaves": 31, "min_data_in_leaf": 20})),
+        ("coada_rafalei", "+ cât trece rafala peste 60 km/h", lambda d: run_variant(d, tail)),
+        ("zapada_uda_viscol", "+ zăpadă udă și viscol (pentru punctul slab, zăpada)", lambda d: run_variant(d, snow_extra)),
+        ("cu_temperaturi", "+ temperaturile și radiația (scoase din model: trimiteau echipe la caniculă în România)",
+         lambda d: run_variant(d, with_temp)),
+        ("mai_putine_variabile", "fără orele de ploaie, vântul mediu și sezonul (cos)", lambda d: run_variant(d, lean)),
     ]
 
 
@@ -94,7 +118,7 @@ def main() -> int:
     df = pd.read_parquet(dataset.OUT)
     df["date"] = pd.to_datetime(df["date"])
     df = df[~df["wx_missing"]]
-    df = add_precip_extra(add_gust_climate(df))
+    df = add_snow_extra(add_gust_tail(add_precip_extra(add_gust_climate(df))))
     rows = []
     for name, desc, fn in experiments():
         r = fn(df)

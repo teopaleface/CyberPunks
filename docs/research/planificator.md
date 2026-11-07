@@ -91,13 +91,15 @@ Problema e o rutare cu colectare de premii (prize-collecting VRP) cu ferestre de
 | Noduri opționale cu penalitate | `routing.AddDisjunction([index], penalitate)` [S19] |
 | Ferestre de timp, durata lucrării, tura | dimensiunea "Time" (`AddDimension`), cu durata de lucru adăugată la timpul de drum și `CumulVar(index).SetRange(start, end)` [S20] |
 | Depouri multiple | `RoutingIndexManager(n, nr_echipe, starts, ends)`: fiecare echipă pleacă și se întoarce la baza ei [S21] |
-| Abilități (`metering`, `lv_grid`, `mv_grid`) și mărimea echipei | `routing.SetAllowedVehiclesForIndex(echipe_potrivite, index)` |
+| Abilități (`metering`, `lv_grid`, `mv_grid`) și mărimea echipei | `routing.VehicleVar(index).SetValues([-1] + echipe_potrivite)` (-1 = lucrare nefăcută) |
 | Echipa de furtună rămâne în zonă | nodul B e ultimul din traseu: drumul de la el la bază costă 0 |
-| Siguranță | penalitate foarte mare, deci nodul nu e lăsat afară dacă există o echipă potrivită |
-| Timp limitat | `time_limit` plus `solution_limit` (ca rezultatul să fie același la fiecare rulare); prima soluție `PATH_CHEAPEST_ARC`, apoi `GUIDED_LOCAL_SEARCH` [S22] |
-| Rezerva | dacă solverul nu dă soluție în N secunde: inserare greedy, în ordinea priorității, cu aceleași restricții |
+| Siguranță | penalitate foarte mare plus premiul real (între două cazuri obligatorii îl alege pe cel mai valoros); rezolvare în două faze: întâi doar cazurile obligatorii (intră câte încap), apoi toate lucrările, pornind de la traseele lor (`ReadAssignmentFromRoutes`) |
+| Oprire | după 200 de soluții (`solution_limit`), ca planul să fie același la fiecare rulare; `time_limit` de 60 s e doar o plasă. Cu o limită de 10 s, planul real ieșea puțin diferit de la o rulare la alta, după cât de ocupat era calculatorul. Prima soluție `PATH_CHEAPEST_ARC`, apoi `GUIDED_LOCAL_SEARCH` [S22] |
+| Rezerva | inserare greedy, în ordinea priorității, cu aceleași restricții: dacă OR-Tools nu dă soluție sau dacă dă una mai slabă decât greedy (comparate după cazurile obligatorii făcute, apoi după premii minus drum) |
 
-Drumul dintre două puncte: distanța haversine × factorul de drum (1,35), cu viteza urbană pe primii 10 km și cea extraurbană după (config). Timpii de rezolvare pe 100-300 de noduri îi măsurăm cu solverul real și îi scriem în `reports/planner/` (M2).
+Drumul dintre două puncte: distanța haversine × factorul de drum (1,35), cu viteza urbană pe primii 10 km și cea extraurbană după (config).
+
+**Măsurat** (`uv run python -m cyberpunks.planner.benchmark`, `reports/planner/solver_benchmark.json`, 16:39, lucrări sintetice, 11 echipe, câte 3 semințe), cu setările din config (200 de soluții, exact funcția folosită de agent): OR-Tools termină în 0,5-0,7 s la 100 de lucrări, 1,2-1,3 s la 200 și 2,0-2,2 s la 300. Față de inserarea greedy aduce cu 2,9-7,4% mai multă valoare netă la 100 de lucrări, 5,6-7,1% la 200 și 7,2-12,5% la 300. Încă 30 de secunde de căutare adaugă 0-0,9% la 100 de lucrări, 0,4-2,6% la 200 și 0-6,2% la 300: prețul unui plan care iese la fel la fiecare rulare. Pe planul real din 8 iulie 2025 (697 de lucrări, 293 candidate pentru echipe, 12 obligatorii), cele două faze durează 7,6 s; cu 300 sau 400 de soluții, valoarea nu mai crește.
 
 ## 6. Ce n-am găsit (riscuri cunoscute)
 

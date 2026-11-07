@@ -1,0 +1,22 @@
+{
+  "banat_2025_07_07_08": {
+    "p_banat": 0.308,
+    "p_rest": 0.068,
+    "crews_banat_zone_days": 22,
+    "crews_rest_zone_days": 0
+  },
+  "slobozia_2025_07_17": {
+    "rank": 1,
+    "zones": 26,
+    "p": 0.357,
+    "tied_with": [
+      "CS-ORAVITA"
+    ]
+  },
+  "dobrogea_2023_11_26": {
+    "p_dobrogea": 0.868,
+    "p_rest": 0.092,
+    "crews_dobrogea": 10,
+    "zones_dobrogea": 10
+  }
+}

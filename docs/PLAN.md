@@ -4,7 +4,7 @@ Echipa CyberPunks, SmartHack XI 2026, tema PPC "24h to Power PPC". Scris de orch
 
 ## Produsul într-o frază
 
-"Tura de mâine" (nume de lucru): un agent AI care decide unde merg mâine echipele de teren Rețele Electrice, pe baza a trei modele ML antrenate de noi, și explică fiecare decizie.
+"Daybreak" (nume de lucru): un agent AI care decide unde merg mâine echipele de teren Rețele Electrice, pe baza a trei modele ML antrenate de noi, și explică fiecare decizie.
 
 PDF-ul PPC spune: "Un scor de anomalie de 0,87 nu îi spune unui tehnician unde să meargă mâine dimineață." Produsul nostru face exact pasul ăsta.
 
@@ -62,7 +62,8 @@ Fiecare fir are și fișierul lui de stare, `status/<branch>.md`, și secțiunea
 | Duminică 01:00 | Interfața are modul de prezentare pentru înregistrări |
 | 03:00 | M3: robustețe, explicabilitate, analiza erorilor, evaluarea agentului, interfața completă, video v1 |
 | 08:00 | M4: model cards, README reproductibil, test dintr-o clonă curată, slideuri, video final, înregistrarea de rezervă |
-| 10:30 | Înghețarea codului: doar reparații |
+| 20:00 (sâmbătă, decizie nouă) | Înghețarea părții tehnice: modele, planificator, interfață, bilanț. După ea doar reparații |
+| 10:30 | Înghețarea finală: doar reparații |
 | 11:00 | Orchestratorul: test final dintr-o clonă curată, merge final pe `Teo`. Teo decide merge în `main`, curățarea istoricului și repo-ul public |
 | 12:00 | Predare. Demo live de la 13:00: 5 minute plus 2 minute de întrebări |
 

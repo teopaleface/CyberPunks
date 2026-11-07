@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from cyberpunks.a_contoare import metrics as M
 from cyberpunks.a_contoare.calibration import MondrianConformal, VennAbers
@@ -31,7 +32,29 @@ def test_conformal_coverage_on_exchangeable_data() -> None:
     y = (rng.random(20000) < p).astype(int)
     c = MondrianConformal(alpha_normal=0.1, alpha_problem=0.1).fit(p[:10000], y[:10000])
     cov = c.coverage(p[10000:], y[10000:])
-    assert cov["coverage_normal"] >= 0.88 and cov["coverage_problem"] >= 0.88
+    assert cov["set_coverage_normal"] >= 0.88 and cov["set_coverage_problem"] >= 0.88
+
+
+def test_conformal_quantile_is_kth_order_statistic() -> None:
+    scores = np.arange(1, 11) / 10.0  # 0,1 ... 1,0
+    assert MondrianConformal._quantile(scores, 0.3) == 0.8  # k = ceil(11 × 0,7) = 8 -> a 8-a valoare
+    assert MondrianConformal._quantile(np.array([0.4]), 0.05) == 1.0  # k > n: clasa se include mereu
+
+
+def test_ece_with_constant_probabilities() -> None:
+    y = np.array([0, 0, 0, 1])
+    p = np.full(4, 0.5)
+    assert abs(M.ece(y, p) - 0.25) < 1e-12
+    assert len(M.reliability_table(y, p)) == 1
+
+
+def test_paired_bootstrap_accepts_groups() -> None:
+    rng = np.random.default_rng(3)
+    y = (rng.random(400) < 0.2).astype(int)
+    good, bad = y + rng.normal(0, 0.3, 400), rng.random(400)
+    groups = np.repeat(np.arange(100), 4)
+    win = M.paired_bootstrap_win(M.pr_auc, y, good, bad, n=50, groups=groups)
+    assert win > 0.9
 
 
 def test_daily_features_detect_zero_run_and_drop() -> None:
@@ -58,6 +81,7 @@ def test_check_window_converts_wh_and_flags_short_history() -> None:
     hh = np.full((180, 48), 0.3) * 1000  # 14,4 kWh/zi trimiși în Wh
     out = check_window(hh)
     assert abs(np.nanmedian(out.hh) - 0.3) < 1e-9 and any("Wh" in i for i in out.issues)
+    assert out.abstain_reason and "unitate" in out.abstain_reason  # ambiguu: decide un om, nu reparăm în tăcere
     short = np.full((180, 48), np.nan)
     short[-20:] = 0.3
     assert check_window(short).abstain_reason.startswith("istoric prea scurt")
@@ -72,3 +96,39 @@ def test_readings_handle_duplicates_and_dst() -> None:
     assert hh.shape == (2, 48)
     assert any("dublat" in i for i in issues) and any("nenumerice" in i for i in issues)
     assert any("schimbarea orei" in i for i in issues)
+
+
+def test_autumn_dst_repeated_hour_is_summed_for_aware_timestamps() -> None:
+    # 25 oct. 2026: ora 04:00 (EEST) devine 03:00 (EET), deci 03:00-04:00 ora locală apare de două ori
+    ts = pd.date_range("2026-10-24 21:30", "2026-10-25 22:00", freq="30min", tz="UTC")
+    df = pd.DataFrame({"timestamp": ts, "kwh": 0.2})
+    hh, issues = readings_to_halfhours(df, "2026-10-25", "2026-10-25")
+    assert any("ora de iarnă" in i for i in issues)
+    assert hh[0, 6] == pytest.approx(0.4)  # 03:00-03:30 ora locală, de două ori
+    assert np.nansum(hh[0]) == pytest.approx(0.2 * 50)  # ziua are 25 de ore = 50 de intervale
+
+
+def test_labels_never_show_absurd_percentages() -> None:
+    """Niciun factor nu ajunge la dispecer cu un procent peste 1.000% (bug văzut în coada „nu sunt sigur”)."""
+    import re
+
+    from cyberpunks.a_contoare.features import FEATURE_INFO, label_ro
+
+    for feature in FEATURE_INFO:
+        for v in (182730.47, 1e6, 253592.62, -1e6, 50.0, 1e-9):
+            text = label_ro(feature, v)
+            assert all(int(n) <= 1000 for n in re.findall(r"(\d+)%", text)), (feature, v, text)
+    assert "de peste 10 ori" in label_ro("night_share_change", 182730.47)
+
+
+def test_night_share_change_needs_real_night_history() -> None:
+    """Numitor minim: fără consum de noapte în istoric (sub 0,1 kWh), schimbarea de noapte e NaN, nu 18.273.047%."""
+    prof = np.r_[np.zeros(12), np.full(36, 0.3)]  # istoric: zero exact noaptea
+    base = np.tile(prof, (1, 56, 1))
+    recent = np.tile(np.full(48, 0.3), (1, 28, 1))  # acum consumă și noaptea
+    f = intraday_features(recent, base)
+    assert np.isnan(f.loc[0, "night_share_change"])
+    x = np.full((1, 180), 10.0)
+    x[0, :152] = 0.0  # istoric zero, apoi consum
+    d = daily_features(x, np.full(180, 10.0))
+    assert d.loc[0, "recent_vs_base"] <= 10.0

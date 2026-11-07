@@ -47,7 +47,8 @@ def test_rules_on_fixtures(out_root: Path) -> None:
     d = _decisions(agent.run("demo-vara", mode="fixtures", out_root=out_root))
     assert d["A-20261109-MTR-027710"].decision.value == "human_review"  # abstain → om
     assert d["A-20261109-MTR-027710"].rule_id == "R-ABSTAIN"
-    assert d["A-20261109-MTR-004217"].rule_id == "R-SAFETY" and d["A-20261109-MTR-004217"].decision.value == "assigned"
+    # semnal de manipulare 0,87 fără bilanț pentru post: sub pragul de 0,95 pentru regimul de siguranță fără confirmare
+    assert d["A-20261109-MTR-004217"].rule_id != "R-SAFETY" and "fără regim de siguranță" in d["A-20261109-MTR-004217"].reason_ro
     # încredere medie, dar valoarea netă (~650 lei) trece de marja de siguranță (25% din costul vizitei): echipă
     assert d["A-20261109-MTR-019833"].rule_id == "R-A-VISIT-MEDIUM" and d["A-20261109-MTR-019833"].decision.value == "assigned"
     # pe valorile din fixture, priza (450 lei + întreruperea pentru 38 de clienți) costă mai mult decât valoarea așteptată
@@ -195,7 +196,12 @@ def test_storm_region_cap(out_root: Path) -> None:
     rows = [variant(b, f"CT-Z{i}", **{"location.lon": 28.2 + 0.05 * i}) for i in range(cap + 2)]
     write_items(out_root, "B", rows)
     d = _decisions(agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root))
-    assert sum(1 for x in d.values() if x.rule_id == "R-B-REGION-CAP") == 2
+    capped = sum(1 for x in d.values() if x.rule_id == "R-B-REGION-CAP")
+    kept = [x for x in d.values() if x.rule_id == "R-B-PREPOSITION"]
+    # Cel mult `cap` zone păstrate și doar câte echipe pot ajunge la timp (în Dobrogea, o singură echipă de medie tensiune);
+    # restul cer întăriri la dispecer.
+    assert 1 <= len(kept) <= cap and capped == len(rows) - len(kept)
+    assert all(x.decision.value == "assigned" for x in kept)
 
 
 def test_plan_totals_are_consistent(out_root: Path) -> None:
@@ -232,7 +238,7 @@ def test_storm_onset_and_gust_warning(out_root: Path) -> None:
     assert d.rule_id == "R-B-PREPOSITION"  # la B, safety_flag nu face lucrarea obligatorie
     assert "nu lucrează la înălțime" in d.reason_ro and "15:00" in d.reason_ro
     stop = next(st for r in res.plan.routes for st in r.stops if st.work_item_id == gusty["work_item_id"])
-    assert stop.eta.hour < 14  # ajunge cu o oră înainte de furtuna de la 15:00
+    assert stop.eta == datetime(2026, 11, 9, 14, 0, tzinfo=TZ)  # în zonă cu o oră înainte de furtuna de la 15:00, nu dis-de-dimineață
     route = next(r for r in res.plan.routes if r.stops[-1].work_item_id == gusty["work_item_id"])
     assert route.return_at is None  # echipa rămâne în zonă
 
@@ -279,3 +285,31 @@ def test_deterministic_plan(out_root: Path, tmp_path: Path) -> None:
     assert [(r.crew_id, [s.work_item_id for s in r.stops]) for r in r1.plan.routes] == [
         (r.crew_id, [s.work_item_id for s in r.stops]) for r in r2.plan.routes
     ]
+
+
+def test_slow_model_output_is_reused_when_fresh(out_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """În modul auto, un model lent (bilanțul) nu se mai rulează dacă are o ieșire proaspătă pentru aceeași zi."""
+    import sys
+    import types
+
+    calls = {"n": 0}
+
+    def run(scenario, date):
+        calls["n"] += 1
+        raise RuntimeError("nu trebuia rulat")
+
+    mod = types.ModuleType("cyberpunks.a_bilant.predict")
+    mod.run = run
+    monkeypatch.setitem(sys.modules, "cyberpunks.a_bilant", types.ModuleType("cyberpunks.a_bilant"))
+    monkeypatch.setitem(sys.modules, "cyberpunks.a_bilant.predict", mod)
+    for name in ("cyberpunks.a_contoare.predict", "cyberpunks.b_furtuna.predict", "cyberpunks.c_prosumatori.predict"):
+        other = types.ModuleType(name)
+        other.run = lambda scenario, date: (_ for _ in ()).throw(SystemExit(f"scenariu necunoscut: {scenario}"))
+        monkeypatch.setitem(sys.modules, name, other)  # modelele reale nu rulează în test; cad ca B cu un scenariu necunoscut
+    from .test_extension import _bilant_post
+
+    write_items(out_root, "A_bilant", [_bilant_post("PT-RE01", "remote_reading")])
+    res = agent.run(SCENARIO, date=DATE, mode="auto", out_root=out_root)
+    assert calls["n"] == 0 and res.meta["sources"]["A_bilant"]["origin"] == "model"
+    assert "refolosit" in res.meta["sources"]["A_bilant"]["note"]
+    assert "SystemExit" in res.meta["sources"]["B"]["note"]  # un model care se oprește cu SystemExit nu oprește planul

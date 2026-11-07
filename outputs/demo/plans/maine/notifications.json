@@ -1,0 +1,38 @@
+[
+  {
+    "notification_id": "N-1",
+    "audience": "prosumatori",
+    "asset_id": "PT-1269",
+    "message_ro": "Mâine, duminică 08.11.2026, între 10:00 și 15:00 e soare puternic, iar tensiunea în rețeaua din zona PT-1269, Afumați (sintetic) poate trece de limită. Dacă puteți, porniți atunci aparatele mari (mașina de spălat, boilerul, încărcarea mașinii). Așa folosiți energia produsă de panouri, iar invertorul nu se mai oprește singur.",
+    "scheduled_for": "2026-11-07T18:05:00+02:00",
+    "work_item_id": "C-20261108-PT-1269",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-2",
+    "audience": "prosumatori",
+    "asset_id": "PT-1076",
+    "message_ro": "Mâine, duminică 08.11.2026, între 10:00 și 14:00 e soare puternic, iar tensiunea în rețeaua din zona PT-1076, Cornetu (sintetic) poate trece de limită. Dacă puteți, porniți atunci aparatele mari (mașina de spălat, boilerul, încărcarea mașinii). Așa folosiți energia produsă de panouri, iar invertorul nu se mai oprește singur.",
+    "scheduled_for": "2026-11-07T18:05:00+02:00",
+    "work_item_id": "C-20261108-PT-1076",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-3",
+    "audience": "prosumatori",
+    "asset_id": "PT-1300",
+    "message_ro": "Mâine, duminică 08.11.2026, între 10:00 și 14:00 e soare puternic, iar tensiunea în rețeaua din zona PT-1300, Ștefăneștii de Jos (sintetic) poate trece de limită. Dacă puteți, porniți atunci aparatele mari (mașina de spălat, boilerul, încărcarea mașinii). Așa folosiți energia produsă de panouri, iar invertorul nu se mai oprește singur.",
+    "scheduled_for": "2026-11-07T18:05:00+02:00",
+    "work_item_id": "C-20261108-PT-1300",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-4",
+    "audience": "prosumatori",
+    "asset_id": "PT-1147",
+    "message_ro": "Mâine, duminică 08.11.2026, între 10:00 și 14:00 e soare puternic, iar tensiunea în rețeaua din zona PT-1147, Tunari (sintetic) poate trece de limită. Dacă puteți, porniți atunci aparatele mari (mașina de spălat, boilerul, încărcarea mașinii). Așa folosiți energia produsă de panouri, iar invertorul nu se mai oprește singur.",
+    "scheduled_for": "2026-11-07T18:05:00+02:00",
+    "work_item_id": "C-20261108-PT-1147",
+    "demo_only": true
+  }
+]

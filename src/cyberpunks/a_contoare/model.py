@@ -47,6 +47,23 @@ def git_sha() -> str:
         return "nogit"
 
 
+def grouped_split(y: np.ndarray, groups: np.ndarray, test_size: float = 0.15, seed: int = 42,
+                  tries: int = 20) -> tuple[np.ndarray, np.ndarray]:
+    """Împărțire pe grupuri întregi (de exemplu gospodării), cu toate clasele în ambele părți.
+
+    Încearcă mai multe seed-uri; dacă niciunul nu dă toate clasele, se oprește cu eroare, în loc să amestece
+    ferestrele aceleiași gospodării în ambele părți.
+    """
+    from sklearn.model_selection import GroupShuffleSplit
+
+    classes = np.unique(y)
+    for t in range(tries):
+        tr, va = next(GroupShuffleSplit(n_splits=1, test_size=test_size, random_state=seed + t).split(y, y, groups))
+        if len(np.unique(y[va])) == len(classes) and len(np.unique(y[tr])) == len(classes):
+            return tr, va
+    raise ValueError("Nu găsesc o împărțire pe grupuri cu toate clasele în ambele părți.")
+
+
 @dataclass
 class MeterModel:
     model_id: str
@@ -59,10 +76,18 @@ class MeterModel:
     meta: dict = field(default_factory=dict)
 
     # ---------------------------------------------------------------- antrenare
-    def fit(self, x: pd.DataFrame, y: np.ndarray, seed: int = 42, params: dict | None = None) -> MeterModel:
-        """Antrenează pe (x, y), cu oprire timpurie pe 15% din antrenare (separat de calibrare și de test)."""
+    def fit(self, x: pd.DataFrame, y: np.ndarray, seed: int = 42, params: dict | None = None,
+            groups: np.ndarray | None = None) -> MeterModel:
+        """Antrenează pe (x, y), cu oprire timpurie pe 15% din antrenare (separat de calibrare și de test).
+
+        `groups` (de exemplu gospodăria): validarea pentru oprirea timpurie ia grupuri întregi, ca ferestrele
+        aceleiași gospodării să nu fie și în antrenare, și în validare (altfel oprirea e prea optimistă).
+        """
         y = np.asarray(y).astype(int)
-        tr, va = train_test_split(np.arange(len(y)), test_size=0.15, stratify=y, random_state=seed)
+        if groups is None:
+            tr, va = train_test_split(np.arange(len(y)), test_size=0.15, stratify=y, random_state=seed)
+        else:
+            tr, va = grouped_split(y, groups, test_size=0.15, seed=seed)
         p = {**LGBM_PARAMS, **(params or {}), "random_state": seed}
         multiclass = len(self.classes) > 2
         self.clf = lgb.LGBMClassifier(objective="multiclass" if multiclass else "binary", **p)
@@ -92,9 +117,13 @@ class MeterModel:
         """Calibrare Venn-ABERS și conformal pe setul de calibrare (nevăzut la antrenare)."""
         s = self.raw_problem_score(x_cal)
         self.calibrator = VennAbers().fit(s, y_cal_problem)
-        p, _, _ = self.calibrator.predict(s)
-        self.conformal = MondrianConformal(alpha_normal=alpha_normal, alpha_problem=alpha_problem).fit(p, y_cal_problem)
-        self.meta["n_cal"] = len(y_cal_problem)
+        # conformal pe scorul BRUT: funcția de scor e fixată înainte de calibrare, deci garanția split conformal
+        # rămâne valabilă (pe scorul calibrat, etichetele de calibrare ar influența propriile scoruri)
+        self.conformal = MondrianConformal(alpha_normal=alpha_normal, alpha_problem=alpha_problem).fit(s, y_cal_problem)
+        # aceleași praguri, traduse în probabilități calibrate (doar pentru explicații)
+        p_thr, _, _ = self.calibrator.predict(np.array([1.0 - self.conformal.q_problem, self.conformal.q_normal]))
+        self.meta.update({"n_cal": len(y_cal_problem), "p_threshold_problem": float(p_thr[0]),
+                          "p_threshold_normal": float(p_thr[1])})
         return self
 
     def predict(self, x: pd.DataFrame) -> pd.DataFrame:
@@ -103,7 +132,7 @@ class MeterModel:
         s = 1.0 - proba[:, 0]
         p, p0, p1 = self.calibrator.predict(s)
         out = pd.DataFrame({"raw_score": s, "score": p, "interval_low": p0, "interval_high": p1})
-        out["conformal"] = self.conformal.decide(p)
+        out["conformal"] = self.conformal.decide(s)
         if proba.shape[1] > 2:
             problem = proba[:, 1:]
             share = problem / np.maximum(problem.sum(axis=1, keepdims=True), 1e-12)

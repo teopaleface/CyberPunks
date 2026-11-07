@@ -4,6 +4,7 @@ Datele de antrenare de aici sunt SINTETICE (generate în test), doar ca să veri
 """
 
 from datetime import date, datetime, time
+from itertools import pairwise
 
 import numpy as np
 import pandas as pd
@@ -112,11 +113,18 @@ def test_missing_weather_goes_to_human_review(tiny_model):
     assert items[1].prediction.abstain is False or "lipsesc" not in (items[1].prediction.abstain_reason or "")
 
 
-def test_out_of_range_zone_is_not_trusted(tiny_model):
+def test_out_of_range_zone_is_not_trusted_in_a_storm(tiny_model):
     zones = [z for z in romania.load_zones() if z.zone_id == "B-BUCURESTI"]  # 1 mil. clienți, peste antrenare
-    items, _ = _build(tiny_model, zones, _feats(zones))
+    items, _ = _build(tiny_model, zones, _feats(zones, gust=70.0, precip=25.0))
     assert items[0].recommended_action == "human_review"
     assert "antrenare" in items[0].prediction.abstain_reason
+
+
+def test_out_of_range_zone_on_a_calm_day_is_not_sent_to_a_human(tiny_model):
+    zones = [z for z in romania.load_zones() if z.zone_id == "B-BUCURESTI"]
+    items, _ = _build(tiny_model, zones, _feats(zones, gust=20.0, precip=0.0))
+    assert items[0].prediction.abstain is False
+    assert any("vremea e liniștită" in s for s in items[0].data_quality.input_issues)
 
 
 def test_extreme_gust_flags_safety_and_ood(tiny_model):
@@ -167,3 +175,15 @@ def test_run_without_weather_still_writes_valid_items(tmp_path, monkeypatch):
     items = [WorkItem.model_validate_json(x) for x in lines]
     assert all(it.recommended_action == "human_review" for it in items)
     assert all(any("vremea indisponibilă" in s for s in it.data_quality.input_issues) for it in items)
+
+
+def test_series_carry_the_hourly_model_risk(tiny_model):
+    """`expected` = riscul zilei estimat de model cu vremea de până la acea oră: 0-1, pe toate orele zilei, nu scade."""
+    zones = [z for z in romania.load_zones() if z.zone_id == "TM-TIMISOARA"]
+    _, series = _build(tiny_model, zones, _feats(zones, gust=70.0, precip=8.0))
+    day = [pt for pt in series[0].points if pt.t.date() == TARGET]
+    assert len(day) == 24
+    risk = [pt.expected for pt in day]
+    assert all(r is not None and 0.0 <= r <= 1.0 for r in risk)
+    assert all(b >= a for a, b in pairwise(risk))  # curba nu scade
+    assert risk[-1] > risk[0]  # furtuna de la 15:00 urcă riscul

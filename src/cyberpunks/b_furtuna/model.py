@@ -26,11 +26,13 @@ MODEL_PATH = MODELS / "release" / "b_model.joblib"
 QUANTILES = (0.1, 0.5, 0.9)
 N_THREADS = 4  # mașina e împărțită de 6 fire
 
+# Hiperparametrii aleși DOAR pe anii de antrenare (PR-AUC out-of-fold 0,2916, cel mai bun din 24 de configurații):
+# reports/B/tuning.json, `uv run python -m cyberpunks.b_furtuna.tune`. La egalitate (min_data_in_leaf 40 sau 100), 100.
 CLF_PARAMS = {
     "objective": "binary",
-    "learning_rate": 0.04,
-    "num_leaves": 15,
-    "min_data_in_leaf": 40,
+    "learning_rate": 0.02,
+    "num_leaves": 31,
+    "min_data_in_leaf": 100,
     "feature_fraction": 0.8,
     "bagging_fraction": 0.8,
     "bagging_freq": 1,
@@ -41,7 +43,7 @@ CLF_PARAMS = {
     "verbose": -1,
     "seed": 42,
 }
-CLF_ROUNDS = 500
+CLF_ROUNDS = 300
 
 Q_PARAMS = {
     "objective": "quantile",
@@ -215,8 +217,10 @@ def conformal_offset(ev_df: pd.DataFrame, coverage: float = 0.8, n_splits: int =
     return float(max(np.quantile(scores, level), 0.0))
 
 
-CASE_FEATURES = ["gust_max", "gust_prev", "precip_48h", "precip_7d", "snow_3d", "ice_proxy", "tmax", "srad",
-                 "doy_sin", "doy_cos"]
+# Zilele asemănătoare se caută după aceleași pericole ca modelul (vânt, ploaie, zăpadă, polei) și sezon; fără temperatură.
+CASE_FEATURES = ["gust_max", "gust_prev", "precip_48h", "precip_7d", "snow_3d", "ice_proxy", "doy_sin", "doy_cos"]
+CASE_WEIGHTS = {"gust_max": 2.0, "gust_prev": 1.0, "precip_48h": 1.5, "precip_7d": 0.7, "snow_3d": 1.0, "ice_proxy": 1.0,
+                "doy_sin": 0.7, "doy_cos": 0.7}
 
 
 def case_library(df: pd.DataFrame, n_calm: int = 4000, seed: int = 42) -> tuple[pd.DataFrame, dict]:

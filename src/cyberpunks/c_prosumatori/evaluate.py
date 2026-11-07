@@ -32,6 +32,60 @@ def pinball(y: np.ndarray, q: np.ndarray, a: float) -> float:
     return float(np.mean(np.maximum(a * d, (a - 1) * d)))
 
 
+def ece(ex: np.ndarray, p: np.ndarray, bins: int = 10) -> float:
+    """Eroarea de calibrare așteptată: media ponderată a |probabilitate prezisă − frecvență reală| pe 10 coșuri."""
+    idx = np.clip((np.asarray(p) * bins).astype(int), 0, bins - 1)
+    tot = 0.0
+    for k in range(bins):
+        sel = idx == k
+        if sel.any():
+            tot += sel.mean() * abs(float(np.mean(p[sel])) - float(np.mean(ex[sel])))
+    return float(tot)
+
+
+def hourly_eval(n_estimators: int = 300) -> dict:
+    """Modelul orar (seria din grafic) pe rețele nevăzute și luni nevăzute, pe eșantionul orar."""
+    hs = T.load_hourly_sample("train")
+    feats = F.HOURLY_FEATURES
+    tr_p, te_p = hs[hs["date"] < T.SPLIT_DATE], hs[hs["date"] >= T.SPLIT_DATE]
+    parts = []
+    for t in sorted(hs["topology"].unique()):
+        tr, te = tr_p[tr_p.topology != t], te_p[te_p.topology == t]
+        q = {a: T.fit_quantile(tr[feats], tr["vmax"].to_numpy(), a, n_estimators=n_estimators).predict(te[feats]) for a in T.QUANTILES}
+        parts.append(pd.DataFrame({"y": te["vmax"].to_numpy(), "q10": np.minimum(q[0.1], q[0.5]), "q50": q[0.5],
+                                   "q90": np.maximum(q[0.9], q[0.5]), "pvk": te["pvk"].to_numpy(), "topology": t}))
+        print(f"  orar {t}: {len(te)} ore de test", flush=True)
+    r = pd.concat(parts, ignore_index=True)
+    # lărgirea conformală, imbricată: pentru topologia de test A, reziduuri out-of-fold din perioada de antrenare,
+    # produse de modele care n-au văzut nici A, nici topologia prezisă (fără etichete de test, fără A)
+    cal = tr_p.sample(frac=0.3, random_state=3)
+    topos = sorted(cal["topology"].unique())
+    margin = np.zeros(len(r))
+    for t_out in r.topology.unique():
+        inner = cal[cal.topology != t_out]
+        errs = []
+        for t_in in topos:
+            if t_in == t_out:
+                continue
+            a, b = inner[inner.topology != t_in], inner[inner.topology == t_in]
+            lo = T.fit_quantile(a[feats], a["vmax"].to_numpy(), 0.1, n_estimators=n_estimators).predict(b[feats])
+            hi = T.fit_quantile(a[feats], a["vmax"].to_numpy(), 0.9, n_estimators=n_estimators).predict(b[feats])
+            yb = b["vmax"].to_numpy()
+            errs.append(np.maximum(lo - yb, yb - hi))
+        margin[(r.topology == t_out).to_numpy()] = T._conformal_q(np.concatenate(errs))
+        print(f"  marginea pentru {t_out}: {margin[(r.topology == t_out).to_numpy()][0]:.4f} pu", flush=True)
+    y, q10, q50, q90 = (r[c].to_numpy() for c in ("y", "q10", "q50", "q90"))
+    lo, hi = T.widen(q10, q50, q90, margin)
+    day = (r["pvk"] > 0.05).to_numpy()
+    out = {"test_hours": len(r), "mae_vmax_pu": float(np.mean(np.abs(y - q50))),
+           "mae_vmax_daylight_pu": float(np.mean(np.abs(y[day] - q50[day]))),
+           "coverage_p10_p90_raw": float(np.mean((y >= q10) & (y <= q90))),
+           "coverage_p10_p90": float(np.mean((y >= lo) & (y <= hi))),
+           "coverage_p10_p90_daylight": float(np.mean((y[day] >= lo[day]) & (y[day] <= hi[day]))),
+           "cqr_margin_mean_pu": float(margin.mean())}
+    return out
+
+
 def scores(y: np.ndarray, ex: np.ndarray, pred: dict, thr: float = 0.5) -> dict[str, float]:
     from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score
 
@@ -52,14 +106,15 @@ def scores(y: np.ndarray, ex: np.ndarray, pred: dict, thr: float = 0.5) -> dict[
     if 0 < ex.sum() < len(ex):
         out["pr_auc_exceed"] = float(average_precision_score(ex, p))
         out["roc_auc_exceed"] = float(roc_auc_score(ex, p))
+    out["ece_exceed"] = ece(ex, p)
     # zilele care contează pentru decizie: soare la prânz (producție de peste 0,5 kW/kWp)
     return out
 
 
-def evaluate(oof_frac: float = 0.35, monotone: bool = True) -> dict:
+def evaluate(oof_frac: float = 0.35, monotone: bool = True, drop: tuple[str, ...] = (), save: bool = True) -> dict:
     t0 = time.perf_counter()
     df = T.load_daily("train")
-    feats = F.DAILY_FEATURES
+    feats = [f for f in F.DAILY_FEATURES if f not in drop]
     train_period = df[df["date"] < T.SPLIT_DATE]
     test_period = df[df["date"] >= T.SPLIT_DATE]
     topologies = sorted(df["topology"].unique())
@@ -68,7 +123,7 @@ def evaluate(oof_frac: float = 0.35, monotone: bool = True) -> dict:
         tr = train_period[train_period.topology != t]
         te = test_period[test_period.topology == t].copy()
         oof = T.logo_oof(T.sample_for_oof(tr, oof_frac), feats, monotone=monotone)
-        model = T.DailyModel(features=feats, monotone=monotone).fit(tr, calib=oof)
+        model = T.DailyModel(features=list(feats), monotone=monotone).fit(tr, calib=oof)
         base = T.Baseline().fit(tr)
         pm, pr, pb = model.predict(te), model.predict(te, calibrated=False), base.predict(te)
         for k, v in pm.items():
@@ -82,8 +137,31 @@ def evaluate(oof_frac: float = 0.35, monotone: bool = True) -> dict:
         print(f"  {t}: test {len(te)} zile-post, MAE model {np.mean(np.abs(te.vmax_day - te.m_q50)):.4f}, "
               f"baseline {np.mean(np.abs(te.vmax_day - te.b_q50)):.4f}, {time.perf_counter() - t0:.0f} s", flush=True)
     res = pd.concat(parts, ignore_index=True)
-    res.to_parquet(T.DATA_PROCESSED / "C" / "eval_predictions.parquet")
+    if save:
+        res.to_parquet(T.DATA_PROCESSED / "C" / "eval_predictions.parquet")
     return summarize(res, time.perf_counter() - t0)
+
+
+ABLATIONS = {
+    # fără trăsăturile fizice din topologie (sensibilitățile, estimarea liniară a tensiunii, rezistența)
+    "fara_fizica": ("sens_pv_pu", "sens_load_pu", "dv_lin_max", "v_lin_max", "net_kw_per_kva_max", "r_max_ohm"),
+    # fără tensiunea de pornire și priză (ce s-ar întâmpla dacă distribuitorul nu le știe)
+    "fara_tensiune_pornire": ("v0_est", "tap_pos", "v_lin_max"),
+}
+
+
+def ablation(tag: str) -> dict:
+    """Aceeași evaluare, fără un grup de trăsături (sau fără constrângeri monotone); nu atinge metrics.json."""
+    if tag == "fara_monotone":
+        det = evaluate(monotone=False, save=False)
+    else:
+        det = evaluate(drop=ABLATIONS[tag], save=False)
+    keys = ("mae_vmax_pu", "rmse_vmax_pu", "coverage_p10_p90", "pr_auc_exceed", "recall_exceed", "precision_exceed", "brier", "ece_exceed")
+    out = {"tag": tag, "dropped": list(ABLATIONS.get(tag, ())), "model": {k: det["model"].get(k) for k in keys},
+           "by_topology_mae": {t: v["model"]["mae_vmax_pu"] for t, v in det["by_topology"].items()}}
+    OUT.mkdir(parents=True, exist_ok=True)
+    (OUT / f"ablation_{tag}.json").write_text(json.dumps(out, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return out
 
 
 def _pred(res: pd.DataFrame, prefix: str) -> dict:
@@ -119,14 +197,13 @@ def summarize(res: pd.DataFrame, seconds: float) -> dict:
 def write_report(detail: dict, speed: dict | None = None) -> ModelReport:
     m, b = detail["model"], detail["baseline"]
     keys = ["mae_vmax_pu", "rmse_vmax_pu", "pinball_mean", "coverage_p10_p90", "interval_width_pu", "pr_auc_exceed",
-            "roc_auc_exceed", "brier", "recall_exceed", "precision_exceed", "exceed_rate"]
+            "roc_auc_exceed", "brier", "ece_exceed", "recall_exceed", "precision_exceed", "exceed_rate"]
     metrics = {k: round(m[k], 5) for k in keys if k in m}
     metrics.update({f"sunny_{k}": round(detail["model_sunny_days"][k], 5) for k in ("mae_vmax_pu", "pr_auc_exceed", "recall_exceed") if k in detail["model_sunny_days"]})
     base = {k: round(b[k], 5) for k in keys if k in b}
     base.update({f"sunny_{k}": round(detail["baseline_sunny_days"][k], 5) for k in ("mae_vmax_pu", "pr_auc_exceed", "recall_exceed") if k in detail["baseline_sunny_days"]})
-    if speed:
-        metrics.update({k: round(v, 4) for k, v in speed.items() if k.startswith("surrogate")})
-        base.update({k: round(v, 4) for k, v in speed.items() if k.startswith("powerflow")})
+    if speed:  # viteza: modelul față de calculul de rețea pandapower (referința fizică, nu baseline-ul)
+        metrics.update({k: round(v, 4) for k, v in speed.items()})
     rep = ModelReport(
         source="C",
         model_id="c-surrogate",
@@ -163,7 +240,9 @@ def speed_test(n_posts: int = 300, pp_snapshots: int = 48) -> dict:
     from cyberpunks.c_prosumatori import grids, weather
 
     b = T.load_bundle()
-    reg = pd.read_parquet(T.DATA_PROCESSED / "C" / "population" / "registry.parquet").head(n_posts)
+    from cyberpunks.c_prosumatori.posts import load_posts
+
+    reg = load_posts().head(n_posts)
     hw = F.hourly_weather(weather.archive("2023-01-01", "2026-11-06"))
     day = hw[hw["date"] == pd.Timestamp("2025-07-15").date()]
     t0 = time.perf_counter()
@@ -198,10 +277,29 @@ if __name__ == "__main__":
     ap.add_argument("--no-monotone", action="store_true")
     ap.add_argument("--oof-frac", type=float, default=0.35)
     ap.add_argument("--no-speed", action="store_true")
+    ap.add_argument("--speed-only", action="store_true", help="refolosește metrics_detail.json, măsoară doar viteza")
+    ap.add_argument("--rescore", action="store_true", help="recalculează metricile din predicțiile salvate (fără reantrenare)")
+    ap.add_argument("--hourly", action="store_true", help="evaluează și modelul orar (circa 10 minute)")
+    ap.add_argument("--ablation", choices=["fara_fizica", "fara_tensiune_pornire", "fara_monotone"], default=None)
     a = ap.parse_args()
-    det = evaluate(oof_frac=a.oof_frac, monotone=not a.no_monotone)
-    spd = None
-    if not a.no_speed and (T.MODEL_DIR / "bundle.joblib").exists():
+    if a.ablation:
+        print(json.dumps(ablation(a.ablation), indent=1, ensure_ascii=False))
+        raise SystemExit(0)
+    if a.speed_only:
+        det = json.loads((OUT / "metrics_detail.json").read_text())
+    elif a.rescore:
+        old_det = json.loads((OUT / "metrics_detail.json").read_text())
+        det = summarize(pd.read_parquet(T.DATA_PROCESSED / "C" / "eval_predictions.parquet"), old_det.get("seconds", 0.0))
+        det.update({k: old_det[k] for k in ("hourly", "speed") if k in old_det})
+    else:
+        old_path = OUT / "metrics_detail.json"
+        keep = json.loads(old_path.read_text()) if old_path.exists() else {}
+        det = evaluate(oof_frac=a.oof_frac, monotone=not a.no_monotone)
+        det.update({k: keep[k] for k in ("hourly",) if k in keep})  # modelul orar nu se reantrenează aici
+    if a.hourly:
+        det["hourly"] = hourly_eval()
+    spd = det.get("speed")
+    if not a.no_speed and not a.rescore and (T.MODEL_DIR / "bundle.joblib").exists():
         spd = speed_test()
         det["speed"] = spd
     rep = write_report(det, spd)

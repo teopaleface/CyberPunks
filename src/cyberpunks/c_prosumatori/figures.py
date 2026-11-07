@@ -111,9 +111,54 @@ def example_series(scenario: str = "demo-vara") -> None:
     ax.set_xlabel("ora")
     ax.set_ylabel("tensiunea maximă pe post (pu)")
     ax.set_title(f"{it['asset_id']}, {it['target_date']}: tensiunea oră cu oră (post sintetic)", loc="left")
-    ax.legend(loc="lower right", ncols=3)
+    ax.legend(loc="upper left", ncols=3)
     ax.set_xticks(range(0, 24, 2))
     _save(fig, f"series_{scenario}.png")
+
+
+def ladder(scenario: str = "demo-vara", post_id: str = "PT-1252") -> None:
+    """Scara de soluții pentru un post: P90 după fiecare treaptă și după combinația aleasă, cu costul."""
+    from matplotlib.lines import Line2D
+    from matplotlib.patches import Patch
+
+    from cyberpunks.c_prosumatori.remedies import ACTION_RO
+
+    short = {"phase_rebalance": "faze", "adjust_tap": "priză", "notify_customers": "mesaje", "offer_battery": "baterii",
+             "export_limit": "limită de export", "transformer_upgrade": "post nou"}
+    wi = OUTPUTS / "work_items" / scenario / "C.jsonl"
+    items = [json.loads(x) for x in wi.read_text().splitlines() if x.strip()]
+    it = next((x for x in items if x["asset_id"] == post_id and x["extra"].get("remedy_options")), None)
+    if it is None:
+        return
+    e = it["extra"]
+    opts = sorted(e["remedy_options"], key=lambda o: o["cost_lei"])
+    base = e["ladder_base_p90_pu"]
+    chosen = e["ladder_choice"]
+    labels = [ACTION_RO.get(o["action"], o["action"]) for o in opts] + ["aleasă: " + " + ".join(short[a] for a in chosen)]
+    vals = [o["p90_after_pu"] for o in opts] + [base + sum(o["effect_pu"] for o in opts if o["action"] in chosen)]
+    costs = [o["cost_lei"] for o in opts] + [sum(o["cost_lei"] for o in opts if o["action"] in chosen)]
+    colors = [S1] * len(opts) + [S2]
+    fig, ax = plt.subplots(figsize=(9.5, 4.4))
+    y = np.arange(len(vals))[::-1]
+    lo = min(min(vals), 1.08) - 0.005
+    hi = max(vals + [base]) + 0.004
+    ax.barh(y, [v - lo for v in vals], left=lo, color=colors, height=0.6, edgecolor=SURFACE, linewidth=2)
+    ax.axvline(base, color=INK2, lw=1, ls=":")
+    ax.axvline(LIMIT, color=INK2, lw=1.2, ls="--")
+    for yy, v, c in zip(y, vals, costs, strict=True):  # coloana de etichete, în dreapta graficului
+        txt = f"{v:.3f} pu · {c:,.0f} lei".replace(",", "X").replace(".", ",").replace("X", ".")
+        ax.text(1.01, yy, txt, va="center", fontsize=8.5, color=INK, transform=ax.get_yaxis_transform(), clip_on=False)
+    ax.set_yticks(y, labels)
+    ax.set_xlim(lo, hi)
+    ax.set_xlabel("tensiunea maximă P90 după soluție (pu)")
+    ax.set_title(f"{post_id}, {it['target_date']}: ce aduce tensiunea sub 1,10 pu și cât costă", loc="left")
+    ax.grid(axis="y", visible=False)
+    ax.legend(handles=[Patch(color=S1, label="o singură treaptă"), Patch(color=S2, label="combinația aleasă"),
+                       Line2D([], [], color=INK2, ls="--", label="limita 1,10 pu"), Line2D([], [], color=INK2, ls=":", label="P90 fără soluție")],
+              loc="upper center", bbox_to_anchor=(0.45, -0.16), ncols=4, fontsize=8.5)
+    fig.text(0.01, -0.12, "Post sintetic; efectele sunt simulate pe rețeaua postului (calcul de rețea), costurile din config/economics.yaml.",
+             fontsize=8, color=INK2)
+    _save(fig, f"ladder_{scenario}_{post_id}.png")
 
 
 def main() -> None:
@@ -123,6 +168,8 @@ def main() -> None:
     mae_by_topology(detail)
     reliability(res)
     example_series("demo-vara")
+    ladder("demo-vara", "PT-1252")
+    ladder("demo-vara", "PT-1082")  # postul pentru legătura cu bilanțul (dezechilibru pe faze găsit de bilanț)
     print("figuri în", FIG)
 
 

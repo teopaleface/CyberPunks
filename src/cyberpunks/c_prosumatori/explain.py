@@ -1,7 +1,9 @@
-"""Explicații: contribuțiile SHAP ale modelului P50, grupate în motive spuse simplu, și cazuri similare din simulare.
+"""Explicații: contribuțiile SHAP la scorul lucrării, grupate în motive spuse simplu, și cazuri similare din simulare.
 
-Contribuțiile vin din TreeSHAP (LightGBM `pred_contrib`), în pu de tensiune. Trăsăturile înrudite se adună
-într-un singur motiv (de exemplu toate cele despre panouri), iar textul se scrie din șablon, cu cifrele postului.
+Contribuțiile vin din TreeSHAP (LightGBM `pred_contrib`) pe clasificatorul P(tensiune > 1,10 pu), în log-odds:
+pozitiv împinge spre depășire, negativ o îndepărtează. Pentru tensiunea estimată (P50) se pot cere și contribuțiile
+în pu (`shap_groups(modelul_P50, X)`). Trăsăturile înrudite se adună într-un singur motiv (de exemplu toate cele
+despre panouri), iar textul se scrie din șablon, cu cifrele postului.
 """
 
 from __future__ import annotations
@@ -67,7 +69,10 @@ def label(group: str, r: pd.Series, target_date=None) -> str:
             return "fără baterii la prosumatori"
         return f"baterii la {r['battery_pv_share'] * 100:.0f}% din panouri ({r['battery_kwh']:.0f} kWh), pline repede la soare"
     if group == "fizica":
-        return f"estimarea fizică simplă dă {fmt(r['v_lin_max'], 3)} pu"
+        dv = r["dv_lin_max"]
+        verb = "ridică" if dv >= 0 else "coboară"
+        return (f"de la {fmt(r['v0_est'], 3)} pu fără sarcină, panourile {verb} tensiunea cu {fmt(abs(dv), 3)} pu la soarele zilei "
+                f"(estimare fizică: {fmt(r['v_lin_max'], 3)} pu)")
     if group == "perioada":
         if target_date is not None:
             return f"perioada din an: {MONTHS_RO[target_date.month - 1]}"
@@ -76,7 +81,7 @@ def label(group: str, r: pd.Series, target_date=None) -> str:
 
 
 def shap_groups(model, X: pd.DataFrame) -> pd.DataFrame:
-    """Contribuțiile SHAP (pu) adunate pe grupuri. Un rând pe rând din X."""
+    """Contribuțiile SHAP adunate pe grupuri (în unitățile modelului: log-odds la clasificator, pu la P50)."""
     contrib = model.booster_.predict(X, pred_contrib=True)
     cols = list(X.columns)
     out = {}
@@ -102,6 +107,30 @@ def top_factors(contrib_row: pd.Series, feat_row: pd.Series, target_date=None, k
             "contribution": round(float(contrib_row[g]), 4),
         })
     return out
+
+
+SIMILAR_SAMPLE = "similar_cases.parquet"  # în data/samples/C: o mostră a simulării de antrenare, pentru clone curate
+
+
+def similar_reference() -> pd.DataFrame:
+    """Zilele-post de referință: din simularea completă dacă există, altfel mostra din git."""
+    from cyberpunks.common.paths import DATA_PROCESSED, DATA_SAMPLES
+
+    full = DATA_PROCESSED / "C" / "train" / "daily_features.parquet"
+    if full.exists():
+        df = pd.read_parquet(full)
+        df["exceed"] = (df["vmax_day"] > 1.10).astype(int)
+        return df
+    return pd.read_parquet(DATA_SAMPLES / "C" / SIMILAR_SAMPLE)
+
+
+def export_similar_sample(n: int = 20_000, seed: int = 0) -> None:
+    from cyberpunks.common.paths import DATA_SAMPLES
+
+    d = similar_reference()
+    d = d[d["pvk_max"] > 0.2].sample(n, random_state=seed)
+    cols = ["post_id", "date", "topology", "vmax_day", "hours_over_110", *SimilarCases.KEYS]
+    d[cols].assign(date=lambda x: pd.to_datetime(x["date"])).to_parquet(DATA_SAMPLES / "C" / SIMILAR_SAMPLE, index=False)
 
 
 class SimilarCases:

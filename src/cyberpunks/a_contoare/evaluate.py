@@ -33,7 +33,7 @@ from sklearn.metrics import precision_recall_curve
 
 from cyberpunks.a_contoare import lcl, sgcc
 from cyberpunks.a_contoare import metrics as M
-from cyberpunks.a_contoare.baselines import IForestBaseline, rule_score
+from cyberpunks.a_contoare.baselines import IForestBaseline, rule_score, tune_vee, vee_full_score
 from cyberpunks.a_contoare.features import ALL_FEATURES, DAILY_FEATURES
 from cyberpunks.a_contoare.inject import BENIGN_KINDS, FAULT_KINDS, KIND_LABEL_RO, TAMPER_KINDS
 from cyberpunks.a_contoare.model import MeterModel
@@ -46,8 +46,15 @@ FIG = REPORTS_A / "figures"
 TZ = ZoneInfo("Europe/Bucharest")
 N_BOOT = 300
 BUDGETS = [0.0025, 0.005, 0.01, 0.02, 0.05, 0.10]
-COLORS = {"model": "#1f5fbf", "rule": "#c2410c", "iforest": "#6b7280"}
-NAMES_RO = {"model": "LightGBM (al nostru)", "rule": "Regula simplă (VEE)", "iforest": "IsolationForest"}
+# paleta validată (dataviz, primele 3 sloturi, toate perechile, deuteranopie inclusă); IsolationForest: gri recesiv
+COLORS = {"model": "#2a78d6", "rule": "#eb6834", "vee": "#1baf7a", "iforest": "#898781"}
+NAMES_RO = {
+    "model": "LightGBM (al nostru)",
+    "rule": "Regula simplă (zero / scădere)",
+    "vee": "Regula VEE completă",
+    "iforest": "IsolationForest",
+}
+OBVIOUS_KINDS = ("zero", "stuck", "negative", "gaps")  # le prinde orice verificare VEE
 
 
 def _r(x: float, nd: int = 4) -> float:
@@ -90,7 +97,9 @@ def evaluate_set(name: str, y, scores: dict[str, np.ndarray], k: int, groups=Non
     if "model" in scores:
         for base in (m for m in scores if m != "model"):
             fn = lambda yy, ss: M.precision_at_k(yy, ss, max(1, round(len(yy) * k / len(y))))
-            out[f"model_beats_{base}_share"] = _r(M.paired_bootstrap_win(fn, y, scores["model"], scores[base], N_BOOT))
+            out[f"model_beats_{base}_share"] = _r(
+                M.paired_bootstrap_win(fn, y, scores["model"], scores[base], N_BOOT, groups=groups)
+            )
     print(f"[{name}] n={len(y)}, pozitive={int(np.sum(y))}, K={k}")
     for method in scores:
         m = out[method]
@@ -161,6 +170,49 @@ def type_accuracy(test: pd.DataFrame, pred: pd.DataFrame) -> dict:
     return {"family_accuracy_on_problems": _r(float(ok.mean())), "n": int(m.sum())}
 
 
+def ranking_at_ks(y: np.ndarray, scores: dict[str, np.ndarray], ks: list[int]) -> list[dict]:
+    """Precizia și recall-ul la mai multe valori K (ca să nu depindem de un singur K)."""
+    rows = []
+    for k in sorted(set(ks)):
+        row = {"k": int(k), "k_over_positives": _r(k / max(1, int(np.sum(y))))}
+        for m_, s in scores.items():
+            row[f"{m_}_precision"] = _r(M.precision_at_k(y, s, k))
+            row[f"{m_}_recall"] = _r(M.recall_at_k(y, s, k))
+        rows.append(row)
+    return rows
+
+
+def k_curve(y: np.ndarray, scores: dict[str, np.ndarray], n_points: int = 40) -> dict:
+    """Precizia și recall-ul pe o grilă de K (până la de 2 ori numărul de probleme), pentru figuri."""
+    pos = int(np.sum(y))
+    ks = np.unique(np.linspace(max(5, pos // 40), 2 * pos, n_points).astype(int))
+    out = {"k": ks.tolist(), "positives": pos, "n": len(y)}
+    for m_, s in scores.items():
+        order = M.rank(s)
+        hits = np.cumsum(np.asarray(y)[order])
+        out[m_] = {"precision": [_r(hits[k - 1] / k) for k in ks], "recall": [_r(hits[k - 1] / pos) for k in ks]}
+    return out
+
+
+def top_k_composition(test: pd.DataFrame, s: np.ndarray, k: int) -> dict[str, int]:
+    """Ce tipuri de probleme (sau normale) ocupă primele K locuri din clasament."""
+    top = test.iloc[M.rank(s)[:k]]
+    lab = np.where(top["problem"] == 1, top["kind"], np.where(top["kind"].isin(BENIGN_KINDS), top["kind"], "normal"))
+    return pd.Series(lab).value_counts().to_dict()
+
+
+def permutation_check(model_id: str, features: list[str], classes: list[str], tr: pd.DataFrame, y_tr: np.ndarray,
+                      te: pd.DataFrame, y_te: np.ndarray, seed: int = 0) -> dict[str, float]:
+    """Antrenare pe etichete amestecate la întâmplare: dacă nu există scurgeri, PR-AUC pe test cade la prevalență."""
+    from cyberpunks.a_contoare.train import DETERMINISTIC
+
+    rng = np.random.default_rng(seed)
+    m = MeterModel(model_id, features, classes).fit(tr, rng.permutation(y_tr), params=DETERMINISTIC)
+    s = m.raw_problem_score(te)
+    return {"pr_auc_shuffled": _r(M.pr_auc(y_te, s)), "roc_auc_shuffled": _r(M.roc_auc(y_te, s)),
+            "prevalence": _r(float(np.mean(y_te)))}
+
+
 # --------------------------------------------------------------------------------------------
 # Figuri
 # --------------------------------------------------------------------------------------------
@@ -179,7 +231,7 @@ def fig_pr(panels: list[tuple[str, np.ndarray, dict[str, np.ndarray]]]) -> None:
         ax.legend(fontsize=8, loc="upper right")
         ax.grid(alpha=0.25)
     fig.tight_layout()
-    fig.savefig(FIG / "pr_curves.png", dpi=140)
+    fig.savefig(FIG / "pr_curves.png", dpi=140, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -191,13 +243,13 @@ def fig_budget(panels: list[tuple[str, np.ndarray, dict[str, np.ndarray]]]) -> N
             prec = [M.precision_at_k(y, s, M.k_for(len(y), b)) for b in budgets]
             ax.plot(budgets * 100, prec, marker="o", color=COLORS[method], lw=2, label=NAMES_RO[method])
         ax.axvline(1.0, color="#111827", ls="--", lw=1)
-        ax.text(1.05, 0.03, "K = 1%\n(o săptămână de vizite)", fontsize=8)
+        ax.text(1.12, 0.93, "K = 1%\n(o săptămână de vizite)", fontsize=8, va="top")
         ax.set(xlabel="Contoare vizitate (% din total)", ylabel="Precizia@K", title=title)
         ax.set_ylim(0, 1.02)
         ax.legend(fontsize=8)
         ax.grid(alpha=0.25)
     fig.tight_layout()
-    fig.savefig(FIG / "precision_at_budget.png", dpi=140)
+    fig.savefig(FIG / "precision_at_budget.png", dpi=140, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -217,7 +269,7 @@ def fig_calibration(panels: list[tuple[str, np.ndarray, np.ndarray]]) -> None:
         ax.set_ylim(0, hi)
         ax.grid(alpha=0.25)
     fig.tight_layout()
-    fig.savefig(FIG / "calibration.png", dpi=140)
+    fig.savefig(FIG / "calibration.png", dpi=140, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -228,12 +280,12 @@ def fig_kinds(rows: list[dict]) -> None:
     labels = [f"{r['label_ro']} (n={r['n']})" for r in rows]
     ax.barh(labels, [r["flagged_share_at_5pct"] for r in rows], color=[colors[r["family"]] for r in rows])
     ax.invert_yaxis()
-    ax.set_xlabel("Ce parte ajunge în primele 5% (gri: schimbări normale = alarme false)")
+    ax.set_xlabel("Ce parte ajunge în primele 5% din clasament\n(gri: schimbări normale, deci alarme false)")
     ax.set_xlim(0, 1)
-    ax.set_title("Detecția pe tipuri (Londra, test; albastru defect, roșu manipulare)")
+    ax.set_title("Detecția pe tipuri, Londra (test)\nalbastru: defect, roșu: manipulare")
     ax.grid(axis="x", alpha=0.25)
     fig.tight_layout()
-    fig.savefig(FIG / "detection_by_kind.png", dpi=140)
+    fig.savefig(FIG / "detection_by_kind.png", dpi=140, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -247,29 +299,35 @@ def run(retrain: bool = False) -> dict:
 
     # SGCC: etichete reale
     f = sgcc.build_features()
-    s_tr, s_te = (f[f.split == x].reset_index(drop=True) for x in ("train", "test"))
+    s_tr, s_ca, s_te = (f[f.split == x].reset_index(drop=True) for x in ("train", "cal", "test"))
+    vee_s = tune_vee(s_ca, s_ca["label"].to_numpy(), M.k_for(len(s_ca)), window_wide=True)
     m_sgcc = train_sgcc(f) if retrain else _load_or_train("a-lgbm-sgcc", lambda: train_sgcc(f))
     y_s = s_te["label"].to_numpy()
     sc_s = {
-        "model": m_sgcc.predict(s_te)["score"].to_numpy(),
+        "model": (pred_s := m_sgcc.predict(s_te))["score"].to_numpy(),
         "rule": rule_score(s_te, zero_col="longest_zero_run", drop_col="max_drop"),
+        "vee": vee_full_score(s_te, window_wide=True, **vee_s),
         "iforest": IForestBaseline(DAILY_FEATURES).fit(s_tr).score(s_te),
     }
     k_s = M.k_for(len(y_s))
     res_s = evaluate_set("SGCC, etichete reale", y_s, sc_s, k_s)
     res_s["calibration"] = {"brier": _r(M.brier(y_s, sc_s["model"])), "ece": _r(M.ece(y_s, sc_s["model"]))}
-    res_s["conformal"] = {kk: _r(v) for kk, v in m_sgcc.conformal.coverage(sc_s["model"], y_s).items()}
+    res_s["conformal"] = {kk: _r(v) for kk, v in m_sgcc.conformal.coverage(pred_s["raw_score"], y_s).items()}
+    res_s["conformal"]["p_threshold_problem"] = _r(m_sgcc.meta.get("p_threshold_problem", float("nan")))
+    res_s["conformal"]["p_threshold_normal"] = _r(m_sgcc.meta.get("p_threshold_normal", float("nan")))
     res_s["false_alarms_by_level"] = false_alarms_by_level(s_te["level_kwh"].to_numpy(), y_s, sc_s["model"])
 
     # Londra: probleme injectate (etichete sintetice), gospodării nevăzute și perioadă ulterioară
     smp = lcl.build_samples()
-    l_tr, l_te = (smp[smp.split == x].reset_index(drop=True) for x in ("train", "test"))
+    l_tr, l_ca, l_te = (smp[smp.split == x].reset_index(drop=True) for x in ("train", "cal", "test"))
+    vee_l = tune_vee(l_ca, l_ca["problem"].to_numpy(), M.k_for(len(l_ca)))
     m_lcl = train_lcl(smp) if retrain else _load_or_train("a-lgbm", lambda: train_lcl(smp))
     pred = m_lcl.predict(l_te)
     y_l = l_te["problem"].to_numpy()
     sc_l = {
         "model": pred["score"].to_numpy(),
         "rule": rule_score(l_te),
+        "vee": vee_full_score(l_te, **vee_l),
         "iforest": IForestBaseline(ALL_FEATURES).fit(l_tr).score(l_te),
     }
     k_l = M.k_for(len(y_l))
@@ -279,8 +337,56 @@ def run(retrain: bool = False) -> dict:
     )
     res_l["calibration"] = {"brier": _r(M.brier(y_l, sc_l["model"])), "ece": _r(M.ece(y_l, sc_l["model"])),
                             "reliability": M.reliability_table(y_l, sc_l["model"])}
-    res_l["conformal"] = {kk: _r(v) for kk, v in m_lcl.conformal.coverage(sc_l["model"], y_l).items()}
+    res_l["conformal"] = {kk: _r(v) for kk, v in m_lcl.conformal.coverage(pred["raw_score"], y_l).items()}
+    res_l["conformal"]["p_threshold_problem"] = _r(m_lcl.meta.get("p_threshold_problem", float("nan")))
+    res_l["conformal"]["p_threshold_normal"] = _r(m_lcl.meta.get("p_threshold_normal", float("nan")))
+    res_l["venn_abers_grid_vs_exact"] = {kk: _r(v, 5) for kk, v in m_lcl.calibrator.approx_error(
+        pred["raw_score"].to_numpy(), n=200).items()}
+    print(f"[Venn-ABERS pe grilă față de exact] {res_l['venn_abers_grid_vs_exact']}")
+    # problemele subtile: fără cele evidente pe care le prinde orice verificare VEE (zero, blocat, negative, goluri)
+    subtle = ~(l_te["kind"].isin(OBVIOUS_KINDS) & (l_te["problem"] == 1)).to_numpy()
+    res_l["subtle_only"] = evaluate_set(
+        "Londra, doar problemele subtile", y_l[subtle], {m_: v[subtle] for m_, v in sc_l.items()},
+        M.k_for(int(subtle.sum())), groups=l_te["household"].to_numpy()[subtle],
+        value_true=l_te["value_true_lei"].to_numpy()[subtle],
+    )
+    # scurgeri și cât de ușor e vârful clasamentului (cerut de orchestrator la 13:55)
+    pos_l, pos_s = int(y_l.sum()), int(y_s.sum())
+    res_l["ranking_at_ks"] = ranking_at_ks(y_l, sc_l, [50, 100, k_l, 200, 300, 400, pos_l, 2 * pos_l])
+    res_s["ranking_at_ks"] = ranking_at_ks(y_s, sc_s, [50, k_s, 100, 200, 400, pos_s, 2 * pos_s])
+    res_l["subtle_only"]["ranking_at_ks"] = ranking_at_ks(
+        y_l[subtle], {m_: v[subtle] for m_, v in sc_l.items()}, [50, 100, 128, 200, int(y_l[subtle].sum())]
+    )
+    res_l["k_curve"] = k_curve(y_l, sc_l)
+    res_s["k_curve"] = k_curve(y_s, sc_s)
+    res_l["subtle_only"]["k_curve"] = k_curve(y_l[subtle], {m_: v[subtle] for m_, v in sc_l.items()})
+    res_s["false_alarms_by_level_rule"] = false_alarms_by_level(s_te["level_kwh"].to_numpy(), y_s, sc_s["rule"])
+    res_l["top_k_composition"] = {
+        "model_top_k": top_k_composition(l_te, sc_l["model"], k_l),
+        "vee_top_k": top_k_composition(l_te, sc_l["vee"], k_l),
+        "obvious_problems_in_test": int((l_te["kind"].isin(OBVIOUS_KINDS) & (l_te["problem"] == 1)).sum()),
+    }
+    l_ca_h, l_tr_h, l_te_h = (set(smp.loc[smp.split == x, "household"]) for x in ("cal", "train", "test"))
+    s_ids = {x: set(f.loc[f.split == x, "customer_id"]) for x in ("train", "cal", "test")}
+    leakage = {
+        "lcl_households_train_test_overlap": len(l_tr_h & l_te_h),
+        "lcl_households_train_cal_overlap": len(l_tr_h & l_ca_h),
+        "lcl_households_cal_test_overlap": len(l_ca_h & l_te_h),
+        "sgcc_customers_train_test_overlap": len(s_ids["train"] & s_ids["test"]),
+        "sgcc_customers_cal_test_overlap": len(s_ids["cal"] & s_ids["test"]),
+        "lcl_train_last_scoring_date": str(smp.loc[smp.split == "train", "date"].max().date()),
+        "lcl_test_first_scoring_date": str(smp.loc[smp.split == "test", "date"].min().date()),
+        "lcl_permutation": permutation_check(
+            "perm-lcl", ALL_FEATURES, ["normal", "faulty", "tamper"], l_tr,
+            l_tr["family"].map({"normal": 0, "faulty": 1, "tamper": 2}).to_numpy(), l_te, y_l,
+        ),
+        "sgcc_permutation": permutation_check(
+            "perm-sgcc", DAILY_FEATURES, ["normal", "tamper"], s_tr, s_tr["label"].to_numpy(), s_te, y_s
+        ),
+    }
+    print(f"[scurgeri] {leakage}")
     res_l["per_kind_model"] = per_kind(l_te, sc_l["model"])
+    res_l["per_kind_vee"] = per_kind(l_te, sc_l["vee"])
     res_l["per_kind_rule"] = per_kind(l_te, sc_l["rule"])
     res_l["type_accuracy"] = type_accuracy(l_te, pred)
     res_l["false_alarms_by_level"] = false_alarms_by_level(l_te["level_kwh"].to_numpy(), y_l, sc_l["model"])
@@ -295,7 +401,9 @@ def run(retrain: bool = False) -> dict:
     full = {
         "created_at": now.isoformat(),
         "budget_share": M.BUDGET_SHARE,
+        "vee_thresholds_from_calibration": {"sgcc": vee_s, "lcl": vee_l},
         "models": {"a-lgbm": m_lcl.version, "a-lgbm-sgcc": m_sgcc.version},
+        "leakage_checks": leakage,
         "sgcc_real_labels": res_s,
         "lcl_injected": res_l,
         "notes": [
@@ -306,15 +414,28 @@ def run(retrain: bool = False) -> dict:
     (REPORTS_A / "metrics_full.json").write_text(json.dumps(full, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     keys = ["precision_at_k", "recall_at_k", "pr_auc", "roc_auc"]
-    metrics = {kk: res_l["model"][kk] for kk in keys}
+    # Metrica principală (decizia echipei, 17:55): precizia@K pe problemele SUBTILE, cifra cinstită. Pe tot testul
+    # Londra, vârful listei e umplut de defectele evidente (1,00), pe care le prinde și o regulă. A doua cifră: SGCC.
+    # Baseline-ul din metrics.json e regula simplă cerută, care e și cea mai puternică dintre cele două reguli pe
+    # problemele subtile; regula VEE completă apare în `metrics`, cu prefixul vee_.
+    metrics = {"subtle_precision_at_k": res_l["subtle_only"]["model"]["precision_at_k"],
+               "sgcc_precision_at_k": res_s["model"]["precision_at_k"]}
+    metrics.update({f"subtle_{kk}": res_l["subtle_only"]["model"][kk] for kk in keys})
+    metrics.update({f"sgcc_{kk}": res_s["model"][kk] for kk in keys})
+    metrics.update({kk: res_l["model"][kk] for kk in keys})
     metrics.update({"value_at_k_lei": res_l["model"]["value_at_k_lei"], "brier": res_l["calibration"]["brier"],
                     "ece": res_l["calibration"]["ece"]})
-    metrics.update({f"sgcc_{kk}": res_s["model"][kk] for kk in keys})
+    metrics.update({f"subtle_vee_{kk}": res_l["subtle_only"]["vee"][kk] for kk in keys})
+    metrics.update({f"sgcc_vee_{kk}": res_s["vee"][kk] for kk in keys})
+    metrics.update({f"vee_{kk}": res_l["vee"][kk] for kk in keys})
     metrics.update({f"iforest_{kk}": res_l["iforest"][kk] for kk in keys})
     metrics.update({f"sgcc_iforest_{kk}": res_s["iforest"][kk] for kk in keys})
-    baseline = {kk: res_l["rule"][kk] for kk in keys}
-    baseline["value_at_k_lei"] = res_l["rule"]["value_at_k_lei"]
+    baseline = {"subtle_precision_at_k": res_l["subtle_only"]["rule"]["precision_at_k"],
+                "sgcc_precision_at_k": res_s["rule"]["precision_at_k"]}
+    baseline.update({f"subtle_{kk}": res_l["subtle_only"]["rule"][kk] for kk in keys})
     baseline.update({f"sgcc_{kk}": res_s["rule"][kk] for kk in keys})
+    baseline.update({kk: res_l["rule"][kk] for kk in keys})
+    baseline["value_at_k_lei"] = res_l["rule"]["value_at_k_lei"]
     report = ModelReport(
         source="A",
         model_id="a-lgbm",
@@ -332,12 +453,17 @@ def run(retrain: bool = False) -> dict:
         ],
         split=(
             "Londra: gospodării nevăzute și perioadă ulterioară (test sept. 2013 - feb. 2014, antrenare dec. 2012 - "
-            "aug. 2013); SGCC: 20% din clienți, stratificat, nevăzuți. K = 1% din contoare."
+            "aug. 2013); SGCC: 20% din clienți, stratificat, nevăzuți. K = 1% din contoare. Metrica principală: "
+            "precizia@K pe problemele subtile (testul Londra fără defectele evidente pe care le prinde orice regulă VEE: "
+            "contor oprit, blocat, citiri negative, goluri); a doua: precizia@K pe SGCC, cu etichete reale de furt."
         ),
         test_size=int(len(y_l) + len(y_s)),
-        primary_metric="precision_at_k",
+        primary_metric="subtle_precision_at_k",
         metrics=metrics,
-        baseline_id="regula-vee (zero >= 7 zile sau scădere >= 50% față de propriul istoric)",
+        baseline_id=(
+            "regula-simpla (zero >= 7 zile sau scădere >= 50% față de propriul istoric); regula VEE completă e în "
+            "metrics, cu prefixul vee_"
+        ),
         baseline_metrics=baseline,
         synthetic_share=_r(len(y_l) / (len(y_l) + len(y_s))),
         created_at=now,
