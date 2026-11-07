@@ -94,6 +94,29 @@ def weather_daily(zones: list[Zone], target: date, mode: str) -> tuple[pd.DataFr
     return wx, issues
 
 
+def weather_daily_range(zones: list[Zone], start: date, end: date) -> tuple[pd.DataFrame, list[str]]:
+    """Arhiva zilnică pentru un interval întreg (backtest), într-o singură cerere."""
+    payloads = openmeteo.archive_daily([z.lat for z in zones], [z.lon for z in zones], start.isoformat(),
+                                       end.isoformat(), timezone="Europe/Bucharest")
+    frames = []
+    for z, p in zip(zones, payloads, strict=True):
+        d = openmeteo.daily_frame(p)
+        d["zone_id"] = z.zone_id
+        frames.append(d)
+    return clean_weather(pd.concat(frames, ignore_index=True))
+
+
+def weather_hourly_range(zones: list[Zone], start: date, end: date) -> pd.DataFrame:
+    payloads = openmeteo.archive_hourly([z.lat for z in zones], [z.lon for z in zones], start.isoformat(),
+                                        end.isoformat(), timezone="Europe/Bucharest")
+    frames = []
+    for z, p in zip(zones, payloads, strict=True):
+        h = openmeteo.hourly_frame(p)
+        h["zone_id"] = z.zone_id
+        frames.append(h)
+    return pd.concat(frames, ignore_index=True)
+
+
 def weather_hourly(zones: list[Zone], target: date, mode: str) -> pd.DataFrame:
     lats, lons = [z.lat for z in zones], [z.lon for z in zones]
     if mode == "historical":

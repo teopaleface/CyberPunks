@@ -100,39 +100,67 @@ def storm_onset(h: pd.DataFrame, target: date) -> tuple[datetime, int]:
     return t, t.hour
 
 
-def uncertainty(model: BModel, zones: list[romania.Zone], feats: pd.DataFrame, target: date, mode: str) -> tuple[
-        np.ndarray, np.ndarray, str]:
+HIST_MODELS = ["icon_seamless", "ecmwf_ifs025", "gfs_seamless"]
+
+
+def hist_models_daily(zones: list[romania.Zone], start: date, end: date) -> pd.DataFrame:
+    """Rafala maximă și ploaia zilnică din trei modele de prognoză (Historical Forecast API), format lung."""
+    params = {"latitude": ",".join(str(z.lat) for z in zones), "longitude": ",".join(str(z.lon) for z in zones),
+              "start_date": start.isoformat(), "end_date": end.isoformat(),
+              "daily": "wind_gusts_10m_max,precipitation_sum", "models": ",".join(HIST_MODELS),
+              "timezone": "Europe/Bucharest"}
+    data, _ = openmeteo.get(openmeteo.HIST_FORECAST, params, n_locations=len(zones))
+    data = data if isinstance(data, list) else [data]
+    rows = []
+    for z, p in zip(zones, data, strict=True):
+        d = p["daily"]
+        n = len(d["time"])
+        for m in HIST_MODELS:
+            g = d.get(f"wind_gusts_10m_max_{m}") or [None] * n
+            pr = d.get(f"precipitation_sum_{m}") or [None] * n
+            for t, gv, pv in zip(d["time"], g, pr, strict=True):
+                rows.append({"zone_id": z.zone_id, "date": pd.Timestamp(t), "model": m, "gust": gv, "precip": pv})
+    return pd.DataFrame(rows)
+
+
+def alt_from_models(feats: pd.DataFrame, mdaily: pd.DataFrame, target: date) -> list[pd.DataFrame]:
+    """Câte o variantă a features-urilor pentru fiecare model meteo (se schimbă doar rafala și ploaia)."""
+    out = []
+    t0, t1 = pd.Timestamp(target), pd.Timestamp(target - timedelta(days=1))
+    for m in HIST_MODELS:
+        alt = feats.copy()
+        sub = mdaily[mdaily["model"] == m].set_index(["zone_id", "date"])
+        for i, zid in enumerate(feats["zone_id"]):
+            if (zid, t0) not in sub.index or pd.isna(sub.loc[(zid, t0), "gust"]):
+                continue
+            g = float(sub.loc[(zid, t0), "gust"])
+            gp = sub.loc[(zid, t1), "gust"] if (zid, t1) in sub.index else np.nan
+            gp = float(gp) if pd.notna(gp) else alt.loc[i, "gust_prev"]
+            alt.loc[i, ["gust_max", "gust_prev"]] = [g, gp]
+            alt.loc[i, "gust_max_2d"] = np.nanmax([g, gp])
+            pr = sub.loc[(zid, t0), "precip"]
+            prp = sub.loc[(zid, t1), "precip"] if (zid, t1) in sub.index else 0.0
+            if pd.notna(pr):
+                alt.loc[i, "precip"] = float(pr)
+                alt.loc[i, "precip_48h"] = float(pr) + (float(prp) if pd.notna(prp) else 0.0)
+        out.append(alt)
+    return out
+
+
+def uncertainty(model: BModel, zones: list[romania.Zone], feats: pd.DataFrame, target: date, mode: str,
+                mdaily: pd.DataFrame | None = None) -> tuple[np.ndarray, np.ndarray, str]:
     """Intervalul probabilității din dezacordul surselor meteo.
 
-    Istoric: trei modele de prognoză (ICON, ECMWF IFS, GFS) din Historical Forecast API, plus arhiva.
-    Prognoză: membrii ICON-EPS (ensemble). Doar rafala și ploaia se schimbă; restul features rămân.
+    Istoric: trei modele de prognoză (ICON, ECMWF IFS, GFS) din Historical Forecast API, plus arhiva (min-max).
+    Prognoză: membrii ICON-EPS (ensemble), P10-P90. Doar rafala și ploaia se schimbă; restul features rămân.
     """
     lats, lons = [z.lat for z in zones], [z.lon for z in zones]
     scenarios: list[pd.DataFrame] = []
     try:
         if mode == "historical":
-            models = ["icon_seamless", "ecmwf_ifs025", "gfs_seamless"]
-            params = {"latitude": ",".join(map(str, lats)), "longitude": ",".join(map(str, lons)),
-                      "start_date": (target - timedelta(days=1)).isoformat(), "end_date": target.isoformat(),
-                      "daily": "wind_gusts_10m_max,wind_speed_10m_max,precipitation_sum", "models": ",".join(models),
-                      "timezone": "Europe/Bucharest"}
-            data, _ = openmeteo.get(openmeteo.HIST_FORECAST, params, n_locations=len(zones))
-            data = data if isinstance(data, list) else [data]
-            for m in models:
-                alt = feats.copy()
-                for i, p in enumerate(data):
-                    d = p["daily"]
-                    g = d.get(f"wind_gusts_10m_max_{m}", [None, None])
-                    pr = d.get(f"precipitation_sum_{m}", [None, None])
-                    if g[-1] is None:
-                        continue
-                    alt.loc[i, "gust_max"] = g[-1]
-                    alt.loc[i, "gust_prev"] = g[0] if g[0] is not None else alt.loc[i, "gust_prev"]
-                    alt.loc[i, "gust_max_2d"] = max(x for x in (g[-1], alt.loc[i, "gust_prev"]) if x is not None)
-                    if pr[-1] is not None:
-                        alt.loc[i, "precip"] = pr[-1]
-                        alt.loc[i, "precip_48h"] = pr[-1] + (pr[0] or 0.0)
-                scenarios.append(alt)
+            if mdaily is None:
+                mdaily = hist_models_daily(zones, target - timedelta(days=1), target)
+            scenarios = alt_from_models(feats, mdaily, target)
             source = "dezacordul a trei modele de prognoză (ICON, ECMWF IFS, GFS) față de arhivă"
         else:
             data = openmeteo.ensemble_gusts(lats, lons, forecast_days=max((target - date.today()).days + 2, 2))
@@ -152,14 +180,13 @@ def uncertainty(model: BModel, zones: list[romania.Zone], feats: pd.DataFrame, t
                         alt.loc[i, "precip"] = float(day[pcol].sum())
                 scenarios.append(alt)
             source = f"{len(scenarios)} membri ICON-EPS (ensemble Open-Meteo)"
-    except (RuntimeError, openmeteo.RateLimited, KeyError, IndexError) as exc:
+    except (RuntimeError, openmeteo.RateLimited, KeyError, IndexError, ValueError) as exc:
         p = model.predict_proba(feats)
         return p, p, f"incertitudine indisponibilă ({type(exc).__name__}); folosim doar prognoza principală"
     probs = np.column_stack([model.predict_proba(feats)] + [model.predict_proba(s) for s in scenarios])
-    lo, hi = np.nanpercentile(probs, 10, axis=1), np.nanpercentile(probs, 90, axis=1)
     if mode == "historical":
-        lo, hi = probs.min(axis=1), probs.max(axis=1)
-    return lo, hi, source
+        return probs.min(axis=1), probs.max(axis=1), source
+    return np.nanpercentile(probs, 10, axis=1), np.nanpercentile(probs, 90, axis=1), source
 
 
 def target_features(zones: list[romania.Zone], wx: pd.DataFrame, target: date) -> pd.DataFrame:
