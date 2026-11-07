@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { UserRound } from "lucide-react";
 import { Wordmark } from "@/components/brand/logo";
 import type { ShellInfo } from "@/lib/server/queries";
 import { MobileMenu } from "./mobile-menu";
@@ -39,6 +40,10 @@ export function AppShell({ info, fit = false, children }: { info: ShellInfo; fit
             <p className="px-2 text-[13px] text-muted-foreground">Planul afișat</p>
             <ScenarioSwitch scenario={info.scenario} scenarios={info.scenarios} />
             <Provenance {...info.provenance} />
+            <a href="/intra" className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-[15px] text-ink-soft hover:bg-surface-2 hover:text-ink">
+              <UserRound aria-hidden="true" size={20} strokeWidth={1.6} />
+              Contul meu
+            </a>
           </div>
         </aside>
         <main id="continut" tabIndex={-1} className={(fit ? "flex min-h-0 min-w-0 flex-1 flex-col" : "min-w-0 flex-1 max-md:pb-20") + " outline-none"}>

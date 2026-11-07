@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Bell, BookOpen, CircleHelp, Layers, LayoutGrid, Monitor, UtilityPole, Wrench } from "lucide-react";
+import { Bell, BookOpen, CircleHelp, Layers, LayoutGrid, Monitor, Play, UtilityPole, Wrench } from "lucide-react";
 import { cn } from "cn";
 
 export const NAV = [
@@ -14,6 +14,7 @@ export const NAV = [
   { href: "/alerte", label: "Alerte și mesaje", short: "Alerte", icon: Bell, match: (p: string) => p.startsWith("/alerte") },
   { href: "/modele", label: "Modele", short: "Modele", icon: Layers, match: (p: string) => p.startsWith("/modele") },
   { href: "/demo", label: "Prezentare", short: "Prezentare", icon: Monitor, match: (p: string) => p.startsWith("/demo") },
+  { href: "/rulare", label: "Rulare agent", short: "Agent", icon: Play, match: (p: string) => p.startsWith("/rulare") },
 ];
 
 function useNav() {
@@ -26,7 +27,7 @@ function useNav() {
 const GROUPS = [
   { label: "Dispecerat", entries: [0, 1] },
   { label: "Rețeaua", entries: [2, 3, 5] },
-  { label: "Cum decide agentul", entries: [4, 6, 7] },
+  { label: "Cum decide agentul", entries: [4, 6, 8, 7] },
 ];
 
 /** Meniul urmărește sarcinile dispecerului, cu pagina curentă marcată și prin formă. */

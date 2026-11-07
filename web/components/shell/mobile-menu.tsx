@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { ExternalLink, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import type { ShellInfo } from "@/lib/server/queries";
 import { Provenance } from "./provenance";
 import { ScenarioSwitch } from "./scenario-switch";
 import { NAV } from "./side-nav";
 
-/** Meniul de pe telefon: filele de sus, scenariul și proveniența datelor (pe desktop stau în antet și în meniul din stânga). */
+/** Pe telefon, meniul include aceleași ecrane și setări ca meniul lateral. */
 export function MobileMenu({ info }: { info: ShellInfo }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
@@ -18,7 +18,6 @@ export function MobileMenu({ info }: { info: ShellInfo }) {
   const q = scenario ? `?scenariu=${encodeURIComponent(scenario)}` : "";
   const links = [
     ...NAV.map((n) => ({ href: `${n.href}${q}`, label: n.label, on: n.match(pathname) })),
-    { href: `/rulare${q}`, label: "Rulare agent", on: pathname.startsWith("/rulare") },
   ];
   const item = "flex h-12 items-center gap-2 rounded-[10px] px-3 text-[16px] hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-ring";
   return (
@@ -38,10 +37,6 @@ export function MobileMenu({ info }: { info: ShellInfo }) {
             </Link>
           ))}
           <a href="/intra" className={`${item} text-ink-soft`}>Contul meu</a>
-          <a href="/" className={`${item} text-ink-soft`}>
-            Vezi site-ul
-            <ExternalLink aria-hidden="true" size={16} strokeWidth={1.8} />
-          </a>
         </nav>
         <div className="space-y-3">
           <p className="text-[13px] text-ink-soft">Scenariul</p>
