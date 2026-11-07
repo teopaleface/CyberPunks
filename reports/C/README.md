@@ -42,6 +42,7 @@ Pentru prezentare și pentru interfață. Toate cifrele vin din scripturi (coman
 - `series_demo-vara.png`: un post pe 8 iulie 2025, oră cu oră: intervalul P10-P90, P50 și simularea fizică, cu limita de 1,10 pu.
 - `reliability.png`: probabilitatea prezisă față de frecvența reală (modelul calibrat stă pe diagonală).
 - `mae_by_topology.png`: eroarea pe fiecare rețea lăsată deoparte la antrenare.
+- `ladder_demo-vara_PT-1252.png`: scara de soluții pentru un post: ce aduce tensiunea sub 1,10 pu și cât costă (efecte simulate).
 
 ## Mai multe
 
