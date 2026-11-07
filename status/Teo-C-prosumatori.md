@@ -1,13 +1,14 @@
 # Status: Teo-C-prosumatori
 Actualizat: 2026-11-07 16:50
 Milestone curent: M4 terminat (M0 13:10, M1 13:45, M2 14:11, M3 15:40, M4 16:50)
-Gata de merge: da (commit 473d1b7; `git merge Teo` făcut la 16:42, `make check` trece: 272 de teste, 32 în `tests/c`)
+Gata de merge: da (commit 2ffeda1; `git merge Teo` făcut la 16:42, `make check` trece: 272 de teste, 32 în `tests/c`)
 
 ## Postul pentru prezentare (legătura bilanț → C): **PT-1082**
 - PT-1082, 1 Decembrie (Ilfov, sintetic). Bilanțul (`A-20250708-PT-1082`, `grid_inspection`) are `extra.phase_rebalance_input`: pierderi pe cabluri de 2,87 ori normalul, circa 77% din case pe o fază.
 - C (`C-20250708-PT-1082`) folosește constatarea în scara de soluții (`extra.phase_rebalance_input_from` = `A-20250708-PT-1082`; treapta „faze” are încredere medie, nu mică). P90 cu dezechilibrul: 1,138 pu. Mutarea a 3 case −0,011 pu, o treaptă de priză −0,025 pu, ofertele de baterii −0,008 pu: împreună **1,095 pu, pentru 1.966 lei**. Fără mutarea caselor, combinația ieftină nu ajunge sub 1,10 (priza singură: 1,113; limita de export 4.542 lei: 1,114).
 - Cinstit: nicio lucrare nu iese peste 1,10 pu doar din cauza dezechilibrului. Pe posturile din lista bilanțului care trec de limită, cauza principală e cantitatea de panouri pe o rețea slabă; mutarea caselor e o parte necesară a celei mai ieftine soluții, nu soluția singură.
 - PT-1269 (propus de bilanț, 69% pe o fază): aceeași legătură, dar acolo e nevoie de faze + baterii + limită de export (12.439 lei).
+- Figura pentru slide: `reports/C/figures/ladder_demo-vara_PT-1082.png`.
 
 ## `maine` cu prognoza reală de noiembrie (verificat la 16:45)
 - 9 nov. (ziua de după demo: înnorat 78%, 484 W/m² pe panou): 0 posturi cu risc peste 50%, **0 lucrări pentru echipe**, 9 posturi urmărite, 2 cazuri cu prognoză nesigură la om. Rezumatul spune: „Soarele e slab (noiembrie, nori 78%): producția de la prânz rămâne sub nivelul la care tensiunea trece de 1,10 pu, deci nu trimit nicio echipă.”
