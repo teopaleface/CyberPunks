@@ -1,7 +1,7 @@
 # Status: Teo-A-contoare
-Actualizat: 2026-11-07 16:52
+Actualizat: 2026-11-07 17:14
 Milestone curent: M4 gata; reproducerea cap-coadă gata (docs/REPRODUCERE.md). LIBER
-Gata de merge: da (commit d14d99e)
+Gata de merge: da (commit 518a086)
 
 ## Făcut
 - 13:30 M0: `docs/research/A.md`, date descărcate cu sume de control (SGCC, 45 de fișiere Low Carbon London).
@@ -33,6 +33,8 @@ Gata de merge: da (commit d14d99e)
 - 16:38 **Reproducerea cap-coadă a ramurii Teo dintr-o clonă curată** (commit 791c94c): tot lanțul merge în 32,5 minute (A, B, C, bilanț, `cyberpunks run`, `agent-eval`). Toate ieșirile sunt valide (A 518, bilanț 79, B 26, C 41, planul). Comenzile, duratele și ce produce fiecare pas sunt în `docs/REPRODUCERE.md`. Vremea Open-Meteo a fost copiată din cache-urile firelor, deci cota nu a fost atinsă.
 - 16:44 Reparat la A (commit 905374d): descărcarea Londra reîncearcă dacă serverul ignoră cererea pe interval (HTTP 200), iar antrenarea refuză un set incomplet (în clonă mersese pe 44 din 45 de fișiere, fără avertisment). Are 3 teste cu server simulat.
 
+- 17:13 Regula fișierelor grele (Teo): nu mai fac commit cu `models/release/A/` sau cu mostrele mari din `data/samples/A/` (pachetul demo, `similar_ref.parquet`, `meters.csv`) decât la versiunea finală și doar dacă s-au schimbat. Versiunea din git (commit 68c1d1c) e cea pe care sunt făcute toate cifrele actuale; `tests/test_repo_size.py` trece. Mărimile din `docs/REPRODUCERE.md` sunt corectate: GitHub raportează 267 MB, iar fișierele de pe `main` au 35 MB.
+
 ## Urmează
 - **Sunt liber** (M0-M4 gata). Pot ajuta la B sau la alt fir; scrieți-mi direct în thread.
 - La cerere: reparații pe A dacă planificatorul sau interfața au nevoie de ceva în lucrări sau în serii.
@@ -50,7 +52,7 @@ Gata de merge: da (commit d14d99e)
   2. **Firul B:** gazetteer-ul recensământului se descarcă de mână. Soluție: pasul în `make b-data`, sau fișierul de 776 KB în `data/samples/B/`.
   3. **Firul B:** `make b-weather` ia ~7.300 de apeluri Open-Meteo (~73% din cota zilnică) și ~2 ore. Soluție: tabelul procesat de vreme în git și o notă în README, ca juriul să poată sări pasul.
   4. **Firul bilanț:** `make bilant-eval` scrie în raport „PT-1269: rulează întâi make bilant-predict”. Soluție: inversată ordinea în `docs/data/bilant.md`, sau raportul independent de predicții.
-  5. **Orchestrator / prezentare:** repo-ul are 365 MB, din care ~112 MB sunt arhive `.zip` în `presentation/assets/` și ~52 MB `.wav`; modelul C (9 MB) apare de 4 ori în istoric. Clona de pe GitHub mergea cu ~120 KB/s. De decis înainte de public: scoase din istoric sau mutate în Git LFS.
+  5. **Orchestrator / prezentare:** istoricul e mare (GitHub: 267 MB, față de 35 MB pe `main`), din cauza arhivelor `.zip` din `presentation/assets/`, a pistelor `.wav` și a modelelor salvate de mai multe ori. Clona de pe GitHub mergea cu ~120 KB/s. Regula nouă oprește creșterea; curățarea istoricului rămâne decizia lui Teo înainte de public.
   6. **README-ul principal** spune „Pașii completi de reproducere se adaugă pe măsură ce firele livrează”. Propun un link la `docs/REPRODUCERE.md`.
 - **Pentru planificator (text absurd în jurnal):** în `outputs/demo/plans/demo-vara/audit.jsonl` apare „valoarea așteptată (20 lei) nu acoperă vizita (365 lei; scorul ar trebui să fie peste 1004%)”. Un scor peste 100% nu există. Când nici la scor 100% valoarea nu acoperă vizita, textul ar trebui să spună „nici sigur nu acoperă costul vizitei”.
 - **Observații pentru firul bilanț** (fuziunea verificată pe testul A: populația demo, adevărul injectat; formula `fuse.combine_arrays` neschimbată; bilanțul postului construit din energia nemăsurată, cu zgomotul pierderilor normale sigma = 1 / 2 / 4% din consumul postului):
