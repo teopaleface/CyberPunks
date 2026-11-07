@@ -28,8 +28,8 @@ import pandas as pd
 
 from cyberpunks.a_bilant import LABEL_RO, registry, world
 from cyberpunks.a_bilant import diagnose as G
-from cyberpunks.a_bilant import inputs as I
 from cyberpunks.a_bilant import features as F
+from cyberpunks.a_bilant import inputs as I
 from cyberpunks.a_bilant import normal as N
 from cyberpunks.a_bilant import windows as W
 from cyberpunks.a_bilant.fuse import state_path
