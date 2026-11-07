@@ -1,7 +1,7 @@
 # Status: Teo-planificator
-Actualizat: 2026-11-07 17:40
-Milestone curent: M4 (documentație, ultima revizuire independentă); M3 gata
-Gata de merge: da (commit 8bf4d68, plus acest status)
+Actualizat: 2026-11-07 17:50
+Milestone curent: M4 gata (documentația, a patra revizuire Codex, instantaneul final); după 20:00 doar reparații de bug-uri
+Gata de merge: da (commit 60ce0f0, plus acest status)
 
 ## Pornirea demo-ului: o singură comandă (pentru Teo)
 Din checkout-ul principal (`/Users/teo/projects/CyberPunks`, ramura `Teo`, după merge-ul planificatorului):
@@ -17,7 +17,7 @@ make demo
 
 ## Răspuns la orchestrator, 17:05 și 17:15
 - **Textul cu „scorul peste 1004%”, reparat** (commit ab56d75). Când nici la scorul 100% valoarea nu acoperă vizita, motivul spune acum: „Chiar dacă problema ar fi sigură, valoarea (40 lei) nu acoperă vizita (283 lei): citire la distanță (2 lei).” Pragul `breakeven_score` apare în jurnal doar când e sub 100%. Test: `tests/planner/test_review_fixes_r4.py::test_remote_first_text_never_asks_for_a_score_above_100_percent`. Am verificat și restul textelor cu procente: doar acesta putea trece de 100%. În instantaneul regenerat local: 60 de motive cu textul nou, niciunul cu un scor peste 100%.
-- **Instantaneul `outputs/demo/`, după regula de la 17:15**: îl regenerez doar local, fără commit, până la înghețare sau până îmi ceri. Cel din git e de la 16:33 (commit 7f162fc) și are încă două defecte reparate după aceea: textul cu scorul peste 100% (77 de motive) și alerta „194 cazuri cu risc de siguranță” (erau 103 cazuri distincte). Varianta locală e corectă. Pentru prezentare și demo-ul offline trebuie salvată varianta finală; spune-mi când.
+- **Instantaneul final `outputs/demo/` e în git, salvat o singură dată la 17:48 (commit 60ce0f0)**, după merge-ul `Teo` de la 17:25, pe codul final: 20 de lucrări în traseele a 8 echipe, 291,8 km, 71.803 lei; 25 la dispecer, 504 verificări de la distanță, 48 de mesaje, 10 alerte. Are reparațiile de după 16:33: alerta de siguranță spune 103 cazuri (nu 194), niciun motiv cu scor peste 100%, alerta „Risc de avarii” pentru Ineu, numele Daybreak în PDF-uri. Verificat prin API în modul `demo` (planul, ordinul de lucru E-AR-1, titlul „Daybreak: API-ul agentului”). Cel mai mare fișier: 2,7 MB. Îl refac doar dacă îmi ceri (de exemplu, dacă A, B sau C își schimbă ieșirile).
 - `git merge Teo` făcut; `make check`: 286 de teste trec, inclusiv `tests/test_repo_size.py` (cel mai mare fișier din instantaneu are sub 3 MB).
 - După merge, planul `demo-vara` are aceleași trasee (20 de lucrări, 8 echipe, 291,8 km, 71.803 lei); s-au schimbat doar 122 de amânate (erau 130) și 48 de mesaje (erau 46), din noile ieșiri ale firelor. Alerte: 10 (nouă: „Risc de avarii: Zona Ineu (Arad) (model nesigur, decide dispecerul)”).
 
@@ -122,9 +122,8 @@ Pe scurt: două schimbări intenționate explică scăderea, iar trei defecte g�
 - În plus: `/quarantine`, `/alerts`, `/notifications`, `/report`, `/run-info` (timpii pe pași, sursele, solverul), `/rules`, `/remedies` (scara C), `/posts`, `/posts/{post_id}`, `POST /routes/{crew}/approve`, `/approvals` (cu `stale`), `POST /verdict/{id}`, `/labels`, `POST /plan/approve`, `/plan/approval`.
 - Ordinea deciziilor în plan: întâi verificările de la distanță și corecțiile din birou, apoi lista pe echipe (`rank` după `threshold.lei_per_work_hour`), apoi restul.
 
-## Urmează (M4)
-- Instantaneul final salvat în git după înghețare sau la cererea ta (până atunci doar local).
-- Rulez din nou planul și evaluarea dacă A, B, C sau bilanțul își mai schimbă ieșirile.
+## Urmează
+- M4 e gata. Până la 20:00 și după: doar reparații de bug-uri, la cerere. Dacă A, B, C sau bilanțul își schimbă ieșirile, rulez din nou planul și evaluarea și refac instantaneul, doar dacă îmi ceri.
 
 ## Blocaje
 - Niciunul.
