@@ -18,6 +18,7 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 | `12-probleme-reale-ppc-2026.md` | Research primit de Teo (14:30), neverificat: probleme reale 2026 pe cele 4 companii, cifre pentru B, C, bilanț, A, prezentare |
 | `13-stare-infrastructura.md` | Verificarea unei copii curate a ramurii integrate, demo și ce mai rămâne pentru predare |
 | `14-date-furtuni-eden.md` | Datele românești descărcate local pentru testarea modelului de furtuni |
+| `15-date-experimente-eden.md` | Datele A, B și C de pe Eden: ce este în Git, reproducere, rezultate și limite |
 | `journal.md` | Ce s-a întâmplat și ce s-a decis, cu ora |
 
 ## Reguli
