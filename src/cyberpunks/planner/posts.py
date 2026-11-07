@@ -51,7 +51,7 @@ def overview(plan: dict[str, Any] | None, items: list[dict[str, Any]], settings:
             "post_id": pid, "lat": None, "lon": None, "zone_id": None, "label": pid, "loss_lei_month": None, "loss_kwh_day": None,
             "diagnosis": None, "bilant_score": None, "bilant_work_item_id": None, "bilant_decision": None, "bilant_rule_id": None,
             "voltage_p90_pu": None, "c_work_item_id": None, "c_decision": None, "c_rule_id": None,
-            "meters_flagged": 0, "meter_work_item_ids": [], "synthetic": True,
+            "meters_flagged": 0, "meter_work_item_ids": [], "synthetic": True, "in_registry": False,
         })
 
     for wi in items:
@@ -90,12 +90,15 @@ def overview(plan: dict[str, Any] | None, items: list[dict[str, Any]], settings:
         if not pid:
             continue
         e = entry(pid)
+        e["in_registry"] = True
         for key in ("lat", "lon", "zone_id"):
             if e[key] is None and row.get(key) is not None:
                 e[key] = row[key]
         if e["loss_lei_month"] is None and e["bilant_work_item_id"] is None:
             e["loss_lei_month"] = 0.0  # în registru, fără lipsă semnalată de bilanț
         e["kva"] = row.get("kva")
+        if row.get("label") and e["label"] == pid:
+            e["label"] = row["label"]
     out = []
     for e in posts.values():
         e["color"] = _color(e["loss_lei_month"], settings)

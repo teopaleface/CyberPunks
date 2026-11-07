@@ -1,7 +1,7 @@
 # Status: Teo-planificator
-Actualizat: 2026-11-07 13:48
+Actualizat: 2026-11-07 13:57
 Milestone curent: M2 aproape gata (lipsesc doar ieșirile reale A, B, C, care nu există încă în `Teo`); extinderea din 13:45 implementată
-Gata de merge: da (commit 6bdb0f5, plus acest status)
+Gata de merge: da (commit fc37b94 și următorul cu `in_registry`, plus acest status)
 
 ## Făcut
 - 12:53 API pe http://127.0.0.1:8710/api (`make api`, documentație la `/docs`).
@@ -13,6 +13,15 @@ Gata de merge: da (commit 6bdb0f5, plus acest status)
 - 13:31 Prag etic la contoare: echipa merge la ușa unui client doar dacă scorul e cel puțin 0,5; sub prag, citire la distanță.
 - 13:44 Extinderea (decizia lui Teo de la 13:45): `A_bilant.jsonl` citit lângă `A.jsonl`, fuziunea cu `R-FUSION-BILANT` în jurnal, reguli pentru acțiunile noi, lista pe echipe după lei pe oră, scara de soluții C (`R-REMEDY-LADDER`), cu completările de la 14:00 (mesaj țintit din `message_preview_ro`, oferta de baterii pentru PPC Energie).
 - 13:46 API pentru extindere (rutele de mai jos). 56 de teste trec, ruff curat. `git merge Teo` făcut după fiecare anunț (ultimul: documentul de research).
+
+## Răspuns la cererile orchestratorului (13:55)
+- `git merge Teo` făcut (8005138). Am păstrat reparația ta din `agent.py` (bilanțul lipsă nu degradează A).
+- 1 (C): cheile sunt în `config/economics.yaml`, secțiunea `voltage`, cu valorile lui C și eticheta IPOTEZĂ: `notify_participation_rates: [0.10, 0.20, 0.30]`, `phase_rebalance_cost_lei: 350`, `export_limit_cost_lei: 150`, `transformer_upgrade_cost_lei: 120000`. Secțiune nouă `battery`: `price_lei_per_kwh_installed: 1500` (PROXY: costul standard maxim eligibil AFM Casa Verde Baterii 2026, cu montaj; C propusese 2.500 fără sursă), `ppc_margin_share: 0.15` și `cycle_value_lei_per_kwh: 0.6` (IPOTEZĂ, de la C), plafoanele AFM (75%, 15.000 lei, minimum 10 kWh). Am scos secțiunea mea `remedies`, ca să nu existe două surse; `cyberpunks.c_prosumatori.actions.economics()` vede cheile.
+- 2 (A): n-am adăugat `meters.faulty_meter_fixed_value_lei`; vizita evitată e o alegere bună. Semnalez la A: motivul de abținere spune „pragul pentru normal (0.30) și cel pentru problemă (0.12)”, adică pragurile par inversate în text.
+- 3 (Interfață): `GET /api/posts` există de la 13:46 și citește registrul C (`cyberpunks.c_prosumatori.posts.load_posts()`, 300 de posturi) plus lucrările bilanțului și ale lui C. Câmp nou `in_registry`.
+- 4 (B): echipele simulate în Banat sunt făcute de la 13:25 (`E-AR-1` Arad, `E-RS-1` Reșița, `E-DV-1` Deva). Pe datele reale din 8 iulie: 3 echipe trimise în Banat (plafonul de 3), iar zonele rămase peste costul turei merg acum la dispecer cu alerta critică „Întăriri necesare: 11 zone de furtună fără echipă”.
+- **Problemă de integrare (A și C)**: firul A pune în `extra.post_id` posturi `PT-0001…PT-0300`, iar registrul comun al lui C are `PT-1001…PT-1300`; niciun post A nu se potrivește (0 din 183). Harta arată acum posturile A ca `in_registry: false`. Cerere: A să lege contoarele de posturile din registrul C, ca A, bilanțul și C să se întâlnească la același post.
+- Primul plan pe ieșirile reale (`uv run cyberpunks run --scenario demo-vara --mode existing`, cu A 249, B 26, C 41): 40 de lucrări în trasee, 9 echipe, 415 km, 155 de citiri la distanță, 72 la om (59 abțineri A, 11 zone de furtună peste plafon, 2 B), OR-Tools în 7,8 s. Am reparat ce am văzut în plan (commit fc37b94): alerte grupate, întăriri, furtuna la ora limită.
 
 ## Pentru firul Interfață (rute noi, toate cu `?scenario=`)
 - `GET /api/posts` → listă de posturi pentru hartă: `{post_id, lat, lon, zone_id, label, loss_lei_month, loss_kwh_day, color: verde|galben|rosu|necunoscut, diagnosis, bilant_score, bilant_work_item_id, bilant_decision, bilant_rule_id, voltage_p90_pu, c_work_item_id, c_decision, c_rule_id, meters_flagged, meter_work_item_ids, synthetic}`, ordonată după lei pierduți. Pragurile culorilor: `config/planner.yaml` (`posts`: galben de la 200 lei/lună, roșu de la 600).
