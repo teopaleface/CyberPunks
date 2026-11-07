@@ -67,6 +67,8 @@ class RouteOut:
     total_km: float
     total_travel_min: float
     total_work_min: int
+    depart_min: int = 0
+    return_min: int | None = None  # None: echipa rămâne în zonă (furtună)
 
 
 @dataclass
@@ -325,10 +327,14 @@ def _collect(pb: Problem, seqs: dict[int, list[int]], solver: str, status: str, 
             total_min += d_min
             work += pb.tasks[k].display_min
             loc = node
+        first = pb.node_of_task(seq[0])
+        depart = max(veh.start_min, arrivals[0] - pb.matrix.minutes[pb.depot_node(v)][first])
+        ret: int | None = None
         if not pb.tasks[seq[-1]].terminal:
             total_km += pb.matrix.km[loc][pb.depot_node(v)]
             total_min += pb.matrix.minutes_f[loc][pb.depot_node(v)]
-        routes.append(RouteOut(veh, stops, round(total_km, 2), total_min, work))
+            ret = arrivals[-1] + pb.tasks[seq[-1]].service_min + pb.matrix.minutes[loc][pb.depot_node(v)]
+        routes.append(RouteOut(veh, stops, round(total_km, 2), total_min, work, depart, ret))
     dropped = {}
     for k, task in enumerate(pb.tasks):
         if task.id not in assigned:

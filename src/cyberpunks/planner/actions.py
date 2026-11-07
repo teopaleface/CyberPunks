@@ -199,6 +199,8 @@ def finalize(
         routes.append(
             Route(
                 crew_id=r.vehicle.crew.crew_id, depot_id=r.vehicle.depot.depot_id,
+                depart_at=at_minutes(r.depart_min, plan_date),
+                return_at=at_minutes(r.return_min, plan_date) if r.return_min is not None else None,
                 stops=[Stop(seq=s.seq, work_item_id=s.task_id, eta=at_minutes(s.arrival_min, plan_date), duration_min=max(1, s.display_min), travel_km=s.travel_km) for s in r.stops],
                 total_km=r.total_km, total_work_min=r.total_work_min, total_travel_min=round(r.total_travel_min),
             )
