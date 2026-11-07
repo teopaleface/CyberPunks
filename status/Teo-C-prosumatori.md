@@ -1,7 +1,7 @@
 # Status: Teo-C-prosumatori
 Actualizat: 2026-11-07 17:59
 Milestone curent: M4 terminat (M0 13:10, M1 13:45, M2 14:11, M3 15:40, M4 16:50)
-Gata de merge: da (commit 97e4af7; `git merge Teo` făcut la 17:16, `make check` trece: 277 de teste, inclusiv `tests/test_repo_size.py`)
+Gata de merge: da (commit ede7919; `git merge Teo` făcut la 17:58, `make check` trece)
 
 ## QA cap-coadă (cererea de la 17:55)
 - Zecimalele din textele scării sunt cu virgulă (PT-1269: „0,020 pu”, „0,001 pu”, „2,2 ori”), la fel în cererile de racordare și în raportul de baterii; datele din anunțul de întrerupere au luna în litere („9 iulie 2025”).
