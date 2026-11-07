@@ -1,0 +1,29 @@
+<template>
+  <!-- Hook: ziua reală (8 iulie 2025, cod roșu de vijelii în Banat; sursa în docs/research/B.md). Accentul cadrului: norul 3D. -->
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: #ffffff; }
+    .frame { position: absolute; inset: 0; }
+    .h { position: absolute; left: 0; right: 0; text-align: center; white-space: nowrap;
+         font-weight: 600; letter-spacing: -0.035em; line-height: 1.04; color: var(--ink); }
+
+    #kf1-cloud { position: absolute; left: 740px; top: 150px; width: 440px; height: 440px;
+                 background: url(assets/3d/astra/storm_hero.webp) center / contain no-repeat; }
+    #kf1-h { top: 640px; font-size: 136px; }
+    #kf1-date { position: absolute; left: 0; right: 0; top: 812px; text-align: center;
+                font-size: 44px; font-weight: 500; letter-spacing: -0.01em; color: var(--gray-txt); }
+    #kf1-ai { position: absolute; left: 0; right: 0; top: 990px; text-align: center; font-size: 28px; font-weight: 500; color: #A3A9B0; }
+
+  </style>
+  <div id="root" data-composition-id="kf1" data-width="1920" data-height="1080">
+    <div id="kf1-f" class="clip frame" data-start="0" data-duration="1">
+      <div id="kf1-cloud"></div>
+      <h1 id="kf1-h" class="h">A storm hits Banat.</h1>
+      <p id="kf1-date">July 8, 2025</p>
+      <p id="kf1-ai">3D object modelled with AI</p>
+    </div>
+  </div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    window.__timelines["kf1"] = gsap.timeline({ paused: true });
+  </script>
+</template>

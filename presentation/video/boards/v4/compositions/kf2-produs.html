@@ -1,0 +1,44 @@
+<template>
+  <!-- Produsul: cardul Nu sunt sigur din consolă (http://localhost:3710/, 8 iulie 2025), desenat din nou în engleză. Accentul: încrederea (soarele). -->
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: #ffffff; }
+    .frame { position: absolute; inset: 0; }
+    .h { position: absolute; left: 0; right: 0; text-align: center; white-space: nowrap;
+         font-weight: 600; letter-spacing: -0.035em; line-height: 1.04; color: var(--ink); }
+
+    #kf2-h { top: 150px; font-size: 112px; }
+    #kf2-win { position: absolute; left: 470px; top: 360px; width: 980px; height: 540px; border-radius: 38px; background: #ffffff;
+               border: 1px solid #E7E9EC; box-shadow: 0 44px 110px rgba(11,22,34,.13), 0 12px 34px rgba(11,22,34,.07); overflow: hidden; }
+    #kf2-bar { position: absolute; left: 34px; top: 30px; display: flex; gap: 12px; }
+    #kf2-bar i { width: 16px; height: 16px; border-radius: 50%; background: #DCDFE3; }
+    #kf2-lab { position: absolute; left: 72px; top: 104px; font-size: 32px; font-weight: 600; letter-spacing: -0.01em; color: var(--gray-txt); }
+    #kf2-t { position: absolute; left: 72px; top: 150px; font-size: 76px; font-weight: 640; letter-spacing: -0.035em; line-height: 1.05; color: var(--ink); white-space: nowrap; }
+    #kf2-conf { position: absolute; left: 72px; top: 272px; display: flex; align-items: center; gap: 26px; font-size: 32px; font-weight: 500; color: var(--gray-txt); }
+    #kf2-track { width: 400px; height: 14px; border-radius: 7px; background: #ECEEF1; overflow: hidden; }
+    #kf2-fill { width: 62%; height: 100%; border-radius: 7px; background: var(--sun); }
+    #kf2-pct { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+    #kf2-btns { position: absolute; left: 72px; top: 382px; display: flex; gap: 20px; }
+    .kf2-b { height: 92px; padding: 0 46px; border-radius: 22px; display: flex; align-items: center; font-size: 38px; font-weight: 600; letter-spacing: -0.015em; }
+    #kf2-ok { background: var(--ink); color: #ffffff; }
+    .kf2-sec { border: 2px solid #DCDFE3; color: var(--ink); background: #ffffff; }
+    #kf2-cur { position: absolute; left: 684px; top: 791px; width: 134px; height: 134px; filter: drop-shadow(0 4px 6px rgba(0,0,0,.3)); }
+
+  </style>
+  <div id="root" data-composition-id="kf2" data-width="1920" data-height="1080">
+    <div id="kf2-f" class="clip frame" data-start="0" data-duration="1">
+      <h1 id="kf2-h" class="h">Not sure? It asks.</h1>
+      <div id="kf2-win">
+        <div id="kf2-bar"><i></i><i></i><i></i></div>
+        <p id="kf2-lab">Not sure</p>
+        <p id="kf2-t">Storm damage near Deva</p>
+        <div id="kf2-conf"><span>Confidence</span><span id="kf2-track"><span id="kf2-fill" style="display:block"></span></span><span id="kf2-pct">62%</span></div>
+        <div id="kf2-btns"><span id="kf2-ok" class="kf2-b">Approve</span><span class="kf2-b kf2-sec">Reject</span><span class="kf2-b kf2-sec">Later</span></div>
+      </div>
+      <img id="kf2-cur" src="assets/ui/cursor.svg" alt="" />
+    </div>
+  </div>
+  <script>
+    window.__timelines = window.__timelines || {};
+    window.__timelines["kf2"] = gsap.timeline({ paused: true });
+  </script>
+</template>

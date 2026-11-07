@@ -1,0 +1,3 @@
+# Copii ale activelor din presentation/video/assets (le pune build_boards_v4.py) și fișierele CLI-ului.
+assets/
+.hyperframes/
