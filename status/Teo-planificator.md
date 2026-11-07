@@ -1,7 +1,7 @@
 # Status: Teo-planificator
-Actualizat: 2026-11-07 16:40
+Actualizat: 2026-11-07 16:48
 Milestone curent: M4 (documentație, ultima revizuire independentă); M3 gata
-Gata de merge: da (commit 7f162fc, plus acest status)
+Gata de merge: da (commit 8363392, plus acest status); revizuirea Codex a schimbărilor de azi după-amiază rulează
 
 ## Răspuns la orchestrator, 16:20: de ce s-a schimbat `demo-vara`
 Pe scurt: două schimbări intenționate explică scăderea, iar trei defecte găsite pe drum sunt reparate (commit b296ca7). Cifrele noi, din instantaneul `outputs/demo/` (commit 7f162fc), identice la fiecare rulare: **20 de lucrări în traseele a 8 echipe, 291,8 km, valoare așteptată 71.803 lei**; 25 de cazuri la dispecer, 504 verificări de la distanță, 46 de mesaje, 9 alerte.
