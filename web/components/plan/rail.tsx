@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { Alert, Decision, WorkItem } from "@/lib/contracts";
 import { submitReview } from "@/lib/data/actions";
+import { scoreText } from "@/lib/human";
 import { alertOutcomeRo, clampPercentRo, factorLabelRo, ACTION_RO, CONFIDENCE_RO, DECISION_LABEL_RO, outcomeRo, predictionLabelRo, ruleRo } from "@/lib/data/labels";
 import type { ReviewDecision } from "@/lib/data/types";
 import { fmtDec, fmtInt, fmtLei, fmtScore, fmtTime, sentence } from "@/lib/format";
@@ -107,7 +108,7 @@ export function QueuePanel({
           </div>
           <div className="flex items-center gap-3">
             <ScoreScale score={w.prediction.score} low={w.prediction.interval_low} high={w.prediction.interval_high} threshold={0.5} width={110} tone="att" />
-            <span className="num-wide text-[32px]">{fmtScore(w.prediction.score)}</span>
+            <span className="num-wide text-[32px]">{scoreText(w.prediction.score)}</span>
           </div>
           <p className="col-span-2 col-start-2 text-[15.5px] font-[540] text-pretty">
             {w.prediction.abstain_reason ? sentence(w.prediction.abstain_reason) : sentence(first.reason_ro)}{" "}
@@ -316,7 +317,7 @@ export function WorkItemPeek({
         <dt>Scor</dt>
         <dd>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <span className="num-wide text-[38px]">{fmtScore(p.score)}</span>
+            <span className="num-wide text-[38px]">{scoreText(p.score)}</span>
             <ScoreScale score={p.score} low={p.interval_low} high={p.interval_high} threshold={scoreMin} width={128} />
             <span className="text-[14px] leading-[1.3] whitespace-nowrap text-muted-foreground">
               {p.interval_low != null && p.interval_high != null ? (

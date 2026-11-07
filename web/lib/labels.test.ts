@@ -151,3 +151,11 @@ describe("numerele omenești", () => {
     expect(roundPct(0.2178)).toBe("22%");
   });
 });
+
+describe("probabilitățile de 100%", () => {
+  test("devin „peste 99%” în texte", () => {
+    expect(clampPercentRo("probabilitatea depășirii 100%. Motive: soare")).toBe("probabilitatea depășirii peste 99%. Motive: soare");
+    expect(clampPercentRo("pierdere tehnică (probabilitate 100%)")).toBe("pierdere tehnică (probabilitate peste 99%)");
+    expect(clampPercentRo("Probabilitate de avarii 43%")).toBe("Probabilitate de avarii 43%");
+  });
+});

@@ -12,6 +12,7 @@ import { AppShell } from "@/components/shell/app-shell";
 import type { WorkItem } from "@/lib/contracts";
 import { getSeries } from "@/lib/data";
 import { clampPercentRo, factorLabelRo, DECISION_LABEL_RO, predictionLabelRo, ruleRo } from "@/lib/data/labels";
+import { scoreText } from "@/lib/human";
 import { getPosts } from "@/lib/data/posts";
 import { getRemedies } from "@/lib/data/remedies";
 import { BILANT_LABEL, bilantFusion, ladderBaseP90, remedyOptions } from "@/lib/extras";
@@ -228,7 +229,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
                       </Link>
                       <span className="text-muted-foreground">{predictionLabelRo(w.prediction.label)}</span>
                       <span className="text-right tabular-nums">
-                        <b className="font-[620]">{fmtScore(w.prediction.score)}</b>
+                        <b className="font-[620]">{scoreText(w.prediction.score)}</b>
                         {typeof kwh === "number" ? <span className="block text-[13.5px] text-muted-foreground">{fmtDec(kwh, 1)} kWh/zi</span> : null}
                       </span>
                       <span>
