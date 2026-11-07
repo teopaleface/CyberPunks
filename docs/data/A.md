@@ -28,7 +28,7 @@ Pașii din `make a-all`, separat:
 | Figurile pentru prezentare | `uv run python -m cyberpunks.a_contoare.figures` | `reports/A/figures/headline_precision.png`, `ranking_at_k.png`, `false_alarms_by_consumption.png` |
 | Fuziunea cu bilanțul pe post, pe testul A | `uv run python -m cyberpunks.a_contoare.fusion_check` | `reports/A/fusion_check.json` |
 | Analiza erorilor și model card | `uv run python -m cyberpunks.a_contoare.report` | `reports/A/error_analysis.md`, `reports/A/model_card.md` |
-| Ce intră în git pentru demo | `uv run python -m cyberpunks.a_contoare.train --release` | `models/release/A/a-lgbm.joblib`, `data/samples/A/demo_pack.*`, `data/samples/A/similar_ref.parquet` |
+| Ce intră în git pentru demo (DOAR la versiunea finală și doar dacă s-a schimbat: regula fișierelor grele, 7 nov., 17:15) | `uv run python -m cyberpunks.a_contoare.train --release` | `models/release/A/a-lgbm.joblib`, `data/samples/A/demo_pack.*`, `data/samples/A/similar_ref.parquet` |
 
 Din cod: `from cyberpunks.a_contoare.predict import run; run("demo-vara", None)` întoarce calea fișierului `A.jsonl`. Seed-urile sunt fixe, iar LightGBM rulează determinist, pe 4 nuclee.
 

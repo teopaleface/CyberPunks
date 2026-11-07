@@ -48,6 +48,9 @@ describe("formatare ro-RO", () => {
   test("numere, lei, date, plural", () => {
     expect(fmtScore(0.87)).toBe("0,87");
     expect(fmtLei(2741.2)).toBe("2.741 lei");
+    expect(fmtLei(2)).toBe("2 lei");
+    expect(fmtLei(0)).toBe("0 lei");
+    expect(fmtLei(2.7)).toBe("2,70 lei");
     expect(fmtDateLong("2025-07-08")).toBe("Marți, 8 iulie 2025");
     expect(plural(1, "lucrare", "lucrări")).toBe("1 lucrare");
     expect(plural(72, "lucrare", "lucrări")).toBe("72 de lucrări");

@@ -13,10 +13,10 @@ make bilant-data        # lumea simulată: 600 de posturi, 373 de zile, ~1 minut
                         # (lotul hărții citește outputs/work_items/demo-vara/A_ground_truth.csv; dacă lipsește,
                         #  rulează singur `cyberpunks.a_contoare.predict --scenario demo-vara`)
 make bilant-eval        # ~6 minute: modelele (models/bilant/), reports/bilant/metrics.json, figurile, planul B,
-                        # analiza erorilor, reports/bilant/headline.md
+                        # analiza erorilor
 make bilant-predict     # outputs/work_items/demo-vara/A_bilant.jsonl, seriile, starea pentru fuziune
-                        # (citește A.jsonl, dacă există, ca să nu dubleze lucrările lui A)
-uv run python -m cyberpunks.a_bilant.demo_story   # reports/bilant/demo_posts.md
+                        # (citește A.jsonl, dacă există, ca să nu dubleze lucrările lui A), apoi
+                        # reports/bilant/demo_posts.md și reports/bilant/headline.md (au nevoie de lucrări)
 make bilant-test        # testele firului (tests/bilant/)
 ```
 
@@ -29,7 +29,7 @@ Ce iese și unde:
 | Fișier | Ce e |
 |---|---|
 | `reports/bilant/metrics.json` | ModelReport (sursa A, `bilant-lgbm`): pierderea normală, diagnosticul, fuziunea, cauzele de post |
-| `reports/bilant/headline.md` | cifrele pentru prezentare, generate din `metrics.json` |
+| `reports/bilant/headline.md` | cifrele pentru prezentare, generate din `metrics.json` și din lucrarea postului demo (de `make bilant-predict`) |
 | `reports/bilant/model_card.md`, `error_analysis.md`, `plan_b.md`, `demo_posts.md` | fișa modelului, erorile, planul B, posturile pentru demo |
 | `reports/bilant/*.png` | figurile |
 | `outputs/work_items/<s>/A_bilant.jsonl`, `outputs/series/<s>/A-*-PT-*.json` | lucrările și seriile pentru planificator și interfață |

@@ -23,7 +23,7 @@ Duratele sunt măsurate în clona curată. „Fără internet” înseamnă că 
 
 | # | Comanda | Durată | Rețea | Ce produce |
 |---|---|---|---|---|
-| 1 | `git clone --branch Teo https://github.com/teopaleface/CyberPunks.git && cd CyberPunks` | vezi problema 6 | internet | repo-ul (365 MB cu istoricul) |
+| 1 | `git clone --branch Teo https://github.com/teopaleface/CyberPunks.git && cd CyberPunks` | vezi problema 6 | internet | repo-ul (GitHub raportează 267 MB cu istoricul; fișierele de pe `main` au 35 MB) |
 | 2 | `uv sync` | 0:01 (cu cache-ul uv plin) | internet | mediul Python (1 GB); pe o mașină nouă durează câteva minute |
 | 3 | `make check` | 1:50 | fără internet | lint și teste: 248 trec, 9 pică fără internet (problema 1) |
 | 4 | `make a-data` | 3:39 | internet | SGCC (52 MB) și 45 de fișiere Londra (~212 MB, prin cereri pe intervale), verificate cu SHA-256; features și eșantioane |
@@ -69,7 +69,7 @@ Total măsurat: 32:33, fără `b-weather` și `c-weather`. Scenariul `maine` nu 
 3. **B: gazetteer-ul recensământului se descarcă de mână.** Juriul are un pas nescris în Makefile. Repară firul B: descărcarea în `make b-data`, sau fișierul de 776 KB în `data/samples/B/` (date publice ale guvernului SUA).
 4. **B: vremea pentru comitate durează ~2 ore și ia ~73% din cota zilnică Open-Meteo.** Repară firul B: tabelul procesat de vreme în git, ca juriul să poată sări `b-weather`, plus o notă în README.
 5. **Bilanț: ordinea pașilor.** Raportul din `make bilant-eval` scrie „PT-1269: rulează întâi make bilant-predict”, deci secțiunea cu postul demo rămâne goală în ordinea documentată (data → eval → predict). Repară firul bilanț: inversează ordinea în `docs/data/bilant.md`, sau raportul să nu depindă de predicții.
-6. **Repo-ul are 365 MB**, din care ~112 MB sunt două arhive `.zip` din `presentation/assets/` și ~52 MB piste audio `.wav`. În plus, `models/release/C/bundle.joblib` (9 MB) apare de 4 ori în istoric. Clona de pe GitHub a mers cu ~120 KB/s și s-a blocat la 14 MB, așa că am folosit o clonă locală a aceleiași ramuri. Decide orchestratorul (și firul prezentare), înainte ca repo-ul să devină public: binarele mari scoase din istoric sau mutate în Git LFS.
+6. **Repo-ul e mare din cauza istoricului.** GitHub raportează 267 MB, deși fișierele de pe `main` au doar 35 MB. Cifra de 365 MB, scrisă inițial aici, era mărimea pachetului git local, cu obiecte în plus. În istoric sunt arhive `.zip` din `presentation/assets/` (~112 MB), piste audio `.wav` (~52 MB) și modelele din `models/release/`, salvate de mai multe ori (C de 4 ori, câte 9 MB; A de 5 ori, câte ~3,5 MB). Clona de pe GitHub a mers cu ~120 KB/s și s-a blocat la 14 MB, așa că am folosit o clonă locală a aceleiași ramuri. Regulă nouă (Teo, 17:15): nu mai intră fișiere grele; `models/release/` și mostrele mari se salvează doar la versiunea finală, iar `tests/test_repo_size.py` oprește orice fișier peste 5 MB.
 7. **`uv sync` pe o mașină nouă** descarcă ~1 GB de pachete. Aici a durat o secundă, pentru că cache-ul uv era plin. Nemăsurat la rece.
 8. **Scenariul `maine`** cere prognoza live de la Open-Meteo pentru B și C. Nu l-am rulat, ca să nu consum cota înainte de 02:00.
 
