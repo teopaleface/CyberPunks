@@ -12,6 +12,7 @@ global:
   safety_priority_multiplier: 3.0   # riscul pentru oameni triplează prioritatea și intră primul în traseu
   safety_mandatory: true            # un caz cu risc pentru oameni intră în traseu oricare ar fi valoarea (siguranța înainte de bani); costul regulii e în evaluare
   safety_min_score: 0.7             # sub acest scor, semnalul de siguranță e prea slab ca să treacă peste cost: prioritate triplă, fără obligativitate
+  safety_max_mandatory_per_day: 12  # IPOTEZĂ: cota zilei pentru siguranță, ~jumătate din capacitatea echipelor de contorizare; restul cazurilor au prioritate triplă
   degraded_invalid_share: 0.2       # peste 20% linii respinse, sursa e "degraded"
 
 meters:                             # A

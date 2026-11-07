@@ -33,7 +33,7 @@ store = Store()
 _run_lock = threading.Lock()  # o singură rulare a agentului odată
 
 app = FastAPI(
-    title="Tura de mâine: API-ul agentului",
+    title="Daybreak: API-ul agentului",
     version=__version__,
     description="Planul echipelor de teren Rețele Electrice (date sintetice și publice). SmartHack XI 2026, tema PPC.",
 )

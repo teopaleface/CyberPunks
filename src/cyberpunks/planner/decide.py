@@ -1196,7 +1196,32 @@ def decide(ctx: Context, items: list[Item]) -> list[Proposal]:
     proposals = [propose(ctx, it) for it in items]
     cap_storm_per_region(ctx, proposals)
     cap_human_queue(ctx, proposals)
+    cap_mandatory_safety(ctx, proposals)
     return proposals
+
+
+def cap_mandatory_safety(ctx: Context, proposals: list[Proposal]) -> None:
+    """Cota zilei pentru siguranță: cel mult `safety_max_mandatory_per_day` cazuri obligatorii (cele cu scorul cel mai mare).
+    Restul păstrează prioritatea triplă, dar concurează cu celelalte lucrări; dacă nu încap, primesc citire la distanță
+    (la contoarele care se pot citi așa). Altfel, un semnal de siguranță prea larg ar ocupa toată capacitatea echipelor."""
+    cap = int(ctx.g("safety_max_mandatory_per_day", 12))
+    mandatory = [i for i, p in enumerate(proposals) if p.rule_id == "R-SAFETY" and p.mandatory]
+    if len(mandatory) <= cap:
+        return
+    mandatory.sort(key=lambda i: (-proposals[i].wi.prediction.score, -proposals[i].wi.impact.expected_value_lei))
+    for i in mandatory[cap:]:
+        p = proposals[i]
+        p.mandatory = False
+        p.rule_id = "R-SAFETY-OVER-CAP"
+        p.reason_ro = (f"{p.reason_ro} Azi sunt deja {cap} cazuri de siguranță obligatorii (cota zilei, cele cu scorul cel mai mare): "
+                       "acesta păstrează prioritatea triplă, fără să fie obligatoriu.")
+        p.threshold["safety_max_mandatory_per_day"] = float(cap)
+        wi = p.wi
+        if wi.source == Source.A and wi.extra.get("smart_meter", True) is not False:
+            remote = estimate_costs(ctx, wi, "remote_reading")
+            p.fallback = _final(p.item, DecisionType.remote_action, "R-SAFETY-OVER-CAP",
+                                f"{p.reason_ro} Nu a încăput în turele de mâine: citire la distanță acum, apoi primul în planul următor.",
+                                "remote_reading", p.threshold, costs=remote, alerts=p.alerts)
 
 
 def cap_human_queue(ctx: Context, proposals: list[Proposal]) -> None:
@@ -1252,7 +1277,8 @@ RULE_CATALOG: dict[str, str] = {
     "R-TIME-WINDOW": "Nicio echipă potrivită nu poate ajunge în fereastra de timp: amânat.",
     "R-NOT-WORTH-TRIP": "Nici singură în traseu lucrarea nu acoperă drumul dus-întors: fără deplasare dedicată.",
     "R-NO-CREW": "Nicio echipă cu abilitatea și mărimea cerute.",
-    "R-SAFETY-NO-CREW": "Caz de siguranță fără echipă disponibilă: decide dispecerul azi.",
+    "R-SAFETY-NO-CREW": "Caz de siguranță fără echipă disponibilă: citire la distanță și cerere de întăriri.",
+    "R-SAFETY-OVER-CAP": "Caz de siguranță peste cota zilei de cazuri obligatorii: prioritate triplă, fără obligativitate.",
     "R-FUSION-BILANT": "Contor marcat de A confirmat de bilanțul postului: scorul combinat înlocuiește scorul A (în jurnal).",
     "R-BILANT-OFFICE": "Bilanț: client la postul greșit în bază, corecție în birou fără deplasare.",
     "R-BILANT-REMOTE": "Bilanț: întâi verificări de la distanță (recitire, jurnal de evenimente).",

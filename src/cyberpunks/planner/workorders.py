@@ -16,7 +16,7 @@ from cyberpunks.planner.texts import ACTION_RO, SKILL_RO, SOURCE_RO, hhmm, num, 
 FONTS = Path(__file__).parent / "assets" / "fonts"
 FAMILY = "NotoSans"
 BANNER = "DEMO — date sintetice, nu este un document oficial Rețele Electrice"
-FOOTER_NOTE = "Generat automat; fiecare oprire duce la predicția modelului în jurnalul deciziilor (audit.jsonl)."
+FOOTER_NOTE = "Generat automat de Daybreak; fiecare oprire duce la predicția modelului în jurnalul deciziilor (audit.jsonl)."
 
 NAVY = (0, 48, 87)
 GREY = (110, 110, 110)
@@ -67,7 +67,7 @@ class _Pdf(FPDF):
         self.set_margins(14, 17, 14)
         self.set_auto_page_break(True, margin=22)
         self.set_title(f"Ordin de lucru {number}")
-        self.set_author("Tura de mâine (agent de planificare)")
+        self.set_author("Daybreak (agent de planificare)")
         self.alias_nb_pages("{nb}")
         self.set_font(FAMILY, "", 9.5)
 
@@ -372,7 +372,7 @@ def _render(
     pdf.kv("Echipa:", f"{route.crew_id} · depou {depot.label_ro if depot else route.depot_id}")
     pdf.kv("Competențe:", f"{skills} · {crew.size if crew else '—'} persoane")
     pdf.kv("Tura:", f"{settings.shift_start:%H:%M}–{settings.shift_end:%H:%M}")
-    pdf.kv("Emitent:", "propus de agentul «Tura de mâine», aprobat de dispecer: ____________")
+    pdf.kv("Emitent:", "propus de agentul Daybreak, aprobat de dispecer: ____________")
     pdf.kv("Șef de lucrare:", f"{BLANK}     grupa: ___")
     pdf.kv("Executanți:", "")
     pdf.blank_lines(2, 6)
