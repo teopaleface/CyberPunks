@@ -19,7 +19,7 @@ from sklearn.model_selection import GroupKFold
 
 from cyberpunks.b_furtuna import dataset
 from cyberpunks.b_furtuna import model as bm
-from cyberpunks.b_furtuna.evaluate import TEST_YEAR, TRAIN_YEARS
+from cyberpunks.b_furtuna.evaluate import TEST_YEAR, train_years
 from cyberpunks.b_furtuna.features import FEATURE_SPEC
 from cyberpunks.common.paths import REPORTS
 
@@ -28,7 +28,7 @@ OUT = REPORTS / "B" / "experiments.json"
 
 def add_gust_climate(df: pd.DataFrame) -> pd.DataFrame:
     """Rafala față de clima locului: media și percentila 95 a rafalei zilnice pe anii de antrenare, pe comitat."""
-    ref = df[df["year"].isin(TRAIN_YEARS)].groupby("fips")["gust_max"].agg(g_mean="mean", g_p95=lambda s: s.quantile(0.95))
+    ref = df[df["year"].isin(train_years(df))].groupby("fips")["gust_max"].agg(g_mean="mean", g_p95=lambda s: s.quantile(0.95))
     df = df.merge(ref, on="fips", how="left")
     df["gust_anom"] = df["gust_max"] - df["g_mean"]
     df["gust_ratio_p95"] = df["gust_max"] / df["g_p95"]
@@ -47,7 +47,7 @@ def run_variant(df: pd.DataFrame, spec: list[tuple[str, int]], event_col: str = 
     feats = [f for f, _ in spec]
     params = {**bm.CLF_PARAMS, **(params_over or {})}
     params["monotone_constraints"] = [m for _, m in spec] if monotone else [0] * len(spec)
-    tr = df[df["year"].isin(TRAIN_YEARS)].reset_index(drop=True)
+    tr = df[df["year"].isin(train_years(df))].reset_index(drop=True)
     te = df[df["year"] == TEST_YEAR].reset_index(drop=True)
     y_tr, y_te = tr[event_col].to_numpy(), te[event_col].to_numpy()
 
@@ -100,7 +100,8 @@ def main() -> int:
         r = fn(df)
         rows.append({"varianta": name, "ce": desc, **r})
         print(f"{name:16s} PR-AUC {r['pr_auc']:.4f}  Brier {r['brier']:.4f}  (prevalență {r['prevalence']:.3f})")
-    meta = {"counties": int(df["fips"].nunique()), "train": f"{TRAIN_YEARS[0]}-{TRAIN_YEARS[1]}", "test": TEST_YEAR}
+    ty = train_years(df)
+    meta = {"counties": int(df["fips"].nunique()), "train": f"{ty[0]}-{ty[-1]}", "test": TEST_YEAR}
     OUT.write_text(json.dumps(rows, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(json.dumps(meta))
     return 0

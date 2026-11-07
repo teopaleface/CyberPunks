@@ -220,16 +220,19 @@ def us_history(sample_csv: Path, start: str, end: str, calls_per_hour: float = 3
     print(f"gata: {done} comitate noi, cost total {spent:.0f} apeluri")
 
 
-def load_us_history(start: str, end: str) -> pd.DataFrame:
+def load_us_history() -> pd.DataFrame:
+    """Toată vremea descărcată pentru comitatele SUA (oricâte intervale), fără zile duplicate."""
     frames = []
-    for p in sorted(US_DIR.glob(f"*_{start}_{end}.json")):
+    for p in sorted(US_DIR.glob("*.json")):
         payload = json.loads(p.read_text(encoding="utf-8"))
         d = daily_frame(payload)
         d["fips"] = payload["_meta"]["fips"]
         d["tz"] = payload.get("timezone")
         d["grid_lat"], d["grid_lon"] = payload.get("latitude"), payload.get("longitude")
         frames.append(d)
-    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+    if not frames:
+        return pd.DataFrame()
+    return pd.concat(frames, ignore_index=True).drop_duplicates(["fips", "date"]).reset_index(drop=True)
 
 
 def main(argv: list[str] | None = None) -> int:

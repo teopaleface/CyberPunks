@@ -33,7 +33,11 @@ from cyberpunks.common.contracts import ModelReport
 from cyberpunks.common.paths import REPORTS
 
 OUT_DIR = REPORTS / "B"
-TRAIN_YEARS, TEST_YEAR = (2023, 2024), 2025
+TEST_YEAR = 2025  # anul nevăzut; antrenarea folosește toți anii de dinainte, câți există în date
+
+
+def train_years(df: pd.DataFrame) -> tuple[int, ...]:
+    return tuple(sorted(int(y) for y in df["year"].unique() if y < TEST_YEAR))
 GUST_RULE_KMH = 70.0
 DATASETS = [
     "EAGLE-I, ORNL: Brelsford et al. (2024), Scientific Data 11:271; figshare 10.6084/m9.figshare.24237376.v4 (CC BY 4.0)",
@@ -308,7 +312,8 @@ def figures(te: pd.DataFrame, p: dict[str, np.ndarray], model: BModel) -> list[s
 def run(do_loso: bool = True) -> dict:
     df = pd.read_parquet(dataset.OUT)
     df["date"] = pd.to_datetime(df["date"])
-    train_df = df[df["year"].isin(TRAIN_YEARS)]
+    ty = train_years(df)
+    train_df = df[df["year"].isin(ty)]
     test_df = df[df["year"] == TEST_YEAR]
     print(f"antrenare {len(train_df):,} zile-comitat ({int(train_df['event'].sum()):,} evenimente), "
           f"test {len(test_df):,} ({int(test_df['event'].sum()):,})")
@@ -385,7 +390,7 @@ def run(do_loso: bool = True) -> dict:
         task="clasificare dezechilibrată calibrată (vârf ≥ 1% din clienți fără curent, zonă × zi) + regresie "
              "cuantilă P10/P50/P90 a vârfului, în zilele cu eveniment",
         dataset=DATASETS,
-        split=f"pe timp: antrenare {TRAIN_YEARS[0]}-{TRAIN_YEARS[1]}, test {TEST_YEAR} (an nevăzut), "
+        split=f"pe timp: antrenare {ty[0]}-{ty[-1]}, test {TEST_YEAR} (an nevăzut), "
               f"{model.train_info['counties']} comitate din 8 state SUA; plus state nevăzute (leave-one-state-out) "
               "în reports/B/metrics_detail.json",
         test_size=res["test_rows"],

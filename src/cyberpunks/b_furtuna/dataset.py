@@ -26,8 +26,7 @@ from cyberpunks.common.paths import DATA_PROCESSED
 EVENT_THRESHOLD = 0.01  # vârful zilei ≥ 1% din clienții zonei
 SEVERE_THRESHOLD = 0.05
 EXTREME_THRESHOLD = 0.10
-WX_START, WX_END = "2022-12-25", "2025-12-31"
-YEARS = [2023, 2024, 2025]
+LAG_DAYS = 7  # primele zile din fiecare interval de vreme servesc doar pentru întârzieri (ploaia pe 7 zile etc.)
 OUT = DATA_PROCESSED / "B" / "us_county_day.parquet"
 SUMMARY = DATA_PROCESSED / "B" / "us_county_day_summary.json"
 
@@ -46,7 +45,7 @@ def _stuck_days(daily: pd.DataFrame) -> pd.Series:
 
 def build(min_cov: float = 0.5) -> tuple[pd.DataFrame, dict]:
     sample = pd.read_csv(SAMPLE_CSV, dtype={"fips": str})
-    wx = openmeteo.load_us_history(WX_START, WX_END)
+    wx = openmeteo.load_us_history()
     if wx.empty:
         raise SystemExit("Lipsește vremea: rulează întâi `python -m cyberpunks.b_furtuna.openmeteo us-history`.")
     wx, wx_issues = clean_weather(wx)
@@ -54,7 +53,8 @@ def build(min_cov: float = 0.5) -> tuple[pd.DataFrame, dict]:
     sample = sample[sample["fips"].isin(have)]
     tz_by_fips = wx.groupby("fips")["tz"].first().to_dict()
 
-    hourly = eaglei.load_hourly(YEARS)
+    years = sorted(y for y in wx["date"].dt.year.unique() if (eaglei.HOURLY_DIR / f"{y}.parquet").exists())
+    hourly = eaglei.load_hourly(years)
     hourly = hourly[hourly["fips"].isin(have)]
     daily_out = eaglei.to_daily_local(hourly, tz_by_fips)
 
@@ -64,7 +64,8 @@ def build(min_cov: float = 0.5) -> tuple[pd.DataFrame, dict]:
     df = df.merge(sample[["fips", "state", "county", "customers", "area_km2", "lat", "lon"]], on="fips")
     df["loc_id"] = df["fips"]
     df = make_features(df)
-    df = df[df["date"] >= pd.Timestamp(f"{YEARS[0]}-01-01")].copy()
+    first = df.groupby("fips")["date"].transform("min")
+    df = df[(df["date"] >= first + pd.Timedelta(days=LAG_DAYS)) & df["date"].dt.year.isin(years)].copy()
     df["year"] = df["date"].dt.year
 
     summary: dict = {"counties": int(df["fips"].nunique()), "rows_raw": len(df), "weather_issues": wx_issues}

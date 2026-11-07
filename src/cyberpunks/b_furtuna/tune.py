@@ -19,7 +19,7 @@ from sklearn.model_selection import GroupKFold
 
 from cyberpunks.b_furtuna import dataset
 from cyberpunks.b_furtuna import model as bm
-from cyberpunks.b_furtuna.evaluate import TRAIN_YEARS
+from cyberpunks.b_furtuna.evaluate import train_years
 from cyberpunks.b_furtuna.features import FEATURES
 from cyberpunks.common.paths import REPORTS
 
@@ -44,7 +44,8 @@ def oof_pr_auc(tr: pd.DataFrame, params: dict, rounds: int) -> tuple[float, floa
 def main() -> int:
     df = pd.read_parquet(dataset.OUT)
     df["date"] = pd.to_datetime(df["date"])
-    tr = df[df["year"].isin(TRAIN_YEARS) & ~df["wx_missing"]].reset_index(drop=True)
+    ty = train_years(df)
+    tr = df[df["year"].isin(ty) & ~df["wx_missing"]].reset_index(drop=True)
     rows = []
     keys = list(GRID)
     for values in itertools.product(*(GRID[k] for k in keys)):
@@ -54,7 +55,7 @@ def main() -> int:
         rows.append({**cfg, "oof_pr_auc": round(ap, 4), "oof_brier": round(brier, 4)})
         print(cfg, f"PR-AUC OOF {ap:.4f}")
     rows.sort(key=lambda r: -r["oof_pr_auc"])
-    out = {"train_years": list(TRAIN_YEARS), "counties": int(tr["fips"].nunique()), "rows": len(tr),
+    out = {"train_years": list(ty), "counties": int(tr["fips"].nunique()), "rows": len(tr),
            "current": {"num_leaves": bm.CLF_PARAMS["num_leaves"], "min_data_in_leaf": bm.CLF_PARAMS["min_data_in_leaf"],
                        "learning_rate": bm.CLF_PARAMS["learning_rate"], "rounds": bm.CLF_ROUNDS},
            "results": rows}

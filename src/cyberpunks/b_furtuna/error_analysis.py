@@ -14,7 +14,7 @@ import pandas as pd
 from sklearn.metrics import average_precision_score
 
 from cyberpunks.b_furtuna import dataset
-from cyberpunks.b_furtuna.evaluate import TEST_YEAR, TRAIN_YEARS
+from cyberpunks.b_furtuna.evaluate import TEST_YEAR
 from cyberpunks.b_furtuna.model import BModel
 from cyberpunks.common.paths import REPORTS
 
@@ -86,7 +86,7 @@ def run() -> str:
         "# Analiza erorilor, modelul B (risc de avarii la furtună)",
         "",
         (f"Generat de `uv run python -m cyberpunks.b_furtuna.error_analysis`. Model `{model.version}`, antrenat pe "
-        f"{TRAIN_YEARS[0]}-{TRAIN_YEARS[1]}, evaluat pe {TEST_YEAR} ({fmt_int(len(te))} zile-comitat, "
+        f"{model.train_info['years'][0]}-{model.train_info['years'][-1]}, evaluat pe {TEST_YEAR} ({fmt_int(len(te))} zile-comitat, "
         f"{fmt_int(te['event'].sum())} evenimente). Pragul de decizie: {thr:.2f}."),
         "",
         "## Pe tipuri de vreme",
