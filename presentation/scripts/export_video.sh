@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 # Randează filmul cu HyperFrames și face exportul final:
 # H.264 High, yuv420p, BT.709, AAC 48 kHz, loudnorm în două treceri la -16 LUFS / -1 dBTP, +faststart.
-# Rulare din rădăcina repo-ului: bash presentation/scripts/export_video.sh [nume-ieșire]
+# Rulare din rădăcina repo-ului: bash presentation/scripts/export_video.sh [nume-ieșire] [director-ieșire]
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 VID="$ROOT/presentation/video"
-OUT_DIR="$ROOT/presentation/exports"
 NAME="${1:-tura-de-maine-30s}"
+OUT_DIR="${2:-$ROOT/presentation/exports}"
 TMP="$VID/renders/tmp"
 mkdir -p "$TMP" "$OUT_DIR"
+OUT_DIR="$(cd "$OUT_DIR" && pwd)"  # cale absolută: mai jos lucrăm din directorul proiectului video
 
 cd "$VID"
 npx -y hyperframes@0.9.19 render -o "$TMP/$NAME-raw.mp4" --quality delivery --workers 4

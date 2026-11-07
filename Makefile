@@ -62,8 +62,9 @@ presentation-assets:  ## harta de noapte NASA, granițele regiunilor, schița sc
 	uv run --with shapely python presentation/scripts/build_map_overlay.py
 	uv run --with shapely python presentation/scripts/build_s5_scene.py
 
-music:                ## regenerează muzica originală a filmului (96 BPM, 30 s)
+music:                ## regenerează muzica originală a filmului (96 BPM, 30 s) și o pune în proiectul video
 	uv run python presentation/music/compose.py
+	ffmpeg -v error -y -i presentation/music/out/tura_96bpm_30s.wav -c:a flac -sample_fmt s16 presentation/video/assets/audio/tura_96bpm_30s.flac
 
 video-check:          ## verificările HyperFrames (lint, runtime, layout, contrast)
 	cd presentation/video && $(HF) check

@@ -1,0 +1,763 @@
+{
+  "title": "Tura de mâine (muzica filmului de 30 s)",
+  "file": "tura_96bpm_30s.wav",
+  "bpm": 96,
+  "time_signature": "4/4",
+  "key": "re major (începe pe si minor)",
+  "sample_rate": 48000,
+  "fps": 30,
+  "duration_seconds": 30.0,
+  "bar_seconds": 2.5,
+  "beat_seconds": 0.625,
+  "sixteenth_seconds": 0.15625,
+  "bars": [
+    {
+      "bar": 1,
+      "start": 0.0,
+      "end": 2.5,
+      "frame": 0,
+      "section": "contoare",
+      "on_screen": "negru, apoi mii de puncte (contoare): „2 milioane de contoare”",
+      "music": "pad cald care urcă din liniște; ping-uri rare, sus, ca niște date; fără tobe",
+      "chords": [
+        "Bsus"
+      ]
+    },
+    {
+      "bar": 2,
+      "start": 2.5,
+      "end": 5.0,
+      "frame": 75,
+      "section": "citiri",
+      "on_screen": "„192 de milioane de citiri pe zi”",
+      "music": "padul continuă; ping-urile devin un șir liniștit de șaisprezecimi (fluxul de date)",
+      "chords": [
+        "Bsus"
+      ]
+    },
+    {
+      "bar": 3,
+      "start": 5.0,
+      "end": 7.5,
+      "frame": 150,
+      "section": "zoom",
+      "on_screen": "zoom pe un singur punct, un „0,87” uriaș",
+      "music": "sclipirea se oprește fix la 5,0 s; o notă sub (F#1) și o notă de pian electric (C#5): tensiune, spațiu",
+      "chords": [
+        "F#sus"
+      ]
+    },
+    {
+      "bar": 4,
+      "start": 7.5,
+      "end": 10.0,
+      "frame": 225,
+      "section": "problema",
+      "on_screen": "„...nu îi spune unui tehnician unde să meargă mâine”",
+      "music": "totul ține, filtrul se închide încet; ultima jumătate de timp e o respirație, aproape liniște",
+      "chords": [
+        "F#sus"
+      ]
+    },
+    {
+      "bar": 5,
+      "start": 10.0,
+      "end": 12.5,
+      "frame": 300,
+      "section": "reveal",
+      "on_screen": "numele produsului: „Tura de mâine”",
+      "music": "pe 10,0 s armonia se deschide (Gmaj9): primul acord plin, intră kick-ul moale și basul",
+      "chords": [
+        "Gmaj9"
+      ]
+    },
+    {
+      "bar": 6,
+      "start": 12.5,
+      "end": 15.0,
+      "frame": 375,
+      "section": "semnale",
+      "on_screen": "trei semnale, câte unul la 1,25 s (12,5 / 13,75 / 15,0): contoare, furtună, tensiune",
+      "music": "groove: kick pe 1 și 3, clap moale pe 2 și 4, hi-hat în optimi, linie de bas",
+      "chords": [
+        "Asus"
+      ]
+    },
+    {
+      "bar": 7,
+      "start": 15.0,
+      "end": 17.5,
+      "frame": 450,
+      "section": "pasi",
+      "on_screen": "al treilea semnal (tensiune) pe 15,0; harta agentului și Perceive pe 16,25",
+      "music": "același groove; prima notă a motivului (A4) cade pe Perceive, la 16,25",
+      "chords": [
+        "F#m11"
+      ]
+    },
+    {
+      "bar": 8,
+      "start": 17.5,
+      "end": 20.0,
+      "frame": 525,
+      "section": "harta",
+      "on_screen": "harta: Estimate pe 17,5, Decide pe 18,75 (bilanțul postului confirmă contorul)",
+      "music": "groove complet; motivul continuă: B4 pe Estimate, C#5 pe Decide; partea cea mai caldă",
+      "chords": [
+        "Gmaj9"
+      ]
+    },
+    {
+      "bar": 9,
+      "start": 20.0,
+      "end": 22.5,
+      "frame": 600,
+      "section": "harta",
+      "on_screen": "Act pe 20,0: traseele echipelor se desenează din bazele operative",
+      "music": "groove complet; vârful motivului (E5) cade pe Act, apoi melodia rămâne suspendată pe F#5",
+      "chords": [
+        "Asus",
+        "A6"
+      ]
+    },
+    {
+      "bar": 10,
+      "start": 22.5,
+      "end": 25.0,
+      "frame": 675,
+      "section": "pauza",
+      "on_screen": "„Nu sunt sigur.” apoi „Un om decide.”",
+      "music": "tobele și basul tac: pad plus un singur acord ținut de pian electric (Bm9), spațiu",
+      "chords": [
+        "Bm9"
+      ]
+    },
+    {
+      "bar": 11,
+      "start": 25.0,
+      "end": 27.5,
+      "frame": 750,
+      "section": "metrica",
+      "on_screen": "metrica cheie față de baseline",
+      "music": "tobele revin, mai ușor; motivul revine și urcă spre final",
+      "chords": [
+        "Gmaj9",
+        "A6"
+      ]
+    },
+    {
+      "bar": 12,
+      "start": 27.5,
+      "end": 30.0,
+      "frame": 825,
+      "section": "final",
+      "on_screen": "cartonul final: „CyberPunks · SmartHack XI 2026”",
+      "music": "acord major de rezolvare (D add9) fix pe 27,5 s; tobele tac; sună liber, cu reverb, liniște totală de la 29,9 s",
+      "chords": [
+        "Dadd9"
+      ]
+    }
+  ],
+  "beats": [
+    {
+      "time": 0.0,
+      "bar": 1,
+      "beat": 1,
+      "frame": 0.0,
+      "downbeat": true
+    },
+    {
+      "time": 0.625,
+      "bar": 1,
+      "beat": 2,
+      "frame": 18.75,
+      "downbeat": false
+    },
+    {
+      "time": 1.25,
+      "bar": 1,
+      "beat": 3,
+      "frame": 37.5,
+      "downbeat": false
+    },
+    {
+      "time": 1.875,
+      "bar": 1,
+      "beat": 4,
+      "frame": 56.25,
+      "downbeat": false
+    },
+    {
+      "time": 2.5,
+      "bar": 2,
+      "beat": 1,
+      "frame": 75.0,
+      "downbeat": true
+    },
+    {
+      "time": 3.125,
+      "bar": 2,
+      "beat": 2,
+      "frame": 93.75,
+      "downbeat": false
+    },
+    {
+      "time": 3.75,
+      "bar": 2,
+      "beat": 3,
+      "frame": 112.5,
+      "downbeat": false
+    },
+    {
+      "time": 4.375,
+      "bar": 2,
+      "beat": 4,
+      "frame": 131.25,
+      "downbeat": false
+    },
+    {
+      "time": 5.0,
+      "bar": 3,
+      "beat": 1,
+      "frame": 150.0,
+      "downbeat": true
+    },
+    {
+      "time": 5.625,
+      "bar": 3,
+      "beat": 2,
+      "frame": 168.75,
+      "downbeat": false
+    },
+    {
+      "time": 6.25,
+      "bar": 3,
+      "beat": 3,
+      "frame": 187.5,
+      "downbeat": false
+    },
+    {
+      "time": 6.875,
+      "bar": 3,
+      "beat": 4,
+      "frame": 206.25,
+      "downbeat": false
+    },
+    {
+      "time": 7.5,
+      "bar": 4,
+      "beat": 1,
+      "frame": 225.0,
+      "downbeat": true
+    },
+    {
+      "time": 8.125,
+      "bar": 4,
+      "beat": 2,
+      "frame": 243.75,
+      "downbeat": false
+    },
+    {
+      "time": 8.75,
+      "bar": 4,
+      "beat": 3,
+      "frame": 262.5,
+      "downbeat": false
+    },
+    {
+      "time": 9.375,
+      "bar": 4,
+      "beat": 4,
+      "frame": 281.25,
+      "downbeat": false
+    },
+    {
+      "time": 10.0,
+      "bar": 5,
+      "beat": 1,
+      "frame": 300.0,
+      "downbeat": true
+    },
+    {
+      "time": 10.625,
+      "bar": 5,
+      "beat": 2,
+      "frame": 318.75,
+      "downbeat": false
+    },
+    {
+      "time": 11.25,
+      "bar": 5,
+      "beat": 3,
+      "frame": 337.5,
+      "downbeat": false
+    },
+    {
+      "time": 11.875,
+      "bar": 5,
+      "beat": 4,
+      "frame": 356.25,
+      "downbeat": false
+    },
+    {
+      "time": 12.5,
+      "bar": 6,
+      "beat": 1,
+      "frame": 375.0,
+      "downbeat": true
+    },
+    {
+      "time": 13.125,
+      "bar": 6,
+      "beat": 2,
+      "frame": 393.75,
+      "downbeat": false
+    },
+    {
+      "time": 13.75,
+      "bar": 6,
+      "beat": 3,
+      "frame": 412.5,
+      "downbeat": false
+    },
+    {
+      "time": 14.375,
+      "bar": 6,
+      "beat": 4,
+      "frame": 431.25,
+      "downbeat": false
+    },
+    {
+      "time": 15.0,
+      "bar": 7,
+      "beat": 1,
+      "frame": 450.0,
+      "downbeat": true
+    },
+    {
+      "time": 15.625,
+      "bar": 7,
+      "beat": 2,
+      "frame": 468.75,
+      "downbeat": false
+    },
+    {
+      "time": 16.25,
+      "bar": 7,
+      "beat": 3,
+      "frame": 487.5,
+      "downbeat": false
+    },
+    {
+      "time": 16.875,
+      "bar": 7,
+      "beat": 4,
+      "frame": 506.25,
+      "downbeat": false
+    },
+    {
+      "time": 17.5,
+      "bar": 8,
+      "beat": 1,
+      "frame": 525.0,
+      "downbeat": true
+    },
+    {
+      "time": 18.125,
+      "bar": 8,
+      "beat": 2,
+      "frame": 543.75,
+      "downbeat": false
+    },
+    {
+      "time": 18.75,
+      "bar": 8,
+      "beat": 3,
+      "frame": 562.5,
+      "downbeat": false
+    },
+    {
+      "time": 19.375,
+      "bar": 8,
+      "beat": 4,
+      "frame": 581.25,
+      "downbeat": false
+    },
+    {
+      "time": 20.0,
+      "bar": 9,
+      "beat": 1,
+      "frame": 600.0,
+      "downbeat": true
+    },
+    {
+      "time": 20.625,
+      "bar": 9,
+      "beat": 2,
+      "frame": 618.75,
+      "downbeat": false
+    },
+    {
+      "time": 21.25,
+      "bar": 9,
+      "beat": 3,
+      "frame": 637.5,
+      "downbeat": false
+    },
+    {
+      "time": 21.875,
+      "bar": 9,
+      "beat": 4,
+      "frame": 656.25,
+      "downbeat": false
+    },
+    {
+      "time": 22.5,
+      "bar": 10,
+      "beat": 1,
+      "frame": 675.0,
+      "downbeat": true
+    },
+    {
+      "time": 23.125,
+      "bar": 10,
+      "beat": 2,
+      "frame": 693.75,
+      "downbeat": false
+    },
+    {
+      "time": 23.75,
+      "bar": 10,
+      "beat": 3,
+      "frame": 712.5,
+      "downbeat": false
+    },
+    {
+      "time": 24.375,
+      "bar": 10,
+      "beat": 4,
+      "frame": 731.25,
+      "downbeat": false
+    },
+    {
+      "time": 25.0,
+      "bar": 11,
+      "beat": 1,
+      "frame": 750.0,
+      "downbeat": true
+    },
+    {
+      "time": 25.625,
+      "bar": 11,
+      "beat": 2,
+      "frame": 768.75,
+      "downbeat": false
+    },
+    {
+      "time": 26.25,
+      "bar": 11,
+      "beat": 3,
+      "frame": 787.5,
+      "downbeat": false
+    },
+    {
+      "time": 26.875,
+      "bar": 11,
+      "beat": 4,
+      "frame": 806.25,
+      "downbeat": false
+    },
+    {
+      "time": 27.5,
+      "bar": 12,
+      "beat": 1,
+      "frame": 825.0,
+      "downbeat": true
+    },
+    {
+      "time": 28.125,
+      "bar": 12,
+      "beat": 2,
+      "frame": 843.75,
+      "downbeat": false
+    },
+    {
+      "time": 28.75,
+      "bar": 12,
+      "beat": 3,
+      "frame": 862.5,
+      "downbeat": false
+    },
+    {
+      "time": 29.375,
+      "bar": 12,
+      "beat": 4,
+      "frame": 881.25,
+      "downbeat": false
+    }
+  ],
+  "accents": {
+    "pad_in": {
+      "time": 0.0,
+      "frame": 0.0,
+      "frame_int": 0
+    },
+    "first_ping": {
+      "time": 0.625,
+      "frame": 18.75,
+      "frame_int": 19
+    },
+    "shimmer": {
+      "time": 2.5,
+      "frame": 75.0,
+      "frame_int": 75
+    },
+    "zoom": {
+      "time": 5.0,
+      "frame": 150.0,
+      "frame_int": 150
+    },
+    "shimmer_stop": {
+      "time": 5.0,
+      "frame": 150.0,
+      "frame_int": 150
+    },
+    "silence_start": {
+      "time": 9.6875,
+      "frame": 290.625,
+      "frame_int": 291
+    },
+    "reveal": {
+      "time": 10.0,
+      "frame": 300.0,
+      "frame_int": 300
+    },
+    "signals": [
+      {
+        "time": 12.5,
+        "frame": 375.0,
+        "frame_int": 375
+      },
+      {
+        "time": 13.75,
+        "frame": 412.5,
+        "frame_int": 412
+      },
+      {
+        "time": 15.0,
+        "frame": 450.0,
+        "frame_int": 450
+      }
+    ],
+    "steps": [
+      {
+        "time": 16.25,
+        "frame": 487.5,
+        "frame_int": 488
+      },
+      {
+        "time": 17.5,
+        "frame": 525.0,
+        "frame_int": 525
+      },
+      {
+        "time": 18.75,
+        "frame": 562.5,
+        "frame_int": 562
+      },
+      {
+        "time": 20.0,
+        "frame": 600.0,
+        "frame_int": 600
+      }
+    ],
+    "map": {
+      "time": 17.5,
+      "frame": 525.0,
+      "frame_int": 525
+    },
+    "breakdown": {
+      "time": 22.5,
+      "frame": 675.0,
+      "frame_int": 675
+    },
+    "metric": {
+      "time": 25.0,
+      "frame": 750.0,
+      "frame_int": 750
+    },
+    "final_hit": {
+      "time": 27.5,
+      "frame": 825.0,
+      "frame_int": 825
+    },
+    "silent_from": {
+      "time": 29.9,
+      "frame": 897.0,
+      "frame_int": 897
+    }
+  },
+  "notes": {
+    "signals": "cele trei semnale, din 2 în 2 timpi (12,5 / 13,75 / 15,0); fiecare cade pe un kick",
+    "steps": "Perceive, Estimate, Decide, Act; notele motivului (A4, B4, C#5, E5) cad exact pe acești timpi",
+    "silence_start": "de aici până la reveal e aproape liniște; doar swell-ul din stem-ul fx"
+  },
+  "events": {
+    "kick": [
+      10.0,
+      11.25,
+      12.5,
+      13.75,
+      15.0,
+      16.25,
+      17.5,
+      18.75,
+      19.6875,
+      20.0,
+      21.25,
+      25.0,
+      26.25
+    ],
+    "clap": [
+      13.1247,
+      14.3776,
+      15.6257,
+      16.873,
+      18.1259,
+      19.3762,
+      20.627,
+      21.874,
+      25.6255,
+      26.8759
+    ],
+    "hat": [
+      12.5003,
+      12.8086,
+      13.1226,
+      13.4376,
+      13.7515,
+      14.0649,
+      14.3731,
+      14.6862,
+      15.0019,
+      15.3157,
+      15.6212,
+      15.9344,
+      16.2497,
+      16.5643,
+      16.8743,
+      17.1841,
+      17.5007,
+      17.8128,
+      18.1299,
+      18.4385,
+      18.7518,
+      19.0634,
+      19.3742,
+      19.6874,
+      20.0024,
+      20.3148,
+      20.6237,
+      20.9329,
+      21.2488,
+      21.5675,
+      21.8749,
+      22.1906,
+      24.9979,
+      25.3132,
+      25.6256,
+      25.9385,
+      26.2473,
+      26.5659,
+      26.8759
+    ],
+    "bass": [
+      5.0,
+      10.0,
+      12.5,
+      13.4363,
+      13.75,
+      14.3762,
+      15.0,
+      15.938,
+      16.25,
+      17.1902,
+      17.5,
+      18.4387,
+      18.75,
+      19.3749,
+      19.6837,
+      20.0,
+      20.9393,
+      21.25,
+      22.1867,
+      25.0,
+      25.9373,
+      26.25,
+      27.1904,
+      27.5
+    ],
+    "keys": [
+      5.0,
+      10.0,
+      12.5,
+      13.4403,
+      14.3741,
+      15.0,
+      15.9384,
+      17.5,
+      18.4348,
+      19.0607,
+      19.3763,
+      20.0,
+      20.9336,
+      21.2488,
+      22.5,
+      25.0,
+      25.9413,
+      26.244,
+      27.5
+    ],
+    "plucks": [
+      0.625,
+      1.4062,
+      1.875,
+      2.1875,
+      2.3438,
+      2.5,
+      2.6562,
+      2.8125,
+      2.9688,
+      3.125,
+      3.2812,
+      3.4375,
+      3.5938,
+      3.75,
+      3.9062,
+      4.0625,
+      4.2188,
+      4.375,
+      4.5312,
+      4.6875,
+      4.8438,
+      16.25,
+      17.5,
+      18.75,
+      20.0,
+      21.25,
+      21.7188,
+      21.875,
+      25.0,
+      25.625,
+      26.25,
+      26.875,
+      27.5
+    ]
+  },
+  "master": {
+    "lufs_integrated_internal": -16.03,
+    "true_peak_dbtp_internal": -1.3,
+    "gain_db": 2.2
+  },
+  "license": "CC0: muzică originală compusă în cod de echipa CyberPunks, fără sample-uri"
+}
