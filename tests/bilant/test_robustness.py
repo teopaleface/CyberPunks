@@ -80,3 +80,17 @@ def test_abstain_on_tie_and_wide_interval():
     assert d["abstain"].tolist() == [True, True, False]
     assert "egalitate" in d["abstain_reason"].iloc[0] or "50%" in d["abstain_reason"].iloc[0]
     assert "larg" in d["abstain_reason"].iloc[1]
+
+
+def test_suspect_meter_prefers_clear_signs():
+    from cyberpunks.a_bilant.predict import suspect_meter
+
+    rng = np.random.default_rng(0)
+    cd = rng.uniform(5, 9, (10, 120))
+    cd[3, 100:] = 0.0  # contor oprit
+    cd[7, 100:] = cd[7, 100:] * 0.4  # consum scăzut (de exemplu concediu), fără semn clar
+    i, why, drop = suspect_meter(cd, 119, excess=7.0)
+    assert i == 3 and "zero" in why and drop > 5
+    cd[3, 100:] = cd[3, 99]  # contor blocat pe ultima valoare
+    i, why, _ = suspect_meter(cd, 119, excess=0.5)
+    assert i == 3 and "blocat" in why

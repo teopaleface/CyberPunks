@@ -141,6 +141,35 @@ def post_states(pool: str, target_day: int) -> tuple[pd.DataFrame, pd.DataFrame,
     return d, win.join(dec), proba
 
 
+def suspect_meter(cd: np.ndarray, tday: int, excess: float) -> tuple[int, str, float] | None:
+    """Clientul cel mai probabil vinovat, din consumul zilnic al clienților (n, D): (index, motiv, kWh/zi).
+
+    Întâi semnele clare din ultimele 14 zile (zile cu zero după consum normal, valoare zilnică blocată, consum
+    devenit negativ), apoi consumul dispărut cel mai apropiat de lipsa postului.
+    """
+    if tday < 34:
+        return None
+    last = cd[:, tday - 13 : tday + 1]
+    before = cd[:, max(0, tday - 74) : tday - 13]
+    bmean = before.mean(1)
+    zero = ((last == 0).sum(1) >= 5) & (bmean > 0.5)
+    stuck = (np.abs(np.diff(last, axis=1)) < 1e-6).sum(1) >= 6
+    stuck &= np.abs(last[:, -1]) > 0
+    neg = ((last < -0.05).sum(1) >= 5) & ((before < -0.05).mean(1) < 0.05) & (bmean > 0.5)
+    drop = bmean - last.mean(1)
+    cands = []
+    for flag, why in ((zero, "zile cu consum zero după consum normal"), (stuck, "valoare zilnică blocată"), (neg, "consum devenit negativ (polaritate)")):
+        for i in np.flatnonzero(flag):
+            cands.append((abs(abs(drop[i]) - abs(excess)), int(i), why, float(drop[i])))
+    if cands:
+        _, i, why, dr = min(cands)
+        return i, why, dr
+    i = int(np.argmin(np.abs(drop - excess))) if excess > 0 else int(np.argmax(drop))
+    if drop[i] > 0.5:
+        return i, "consum scăzut brusc, cât lipsa postului", float(drop[i])
+    return None
+
+
 def ensure_ready(pool: str = "pop") -> None:
     """Dintr-o clonă curată: simulează loturile (~1 minut) și antrenează modelele (~4 minute) dacă lipsesc."""
     from cyberpunks.a_bilant import dataset
@@ -237,13 +266,12 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
             continue
         extra: dict = {"post_id": pid, "series_ref": f"outputs/series/{scenario}/A-{target:%Y%m%d}-{pid}.json", "diagnosis_proba": {c: round(float(proba.loc[_, c]), 4) for c in CLASSES}}
         # clientul suspect (cel mai mare consum dispărut) și vecinul cu surplus
-        cd = cust[pid] if pid in cust.files else None
-        if cd is not None and tday >= 34:
-            drop = cd[:, tday - 34 : tday - 13].mean(1) - cd[:, tday - 6 : tday + 1].mean(1)
-            j = int(np.argmax(drop))
-            if drop[j] > 0.5:
-                extra["suspect_meter"] = f"{pid}-C{j:03d}"
-                extra["suspect_meter_drop_kwh_day"] = round(float(drop[j]), 2)
+        cd = cust[pid].astype(float) if pid in cust.files else None
+        sus = suspect_meter(cd, tday, float(r["r_mean_kwh"])) if cd is not None else None
+        if sus:
+            extra["suspect_meter"] = f"{pid}-C{sus[0]:03d}"
+            extra["suspect_meter_reason_ro"] = sus[1]
+            extra["suspect_meter_drop_kwh_day"] = round(sus[2], 2)
         nbs = [(q, rmean.get(q, 0.0)) for q in nb.get(pid, [])]
         if nbs:
             q, v = min(nbs, key=lambda x: x[1])
@@ -252,8 +280,10 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
                 extra["neighbor_surplus_kwh_day"] = round(float(-v), 2)
         label = r["label"]
         excess = max(float(r["r_mean_kwh"]), 0.0)
-        if label == "client_post_gresit" and float(r["r_mean_kwh"]) < 0:
-            excess = -float(r["r_mean_kwh"])  # postul cu surplus: corecția mută clientul înapoi
+        if label in ("client_post_gresit", "contor_client") and float(r["r_mean_kwh"]) < 0:
+            # surplus: clientul mutat înapoi la postul lui, sau contorul care înregistrează în plus (clientul plătește
+            # energie neconsumată și trebuie despăgubit); valoarea = energia înregistrată greșit
+            excess = -float(r["r_mean_kwh"])
         if label == "pierdere_tehnica":
             ratio = (float(r["p50_mean_kwh"]) + float(r["r_mean_kwh"])) / max(float(r["p50_mean_kwh"]), 0.1)
             share = _phase_share_for_ratio(ratio, int(rg.get("n_houses", rg.get("n_customers", 50))))
@@ -292,7 +322,7 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
             if len(factors) == 5:
                 break
         lei_month = 0.0 if label == "contor_bilant_setat" else excess * 30 * eco["price"]
-        who = f", {CLASS_RO[label]} la clientul {extra['suspect_meter']}" if label == "contor_client" and "suspect_meter" in extra else f", {CLASS_RO[label]}"
+        who = f", {CLASS_RO[label]} la clientul {extra['suspect_meter']} ({extra['suspect_meter_reason_ro']})" if label == "contor_client" and "suspect_meter" in extra else f", {CLASS_RO[label]}"
         if r["abstain"]:
             summary = f"Postul {pid}: ~{lei_month:.0f} lei pe lună pierduți peste normal. Nu sunt sigur de cauză ({r['abstain_reason']}): {CLASS_RO[label]} {r['p_label']:.0%} sau {CLASS_RO[r['second']]} {r['p_second']:.0%}. Decide un om."
         elif label == "contor_bilant_setat":
