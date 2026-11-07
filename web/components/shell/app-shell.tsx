@@ -22,7 +22,7 @@ export function AppShell({ info, fit = false, children }: { info: ShellInfo; fit
         Sari la conținut
       </a>
       <header className="flex h-16 shrink-0 items-center gap-6 border-b border-rule bg-panel pr-7 pl-7 max-[1600px]:gap-4 max-[1600px]:pr-5 max-[1600px]:pl-5">
-        <Link href="/" aria-label="Tura de mâine, planul de mâine" className="rounded-[4px]">
+        <Link href="/" aria-label="Daybreak, planul de mâine" className="rounded-[4px]">
           <Wordmark />
         </Link>
         <span className="h-7 w-px bg-rule" aria-hidden="true" />

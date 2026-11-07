@@ -1,4 +1,6 @@
-# Tura de mâine
+# Logourile respinse (fostul nume „Tura de mâine”)
+
+> RESPINSE de Teo pe 7 nov., la 15:30, cu toate variantele. Nu le folosiți. Produsul se numește acum Daybreak, iar identitatea se face separat. Fișierele stau aici doar ca istoric; nu mai sunt servite de consolă (au ieșit din `public/`).
 
 Produs independent al echipei CyberPunks. Fără identitate oficială PPC.
 

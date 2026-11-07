@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { LogoMark } from "@/components/brand/logo";
+import { Wordmark } from "@/components/brand/logo";
 import { PlanScreen, type PostsInfo } from "@/components/plan/plan-screen";
 import { Readouts } from "@/components/plan/readouts";
 import { SyntheticGlyph } from "@/components/shell/provenance";
@@ -108,10 +108,7 @@ export function DemoStage({
   return (
     <div className="dark flex h-dvh min-h-[720px] flex-col overflow-hidden bg-canvas text-ink [color-scheme:dark]">
       <header className="flex h-16 shrink-0 items-center gap-6 border-b border-rule bg-panel px-7">
-        <span className="flex items-center gap-2.5">
-          <LogoMark size={26} />
-          <span className="text-[21px] font-[650] tracking-[-0.005em]">Tura de mâine</span>
-        </span>
+        <Wordmark />
         <span className="h-7 w-px bg-rule" aria-hidden="true" />
         <span className="text-[17px] text-muted-foreground">Consola dispecerului Rețele Electrice, planul pentru {fmtDateLong(data.planDate).toLowerCase()}</span>
         <span className="flex-1" />

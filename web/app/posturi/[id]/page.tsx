@@ -9,7 +9,7 @@ import { SyntheticGlyph } from "@/components/shell/provenance";
 import { AppShell } from "@/components/shell/app-shell";
 import type { WorkItem } from "@/lib/contracts";
 import { getSeries } from "@/lib/data";
-import { factorLabelRo, DECISION_LABEL_RO, predictionLabelRo, ruleRo } from "@/lib/data/labels";
+import { clampPercentRo, factorLabelRo, DECISION_LABEL_RO, predictionLabelRo, ruleRo } from "@/lib/data/labels";
 import { POST_COLOR_THRESHOLDS, getPosts } from "@/lib/data/posts";
 import { getRemedies } from "@/lib/data/remedies";
 import { BILANT_LABEL, bilantFusion, remedyOptions } from "@/lib/extras";
@@ -149,7 +149,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
               <>
                 <p className="mt-1.5 max-w-[72ch] text-[16.5px] leading-relaxed">
                   {post.diagnosis && !/cauza probabilă/i.test(bilant.explanation.summary_ro) ? `${sentence(post.diagnosis)} ` : ""}
-                  {bilant.explanation.summary_ro}
+                  {clampPercentRo(bilant.explanation.summary_ro)}
                 </p>
                 <ul className="mt-3 space-y-1.5 text-[15.5px]">
                   {bilant.explanation.top_factors.map((f) => (
@@ -249,7 +249,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
               <h2 id="c-title" className="text-[18px] font-[650]">
                 Tensiunea la prânz (sursa C)
               </h2>
-              <p className="mt-1.5 text-[15.5px]">{cItem.explanation.summary_ro}</p>
+              <p className="mt-1.5 text-[15.5px]">{clampPercentRo(cItem.explanation.summary_ro)}</p>
               {cDecision ? (
                 <p className="mt-2 text-[15px]">
                   Decizia: <b className="font-[600]">{DECISION_LABEL_RO[cDecision.decision]}</b>, <span className="code-id">{cDecision.rule_id}</span>.
