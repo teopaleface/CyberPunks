@@ -16,6 +16,7 @@ Decizia lui Teo (7 nov. 2026, 12:30): facem în paralel A (contoare), B (furtun�
 | C | Teo-C-prosumatori | tensiune prea mare din cauza prosumatorilor |
 | Planificator | Teo-planificator | agentul: decizii, trasee OR-Tools, acțiuni, jurnal, API pe portul 8710 |
 | Interfață | Teo-ui | consola dispecerului, Next.js, portul 3710 |
+| Bilanț pe post | Teo-bilant | pierderi pe post, diagnosticul cauzei, fuziunea cu A (adăugat la 14:05, vezi 11-bilant-pe-post.md) |
 | Prezentare | Teo-prezentare | video de 30 s cu HyperFrames în stil Apple, slideuri, scriptul demo-ului |
 
 ## Thread-urile pornite (7 nov., 12:44) și worktree-urile lor

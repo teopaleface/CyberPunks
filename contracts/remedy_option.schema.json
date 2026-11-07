@@ -1,0 +1,113 @@
+{
+  "$defs": {
+    "Confidence": {
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "title": "Confidence",
+      "type": "string"
+    },
+    "CrewSkill": {
+      "enum": [
+        "metering",
+        "lv_grid",
+        "mv_grid"
+      ],
+      "title": "CrewSkill",
+      "type": "string"
+    },
+    "RecommendedAction": {
+      "enum": [
+        "inspect_on_site",
+        "remote_reading",
+        "watchlist",
+        "human_review",
+        "preposition_crew",
+        "adjust_tap",
+        "measurement_campaign",
+        "notify_customers",
+        "office_correction",
+        "grid_inspection",
+        "phase_rebalance",
+        "offer_battery",
+        "export_limit",
+        "transformer_upgrade",
+        "no_action"
+      ],
+      "title": "RecommendedAction",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "O treaptă din scara de soluții pentru tensiune (C), în `WorkItem.extra[\"remedy_options\"]` (listă).\n\nEfectul se calculează cu calculul de rețea al lui C, nu se ghicește.",
+  "properties": {
+    "action": {
+      "$ref": "#/$defs/RecommendedAction"
+    },
+    "cost_lei": {
+      "minimum": 0.0,
+      "title": "Cost Lei",
+      "type": "number"
+    },
+    "p90_after_pu": {
+      "description": "P90 al tensiunii maxime după soluție",
+      "exclusiveMaximum": 1.5,
+      "exclusiveMinimum": 0.5,
+      "title": "P90 After Pu",
+      "type": "number"
+    },
+    "effect_pu": {
+      "description": "Cât scade P90 (pu), negativ = scade",
+      "title": "Effect Pu",
+      "type": "number"
+    },
+    "confidence": {
+      "$ref": "#/$defs/Confidence"
+    },
+    "duration_min": {
+      "description": "Timp de lucru; 0 pentru mesaje",
+      "minimum": 0,
+      "title": "Duration Min",
+      "type": "integer"
+    },
+    "needs_crew": {
+      "title": "Needs Crew",
+      "type": "boolean"
+    },
+    "crew_skill": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CrewSkill"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "combinable": {
+      "default": true,
+      "description": "Se poate combina cu alte trepte",
+      "title": "Combinable",
+      "type": "boolean"
+    },
+    "note_ro": {
+      "title": "Note Ro",
+      "type": "string"
+    }
+  },
+  "required": [
+    "action",
+    "cost_lei",
+    "p90_after_pu",
+    "effect_pu",
+    "confidence",
+    "duration_min",
+    "needs_crew",
+    "note_ro"
+  ],
+  "title": "RemedyOption",
+  "type": "object"
+}
