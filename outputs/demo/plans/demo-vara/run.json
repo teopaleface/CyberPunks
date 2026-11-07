@@ -1,0 +1,81 @@
+{
+  "mode": "existing",
+  "sources": {
+    "A": {
+      "origin": "model",
+      "status": "ok",
+      "note": "ieșirea existentă a modelului",
+      "valid": 249,
+      "invalid": 0,
+      "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/demo-vara/A.jsonl",
+      "seconds": 0.0,
+      "optional": false
+    },
+    "A_bilant": {
+      "origin": "missing",
+      "status": "missing",
+      "note": "nicio ieșire pentru data planului; fișierul lipsește",
+      "valid": 0,
+      "invalid": 0,
+      "path": null,
+      "seconds": 0.0,
+      "optional": true
+    },
+    "B": {
+      "origin": "model",
+      "status": "ok",
+      "note": "ieșirea existentă a modelului",
+      "valid": 26,
+      "invalid": 0,
+      "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/demo-vara/B.jsonl",
+      "seconds": 0.0,
+      "optional": false
+    },
+    "C": {
+      "origin": "model",
+      "status": "ok",
+      "note": "ieșirea existentă a modelului",
+      "valid": 41,
+      "invalid": 0,
+      "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/demo-vara/C.jsonl",
+      "seconds": 0.0,
+      "optional": false
+    }
+  },
+  "plan_id": "PLAN-demo-vara-20250708-140705-2c33",
+  "scenario": "demo-vara",
+  "plan_date": "2025-07-08",
+  "as_of": "2025-07-07T18:00:00+03:00",
+  "generated_at": "2026-11-07T14:07:05+02:00",
+  "planner_version": "planner@0.1.0+c33c013",
+  "solver": {
+    "name": "ortools",
+    "status": "SUCCESS",
+    "seconds": 8.223,
+    "objective_lei": 58830.91,
+    "tasks": 152,
+    "crews": 11
+  },
+  "overrides": 0,
+  "fusion": {
+    "status": "indisponibilă (modulul bilanțului nu există încă)"
+  },
+  "remedies": [],
+  "work_orders": [
+    "E-BV-1.pdf",
+    "E-BV-2.pdf",
+    "E-BV-3.pdf",
+    "E-BE-1.pdf",
+    "E-BE-2.pdf",
+    "E-CT-1.pdf",
+    "E-TM-1.pdf",
+    "E-AR-1.pdf",
+    "E-RS-1.pdf"
+  ],
+  "timings": {
+    "perceive": 0.009,
+    "estimate": 0.001,
+    "decide": 8.407,
+    "act": 1.26
+  }
+}

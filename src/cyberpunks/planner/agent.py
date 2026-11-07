@@ -133,10 +133,11 @@ def build_routing(ctx: Context, proposals: list) -> Any:
         if not p.route:
             continue
         wi = p.wi
-        skill = p.skill or wi.effort.crew_skill.value
+        required = p.skills_required or frozenset({p.skill or wi.effort.crew_skill.value})
+        skill = "+".join(sorted(required))
         size = p.crew_size or wi.effort.crew_size
         duration = p.duration_min or wi.effort.duration_min
-        allowed = [v for v, veh in enumerate(vehicles) if skill in veh.crew.skills and veh.crew.size >= size]
+        allowed = [v for v, veh in enumerate(vehicles) if required <= veh.crew.skills and veh.crew.size >= size]
         tasks.append(
             Task(
                 id=p.id, lat=wi.location.lat, lon=wi.location.lon,
@@ -147,6 +148,15 @@ def build_routing(ctx: Context, proposals: list) -> Any:
             )
         )
     return build_problem(tasks, vehicles, ctx.travel, scale)
+
+
+def _unique_quarantine_ids(loads: dict[str, SourceLoad]) -> None:
+    """O linie respinsă nu are voie să aibă același ID cu o lucrare validă (de exemplu varianta corectată, mai jos în fișier)."""
+    valid = {it.id for load in loads.values() for it in load.items}
+    for load in loads.values():
+        for q in load.quarantined:
+            if q.work_item_id in valid:
+                q.work_item_id = f"{q.work_item_id}~linia{q.line}"
 
 
 def _module_available(name: str) -> bool:
@@ -234,6 +244,7 @@ def _decide_and_act(
     # Deciziile omului se reaplică doar la replanificare; o rulare nouă pornește de la zero (cele vechi rămân în history/).
     overrides = load_overrides(plan_dir) if append_audit else {}
     ctx = Context.build(settings, plan_date, as_of=as_of, overrides=overrides)
+    _unique_quarantine_ids(loads)
     items = [it for key in loads for it in loads[key].items]
     items, fusion_events, fusion_meta = apply_fusion(items, scenario, plan_date)
     proposals = decide(ctx, items)
@@ -249,7 +260,7 @@ def _decide_and_act(
     t1 = time.perf_counter()
     generated_at = datetime.now(TZ).replace(microsecond=0)
     outcome = finalize(ctx, proposals, rr, loads, generated_at)
-    plan_id = f"PLAN-{scenario}-{plan_date:%Y%m%d}-{generated_at:%H%M%S}"
+    plan_id = f"PLAN-{scenario}-{plan_date:%Y%m%d}-{generated_at:%H%M%S}-{uuid.uuid4().hex[:4]}"
     plan = build_plan(ctx, scenario, plan_id, planner_version(), generated_at, outcome, loads)
 
     plan_dir.mkdir(parents=True, exist_ok=True)

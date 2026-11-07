@@ -17,6 +17,7 @@ DECISION_RO = {
     "notify": "mesaj",
     "rejected_invalid": "carantină",
 }
+MAX_LIST = 25  # listele lungi se scurtează în raport; planul și API-ul le au complete
 KIND_RO = {"meter_inspection": "verificare contor", "storm_prepositioning": "echipă trimisă din timp", "voltage_mitigation": "tensiune la post"}
 STATUS_RO = {"ok": "ok", "degraded": "incompletă", "missing": "lipsește"}
 ORIGIN_RO = {"model": "modelul nostru", "stale": "ieșire mai veche a modelului", "fixture": "exemple de test (fixture)", "missing": "-"}
@@ -56,11 +57,13 @@ def render_report(plan: Plan, items: list[Item], meta: dict[str, Any], timings: 
     lines += ["", "## Întâi: verificări de la distanță și corecții în birou", ""]
     if not remote:
         lines.append("Niciuna.")
-    for d in remote:
+    for d in remote[:MAX_LIST]:
         lines.append(f"- `{d.work_item_id}` (`{d.rule_id}`): {d.reason_ro}")
+    if len(remote) > MAX_LIST:
+        lines.append(f"- … și încă {len(remote) - MAX_LIST} (toate sunt în `plan.json` și în consolă).")
     ranked = sorted((d for d in plan.decisions if d.rank is not None), key=lambda d: d.rank or 0)
     lines += ["", "## Lista pe echipe, după lei pe oră de lucru", "", "| Rang | Lucrare | Lei pe oră | Decizie | Echipa |", "|---|---|---|---|---|"]
-    for d in ranked:
+    for d in ranked[: 2 * MAX_LIST]:
         lph = d.threshold.get("lei_per_work_hour")
         lines.append(f"| {d.rank} | `{d.work_item_id}` | {num(lph) if lph is not None else '-'} | {DECISION_RO.get(d.decision.value, d.decision.value)} | {d.crew_id or '-'} |")
     lines += ["", "Lista o aprobă un om (consola: aprobă traseul echipei); verdictul de după vizită intră în jurnal ca etichetă pentru reantrenare."]
@@ -85,8 +88,10 @@ def render_report(plan: Plan, items: list[Item], meta: dict[str, Any], timings: 
     lines += ["## La om (\"nu sunt sigur\")", ""]
     if not review:
         lines.append("Niciun caz.")
-    for d in review:
+    for d in review[:MAX_LIST]:
         lines.append(f"- `{d.work_item_id}`: {d.reason_ro}")
+    if len(review) > MAX_LIST:
+        lines.append(f"- … și încă {len(review) - MAX_LIST} (toate sunt în coada „nu sunt sigur” din consolă).")
     lines += ["", "## Alerte", ""]
     if not plan.alerts:
         lines.append("Nicio alertă.")

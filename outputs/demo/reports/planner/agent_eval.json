@@ -1,0 +1,1164 @@
+{
+  "description": "Agentul față de strategii simple, pe o lume SINTETICĂ cu adevărul cunoscut (scoruri calibrate prin construcție).",
+  "reproduce_cmd": "uv run python -m cyberpunks.planner.evaluate --days 30 --seed 7 --meters 120",
+  "planner_version": "planner@0.1.0+1f31e1e",
+  "created_at": "2026-11-07T14:04:47+02:00",
+  "synthetic": true,
+  "main": {
+    "days": 30,
+    "seed": 7,
+    "n_meters_per_day": 120,
+    "miscalibration": 1.0,
+    "strategies": {
+      "agent": {
+        "net_value_lei_total": 1051842.34,
+        "net_value_lei_per_day": 35061.41,
+        "net_value_lei_per_day_std": 27644.28,
+        "value_captured_lei_total": 1409972.0,
+        "costs_lei_total": 358129.66,
+        "km_total": 10558.94,
+        "km_per_day": 351.96,
+        "visits_total": 485,
+        "useless_visits_total": 181,
+        "useless_visit_rate": 0.3732,
+        "urgent_total": 56,
+        "urgent_missed_total": 11,
+        "urgent_missed_rate": 0.1964,
+        "storms_true_total": 48,
+        "storms_covered_total": 37,
+        "remote_readings_total": 1406,
+        "remote_readings_true": 746,
+        "human_review_total": 92,
+        "human_review_true": 38,
+        "notifications_total": 32,
+        "value_by_source_lei": {
+          "A": 429624.38,
+          "B": 961260.0,
+          "C": 19087.62
+        },
+        "visits_by_source": {
+          "A": 371,
+          "B": 67,
+          "C": 47
+        },
+        "useless_visits_by_source": {
+          "A": 136,
+          "B": 30,
+          "C": 15
+        },
+        "solve_seconds_mean": 0.34
+      },
+      "top_k_scor": {
+        "net_value_lei_total": 697651.53,
+        "net_value_lei_per_day": 23255.05,
+        "net_value_lei_per_day_std": 21033.06,
+        "value_captured_lei_total": 1104483.15,
+        "costs_lei_total": 406831.62,
+        "km_total": 15332.69,
+        "km_per_day": 511.09,
+        "visits_total": 574,
+        "useless_visits_total": 168,
+        "useless_visit_rate": 0.2927,
+        "urgent_total": 56,
+        "urgent_missed_total": 15,
+        "urgent_missed_rate": 0.2679,
+        "storms_true_total": 48,
+        "storms_covered_total": 33,
+        "remote_readings_total": 0,
+        "remote_readings_true": 0,
+        "human_review_total": 0,
+        "human_review_true": 0,
+        "notifications_total": 0,
+        "value_by_source_lei": {
+          "A": 317871.3,
+          "B": 752040.0,
+          "C": 34571.85
+        },
+        "visits_by_source": {
+          "A": 412,
+          "B": 64,
+          "C": 98
+        },
+        "useless_visits_by_source": {
+          "A": 94,
+          "B": 31,
+          "C": 43
+        },
+        "solve_seconds_mean": 0.002,
+        "agent_minus_strategy_net_lei": 354190.81
+      },
+      "primul_venit": {
+        "net_value_lei_total": 706556.13,
+        "net_value_lei_per_day": 23551.87,
+        "net_value_lei_per_day_std": 28538.19,
+        "value_captured_lei_total": 1130904.18,
+        "costs_lei_total": 424348.05,
+        "km_total": 15438.72,
+        "km_per_day": 514.62,
+        "visits_total": 569,
+        "useless_visits_total": 360,
+        "useless_visit_rate": 0.6327,
+        "urgent_total": 56,
+        "urgent_missed_total": 15,
+        "urgent_missed_rate": 0.2679,
+        "storms_true_total": 48,
+        "storms_covered_total": 40,
+        "remote_readings_total": 0,
+        "remote_readings_true": 0,
+        "human_review_total": 0,
+        "human_review_true": 0,
+        "notifications_total": 0,
+        "value_by_source_lei": {
+          "A": 123400.81,
+          "B": 992580.0,
+          "C": 14923.37
+        },
+        "visits_by_source": {
+          "A": 422,
+          "B": 76,
+          "C": 71
+        },
+        "useless_visits_by_source": {
+          "A": 286,
+          "B": 36,
+          "C": 38
+        },
+        "solve_seconds_mean": 0.002,
+        "agent_minus_strategy_net_lei": 345286.21
+      },
+      "aleator": {
+        "net_value_lei_total": 546088.93,
+        "net_value_lei_per_day": 18202.96,
+        "net_value_lei_per_day_std": 25255.37,
+        "value_captured_lei_total": 935480.78,
+        "costs_lei_total": 389391.85,
+        "km_total": 14431.36,
+        "km_per_day": 481.05,
+        "visits_total": 587,
+        "useless_visits_total": 333,
+        "useless_visit_rate": 0.5673,
+        "urgent_total": 56,
+        "urgent_missed_total": 25,
+        "urgent_missed_rate": 0.4464,
+        "storms_true_total": 48,
+        "storms_covered_total": 30,
+        "remote_readings_total": 0,
+        "remote_readings_true": 0,
+        "human_review_total": 0,
+        "human_review_true": 0,
+        "notifications_total": 0,
+        "value_by_source_lei": {
+          "A": 136831.48,
+          "B": 775380.0,
+          "C": 23269.3
+        },
+        "visits_by_source": {
+          "A": 426,
+          "B": 60,
+          "C": 101
+        },
+        "useless_visits_by_source": {
+          "A": 248,
+          "B": 30,
+          "C": 55
+        },
+        "solve_seconds_mean": 0.003,
+        "agent_minus_strategy_net_lei": 505753.41
+      },
+      "doar_contoare": {
+        "net_value_lei_total": 163783.3,
+        "net_value_lei_per_day": 5459.44,
+        "net_value_lei_per_day_std": 7527.77,
+        "value_captured_lei_total": 317871.3,
+        "costs_lei_total": 154088.0,
+        "km_total": 10091.98,
+        "km_per_day": 336.4,
+        "visits_total": 412,
+        "useless_visits_total": 94,
+        "useless_visit_rate": 0.2282,
+        "urgent_total": 56,
+        "urgent_missed_total": 48,
+        "urgent_missed_rate": 0.8571,
+        "storms_true_total": 48,
+        "storms_covered_total": 0,
+        "remote_readings_total": 0,
+        "remote_readings_true": 0,
+        "human_review_total": 0,
+        "human_review_true": 0,
+        "notifications_total": 0,
+        "value_by_source_lei": {
+          "A": 317871.3,
+          "B": 0.0,
+          "C": 0.0
+        },
+        "visits_by_source": {
+          "A": 412,
+          "B": 0,
+          "C": 0
+        },
+        "useless_visits_by_source": {
+          "A": 94,
+          "B": 0,
+          "C": 0
+        },
+        "solve_seconds_mean": 0.002,
+        "agent_minus_strategy_net_lei": 888059.04
+      }
+    },
+    "per_day_net_value_lei": {
+      "agent": [
+        6279.65,
+        3451.01,
+        10663.34,
+        56404.51,
+        30704.4,
+        46454.06,
+        49752.18,
+        12711.56,
+        8287.99,
+        89654.17,
+        34068.56,
+        54210.81,
+        8695.18,
+        29848.53,
+        61584.91,
+        1812.13,
+        43507.31,
+        7704.19,
+        13855.34,
+        49063.79,
+        26007.39,
+        -325.03,
+        66506.09,
+        16733.87,
+        112747.91,
+        8321.69,
+        38832.42,
+        49163.66,
+        41974.27,
+        73166.5
+      ],
+      "top_k_scor": [
+        4853.66,
+        -1080.33,
+        -1583.03,
+        15427.99,
+        26179.12,
+        42677.61,
+        27728.76,
+        9255.1,
+        5233.42,
+        49819.7,
+        31524.2,
+        55128.41,
+        5799.93,
+        10827.24,
+        62879.8,
+        -2668.64,
+        42736.38,
+        3370.8,
+        -2245.01,
+        42439.3,
+        16932.07,
+        2286.93,
+        43103.95,
+        8868.77,
+        55298.69,
+        2980.27,
+        24296.9,
+        13692.66,
+        38546.33,
+        63340.53
+      ],
+      "primul_venit": [
+        -695.89,
+        -4564.59,
+        -5589.51,
+        53559.58,
+        22605.22,
+        44687.55,
+        37078.67,
+        -6187.54,
+        -3480.96,
+        69044.61,
+        29542.94,
+        42401.01,
+        1280.69,
+        3010.0,
+        60609.4,
+        -5159.23,
+        1702.28,
+        2215.43,
+        -5225.14,
+        39227.68,
+        10527.12,
+        -4008.17,
+        55622.09,
+        -3265.23,
+        106007.34,
+        1274.33,
+        33883.03,
+        43811.63,
+        33192.01,
+        53449.76
+      ],
+      "aleator": [
+        -1226.39,
+        -4717.48,
+        -7412.78,
+        45791.2,
+        22068.51,
+        37737.83,
+        49728.18,
+        -4673.47,
+        -7755.5,
+        14946.25,
+        -562.31,
+        38136.76,
+        -2826.4,
+        4877.21,
+        61818.06,
+        -1698.89,
+        2935.92,
+        2506.16,
+        -2419.83,
+        40375.84,
+        18962.94,
+        -536.26,
+        40583.85,
+        -5980.46,
+        90013.54,
+        -4564.23,
+        10779.57,
+        15783.46,
+        33405.85,
+        60011.82
+      ],
+      "doar_contoare": [
+        3556.72,
+        2465.1,
+        5828.63,
+        16186.1,
+        1751.2,
+        -47.09,
+        7887.4,
+        11189.17,
+        9730.76,
+        14166.63,
+        1247.6,
+        13512.69,
+        -525.03,
+        4415.67,
+        -940.2,
+        -625.13,
+        36599.26,
+        -1339.37,
+        -458.28,
+        3774.07,
+        5186.26,
+        2316.48,
+        998.12,
+        10632.86,
+        2768.69,
+        3075.06,
+        239.46,
+        -278.03,
+        2558.9,
+        7909.62
+      ]
+    },
+    "worlds": [
+      {
+        "date": "2026-07-06",
+        "storm_day": false,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 0,
+          "C": 5
+        }
+      },
+      {
+        "date": "2026-07-07",
+        "storm_day": false,
+        "sunny": false,
+        "n": {
+          "A": 120,
+          "B": 2,
+          "C": 1
+        }
+      },
+      {
+        "date": "2026-07-08",
+        "storm_day": false,
+        "sunny": false,
+        "n": {
+          "A": 120,
+          "B": 2,
+          "C": 3
+        }
+      },
+      {
+        "date": "2026-07-09",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 6,
+          "C": 5
+        }
+      },
+      {
+        "date": "2026-07-10",
+        "storm_day": false,
+        "sunny": false,
+        "n": {
+          "A": 120,
+          "B": 1,
+          "C": 3
+        }
+      },
+      {
+        "date": "2026-07-11",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 3,
+          "C": 11
+        }
+      },
+      {
+        "date": "2026-07-12",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 7,
+          "C": 7
+        }
+      },
+      {
+        "date": "2026-07-13",
+        "storm_day": false,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 0,
+          "C": 5
+        }
+      },
+      {
+        "date": "2026-07-14",
+        "storm_day": false,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 1,
+          "C": 11
+        }
+      },
+      {
+        "date": "2026-07-15",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 7,
+          "C": 10
+        }
+      },
+      {
+        "date": "2026-07-16",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 3,
+          "C": 4
+        }
+      },
+      {
+        "date": "2026-07-17",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 7,
+          "C": 12
+        }
+      },
+      {
+        "date": "2026-07-18",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 3,
+          "C": 8
+        }
+      },
+      {
+        "date": "2026-07-19",
+        "storm_day": false,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 2,
+          "C": 5
+        }
+      },
+      {
+        "date": "2026-07-20",
+        "storm_day": true,
+        "sunny": false,
+        "n": {
+          "A": 120,
+          "B": 3,
+          "C": 0
+        }
+      },
+      {
+        "date": "2026-07-21",
+        "storm_day": false,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 0,
+          "C": 6
+        }
+      },
+      {
+        "date": "2026-07-22",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 5,
+          "C": 4
+        }
+      },
+      {
+        "date": "2026-07-23",
+        "storm_day": false,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 2,
+          "C": 5
+        }
+      },
+      {
+        "date": "2026-07-24",
+        "storm_day": false,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 0,
+          "C": 8
+        }
+      },
+      {
+        "date": "2026-07-25",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 5,
+          "C": 4
+        }
+      },
+      {
+        "date": "2026-07-26",
+        "storm_day": false,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 2,
+          "C": 7
+        }
+      },
+      {
+        "date": "2026-07-27",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 4,
+          "C": 5
+        }
+      },
+      {
+        "date": "2026-07-28",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 3,
+          "C": 7
+        }
+      },
+      {
+        "date": "2026-07-29",
+        "storm_day": false,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 0,
+          "C": 8
+        }
+      },
+      {
+        "date": "2026-07-30",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 7,
+          "C": 8
+        }
+      },
+      {
+        "date": "2026-07-31",
+        "storm_day": false,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 0,
+          "C": 9
+        }
+      },
+      {
+        "date": "2026-08-01",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 4,
+          "C": 8
+        }
+      },
+      {
+        "date": "2026-08-02",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 5,
+          "C": 7
+        }
+      },
+      {
+        "date": "2026-08-03",
+        "storm_day": true,
+        "sunny": false,
+        "n": {
+          "A": 120,
+          "B": 3,
+          "C": 1
+        }
+      },
+      {
+        "date": "2026-08-04",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 3,
+          "C": 11
+        }
+      }
+    ]
+  },
+  "robustness_overconfident_model": {
+    "days": 10,
+    "seed": 8,
+    "n_meters_per_day": 120,
+    "miscalibration": 1.6,
+    "strategies": {
+      "agent": {
+        "net_value_lei_total": 191814.42,
+        "net_value_lei_per_day": 19181.44,
+        "net_value_lei_per_day_std": 20610.4,
+        "value_captured_lei_total": 298983.4,
+        "costs_lei_total": 107168.98,
+        "km_total": 3316.38,
+        "km_per_day": 331.64,
+        "visits_total": 148,
+        "useless_visits_total": 71,
+        "useless_visit_rate": 0.4797,
+        "urgent_total": 11,
+        "urgent_missed_total": 2,
+        "urgent_missed_rate": 0.1818,
+        "storms_true_total": 10,
+        "storms_covered_total": 8,
+        "remote_readings_total": 463,
+        "remote_readings_true": 165,
+        "human_review_total": 36,
+        "human_review_true": 8,
+        "notifications_total": 9,
+        "value_by_source_lei": {
+          "A": 98153.68,
+          "B": 198660.0,
+          "C": 2169.72
+        },
+        "visits_by_source": {
+          "A": 114,
+          "B": 20,
+          "C": 14
+        },
+        "useless_visits_by_source": {
+          "A": 52,
+          "B": 12,
+          "C": 7
+        },
+        "solve_seconds_mean": 0.313
+      },
+      "top_k_scor": {
+        "net_value_lei_total": 140112.88,
+        "net_value_lei_per_day": 14011.29,
+        "net_value_lei_per_day_std": 19618.04,
+        "value_captured_lei_total": 268069.51,
+        "costs_lei_total": 127956.63,
+        "km_total": 4796.01,
+        "km_per_day": 479.6,
+        "visits_total": 183,
+        "useless_visits_total": 75,
+        "useless_visit_rate": 0.4098,
+        "urgent_total": 11,
+        "urgent_missed_total": 2,
+        "urgent_missed_rate": 0.1818,
+        "storms_true_total": 10,
+        "storms_covered_total": 8,
+        "remote_readings_total": 0,
+        "remote_readings_true": 0,
+        "human_review_total": 0,
+        "human_review_true": 0,
+        "notifications_total": 0,
+        "value_by_source_lei": {
+          "A": 83409.79,
+          "B": 182490.0,
+          "C": 2169.72
+        },
+        "visits_by_source": {
+          "A": 141,
+          "B": 22,
+          "C": 20
+        },
+        "useless_visits_by_source": {
+          "A": 53,
+          "B": 14,
+          "C": 8
+        },
+        "solve_seconds_mean": 0.002,
+        "agent_minus_strategy_net_lei": 51701.54
+      },
+      "primul_venit": {
+        "net_value_lei_total": 90436.99,
+        "net_value_lei_per_day": 9043.7,
+        "net_value_lei_per_day_std": 19769.71,
+        "value_captured_lei_total": 218564.41,
+        "costs_lei_total": 128127.42,
+        "km_total": 4658.17,
+        "km_per_day": 465.82,
+        "visits_total": 179,
+        "useless_visits_total": 137,
+        "useless_visit_rate": 0.7654,
+        "urgent_total": 11,
+        "urgent_missed_total": 3,
+        "urgent_missed_rate": 0.2727,
+        "storms_true_total": 10,
+        "storms_covered_total": 8,
+        "remote_readings_total": 0,
+        "remote_readings_true": 0,
+        "human_review_total": 0,
+        "human_review_true": 0,
+        "notifications_total": 0,
+        "value_by_source_lei": {
+          "A": 19904.41,
+          "B": 198660.0,
+          "C": 0.0
+        },
+        "visits_by_source": {
+          "A": 139,
+          "B": 23,
+          "C": 17
+        },
+        "useless_visits_by_source": {
+          "A": 111,
+          "B": 15,
+          "C": 11
+        },
+        "solve_seconds_mean": 0.002,
+        "agent_minus_strategy_net_lei": 101377.43
+      },
+      "aleator": {
+        "net_value_lei_total": 62975.47,
+        "net_value_lei_per_day": 6297.55,
+        "net_value_lei_per_day_std": 13944.0,
+        "value_captured_lei_total": 181659.98,
+        "costs_lei_total": 118684.51,
+        "km_total": 4765.11,
+        "km_per_day": 476.51,
+        "visits_total": 179,
+        "useless_visits_total": 137,
+        "useless_visit_rate": 0.7654,
+        "urgent_total": 11,
+        "urgent_missed_total": 5,
+        "urgent_missed_rate": 0.4545,
+        "storms_true_total": 10,
+        "storms_covered_total": 6,
+        "remote_readings_total": 0,
+        "remote_readings_true": 0,
+        "human_review_total": 0,
+        "human_review_true": 0,
+        "notifications_total": 0,
+        "value_by_source_lei": {
+          "A": 31271.45,
+          "B": 149220.0,
+          "C": 1168.53
+        },
+        "visits_by_source": {
+          "A": 137,
+          "B": 19,
+          "C": 23
+        },
+        "useless_visits_by_source": {
+          "A": 108,
+          "B": 13,
+          "C": 16
+        },
+        "solve_seconds_mean": 0.002,
+        "agent_minus_strategy_net_lei": 128838.95
+      },
+      "doar_contoare": {
+        "net_value_lei_total": 31106.54,
+        "net_value_lei_per_day": 3110.65,
+        "net_value_lei_per_day_std": 4688.8,
+        "value_captured_lei_total": 83409.79,
+        "costs_lei_total": 52303.25,
+        "km_total": 3353.09,
+        "km_per_day": 335.31,
+        "visits_total": 141,
+        "useless_visits_total": 53,
+        "useless_visit_rate": 0.3759,
+        "urgent_total": 11,
+        "urgent_missed_total": 10,
+        "urgent_missed_rate": 0.9091,
+        "storms_true_total": 10,
+        "storms_covered_total": 0,
+        "remote_readings_total": 0,
+        "remote_readings_true": 0,
+        "human_review_total": 0,
+        "human_review_true": 0,
+        "notifications_total": 0,
+        "value_by_source_lei": {
+          "A": 83409.79,
+          "B": 0.0,
+          "C": 0.0
+        },
+        "visits_by_source": {
+          "A": 141,
+          "B": 0,
+          "C": 0
+        },
+        "useless_visits_by_source": {
+          "A": 53,
+          "B": 0,
+          "C": 0
+        },
+        "solve_seconds_mean": 0.002,
+        "agent_minus_strategy_net_lei": 160707.88
+      }
+    },
+    "per_day_net_value_lei": {
+      "agent": [
+        30128.59,
+        33762.68,
+        1188.46,
+        1657.05,
+        2750.5,
+        -7498.61,
+        4304.95,
+        23140.28,
+        48303.14,
+        54077.37
+      ],
+      "top_k_scor": [
+        33285.56,
+        8551.56,
+        1376.3,
+        -316.42,
+        -5059.89,
+        -6192.44,
+        -1309.56,
+        18551.99,
+        40233.49,
+        50992.28
+      ],
+      "primul_venit": [
+        27349.7,
+        21390.47,
+        -5917.21,
+        -3441.47,
+        -6852.42,
+        -12485.02,
+        -7544.97,
+        -940.92,
+        32287.36,
+        46591.47
+      ],
+      "aleator": [
+        27178.87,
+        17272.74,
+        -5066.36,
+        -2237.45,
+        -2236.32,
+        -11724.51,
+        -2409.58,
+        458.28,
+        32131.43,
+        9608.36
+      ],
+      "doar_contoare": [
+        2148.5,
+        5485.72,
+        3071.69,
+        -316.42,
+        -1691.65,
+        869.41,
+        2154.86,
+        15855.27,
+        3565.62,
+        -36.46
+      ]
+    },
+    "worlds": [
+      {
+        "date": "2026-07-06",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 3,
+          "C": 11
+        }
+      },
+      {
+        "date": "2026-07-07",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 7,
+          "C": 4
+        }
+      },
+      {
+        "date": "2026-07-08",
+        "storm_day": false,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 0,
+          "C": 10
+        }
+      },
+      {
+        "date": "2026-07-09",
+        "storm_day": false,
+        "sunny": false,
+        "n": {
+          "A": 120,
+          "B": 0,
+          "C": 0
+        }
+      },
+      {
+        "date": "2026-07-10",
+        "storm_day": false,
+        "sunny": false,
+        "n": {
+          "A": 120,
+          "B": 1,
+          "C": 1
+        }
+      },
+      {
+        "date": "2026-07-11",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 3,
+          "C": 5
+        }
+      },
+      {
+        "date": "2026-07-12",
+        "storm_day": false,
+        "sunny": false,
+        "n": {
+          "A": 120,
+          "B": 2,
+          "C": 2
+        }
+      },
+      {
+        "date": "2026-07-13",
+        "storm_day": false,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 2,
+          "C": 9
+        }
+      },
+      {
+        "date": "2026-07-14",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 4,
+          "C": 6
+        }
+      },
+      {
+        "date": "2026-07-15",
+        "storm_day": true,
+        "sunny": true,
+        "n": {
+          "A": 120,
+          "B": 7,
+          "C": 6
+        }
+      }
+    ]
+  },
+  "ablations": {
+    "fara_prag_etic": {
+      "label_ro": "Fără pragul etic (vizită și sub scorul 0,5, dacă merită)",
+      "net_value_lei_total": 1224186.66,
+      "net_value_lei_per_day": 40806.22,
+      "net_value_lei_per_day_std": 27738.43,
+      "value_captured_lei_total": 1615441.14,
+      "costs_lei_total": 391254.48,
+      "km_total": 11444.71,
+      "km_per_day": 381.49,
+      "visits_total": 597,
+      "useless_visits_total": 266,
+      "useless_visit_rate": 0.4456,
+      "urgent_total": 56,
+      "urgent_missed_total": 11,
+      "urgent_missed_rate": 0.1964,
+      "storms_true_total": 48,
+      "storms_covered_total": 37,
+      "remote_readings_total": 1341,
+      "remote_readings_true": 731,
+      "human_review_total": 92,
+      "human_review_true": 38,
+      "notifications_total": 32,
+      "value_by_source_lei": {
+        "A": 635093.52,
+        "B": 961260.0,
+        "C": 19087.62
+      },
+      "visits_by_source": {
+        "A": 483,
+        "B": 67,
+        "C": 47
+      },
+      "useless_visits_by_source": {
+        "A": 221,
+        "B": 30,
+        "C": 15
+      },
+      "solve_seconds_mean": 0.601
+    },
+    "greedy_in_loc_de_ortools": {
+      "label_ro": "Aceleași reguli, trasee făcute greedy în loc de OR-Tools",
+      "net_value_lei_total": 1031529.63,
+      "net_value_lei_per_day": 34384.32,
+      "net_value_lei_per_day_std": 29638.32,
+      "value_captured_lei_total": 1383902.58,
+      "costs_lei_total": 352372.95,
+      "km_total": 11730.62,
+      "km_per_day": 391.02,
+      "visits_total": 450,
+      "useless_visits_total": 167,
+      "useless_visit_rate": 0.3711,
+      "urgent_total": 56,
+      "urgent_missed_total": 11,
+      "urgent_missed_rate": 0.1964,
+      "storms_true_total": 48,
+      "storms_covered_total": 37,
+      "remote_readings_total": 1428,
+      "remote_readings_true": 761,
+      "human_review_total": 92,
+      "human_review_true": 38,
+      "notifications_total": 32,
+      "value_by_source_lei": {
+        "A": 416094.96,
+        "B": 948720.0,
+        "C": 19087.62
+      },
+      "visits_by_source": {
+        "A": 336,
+        "B": 66,
+        "C": 48
+      },
+      "useless_visits_by_source": {
+        "A": 122,
+        "B": 29,
+        "C": 16
+      },
+      "solve_seconds_mean": 0.0
+    }
+  },
+  "sensitivity": [
+    {
+      "parameter": "cost_per_customer_hour_lei",
+      "value": 5.5,
+      "agent_net_lei_per_day": 17575.2,
+      "top_k_scor_net_lei_per_day": 9915.75,
+      "agent_advantage_pct": 77.2
+    },
+    {
+      "parameter": "cost_per_customer_hour_lei",
+      "value": 15.0,
+      "agent_net_lei_per_day": 43548.48,
+      "top_k_scor_net_lei_per_day": 29411.65,
+      "agent_advantage_pct": 48.1
+    },
+    {
+      "parameter": "preposition_cost_lei_per_crew_shift",
+      "value": 1500.0,
+      "agent_net_lei_per_day": 38279.86,
+      "top_k_scor_net_lei_per_day": 25815.05,
+      "agent_advantage_pct": 48.3
+    },
+    {
+      "parameter": "preposition_cost_lei_per_crew_shift",
+      "value": 4100.0,
+      "agent_net_lei_per_day": 31823.96,
+      "top_k_scor_net_lei_per_day": 20268.38,
+      "agent_advantage_pct": 57.0
+    },
+    {
+      "parameter": "inspection_visit_cost_lei",
+      "value": 180.0,
+      "agent_net_lei_per_day": 36161.65,
+      "top_k_scor_net_lei_per_day": 24216.38,
+      "agent_advantage_pct": 49.3
+    },
+    {
+      "parameter": "inspection_visit_cost_lei",
+      "value": 340.0,
+      "agent_net_lei_per_day": 33966.43,
+      "top_k_scor_net_lei_per_day": 22019.05,
+      "agent_advantage_pct": 54.3
+    }
+  ],
+  "runtime_s": 100.4
+}
