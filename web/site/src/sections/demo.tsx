@@ -3,12 +3,6 @@ import { Screen } from "@/components/section-snap"
 import { DB } from "@/data/daybreak"
 import { cn, fmt } from "@/lib/utils"
 
-export const TO_CONFIRM = [
-  "Există contor de bilanț în posturi, și la ce procent dintre ele? Concentratorul de date din post nu este același lucru.",
-  "Lista client → post este de încredere?",
-  "Unde nu există contor de bilanț, estimăm energia intrată în post din clienți și din modelul rețelei, și recomandăm unde merită montat primul contor.",
-]
-
 const pct = (v: number) => `${fmt(v * 100, 1)}%`
 
 /** The agent against simple strategies, from the team's evaluation script. */

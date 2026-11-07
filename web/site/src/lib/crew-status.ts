@@ -131,3 +131,17 @@ export function useSimClock() {
   }, [])
   return { now, label: hhmm(now) }
 }
+
+export const SHIFT = { start: SHIFT_START, end: SHIFT_END }
+export { hhmm }
+
+/** One crew's day: when it leaves, when it is back, and its time on site at each stop. */
+export function crewDay(crew: string) {
+  const r = DB.routes.find((x) => x.crew === crew)!
+  const stops = DB.routeStops
+    .filter((s) => s.crew === crew)
+    .sort((a, b) => a.seq - b.seq)
+    .map((s) => WINDOWS.get(s.id)!)
+    .map((w) => ({ arrive: w.arrive, leave: Math.min(w.leave, r.back ? toMin(r.back) : SHIFT_END) }))
+  return { depart: toMin(r.depart), back: r.back ? toMin(r.back) : SHIFT_END, open: !r.back, stops }
+}

@@ -1,7 +1,8 @@
+import { useState } from "react"
+import { CountUp } from "@/components/count-up"
 import { Reveal } from "@/components/reveal"
-import { SourceTag } from "@/components/ranking-board"
 import { Screen } from "@/components/section-snap"
-import { DB, PLAN_DATE_RO, SOURCES, SYNTHETIC_NOTE, type SourceKey } from "@/data/daybreak"
+import { DB, PLAN_DATE_RO } from "@/data/daybreak"
 import { fmt } from "@/lib/utils"
 
 const S = DB.summary
@@ -15,7 +16,7 @@ export const PLAN_FIGURES = [
   { n: fmt(S.notifications), t: "notificări pentru echipe și clienți" },
 ]
 
-/** The day's plan in numbers, straight from the agent's run. */
+/** The day's plan in numbers, straight from the agent's run (used on /plan). */
 export function PlanFigures() {
   return (
     <dl className="tabular grid grid-cols-2 gap-x-8 gap-y-7 md:grid-cols-3">
@@ -29,40 +30,30 @@ export function PlanFigures() {
   )
 }
 
+/** Lime the saved sum turns into as it counts up. */
+const LIME = "#a3e635"
+
+/** One number for the day: the sum the plan saves, and how few jobs needed a crew. */
 export function Plan() {
+  const [p, setP] = useState(0)
+  const color = `color-mix(in oklab, ${LIME} ${Math.round(p * 100)}%, #ffffff)`
   return (
-    <Screen id="plan" label="Planul de mâine">
-      <div className="container-page grid gap-10 lg:grid-cols-12 lg:items-center">
-        <div className="lg:col-span-5">
-          <Reveal>
-            <h2 className="h-section">Planul pentru {PLAN_DATE_RO}</h2>
-          </Reveal>
-          <Reveal delay={0.06}>
-            <p className="mt-5 max-w-[44ch] text-white/90 lg:text-lg">
-              O rulare reală a agentului, pe o zi reală de vară. Valoarea așteptată a planului:
-            </p>
-          </Reveal>
-          <Reveal delay={0.1}>
-            <p className="tabular mt-4 text-[clamp(2.8rem,min(6vw,10vh),5.6rem)] leading-none font-semibold tracking-[-0.035em]">
-              {fmt(S.expected_value_lei)} <span className="text-[0.4em] text-white/80">lei</span>
-            </p>
-          </Reveal>
-          <Reveal delay={0.14} className="mt-8 space-y-2">
-            {(["A", "B", "C"] as SourceKey[]).map((s) => (
-              <div key={s} className="flex items-center justify-between gap-6">
-                <SourceTag s={s} />
-                <span className="tabular text-white/85">
-                  {fmt(DB.perSource[s]?.total ?? 0)} lucrări, {SOURCES[s].long.toLowerCase()}
-                </span>
-              </div>
-            ))}
-          </Reveal>
-        </div>
-        <Reveal delay={0.08} className="lg:col-span-7">
-          <div data-ui className="rounded-2xl bg-surface p-[clamp(24px,3vw,44px)]">
-            <PlanFigures />
-            <p className="mt-8 text-sm text-white/60">{SYNTHETIC_NOTE}</p>
-          </div>
+    <Screen id="plan" label={`Planul pentru ${PLAN_DATE_RO}`}>
+      <div className="container-page flex flex-col items-center text-center">
+        <Reveal>
+          <p className="leading-none font-semibold tracking-[-0.045em]" style={{ color }}>
+            <CountUp
+              value={Math.round(S.expected_value_lei)}
+              onProgress={setP}
+              className="text-[clamp(4.5rem,min(15vw,26vh),13rem)]"
+            />
+            <span className="ml-[0.25em] text-[clamp(1.6rem,min(4vw,7vh),3.4rem)] tracking-[-0.02em] opacity-80">lei economisiți</span>
+          </p>
+        </Reveal>
+        <Reveal delay={0.12}>
+          <p className="mt-[clamp(16px,3vh,32px)] text-[clamp(1rem,1.3vw,1.2rem)] text-white/70">
+            Doar {fmt(S.assigned)} din {fmt(S.items_in)} de lucrări aveau de fapt nevoie de echipe pe teren.
+          </p>
         </Reveal>
       </div>
     </Screen>

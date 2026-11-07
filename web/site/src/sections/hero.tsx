@@ -54,11 +54,16 @@ export function Hero() {
           {SITE.name} citește contoarele, vremea și rețeaua, decide unde merg mâine echipele de teren
           Rețele Electrice și explică fiecare decizie. Ce nu e sigur ajunge la un om.
         </motion.p>
-        <motion.div {...drop(0.26)} className="mt-10 flex flex-wrap items-center justify-center gap-3">
-          <GlassLink href="#plan" size="lg" onClick={go("plan")}>
+        {/* Two equal columns: the gap between the buttons is the page centre, where the beam runs. */}
+        <motion.div
+          {...drop(0.26)}
+          data-beam-anchor
+          className="mt-10 flex flex-col items-center gap-3 sm:grid sm:w-full sm:grid-cols-2 sm:gap-4"
+        >
+          <GlassLink href="#plan" size="lg" onClick={go("plan")} className="sm:justify-self-end">
             Vezi planul de mâine
           </GlassLink>
-          <GlassLink href="#cum" size="lg" variant="frost" onClick={go("cum")}>
+          <GlassLink href="#cum" size="lg" variant="frost" onClick={go("cum")} className="sm:justify-self-start">
             Cum funcționează
           </GlassLink>
         </motion.div>

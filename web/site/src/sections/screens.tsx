@@ -2,6 +2,8 @@ import { Reveal } from "@/components/reveal"
 import { Screen } from "@/components/section-snap"
 import { TiltedGrid } from "@/components/ui/tilted-grid"
 import { DB, DIAGNOSIS_RO, SOURCES, type SourceKey } from "@/data/daybreak"
+import { PhaseIcon } from "@/components/crew-status"
+import { PHASE_RO, statusAt, useSimClock } from "@/lib/crew-status"
 import { fmt, lei } from "@/lib/utils"
 
 function Frame({ title, children }: { title: string; children: React.ReactNode }) {
@@ -88,28 +90,36 @@ function CrewsTile() {
   )
 }
 
-function ValueTile() {
+const RANK = { lucru: 0, diagnosticare: 1, finalizare: 2, tranzit: 3, retragere: 4, programata: 5, incheiata: 6 } as const
+
+/** Where the crews are on their jobs, on the simulated clock of tomorrow's shift. */
+function StatusTile() {
+  const { now } = useSimClock()
+  const rows = DB.routeStops
+    .map((s) => ({ s, st: statusAt(s.id, now) }))
+    .filter((r) => r.st)
+    // the crews at work first, then the ones on their way, the finished ones last
+    .sort((a, b) => RANK[a.st!.phase] - RANK[b.st!.phase])
+    .slice(0, 5)
   return (
-    <div className="flex h-full flex-col justify-between">
-      <div>
-        <div className="tabular text-5xl font-semibold tracking-tight">
-          {fmt(DB.summary.expected_value_lei)} <span className="text-2xl text-white/80">lei</span>
-        </div>
-        <div className="mt-1 text-sm text-white/70">valoare așteptată a planului</div>
-      </div>
-      <ul className="space-y-1 text-sm text-white/80">
-        <li className="tabular">{fmt(DB.summary.assigned)} lucrări la echipe</li>
-        <li className="tabular">{fmt(DB.summary.remote_actions)} verificări de la distanță</li>
-        <li className="tabular">{fmt(DB.summary.human_review)} cazuri la un om</li>
-      </ul>
-    </div>
+    <ul className="space-y-1.5">
+      {rows.map(({ s, st }) => (
+        <li key={s.id} className="flex items-center justify-between gap-3 rounded-lg bg-white/[0.04] px-3 py-2 text-sm">
+          <span className="flex min-w-0 items-center gap-2.5">
+            <PhaseIcon phase={st!.phase} className="size-4" />
+            <span className="font-medium">{PHASE_RO[st!.phase]}</span>
+          </span>
+          <span className="tabular shrink-0 text-white/75">{s.crew}</span>
+        </li>
+      ))}
+    </ul>
   )
 }
 
 const SCREENS = [
   {
     title: "Harta posturilor",
-    body: "Cele 300 de posturi, colorate verde, galben sau roșu după câți lei se pierd acolo.",
+    body: `Cele ${DB.posts.length} de posturi, colorate verde, galben sau roșu după câți lei se pierd acolo.`,
     tile: (
       <Frame title="Harta posturilor">
         <MapTile />
@@ -135,11 +145,11 @@ const SCREENS = [
     ),
   },
   {
-    title: "Valoarea planului",
-    body: "Cât aduce planul înapoi, ca să se vadă de ce merită fiecare deplasare.",
+    title: "Statusul echipajelor",
+    body: "Unde e fiecare echipaj: în tranzit, la diagnosticare, în lucru, la finalizare sau pe drum înapoi.",
     tile: (
-      <Frame title="Valoarea planului">
-        <ValueTile />
+      <Frame title="Statusul echipajelor">
+        <StatusTile />
       </Frame>
     ),
   },

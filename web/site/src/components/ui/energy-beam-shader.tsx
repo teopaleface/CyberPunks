@@ -20,6 +20,8 @@ precision highp float;
 uniform vec2 uRes;
 uniform float uTime;
 uniform vec2 uMouse;
+// height (in the shader's units) where the beam must stay put: the gap between the hero buttons
+uniform float uPivot;
 
 float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float noise(float x){ float i = floor(x); float f = fract(x); return mix(hash(vec2(i, 0.0)), hash(vec2(i + 1.0, 0.0)), smoothstep(0.0, 1.0, f)); }
@@ -52,8 +54,9 @@ void main(){
   float rings = arcs * arcMask * spread * above;
 
   // the beam: thin core + soft glow, flickering, slightly tilted by the pointer
+  // around the buttons' height, so it always passes exactly between them
   float y = p.y;
-  float bx = p.x - (uMouse.x - 0.5) * 0.06 * y;
+  float bx = p.x - (uMouse.x - 0.5) * 0.06 * (y - uPivot);
   float flick = 0.75 + 0.25 * noise(t * 6.0) + 0.15 * sin(y * 30.0 - t * 9.0);
   float w = mix(0.007, 0.0016, smoothstep(0.0, 1.0, y));
   float beamCore = exp(-abs(bx) / w);
@@ -116,10 +119,20 @@ export function EnergyBeamShader({ className }: { className?: string }) {
     const uRes = gl.getUniformLocation(prog, "uRes")
     const uTime = gl.getUniformLocation(prog, "uTime")
     const uMouse = gl.getUniformLocation(prog, "uMouse")
+    const uPivot = gl.getUniformLocation(prog, "uPivot")
 
     const reduce = prefersReducedMotion()
     const mouse = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5 }
     let visible = true
+    let pivot = 0
+    /** p.y = 1.05 - (distance from the canvas top / canvas height), see the dome centre in FRAG */
+    const measure = () => {
+      const a = document.querySelector("[data-beam-anchor]")
+      const r = canvas.getBoundingClientRect()
+      if (!a || !r.height) return
+      const b = a.getBoundingClientRect()
+      pivot = 1.05 - (b.top + b.height / 2 - r.top) / r.height
+    }
     let raf = 0
     const start = performance.now()
 
@@ -130,6 +143,7 @@ export function EnergyBeamShader({ className }: { className?: string }) {
       canvas.width = Math.max(1, Math.round(w * dpr))
       canvas.height = Math.max(1, Math.round(h * dpr))
       gl.viewport(0, 0, canvas.width, canvas.height)
+      measure()
       if (reduce) render(0)
     }
     const ro = new ResizeObserver(() => resize())
@@ -148,11 +162,14 @@ export function EnergyBeamShader({ className }: { className?: string }) {
       gl.uniform2f(uRes, canvas.width, canvas.height)
       gl.uniform1f(uTime, reduce ? 4 : (now - start) / 1000)
       gl.uniform2f(uMouse, mouse.x, mouse.y)
+      gl.uniform1f(uPivot, pivot)
       gl.drawArrays(gl.TRIANGLES, 0, 3)
     }
 
     resize()
     ro.observe(canvas)
+    // the buttons settle into place after their entrance
+    const settle = window.setTimeout(measure, 900)
 
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop)
@@ -163,6 +180,7 @@ export function EnergyBeamShader({ className }: { className?: string }) {
 
     return () => {
       cancelAnimationFrame(raf)
+      window.clearTimeout(settle)
       ro.disconnect()
       io.disconnect()
       window.removeEventListener("pointermove", onMove)

@@ -5,7 +5,7 @@ import { ApprovedCounter, QueueTable } from "@/components/ranking-board"
 import { Reveal } from "@/components/reveal"
 import { useLenis } from "@/components/smooth-scroll"
 import { DB, DIAGNOSIS_RO, PLAN_DATE_RO, SYNTHETIC_NOTE } from "@/data/daybreak"
-import { TO_CONFIRM, EvalTable, agentGain } from "@/sections/demo"
+import { EvalTable, agentGain } from "@/sections/demo"
 import { ActVisual, DecideVisual, EstimateVisual, PerceiveVisual, STEPS } from "@/sections/how-it-works"
 import { PlanFigures } from "@/sections/plan"
 import { cn, fmt } from "@/lib/utils"
@@ -28,12 +28,12 @@ export function PlanPage() {
           <DecideVisual />
         </div>
       </Block>
-      <Block title="Echipele" intro="Opt echipe, în limita turei și a abilităților lor. Traseele sunt calculate cu OR-Tools.">
+      <Block title="Echipele" intro={`${DB.summary.crews_used} echipe, în limita turei și a abilităților lor. Traseele sunt calculate cu OR-Tools.`}>
         <div data-ui className="rounded-2xl bg-surface p-[clamp(20px,3vw,40px)]">
           <ActVisual />
         </div>
       </Block>
-      <Block title="Ce rămâne la un om" intro="Cazurile în care agentul nu e sigur. Aprobă-le aici; cu un cont, deciziile se păstrează.">
+      <Block title="Ce rămâne la un om" intro="Cazurile în care agentul nu e sigur. Pentru fiecare alegi un echipaj, amâni sau respingi.">
         <div className="grid gap-6 lg:grid-cols-12">
           <div className="lg:col-span-8">
             <QueueTable limit={5} />
@@ -65,7 +65,7 @@ export function BilantPage() {
       title="Bilanțul pe fiecare post"
       lead="Energia ieșită din post minus suma contoarelor clienților. Modelul învață pierderea normală a fiecărui post și ghicește cauza a ce lipsește peste ea; agentul decide ce facem."
     >
-      <Block title="Alege un post" intro="Opt posturi din planul real, câte unul pentru fiecare cauză, plus cele mai mari pierderi.">
+      <Block title="Alege un post" intro={`${DB.cases.length} posturi din planul real, cu cauze diferite și cele mai mari pierderi.`}>
         <BalanceExplorer full />
       </Block>
 
@@ -99,16 +99,6 @@ export function BilantPage() {
         </dl>
       </Block>
 
-      <Block title="De confirmat cu PPC">
-        <ul className="max-w-[70ch] space-y-4">
-          {TO_CONFIRM.map((c) => (
-            <li key={c} className="flex gap-3">
-              <span aria-hidden className="mt-2.5 size-2 shrink-0 rounded-full bg-ember" />
-              <span className="text-white/90">{c}</span>
-            </li>
-          ))}
-        </ul>
-      </Block>
 
       <NextStep text="Pagina fiecărui post, cu urmărirea până la model, e în aplicație." label="Vezi posturile" to="/app/posturi" />
     </PageShell>
@@ -220,21 +210,6 @@ export function DiagnosticPage() {
         </div>
       </div>
 
-      <Block title="Mai mult decât contoare ciudate" intro="PPC are deja detecție de fraudă pe contoare. Bilanțul pe post adaugă ce contoarele singure nu văd.">
-        <ul className="grid gap-x-12 gap-y-6 md:grid-cols-2">
-          {[
-            ["Confirmare independentă", "Un contor suspect pe un post unde chiar lipsește energie este o pistă aproape sigură. Mai puține deplasări degeaba."],
-            ["Problema în lei", "Echipele merg întâi unde se pierd cei mai mulți bani."],
-            ["Ce nu se vede din contor", "Furt înainte de contor, cabluri care pierd mult, faze dezechilibrate."],
-            ["Un cost real", "Distribuitorul plătește energia pierdută peste cât îi recunoaște ANRE."],
-          ].map(([t, d]) => (
-            <li key={t}>
-              <h3 className="font-sans font-semibold">{t}</h3>
-              <p className="mt-1 text-white/80">{d}</p>
-            </li>
-          ))}
-        </ul>
-      </Block>
 
       <NextStep text="Vezi fiecare post și decizia agentului pentru el." label="Deschide bilanțul" to="/app/posturi" />
     </PageShell>

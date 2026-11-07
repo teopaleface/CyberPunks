@@ -3,7 +3,10 @@ import { useRef, useState, type ReactNode } from "react"
 import { Reveal } from "@/components/reveal"
 import { SourceIcon } from "@/components/ui/animated-icons"
 import { useSnap } from "@/components/section-snap"
+import { CountUp } from "@/components/count-up"
+import { DecideFlow } from "@/components/decide-flow"
 import { DB, DECISION_RO, SOURCES, type Decision, type SourceKey } from "@/data/daybreak"
+import { SHIFT, crewDay, hhmm } from "@/lib/crew-status"
 import { cn, fmt } from "@/lib/utils"
 
 const ease = [0.22, 1, 0.36, 1] as const
@@ -11,37 +14,11 @@ const S = DB.summary
 
 /* ---------- visuals, one per step (also used on the feature pages) ---------- */
 
-const INPUTS = [
-  { t: "Consumul contoarelor", d: "Peste 2 milioane de contoare care trimit la 15 minute, plus contorul fiecărui post." },
-  { t: "Vremea", d: "Prognoza pe zone: vânt, ploaie, radiație solară. Zilele și vremea sunt reale." },
-  { t: "Rețeaua", d: "Posturile, clienții de sub ele, echipele și bazele lor (sintetice, pe harta reală)." },
-]
-
 export function PerceiveVisual() {
   return (
-    <div className="flex h-full flex-col justify-center gap-7">
-      <dl className="tabular grid grid-cols-3 gap-4">
-        <div>
-          <dd className="text-[clamp(1.8rem,3vw,2.8rem)] leading-none font-semibold">{fmt(S.items_in)}</dd>
-          <dt className="mt-2 text-sm text-white/70">lucrări intrate</dt>
-        </div>
-        <div>
-          <dd className="text-[clamp(1.8rem,3vw,2.8rem)] leading-none font-semibold">{fmt(S.items_valid)}</dd>
-          <dt className="mt-2 text-sm text-white/70">valide</dt>
-        </div>
-        <div>
-          <dd className="text-[clamp(1.8rem,3vw,2.8rem)] leading-none font-semibold">{fmt(S.items_invalid)}</dd>
-          <dt className="mt-2 text-sm text-white/70">în carantină</dt>
-        </div>
-      </dl>
-      <ul className="space-y-4">
-        {INPUTS.map((x) => (
-          <li key={x.t}>
-            <div className="font-medium">{x.t}</div>
-            <div className="text-white/75">{x.d}</div>
-          </li>
-        ))}
-      </ul>
+    <div className="flex h-full flex-col items-center justify-center text-center">
+      <CountUp value={S.items_valid} once className="text-[clamp(4rem,9vw,8rem)] leading-none font-semibold tracking-[-0.04em]" />
+      <p className="mt-4 text-[clamp(1.1rem,1.6vw,1.4rem)] text-white/80">lucrări validate</p>
     </div>
   )
 }
@@ -120,54 +97,95 @@ export function DecideVisual() {
   )
 }
 
-const toMin = (t: string) => {
-  const [h, m] = t.split(":").map(Number)
-  return h * 60 + m
-}
+/** On the landing page: one crew per kind of day (a full city round, a short one, a storm). */
+const LANDING_CREWS = ["E-BV-1", "E-BE-1", "E-BV-3", "E-TM-1"]
 
-export function ActVisual() {
-  const start = 8 * 60,
-    end = 17 * 60
+const HOURS = (() => {
+  const out: number[] = []
+  for (let h = Math.ceil(SHIFT.start / 60); h * 60 <= SHIFT.end; h += 2) out.push(h * 60)
+  return out
+})()
+
+/**
+ * The crews' day on one time axis: the thin line is the crew on the road,
+ * each solid block is a stop where it works.
+ */
+export function ActVisual({ compact = false }: { compact?: boolean }) {
+  const routes = compact ? DB.routes.filter((r) => LANDING_CREWS.includes(r.crew)) : DB.routes
+  const x = (m: number) => `${((Math.min(Math.max(m, SHIFT.start), SHIFT.end) - SHIFT.start) / (SHIFT.end - SHIFT.start)) * 100}%`
+  const w = (a: number, b: number) => `${((Math.min(b, SHIFT.end) - Math.max(a, SHIFT.start)) / (SHIFT.end - SHIFT.start)) * 100}%`
   return (
     <div className="flex h-full flex-col justify-center gap-5">
-      <ul className="space-y-2" aria-label="Traseele echipelor">
-        {DB.routes.map((r, i) => {
-          const a = Math.max(0, (toMin(r.depart) - start) / (end - start))
-          const b = Math.min(1, (toMin(r.back || "17:00") - start) / (end - start))
-          const src = (Object.keys(r.sources)[0] as SourceKey) ?? "A"
+      <div className="grid grid-cols-[7.5rem_1fr_7.5rem] gap-x-4">
+        <span />
+        <div className="tabular relative h-5 text-sm text-white/55">
+          {HOURS.map((m) => (
+            <span key={m} className="absolute -translate-x-1/2" style={{ left: x(m) }}>
+              {hhmm(m)}
+            </span>
+          ))}
+        </div>
+        <span />
+      </div>
+      <ul className={cn("grid", compact ? "gap-5" : "gap-3")} aria-label="Ziua echipelor, pe ore">
+        {routes.map((r, i) => {
+          const day = crewDay(r.crew)
+          const crew = DB.crews.find((c) => c.id === r.crew)
           return (
-            <li key={r.crew} className="grid grid-cols-[4.5rem_1fr_7rem] items-center gap-3 text-sm">
-              <span className="font-medium">{r.crew}</span>
-              <span className="relative h-5 rounded-[4px] bg-white/[0.06]">
-                <motion.span
-                  className="absolute inset-y-0 rounded-[4px]"
-                  style={{ left: `${a * 100}%`, background: SOURCES[src].color }}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(b - a) * 100}%` }}
-                  transition={{ delay: i * 0.04, duration: 0.4, ease }}
-                />
+            <li key={r.crew} className="grid grid-cols-[7.5rem_1fr_7.5rem] items-center gap-x-4">
+              <span>
+                <span className="block font-medium">{r.crew}</span>
+                <span className="block truncate text-sm text-white/55">{crew?.depotRo}</span>
               </span>
-              <span className="tabular text-right text-white/75">
-                {r.stops === 1 ? "1 oprire" : `${r.stops} opriri`}, {fmt(r.km, 1)} km
+              <span className={cn("relative block", compact ? "h-8" : "h-6")}>
+                {HOURS.map((m) => (
+                  <span key={m} aria-hidden className="absolute inset-y-0 w-px bg-white/[0.07]" style={{ left: x(m) }} />
+                ))}
+                <motion.span
+                  aria-hidden
+                  className="absolute top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-amber/45"
+                  style={{ left: x(day.depart), width: w(day.depart, day.back), transformOrigin: "left" }}
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ delay: i * 0.06, duration: 0.5, ease }}
+                />
+                {day.stops.map((st, j) => (
+                  <motion.span
+                    key={j}
+                    title={`${hhmm(st.arrive)}–${hhmm(st.leave)}`}
+                    className="absolute inset-y-0 rounded-[4px] bg-amber"
+                    style={{ left: x(st.arrive), width: `max(3px, ${w(st.arrive, st.leave)})` }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.25 + i * 0.06 + j * 0.03, duration: 0.25 }}
+                  />
+                ))}
+              </span>
+              <span className="tabular text-right text-sm">
+                <span className="block text-white/85">
+                  {day.open ? `${hhmm(day.depart)}, în zonă` : `${hhmm(day.depart)}–${hhmm(day.back)}`}
+                </span>
+                <span className="block text-white/55">
+                  {r.stops === 1 ? "1 oprire" : `${r.stops} opriri`}, {fmt(r.km, 1)} km
+                </span>
               </span>
             </li>
           )
         })}
       </ul>
-      <dl className="tabular grid grid-cols-3 gap-4">
-        <div>
-          <dd className="text-2xl font-semibold">{fmt(S.total_km, 1)} km</dd>
-          <dt className="text-sm text-white/65">pentru {S.crews_used} echipe</dt>
-        </div>
-        <div>
-          <dd className="text-2xl font-semibold">{fmt(S.notifications)}</dd>
-          <dt className="text-sm text-white/65">notificări</dt>
-        </div>
-        <div>
-          <dd className="text-2xl font-semibold">{fmt(DB.alerts.length)}</dd>
-          <dt className="text-sm text-white/65">alerte la dispecerat</dt>
-        </div>
-      </dl>
+      <p className="flex flex-wrap items-center gap-x-6 gap-y-2 pl-[calc(7.5rem+1rem)] text-sm text-white/60">
+        <span className="flex items-center gap-2">
+          <span aria-hidden className="h-0.5 w-6 rounded-full bg-amber/45" /> pe drum
+        </span>
+        <span className="flex items-center gap-2">
+          <span aria-hidden className="h-3 w-3 rounded-[3px] bg-amber" /> la lucru
+        </span>
+        {compact && (
+          <span>
+            {DB.routes.length - routes.length} echipe mai sunt în aplicație
+          </span>
+        )}
+      </p>
     </div>
   )
 }
@@ -194,12 +212,12 @@ export const STEPS: Step[] = [
   {
     title: "Decide",
     body: "Reguli scrise în cod, nu un LLM: valoarea trebuie să bată costul, iar ce nu e sigur merge la un om. Fiecare decizie are o regulă și un motiv.",
-    visual: <DecideVisual />,
+    visual: <DecideFlow />,
   },
   {
     title: "Acționează",
     body: "Împarte lucrările pe echipele limitate, face traseele, ordinele de lucru, alertele și notificările, și scrie totul în jurnal.",
-    visual: <ActVisual />,
+    visual: <ActVisual compact />,
   },
 ]
 
