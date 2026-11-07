@@ -77,7 +77,21 @@ function byWorkItem(records: AuditRecord[], workItemId?: string): AuditRecord[] 
 // Citiri simple
 // ---------------------------------------------------------------------------------------------
 
-export function getPlan(scenario: string, options: ResolveOptions = {}): Promise<Sourced<Plan | null>> {
+/**
+ * Planul, curățat de dubluri: aceeași lucrare poate apărea de două ori în `alerts[].work_item_ids`
+ * (postul și contorul de pe el), ceea ce ar dubla rândurile și numărătorile. Ordinea rămâne.
+ */
+export function dedupePlan(plan: Plan): Plan {
+  if (!plan.alerts?.some((a) => (a.work_item_ids?.length ?? 0) !== new Set(a.work_item_ids ?? []).size)) return plan;
+  return { ...plan, alerts: plan.alerts.map((a) => (a.work_item_ids ? { ...a, work_item_ids: [...new Set(a.work_item_ids)] } : a)) };
+}
+
+export async function getPlan(scenario: string, options: ResolveOptions = {}): Promise<Sourced<Plan | null>> {
+  const result = await readPlan(scenario, options);
+  return result.data ? { ...result, data: dedupePlan(result.data) } : result;
+}
+
+function readPlan(scenario: string, options: ResolveOptions): Promise<Sourced<Plan | null>> {
   return resolveData<Plan | null>(
     {
       api: async () => ok(await apiPlan(scenario), { detail: apiUrl("/plan", { scenario }) }),
