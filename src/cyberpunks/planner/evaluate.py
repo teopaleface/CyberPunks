@@ -363,6 +363,84 @@ def sensitivity(days: int, seed: int, n_meters: int) -> list[dict[str, Any]]:
     return out
 
 
+NAMES_RO = {
+    "agent": "Agentul (reguli + OR-Tools)",
+    "top_k_scor": "Top-K după scor",
+    "primul_venit": "Primul venit",
+    "aleator": "Aleator",
+    "doar_contoare": "Doar contoare (o singură sursă)",
+}
+
+
+def _fmt(x: float, d: int = 0) -> str:
+    s = f"{x:,.{d}f}"
+    return s.replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def render_markdown(report: dict[str, Any]) -> str:
+    """Tabelele din agent_eval.json, în markdown (reports/planner/agent_eval.md). Toate cifrele vin din raport."""
+    m = report["main"]
+    s = m["strategies"]
+    lines = [
+        "# Evaluarea agentului: cifrele (generat de script)",
+        "",
+        (
+            f"Generat automat de `{report['reproduce_cmd']}` la {report['created_at']} (`{report['planner_version']}`). "
+            f"Lume SINTETICĂ, {m['days']} de zile, {m['n_meters_per_day']} de lucrări A pe zi. Metoda: `reports/planner/README.md`."
+        ),
+        "",
+        "| Strategie | Valoare netă pe zi (lei) | Km pe zi | Vizite fără problemă reală | Urgențe ratate | Furtuni reale acoperite |",
+        "|---|---|---|---|---|---|",
+    ]
+    for name in STRATEGIES:
+        r = s[name]
+        lines.append(
+            f"| {NAMES_RO[name]} | {_fmt(r['net_value_lei_per_day'])} | {_fmt(r['km_per_day'])} | {_fmt(100 * r['useless_visit_rate'], 1)}% "
+            f"| {_fmt(100 * r['urgent_missed_rate'], 1)}% | {r['storms_covered_total']} din {r['storms_true_total']} |"
+        )
+    a = s["agent"]
+    best = max((n for n in STRATEGIES[1:]), key=lambda n: s[n]["net_value_lei_total"])
+    gain = 100 * (a["net_value_lei_total"] - s[best]["net_value_lei_total"]) / abs(s[best]["net_value_lei_total"])
+    lines += [
+        "",
+        f"Agentul aduce cu {_fmt(gain, 0)}% mai multă valoare netă decât cea mai bună strategie simplă ({NAMES_RO[best].lower()}).",
+        "",
+        "## Pe surse (vizite fără problemă reală / vizite)",
+        "",
+        "| Strategie | Contoare (A) | Furtună (B) | Tensiune (C) |",
+        "|---|---|---|---|",
+    ]
+    for name in STRATEGIES:
+        r = s[name]
+        cells = [f"{r['useless_visits_by_source'][x]} / {r['visits_by_source'][x]}" for x in "ABC"]
+        lines.append(f"| {NAMES_RO[name]} | " + " | ".join(cells) + " |")
+    lines += [
+        "",
+        (
+            f"Agentul a mai trimis {a['remote_readings_total']} citiri la distanță (din care {a['remote_readings_true']} pe probleme reale) "
+            f"și {a['human_review_total']} cazuri la om (din care {a['human_review_true']} reale). "
+            "În evaluare ele nu primesc valoare în ziua respectivă, doar costul."
+        ),
+    ]
+    if "robustness_overconfident_model" in report:
+        r = report["robustness_overconfident_model"]
+        rs = r["strategies"]
+        lines += ["", f"## Robustețe: model supra-încrezător ({r['days']} zile, adevărul ~ Bernoulli(scor^{r['miscalibration']}))", "",
+                  "| Strategie | Valoare netă pe zi (lei) | Urgențe ratate |", "|---|---|---|"]
+        for name in STRATEGIES:
+            lines.append(f"| {NAMES_RO[name]} | {_fmt(rs[name]['net_value_lei_per_day'])} | {_fmt(100 * rs[name]['urgent_missed_rate'], 1)}% |")
+    if "ablations" in report:
+        lines += ["", "## Ablații: ce aduce fiecare piesă (aceleași zile)", "", "| Varianta | Valoare netă pe zi (lei) | Km pe zi | Vizite fără problemă reală |", "|---|---|---|---|",
+                  f"| Agentul complet | {_fmt(a['net_value_lei_per_day'])} | {_fmt(a['km_per_day'])} | {_fmt(100 * a['useless_visit_rate'], 1)}% |"]
+        for v in report["ablations"].values():
+            lines.append(f"| {v['label_ro']} | {_fmt(v['net_value_lei_per_day'])} | {_fmt(v['km_per_day'])} | {_fmt(100 * v['useless_visit_rate'], 1)}% |")
+    if "sensitivity" in report:
+        lines += ["", "## Sensibilitate la ipotezele fără sursă", "", "| Parametru | Valoare | Agentul (lei/zi) | Top-K (lei/zi) | Avantajul agentului |", "|---|---|---|---|---|"]
+        for row in report["sensitivity"]:
+            lines.append(f"| `{row['parameter']}` | {_fmt(row['value'], 1)} | {_fmt(row['agent_net_lei_per_day'])} | {_fmt(row['top_k_scor_net_lei_per_day'])} | +{_fmt(row['agent_advantage_pct'], 1)}% |")
+    return "\n".join(lines) + "\n"
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Evaluarea agentului față de strategii simple (lume sintetică).")
     ap.add_argument("--days", type=int, default=30)
@@ -391,6 +469,7 @@ def main(argv: list[str] | None = None) -> int:
     report["runtime_s"] = round(time.perf_counter() - t0, 1)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    args.out.with_suffix(".md").write_text(render_markdown(report), encoding="utf-8")
     s = main_run["strategies"]
     print(f"Scris {args.out} ({report['runtime_s']} s)")
     print(f"{'strategie':<15}{'valoare netă/zi':>17}{'km/zi':>9}{'vizite inutile':>16}{'urgențe ratate':>16}")

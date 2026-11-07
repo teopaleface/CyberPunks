@@ -1,8 +1,8 @@
 {
   "description": "Agentul față de strategii simple, pe o lume SINTETICĂ cu adevărul cunoscut (scoruri calibrate prin construcție).",
   "reproduce_cmd": "uv run python -m cyberpunks.planner.evaluate --days 30 --seed 7 --meters 120",
-  "planner_version": "planner@0.1.0+3bf95f5",
-  "created_at": "2026-11-07T13:29:26+02:00",
+  "planner_version": "planner@0.1.0+94f3151",
+  "created_at": "2026-11-07T13:56:48+02:00",
   "synthetic": true,
   "main": {
     "days": 30,
@@ -46,7 +46,7 @@
           "B": 30,
           "C": 15
         },
-        "solve_seconds_mean": 0.387
+        "solve_seconds_mean": 0.365
       },
       "top_k_scor": {
         "net_value_lei_total": 697651.53,
@@ -84,7 +84,7 @@
           "B": 31,
           "C": 43
         },
-        "solve_seconds_mean": 0.003,
+        "solve_seconds_mean": 0.002,
         "agent_minus_strategy_net_lei": 354190.81
       },
       "primul_venit": {
@@ -162,7 +162,7 @@
           "B": 30,
           "C": 55
         },
-        "solve_seconds_mean": 0.003,
+        "solve_seconds_mean": 0.002,
         "agent_minus_strategy_net_lei": 505753.41
       },
       "doar_contoare": {
@@ -201,7 +201,7 @@
           "B": 0,
           "C": 0
         },
-        "solve_seconds_mean": 0.003,
+        "solve_seconds_mean": 0.002,
         "agent_minus_strategy_net_lei": 888059.04
       }
     },
@@ -712,7 +712,7 @@
           "B": 12,
           "C": 7
         },
-        "solve_seconds_mean": 0.361
+        "solve_seconds_mean": 0.341
       },
       "top_k_scor": {
         "net_value_lei_total": 140112.88,
@@ -750,7 +750,7 @@
           "B": 14,
           "C": 8
         },
-        "solve_seconds_mean": 0.003,
+        "solve_seconds_mean": 0.002,
         "agent_minus_strategy_net_lei": 51701.54
       },
       "primul_venit": {
@@ -789,7 +789,7 @@
           "B": 15,
           "C": 11
         },
-        "solve_seconds_mean": 0.003,
+        "solve_seconds_mean": 0.002,
         "agent_minus_strategy_net_lei": 101377.43
       },
       "aleator": {
@@ -828,7 +828,7 @@
           "B": 13,
           "C": 16
         },
-        "solve_seconds_mean": 0.003,
+        "solve_seconds_mean": 0.002,
         "agent_minus_strategy_net_lei": 128838.95
       },
       "doar_contoare": {
@@ -867,7 +867,7 @@
           "B": 0,
           "C": 0
         },
-        "solve_seconds_mean": 0.003,
+        "solve_seconds_mean": 0.002,
         "agent_minus_strategy_net_lei": 160707.88
       }
     },
@@ -1074,7 +1074,7 @@
         "B": 30,
         "C": 15
       },
-      "solve_seconds_mean": 0.638
+      "solve_seconds_mean": 0.614
     },
     "greedy_in_loc_de_ortools": {
       "label_ro": "Aceleași reguli, trasee făcute greedy în loc de OR-Tools",
@@ -1160,5 +1160,5 @@
       "agent_advantage_pct": 54.3
     }
   ],
-  "runtime_s": 109.2
+  "runtime_s": 102.0
 }

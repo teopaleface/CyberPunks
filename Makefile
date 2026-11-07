@@ -105,7 +105,7 @@ bilant-test:      ## Bilanț: testele firului
 	uv run pytest tests/bilant
 
 # ---- Planificator și API (firul Teo-planificator) ----
-.PHONY: api api-dev run-demo test-planner
+.PHONY: api api-dev run-demo test-planner agent-eval solver-bench demo-snapshot
 
 api:              ## API-ul agentului pe http://127.0.0.1:8710/api (documentație: /docs)
 	uv run uvicorn cyberpunks.api.app:app --host 127.0.0.1 --port 8710
@@ -118,6 +118,15 @@ run-demo:         ## agentul cap-coadă pe scenariul demo-vara
 
 test-planner:     ## testele planificatorului și ale API-ului
 	uv run pytest tests/planner
+
+agent-eval:       ## evaluarea agentului față de strategii simple (reports/planner/agent_eval.json și .md)
+	uv run python -m cyberpunks.planner.evaluate
+
+solver-bench:     ## OR-Tools față de greedy pe 100-300 de lucrări (reports/planner/solver_benchmark.json)
+	uv run python -m cyberpunks.planner.benchmark
+
+demo-snapshot:    ## copiază planul demo-vara în outputs/demo/ (intră în git; interfața îl folosește ca rezervă)
+	uv run python -m cyberpunks.planner.snapshot --scenario demo-vara
 
 # ---- Interfață (firul Teo-ui) ----
 .PHONY: web web-install web-build web-test
