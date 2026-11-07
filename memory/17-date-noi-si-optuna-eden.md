@@ -1,6 +1,6 @@
 # Date noi, variabile meteo noi și Optuna (ramura Eden, 7-8 nov. 2026)
 
-Cerut de Eden după înghețarea modelelor de la 20:00. Totul e **experiment pe ramura `Eden`**: modelele livrate
+Cerut de Eden, sâmbătă seara. Totul e **experiment pe ramura `Eden`**: modelele livrate
 (`models/release/`) și cifrele din `reports/*/metrics.json` nu s-au schimbat. Teo decide ce se preia.
 
 Regula pentru toate: căutarea (variante, Optuna) vede doar antrenarea; testul livrat se folosește la final,

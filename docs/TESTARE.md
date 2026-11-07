@@ -53,4 +53,4 @@ Atenție: precizia@K de 1,00 a lui A pe Londra nu se spune la prezentare (o umpl
 
 ## 5. Dacă găsești un bug
 
-Scrie-l în conversația orchestratorului, cu ecranul și ce ai făcut. După 20:00 se repară doar bug-uri, fără funcții noi.
+Scrie-l în conversația orchestratorului, cu ecranul și ce ai făcut. După 10:30 se repară doar bug-uri, fără funcții noi.

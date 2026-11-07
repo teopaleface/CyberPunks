@@ -54,3 +54,4 @@ Cronologic. Fiecare intrare: ora (București), ce s-a întâmplat, ce s-a decis.
 ## 8 noiembrie 2026
 
 - 01:05: experimentele lui Eden (ramura `Eden`, după înghețare): A câștigă mult cu toate gospodăriile Low Carbon London (0,625 -> 0,891 pe problemele subtile); B câștigă cu CAPE și lifted index (0,2777 -> 0,2865); C câștigă puțin din mai mulți ani și regiuni; Optuna nu aduce câștig sigur la A și B. Decizia lui Eden: fără anii 2021-2022 la B. Modelele livrate nu s-au schimbat; preluarea o decide Teo. Detalii în `17-date-noi-si-optuna-eden.md`.
+- 01:20: decizia lui Eden: înghețarea de la 20:00 se scoate din plan, pentru că lucrul a continuat după ea (Teo: agenții pe WhatsApp, voce și intern; Eden: optimizarea modelelor). Rămâne doar înghețarea codului de la 10:30. Schimbat în `docs/PLAN.md` și `docs/TESTARE.md`.
