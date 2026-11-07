@@ -113,7 +113,8 @@ const pu: Fmt = (v) => `${fmtDec(v, 4)} pu`;
 
 const METRIC_ROWS: Record<Source, { key: string; label: string; fmt: Fmt }[]> = {
   A: [
-    { key: "precision_at_k", label: "Precision at selection", fmt: pct },
+    { key: "subtle_precision_at_k", label: "Precision on subtle test anomalies", fmt: pct },
+    { key: "sgcc_precision_at_k", label: "Precision on SGCC real theft labels", fmt: pct },
     { key: "recall_at_k", label: "Recall at selection", fmt: pct },
     { key: "pr_auc", label: "PR-AUC", fmt: dec3 },
   ],

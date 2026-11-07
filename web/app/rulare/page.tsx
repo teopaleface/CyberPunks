@@ -68,6 +68,8 @@ const PARAM_COPY: Record<string, string> = {
 const paramText = (text: string) => PARAM_COPY[text] ?? englishText(text);
 
 const METRIC_NAME: Record<string, string> = {
+  subtle_precision_at_k: "Precision on subtle test anomalies",
+  sgcc_precision_at_k: "Precision on SGCC real theft labels",
   precision_at_k: "Meter precision",
   pr_auc: "PR-AUC",
   roc_auc: "ROC-AUC",

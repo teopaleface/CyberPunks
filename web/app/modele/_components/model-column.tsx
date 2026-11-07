@@ -49,11 +49,14 @@ export function ModelColumn({ source, report, hasAnalysis }: { source: Source; r
 /** Contoare: validarea pe furturi reale (SGCC), sub metrica principală. Referința e regula simplă pe același set. */
 function SgccLine({ metrics, baseline }: { metrics: Record<string, number>; baseline: Record<string, number> }) {
   const m = metrics.sgcc_precision_at_k;
-  const b = typeof metrics.sgcc_vee_precision_at_k === "number" ? metrics.sgcc_vee_precision_at_k : baseline.sgcc_precision_at_k;
+  const b = baseline.sgcc_precision_at_k;
   if (typeof m !== "number" || typeof b !== "number") return null;
   return (
     <p className="mt-2.5 border-t border-rule pt-2.5 text-[15px] leading-snug">
-      <b className="font-[620]">Real theft cases with SGCC labels:</b> precision in the top K {fmtMetric("sgcc_precision_at_k", m)}, compared with {fmtMetric("sgcc_precision_at_k", b)} for the simple rule.
+      <b className="font-[620]">Real theft cases with SGCC labels:</b> precision in the top K {fmtMetric("sgcc_precision_at_k", m)}, compared with {fmtMetric("sgcc_precision_at_k", b)} for the zero-consumption / consumption-drop rule.
+      {typeof metrics.sgcc_vee_precision_at_k === "number" ? ` Full VEE rule: ${fmtMetric("sgcc_precision_at_k", metrics.sgcc_vee_precision_at_k)}.` : ""}
+      {typeof metrics.sgcc_iforest_precision_at_k === "number" ? ` Isolation Forest: ${fmtMetric("sgcc_precision_at_k", metrics.sgcc_iforest_precision_at_k)}.` : ""}
+      {" "}SGCC uses a separately trained model; this test result does not express confidence in individual demo cases.
     </p>
   );
 }
@@ -129,6 +132,7 @@ function ReportBody({ source, report: r, hasAnalysis }: { source: Source; report
       </dl>
 
       <h3 className="mt-5 text-[16px] font-[650]">All metrics vs. baseline</h3>
+      {source === "A" ? <p className="mt-2 text-[14px] text-muted-foreground">Overall London precision is inflated by obvious injected defects filling the top K. The primary comparison excludes those defects. The zero-consumption / consumption-drop rule and the full VEE rule are different baselines; each is reported separately.</p> : null}
       <table className="mt-1.5 w-full border-collapse text-[14.5px]">
         <thead>
           <tr className="text-[13.5px] text-muted-foreground">

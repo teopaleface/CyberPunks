@@ -35,9 +35,9 @@ describe("item-data", () => {
     expect(stopFor([], "a")).toBeNull();
   });
   test("metrici", () => {
-    const r = { metrics: { precision_at_k: 1, pr_auc: 0.6778 }, baseline_metrics: { precision_at_k: 0.4615 } } as unknown as ModelReport;
+    const r = { metrics: { subtle_precision_at_k: 0.625, precision_at_k: 1, pr_auc: 0.6778 }, baseline_metrics: { subtle_precision_at_k: 0.0703 } } as unknown as ModelReport;
     const rows = metricRows("A", r);
-    expect(rows.map((x) => x.key)).toEqual(["precision_at_k", "pr_auc"]);
+    expect(rows.map((x) => x.key)).toEqual(["subtle_precision_at_k", "pr_auc"]);
     expect(rows[1].base).toBeNull();
     expect(metricRows("A", null)).toEqual([]);
   });

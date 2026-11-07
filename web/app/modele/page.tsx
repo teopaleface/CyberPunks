@@ -13,6 +13,7 @@ import { sentence } from "@/lib/format";
 import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
 import { SOURCE_ORDER } from "@/lib/sources";
 import { ModelsBoard } from "./_components/board";
+import { BalanceEvaluation } from "./_components/balance-evaluation";
 import { ModelColumn } from "./_components/model-column";
 import { PlannerSection } from "./_components/planner-section";
 
@@ -54,10 +55,11 @@ async function Models({ searchParams }: { searchParams: PageProps<"/modele">["se
           subtitle="Measured performance against simple rules on the same test data."
         />
         <ModelsBoard bundle={bundle} planner={bundle.planner} analysisBy={analysisBy} />
+        <BalanceEvaluation report={bundle.bilant ?? null} />
 
         <p className="mt-5 text-[13.5px] text-muted-foreground">
-          {published.length === 3
-            ? "All three reports published"
+          {published.length === 3 && bundle.bilant
+            ? "All four model reports published"
             : published.length
               ? `Published: ${published.join(", ")}`
               : "No reports published yet"}
