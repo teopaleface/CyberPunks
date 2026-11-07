@@ -119,10 +119,20 @@ def render(fid: str) -> Path | None:
     with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False) as tmp:
         tmp.write(page(fid, f))
     dst = OUT / f"{fid}.png"
-    subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--hide-scrollbars",
-                    "--allow-file-access-from-files", "--virtual-time-budget=4000",
-                    "--window-size=1920,1080", f"--screenshot={dst}", Path(tmp.name).as_uri()],
-                   check=True, capture_output=True)
+    # Headless Chrome sometimes screenshots before a large plate has finished decoding,
+    # which leaves black rows at the bottom. Check the last row and retry.
+    from PIL import Image
+    for attempt in range(5):
+        subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--hide-scrollbars",
+                        "--allow-file-access-from-files", "--virtual-time-budget=8000",
+                        "--run-all-compositor-stages-before-draw",
+                        "--window-size=1920,1080", f"--screenshot={dst}", Path(tmp.name).as_uri()],
+                       check=True, capture_output=True)
+        im = Image.open(dst).convert("RGB")
+        if not all(sum(im.getpixel((x, im.height - 3))) < 15 for x in range(0, im.width, 97)):
+            break
+    else:
+        print(f"warn {dst.name}: bottom still black after 5 attempts")
     print(f"ok {dst.name}")
     return dst
 

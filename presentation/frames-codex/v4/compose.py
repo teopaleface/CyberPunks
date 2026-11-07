@@ -43,6 +43,8 @@ v3.HERE = HERE  # the sheet is written next to this file
 if __name__ == "__main__":
     for v in v3.INKS:
         v2.FRAMES = v3.frames_for(v)
+        # the art leans into the top-left corner here: break the headline onto two lines
+        v2.FRAMES[f"{v}_storm"]["blocks"][0]["text"] = "Storm hits<br>Banat."
         for fid in v2.FRAMES:
             v2.render(fid)
     v3.sheet()
