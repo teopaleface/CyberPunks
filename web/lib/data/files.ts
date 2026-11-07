@@ -233,8 +233,10 @@ export function readFixtureAudit(): Promise<FileRead<JsonlResult<AuditRecord>> |
 // outputs/demo/ (instantaneul demo)
 // ---------------------------------------------------------------------------------------------
 
+/** Instantaneul demo: implicit outputs/demo; DEMO_DIR îl poate muta (de exemplu pe outputs/ al unei rulări locale). */
 export function demoDir(): string {
-  return repoPath("outputs", "demo");
+  const custom = process.env.DEMO_DIR;
+  return custom ? path.resolve(custom) : repoPath("outputs", "demo");
 }
 
 export interface DemoCandidates {

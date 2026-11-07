@@ -92,7 +92,8 @@ export function PlanScreen({
           kind,
           title: w.asset_type === "meter" ? w.asset_id : itemTitle(w),
           sub,
-          pinned: kind === "assigned" || kind === "human",
+          pinned: Boolean(stop),
+          prominent: Boolean(stop),
           attention: kind === "human",
         };
       }),

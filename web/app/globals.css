@@ -274,7 +274,7 @@
   color: var(--att-ink);
   font-weight: 560;
 }
-.plan-map .mk[data-pinned="1"] .lab,
+.plan-map[data-near] .mk[data-pinned="1"] .lab,
 .plan-map .mk[data-selected="1"] .lab,
 .plan-map .mk:hover .lab,
 .plan-map .mk:focus-visible .lab {
@@ -328,4 +328,34 @@
   box-shadow: none;
   border: 1px solid var(--rule);
   background: var(--panel);
+}
+
+/* Informațiile de la trecerea mouse-ului peste punctele hărții */
+.plan-pop .maplibregl-popup-content {
+  padding: 5px 9px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+  background: var(--popover);
+  box-shadow: 0 6px 18px -10px rgb(19 32 42 / 0.45);
+  font-family: var(--font-sans);
+  color: var(--ink);
+  line-height: 1.25;
+}
+.plan-pop .maplibregl-popup-tip {
+  display: none;
+}
+.plan-pop .t {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  font-stretch: 88%;
+}
+.plan-pop .s {
+  display: block;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+.plan-pop .s.att {
+  color: var(--att-ink);
+  font-weight: 560;
 }

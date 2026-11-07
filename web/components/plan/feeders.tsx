@@ -60,15 +60,8 @@ export function Feeders({
 
   const model = useMemo(() => {
     const timelines = routes.map((r) => ({ route: r, tl: crewTimeline(r, shift?.start ?? "08:00") }));
-    const windows: { start: number; end: number }[] = [];
-    for (const { tl } of timelines) {
-      windows.push({ start: tl.depart, end: tl.back });
-      for (const b of tl.blocks) {
-        const w = itemsById[b.workItemId];
-        const win = w ? workItemWindow(w) : null;
-        if (win) windows.push(win);
-      }
-    }
+    // axa acoperă tura și orele echipelor; ferestrele mai lungi se taie la margine
+    const windows: { start: number; end: number }[] = timelines.map(({ tl }) => ({ start: tl.depart, end: tl.back }));
     const range = timelineRange(shift, windows);
     // grupăm echipele pe baze, în ordinea bazelor din config
     const order = new Map(depots.map((d, i) => [d.depot_id, i]));
@@ -81,7 +74,7 @@ export function Feeders({
       groups.set(t.route.depot_id, g);
     }
     return { range, groups: [...groups.entries()] };
-  }, [routes, itemsById, shift, depots]);
+  }, [routes, shift, depots]);
 
   const { range, groups } = model;
   const x = (m: number) => +(LEFT + ((m - range.start) / (range.end - range.start)) * (width - LEFT - RIGHT_PAD)).toFixed(1);
@@ -224,6 +217,7 @@ function CrewRow({
 }) {
   const busX = LEFT - 56 + 7;
   const stops = tl.blocks.length;
+  const sel0 = (id: string) => id === selectedId;
   return (
     <g>
       {/* ferestrele lucrărilor, în spatele rândului */}
@@ -297,9 +291,13 @@ function CrewRow({
         const xa = x(b.start);
         const xb = x(b.end);
         const wide = xb - xa > 190;
+        // numele și orele apar doar unde încap; altfel rămân în informațiile de la trecerea mouse-ului
+        const name = placeName(w);
+        // lățimea estimată a textului (Archivo îngust, 14,5 px): ~7,4 px pe caracter
+        const showName = name.length * 7.4 <= xb - xa + 14 || sel0(b.workItemId);
+        const showTime = xb - xa >= 84 || sel0(b.workItemId);
         const sel = b.workItemId === selectedId;
         const d = decisions[b.workItemId];
-        const name = placeName(w);
         return (
           <g
             key={`blk-${b.workItemId}`}
@@ -329,12 +327,16 @@ function CrewRow({
               strokeWidth={w.source === "C" ? 1.5 : 0}
             />
             <g transform={`translate(${xa - 18},${cy - 18})`} dangerouslySetInnerHTML={{ __html: markerSvg({ source: w.source }).replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "") }} />
-            <text x={wide ? xa + 18 : (xa + xb) / 2} y={cy - 19} textAnchor={wide ? "start" : "middle"} fontSize={14.5} fontWeight={600} style={{ fill: "var(--ink)", fontStretch: "88%" }}>
-              {name}
-            </text>
-            <text x={wide ? xa + 18 : (xa + xb) / 2} y={cy + 25} textAnchor={wide ? "start" : "middle"} fontSize={14} style={{ fill: "var(--ink)", fontStretch: "88%" }}>
-              {hhmm(b.start)}–{hhmm(b.end)}
-            </text>
+            {showName ? (
+              <text x={wide ? xa + 18 : (xa + xb) / 2} y={cy - 19} textAnchor={wide ? "start" : "middle"} fontSize={14.5} fontWeight={600} style={{ fill: "var(--ink)", fontStretch: "88%" }}>
+                {name}
+              </text>
+            ) : null}
+            {showTime ? (
+              <text x={wide ? xa + 18 : (xa + xb) / 2} y={cy + 25} textAnchor={wide ? "start" : "middle"} fontSize={14} style={{ fill: "var(--ink)", fontStretch: "88%" }}>
+                {hhmm(b.start)}–{hhmm(b.end)}
+              </text>
+            ) : null}
             {w.effort.requires_planned_outage ? (
               <g transform={`translate(${xa + 116},${cy + 20})`}>
                 <g transform="scale(1.25)" style={{ stroke: "var(--ink)" }} strokeWidth={1.7} fill="none" strokeLinecap="round">

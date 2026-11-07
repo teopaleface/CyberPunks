@@ -115,9 +115,11 @@ export function toPlanScreenData(view: PlanView): PlanScreenData {
 
   const regions: RegionView[] = regionEntries.map(([id, r]) => {
     const items = view.workItems.filter((w) => regionOf[w.work_item_id] === id);
-    const pts: [number, number][] = items.map((w) => [w.location.lon, w.location.lat]);
-    for (const route of view.routes) if (depotRegion.get(route.depot_id) === id) pts.push(...route.path);
-    const bb = boundsOf(pts) ?? REGION_FALLBACK[id] ?? RE_BOUNDS;
+    // încadrarea urmărește unde merg echipele; fără trasee, toate lucrările regiunii
+    const routePts: [number, number][] = [];
+    for (const route of view.routes) if (depotRegion.get(route.depot_id) === id) routePts.push(...route.path);
+    const itemPts: [number, number][] = items.map((w) => [w.location.lon, w.location.lat]);
+    const bb = boundsOf(routePts.length >= 2 ? routePts : itemPts, routePts.length >= 2 ? 2.5 : 6) ?? REGION_FALLBACK[id] ?? RE_BOUNDS;
     return {
       id,
       label: r.label_ro,
