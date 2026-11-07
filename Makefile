@@ -36,6 +36,15 @@ c-sim:            ## C: simularea fizică a posturilor de antrenare (data/proces
 c-test:           ## C: testele firului C
 	uv run pytest tests/c
 
+# ---- Bilanț pe post (firul Teo-bilant) ----
+.PHONY: bilant-data bilant-eval bilant-test
+bilant-data:      ## Bilanț: lumea simulată, 600 de posturi cu probleme ascunse (data/processed/bilant), cel mult 4 procese
+	uv run python -m cyberpunks.a_bilant.dataset --workers 4
+bilant-eval:      ## Bilanț: modelele și metodele simple, reports/bilant/metrics.json și figurile
+	uv run python -m cyberpunks.a_bilant.evaluate
+bilant-test:      ## Bilanț: testele firului
+	uv run pytest tests/bilant
+
 # ---- Planificator și API (firul Teo-planificator) ----
 .PHONY: api api-dev run-demo test-planner
 

@@ -35,10 +35,31 @@ CUSTOMER_METER_SD = 0.004  # eroarea fixă a unui contor de client (clasa 1: ±1
 BALANCE_METER_SD = 0.002  # eroarea fixă a contorului de bilanț (clasa 0,5S cu transformatoare de curent)
 VOLTAGE_NOISE_PU = 0.002  # zgomotul măsurării de tensiune în contor (±0,5%)
 GAP_METER_SHARE = 0.03  # ce parte din contoare au episoade de goluri de comunicație
-# Fazele: calculul lui C e echilibrat. Pierderea reală = pierderea echilibrată × SINGLE_PHASE_FACTOR × (1 + PHASE_K·u²),
-# u = dezechilibrul de faze (sarcina fazei celei mai încărcate / media − 1). Valorile vin din docs/research/bilant_faze.md.
-SINGLE_PHASE_FACTOR = 1.25
-PHASE_K = 1.5
+# Fazele: calculul lui C e echilibrat (secvență pozitivă). Corecția pentru case monofazate și faze inegale e formula
+# ajustată pe 768 de rulări pandapower runpp_3ph (docs/research/bilant_faze.md):
+#   pierderea pe linii = pierderea echilibrată × (1 + 1,09·(D + 9S/(0,18·N))),
+#   D = Σ(3·p_f − 1)², S = Σ p_f(1 − p_f), p_f = ce parte din case e pe faza f, N = numărul de case.
+PHASE_A, PHASE_B = 1.09, 0.18
+# Variația în interiorul orei: pierderea e media lui I², nu pătratul mediei (IPOTEZĂ: +30% la date orare).
+INTRA_HOUR = 1.3
+# Calibrare (IPOTEZĂ): SimBench nu are branșamentele, îmbinările îmbătrânite și conductorii vechi; cu factorul de mai jos
+# mediana pierderii tehnice simulate pe JT ajunge la ~3-4% din energia care trece prin post, sub CPT-ul total RER
+# (Muntenia 8,66% în 2023, 63,54% din CPT pe JT, Plan RER 2024-2033), care include și pierderile comerciale.
+LOSS_CALIB = 2.5
+LOSS_AGE_SD = 0.35  # variația necunoscută între posturi (vârsta rețelei), lognormală
+
+
+def phase_multiplier(shares: np.ndarray, n_houses: int) -> float:
+    """Factorul pierderilor pe linii față de calculul echilibrat, din cotele de case pe faze."""
+    p = np.asarray(shares, dtype=float) / np.sum(shares)
+    D = float(np.sum((3 * p - 1) ** 2))
+    S = float(np.sum(p * (1 - p)))
+    return 1 + PHASE_A * (D + 9 * S / (PHASE_B * max(n_houses, 1)))
+
+
+def unbalance_u(shares: np.ndarray) -> float:
+    p = np.asarray(shares, dtype=float) / np.sum(shares)
+    return float(3 * p.max() - 1)
 
 
 @dataclass
@@ -105,6 +126,7 @@ class PostWorld:
     cust_voltage: np.ndarray  # (n, T) tensiunea măsurată în contor, pu (float32)
     # adevărul din construcție (doar pentru etichete și evaluare)
     true_line_loss_kwh: np.ndarray  # (T,) pierderea tehnică pe cabluri, cu fazele
+    true_line_loss_base_kwh: np.ndarray  # (T,) aceeași, fără problema tehnică (pentru eticheta excesului)
     true_own_kwh: float  # consumul propriu al contoarelor pe oră
     true_theft_kwh: np.ndarray  # (T,) furt înainte de contor
     true_meter_deficit_kwh: np.ndarray  # (T,) consum real nemăsurat din cauza contoarelor (defect, manipulare)
@@ -178,17 +200,22 @@ def simulate(spec: grids.PostSpec, wx: Weather, plan: P.PostPlan, cluster_mv: np
     I = (V[fb] - V[tb]) / z[:, None]
     loss_bal = (np.abs(I) ** 2 * z.real[:, None]).sum(axis=0) * m.base_mva * 1000  # kW = kWh pe oră
 
-    # dezechilibrul de faze: un nivel de bază al postului, plus problema tehnică
-    u = np.full(T, plan.base_unbalance)
+    # fazele: cotele de bază ale postului, plus problema tehnică (faze foarte inegale sau îmbinare degradată)
+    n_h = max(int(post.load_is_house.sum()), 1)
+    ph = np.full(T, phase_multiplier(plan.phase_shares, n_h))
+    u = np.full(T, unbalance_u(plan.phase_shares))
     loss_mult = np.ones(T)
     for pr in plan.problems:
         if pr.kind == "technical":
             on = wx.local_day >= pr.onset_day
             if pr.params["mode"] == "unbalance":
-                u = np.where(on, pr.params["u"], u)
+                ph = np.where(on, phase_multiplier(pr.params["shares"], n_h), ph)
+                u = np.where(on, unbalance_u(pr.params["shares"]), u)
             else:  # îmbinare degradată sau cablu subdimensionat: rezistență mai mare
                 loss_mult = np.where(on, pr.params["mult"], loss_mult)
-    line_loss = loss_bal * SINGLE_PHASE_FACTOR * (1 + PHASE_K * u**2) * loss_mult
+    age = LOSS_CALIB * float(np.exp(rng.normal(0.0, LOSS_AGE_SD)))
+    line_loss_base = loss_bal * INTRA_HOUR * age * phase_multiplier(plan.phase_shares, n_h)
+    line_loss = loss_bal * INTRA_HOUR * age * ph * loss_mult
     own = n * METER_OWN_W / 1000.0
 
     # --- contorul de bilanț ---
@@ -227,7 +254,9 @@ def simulate(spec: grids.PostSpec, wx: Weather, plan: P.PostPlan, cluster_mv: np
     static.update(
         line_r_ohm_km=float(grids.LINE_TYPES[spec.line_type][0]),
         topology=spec.topology,
-        base_unbalance=float(plan.base_unbalance),
+        base_unbalance=unbalance_u(plan.phase_shares),
+        prosumer_idx=[int(i) for i in post.pv_load],
+        loss_age_factor=age,
     )
     return PostWorld(
         post_id=spec.post_id,
@@ -237,6 +266,7 @@ def simulate(spec: grids.PostSpec, wx: Weather, plan: P.PostPlan, cluster_mv: np
         cust_kwh=rec.astype("float32"),
         cust_voltage=volt.astype("float32"),
         true_line_loss_kwh=line_loss,
+        true_line_loss_base_kwh=line_loss_base,
         true_own_kwh=own,
         true_theft_kwh=theft,
         true_meter_deficit_kwh=deficit,

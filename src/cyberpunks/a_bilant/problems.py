@@ -61,7 +61,7 @@ class Problem:
 @dataclass
 class PostPlan:
     post_id: str
-    base_unbalance: float
+    phase_shares: tuple[float, float, float]  # ce parte din case e pe fiecare fază (de bază)
     problems: list[Problem] = field(default_factory=list)
     benign: list[tuple[int, str, int, int | None, float]] = field(default_factory=list)  # (client, tip, start, durată, factor)
 
@@ -76,8 +76,10 @@ def make_plan(
     min_onset: int = MIN_ONSET_DAY,
 ) -> PostPlan:
     """Alege la întâmplare (determinist din rng) problemele unui post. `wrong_post` se leagă după, la nivel de lot."""
-    # IPOTEZĂ: dezechilibrul de bază; peste jumătate din rețelele JT sunt vizibil dezechilibrate (Fang & Ma 2020)
-    plan = PostPlan(post_id=post_id, base_unbalance=float(rng.uniform(0.0, 0.35)))
+    # IPOTEZĂ: cotele de bază pe faze (Dirichlet în jurul lui 1/3); peste jumătate din rețelele JT sunt vizibil
+    # dezechilibrate (Fang & Ma 2020, IET GTD)
+    shares = tuple(float(x) for x in rng.dirichlet([25.0, 25.0, 25.0]))
+    plan = PostPlan(post_id=post_id, phase_shares=shares)
     last = max(min_onset + 1, n_days - 3)
     for i in range(n_customers):
         if rng.random() < p_meter_problem:
@@ -103,7 +105,11 @@ def make_plan(
             plan.problems.append(Problem(kind, onset, int(rng.integers(0, n_customers)), {"kw": float(rng.uniform(0.3, 2.0)), "shape": shape, "near_customer": int(rng.integers(0, n_customers))}))
         elif kind == "technical":
             if rng.random() < 0.5:
-                plan.problems.append(Problem(kind, onset, -1, {"mode": "unbalance", "u": float(rng.uniform(0.6, 1.2))}))
+                hi = float(rng.uniform(0.55, 0.8))  # o fază ia 55-80% din case (după o reconectare greșită)
+                rest = float(rng.uniform(0.3, 0.7)) * (1 - hi)
+                sh = [hi, rest, 1 - hi - rest]
+                rng.shuffle(sh)
+                plan.problems.append(Problem(kind, onset, -1, {"mode": "unbalance", "shares": [float(x) for x in sh]}))
             else:
                 plan.problems.append(Problem(kind, onset, -1, {"mode": "joint", "mult": float(rng.uniform(1.8, 3.5))}))
         elif kind == "balance_meter_config":
