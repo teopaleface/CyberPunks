@@ -3,3 +3,7 @@ v1/*.png
 v2/frames/
 __pycache__/
 v2/plates/*.png
+v3/plates/*.png
+v3/frames/
+v4/plates/*.png
+v4/frames/

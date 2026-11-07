@@ -1,0 +1,56 @@
+# H3 two colours
+
+Generated with built-in image_gen. Model name not reported. Requested largest available 16:9 at 3840×2160; tool returned 1672×941 for every image, approximately 16:9. Files copied byte-for-byte from generated PNGs, without edits or resizing. Neutral above-left soft key and 85mm f/8 language retained throughout.
+
+Visual checks: no visible text, digits, logos, watermarks, neon, halos, CGI tiles or extra colours. Storm floor dry. Required negative spaces present. Backgrounds read as solid seamless paper; slight photographic tonal variation remains, so these are not mathematically uniform hex fills. No actual camera or physical studio was used; photographic realism is a visual judgment.
+
+## h3_storm.png
+
+- Pixel size: 1672 × 941
+- Attempts: 2
+- Review/flaw note: Selected attempt 2. Attempt 1 made the helmet too large and invaded the top 45%; rejected. Final has believable scuffs and droplets, dry floor and generous upper space. Minor flaw: small backdrop tonal variation; resolution below requested 4K.
+- Exact final prompt:
+
+```text
+Use case: product-mockup. Make a text-free photographic presentation plate, landscape 16:9, largest available resolution, requested 3840x2160. Real studio photograph of real used utility field gear, the restrained craft of Apple commercial product photography. Full-frame camera with 85mm lens, f/8, crisp natural detail without sharpening. One large soft key from above-left, gentle physical contact shadow, neutral white light, believable small scuffs, grey dirt, scratches. Seamless paper must be flat matte uniform solid colour, no gradient or vignette or hotspot. Only orange #FF5B1A and cobalt #1E4FD8 are allowed chromatic colours; objects white, grey, silver, concrete or black. No yellow or rainbow. Hard bans: purple, violet, magenta, pink mood colours, gradient sky, neon, glow, bloom, halo, light leaks, lens flare, god rays, glass or frosted panels, CGI or 3D-render look, clay or plastic toy look, emoji, app-icon tiles, rounded squares, floating isometric tiles, HDR, teal-orange grading, oversharpening, oversaturation, particles, sparks, magic dust, lightning bolts, perfect symmetry with halo, stock smiles, recognisable faces, watermarks, brand marks. Real helmet plastic is permitted but must look like used industrial gear. No text, letters or digits anywhere; no logos, embossed labels or moulded certification markings.
+Plate h3_storm: One real white industrial hard hat, slightly turned three-quarter view, lower centre of composition, occupying roughly x=36-64%, y=54-90%. Cobalt #1E4FD8 seamless paper fills the whole frame. The top 45% is completely empty plain cobalt. White helmet shell has irregular grey scuffs and scratches and heavy clear raindrops beading ON THE HELMET ONLY. Paper floor absolutely dry: no puddle, no spilled water, no wet ring, no reflection. Single gentle contact shadow beneath helmet. No other objects. Make this believable as a real studio photograph, not an immaculate render.
+STRICT COMPOSITION CORRECTION: the entire helmet must be MUCH SMALLER in frame, its highest point below 55% image height. It spans only 28% image width and 35% image height. Camera pulled back, generous empty cobalt above and beside it. Absolutely uniform cobalt backdrop exposure throughout, with only local contact shadow. Do not enlarge helmet to fill frame.
+```
+
+## h3_where.png
+
+- Pixel size: 1672 × 941
+- Attempts: 1
+- Review/flaw note: Five white helmets, empty upper half, real-looking wear and contact shadows. Minor flaw: helmets have somewhat similar mould geometry; small backdrop tonal variation. Resolution below requested 4K.
+- Exact final prompt:
+
+```text
+Use case: product-mockup. Make a text-free photographic presentation plate, landscape 16:9, largest available resolution, requested 3840x2160. Real studio photograph of real used utility field gear, the restrained craft of Apple commercial product photography. Full-frame camera with 85mm lens, f/8, crisp natural detail without sharpening. One large soft key from above-left, gentle physical contact shadow, neutral white light, believable small scuffs, grey dirt, scratches. Seamless paper must be flat matte uniform solid colour, no gradient or vignette or hotspot. Only orange #FF5B1A and cobalt #1E4FD8 are allowed chromatic colours; objects white, grey, silver, concrete or black. No yellow or rainbow. Hard bans: purple, violet, magenta, pink mood colours, gradient sky, neon, glow, bloom, halo, light leaks, lens flare, god rays, glass or frosted panels, CGI or 3D-render look, clay or plastic toy look, emoji, app-icon tiles, rounded squares, floating isometric tiles, HDR, teal-orange grading, oversharpening, oversaturation, particles, sparks, magic dust, lightning bolts, perfect symmetry with halo, stock smiles, recognisable faces, watermarks, brand marks. Real helmet plastic is permitted but must look like used industrial gear. No text, letters or digits anywhere; no logos, embossed labels or moulded certification markings.
+Plate h3_where: orange #FF5B1A seamless paper fills entire frame. Exactly FIVE real white used industrial hard hats in one tidy horizontal row, all fully within the LOWER HALF, their tops below 55% height and their bases around 88% height. Equal gaps, subtle individual angles and different irregular grey scuff patterns, not cloned. All five white, no other helmet colours. Broad top 50% completely empty flat orange. Dry floor, only gentle real contact shadows. Same neutral above-left large softbox, same 85mm f/8 photographic lens language. No extra objects.
+```
+
+## h3_problems.png
+
+- Pixel size: 1672 × 941
+- Attempts: 1
+- Review/flaw note: Orange/cobalt/orange triptych with neutral objects, blank meter and round magnet, black solar cells, empty bottom quarter. Minor flaw: insulator/cable assembly is simplified and not engineering-validated; slight background tonal variation. Resolution below requested 4K.
+- Exact final prompt:
+
+```text
+Use case: product-mockup. Make a text-free photographic presentation plate, landscape 16:9, largest available resolution, requested 3840x2160. Real studio photograph of real used utility field gear, the restrained craft of Apple commercial product photography. Full-frame camera with 85mm lens, f/8, crisp natural detail without sharpening. One large soft key from above-left, gentle physical contact shadow, neutral white light, believable small scuffs, grey dirt, scratches. Seamless paper must be flat matte uniform solid colour, no gradient or vignette or hotspot. Only orange #FF5B1A and cobalt #1E4FD8 are allowed chromatic colours; objects white, grey, silver, concrete or black. No yellow or rainbow. Hard bans: purple, violet, magenta, pink mood colours, gradient sky, neon, glow, bloom, halo, light leaks, lens flare, god rays, glass or frosted panels, CGI or 3D-render look, clay or plastic toy look, emoji, app-icon tiles, rounded squares, floating isometric tiles, HDR, teal-orange grading, oversharpening, oversaturation, particles, sparks, magic dust, lightning bolts, perfect symmetry with halo, stock smiles, recognisable faces, watermarks, brand marks. Real helmet plastic is permitted but must look like used industrial gear. No text, letters or digits anywhere; no logos, embossed labels or moulded certification markings.
+Plate h3_problems: A single landscape photographic TRIPTYCH, three exactly equal width vertical panels, edge-to-edge, NO gutters or borders. LEFT seamless flat orange #FF5B1A: a real broken grey concrete distribution pole fragment, rough fractured top, exposed grey steel rebar, one white/grey ceramic ribbed insulator attached on a grey steel bracket and a short snapped black electrical cable. No brown ceramic or copper colour. MIDDLE seamless flat cobalt #1E4FD8: a real worn residential electricity meter, neutral grey housing, blank dark unlit rectangular display, one round dark silver magnet physically stuck to its front. All faceplates completely unprinted, no scales, no labels, no characters, no seals with digits. RIGHT seamless flat orange #FF5B1A: one used small solar photovoltaic panel tilted on a simple grey stand, silver frame and BLACK monochrome cells with thin silver grid; no blue cells, no sky reflection. Each whole object sits centred within upper 70% of its panel, all object bases above 70% image height. BOTTOM 25% of EACH PANEL remains entirely empty uninterrupted respective backdrop colour. Same 85mm f/8 camera language and single above-left large soft key across all three panels, gentle contact shadows, real dust, scratches, material flaws. No extra props, no flare, no floating objects.
+```
+
+## h3_dawn.png
+
+- Pixel size: 1672 × 941
+- Attempts: 1
+- Review/flaw note: Real-looking cobalt weave, silver stitched stripe, clear upper 60%. Minor flaw: weave is visually strong and could compete with small later typography; stripe starts around 69% rather than exactly 70%. Resolution below requested 4K.
+- Exact final prompt:
+
+```text
+Use case: product-mockup. Make a text-free photographic presentation plate, landscape 16:9, largest available resolution, requested 3840x2160. Real studio photograph of real used utility field gear, the restrained craft of Apple commercial product photography. Full-frame camera with 85mm lens, f/8, crisp natural detail without sharpening. One large soft key from above-left, gentle physical contact shadow, neutral white light, believable small scuffs, grey dirt, scratches. Seamless paper must be flat matte uniform solid colour, no gradient or vignette or hotspot. Only orange #FF5B1A and cobalt #1E4FD8 are allowed chromatic colours; objects white, grey, silver, concrete or black. No yellow or rainbow. Hard bans: purple, violet, magenta, pink mood colours, gradient sky, neon, glow, bloom, halo, light leaks, lens flare, god rays, glass or frosted panels, CGI or 3D-render look, clay or plastic toy look, emoji, app-icon tiles, rounded squares, floating isometric tiles, HDR, teal-orange grading, oversharpening, oversaturation, particles, sparks, magic dust, lightning bolts, perfect symmetry with halo, stock smiles, recognisable faces, watermarks, brand marks. Real helmet plastic is permitted but must look like used industrial gear. No text, letters or digits anywhere; no logos, embossed labels or moulded certification markings.
+Plate h3_dawn: extreme close photograph of REAL COBALT #1E4FD8 utility work-jacket woven fabric stretched almost flat to fill every edge of the image. One single horizontal retroreflective SILVER sewn stripe extends edge to edge across the LOWER THIRD, between y=70% and y=85%, realistic tiny silver beads and slightly irregular stitching, modest wear and small creases confined near the stripe. Upper 60% is uninterrupted plain cobalt fabric with subtle fine weave only, no seams, pockets, badges, folds, buttons or other objects in that space. Cobalt is the sole chromatic colour. Same neutral large soft key from above-left and 85mm lens, macro close focus, f/8, straight-on. Very even illumination across fabric, no gradient or vignette. Reflective stripe is ordinary silver under soft studio light, not luminous, no glow, no flare. The physical woven texture must read as a photograph, no synthetic illustration.
+```
+
+

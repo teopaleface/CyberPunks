@@ -1,0 +1,53 @@
+# H2 Dark to light
+
+Generated using the built-in image_gen tool. Model name was not reported. Requested largest available 16:9 output, ideally 3840x2160; tool returned 1672x941 pixels for all plates. Files are copied byte-for-byte from generation output, without edits, resizing or colour correction. Visual checks performed on every attempt. No h1/h3 files or Git operations touched.
+
+## h2_storm.png
+
+Attempts: 2. Pixel size: 1672 x 941. Model: not reported.
+
+Review and honest flaw note: Selected attempt 2. Attempt 1 helmet intruded into the top 45%; attempt 2 leaves about 52% clear. White shell, plausible beads and wear, dry paper and real contact shadow; no visible text or marks. Minor limitation: cold key reads fairly soft on the curved shell, rather than sharply dramatic.
+
+Exact final prompt:
+
+```text
+Create a text-free premium commercial studio photograph, landscape 16:9, largest available size ideally 3840x2160. Real used Romanian utility field gear on real matte seamless paper, believable physical construction, restrained Apple product-photography craft, 85mm lens, crisp natural detail without sharpening, genuine small scuffs, dust and wear. H2 Dark to light variant: clean low-key graphite paper #2B2C2E, completely flat solid backdrop with no gradient, vignette or halo; one hard cold-white key above-left with restrained soft frontal fill, physical contact shadow. Only objects supply colour. HARD BANS: purple violet magenta pink mood colours, gradient skies, neon, glow, bloom, halos, light leaks, lens flare, god rays, glass or frosted UI panels, CGI or 3D render look, clay, toy or emoji aesthetic, app-icon tiles, rounded square cards, floating isometric tiles, HDR, teal-orange grading, oversaturation, particles, sparks, magic dust, lightning, symmetry with a halo, smiling stock models, recognisable faces, text, labels, letters, digits, logos, brand marks, watermarks. No text, letters or digits anywhere. PLATE h2_storm: One real white industrial hard hat, visibly used with restrained small scratches and traces of field dirt, covered in separate heavy raindrops ON ITS SHELL ONLY. Slightly turned three-quarter view, lower-centre third, modest scale like a real product shot. Whole top 45% remains uninterrupted plain dark graphite. White shell lit from left by the hard cold-white key with deep yet readable shadows and subtle soft fill. Dry pristine matte paper floor, NO puddle, no pooled water, no floor reflection, no falling rain. Every visible molded area unbranded and without certification symbols. Photograph a physical used object, not a pristine CG helmet. COMPOSITION CORRECTION: helmet must fit entirely BELOW y=52% of image, its highest point at 53% and bottom at 92%; reduce subject scale accordingly. Top 50% completely empty solid graphite. Background evenly exposed corner to corner, no tonal falloff or vignette. Preserve real photographic water beads, shell wear and dry paper.
+```
+
+## h2_where.png
+
+Attempts: 2. Pixel size: 1672 x 941. Model: not reported.
+
+Review and honest flaw note: Selected attempt 2. Attempt 1 left only about 48% empty at top; attempt 2 leaves about 59%. Correct five colours and order, realistic scratches and highlights, no visible marks or text. Minor limitation: helmets have very similar molding and wear distribution; highlights are broader than a strict hard spotlight.
+
+Exact final prompt:
+
+```text
+Create a text-free premium commercial studio photograph, landscape 16:9, largest available size ideally 3840x2160. Real used Romanian utility field gear on real matte seamless paper, believable physical construction, restrained Apple product-photography craft, 85mm lens, crisp natural detail without sharpening, genuine small scuffs, dust and wear. H2 Dark to light variant: clean low-key graphite paper #2B2C2E, completely flat solid backdrop with no gradient, vignette or halo; one hard cold-white key above-left with restrained soft frontal fill, physical contact shadow. Only objects supply colour. HARD BANS: purple violet magenta pink mood colours, gradient skies, neon, glow, bloom, halos, light leaks, lens flare, god rays, glass or frosted UI panels, CGI or 3D render look, clay, toy or emoji aesthetic, app-icon tiles, rounded square cards, floating isometric tiles, HDR, teal-orange grading, oversaturation, particles, sparks, magic dust, lightning, symmetry with a halo, smiling stock models, recognisable faces, text, labels, letters, digits, logos, brand marks, watermarks. No text, letters or digits anywhere. PLATE h2_where: Five real used industrial hard hats arranged in one tidy horizontal row across the lower half, left to right white, safety yellow, safety orange, red, green. Real scratched and slightly dusty injection-moulded safety equipment, no toy look. Helmet tops below image midpoint; top 50% completely empty flat graphite. Consistent 85mm viewpoint and above-left hard cold-white key with soft frontal fill as a restrained product studio setup. Slightly stronger frontal fill than the storm beat makes their actual plastic pigments readable and bright; absolutely no emissive light or glow. Gentle real contact shadows on dry seamless paper, no pooling or reflection. No labels or embossed symbols. 3840x2160 if available. STRICT COMPOSITION: reduce helmets slightly and move the whole row down, with helmet tops at y=55% and bases at y=86%. Upper 53% absolutely empty. Uniform graphite backdrop #2B2C2E, no vignette, no gradients. Preserve the white-yellow-orange-red-green order and physical hard-plastic highlights.
+```
+
+## h2_problems.png
+
+Attempts: 1. Pixel size: 1672 x 941. Model: not reported.
+
+Review and honest flaw note: Selected attempt 1. Three equal conceptual panels on a continuous graphite background without visible seams or gutters. Bottom quarter clear; blank meter and round magnet; believable concrete, ceramic and solar module. No visible text or digits. Minor limitation: rim lighting is restrained and mostly reads as edge highlights, and the meter's very large blank window is somewhat generic.
+
+Exact final prompt:
+
+```text
+Create a text-free premium commercial studio photograph, landscape 16:9, largest available size ideally 3840x2160. Real used Romanian utility field gear on real matte seamless paper, believable physical construction, restrained Apple product-photography craft, 85mm lens, crisp natural detail without sharpening, genuine small scuffs, dust and wear. H2 Dark to light variant: clean low-key graphite paper #2B2C2E, completely flat solid backdrop with no gradient, vignette or halo; one hard cold-white key above-left with restrained soft frontal fill, physical contact shadow. Only objects supply colour. HARD BANS: purple violet magenta pink mood colours, gradient skies, neon, glow, bloom, halos, light leaks, lens flare, god rays, glass or frosted UI panels, CGI or 3D render look, clay, toy or emoji aesthetic, app-icon tiles, rounded square cards, floating isometric tiles, HDR, teal-orange grading, oversaturation, particles, sparks, magic dust, lightning, symmetry with a halo, smiling stock models, recognisable faces, text, labels, letters, digits, logos, brand marks, watermarks. No text, letters or digits anywhere. PLATE h2_problems: One photographic triptych, three precisely equal vertical panels touching with NO gutters, borders, cards or dividing lines. Every panel uses identical flat graphite #2B2C2E seamless paper and same 85mm view, hard cold-white key above-left plus soft frontal fill and crisp physically plausible white edge highlights, never luminous outlines. LEFT: real broken concrete utility pole fragment standing upright, jagged broken top with exposed rusty rebar, brown ceramic insulator attached at side, a short snapped black electrical cable. CENTER: used rectangular residential electricity meter with a completely BLANK dark display, plain unprinted housing and a round dark metal magnet physically attached to front below display; no scale, markings, stamps, labels or digits. RIGHT: one real used photovoltaic solar panel in a dull aluminium frame, tilted on a small physical stand, restrained hard-light reflection on actual dark blue cells, no flare. Each object fully contained in its own panel's upper 70%, modest size with air around it; bottom 25% of EACH panel uninterrupted plain graphite, absolutely no object or stand enters the bottom quarter. Floor contact shadows remain directly under objects above the empty bottom quarter. Premium clean studio, authentic wear but no grunge. No text, letters or digits anywhere.
+```
+
+## h2_dawn.png
+
+Attempts: 1. Pixel size: 1672 x 941. Model: not reported.
+
+Review and honest flaw note: Selected attempt 1. Realistic woven fabric and sewn reflective stripe, clear upper 60%, no text or marks. Minor limitation: natural shallow creases produce small brightness variations and stripe begins around 70% rather than 72%; this is real textile shading, not a graphic gradient.
+
+Exact final prompt:
+
+```text
+Create a text-free premium commercial studio macro photograph, landscape 16:9, largest available size ideally 3840x2160. H2 Dark to light bright finale h2_dawn: actual fluorescent yellow-green high-visibility utility vest fabric fills the entire image edge to edge. Real fine woven polyester threads, subtle believable handling wear, small natural shallow creases, no dirt theatricality. One actual sewn silver retroreflective fabric stripe runs horizontally edge to edge across the lower third, occupying roughly y=72%-88%. The upper 60% is uninterrupted plain yellow-green fabric, quietly even and flat for later headline placement, without seams or extra objects. Real studio photography with the same 85mm lens character and cold-white hard key from above-left plus gentle frontal soft fill as the dark equipment series; increase exposure for the bright finale. Sharp real fibres and stitch detail, restrained highlights on reflective tape, no emitted light. This is a physical textile close-up, premium Apple-level photographic restraint, not an abstract graphic or digital colour field. Colour comes exclusively from the real fluorescent fabric. HARD BANS: purple violet magenta pink mood colours, gradients, vignettes, neon lighting, glow, bloom, halos, light leaks, lens flare, god rays, glass or frosted panels, CGI, 3D render, clay, toy or emoji style, app-icon tiles, rounded square cards, floating isometric tiles, HDR, teal-orange grading, oversharpening, oversaturation, particles, sparks, magic dust, lightning, symmetric halo compositions, faces, text, letters, digits, logos, brand marks, labels and watermarks. No text, letters or digits anywhere.
+```
+
+
