@@ -1,7 +1,10 @@
-import { requireConsole } from "@/lib/server/operations";
+import { currentUser, toMembership } from "@/lib/server/accounts";
+import { mayReadConsole } from "@/lib/operations/policy";
+import { parseProposalId, proposalSignInPath } from "@/lib/operations/proposal-link";
+import { Workspace } from "@/components/workspace/workspace";
+import { routeSelection } from "@/components/shell/assistant-context";
 import { englishText } from "@/lib/english";
 import { ArrowRight } from "lucide-react";
-import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
@@ -47,10 +50,26 @@ function topAlert(alerts: Alert[]): { id: string; lead: string; text: string } |
 
 async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchParams"] }) {
   const entry = await searchParams;
-  if (entry.console !== "1") redirect("/workspace");
-  await requireConsole();
+  const user = await currentUser();
+  if (!user) redirect(proposalSignInPath(parseProposalId(entry.proposal)));
   await connection();
   const scenario = await resolveScenario(searchParams);
+  if (!mayReadConsole(user)) {
+    const query = new URLSearchParams();
+    for (const [key, value] of Object.entries(entry)) {
+      if (typeof value === "string") query.set(key, value);
+    }
+    return (
+      <AppShell scenario={scenario}>
+        <Workspace
+          account={{ id: user.id, email: user.email, name: user.full_name, membership: toMembership(user) }}
+          presentation="role"
+          scenario={scenario}
+          initialSelection={routeSelection("/app", query)}
+        />
+      </AppShell>
+    );
+  }
   const [{ info, view }, params] = await Promise.all([loadShellInfo(scenario), searchParams]);
 
   // adresele vechi ale hărții (?lucrare=, ?harta=, ?zona=) duc la harta mare, cu tot cu selecție
@@ -68,7 +87,7 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchP
         <div className="mx-auto max-w-[680px] px-7 py-20">
           <h1 className="text-[30px] font-[620]">No plan yet for &quot;{englishText(label)}&quot;</h1>
           <p className="mt-3 text-[18px] leading-relaxed text-muted-foreground">
-            The agent has not run for this scenario yet{view.degradedReason ? ` (${englishText(view.degradedReason)})` : ""}. Run the agent or select another scenario in the menu.
+            No plan is available for this scenario{view.degradedReason ? ` (${englishText(view.degradedReason)})` : ""}. Select another scenario in the menu, or ask Daybreak about the current status.
           </p>
           <div className="mt-6">
             <RunAgentButton scenario={scenario} scenarioLabel={englishText(label)} />
@@ -83,7 +102,7 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchP
   const lines = crewLines(data);
   const dots = await getRomaniaDots();
 
-  // aprobarea listei: din jurnal (API) sau, dacă API-ul n-o are încă, din cookie-ul acestui browser
+  // Only the authoritative audit can mark crew assignments as approved.
   const fromAudit = view.data.audit.find(
     (a) =>
       a.actor === "human" &&
@@ -91,13 +110,9 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchP
       /aprob|approv/i.test(a.action) &&
       Date.parse(a.ts) >= Date.parse(view.data!.plan.generated_at),
   );
-  const cookie = (await cookies()).get(`aprobat_${scenario}`)?.value;
-  const [cookiePlan, cookieAt] = cookie ? cookie.split("|") : [];
   const approval = fromAudit
     ? { at: fromAudit.ts, local: false }
-    : cookiePlan === data.planId && cookieAt
-      ? { at: cookieAt, local: true }
-      : null;
+    : null;
 
   // cazul de decis: primul din coadă; pentru filtrele „Vreme” și „Tensiune”, primul de tipul lor
   const queueItems = Object.values(data.decisions)

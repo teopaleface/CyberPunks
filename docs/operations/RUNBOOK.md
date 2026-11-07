@@ -11,7 +11,7 @@ python3 scripts/daybreak_runtime.py start
 python3 scripts/daybreak_runtime.py accounts
 ```
 
-Aplicația este la `http://127.0.0.1:3870/workspace`, API-ul privat pe 8720. Procesele vechi de pe 3710 și 8710 sunt separate. Comanda accounts păstrează identificatorii și parolele existente; upgrade-ul verificat al dispecerului sintetic acordă numai recuperarea comenzilor. Nu se folosește prepare --new-run peste o demonstrație activă, deoarece creează alte identități și necesită refacerea asocierilor.
+Aplicația este la `http://127.0.0.1:3870/app`, API-ul privat pe 8720. Procesele vechi de pe 3710 și 8710 sunt separate. Comanda accounts păstrează identificatorii și parolele existente; upgrade-ul verificat al dispecerului sintetic acordă numai recuperarea comenzilor. Nu se folosește prepare --new-run peste o demonstrație activă, deoarece creează alte identități și necesită refacerea asocierilor.
 
 Credențialele celor trei conturi sunt generate și păstrate numai în fișierul privat ignorat `outputs/runtime/daybreak.env`. Nu copiați fișierul în chat, prezentare sau Git. Celelalte configurări private sunt în același director, cu acces numai pentru utilizator. Nu se cere o cheie OpenAI nouă.
 
@@ -69,3 +69,11 @@ Configurarea callbackului folosește [API-ul oficial Meta pentru subscriptions](
 `python3 scripts/daybreak_sync_live_accounts.py` citește numai înregistrările conturilor și indexurile lor de email din KV-ul live și le copiază în KV-ul local. Păstrează parola derivată, identificatorul și apartenența; nu copiază sesiuni sau aprobări și nu scrie pe live. Refuză coliziunile cu un alt cont local, păstrează o copie privată de siguranță și recitește fiecare valoare după import. La prima copiere a existat un singur cont live, fără apartenență operațională. Drepturile locale se atribuie separat, explicit.
 
 La cererea ulterioară a lui Teo, conturile demonstrative sunt dispecer@daybreak.ro, tehnician@daybreak.ro și client@daybreak.ro, cu rolurile corespunzătoare, local și pe live. Parola cerută este păstrată numai în configurarea privată. Identificatorii existenți sunt păstrați, inclusiv asocierea WhatsApp a tehnicianului. Autentificarea existentă acceptă parola contului; crearea și resetarea obișnuită păstrează minimul de șase caractere. Provisionarea administrativă permite minimum patru caractere și o parolă comună numai pentru cele trei adrese și roluri exacte. Formularul a fost verificat cu toate cele trei roluri în ambele medii. Versiunea publicată din sursa comisă este 2c071473-84fb-4923-a5e7-2135d343fad1. Serviciul operațional Python continuă să ruleze local.
+
+## Agentul în consola existentă
+
+La cererea lui Teo, integrarea separată /workspace a fost înlocuită cu agentul din consola existentă. /app deschide planul original pentru dispecer, iar tehnicianul și clientul folosesc același AppShell cu datele autorizate. /workspace este numai o redirecționare de compatibilitate, inclusiv pentru propuneri. Navigarea, Wordmark, componentele DS, temele și culorile semantice PPC sunt comune site-ului.
+
+Ask Daybreak deschide un panou în ecranul curent, cu text, voce, selecția cazului și propuneri confirmate explicit. Paginile de detaliu transmit lucrarea deschisă. Butoanele vechi de aprobare și revizuire deschid formularul în același panou, fără scriere sau succes local fictiv. Aprobarea nu se deduce din cookie-uri. Contextul, rolul și scenariul sunt reverificate; după confirmare se actualizează consola.
+
+Verificare locală: trei conturi, desktop 1440×1100 și mobil 390×844, fără alerte sau depășiri; Escape și schimbarea temei; revizuire din detaliul lucrării fără efect automat; o sesizare creată exact o dată prin Confirm; răspuns Codex real în panou; emiterea acreditărilor vocale pentru cele trei roluri. Microfonul și difuzorul fizic nu au fost retestate. Build Next izolat, typecheck și lint trec. Această corecție UI este verificată local.

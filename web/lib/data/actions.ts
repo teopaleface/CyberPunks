@@ -7,7 +7,7 @@ const WORK_ITEM_RE = /^[ABC]-\d{8}-[A-Za-z0-9_.-]{1,96}$/;
 export async function runAgent(scenario: string, date?: string): Promise<ActionResult<RunResult>> {
   void [scenario, date];
   const denied = await consoleDenied();
-  return { ok: false, error: denied ? "This action requires an authorized dispatcher account." : "Open the shared workspace to prepare, review and confirm this action." };
+  return { ok: false, error: denied ? "This action requires an authorized dispatcher account." : "Open the Daybreak assistant in this console to review and confirm an operational action." };
 }
 
 /** Decizia omului pentru o lucrare (POST /review/{id}). */
@@ -20,7 +20,7 @@ export async function submitReview(
 ): Promise<ActionResult<{ audit: AuditRecord }>> {
   void [workItemId, decision, note, scenario, reviewer];
   const denied = await consoleDenied();
-  return { ok: false, error: denied ? "This action requires an authorized dispatcher account." : "Open the shared workspace to prepare, review and confirm this action." };
+  return { ok: false, error: denied ? "This action requires an authorized dispatcher account." : "Open the Daybreak assistant in this console to review and confirm an operational action." };
 }
 
 /**
@@ -33,7 +33,7 @@ export async function approvePlan(
 ): Promise<ActionResult<{ local: boolean; at: string; audit?: AuditRecord }>> {
   void [scenario, planId, note];
   const denied = await consoleDenied();
-  return { ok: false, error: denied ? "This action requires an authorized dispatcher account." : "Open the shared workspace to prepare, review and confirm this action." };
+  return { ok: false, error: denied ? "This action requires an authorized dispatcher account." : "Open the Daybreak assistant in this console to review and confirm an operational action." };
 }
 
 /** Lucrarea întreagă (factori, cazuri similare, extra), pentru detaliul de pe ecranul planului. */

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ChevronDown, Bell, BookOpen, CircleHelp, Layers, LayoutGrid, Play, UtilityPole, Wrench } from "lucide-react";
 import { cn } from "cn";
+import type { Role } from "@/lib/operations/policy";
 
 export const NAV = [
   { href: "/app", label: "Plan", short: "Plan", icon: LayoutGrid, match: (p: string) => p === "/app" || p.startsWith("/harta") },
@@ -16,6 +17,10 @@ export const NAV = [
   { href: "/rulare", label: "Run agent", short: "Agent", icon: Play, match: (p: string) => p.startsWith("/rulare") },
 ];
 
+export function availableNav(consoleAllowed: boolean, role?: Role) {
+  return consoleAllowed ? NAV : [{ ...NAV[0], label: role === "customer" ? "Your service" : "Your work", short: role === "customer" ? "Your service" : "Your work", match: (p: string) => p === "/app" }];
+}
+
 function useNav() {
   const pathname = usePathname();
   const scenario = useSearchParams().get("scenariu");
@@ -26,12 +31,13 @@ function useNav() {
 const OPERATIONS = [0, 1, 2, 3, 5];
 const AGENT_TOOLS = [4, 6, 7];
 
-export function SideNav({ counts }: { counts: { review: number; alerts: number } }) {
+export function SideNav({ counts, consoleAllowed = false, role }: { counts?: { review: number; alerts: number }; consoleAllowed?: boolean; role?: Role }) {
   const { pathname, href } = useNav();
+  const links = availableNav(consoleAllowed, role);
   const renderLink = (index: number) => {
-    const n = NAV[index];
+    const n = links[index];
     const active = n.match(pathname);
-    const count = n.count ? counts[n.count] : 0;
+    const count = consoleAllowed && n.count ? counts?.[n.count] ?? 0 : 0;
     const Icon = n.icon;
     return (
       <Link key={n.href} href={href(n.href)} aria-current={active ? "page" : undefined}
@@ -51,23 +57,24 @@ export function SideNav({ counts }: { counts: { review: number; alerts: number }
   };
   return (
     <nav aria-label="Workspace navigation" className="space-y-6">
-      <div className="space-y-1">{OPERATIONS.map(renderLink)}</div>
-      <details open={AGENT_TOOLS.some((i) => NAV[i].match(pathname))} className="group/nav border-t border-rule pt-4">
+      <div className="space-y-1">{(consoleAllowed ? OPERATIONS : [0]).map(renderLink)}</div>
+      {consoleAllowed ? <details open={AGENT_TOOLS.some((i) => NAV[i].match(pathname))} className="group/nav border-t border-rule pt-4">
         <summary className="mb-2 flex min-h-10 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-[14px] text-ink-soft hover:text-ink [&::-webkit-details-marker]:hidden">
           Agent tools <ChevronDown aria-hidden="true" size={15} className="transition-transform group-open/nav:rotate-180" />
         </summary>
         <div className="space-y-1">{AGENT_TOOLS.map(renderLink)}</div>
-      </details>
+      </details> : null}
     </nav>
   );
 }
 
 /** Pe telefon, patru destinații frecvente. Meniul din antet include toate ecranele. */
-export function MobileBottomNav() {
+export function MobileBottomNav({ consoleAllowed = false, role }: { consoleAllowed?: boolean; role?: Role }) {
   const { pathname, href } = useNav();
+  const links = consoleAllowed ? [NAV[0], NAV[1], NAV[2], NAV[5]] : availableNav(false, role);
   return (
-    <nav aria-label="Main navigation" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-rule bg-canvas/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-      {[NAV[0], NAV[1], NAV[2], NAV[5]].map((n) => {
+    <nav aria-label="Main navigation" className={cn("fixed inset-x-0 bottom-0 z-40 grid border-t border-rule bg-canvas/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden", consoleAllowed ? "grid-cols-4" : "grid-cols-1")}>
+      {links.map((n) => {
         const active = n.match(pathname);
         const Icon = n.icon;
         return (
