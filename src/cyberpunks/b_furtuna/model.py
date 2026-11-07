@@ -26,11 +26,13 @@ MODEL_PATH = MODELS / "release" / "b_model.joblib"
 QUANTILES = (0.1, 0.5, 0.9)
 N_THREADS = 4  # mașina e împărțită de 6 fire
 
+# Hiperparametrii aleși DOAR pe anii de antrenare (PR-AUC out-of-fold 0,2916, cel mai bun din 24 de configurații):
+# reports/B/tuning.json, `uv run python -m cyberpunks.b_furtuna.tune`. La egalitate (min_data_in_leaf 40 sau 100), 100.
 CLF_PARAMS = {
     "objective": "binary",
-    "learning_rate": 0.04,
-    "num_leaves": 15,
-    "min_data_in_leaf": 40,
+    "learning_rate": 0.02,
+    "num_leaves": 31,
+    "min_data_in_leaf": 100,
     "feature_fraction": 0.8,
     "bagging_fraction": 0.8,
     "bagging_freq": 1,
@@ -41,7 +43,7 @@ CLF_PARAMS = {
     "verbose": -1,
     "seed": 42,
 }
-CLF_ROUNDS = 500
+CLF_ROUNDS = 300
 
 Q_PARAMS = {
     "objective": "quantile",
