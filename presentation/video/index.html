@@ -3,8 +3,8 @@
   lang="ro"
   data-resolution="landscape"
   data-composition-variables='[
-    {"id":"color-ground","type":"color","label":"Fundal (cerneala logoului)","default":"#0B1622"},
-    {"id":"color-ink","type":"color","label":"Text (hârtie)","default":"#F5F4F0"},
+    {"id":"color-ground","type":"color","label":"Fundal (alb)","default":"#FFFFFF"},
+    {"id":"color-ink","type":"color","label":"Cerneala logoului","default":"#0B1622"},
     {"id":"color-sun","type":"color","label":"Soarele din logo","default":"#F2A20C"}
   ]'
 >
@@ -31,17 +31,23 @@
         src: url("assets/fonts/Archivo-wdth62_125-wght100_900-latin.woff2") format("woff2");
         unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
       }
-      /* Culorile produsului (logoul și consola "Panou"): cerneala, hârtia și soarele din logo.
-         Culorile surselor sunt variantele pentru fundal închis din interfață (testate pentru daltonism). */
+      /* Filmul nou (după referința lui Teo): fond alb pur, text uriaș în cerneala produsului,
+         final pe cerneală. Culorile surselor sunt cele din consola "Panou" (temă deschisă). */
       :root {
-        --ground: var(--color-ground, #0b1622);
-        --ink: var(--color-ink, #f5f4f0);
-        --ink-2: rgba(245, 244, 240, 0.66);
-        --ink-3: rgba(245, 244, 240, 0.44);
+        --ground: var(--color-ground, #ffffff);
+        --ink: var(--color-ink, #0b1622);
+        --ui-ink: #13202a;
+        --muted: #56616b;
+        --paper: #f5f4f0;
+        --paper-2: rgba(245, 244, 240, 0.66);
+        --paper-3: rgba(245, 244, 240, 0.44);
         --sun: var(--color-sun, #f2a20c);
-        --src-a: #3b82f0;
-        --src-b: #b84fc0;
-        --src-c: #c4880a;
+        --canvas: #e4e7e6;
+        --panel: #f2f3f1;
+        --src-a: #2364d2;
+        --src-b: #a23c9e;
+        --src-c: #d99100;
+        --att: #d4430f;
         --font-display: "Archivo", sans-serif;
       }
       * {
@@ -72,26 +78,18 @@
     </style>
   </head>
   <body>
-    <!-- 96 BPM: o măsură = 2,5 s = 75 de cadre la 30 fps. Scenele încep pe măsuri (vezi STORYBOARD.md). -->
-    <div
-      id="root"
-      data-composition-id="main"
-      data-start="0"
-      data-duration="30"
-      data-width="1920"
-      data-height="1080"
-    >
+    <!-- 120 BPM: o bătaie = 0,5 s = 15 cadre; o măsură = 2 s = 60 de cadre. Vezi STORYBOARD.md. -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1920" data-height="1080">
       <div id="bg-ground"></div>
-      <div id="s1" data-composition-id="s1" data-composition-src="compositions/s1-noapte.html" data-start="0" data-duration="5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
-      <div id="s2" data-composition-id="s2" data-composition-src="compositions/s2-scor.html" data-start="5" data-duration="5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
-      <div id="s3" data-composition-id="s3" data-composition-src="compositions/s3-nume.html" data-start="10" data-duration="2.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
-      <div id="s4" data-composition-id="s4" data-composition-src="compositions/s4-semnale.html" data-start="12.5" data-duration="3.75" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
-      <div id="s5" data-composition-id="s5" data-composition-src="compositions/s5-agent.html" data-start="16.25" data-duration="6.25" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
-      <div id="s6" data-composition-id="s6" data-composition-src="compositions/s6-om.html" data-start="22.5" data-duration="2.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
-      <div id="s7" data-composition-id="s7" data-composition-src="compositions/s7-cifra.html" data-start="25" data-duration="2.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
-      <!-- Muzica originală (presentation/music/compose.py, CC0), 96 BPM, exact 30 s. -->
-      <audio id="music" class="clip" src="assets/audio/tura_96bpm_30s.flac" data-start="0" data-duration="30" data-volume="1" data-track-index="2"></audio>
-      <div id="s8" data-composition-id="s8" data-composition-src="compositions/s8-final.html" data-start="27.5" data-duration="2.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="k1" data-composition-id="k1" data-composition-src="compositions/k1-carlig.html" data-start="0" data-duration="3" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="k2" data-composition-id="k2" data-composition-src="compositions/k2-semnale.html" data-start="3" data-duration="3.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="k3" data-composition-id="k3" data-composition-src="compositions/k3-consola.html" data-start="6.5" data-duration="1.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="k4" data-composition-id="k4" data-composition-src="compositions/k4-agent.html" data-start="8" data-duration="3.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="k5" data-composition-id="k5" data-composition-src="compositions/k5-harta.html" data-start="11.5" data-duration="3" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="k6" data-composition-id="k6" data-composition-src="compositions/k6-lucrare.html" data-start="14.5" data-duration="3" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="k7" data-composition-id="k7" data-composition-src="compositions/k7-tensiune.html" data-start="17.5" data-duration="3" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="k8" data-composition-id="k8" data-composition-src="compositions/k8-om.html" data-start="20.5" data-duration="3.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="k9" data-composition-id="k9" data-composition-src="compositions/k9-final.html" data-start="24" data-duration="6" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
     </div>
     <script>
       window.__timelines = window.__timelines || {};

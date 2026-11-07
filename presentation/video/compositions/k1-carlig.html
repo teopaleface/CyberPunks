@@ -1,0 +1,67 @@
+<template>
+  <!-- Cârligul: cuvinte uriașe pe alb, schimbate pe bătăi (120 BPM). "Un scor de 0,87 nu e un plan."
+       Ideea vine din tema PPC: "Un scor de anomalie de 0,87 nu îi spune unui tehnician unde să meargă mâine dimineață." -->
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--ground);
+    }
+    .k1-clip {
+      position: absolute;
+      inset: 0;
+    }
+    .k1-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 452px;
+      display: flex;
+      justify-content: center;
+      font-size: 176px;
+      font-weight: 650;
+      letter-spacing: -0.045em;
+      line-height: 1;
+      color: var(--ink);
+      white-space: pre;
+    }
+    .k1-line span {
+      display: inline-block;
+    }
+    #k1-row-c {
+      top: 432px;
+      font-size: 216px;
+    }
+  </style>
+  <div id="root" data-composition-id="k1" data-width="1920" data-height="1080">
+    <div id="k1-a" class="clip k1-clip" data-start="0" data-duration="1.45">
+      <div id="k1-row-a" class="k1-line"><span id="k1-w1">Un scor</span><span id="k1-w2"> de 0,87</span></div>
+    </div>
+    <div id="k1-b" class="clip k1-clip" data-start="1.5" data-duration="0.5">
+      <div id="k1-row-b" class="k1-line"><span id="k1-w3">nu e</span></div>
+    </div>
+    <div id="k1-c" class="clip k1-clip" data-start="2" data-duration="1">
+      <div id="k1-row-c" class="k1-line"><span id="k1-plan">un plan.</span></div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      // Rândul 1: "Un scor" pornește mic și crește brusc; "de 0,87" se adaugă pe bătaia 2, iar rândul se recentrează.
+      // SHIFT = jumătate din lățimea lui " de 0,87" (măsurată pe randare).
+      const SHIFT = 343;
+      tl.fromTo("#k1-row-a", { x: SHIFT }, { x: 0, duration: 0.38, ease: "power3.out" }, 0.5);
+      tl.fromTo("#k1-w1", { scale: 0.16, opacity: 0, transformOrigin: "50% 60%" }, { scale: 1, opacity: 1, duration: 0.42, ease: "expo.out" }, 0);
+      tl.fromTo("#k1-w2", { opacity: 0, scale: 0.7, filter: "blur(10px)", transformOrigin: "0% 60%" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.3, ease: "expo.out" }, 0.5);
+      tl.to("#k1-row-a", { scale: 0.92, opacity: 0, duration: 0.12, ease: "power3.in" }, 1.33);
+      // "nu e": apare mare, cade pe bătaie.
+      tl.fromTo("#k1-w3", { scale: 1.6, opacity: 0, filter: "blur(12px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.28, ease: "expo.out" }, 1.5);
+      tl.to("#k1-w3", { scale: 0.9, opacity: 0, duration: 0.1, ease: "power3.in" }, 1.88);
+      // "un plan.": accentul; stă pe loc, apoi pleacă în blur spre semnale.
+      tl.fromTo("#k1-plan", { scale: 0.55, opacity: 0, filter: "blur(14px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.36, ease: "expo.out" }, 2.0);
+      tl.to("#k1-plan", { scale: 1.12, opacity: 0, filter: "blur(16px)", duration: 0.2, ease: "power3.in" }, 2.8);
+      window.__timelines["k1"] = tl;
+    })();
+  </script>
+</template>

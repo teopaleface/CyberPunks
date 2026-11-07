@@ -1,0 +1,111 @@
+<template>
+  <!-- Tensiunea la un post cu prosumatori: agentul alege cea mai ieftină soluție care aduce tensiunea sub 1,10 pu.
+       Curba vine din seria SINTETICĂ de test a lui C (contracts/fixtures/series_C-...json); curba de după e ilustrativă. -->
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--ground);
+    }
+    #k7-scene {
+      position: absolute;
+      inset: 0;
+    }
+    #k7-title {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 120px;
+      text-align: center;
+      font-size: 136px;
+      font-weight: 650;
+      letter-spacing: -0.045em;
+      line-height: 1;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+    #k7-title span {
+      display: inline-block;
+    }
+    #k7-chart {
+      position: absolute;
+      left: 300px;
+      top: 400px;
+      width: 1400px;
+      height: 500px;
+      overflow: visible;
+    }
+    #k7-pillwrap {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 838px;
+      display: flex;
+      justify-content: center;
+    }
+    #k7-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 18px;
+      padding: 18px 30px;
+      border-radius: 18px;
+      background: var(--ink);
+      color: var(--paper);
+      font-size: 40px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      box-shadow: 0 18px 40px rgba(11, 22, 34, 0.2);
+    }
+    #k7-pill b {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--sun);
+      color: var(--ink);
+      font-size: 26px;
+    }
+    #k7-syn {
+      position: absolute;
+      left: 120px;
+      bottom: 40px;
+      font-size: 28px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+  </style>
+  <div id="root" data-composition-id="k7" data-width="1920" data-height="1080">
+    <div id="k7-scene" class="clip" data-start="0" data-duration="3" data-layout-allow-overflow>
+      <h2 id="k7-title"><span>Cea</span> <span>mai</span> <span>ieftină</span> <span>soluție.</span></h2>
+      <svg id="k7-chart" viewBox="0 0 1400 500" aria-hidden="true">
+        <line x1="0" x2="1240" y1="137.5" y2="137.5" style="stroke: var(--sun); stroke-width: 5; stroke-dasharray: 18 14" />
+        <text x="1262" y="150.5" style="font-family: Archivo; font-size: 40px; font-weight: 650; fill: var(--ink)">1,10</text>
+        <path id="k7-before" pathLength="1" d="M0.0,357.5L13.1,357.5L26.1,357.5L39.2,357.5L52.2,357.5L65.3,357.5L78.3,357.5L91.4,357.5L104.4,357.5L117.5,357.5L130.5,357.5L143.6,357.5L156.6,357.5L169.7,357.5L182.7,357.5L195.8,357.5L208.8,357.5L221.9,357.5L234.9,357.5L248.0,357.5L261.1,357.5L274.1,357.5L287.2,357.5L300.2,357.5L313.3,357.5L326.3,357.5L339.4,357.5L352.4,357.5L365.5,357.5L378.5,341.0L391.6,327.3L404.6,310.8L417.7,297.0L430.7,280.5L443.8,266.8L456.8,253.0L469.9,239.3L482.9,225.5L496.0,211.7L509.1,198.0L522.1,187.0L535.2,173.2L548.2,162.2L561.3,151.2L574.3,143.0L587.4,132.0L600.4,123.7L613.5,115.5L626.5,110.0L639.6,104.5L652.6,99.0L665.7,93.5L678.7,90.7L691.8,85.2L704.8,85.2L717.9,82.5L730.9,82.5L744.0,82.5L757.1,85.2L770.1,85.2L783.2,90.7L796.2,93.5L809.3,99.0L822.3,104.5L835.4,110.0L848.4,115.5L861.5,123.7L874.5,132.0L887.6,143.0L900.6,151.2L913.7,162.2L926.7,173.2L939.8,187.0L952.8,198.0L965.9,211.7L978.9,225.5L992.0,239.3L1005.1,253.0L1018.1,266.8L1031.2,280.5L1044.2,297.0L1057.3,310.8L1070.3,327.3L1083.4,341.0L1096.4,357.5L1109.5,357.5L1122.5,357.5L1135.6,357.5L1148.6,357.5L1161.7,357.5L1174.7,357.5L1187.8,357.5L1200.8,357.5L1213.9,357.5L1226.9,357.5L1240.0,357.5" style="fill: none; stroke: var(--ink); stroke-width: 8; stroke-linejoin: round; stroke-linecap: round" />
+        <path id="k7-after" d="M0.0,357.5L13.1,357.5L26.1,357.5L39.2,357.5L52.2,357.5L65.3,357.5L78.3,357.5L91.4,357.5L104.4,357.5L117.5,357.5L130.5,357.5L143.6,357.5L156.6,357.5L169.7,357.5L182.7,357.5L195.8,357.5L208.8,357.5L221.9,357.5L234.9,357.5L248.0,357.5L261.1,357.5L274.1,357.5L287.2,357.5L300.2,357.5L313.3,357.5L326.3,357.5L339.4,357.5L352.4,357.5L365.5,357.5L378.5,341.0L391.6,328.4L404.6,318.4L417.7,310.2L430.7,300.3L443.8,292.0L456.8,283.8L469.9,275.5L482.9,267.3L496.0,259.0L509.1,250.8L522.1,244.2L535.2,235.9L548.2,229.3L561.3,222.8L574.3,217.8L587.4,211.2L600.4,206.2L613.5,201.3L626.5,198.0L639.6,194.7L652.6,191.4L665.7,188.1L678.7,186.4L691.8,183.2L704.8,183.2L717.9,181.5L730.9,181.5L744.0,181.5L757.1,183.2L770.1,183.2L783.2,186.4L796.2,188.1L809.3,191.4L822.3,194.7L835.4,198.0L848.4,201.3L861.5,206.2L874.5,211.2L887.6,217.8L900.6,222.8L913.7,229.3L926.7,235.9L939.8,244.2L952.8,250.8L965.9,259.0L978.9,267.3L992.0,275.5L1005.1,283.8L1018.1,292.0L1031.2,300.3L1044.2,310.2L1057.3,318.4L1070.3,328.4L1083.4,341.0L1096.4,357.5L1109.5,357.5L1122.5,357.5L1135.6,357.5L1148.6,357.5L1161.7,357.5L1174.7,357.5L1187.8,357.5L1200.8,357.5L1213.9,357.5L1226.9,357.5L1240.0,357.5" style="fill: none; stroke: var(--ink); stroke-width: 8; stroke-linejoin: round; stroke-linecap: round" />
+      </svg>
+      <div id="k7-pillwrap"><div id="k7-pill"><b>✓</b>Alte faze pentru 3 case</div></div>
+      <p id="k7-syn">date sintetice, ilustrativ</p>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#k7-title span", { scale: 0.6, opacity: 0, filter: "blur(12px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "expo.out", stagger: 0.12 }, 0.0);
+      // Tensiunea zilei se desenează și trece peste 1,10 la prânz.
+      tl.fromTo("#k7-before", { strokeDasharray: "1 1", strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.9, ease: "power2.inOut" }, 0.25);
+      tl.fromTo("#k7-after", { opacity: 0 }, { opacity: 0, duration: 0.01 }, 0);
+      // Agentul alege prima treaptă care ajunge (18,75 s în film); curba coboară sub limită.
+      tl.fromTo("#k7-pill", { y: 30, opacity: 0, filter: "blur(8px)" }, { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.35, ease: "expo.out" }, 1.25);
+      tl.fromTo("#k7-pill b", { scale: 0 }, { scale: 1, duration: 0.3, ease: "back.out(2)" }, 1.35);
+      tl.to("#k7-before", { opacity: 0, duration: 0.4, ease: "power2.inOut" }, 1.45);
+      tl.to("#k7-after", { opacity: 1, duration: 0.4, ease: "power2.inOut" }, 1.45);
+      tl.fromTo("#k7-syn", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 0.4);
+      tl.to(["#k7-title", "#k7-chart", "#k7-pill", "#k7-syn"], { opacity: 0, filter: "blur(10px)", duration: 0.16, ease: "power3.in" }, 2.84);
+      window.__timelines["k7"] = tl;
+    })();
+  </script>
+</template>

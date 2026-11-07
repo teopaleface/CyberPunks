@@ -1,0 +1,74 @@
+<template>
+  <!-- Consola dispecerului (consola reală, captură din http://localhost:3710/, planul agentului pentru 8 iulie 2025; date sintetice pe hartă reală), ca un ecran pe alb.
+       Obiectele din scena 2 aterizează pe markerii hărții; apoi camera intră în butonul "Rulează agentul". -->
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--ground);
+    }
+    #k3-scene {
+      position: absolute;
+      inset: 0;
+    }
+    #k3-lens {
+      position: absolute;
+      inset: 0;
+    }
+    #k3-screen {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      transform-origin: 0 0;
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(11, 22, 34, 0.18), 0 6px 18px rgba(11, 22, 34, 0.1);
+    }
+    #k3-shot {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+    }
+    .k3-ping {
+      position: absolute;
+      width: 46px;
+      height: 46px;
+      margin: -23px 0 0 -23px;
+      border-radius: 50%;
+      border: 4px solid;
+    }
+  </style>
+  <div id="root" data-composition-id="k3" data-width="1920" data-height="1080">
+    <div id="k3-scene" class="clip" data-start="0" data-duration="1.5" data-layout-allow-overflow>
+      <div id="k3-lens">
+        <div id="k3-screen">
+          <img id="k3-shot" src="assets/ui/consola_reala@2x.png" alt="" />
+          <!-- Inele pe markerii unde aterizează obiectele (coordonate în pixelii consolei 1920×1080). -->
+          <div id="k3-p1" class="k3-ping" style="left: 446px; top: 333px; border-color: var(--src-a)"></div>
+          <div id="k3-p2" class="k3-ping" style="left: 420px; top: 283px; border-color: var(--src-c)"></div>
+          <div id="k3-p3" class="k3-ping" style="left: 403px; top: 243px; border-color: var(--src-b)"></div>
+          <div id="k3-p4" class="k3-ping" style="left: 459px; top: 290px; border-color: var(--src-a)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      // Ecranul apare la 62% din cadru, centrat, apoi camera intră în butonul "Rulează agentul" (centru 1818, 34).
+      const s0 = 0.62, s1 = 5.2, BX = 1804, BY = 31;
+      tl.fromTo("#k3-screen", { x: 960 - s0 * 960, y: 540 - s0 * 540 + 70, scale: s0, opacity: 0 }, { x: 960 - s0 * 960, y: 540 - s0 * 540, scale: s0, opacity: 1, duration: 0.42, ease: "expo.out" }, 0);
+      tl.fromTo(".k3-ping", { scale: 0.2, opacity: 0 }, { scale: 1.6, opacity: 1, duration: 0.3, ease: "expo.out", stagger: 0.05 }, 0.12);
+      tl.to(".k3-ping", { scale: 2.4, opacity: 0, duration: 0.35, ease: "power2.out", stagger: 0.05 }, 0.42);
+      // Zoom prin buton: accelerează, cu blur, iar scena 4 îl preia mare și clar.
+      tl.to("#k3-screen", { x: 960 - s1 * BX, y: 540 - s1 * BY, scale: s1, duration: 0.6, ease: "power3.in" }, 0.9);
+      tl.fromTo("#k3-lens", { filter: "blur(0px)" }, { filter: "blur(10px)", duration: 0.3, ease: "power2.in" }, 1.2);
+      window.__timelines["k3"] = tl;
+    })();
+  </script>
+</template>

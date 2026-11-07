@@ -1,0 +1,167 @@
+<template>
+  <!-- Finalul pe cerneală: cifra față de cea mai bună strategie simplă (scrisă de presentation/scripts/cifre_film.py
+       din reports/planner/agent_eval.json; nu se scrie de mână), apoi fraza și logoul cu soarele care răsare. -->
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--ink);
+    }
+    #k9-scene {
+      position: absolute;
+      inset: 0;
+      background: var(--ink);
+    }
+    .k9-clip {
+      position: absolute;
+      inset: 0;
+    }
+    #k9-num {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 300px;
+      text-align: center;
+      font-size: 260px;
+      font-weight: 650;
+      font-stretch: 112%;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      color: var(--paper);
+      font-variant-numeric: tabular-nums;
+    }
+    #k9-what {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 610px;
+      text-align: center;
+      font-size: 50px;
+      font-weight: 550;
+      letter-spacing: -0.02em;
+      color: var(--paper);
+    }
+    #k9-src {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 690px;
+      text-align: center;
+      font-size: 30px;
+      font-weight: 450;
+      color: var(--paper-2);
+    }
+    #k9-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 470px;
+      text-align: center;
+      font-size: 132px;
+      font-weight: 650;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      color: var(--paper);
+      white-space: nowrap;
+    }
+    #k9-line span {
+      display: inline-block;
+    }
+    #k9-lockup {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 390px;
+      height: 170px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 44px;
+    }
+    #k9-mark {
+      display: block;
+      width: 250px;
+      height: 159px;
+      flex: none;
+      overflow: visible;
+    }
+    #k9-name {
+      font-size: 150px;
+      font-weight: 650;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      color: var(--paper);
+      white-space: nowrap;
+    }
+    #k9-name .w {
+      display: inline-block;
+    }
+    #k9-team {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 640px;
+      text-align: center;
+      font-size: 46px;
+      font-weight: 550;
+      letter-spacing: -0.015em;
+      color: var(--paper);
+    }
+    #k9-event {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 712px;
+      text-align: center;
+      font-size: 36px;
+      font-weight: 450;
+      color: var(--paper-2);
+    }
+  </style>
+  <div id="root" data-composition-id="k9" data-width="1920" data-height="1080">
+    <div id="k9-scene" class="clip" data-start="0" data-duration="6" data-layout-allow-overflow>
+      <div id="k9-a" class="clip k9-clip" data-start="0" data-duration="2.4">
+        <div id="k9-num" data-value="49" data-suffix="%" data-prefix="+">+49%</div>
+        <div id="k9-what">valoare netă pe zi față de cea mai bună strategie simplă</div>
+        <div id="k9-src">simulare pe 30 de zile, într-o lume sintetică cu adevărul cunoscut</div>
+      </div>
+      <div id="k9-c" class="clip k9-clip" data-start="2.5" data-duration="3.5">
+        <div id="k9-lockup">
+          <!-- Logoul produsului, conceptul A "răsărit pe traseu" (web/public/brand/logo-a-dark.svg), animat pe părți. -->
+          <svg id="k9-mark" viewBox="10 18 44 28" aria-hidden="true">
+            <defs><clipPath id="k9-horizon"><rect x="0" y="0" width="64" height="36.2" /></clipPath></defs>
+            <g clip-path="url(#k9-horizon)"><path id="k9-sun" style="fill: var(--sun)" d="M18 36a14 14 0 0 1 28 0Z" /></g>
+            <path id="k9-route" pathLength="1" d="M16 40h12l8-6h12" style="fill: none; stroke: var(--paper); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round" />
+            <circle id="k9-d1" cx="16" cy="40" r="4" style="fill: var(--paper)" />
+            <circle id="k9-d2" cx="36" cy="34" r="4" style="fill: var(--paper)" />
+            <circle id="k9-d3" cx="48" cy="34" r="4" style="fill: var(--paper)" />
+          </svg>
+          <h1 id="k9-name"><span class="w" id="k9-w1">Tura</span> <span class="w" id="k9-w2">de</span> <span class="w" id="k9-w3">mâine</span></h1>
+        </div>
+        <p id="k9-team">CyberPunks · SmartHack XI 2026 · tema PPC</p>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      // Cifra numără de la 0 până la valoarea din raport, apoi stă pe loc.
+      const el = document.getElementById("k9-num");
+      const V = Number(el.dataset.value), PRE = el.dataset.prefix || "", SUF = el.dataset.suffix || "";
+      const counter = { v: 0 };
+      tl.fromTo("#k9-num", { scale: 0.6, opacity: 0, filter: "blur(14px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.4, ease: "expo.out" }, 0.05);
+      tl.fromTo(counter, { v: 0 }, { v: V, duration: 1.1, ease: "expo.out", onUpdate: () => { el.textContent = PRE + Math.round(counter.v) + SUF; } }, 0.05);
+      tl.fromTo("#k9-what", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.35, ease: "expo.out" }, 0.3);
+      tl.fromTo("#k9-src", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.5);
+      tl.to(["#k9-num", "#k9-what", "#k9-src"], { opacity: 0, filter: "blur(10px)", duration: 0.16, ease: "power3.in" }, 2.22);
+      // Logoul: traseul se desenează, soarele răsare (lovitura finală a muzicii pe 26,5 s), apoi numele și echipa.
+      tl.fromTo("#k9-route", { strokeDasharray: "1 1", strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.inOut" }, 2.5);
+      tl.fromTo(["#k9-d1", "#k9-d2", "#k9-d3"], { scale: 0, transformOrigin: "50% 50%" }, { scale: 1, duration: 0.3, ease: "back.out(2)", stagger: 0.12 }, 2.5);
+      tl.fromTo("#k9-sun", { y: 15 }, { y: 0, duration: 0.9, ease: "expo.out" }, 2.65);
+      tl.fromTo(["#k9-w1", "#k9-w2", "#k9-w3"], { opacity: 0, filter: "blur(12px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out", stagger: 0.08 }, 2.7);
+      tl.fromTo("#k9-team", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.45, ease: "expo.out" }, 3.1);
+      window.__timelines["k9"] = tl;
+    })();
+  </script>
+</template>

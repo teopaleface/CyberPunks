@@ -1,0 +1,85 @@
+<template>
+  <!-- Planul din consola reală: camera trece peste cifrele zilei și coboară pe harta cu traseele, apoi răsplata:
+       "Un plan. N echipe." N vine din planul agentului (outputs/demo/plans/demo-vara/plan.json, summary.crews_used),
+       scris de presentation/scripts/cifre_film.py; nu se scrie de mână. -->
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--ground);
+    }
+    #k5-scene {
+      position: absolute;
+      inset: 0;
+    }
+    #k5-lens {
+      position: absolute;
+      inset: 0;
+    }
+    #k5-screen {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      transform-origin: 0 0;
+    }
+    #k5-shot {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+    }
+    #k5-veil {
+      position: absolute;
+      inset: 0;
+      background: var(--ground);
+    }
+    .k5-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 452px;
+      display: flex;
+      justify-content: center;
+      gap: 0.28em;
+      font-size: 176px;
+      font-weight: 650;
+      letter-spacing: -0.045em;
+      line-height: 1;
+      color: var(--ink);
+      white-space: pre;
+    }
+    .k5-line span {
+      display: inline-block;
+    }
+  </style>
+  <div id="root" data-composition-id="k5" data-width="1920" data-height="1080">
+    <div id="k5-scene" class="clip" data-start="0" data-duration="3" data-layout-allow-overflow>
+      <div id="k5-lens">
+        <div id="k5-screen"><img id="k5-shot" src="assets/ui/consola_reala@2x.png" alt="" /></div>
+      </div>
+      <div id="k5-veil"></div>
+      <div id="k5-reward" class="k5-line"><span id="k5-a">Un plan.</span><span id="k5-b" data-crews="9">9 echipe.</span></div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const cam = (s, cx, cy) => ({ x: 960 - s * cx, y: 540 - s * cy, scale: s });
+      // Din bara pașilor: ecranul vine mare și nefocalizat, se așază pe cifrele zilei, le parcurge, apoi coboară pe hartă.
+      tl.fromTo("#k5-screen", cam(2.5, 700, 108), { ...cam(1.85, 640, 108), duration: 0.32, ease: "expo.out" }, 0);
+      tl.fromTo("#k5-lens", { filter: "blur(10px)" }, { filter: "blur(0px)", duration: 0.28, ease: "power2.out" }, 0);
+      tl.to("#k5-screen", { ...cam(1.85, 1290, 108), duration: 0.55, ease: "power2.inOut" }, 0.3);
+      tl.to("#k5-screen", { ...cam(2.2, 470, 340), duration: 0.6, ease: "power3.inOut" }, 0.88);
+      // Răsplata: harta se albește, apar cuvintele, pe bătăi (13,0 și 13,5 s în film).
+      tl.fromTo("#k5-veil", { opacity: 0 }, { opacity: 0.94, duration: 0.3, ease: "power2.inOut" }, 1.42);
+      tl.fromTo("#k5-a", { scale: 0.6, opacity: 0, filter: "blur(12px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "expo.out" }, 1.5);
+      tl.fromTo("#k5-b", { scale: 0.6, opacity: 0, filter: "blur(12px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "expo.out" }, 2.0);
+      tl.to("#k5-reward", { scale: 0.92, opacity: 0, filter: "blur(10px)", duration: 0.16, ease: "power3.in" }, 2.84);
+      window.__timelines["k5"] = tl;
+    })();
+  </script>
+</template>

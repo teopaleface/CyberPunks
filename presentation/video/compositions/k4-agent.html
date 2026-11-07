@@ -1,0 +1,128 @@
+<template>
+  <!-- Butonul "Rulează agentul" la scară uriașă (ca în consolă), apăsat pe bătaie; se transformă în bara celor patru pași,
+       bifați pe bătăi: Perceive, Estimate, Decide, Act. -->
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--ground);
+    }
+    #k4-scene {
+      position: absolute;
+      inset: 0;
+    }
+    #k4-btn {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 448px;
+      margin: 0 auto;
+      width: 980px;
+      height: 184px;
+      border-radius: 26px;
+      background: var(--ui-ink);
+      color: var(--panel);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 92px;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      box-shadow: 0 24px 60px rgba(11, 22, 34, 0.22);
+    }
+    #k4-btn-lab {
+      display: inline-flex;
+      align-items: center;
+      gap: 34px;
+    }
+    .k4-play {
+      width: 58px;
+      height: 70px;
+    }
+    #k4-bar {
+      position: absolute;
+      left: 160px;
+      top: 448px;
+      width: 1600px;
+      height: 184px;
+      border-radius: 26px;
+      background: var(--ui-ink);
+      box-shadow: 0 24px 60px rgba(11, 22, 34, 0.22);
+      overflow: hidden;
+      transform-origin: 50% 50%;
+    }
+    .k4-seg {
+      position: absolute;
+      top: 0;
+      width: 400px;
+      height: 184px;
+    }
+    .k4-fill {
+      position: absolute;
+      inset: 14px 7px;
+      border-radius: 16px;
+      background: var(--panel);
+      transform-origin: 0 50%;
+    }
+    .k4-lab {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      font-size: 54px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--panel);
+    }
+    .k4-lab b {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--ui-ink);
+      color: var(--panel);
+      font-size: 32px;
+      font-weight: 700;
+    }
+  </style>
+  <div id="root" data-composition-id="k4" data-width="1920" data-height="1080">
+    <div id="k4-scene" class="clip" data-start="0" data-duration="3.5" data-layout-allow-overflow>
+      <div id="k4-btn"><span id="k4-btn-lab"><svg class="k4-play" viewBox="0 0 10 12" aria-hidden="true"><path d="M1 1l8 5-8 5z" fill="currentColor"/></svg>Rulează agentul</span></div>
+      <div id="k4-bar">
+        <div class="k4-seg" style="left: 0px"><div id="k4-f1" class="k4-fill"></div><div id="k4-l1" class="k4-lab"><b id="k4-c1">✓</b>Perceive</div></div>
+        <div class="k4-seg" style="left: 400px"><div id="k4-f2" class="k4-fill"></div><div id="k4-l2" class="k4-lab"><b id="k4-c2">✓</b>Estimate</div></div>
+        <div class="k4-seg" style="left: 800px"><div id="k4-f3" class="k4-fill"></div><div id="k4-l3" class="k4-lab"><b id="k4-c3">✓</b>Decide</div></div>
+        <div class="k4-seg" style="left: 1200px"><div id="k4-f4" class="k4-fill"></div><div id="k4-l4" class="k4-lab"><b id="k4-c4">✓</b>Act</div></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      // Butonul vine din zoom-ul scenei 3: mare, cu blur, apoi clar.
+      tl.fromTo("#k4-btn", { scale: 1.35, filter: "blur(12px)" }, { scale: 1, filter: "blur(0px)", duration: 0.4, ease: "expo.out" }, 0);
+      // Apăsarea pe bătaie (9,0 s în film = 1,0 s în scenă).
+      tl.to("#k4-btn", { scale: 0.93, duration: 0.08, ease: "power2.out" }, 1.0);
+      tl.to("#k4-btn", { scale: 1, duration: 0.3, ease: "expo.out" }, 1.08);
+      // Butonul devine bara pașilor: eticheta pleacă, bara crește din centrul butonului.
+      tl.to("#k4-btn-lab", { opacity: 0, filter: "blur(6px)", duration: 0.1, ease: "power2.in" }, 1.2);
+      tl.fromTo("#k4-bar", { scaleX: 980 / 1600, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.3, ease: "power3.inOut" }, 1.22);
+      tl.to("#k4-btn", { opacity: 0, duration: 0.05 }, 1.25);
+      tl.fromTo(".k4-lab", { opacity: 0 }, { opacity: 0.4, duration: 0.2, ease: "power2.out", stagger: 0.03 }, 1.36);
+      // Fiecare pas se umple și se bifează pe bătaia lui: 9,5 / 10,0 / 10,5 / 11,0 s în film.
+      [1, 2, 3, 4].forEach((i, k) => {
+        const at = 1.5 + 0.5 * k;
+        tl.fromTo("#k4-f" + i, { scaleX: 0 }, { scaleX: 1, duration: 0.28, ease: "expo.out" }, at);
+        tl.to("#k4-l" + i, { opacity: 1, color: "#13202A", duration: 0.12, ease: "power2.out" }, at + 0.04);
+        tl.fromTo("#k4-c" + i, { scale: 0 }, { scale: 1, duration: 0.3, ease: "back.out(2)" }, at + 0.06);
+      });
+      tl.to("#k4-bar", { scale: 0.96, opacity: 0, filter: "blur(10px)", duration: 0.2, ease: "power3.in" }, 3.3);
+      window.__timelines["k4"] = tl;
+    })();
+  </script>
+</template>

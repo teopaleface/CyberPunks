@@ -1,0 +1,148 @@
+<template>
+  <!-- "Nu sunt sigur.": cuvintele mari, apoi cardul real din consolă, apoi butonul "Aprobă" uriaș, apăsat de deget pe bătaie; devine
+       "Aprobat de dispecer", iar pastila crește până acoperă tot cadrul (trecerea spre finalul pe cerneală). -->
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--ground);
+    }
+    #k8-scene {
+      position: absolute;
+      inset: 0;
+    }
+    #k8-lens {
+      position: absolute;
+      inset: 0;
+    }
+    #k8-screen {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      transform-origin: 0 0;
+    }
+    #k8-shot {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+    }
+    .k8-bigline {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 452px;
+      text-align: center;
+      font-size: 176px;
+      font-weight: 650;
+      letter-spacing: -0.045em;
+      line-height: 1;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+    .k8-bigline span {
+      display: inline-block;
+    }
+    #k8-touch {
+      position: absolute;
+      left: 1110px;
+      top: 610px;
+      width: 132px;
+      height: 132px;
+      margin: -66px 0 0 -66px;
+      border-radius: 50%;
+      background: rgba(11, 22, 34, 0.28);
+      box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.9), 0 12px 30px rgba(11, 22, 34, 0.25);
+    }
+    #k8-pill {
+      position: absolute;
+      left: 960px;
+      top: 540px;
+      width: 780px;
+      height: 236px;
+      margin: -118px 0 0 -390px;
+      border-radius: 118px;
+      background: var(--ink);
+      box-shadow: 0 26px 64px rgba(11, 22, 34, 0.24);
+      transform-origin: 50% 50%;
+    }
+    .k8-lab {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 486px;
+      height: 108px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 26px;
+      font-size: 120px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      color: var(--panel);
+      white-space: nowrap;
+    }
+    #k8-lab2 {
+      font-size: 92px;
+    }
+    #k8-lab2 b {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      background: var(--panel);
+      color: var(--ink);
+      font-size: 52px;
+    }
+  </style>
+  <div id="root" data-composition-id="k8" data-width="1920" data-height="1080">
+    <div id="k8-scene" class="clip" data-start="0" data-duration="3.5" data-layout-allow-overflow>
+      <div id="k8-lens">
+        <div id="k8-screen"><img id="k8-shot" src="assets/ui/consola_reala@2x.png" alt="" /></div>
+      </div>
+      <div id="k8-big" class="k8-bigline"><span>Nu</span> <span>sunt</span> <span>sigur.</span></div>
+      <div id="k8-pill"></div>
+      <div id="k8-touch"></div>
+      <div id="k8-lab1" class="k8-lab">Aprobă</div>
+      <div id="k8-lab2" class="k8-lab"><b>✓</b>Aprobat de dispecer</div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const cam = (s, cx, cy) => ({ x: 960 - s * cx, y: 540 - s * cy, scale: s });
+      // Cuvintele mari, pe bătaia de la 20,5 s.
+      tl.fromTo("#k8-big span", { scale: 0.6, opacity: 0, filter: "blur(12px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.28, ease: "expo.out", stagger: 0.08 }, 0.0);
+      tl.to("#k8-big", { scale: 0.9, opacity: 0, filter: "blur(10px)", duration: 0.14, ease: "power3.in" }, 0.72);
+      tl.set(["#k8-screen", "#k8-pill", "#k8-lab1", "#k8-lab2", "#k8-touch"], { opacity: 0 }, 0);
+      // Cardul real "Nu sunt sigur" din consolă (sus, în dreapta): scor 0,62, decide un om.
+      tl.fromTo("#k8-screen", { ...cam(2.9, 1560, 262), opacity: 0 }, { ...cam(2.35, 1552, 262), opacity: 1, duration: 0.35, ease: "expo.out" }, 0.78);
+      // Zoom prin butonul "Aprobă" (centru 1308, 314 în consolă).
+      tl.to("#k8-screen", { ...cam(8.0, 1308, 314), duration: 0.3, ease: "power3.in" }, 1.18);
+      tl.to("#k8-lens", { filter: "blur(10px)", opacity: 0, duration: 0.2, ease: "power2.in" }, 1.28);
+      // Butonul mare, clar; degetul apasă pe bătaie (22,0 s în film = 1,5 s în scenă).
+      tl.fromTo("#k8-pill", { scale: 1.3, opacity: 0, filter: "blur(10px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.25, ease: "expo.out" }, 1.38);
+      tl.fromTo("#k8-lab1", { scale: 1.3, opacity: 0, filter: "blur(10px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.25, ease: "expo.out" }, 1.38);
+      tl.fromTo("#k8-touch", { x: 220, y: 160, scale: 1.4, opacity: 0 }, { x: 0, y: 0, scale: 1, opacity: 1, duration: 0.22, ease: "power3.out" }, 1.28);
+      tl.to("#k8-touch", { scale: 0.82, duration: 0.08, ease: "power2.out" }, 1.5);
+      tl.to(["#k8-pill", "#k8-lab1"], { scale: 0.93, duration: 0.08, ease: "power2.out" }, 1.5);
+      tl.to(["#k8-pill", "#k8-lab1"], { scale: 1, duration: 0.26, ease: "expo.out" }, 1.58);
+      tl.to("#k8-touch", { scale: 1.5, opacity: 0, duration: 0.3, ease: "power2.out" }, 1.6);
+      // Starea nouă: pastila se lățește, eticheta se schimbă.
+      tl.to("#k8-lab1", { opacity: 0, filter: "blur(6px)", duration: 0.1, ease: "power2.in" }, 1.66);
+      tl.to("#k8-pill", { scaleX: 1.6, duration: 0.28, ease: "power3.inOut" }, 1.68);
+      tl.fromTo("#k8-lab2", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.28, ease: "expo.out" }, 1.8);
+      tl.fromTo("#k8-lab2 b", { scale: 0 }, { scale: 1, duration: 0.3, ease: "back.out(2)" }, 1.88);
+      // Pastila crește și acoperă tot cadrul: finalul începe pe cerneală (24,0 s în film).
+      tl.to("#k8-lab2", { opacity: 0, scale: 1.1, duration: 0.16, ease: "power3.in" }, 2.95);
+      tl.to("#k8-pill", { scaleX: 1.6 * 5.4, scaleY: 5.4, duration: 0.5, ease: "power3.in" }, 3.0);
+      window.__timelines["k8"] = tl;
+    })();
+  </script>
+</template>

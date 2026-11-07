@@ -1,0 +1,98 @@
+<template>
+  <!-- Cele trei probleme ale zilei, apoi echipele: cuvinte pe bătăi și obiecte 3D care intră din margini
+       (generate cu Codex, fundal transparent). La final obiectele zboară în harta consolei. -->
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--ground);
+    }
+    .k2-clip {
+      position: absolute;
+      inset: 0;
+    }
+    .k2-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 452px;
+      display: flex;
+      justify-content: center;
+      font-size: 176px;
+      font-weight: 650;
+      letter-spacing: -0.045em;
+      line-height: 1;
+      color: var(--ink);
+      white-space: pre;
+    }
+    #k2-row-4 {
+      font-size: 164px;
+      top: 458px;
+    }
+    .k2-obj {
+      position: absolute;
+      display: block;
+      height: auto;
+      transform-origin: 50% 50%;
+    }
+    #k2-o1 { left: 150px; top: 640px; width: 400px; }
+    #k2-o2 { left: 1440px; top: 40px; width: 430px; }
+    #k2-o3 { left: 1440px; top: 640px; width: 430px; }
+    #k2-o4 { left: 170px; top: 80px; width: 360px; }
+    #k2-ai {
+      position: absolute;
+      left: 0;
+      right: 0;
+      text-align: center;
+      bottom: 34px;
+      font-size: 28px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+  </style>
+  <div id="root" data-composition-id="k2" data-width="1920" data-height="1080">
+    <div id="k2-a" class="clip k2-clip" data-start="0" data-duration="0.5"><div id="k2-row-1" class="k2-line">Contoare.</div></div>
+    <div id="k2-b" class="clip k2-clip" data-start="0.5" data-duration="0.5"><div id="k2-row-2" class="k2-line">Furtuni.</div></div>
+    <div id="k2-c" class="clip k2-clip" data-start="1" data-duration="0.5"><div id="k2-row-3" class="k2-line">Tensiune.</div></div>
+    <div id="k2-d" class="clip k2-clip" data-start="1.5" data-duration="1.5"><div id="k2-row-4" class="k2-line">Aceleași echipe.</div></div>
+    <div id="k2-objs" class="clip k2-clip" data-start="0" data-duration="3.5" data-layout-allow-overflow>
+      <img id="k2-o1" class="k2-obj" src="assets/3d/obj_meter.png" alt="" />
+      <img id="k2-o2" class="k2-obj" src="assets/3d/obj_storm.png" alt="" />
+      <img id="k2-o3" class="k2-obj" src="assets/3d/obj_solar.png" alt="" />
+      <img id="k2-o4" class="k2-obj" src="assets/3d/obj_helmet.png" alt="" />
+    </div>
+    <p id="k2-ai" class="clip" data-start="0" data-duration="2.9">Imagini generate cu AI</p>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const pop = (sel, at) =>
+        tl.fromTo(sel, { scale: 0.62, opacity: 0, filter: "blur(10px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.26, ease: "expo.out" }, at);
+      const out = (sel, at) => tl.to(sel, { scale: 0.94, opacity: 0, duration: 0.08, ease: "power3.in" }, at);
+      pop("#k2-row-1", 0.0); out("#k2-row-1", 0.42);
+      pop("#k2-row-2", 0.5); out("#k2-row-2", 0.92);
+      pop("#k2-row-3", 1.0); out("#k2-row-3", 1.42);
+      tl.fromTo("#k2-row-4", { scale: 0.5, opacity: 0, filter: "blur(14px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.36, ease: "expo.out" }, 1.5);
+
+      // Obiectele intră rotindu-se, cu blur de mișcare care se stinge când se așază (o mișcare = o singură tranziție).
+      const fly = (sel, at, from, rot0, rot1) =>
+        tl.fromTo(sel, { x: from[0], y: from[1], rotation: rot0, scale: 1.25, filter: "blur(14px)" }, { x: 0, y: 0, rotation: rot1, scale: 1, filter: "blur(0px)", duration: 0.55, ease: "expo.out" }, at);
+      fly("#k2-o1", 0.0, [-700, 520], -38, -9);
+      fly("#k2-o2", 0.5, [640, -560], 28, 7);
+      fly("#k2-o3", 1.0, [640, 560], 32, 6);
+      fly("#k2-o4", 1.5, [-640, -520], -26, -8);
+
+      // Ieșirea: cuvântul se micșorează, obiectele zboară în harta consolei (devin markerii A, B, C de pe hartă).
+      tl.to("#k2-row-4", { scale: 0.7, opacity: 0, filter: "blur(10px)", duration: 0.2, ease: "power3.in" }, 2.78);
+      const into = (sel, dx, dy) => tl.to(sel, { x: dx, y: dy, scale: 0.07, rotation: 0, opacity: 0.0, duration: 0.55, ease: "power3.in" }, 2.9);
+      into("#k2-o1", 641 - 350, 412 - 843);
+      into("#k2-o2", 615 - 1655, 356 - 255);
+      into("#k2-o3", 625 - 1655, 381 - 855);
+      into("#k2-o4", 649 - 350, 385 - 256);
+      tl.to("#k2-ai", { opacity: 0, duration: 0.15 }, 2.72);
+      tl.fromTo("#k2-ai", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 0.1);
+      window.__timelines["k2"] = tl;
+    })();
+  </script>
+</template>
