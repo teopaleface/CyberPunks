@@ -1,7 +1,7 @@
 # Status: Teo-C-prosumatori
-Actualizat: 2026-11-07 15:12
+Actualizat: 2026-11-07 15:15
 Milestone curent: M3 în lucru (M2 terminat la 14:11; M3 aproape gata: analiza erorilor, investiții, racordări, teste)
-Gata de merge: da (commit 93a2bbc; `git merge Teo` făcut la 15:00, `make check` trece, 179 de teste)
+Gata de merge: da (commit 55a6d6a; cifrele seriei orare și ale ablației se recalculează până la 15:35, restul neschimbat)
 
 ## Făcut
 - M0 (13:10): calcul de rețea vectorizat verificat față de pandapower, prima rețea simulată, `docs/research/C.md`.
@@ -52,11 +52,11 @@ Gata de merge: da (commit 93a2bbc; `git merge Teo` făcut la 15:00, `make check`
 - 15:05 Clonă curată (`git clone` + `uv sync` + `predict --scenario demo-vara`): 41 de lucrări valide în circa un minut, fără pașii grei.
 - 15:08 Experiment din analiza erorilor (radiația de dimineață, pentru baterii): neadoptat, clasificarea iese mai slabă; notat.
 - 15:10 Cap-coadă cu agentul (`uv run cyberpunks run --scenario demo-vara`): C 41 de lucrări valide, 0 respinse; 13 decizii `R-REMEDY-LADDER` cu motivele scării; priza și rebalansarea programate mai târziu (preaviz), mesajele trimise acum.
-- 15:00 Runda 2 de review Codex pe codul nou (rulează).
+- 15:12 Runda 2 de review Codex: 6 probleme, toate reparate în 55a6d6a, cu teste: calibrarea seriei orare devine imbricată (modelele de calibrare nu văd topologia testată), aceeași corecție de interval la evaluare și la predicție, ablația fără fizică nu mai folosește sensibilitatea la grupare, aceeași convenție de randament pentru baterii, raportul de investiții nu cade pe un rezultat gol, anul cerut schimbă chiar datele. Codex confirmă că cele 8 corecturi din runda 1 sunt corecte.
 - 14:55 Rezervă pentru lipsa prognozei: ultima copie salvată, apoi clima medie a perioadei (incertitudine mare, cazurile de lângă prag la om); testat cu rețeaua tăiată.
 
 ## Urmează
-- Corecturile din runda 2 de review.
+- Cifrele recalculate după runda 2 (seria orară, ablația, ofertele de baterii).
 - Notă pentru orchestrator: modelul C are 4 versiuni în istoricul git (8,7 MB fiecare); nu mai adaug altele decât dacă modelul se schimbă.
 - M4: comenzi reproductibile verificate dintr-o clonă curată, curățenie.
 
