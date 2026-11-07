@@ -1,7 +1,7 @@
 # Status: Teo-B-furtuna
-Actualizat: 2026-11-07 17:20
-Milestone curent: M1 și M2 gata; testele de robustețe din M3 gata. **LIBER până la 02:00** (atunci adaug vremea 2021-2022)
-Gata de merge: da (commit d87b3b8): reproducerea B fără descărcări (cererile de la 17:05)
+Actualizat: 2026-11-07 17:35
+Milestone curent: **B FINAL** (17:35). Modelul nu se mai schimbă; repar doar bug-uri, dacă apar.
+Gata de merge: da (commit 0b13f07), B FINAL
 
 ## Făcut
 - 12:44 Citit memoria, tema, planul, contractele, fixture-urile. `uv sync` și `make check` trec.
@@ -35,11 +35,11 @@ Gata de merge: da (commit d87b3b8): reproducerea B fără descărcări (cererile
   - **`make b-repro`** reface metricile fără descărcări și fără Open-Meteo, în circa 3 minute. Verificat: 28 din 28 de metrici identice cu `reports/B/metrics.json`. `make b-weather` și `make b-dataset` sunt acum opționale. `docs/data/B.md` are calea scurtă.
   - Regula de la 17:15 (fișiere sub 5 MB; modelul în git doar la versiunea finală): toate fișierele B sunt sub 5 MB, iar `tests/test_repo_size.py` trece. Modelul nu l-am mai urcat; în git rămâne cel de la M1.
 
+- 17:35 **B FINAL** (decizia lui Teo de la 17:25): renunțăm la vremea pe 2021-2022. Procesul care aștepta ora 02:05 a fost oprit înainte să descarce ceva. În fișa modelului, 2021-2022 apare ca îmbunătățire viitoare, limitată de cota Open-Meteo, alături de calibrarea pe istoricul RER, evaluarea pe prognoza din ziua de dinainte și zăpadă. Fișa modelului, `docs/data/B.md` și `docs/QA-JURIU.md` au cifrele finale, verificate una câte una față de `reports/B/`. Experimentele finale includ și `zapada_uda_viscol` (0,275, nu ajută). Corectură: pe 17 iulie, Slobozia e pe locul 1 din 26, la egalitate cu Oravița (aceeași probabilitate, 0,357).
+- **Modelul din git e cel final:** `models/release/b_model.joblib`, ultima schimbare în 803c29c (15:05), `b-lgbm@c5c8344`.
+
 ## Urmează
-- **Liber până la 02:00** (Q&A gata). Dacă orchestratorul are altă sarcină, o iau. Descărcarea vremii pentru 2021-2022 pornește singură la 02:05 (proces în fundal, jurnal în `data/raw/B/logs/openmeteo_us_2021_2022.log`) și se oprește singură dacă cota nu s-a refăcut.
-- 02:00 (atenție la mărime): cu 2021-2022, tabelul comitat × zi ar crește spre 5 MB. Dacă păstrez modelul pe 4 ani, salvez tabelul cu numere pe 32 de biți, reîntocmesc toate cifrele din el și urc modelul final o singură dată.
-- 02:00: vremea pentru 2021-2022 la aceleași 80 de comitate (circa 4.200 de apeluri, în ritm lent). Reantrenez pe 2021-2024 și testez pe același 2025. Modelul nou rămâne doar dacă e mai bun pe același test (PR-AUC și Brier, plus statele nevăzute); altfel rămâne cel de acum, iar rezultatul intră în „Ce am încercat”.
-- M4 (08:00): model card și `docs/data/B.md` refăcute din cifrele finale, curățenie.
+- Nimic planificat: **B FINAL**. Repar doar bug-uri, dacă le găsește cineva la testare. Sunt liber pentru alte sarcini ale echipei.
 
 ## Blocaje
 - Niciunul.
