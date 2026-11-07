@@ -16,6 +16,7 @@ Contabilitatea e prudentă pentru agent: o citire la distanță, un mesaj sau un
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import random
@@ -336,6 +337,8 @@ def evaluate_demo_day(scenario: str = "demo-vara", out_root: Path | None = None,
     if not items_path.exists() or not truth_path.exists():
         return None
     plan_date = infer_plan_date([items_path])
+    if plan_date is None:
+        return None  # nicio lucrare A validă pentru ziua demo
     load = load_source("A", items_path, "model", plan_date, set())
     with open(truth_path, encoding="utf-8") as fh:
         truth_rows = {row["meter_id"]: row for row in csv.DictReader(fh)}
@@ -351,7 +354,7 @@ def evaluate_demo_day(scenario: str = "demo-vara", out_root: Path | None = None,
     out = {"agent": _summary([run_agent(day, settings)])}
     for name in ("top_k_scor", "primul_venit", "aleator"):
         out[name] = _summary([run_baseline(day, settings, name, 7)])
-    relaxed = Settings.load()
+    relaxed = copy.deepcopy(settings)  # aceleași echipe, costuri și praguri; se schimbă doar regula de siguranță
     relaxed.planner.setdefault("global", {})["safety_mandatory"] = False
     out["agent_fara_siguranta_obligatorie"] = _summary([run_agent(day, relaxed)])
     return {
@@ -368,8 +371,8 @@ ABLATIONS: dict[str, tuple[str, list[tuple[tuple[str, ...], Any]]]] = {
 }
 
 
-def _with(overrides: list[tuple[tuple[str, ...], Any]], economics: bool = False) -> Settings:
-    s = Settings.load()
+def _with(overrides: list[tuple[tuple[str, ...], Any]], economics: bool = False, base: Settings | None = None) -> Settings:
+    s = copy.deepcopy(base) if base is not None else Settings.load()
     for path, value in overrides:
         node = s.economics if economics else s.planner
         for key in path[:-1]:
@@ -383,12 +386,12 @@ def _agent_only(days: int, seed: int, n_meters: int, settings: Settings) -> dict
     return _summary(results)
 
 
-def ablations(days: int, seed: int, n_meters: int) -> dict[str, Any]:
+def ablations(days: int, seed: int, n_meters: int, settings: Settings | None = None) -> dict[str, Any]:
     """Ce aduce fiecare piesă: agentul cu o regulă sau o componentă scoasă, pe aceleași zile."""
-    return {name: {"label_ro": label, **_agent_only(days, seed, n_meters, _with(ov))} for name, (label, ov) in ABLATIONS.items()}
+    return {name: {"label_ro": label, **_agent_only(days, seed, n_meters, _with(ov, base=settings))} for name, (label, ov) in ABLATIONS.items()}
 
 
-def sensitivity(days: int, seed: int, n_meters: int) -> list[dict[str, Any]]:
+def sensitivity(days: int, seed: int, n_meters: int, settings: Settings | None = None) -> list[dict[str, Any]]:
     """Agentul față de top_k_scor când variem ipotezele fără sursă (intervalele din docs/research/planificator.md)."""
     cases = [
         ("cost_per_customer_hour_lei", ("storm", "cost_per_customer_hour_lei"), [5.5, 15.0]),
@@ -398,7 +401,7 @@ def sensitivity(days: int, seed: int, n_meters: int) -> list[dict[str, Any]]:
     out = []
     for name, path, values in cases:
         for value in values:
-            s = _with([(path, value)], economics=True)
+            s = _with([(path, value)], economics=True, base=settings)
             agent_days, base_days = [], []
             for d in range(days):
                 day = generate_day(d, s, seed=seed, n_meters=n_meters)
@@ -538,12 +541,16 @@ def render_chart(report: dict[str, Any], path: Path) -> Path:
         ys = list(range(len(order)))[::-1]
         colors = [accent if n == "agent" else muted for n in order]
         ax.barh(ys, values, height=0.56, color=colors, edgecolor=surface, linewidth=2)
-        top = max(values) or 1.0
+        top = max(max(values), 0.0)
+        bottom = min(min(values), 0.0)
+        span = (top - bottom) or 1.0
         for y, v, n in zip(ys, values, order, strict=True):
-            ax.text(v + top * 0.02, y, fmt(v), va="center", ha="left", color=ink if n == "agent" else ink2,
-                    fontweight="bold" if n == "agent" else "normal", fontsize=9.5)
+            ax.text(v + (span * 0.02 if v >= 0 else -span * 0.02), y, fmt(v), va="center", ha="left" if v >= 0 else "right",
+                    color=ink if n == "agent" else ink2, fontweight="bold" if n == "agent" else "normal", fontsize=9.5)
         ax.set_yticks(ys, labels, color=ink)
-        ax.set_xlim(0, top * 1.25)
+        ax.set_xlim(bottom - span * (0.25 if bottom < 0 else 0.0), top + span * 0.25)
+        if bottom < 0:
+            ax.axvline(0, color=ink2, linewidth=0.8)
         ax.set_title(title, loc="left", color=ink, fontsize=11, fontweight="bold", pad=8)
         ax.grid(axis="x", color=grid, linewidth=0.8)
         ax.set_axisbelow(True)
@@ -589,8 +596,8 @@ def main(argv: list[str] | None = None) -> int:
         report["robustness_overconfident_model"] = evaluate(
             max(10, args.days // 3), args.seed + 1, args.meters, 1.6, settings
         )
-        report["ablations"] = ablations(args.days, args.seed, args.meters)
-        report["sensitivity"] = sensitivity(args.days, args.seed, args.meters)
+        report["ablations"] = ablations(args.days, args.seed, args.meters, settings)
+        report["sensitivity"] = sensitivity(args.days, args.seed, args.meters, settings)
     demo_day = evaluate_demo_day("demo-vara", settings=settings)
     if demo_day is not None:
         report["demo_day"] = demo_day

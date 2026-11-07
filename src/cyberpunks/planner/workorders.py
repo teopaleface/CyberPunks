@@ -50,6 +50,8 @@ def _action(wi: WorkItem, actions: dict[str, str] | None = None) -> str:
 
 def _kind_label(wi: WorkItem, actions: dict[str, str] | None = None) -> str:
     a = _action(wi, actions)
+    if "+" in a:  # combinație de trepte (scara C)
+        return " + ".join(LABELS.get(x) or ACTION_RO.get(x, x) for x in a.split("+"))
     if a == "inspect_on_site" and wi.asset_type.value == "transformer_post":
         return "Verificare contor de bilanț la post"
     return LABELS.get(a) or ACTION_RO.get(a, a).capitalize()
@@ -151,7 +153,13 @@ class _Pdf(FPDF):
 
 
 def _steps(wi: WorkItem, actions: dict[str, str] | None = None) -> list[str]:
-    src, act = wi.source.value, _action(wi, actions)
+    combined = _action(wi, actions)
+    if "+" in combined:  # combinație de trepte: pașii fiecăreia, în ordine
+        out: list[str] = []
+        for part in combined.split("+"):
+            out += _steps(wi, {wi.work_item_id: part})
+        return out
+    src, act = wi.source.value, combined
     if act == "grid_inspection":
         return [
             "Verificați postul și plecările de joasă tensiune: conexiuni încălzite, cabluri, încărcarea pe faze.",
@@ -204,7 +212,7 @@ def _steps(wi: WorkItem, actions: dict[str, str] | None = None) -> list[str]:
 
 def _safety_form(wi: WorkItem, actions: dict[str, str] | None = None) -> str:
     act = _action(wi, actions)
-    if act in ("adjust_tap", "phase_rebalance"):
+    if any(a in ("adjust_tap", "phase_rebalance") for a in act.split("+")):
         return "Autorizație de lucru (AL) necesară; foaie de manevră nr. ______; întrerupere planificată anunțată."
     if wi.source.value == "A" and act == "inspect_on_site":
         return "Dispoziție verbală (DV) sau atribuții de serviciu (AS); fără lucru sub tensiune."

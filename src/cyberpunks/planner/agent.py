@@ -362,7 +362,11 @@ def _decide_and_act(
     from cyberpunks.planner.posts import overview as posts_overview
 
     write_json(plan_dir / "posts.json", posts_overview(plan.model_dump(mode="json"), [it.wi.model_dump(mode="json") for it in items], settings))
-    actions = {wid: p.action for wid, p in outcome.final.items()}
+    # Acțiunea fiecărei lucrări; la scara C, toate treptele cu echipă alese (de exemplu "phase_rebalance+adjust_tap").
+    actions = {
+        wid: ("+".join(p.ladder["crew_steps"]) if p.ladder and p.ladder.get("crew_steps") and p.decision.value == "assigned" else p.action)
+        for wid, p in outcome.final.items()
+    }
     write_json(plan_dir / "actions.json", actions)
     try:
         from cyberpunks.planner.workorders import write_work_orders

@@ -58,7 +58,7 @@
       "A-20250708-PT-1153"
     ],
     "channel": "dispecerat",
-    "created_at": "2026-11-07T14:32:56+02:00"
+    "created_at": "2026-11-07T14:49:45+02:00"
   },
   {
     "alert_id": "AL-2",
@@ -69,7 +69,7 @@
       "B-20250708-CS-RESITA"
     ],
     "channel": "dispecerat",
-    "created_at": "2026-11-07T14:32:56+02:00"
+    "created_at": "2026-11-07T14:49:45+02:00"
   },
   {
     "alert_id": "AL-3",
@@ -80,7 +80,7 @@
       "B-20250708-AR-INEU"
     ],
     "channel": "dispecerat",
-    "created_at": "2026-11-07T14:32:56+02:00"
+    "created_at": "2026-11-07T14:49:45+02:00"
   },
   {
     "alert_id": "AL-4",
@@ -91,7 +91,7 @@
       "B-20250708-CS-CARANSEBES"
     ],
     "channel": "dispecerat",
-    "created_at": "2026-11-07T14:32:56+02:00"
+    "created_at": "2026-11-07T14:49:45+02:00"
   },
   {
     "alert_id": "AL-5",
@@ -113,7 +113,7 @@
       "A-20250708-MTR-014858"
     ],
     "channel": "dispecerat",
-    "created_at": "2026-11-07T14:32:56+02:00"
+    "created_at": "2026-11-07T14:49:45+02:00"
   },
   {
     "alert_id": "AL-6",
@@ -147,7 +147,7 @@
       "A-20250708-PT-1130"
     ],
     "channel": "dispecerat",
-    "created_at": "2026-11-07T14:32:56+02:00"
+    "created_at": "2026-11-07T14:49:45+02:00"
   },
   {
     "alert_id": "AL-7",
@@ -168,7 +168,7 @@
       "B-20250708-HD-BRAD"
     ],
     "channel": "dispecerat",
-    "created_at": "2026-11-07T14:32:56+02:00"
+    "created_at": "2026-11-07T14:49:45+02:00"
   },
   {
     "alert_id": "AL-8",
@@ -203,7 +203,7 @@
       "B-20250708-HD-BRAD"
     ],
     "channel": "dispecerat",
-    "created_at": "2026-11-07T14:32:56+02:00"
+    "created_at": "2026-11-07T14:49:45+02:00"
   },
   {
     "alert_id": "AL-9",
@@ -398,6 +398,6 @@
       "B-20250708-IL-URZICENI"
     ],
     "channel": "dispecerat",
-    "created_at": "2026-11-07T14:32:56+02:00"
+    "created_at": "2026-11-07T14:49:45+02:00"
   }
 ]

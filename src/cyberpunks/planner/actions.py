@@ -112,7 +112,7 @@ def finalize(
         if p.mandatory:
             # Obligatorie, dar nu încape: verificare de la distanță acum (la contoare și posturi), prima în planul următor,
             # și o singură alertă critică de întăriri pentru dispecer (nu câte o decizie pe fiecare caz).
-            remote_ok = p.wi.source.value == "A"
+            remote_ok = p.wi.source.value == "A" and p.wi.extra.get("smart_meter", True) is not False
             final[p.id] = _final(
                 p.item, DecisionType.remote_action if remote_ok else DecisionType.deferred, "R-SAFETY-NO-CREW",
                 f"{p.reason_ro} Nicio echipă potrivită nu are loc mâine: "

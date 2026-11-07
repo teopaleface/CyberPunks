@@ -24,7 +24,10 @@
       "payback_years": 5.5,
       "customers_targeted": 12
     },
-    "inverter_trips_avoided": 25.0
+    "inverter_trips_avoided": 25.0,
+    "crew_steps": [
+      "phase_rebalance"
+    ]
   },
   {
     "post_id": "PT-1076",
@@ -51,7 +54,10 @@
       "payback_years": 4.45,
       "customers_targeted": 7
     },
-    "inverter_trips_avoided": 16.0
+    "inverter_trips_avoided": 16.0,
+    "crew_steps": [
+      "phase_rebalance"
+    ]
   },
   {
     "post_id": "PT-1147",
@@ -78,7 +84,11 @@
       "payback_years": 7.1,
       "customers_targeted": 11
     },
-    "inverter_trips_avoided": 10.0
+    "inverter_trips_avoided": 10.0,
+    "crew_steps": [
+      "phase_rebalance",
+      "adjust_tap"
+    ]
   },
   {
     "post_id": "PT-1300",
@@ -105,7 +115,10 @@
       "payback_years": 3.5,
       "customers_targeted": 11
     },
-    "inverter_trips_avoided": 8.0
+    "inverter_trips_avoided": 8.0,
+    "crew_steps": [
+      "phase_rebalance"
+    ]
   },
   {
     "post_id": "PT-1131",
@@ -126,7 +139,10 @@
     ],
     "invest": false,
     "battery": null,
-    "inverter_trips_avoided": 15.0
+    "inverter_trips_avoided": 15.0,
+    "crew_steps": [
+      "phase_rebalance"
+    ]
   },
   {
     "post_id": "PT-1072",
@@ -153,7 +169,11 @@
       "payback_years": 5.1,
       "customers_targeted": 6
     },
-    "inverter_trips_avoided": 6.0
+    "inverter_trips_avoided": 6.0,
+    "crew_steps": [
+      "phase_rebalance",
+      "adjust_tap"
+    ]
   },
   {
     "post_id": "PT-1075",
@@ -180,7 +200,11 @@
       "payback_years": 7.2,
       "customers_targeted": 2
     },
-    "inverter_trips_avoided": 5.0
+    "inverter_trips_avoided": 5.0,
+    "crew_steps": [
+      "phase_rebalance",
+      "adjust_tap"
+    ]
   },
   {
     "post_id": "PT-1005",
@@ -200,7 +224,8 @@
     ],
     "invest": false,
     "battery": null,
-    "inverter_trips_avoided": 4.0
+    "inverter_trips_avoided": 4.0,
+    "crew_steps": []
   },
   {
     "post_id": "PT-1255",
@@ -227,7 +252,11 @@
       "payback_years": 6.199999999999999,
       "customers_targeted": 6
     },
-    "inverter_trips_avoided": 7.0
+    "inverter_trips_avoided": 7.0,
+    "crew_steps": [
+      "phase_rebalance",
+      "adjust_tap"
+    ]
   },
   {
     "post_id": "PT-1119",
@@ -248,7 +277,11 @@
     ],
     "invest": false,
     "battery": null,
-    "inverter_trips_avoided": 2.0
+    "inverter_trips_avoided": 2.0,
+    "crew_steps": [
+      "phase_rebalance",
+      "adjust_tap"
+    ]
   },
   {
     "post_id": "PT-1087",
@@ -269,7 +302,11 @@
     ],
     "invest": false,
     "battery": null,
-    "inverter_trips_avoided": 2.0
+    "inverter_trips_avoided": 2.0,
+    "crew_steps": [
+      "phase_rebalance",
+      "adjust_tap"
+    ]
   },
   {
     "post_id": "PT-1252",
@@ -290,7 +327,11 @@
     ],
     "invest": false,
     "battery": null,
-    "inverter_trips_avoided": 1.0
+    "inverter_trips_avoided": 1.0,
+    "crew_steps": [
+      "phase_rebalance",
+      "adjust_tap"
+    ]
   },
   {
     "post_id": "PT-1263",
@@ -316,6 +357,9 @@
       "payback_years": 5.9,
       "customers_targeted": 10
     },
-    "inverter_trips_avoided": 18.0
+    "inverter_trips_avoided": 18.0,
+    "crew_steps": [
+      "adjust_tap"
+    ]
   }
 ]
