@@ -37,6 +37,7 @@ from cyberpunks.a_contoare.explain import SimilarCases, top_factors
 from cyberpunks.a_contoare.features import daily_features, intraday_features
 from cyberpunks.a_contoare.lcl import INTRADAY_BASE, RECENT, build_samples, daily_from_halfhours, economics
 from cyberpunks.a_contoare.model import MeterModel
+from cyberpunks.a_contoare.train import SIMILAR_REF
 from cyberpunks.a_contoare.validate import check_window
 from cyberpunks.common.contracts import Series, WorkItem
 from cyberpunks.common.paths import OUTPUTS, work_items_path
@@ -240,8 +241,8 @@ def run(scenario: str, date: str | None = None) -> Path:
     rows = tab.loc[[i for i, _ in chosen]]
     labels = [lab if lab in ("faulty", "tamper") else "faulty" for lab in rows["label"]]
     factors = top_factors(model, feats.loc[rows.index], labels, k=5)
-    cal = build_samples()
-    sim = SimilarCases.fit(cal[cal.split == "cal"], model.features).query(feats.loc[rows.index], k=3)
+    ref = pd.read_parquet(SIMILAR_REF) if SIMILAR_REF.exists() else build_samples().query("split == 'cal'")
+    sim = SimilarCases.fit(ref, model.features).query(feats.loc[rows.index], k=3)
 
     items, series = [], {}
     ymd = target.strftime("%Y%m%d")

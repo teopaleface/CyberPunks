@@ -32,6 +32,15 @@ def _pct(v: float) -> int:
     return round(abs(v) * 100)
 
 
+def _n(v: float, singular: str, plural: str) -> str:
+    """Numeral cu substantiv, după regula din română: 1 zi, 9 zile, 20 de zile, 101 zile."""
+    n = round(v)
+    if n == 1:
+        return f"1 {singular}"
+    last2 = abs(n) % 100
+    return f"{n} {plural}" if n == 0 or 1 <= last2 <= 19 else f"{n} de {plural}"
+
+
 FEATURE_INFO: dict[str, FeatureInfo] = {
     # goluri de comunicație
     "missing_ratio": FeatureInfo(
@@ -44,7 +53,7 @@ FEATURE_INFO: dict[str, FeatureInfo] = {
     ),
     "longest_gap": FeatureInfo(
         "Un gol lung la rând e tipic pentru un modul de comunicație defect.",
-        lambda v: f"cel mai lung gol: {v:.0f} zile fără date",
+        lambda v: f"cel mai lung gol: {_n(v, 'zi', 'zile')} fără date",
     ),
     # zerouri
     "zero_ratio": FeatureInfo(
@@ -53,16 +62,16 @@ FEATURE_INFO: dict[str, FeatureInfo] = {
     ),
     "longest_zero_run": FeatureInfo(
         "Zerourile la rând, după un istoric normal, sunt regula VEE «consecutive zeros».",
-        lambda v: f"{v:.0f} zile la rând cu consum zero",
+        lambda v: f"{_n(v, 'zi', 'zile')} la rând cu consum zero",
     ),
     "zero_run_recent": FeatureInfo(
         "Un șir de zerouri care durează și azi înseamnă că problema e activă acum.",
-        lambda v: f"consum zero în ultimele {v:.0f} zile",
+        lambda v: "consum zero în ultima zi" if round(v) == 1 else f"consum zero în ultimele {_n(v, 'zi', 'zile')}",
     ),
     # valori blocate
     "longest_flat_run": FeatureInfo(
         "Aceeași valoare exactă, zi după zi, nu apare la consum real: registru blocat.",
-        lambda v: f"{v:.0f} zile la rând cu exact aceeași valoare",
+        lambda v: f"{_n(v, 'zi', 'zile')} la rând cu exact aceeași valoare",
     ),
     "unique_ratio_recent": FeatureInfo(
         "Puține valori diferite în ultimele săptămâni arată o citire repetată sau înghețată.",
@@ -92,7 +101,7 @@ FEATURE_INFO: dict[str, FeatureInfo] = {
     # salturi și valori imposibile
     "spike_count": FeatureInfo(
         "Salturile izolate de 10-80 de ori peste normal sunt erori de măsură (regula VEE «spike check»).",
-        lambda v: f"{v:.0f} salturi bruște, mult peste consumul obișnuit",
+        lambda v: f"{_n(v, 'salt brusc', 'salturi bruște')}, mult peste consumul obișnuit",
     ),
     "max_over_median": FeatureInfo(
         "Un maxim de zeci de ori peste mediană e o valoare imposibilă pentru o locuință.",
@@ -100,7 +109,7 @@ FEATURE_INFO: dict[str, FeatureInfo] = {
     ),
     "negative_count": FeatureInfo(
         "Consumul negativ fără panouri solare arată conexiuni inversate (polaritate) sau o eroare.",
-        lambda v: f"{v:.0f} zile cu consum negativ",
+        lambda v: f"{_n(v, 'zi', 'zile')} cu consum negativ",
     ),
     # vecinii de pe același post
     "peer_ratio_recent": FeatureInfo(
@@ -170,7 +179,7 @@ FEATURE_INFO: dict[str, FeatureInfo] = {
     ),
     "spike_slot_count": FeatureInfo(
         "Intervalele de 30 de minute de zeci de ori peste normal sunt erori de măsură.",
-        lambda v: f"{v:.0f} intervale de 30 de minute cu salturi imposibile",
+        lambda v: f"{_n(v, 'interval', 'intervale')} de 30 de minute cu salturi imposibile",
     ),
     "flat_slot_share_recent": FeatureInfo(
         "Aceeași valoare la fiecare 30 de minute arată o citire repetată (contor blocat).",

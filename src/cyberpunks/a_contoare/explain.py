@@ -41,12 +41,14 @@ def top_factors(model: MeterModel, x: pd.DataFrame, labels: list[str], k: int = 
         contrib = sv[i, :, c]
         order = np.argsort(-contrib)
         rows = []
-        for j in order[:k]:
-            if contrib[j] <= 0 and rows:
+        for j in order:
+            if len(rows) == k or (contrib[j] <= 0 and rows):
                 break
             f = model.features[j]
             v = x.iloc[i][f]
             v = None if pd.isna(v) else float(v)
+            if v is None and j != order[-1]:
+                continue  # un feature fără valoare nu se poate explica unui tehnician
             rows.append({"feature": f, "label_ro": label_ro(f, v), "value": None if v is None else round(v, 4),
                          "contribution": round(float(contrib[j]), 4)})
         out.append(rows)

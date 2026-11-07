@@ -14,6 +14,7 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass
 from datetime import date, timedelta
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -22,7 +23,9 @@ from cyberpunks.a_contoare import inject as inj
 from cyberpunks.a_contoare.lcl import (
     CAL_START,
     DEPLOY_FAMILY_SHARE,
+    HH_NPY,
     RECENT,
+    SAMPLES,
     WINDOW,
     build_samples,
     kind_probs,
@@ -33,6 +36,12 @@ from cyberpunks.a_contoare.lcl import (
 from cyberpunks.common.paths import DATA_SAMPLES
 
 SAMPLES_A = DATA_SAMPLES / "A"
+PACK = SAMPLES_A / "demo_pack.npy.xz"  # profile reale (Low Carbon London, UK Power Networks, CC BY 4.0), perioada demo
+PACK_META = SAMPLES_A / "demo_pack.json"
+PACK_START = pd.Timestamp("2012-12-15")  # acoperă demo-vara (iulie) și "mâine" în noiembrie, cu 3 săptămâni de rezervă
+PACK_END = pd.Timestamp("2013-11-30")
+PACK_HOUSEHOLDS = 160  # primele 160 de gospodării de test (sortate după ID), nevăzute la antrenare
+NAN_WH = 65535  # valoarea care înseamnă "lipsă" în pachet
 WEEKS_SHIFT = 678  # 2026 - 678 săptămâni ≈ 2013, aceeași zi a săptămânii
 UNIT_ERROR_SHARE = 0.002  # contoare raportate în Wh în loc de kWh (intrare greșită)
 SHORT_HISTORY_SHARE = 0.003  # contoare noi, cu istoric prea scurt
@@ -65,6 +74,70 @@ def source_date_for(target: date) -> pd.Timestamp:
     return d
 
 
+def export_pack() -> Path:
+    """Scrie pachetul demo din datele complete: gospodăriile de test, PACK_START..PACK_END, în Wh (uint16, lzma)."""
+    import io
+    import json
+    import lzma
+
+    arr, meta = load_lcl()
+    samples = build_samples()
+    households = sorted(samples.loc[samples.split == "test", "household"].unique())[:PACK_HOUSEHOLDS]
+    index = {h: i for i, h in enumerate(meta["household"])}
+    d0, d1 = (PACK_START - CAL_START).days, (PACK_END - CAL_START).days + 1
+    sub = np.asarray(arr[[index[h] for h in households], d0:d1], dtype=np.float64)
+    wh = np.where(np.isfinite(sub), np.round(sub * 1000.0), NAN_WH).clip(0, NAN_WH).astype(np.uint16)
+    buf = io.BytesIO()
+    np.save(buf, wh)
+    PACK.write_bytes(lzma.compress(buf.getvalue(), preset=9))
+    PACK_META.write_text(
+        json.dumps(
+            {
+                "households": households,
+                "start": str(PACK_START.date()),
+                "end": str(PACK_END.date()),
+                "unit": "Wh pe 30 de minute, 65535 = lipsă",
+                "source": "Low Carbon London, UK Power Networks, via London Datastore, CC BY 4.0",
+                "note": "Profile reale ale gospodăriilor din setul de test A (nevăzute la antrenare), doar perioada demo.",
+            },
+            ensure_ascii=False,
+            indent=1,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return PACK
+
+
+def _load_pack() -> tuple[np.ndarray, list[str], pd.Timestamp]:
+    import io
+    import json
+    import lzma
+
+    meta = json.loads(PACK_META.read_text(encoding="utf-8"))
+    wh = np.load(io.BytesIO(lzma.decompress(PACK.read_bytes())))
+    arr = np.where(wh == NAN_WH, np.nan, wh.astype(np.float32) / 1000.0).astype(np.float32)
+    return arr, list(meta["households"]), pd.Timestamp(meta["start"])
+
+
+def profile_source(src: pd.Timestamp) -> tuple[np.ndarray, list[str], dict[str, int], pd.Timestamp]:
+    """Profilele pentru populația demo: din pachetul din git (aceleași rezultate oriunde), altfel din datele complete."""
+    need_from = src - pd.Timedelta(days=WINDOW + 7 * 3)
+    if PACK.exists() and PACK_META.exists():
+        arr, households, start = _load_pack()
+        if need_from >= start and src <= start + pd.Timedelta(days=arr.shape[1] - 1):
+            return arr, households, {h: i for i, h in enumerate(households)}, start
+    if HH_NPY.exists() and SAMPLES.exists():
+        arr, meta = load_lcl()
+        samples = build_samples()
+        households = sorted(samples.loc[samples.split == "test", "household"].unique())[:PACK_HOUSEHOLDS]
+        return arr, households, {h: i for i, h in enumerate(meta["household"])}, CAL_START
+    raise SystemExit(
+        f"Pachetul demo nu acoperă data cerută (are nevoie de {need_from.date()} - {src.date()} în calendarul Londra), "
+        "iar datele complete lipsesc. Rulează: make a-data"
+    )
+
+
 def _seed(*parts: str) -> int:
     return int(hashlib.sha256("|".join(parts).encode()).hexdigest()[:8], 16)
 
@@ -73,11 +146,8 @@ def build_population(target: date, scenario: str = "demo", n_meters: int | None 
     meters, _posts = load_topology()
     if n_meters:
         meters = meters.head(n_meters).copy()
-    arr, meta = load_lcl()
-    samples = build_samples()
-    test_households = sorted(samples.loc[samples.split == "test", "household"].unique())
-    hh_index = {h: i for i, h in enumerate(meta["household"])}
     src = source_date_for(target)
+    arr, test_households, hh_index, day0 = profile_source(src)
     rng = np.random.default_rng(_seed(scenario, target.isoformat()))
     probs = kind_probs(DEPLOY_FAMILY_SHARE)
 
@@ -90,7 +160,7 @@ def build_population(target: date, scenario: str = "demo", n_meters: int | None 
         for _attempt in range(20):
             h = test_households[(j + _attempt * 7919) % len(test_households)] if _attempt else rng.choice(test_households)
             offset_weeks = int(rng.integers(0, 4))
-            end = (src - CAL_START).days - 7 * offset_weeks
+            end = (src - day0).days - 7 * offset_weeks
             win = np.array(arr[hh_index[h], end - WINDOW + 1 : end + 1], dtype=np.float64)
             if np.isfinite(win).any(axis=1).sum() >= 150 and np.isfinite(win[-RECENT:]).any(axis=1).sum() >= 21:
                 break

@@ -12,6 +12,7 @@ Ambele se calibrează pe setul de calibrare (nevăzut la antrenare) și se salve
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -50,8 +51,39 @@ def train_sgcc(feats: pd.DataFrame | None = None) -> MeterModel:
     return m
 
 
+SIMILAR_REF = Path(__file__).resolve().parents[3] / "data" / "samples" / "A" / "similar_ref.parquet"
+
+
+def export_similar_ref(samples: pd.DataFrame | None = None, n_normal: int = 1500, seed: int = 42) -> Path:
+    """Cazurile "din istoric" pentru explicații: toate problemele din calibrare plus o parte din cele normale."""
+    s = lcl.build_samples() if samples is None else samples
+    cal = s[s.split == "cal"]
+    ref = pd.concat([cal[cal.problem == 1], cal[cal.problem == 0].sample(n=min(n_normal, (cal.problem == 0).sum()),
+                                                                         random_state=seed)])
+    cols = ["sample_id", "kind", "family", "problem", *ALL_FEATURES]
+    ref[cols].reset_index(drop=True).to_parquet(SIMILAR_REF, index=False)
+    return SIMILAR_REF
+
+
+def release() -> list[Path]:
+    """Ce intră în git pentru demo: modelul agentului, pachetul de profile și cazurile de referință."""
+    import shutil
+
+    from cyberpunks.a_contoare.demo import export_pack
+    from cyberpunks.a_contoare.model import MODELS_A, RELEASE_A
+
+    RELEASE_A.mkdir(parents=True, exist_ok=True)
+    dst = RELEASE_A / "a-lgbm.joblib"
+    shutil.copy2(MODELS_A / "a-lgbm.joblib", dst)
+    return [dst, export_pack(), export_similar_ref()]
+
+
 def main() -> int:
     np.seterr(all="ignore")
+    if "--release" in sys.argv:
+        for p in release():
+            print(f"scris: {p}")
+        return 0
     m1 = train_sgcc()
     print(f"{m1.version}: {m1.meta['best_iteration']} arbori, antrenare {m1.meta['n_train']}, calibrare {m1.meta['n_cal']}")
     m2 = train_lcl()
