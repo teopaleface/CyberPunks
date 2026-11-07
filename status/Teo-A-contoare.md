@@ -1,7 +1,7 @@
 # Status: Teo-A-contoare
-Actualizat: 2026-11-07 17:14
+Actualizat: 2026-11-07 18:01
 Milestone curent: M4 gata; reproducerea cap-coadă gata (docs/REPRODUCERE.md). LIBER
-Gata de merge: da (commit 518a086)
+Gata de merge: da (commit feacd0f)
 
 ## Făcut
 - 13:30 M0: `docs/research/A.md`, date descărcate cu sume de control (SGCC, 45 de fișiere Low Carbon London).
@@ -35,6 +35,11 @@ Gata de merge: da (commit 518a086)
 
 - 17:13 Regula fișierelor grele (Teo): nu mai fac commit cu `models/release/A/` sau cu mostrele mari din `data/samples/A/` (pachetul demo, `similar_ref.parquet`, `meters.csv`) decât la versiunea finală și doar dacă s-au schimbat. Versiunea din git (commit 68c1d1c) e cea pe care sunt făcute toate cifrele actuale; `tests/test_repo_size.py` trece. Mărimile din `docs/REPRODUCERE.md` sunt corectate: GitHub raportează 267 MB, iar fișierele de pe `main` au 35 MB.
 
+- 18:01 **QA cap-coadă (cele 3 probleme de la 17:55), rezolvate** (commit feacd0f):
+  1. `reports/A/metrics.json`: `primary_metric` = `subtle_precision_at_k`, precizia@K pe problemele subtile: **0,63**, față de **0,07** la regula simplă. E prima cheie în `metrics` și în `baseline_metrics`. Baseline-ul e regula simplă cerută, care pe acest subset e cea mai puternică dintre cele două reguli; regula VEE (**0,02**) e în `metrics` ca `subtle_vee_precision_at_k`. A doua cifră e SGCC: `sgcc_precision_at_k` 0,80 față de 0,04. Fișa modelului spune asta explicit.
+  2. Adnotarea de pe grafic: „consumul scade sub normal” cade acum pe prima zi a căderii, prin fereastră înainte, nu înapoi. Pentru `A-20250708-MTR-005889`, 11.06 (înainte 08.06). Are test.
+  3. Riscul de siguranță: vezi mai jos, la „Cereri către orchestrator”.
+
 ## Urmează
 - **Sunt liber** (M0-M4 gata). Pot ajuta la B sau la alt fir; scrieți-mi direct în thread.
 - La cerere: reparații pe A dacă planificatorul sau interfața au nevoie de ceva în lucrări sau în serii.
@@ -47,6 +52,7 @@ Gata de merge: da (commit 518a086)
 - Niciunul.
 
 ## Cereri către orchestrator
+- **Pentru planificator (riscul de siguranță, QA 17:55):** în instantaneul demo erau 194 de lucrări cu `safety_flag`, toate cu sursa A. 175 veneau de la modelul A (`a-lgbm`), cu regula veche: orice furt cu scor de cel puțin 0,5. Din ele, 84 erau manipulări de date (profil aplatizat sau inversat), fără risc de incendiu, și doar 2 ocoliri reale. Celelalte 19 vin de la bilanț (`bilant-diagnoza-lgbm`), după regula firului bilanț. **Regula nouă la A:** `safety_flag` doar la ocolirea fizică, cu risc de incendiu, la un furt cu scor de cel puțin 0,8: în medie cel puțin 3 ore pe zi de zero exact la aceleași ore (punte sau comutator improvizat), sau ocolire parțială sigură (nivel scăzut brusc, forma zilei păstrată). Rezultat: **40 pe 8 iulie** (38 ocoliri cu comutator, 2 parțiale) și 26 pe `maine`, toate furturi reale. Tiparul e în `extra.tamper_pattern` și `extra.tamper_pattern_ro`; urgența la siguranță e 48 de ore. După merge, rulați din nou `cyberpunks run`, ca instantaneul să ia lucrările noi.
 - **Din reproducerea cap-coadă** (detalii în `docs/REPRODUCERE.md`, secțiunea „Probleme găsite”):
   1. **Firul C:** 9 teste cer internet (`tests/c/test_connection.py` ×5, `test_decisions.py` ×1, `test_remedies.py` ×3). Fără `data/raw/C`, `weather.archive()` descarcă vremea de la Open-Meteo, deci `make check` pică într-o clonă curată fără internet, iar cu internet consumă cotă. Soluție: o mostră mică de vreme în `data/samples/C/`, sau testele sărite când lipsesc datele.
   2. **Firul B:** gazetteer-ul recensământului se descarcă de mână. Soluție: pasul în `make b-data`, sau fișierul de 776 KB în `data/samples/B/`.
