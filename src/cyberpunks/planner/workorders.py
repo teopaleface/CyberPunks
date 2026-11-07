@@ -32,7 +32,6 @@ def _t(dt: datetime) -> datetime:
     return dt.astimezone(TZ)
 
 
-_ACTION: dict[str, str] = {}  # work_item_id -> acțiunea aleasă de agent (setat de write_work_orders)
 
 LABELS = {
     "inspect_on_site": "Verificare contor",
@@ -44,13 +43,13 @@ LABELS = {
 }
 
 
-def _action(wi: WorkItem) -> str:
+def _action(wi: WorkItem, actions: dict[str, str] | None = None) -> str:
     """Acțiunea aleasă de agent pentru lucrare (din plan); dacă lipsește, recomandarea modelului."""
-    return _ACTION.get(wi.work_item_id) or wi.recommended_action.value
+    return (actions or {}).get(wi.work_item_id) or wi.recommended_action.value
 
 
-def _kind_label(wi: WorkItem) -> str:
-    a = _action(wi)
+def _kind_label(wi: WorkItem, actions: dict[str, str] | None = None) -> str:
+    a = _action(wi, actions)
     if a == "inspect_on_site" and wi.asset_type.value == "transformer_post":
         return "Verificare contor de bilanț la post"
     return LABELS.get(a) or ACTION_RO.get(a, a).capitalize()
@@ -151,8 +150,8 @@ class _Pdf(FPDF):
         self.ln(1.5)
 
 
-def _steps(wi: WorkItem) -> list[str]:
-    src, act = wi.source.value, _action(wi)
+def _steps(wi: WorkItem, actions: dict[str, str] | None = None) -> list[str]:
+    src, act = wi.source.value, _action(wi, actions)
     if act == "grid_inspection":
         return [
             "Verificați postul și plecările de joasă tensiune: conexiuni încălzite, cabluri, încărcarea pe faze.",
@@ -203,8 +202,8 @@ def _steps(wi: WorkItem) -> list[str]:
     ]
 
 
-def _safety_form(wi: WorkItem) -> str:
-    act = _action(wi)
+def _safety_form(wi: WorkItem, actions: dict[str, str] | None = None) -> str:
+    act = _action(wi, actions)
     if act in ("adjust_tap", "phase_rebalance"):
         return "Autorizație de lucru (AL) necesară; foaie de manevră nr. ______; întrerupere planificată anunțată."
     if wi.source.value == "A" and act == "inspect_on_site":
@@ -212,7 +211,7 @@ def _safety_form(wi: WorkItem) -> str:
     return "Autorizație de lucru (AL) la intervenție."
 
 
-def _stop_block(pdf: _Pdf, stop: Stop, wi: WorkItem | None, dec: Decision | None) -> None:
+def _stop_block(pdf: _Pdf, stop: Stop, wi: WorkItem | None, dec: Decision | None, actions: dict[str, str] | None = None) -> None:
     eta = hhmm(_t(stop.eta))
     if wi is None:
         pdf.set_fill_color(*NAVY)
@@ -241,7 +240,7 @@ def _stop_block(pdf: _Pdf, stop: Stop, wi: WorkItem | None, dec: Decision | None
     pdf.cell(
         pdf.epw * 0.72,
         7,
-        f"  Oprirea {stop.seq} · ETA {eta} · {_kind_label(wi)}",
+        f"  Oprirea {stop.seq} · ETA {eta} · {_kind_label(wi, actions)}",
         fill=True,
         new_x="RIGHT",
         new_y="TOP",
@@ -289,10 +288,10 @@ def _stop_block(pdf: _Pdf, stop: Stop, wi: WorkItem | None, dec: Decision | None
     pdf.kv("Pe scurt:", wi.explanation.summary_ro)
 
     pdf.section("Ce faceți")
-    pdf.bullets(_steps(wi))
+    pdf.bullets(_steps(wi, actions))
 
     pdf.section("Siguranță")
-    pdf.kv("Formă de lucru:", _safety_form(wi), lw=30)
+    pdf.kv("Formă de lucru:", _safety_form(wi, actions), lw=30)
     pdf.boxes("Verificări:", ["Separare electrică", "Legare la pământ și în scurtcircuit", "EIP verificat"], lw=30)
 
     pdf.section("De completat pe teren")
@@ -343,6 +342,7 @@ def _render(
     items: dict[str, WorkItem],
     decs: dict[str, Decision],
     settings: Settings,
+    actions: dict[str, str] | None = None,
 ) -> bytes:
     number = f"OL-{plan.plan_date:%Y%m%d}-{route.crew_id}"
     pdf = _Pdf(plan, number)
@@ -404,7 +404,7 @@ def _render(
             row = table.row()
             row.cell(str(st.seq))
             row.cell(hhmm(_t(st.eta)))
-            row.cell(_kind_label(wi) if wi else "—")
+            row.cell(_kind_label(wi, actions) if wi else "—")
             row.cell((wi.location.label or wi.asset_id) if wi else st.work_item_id)
             row.cell(str(st.duration_min))
             row.cell(num(st.travel_km, 1))
@@ -425,11 +425,11 @@ def _render(
         wi, dec = items.get(st.work_item_id), decs.get(st.work_item_id)
         y0 = pdf.get_y()
         with pdf.offset_rendering() as probe:
-            _stop_block(pdf, st, wi, dec)
+            _stop_block(pdf, st, wi, dec, actions)
         pdf.set_y(y0)
         if probe.page_break_triggered:
             pdf.add_page()
-        _stop_block(pdf, st, wi, dec)
+        _stop_block(pdf, st, wi, dec, actions)
         pdf.ln(5)
     return bytes(pdf.output())
 
@@ -484,15 +484,13 @@ def write_work_orders(plan: Plan, items: list[Item], plan_dir: Path, settings: S
     """Writes plan_dir/work_orders/<crew_id>.pdf for every route in plan.routes; deletes stale PDFs of crews no longer in the plan; returns the written paths."""
     out = Path(plan_dir) / "work_orders"
     out.mkdir(parents=True, exist_ok=True)
-    _ACTION.clear()
-    _ACTION.update(actions or {})
     by_id = {i.id: i.wi for i in items}
     decs = {d.work_item_id: d for d in plan.decisions}
     crews = {c.crew_id: c for c in settings.crews}
     written: list[Path] = []
     for route in plan.routes:
         path = out / f"{route.crew_id}.pdf"
-        path.write_bytes(_render(plan, route, crews.get(route.crew_id), by_id, decs, settings))
+        path.write_bytes(_render(plan, route, crews.get(route.crew_id), by_id, decs, settings, actions))
         written.append(path)
     keep = {p.name for p in written}
     for old in out.glob("*.pdf"):

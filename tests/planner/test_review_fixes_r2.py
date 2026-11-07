@@ -34,13 +34,11 @@ def test_r2_1_work_order_follows_the_agent_action() -> None:
     from cyberpunks.planner import workorders
 
     c = WorkItem.model_validate(_c_with_ladder("PT-R201", []))
-    workorders._ACTION.clear()
-    workorders._ACTION[c.work_item_id] = "phase_rebalance"
-    assert workorders._kind_label(c) == "Mutarea unor case pe altă fază"
-    assert not any("priza" in s.lower() for s in workorders._steps(c))
-    workorders._ACTION[c.work_item_id] = "measurement_campaign"
-    assert "analizor" in workorders._steps(c)[0]
-    workorders._ACTION.clear()
+    actions = {c.work_item_id: "phase_rebalance"}
+    assert workorders._kind_label(c, actions) == "Mutarea unor case pe altă fază"
+    assert not any("priza" in s.lower() for s in workorders._steps(c, actions))
+    assert "analizor" in workorders._steps(c, {c.work_item_id: "measurement_campaign"})[0]
+    assert workorders._kind_label(c) == "Schimbare priză transformator"  # fără plan: recomandarea modelului
 
 
 def test_r2_2_outage_notice_uses_the_crew_arrival(out_root: Path) -> None:
