@@ -55,11 +55,13 @@ export function DemoStage({
   }, [data]);
 
   const [index, setIndex] = useState(() => Math.min(Math.max(initialScene - 1, 0), 4));
+  const [autoOn, setAutoOn] = useState(auto);
   const go = useCallback((i: number) => setIndex(((i % scenes.length) + scenes.length) % scenes.length), [scenes.length]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLElement && /input|textarea|select/i.test(e.target.tagName)) return;
+      setAutoOn(false); // orice tastă oprește derularea automată
       if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
         e.preventDefault();
         setIndex((i) => (i + 1) % scenes.length);
@@ -75,10 +77,10 @@ export function DemoStage({
   }, [scenes.length]);
 
   useEffect(() => {
-    if (!auto) return;
+    if (!autoOn) return;
     const t = window.setInterval(() => setIndex((i) => (i + 1) % scenes.length), 7000);
     return () => window.clearInterval(t);
-  }, [auto, scenes.length]);
+  }, [autoOn, scenes.length]);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -90,7 +92,7 @@ export function DemoStage({
   const sceneProp = useMemo(() => ({ region: scene.region, selected: scene.selected, spotlight: scene.spotlight }), [scene]);
 
   return (
-    <div className="dark flex h-dvh min-h-[720px] flex-col overflow-hidden bg-canvas text-ink">
+    <div className="dark flex h-dvh min-h-[720px] flex-col overflow-hidden bg-canvas text-ink [color-scheme:dark]">
       <header className="flex h-16 shrink-0 items-center gap-6 border-b border-rule bg-panel px-7">
         <span className="flex items-center gap-2.5">
           <LogoMark size={26} />
@@ -110,7 +112,7 @@ export function DemoStage({
               onClick={() => go(i)}
               aria-current={i === index ? "step" : undefined}
               aria-label={`Scena ${i + 1}: ${s.title}`}
-              className={"h-2.5 rounded-full transition-all duration-300 " + (i === index ? "w-7 bg-ink" : "w-2.5 bg-idle hover:bg-ink-soft")}
+              className={"h-2.5 rounded-full transition-[width,background-color] duration-300 " + (i === index ? "w-7 bg-ink" : "w-2.5 bg-idle hover:bg-ink-soft")}
             />
           ))}
         </nav>

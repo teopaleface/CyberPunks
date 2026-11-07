@@ -169,7 +169,7 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
           value={source}
           onChange={setSource}
           items={[
-            { id: "all", label: "Toate sursele", count: decisions.length },
+            { id: "all", label: "Toate", count: decisions.length },
             ...SOURCE_ORDER.map((s) => ({
               id: s,
               label: (
@@ -185,10 +185,10 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
         <Select value={action} onValueChange={setAction}>
           <SelectTrigger
             aria-label="Tipul deciziei"
-            className="h-10 min-w-[250px] gap-2 rounded-[4px] border-input bg-panel px-3 text-[15px] font-[520]"
+            className="h-10 min-w-[232px] gap-2 rounded-[4px] border-input bg-panel px-3 text-[15px] font-[520]"
           >
             <span className="text-muted-foreground">Decizia</span>
-            <SelectValue>{action === "all" ? "Toate" : (actionLabel ?? action)}</SelectValue>
+            <SelectValue className="flex-1 text-left">{action === "all" ? "Toate" : (actionLabel ?? action)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all" className="text-[15px]">
@@ -209,10 +209,10 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Caută lucrarea, de exemplu MTR-004217"
+            placeholder="Caută după ID-ul lucrării"
             spellCheck={false}
             autoComplete="off"
-            className="h-10 w-[350px] rounded-[4px] border border-input bg-panel pr-3 pl-10 text-[15px] placeholder:text-muted-foreground"
+            className="h-10 w-[320px] rounded-[4px] border border-input bg-panel pr-3 pl-10 text-[15px] placeholder:text-muted-foreground"
           />
         </label>
         <span className="flex-1" />
@@ -220,7 +220,7 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
           {active ? `${fmtInt(shown)} din ${plural(decisions.length, "decizie", "decizii")}` : plural(decisions.length, "decizie", "decizii")}
         </span>
         {active ? (
-          <Button variant="outline" size="panel" onClick={reset}>
+          <Button variant="ghost" size="panel" className="-mr-3 rounded-[4px] px-3 underline decoration-rule underline-offset-4" onClick={reset}>
             Șterge filtrele
           </Button>
         ) : null}
@@ -351,7 +351,8 @@ function DecisionRow({
 }) {
   const human = r.actor === "human";
   const href = r.workItemId ? `/lucrari/${encodeURIComponent(r.workItemId)}?scenariu=${encodeURIComponent(scenario)}` : null;
-  const shown = r.thresholds.slice(0, MAX_THRESHOLDS);
+  // Cel mult trei rânduri în celulă: trei praguri, sau două și „+N praguri”.
+  const shown = r.thresholds.length > MAX_THRESHOLDS ? r.thresholds.slice(0, MAX_THRESHOLDS - 1) : r.thresholds;
   const extra = r.thresholds.length - shown.length;
   const detailId = `jurnal-${r.id}`;
   const td = cn("px-3 py-3 align-top", expanded ? "border-b-0" : "border-b border-rule");
@@ -390,7 +391,11 @@ function DecisionRow({
                 <Link href={href} className="code-id text-[15px] break-all underline decoration-rule underline-offset-4 hover:decoration-ink">
                   {r.workItemId}
                 </Link>
-                {r.itemTitle ? <p className="text-[13.5px] leading-snug text-muted-foreground">{r.itemTitle}</p> : null}
+                {r.itemTitle ? (
+                  <p className="truncate text-[13.5px] leading-snug text-muted-foreground" title={r.itemTitle}>
+                    {r.itemTitle}
+                  </p>
+                ) : null}
               </div>
             </div>
           ) : (

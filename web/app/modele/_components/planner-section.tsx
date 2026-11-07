@@ -58,7 +58,7 @@ function NetChart({ rows, days }: { rows: Strategy[]; days: number | null }) {
   const max = Math.max(...rows.map((r) => r.net), 0);
   const min = Math.min(...rows.map((r) => r.net), 0);
   // loc la capătul barei pentru valoare: axa merge cu ~25% peste cea mai mare bară
-  const axis = niceAxis(max * 1.25);
+  const axis = niceAxis(max * 1.25, 5);
   const pct = (v: number) => `${(Math.max(0, Math.min(1, v / axis.max)) * 100).toFixed(2)}%`;
   const agent = rows.find((r) => r.key === "agent");
   const grid = { gridTemplateColumns: `${LABEL_COL}px minmax(0,1fr)` };

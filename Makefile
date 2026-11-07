@@ -140,7 +140,7 @@ demo-snapshot:    ## copiază planul demo-vara în outputs/demo/ (intră în git
 	uv run python -m cyberpunks.planner.snapshot --scenario demo-vara
 
 # ---- Interfață (firul Teo-ui) ----
-.PHONY: web web-install web-build web-test
+.PHONY: web web-install web-build web-test web-smoke
 web-install:      ## instalează dependențele consolei (bun; merge și npm install în web/)
 	cd web && bun install
 web: web-install  ## pornește consola dispecerului pe http://localhost:3710 (API-ul pe 8710 e opțional)
@@ -149,5 +149,7 @@ web-build: web-install  ## build de producție al consolei
 	cd web && bun run build
 web-test:         ## testele consolei (stratul de date: API, instantaneu demo, fixture-uri)
 	cd web && bun test
+web-smoke:        ## încarcă toate ecranele pe consola pornită (make web) și cade la orice eroare
+	cd web && bun run smoke
 
 # ---- Prezentare (firul Teo-prezentare) ----

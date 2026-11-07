@@ -1,3 +1,4 @@
+import { cn } from "cn";
 import type { ReactNode } from "react";
 import type { DecisionType } from "@/lib/contracts";
 import { fmtInt, plural } from "@/lib/format";
@@ -49,12 +50,14 @@ export function JournalSummary({ rows }: { rows: JournalRow[] }) {
       key: "all",
       value: decisions.length,
       label: decisions.length === 1 ? "decizie" : "decizii",
-      hint: runs ? `din ${plural(runs, "rulare", "rulări")} ${runs === 1 ? "a" : "ale"} agentului` : "în jurnal",
+      hint: runs ? (runs === 1 ? "dintr-o rulare" : `din ${plural(runs, "rulare", "rulări")}`) : "în jurnal",
     },
-    { key: "agent", value: agent.length, label: "ale agentului", hint: "singur, după reguli" },
-    { key: "human", value: human.length, label: "ale omului", hint: humanHint || "nicio decizie încă" },
+    { key: "agent", value: agent.length, label: "ale agentului", hint: "după reguli" },
+    { key: "human", value: human.length, label: "ale omului", hint: humanHint || "niciuna încă" },
     ...typeCells,
   ];
+  // Cu multe tipuri de decizii, cifrele se strâng ca rândul să încapă pe proiector.
+  const compact = cells.length > 8;
 
   return (
     <section aria-label="Cifrele jurnalului" className="flex h-[88px] shrink-0 overflow-hidden border-b border-rule bg-canvas">
@@ -62,17 +65,24 @@ export function JournalSummary({ rows }: { rows: JournalRow[] }) {
         {cells.map((c, i) => (
           <div
             key={c.key}
-            className={
-              "flex min-w-0 flex-auto items-center gap-3 border-l border-rule px-6 first:border-l-0 first:pl-7 " +
-              (i === 3 ? "border-l-2 border-l-ink/25" : "")
-            }
+            className={cn(
+              "flex flex-auto items-center gap-3 border-l border-rule first:border-l-0 first:pl-7",
+              compact ? "px-4" : "px-5 min-[1800px]:px-6",
+              i === 3 && "border-l-2 border-l-ink/25",
+            )}
           >
-            <dd className={"num-wide order-1 text-[clamp(28px,2.1vw,40px)] whitespace-nowrap " + (c.attention ? "text-att" : "")}>
+            <dd
+              className={cn(
+                "num-wide order-1 whitespace-nowrap",
+                compact ? "text-[28px]" : "text-[clamp(26px,1.9vw,36px)]",
+                c.attention && "text-att",
+              )}
+            >
               {fmtInt(c.value)}
             </dd>
-            <dt className="order-2 min-w-0 text-[14px] leading-[1.3] text-muted-foreground">
-              <b className="block truncate font-[560] text-ink">{c.label}</b>
-              <span className="block truncate">{c.hint}</span>
+            <dt className="order-2 text-[14px] leading-[1.3] whitespace-nowrap text-muted-foreground">
+              <b className="block font-[560] text-ink">{c.label}</b>
+              <span className="block">{c.hint}</span>
             </dt>
           </div>
         ))}

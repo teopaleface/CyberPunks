@@ -2,6 +2,7 @@ import "server-only";
 import type { Decision, WorkItem } from "@/lib/contracts";
 import { apiPosts, apiUrl, isApiRequestError } from "./api";
 import { readDemoPosts, readLossCost } from "./files";
+import { predictionLabelRo } from "./labels";
 import { getPlanView } from "./index";
 import { missing, ok, resolveData } from "./source";
 import type { PostSummary, Sourced } from "./types";
@@ -51,6 +52,7 @@ export function derivePosts(items: WorkItem[], decisions: Record<string, Decisio
     }
     return p;
   };
+  const bilantPosts = new Set<string>();
   for (const w of items) {
     if (w.asset_type === "transformer_post") {
       const p = get(w.asset_id);
@@ -58,6 +60,18 @@ export function derivePosts(items: WorkItem[], decisions: Record<string, Decisio
       p.lon = w.location.lon;
       p.zone_id = w.location.zone_id;
       p.label = w.location.label ?? w.asset_id;
+      if (w.source === "A") {
+        // lucrarea bilanțului pe post: pierderea și cauza vin de aici
+        const extra = (w.extra ?? {}) as Record<string, unknown>;
+        bilantPosts.add(w.asset_id);
+        p.bilant_work_item_id = w.work_item_id;
+        p.bilant_score = w.prediction.score;
+        p.bilant_decision = decisions[w.work_item_id]?.decision ?? null;
+        p.bilant_rule_id = decisions[w.work_item_id]?.rule_id ?? null;
+        p.loss_lei_month = num(extra.lei_per_month) ?? p.loss_lei_month ?? null;
+        p.loss_kwh_day = w.prediction.point_estimate ?? p.loss_kwh_day ?? null;
+        p.diagnosis = predictionLabelRo(w.prediction.label);
+      }
       if (w.source === "C") {
         p.voltage_p90_pu = w.prediction.point_interval?.[1] ?? w.prediction.point_estimate ?? null;
         p.c_work_item_id = w.work_item_id;
@@ -85,7 +99,9 @@ export function derivePosts(items: WorkItem[], decisions: Record<string, Decisio
       p.approx_position = true;
       p.label = p.label ?? p.post_id;
     }
-    if (_kwh > 0) {
+    if (bilantPosts.has(p.post_id)) {
+      p.derived = false; // pierderea vine din bilanț
+    } else if (_kwh > 0) {
       p.loss_kwh_day = +_kwh.toFixed(2);
       p.loss_lei_month = lossCostLeiKwh != null ? +(_kwh * 30 * lossCostLeiKwh).toFixed(0) : null;
     }
@@ -127,8 +143,10 @@ export async function getPosts(scenario: string): Promise<PostsResult> {
     data,
     source: view.source,
     fetchedAt: new Date().toISOString(),
-    degradedReason: "posturile sunt derivate din lucrări (contoarele A pe post și posturile C), până vine bilanțul",
-    derived: true,
+    degradedReason: data.some((p) => p.bilant_work_item_id)
+      ? "posturile sunt adunate din lucrările planului: bilanțul pe post, contoarele A și posturile C"
+      : "posturile sunt derivate din lucrări (contoarele A pe post și posturile C), până vine bilanțul",
+    derived: !data.some((p) => p.bilant_work_item_id),
     lossCost,
   };
 }

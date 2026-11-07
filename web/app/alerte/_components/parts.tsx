@@ -79,13 +79,25 @@ export function WorkItemRef({
         />
       ) : null}
       <span className="code-id shrink-0 text-ink underline decoration-rule underline-offset-4 group-hover:decoration-ink">{id}</span>
-      {workItem ? (
-        <span className="min-w-0 truncate text-[14.5px] text-muted-foreground">
-          {itemTitle(workItem)}, {itemPlace(workItem)}
-        </span>
-      ) : null}
+      {workItem ? <span className="min-w-0 truncate text-[14.5px] text-muted-foreground">{shortTitle(workItem)}</span> : null}
     </Link>
   );
+}
+
+function escapeRe(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Ce e și unde, fără să repete ID-ul și cu diacriticele din eticheta locului:
+ * „Contor la PT 9979, Tineretului”, „Zona Timișoara (Timiș)”, „Post de transformare, Afumați (sintetic)”.
+ */
+export function shortTitle(w: WorkItem): string {
+  const label = w.location.label?.trim() ?? "";
+  const rest = label.replace(new RegExp(`^(Contor\\s+)?${escapeRe(w.asset_id)},?\\s*`), "").trim();
+  if (w.asset_type === "meter") return rest ? `Contor la ${rest}` : `Contor, ${itemPlace(w)}`;
+  if (w.asset_type === "transformer_post") return `Post de transformare, ${rest || itemPlace(w)}`;
+  return label || itemTitle(w);
 }
 
 /** Pastila cu numărul de lângă titlurile de secțiune (ca în taburile din antet). */

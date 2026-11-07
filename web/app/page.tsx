@@ -42,7 +42,12 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/">["searchPara
     );
   }
 
-  const data = toPlanScreenData(view.data);
+  const requested = typeof params.lucrare === "string" ? params.lucrare : null;
+  const slimData = toPlanScreenData(view.data);
+  const initialSelected =
+    requested && slimData.items.some((w) => w.work_item_id === requested) ? requested : slimData.defaultSelected;
+  // lucrarea selectată la început vine întreagă (fără așteptare); restul se încarcă la cerere
+  const data = initialSelected ? toPlanScreenData(view.data, [initialSelected]) : slimData;
   // aprobarea listei: din jurnal (API) sau, dacă API-ul n-o are încă, din cookie-ul acestui browser
   const fromAudit = view.data.audit.find((a) => a.actor === "human" && /plan/i.test(a.action) && /aprob|approv/i.test(a.action));
   const cookie = (await cookies()).get(`aprobat_${scenario}`)?.value;
@@ -52,8 +57,6 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/">["searchPara
     : cookiePlan === data.planId && cookieAt
       ? { at: cookieAt, local: true }
       : null;
-  const requested = typeof params.lucrare === "string" ? params.lucrare : null;
-  const initialSelected = requested && data.items.some((w) => w.work_item_id === requested) ? requested : data.defaultSelected;
 
   return (
     <AppShell info={info} fit>
@@ -70,6 +73,8 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/">["searchPara
         initialSelected={initialSelected}
         postsInfo={posts ? { posts: posts.data, derived: posts.derived, lossCostNote: posts.lossCost?.note ?? null } : undefined}
         approval={approval}
+        initialRegion={typeof params.zona === "string" ? params.zona : null}
+        initialMode={params.harta === "posturi" ? "posts" : "items"}
       />
     </AppShell>
   );

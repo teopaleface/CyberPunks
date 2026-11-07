@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import type { Series, WorkItem } from "@/lib/contracts";
 import { fmtDec, fmtInt, fmtScore, fmtTime, hhmm, minutesOfDay } from "@/lib/format";
+import { isBilantSeries } from "@/lib/series-utils";
 
 /**
  * Graficul potrivit sursei:
@@ -214,10 +215,6 @@ function VoltageChart({ series }: { series: Series }) {
 }
 
 // ------------------------------------------------------------------ bilanț pe post
-/** „Ieșit din post” (value) față de „suma clienților” (expected); lipsa dintre ele, colorată unde e peste normal. */
-export function isBilantSeries(series: Series): boolean {
-  return series.points.some((p) => p.flag === "lipsa_peste_normal") || /ieșit din post|bilan/i.test(series.title_ro);
-}
 
 function BilantChart({ series }: { series: Series }) {
   const data: Row[] = series.points.map((p) => ({

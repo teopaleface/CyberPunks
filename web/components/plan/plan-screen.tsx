@@ -2,14 +2,15 @@
 
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { cn } from "cn";
 import type { WorkItem } from "@/lib/contracts";
 import { DECISION_LABEL_RO } from "@/lib/data/labels";
 import type { PostSummary } from "@/lib/data/types";
 import { fmtDec, fmtInt, hhmm, minutesOfDay } from "@/lib/format";
 import { markerKind, markerSvg } from "@/lib/marker-svg";
-import { RE_BOUNDS, itemTitle, type PlanScreenData } from "@/lib/plan-screen";
+import { loadWorkItemDetail } from "@/lib/data/actions";
+import { RE_BOUNDS, isSlim, itemTitle, type PlanScreenData } from "@/lib/plan-screen";
 import type { LocatorGeo } from "@/lib/server/geo";
 import { Feeders } from "./feeders";
 import type { Bounds, MapItem, MapPost } from "./plan-map";
@@ -44,7 +45,11 @@ export function PlanScreen({
   approval,
   theme = "light",
   scene,
+  initialRegion,
+  initialMode = "items",
 }: {
+  initialRegion?: string | null;
+  initialMode?: "items" | "posts";
   data: PlanScreenData;
   geo: LocatorGeo | null;
   initialSelected: string | null;
@@ -55,7 +60,7 @@ export function PlanScreen({
   scene?: { region?: string; selected?: string | null; spotlight?: "queue" | "peek" | "feeders" | "map" | null };
 }) {
   const router = useRouter();
-  const [mode, setMode] = useState<"items" | "posts">("items");
+  const [mode, setModeState] = useState<"items" | "posts">(initialMode);
   const itemsById = useMemo(() => Object.fromEntries(data.items.map((w) => [w.work_item_id, w])) as Record<string, WorkItem>, [data.items]);
   const stopInfo = useMemo(() => {
     const m = new Map<string, { crewId: string; seq: number; start: number; end: number }>();
@@ -69,16 +74,39 @@ export function PlanScreen({
   }, [data.routes]);
 
   const [selected, setSelected] = useState<string | null>(initialSelected);
-  const [region, setRegion] = useState<string>(() => {
+  const [region, setRegionState] = useState<string>(() => {
+    if (initialRegion && (initialRegion === ALL || data.regions.some((r) => r.id === initialRegion))) return initialRegion;
     const r = initialSelected ? data.regionOf[initialSelected] : null;
     return r ?? data.defaultRegion;
   });
+  // starea hărții stă și în adresă (?zona=, ?harta=posturi), ca o vedere să poată fi trimisă mai departe
+  const syncUrl = useCallback((key: string, value: string | null) => {
+    if (scene) return; // în modul de prezentare adresa ține scena
+    const url = new URL(window.location.href);
+    if (value) url.searchParams.set(key, value);
+    else url.searchParams.delete(key);
+    window.history.replaceState(window.history.state, "", url);
+  }, [scene]);
+  const setRegion = useCallback(
+    (next: string) => {
+      setRegionState(next);
+      syncUrl("zona", next);
+    },
+    [syncUrl],
+  );
+  const setMode = useCallback(
+    (m: "items" | "posts") => {
+      setModeState(m);
+      syncUrl("harta", m === "posts" ? "posturi" : null);
+    },
+    [syncUrl],
+  );
 
   // scenele din modul de prezentare (ajustare de stare în timpul randării, fără efecte)
   const [prevScene, setPrevScene] = useState(scene);
   if (scene !== prevScene) {
     setPrevScene(scene);
-    if (scene?.region) setRegion(scene.region);
+    if (scene?.region) setRegionState(scene.region);
     if (scene?.selected !== undefined) setSelected(scene.selected);
   }
   const spotlight = scene?.spotlight ?? null;
@@ -87,12 +115,14 @@ export function PlanScreen({
     (id: string) => {
       setSelected(id);
       const r = data.regionOf[id];
-      setRegion((cur) => (cur === ALL || !r || r === cur ? cur : r));
-      const url = new URL(window.location.href);
-      url.searchParams.set("lucrare", id);
-      window.history.replaceState(window.history.state, "", url);
+      if (region !== ALL && r && r !== region) setRegion(r);
+      if (!scene) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("lucrare", id);
+        window.history.replaceState(window.history.state, "", url);
+      }
     },
-    [data.regionOf],
+    [data.regionOf, region, setRegion, scene],
   );
 
   const bounds: Bounds = useMemo(() => {
@@ -156,7 +186,23 @@ export function PlanScreen({
     () => Object.values(data.decisions).filter((d) => d.decision === "human_review"),
     [data.decisions],
   );
-  const selItem = selected ? (itemsById[selected] ?? null) : null;
+  // detaliile lucrării selectate (factori, cazuri similare) se încarcă la cerere și rămân în cache
+  const [details, setDetails] = useState<Record<string, WorkItem>>({});
+  const [, startDetail] = useTransition();
+  const selectedBase = selected ? itemsById[selected] : undefined;
+  const needsDetail = Boolean(selected && selectedBase && isSlim(selectedBase) && !details[selected]);
+  useEffect(() => {
+    if (!needsDetail || !selected) return;
+    let cancelled = false;
+    startDetail(async () => {
+      const r = await loadWorkItemDetail(selected, data.scenario);
+      if (!cancelled && r.ok) setDetails((d) => ({ ...d, [selected]: r.workItem }));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [needsDetail, selected, data.scenario]);
+  const selItem = selected ? (details[selected] ?? itemsById[selected] ?? null) : null;
   const selStop = selected ? stopInfo.get(selected) : undefined;
 
   return (

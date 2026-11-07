@@ -1,0 +1,59 @@
+import { describe, expect, test } from "bun:test";
+import type { WorkItem } from "@/lib/contracts";
+import { auditActionRo, factorLabelRo, thresholdLabelRo, thresholdValueRo } from "@/lib/data/labels";
+import { fmtDateLong, fmtLei, fmtScore, plural } from "@/lib/format";
+import { itemPlace, itemTitle } from "@/lib/plan-screen";
+
+describe("pragurile, în cuvinte", () => {
+  test("scorurile nu se confundă cu minutele", () => {
+    expect(thresholdValueRo("score_min", 0.5)).toBe("0,50");
+    expect(thresholdValueRo("visit_min_score", 0.62)).toBe("0,62");
+    expect(thresholdValueRo("arrive_before_start_min", 60)).toBe("60 min");
+  });
+  test("lei, pu, zile, steaguri", () => {
+    expect(thresholdValueRo("cost_lei", 2953)).toBe("2.953 lei");
+    expect(thresholdValueRo("overvoltage_limit_pu", 1.1)).toBe("1,10 pu");
+    expect(thresholdValueRo("planned_notice_working_days", 5)).toBe("5 zile");
+    expect(thresholdValueRo("smart_meter", 1)).toBe("da");
+    expect(thresholdLabelRo("necunoscut_x")).toBe("necunoscut x");
+  });
+  test("acțiunile din jurnal", () => {
+    expect(auditActionRo("review_approve")).toBe("omul a aprobat");
+    expect(auditActionRo("assigned")).toBe("în traseu");
+  });
+});
+
+describe("textele factorilor", () => {
+  test("zecimale cu virgulă, procente absurde limitate", () => {
+    expect(factorLabelRo("Variația în cursul zilei: 0.46 din medie")).toBe("Variația în cursul zilei: 0,46 din medie");
+    expect(factorLabelRo("consumul de noapte a crescut cu 18273047% față de istoric")).toBe(
+      "Consumul de noapte a crescut cu peste 1.000% față de istoric",
+    );
+    expect(factorLabelRo("cu 72% sub vecini")).toBe("Cu 72% sub vecini");
+  });
+});
+
+describe("formatare ro-RO", () => {
+  test("numere, lei, date, plural", () => {
+    expect(fmtScore(0.87)).toBe("0,87");
+    expect(fmtLei(2741.2)).toBe("2.741 lei");
+    expect(fmtDateLong("2025-07-08")).toBe("Marți, 8 iulie 2025");
+    expect(plural(1, "lucrare", "lucrări")).toBe("1 lucrare");
+    expect(plural(72, "lucrare", "lucrări")).toBe("72 de lucrări");
+  });
+});
+
+describe("locul unei lucrări, cu diacriticele din date", () => {
+  const base = { location: { lat: 44.4, lon: 26.1, zone_id: "IF-AFUMATI", county: "Ilfov", label: "" } } as unknown as WorkItem;
+  test("contor, post, zonă", () => {
+    const meter = { ...base, asset_type: "meter", asset_id: "MTR-011050", location: { ...base.location, label: "Contor MTR-011050, PT-1208, Chiajna (sintetic)" } } as WorkItem;
+    expect(itemTitle(meter)).toBe("Contor MTR-011050");
+    expect(itemPlace(meter)).toBe("PT-1208, Chiajna");
+    const post = { ...base, asset_type: "transformer_post", asset_id: "PT-1269", location: { ...base.location, label: "PT-1269, Afumați (sintetic)" } } as WorkItem;
+    expect(itemTitle(post)).toBe("PT-1269");
+    expect(itemPlace(post)).toBe("Afumați, Ilfov");
+    const zone = { ...base, asset_type: "zone", asset_id: "IF-BUFTEA", location: { ...base.location, label: "Zona Buftea (Ilfov)" } } as WorkItem;
+    expect(itemTitle(zone)).toBe("Zona Buftea");
+    expect(itemPlace(zone)).toBe("Ilfov");
+  });
+});

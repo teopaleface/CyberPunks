@@ -3,12 +3,13 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { RemedyLadder } from "@/components/detail/remedy-ladder";
 import { ReviewActions } from "@/components/detail/review-actions";
-import { SeriesChart, SeriesLegend, isBilantSeries } from "@/components/detail/series-chart";
+import { SeriesChart, SeriesLegend } from "@/components/detail/series-chart";
+import { isBilantSeries } from "@/lib/series-utils";
 import { SyntheticGlyph } from "@/components/shell/provenance";
 import { AppShell } from "@/components/shell/app-shell";
 import type { WorkItem } from "@/lib/contracts";
 import { getSeries } from "@/lib/data";
-import { DECISION_LABEL_RO, predictionLabelRo, ruleRo } from "@/lib/data/labels";
+import { factorLabelRo, DECISION_LABEL_RO, predictionLabelRo, ruleRo } from "@/lib/data/labels";
 import { POST_COLOR_THRESHOLDS, getPosts } from "@/lib/data/posts";
 import { BILANT_LABEL, bilantFusion, remedyOptions } from "@/lib/extras";
 import { fmtDec, fmtInt, fmtLei, fmtScore, sentence } from "@/lib/format";
@@ -85,7 +86,9 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
           <span className="h-6 w-px bg-rule" aria-hidden="true" />
           <span className="size-7 shrink-0 rounded-full border-2 border-panel" style={{ background: status.color }} aria-hidden="true" />
           <div className="min-w-0">
-            <h1 className="code-id text-[24px] leading-tight">Postul de transformare {post.post_id}</h1>
+            <h1 className="code-id text-[24px] leading-tight">
+              Postul de transformare <span translate="no">{post.post_id}</span>
+            </h1>
             <p className="text-[15.5px] text-muted-foreground">
               {[post.label && post.label !== post.post_id ? post.label : post.zone_id, post.approx_position ? "poziție aproximativă (media contoarelor)" : null]
                 .filter(Boolean)
@@ -119,11 +122,13 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
                 </>
               ) : (
                 <div className="py-8 text-[15px]">
-                  <p className="font-[560]">Bilanțul pe acest post nu e calculat încă.</p>
+                  <p className="font-[560]">{bilant ? "Seria bilanțului pentru grafic nu e publicată încă." : "Bilanțul pe acest post nu e calculat încă."}</p>
                   <p className="mt-1 max-w-[70ch] text-muted-foreground">
                     Bilanțul compară energia ieșită din post cu suma contoarelor clienților de sub el. Lipsa peste normal arată
-                    unde se pierd bani. Până vine bilanțul, pierderea afișată e estimată din contoarele semnalate de modelul A
-                    {posts.lossCost ? ` (kWh pe zi × scor × 30 de zile × ${fmtDec(posts.lossCost.value, 2)} lei/kWh)` : ""}.
+                    unde se pierd bani.{" "}
+                    {bilant
+                      ? "Cifrele și cauza de mai jos vin deja din bilanț; graficul apare când firul bilanțului publică seria."
+                      : `Până vine bilanțul, pierderea afișată e estimată din contoarele semnalate de modelul A${posts.lossCost ? ` (kWh pe zi × scor × 30 de zile × ${fmtDec(posts.lossCost.value, 2)} lei/kWh)` : ""}.`}
                   </p>
                 </div>
               )}
@@ -137,13 +142,13 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
             {bilant ? (
               <>
                 <p className="mt-1.5 max-w-[72ch] text-[16.5px] leading-relaxed">
-                  {post.diagnosis ? `${sentence(post.diagnosis)} ` : ""}
+                  {post.diagnosis && !/cauza probabilă/i.test(bilant.explanation.summary_ro) ? `${sentence(post.diagnosis)} ` : ""}
                   {bilant.explanation.summary_ro}
                 </p>
                 <ul className="mt-3 space-y-1.5 text-[15.5px]">
                   {bilant.explanation.top_factors.map((f) => (
                     <li key={f.feature} className="flex justify-between gap-6 border-t border-rule pt-1.5">
-                      <span>{sentence(f.label_ro).replace(/\.$/, "")}</span>
+                      <span>{factorLabelRo(f.label_ro)}</span>
                       <span className="font-[600] tabular-nums">
                         {f.contribution >= 0 ? "+" : "−"}
                         {fmtScore(Math.abs(f.contribution))}

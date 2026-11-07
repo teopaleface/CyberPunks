@@ -124,6 +124,7 @@
 
 /* Varianta închisă (pentru video, opțională). Culorile surselor sunt pașii validați pe fundal închis. */
 .dark {
+  color-scheme: dark;
   --canvas: #0a1521;
   --panel: #0f1d2b;
   --ink: #e9eef2;
@@ -184,6 +185,19 @@
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button,
+  a,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
   }
   ::selection {
     background: color-mix(in oklab, var(--src-a) 22%, transparent);

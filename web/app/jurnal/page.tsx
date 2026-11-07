@@ -36,7 +36,7 @@ async function Journal({ searchParams }: { searchParams: SearchParams }) {
         <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3 px-7 pt-5 pb-4">
           <div className="min-w-0">
             <h1 className="text-[26px] leading-tight font-[650] tracking-[-0.005em]">Jurnalul deciziilor</h1>
-            <p className="mt-1 max-w-[90ch] text-[16px] text-muted-foreground">
+            <p className="mt-1 max-w-[120ch] text-[16px] text-muted-foreground">
               Fiecare rând leagă o decizie, a agentului sau a omului, de predicția, versiunea modelului, regula și pragurile care au
               produs-o.
             </p>
