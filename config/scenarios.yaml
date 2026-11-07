@@ -1,0 +1,10 @@
+# Scenariile demo. Proprietar: firul Teo-planificator. Firul B propune data reală pentru demo-vara (status/Teo-B-furtuna.md).
+scenarios:
+  demo-vara:
+    label_ro: "Zi de vară: soare puternic la prânz, furtuni după-amiaza (meteo istorică reală)"
+    date: "TBD-B"          # Firul B alege o zi reală cu furtuni în Muntenia sau Dobrogea; A și C folosesc aceeași dată
+    weather: historical
+  maine:
+    label_ro: "Mâine, cu prognoza meteo reală de la Open-Meteo"
+    date: auto_tomorrow
+    weather: forecast

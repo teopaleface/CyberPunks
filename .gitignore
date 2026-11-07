@@ -15,3 +15,22 @@ build/
 
 # Materiale primite la eveniment (prezentările PPC au slideuri marcate "Internal"), poze cu alți participanți
 materiale/
+
+# Python și date mari (descărcările se refac cu scripturile din repo)
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+data/raw/
+data/interim/
+data/processed/
+models/*
+!models/release/
+outputs/*
+!outputs/demo/
+# Interfață și prezentare
+web/node_modules/
+web/.next/
+presentation/**/node_modules/
+presentation/**/renders/tmp/

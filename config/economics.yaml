@@ -1,0 +1,24 @@
+# Ipoteze economice. TOATE sunt de verificat și de citat de firul Teo-planificator (docs/research/planificator.md).
+# Fiecare WorkItem trimite aici prin impact.assumptions_ref.
+currency: RON
+energy:
+  retail_price_lei_per_kwh: 1.56        # PPC Ore Smart+, în afara intervalelor Smart, casnic București, cu taxe (comunicat PPC, martie 2026)
+  loss_cost_lei_per_kwh: 0.55           # IPOTEZĂ: cât plătește distribuitorul pentru energia pierdută (preț angro ~110 €/MWh)
+meters:                                 # A
+  inspection_visit_cost_lei: 180        # IPOTEZĂ: 2 oameni, ~1 h cu deplasarea
+  remote_reading_cost_lei: 2            # IPOTEZĂ: citire la distanță la cerere
+  detection_horizon_days: 90            # IPOTEZĂ: cât ar mai dura pierderea fără intervenție
+  service_time_min: 40
+storm:                                  # B
+  preposition_cost_lei_per_crew_shift: 1500   # IPOTEZĂ: tură suplimentară plus deplasare
+  cost_per_customer_hour_lei: 12              # IPOTEZĂ: cost social și compensații pe client-oră întrerupt
+  restoration_speedup_hours: 2.5              # IPOTEZĂ: cu cât scade durata întreruperii dacă echipa e deja acolo
+voltage:                                # C
+  tap_change_visit_cost_lei: 450        # IPOTEZĂ: echipă de 3 oameni plus întrerupere planificată scurtă
+  measurement_campaign_cost_lei: 300    # IPOTEZĂ: montare analizor la post
+  lost_pv_value_lei_per_kwh: 0.40       # IPOTEZĂ: valoarea energiei pierdute când invertoarele se opresc
+  overvoltage_limit_pu: 1.10            # EN 50160: ±10% față de tensiunea nominală
+travel:
+  avg_speed_kmh_urban: 22
+  avg_speed_kmh_rural: 45
+  road_factor: 1.35                     # distanța pe drum ≈ distanța în linie dreaptă × factor

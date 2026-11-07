@@ -1,0 +1,114 @@
+{
+  "$defs": {
+    "Source": {
+      "enum": [
+        "A",
+        "B",
+        "C"
+      ],
+      "title": "Source",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "contract_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "source": {
+      "$ref": "#/$defs/Source"
+    },
+    "model_id": {
+      "title": "Model Id",
+      "type": "string"
+    },
+    "model_version": {
+      "title": "Model Version",
+      "type": "string"
+    },
+    "task": {
+      "description": "De exemplu 'clasificare dezechilibrată', 'regresie cuantilă'",
+      "title": "Task",
+      "type": "string"
+    },
+    "dataset": {
+      "description": "Surse de date folosite, citate",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Dataset",
+      "type": "array"
+    },
+    "split": {
+      "description": "Cum e făcut setul de test (pe timp, pe clienți, pe rețele nevăzute)",
+      "title": "Split",
+      "type": "string"
+    },
+    "test_size": {
+      "exclusiveMinimum": 0,
+      "title": "Test Size",
+      "type": "integer"
+    },
+    "primary_metric": {
+      "title": "Primary Metric",
+      "type": "string"
+    },
+    "metrics": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "title": "Metrics",
+      "type": "object"
+    },
+    "baseline_id": {
+      "title": "Baseline Id",
+      "type": "string"
+    },
+    "baseline_metrics": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "title": "Baseline Metrics",
+      "type": "object"
+    },
+    "synthetic_share": {
+      "description": "Ce parte din datele de test e sintetică",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Synthetic Share",
+      "type": "number"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "reproduce_cmd": {
+      "description": "Comanda care refăce exact aceste cifre",
+      "title": "Reproduce Cmd",
+      "type": "string"
+    }
+  },
+  "required": [
+    "source",
+    "model_id",
+    "model_version",
+    "task",
+    "dataset",
+    "split",
+    "test_size",
+    "primary_metric",
+    "metrics",
+    "baseline_id",
+    "baseline_metrics",
+    "synthetic_share",
+    "created_at",
+    "reproduce_cmd"
+  ],
+  "title": "ModelReport",
+  "type": "object"
+}

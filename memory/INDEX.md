@@ -13,6 +13,7 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 | `07-tema-ppc.md` | **Tema PPC** (slideuri plus PDF-ul oficial): cerințe obligatorii, ce înseamnă proiect complet, grila de 100 de puncte, termene, checklist |
 | `08-ppc-workshop-ai.md` | Workshopul PPC: cifre, platforma de date a contoarelor, cele 9 proiecte AI ale lor, guvernanță și EU AI Act |
 | `09-rsystems-workshop.md` | Workshopul R Systems: codul decide, modelul formulează; verificări în cod |
+| `10-implementare.md` | **Implementarea**: A, B, C în paralel, cele 6 fire, orchestratorul, alegerile tehnice |
 | `journal.md` | Ce s-a întâmplat și ce s-a decis, cu ora |
 
 ## Reguli

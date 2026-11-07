@@ -1,0 +1,11 @@
+# Echipele de teren (SIMULATE). Proprietar: firul Teo-planificator.
+shift: {start: "08:00", end: "16:00"}
+crews:
+  - {crew_id: "E-BV-1", depot_id: "D-BUC-V", skills: [metering], size: 2}
+  - {crew_id: "E-BV-2", depot_id: "D-BUC-V", skills: [metering, lv_grid], size: 2}
+  - {crew_id: "E-BV-3", depot_id: "D-BUC-V", skills: [lv_grid, mv_grid], size: 3}
+  - {crew_id: "E-BE-1", depot_id: "D-BUC-E", skills: [metering], size: 2}
+  - {crew_id: "E-BE-2", depot_id: "D-BUC-E", skills: [lv_grid, mv_grid], size: 3}
+  - {crew_id: "E-CT-1", depot_id: "D-CTA", skills: [lv_grid, mv_grid], size: 3}
+  - {crew_id: "E-CT-2", depot_id: "D-CTA", skills: [metering, lv_grid], size: 2}
+  - {crew_id: "E-TM-1", depot_id: "D-TM", skills: [lv_grid, mv_grid], size: 3}

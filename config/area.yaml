@@ -1,0 +1,22 @@
+# Zona demo. Proprietar: firul Teo-planificator (orchestratorul a pus valorile de start).
+# Toate activele din demo sunt SINTETICE, plasate pe hartă reală. Bazele operative sunt simulate.
+operator: "Rețele Electrice România (PPC), zona de distribuție Muntenia Sud, Dobrogea, Banat"
+timezone: "Europe/Bucharest"
+regions:
+  muntenia_sud:
+    label_ro: "Muntenia Sud"
+    counties: ["București", "Ilfov", "Giurgiu"]
+  dobrogea:
+    label_ro: "Dobrogea"
+    counties: ["Constanța", "Tulcea", "Călărași", "Ialomița"]
+  banat:
+    label_ro: "Banat"
+    counties: ["Timiș", "Arad", "Caraș-Severin", "Hunedoara"]
+# A (contoare) și C (posturi de transformare) stau în București-Ilfov. B (furtună) lucrează pe județe în toate cele 3 regiuni.
+demo_bbox_bucuresti_ilfov: {lat_min: 44.25, lat_max: 44.65, lon_min: 25.85, lon_max: 26.40}
+zone_id_format: "<COD_JUDEȚ>-<zonă>, de exemplu B-S6 (București sector 6), IF-CHIAJNA, CT-MEDGIDIA"
+depots:
+  - {depot_id: "D-BUC-V", label_ro: "Bază operativă București Vest (simulată)", lat: 44.4355, lon: 26.0160, region: muntenia_sud}
+  - {depot_id: "D-BUC-E", label_ro: "Bază operativă București Est (simulată)", lat: 44.4310, lon: 26.1650, region: muntenia_sud}
+  - {depot_id: "D-CTA", label_ro: "Bază operativă Constanța (simulată)", lat: 44.1733, lon: 28.6383, region: dobrogea}
+  - {depot_id: "D-TM", label_ro: "Bază operativă Timișoara (simulată)", lat: 45.7537, lon: 21.2257, region: banat}

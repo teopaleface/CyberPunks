@@ -1,0 +1,191 @@
+{
+  "$defs": {
+    "SeriesAnnotation": {
+      "additionalProperties": false,
+      "properties": {
+        "t": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "format": "date",
+              "type": "string"
+            }
+          ],
+          "title": "T"
+        },
+        "label_ro": {
+          "title": "Label Ro",
+          "type": "string"
+        }
+      },
+      "required": [
+        "t",
+        "label_ro"
+      ],
+      "title": "SeriesAnnotation",
+      "type": "object"
+    },
+    "SeriesPoint": {
+      "additionalProperties": false,
+      "properties": {
+        "t": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "format": "date",
+              "type": "string"
+            }
+          ],
+          "title": "T"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Valoarea observată sau prognozată",
+          "title": "Value"
+        },
+        "expected": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Ce ar fi fost normal (A) sau P50 (B, C)",
+          "title": "Expected"
+        },
+        "low": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Marginea de jos a intervalului (P10)",
+          "title": "Low"
+        },
+        "high": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Marginea de sus a intervalului (P90)",
+          "title": "High"
+        },
+        "flag": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "De exemplu 'zero', 'gol', 'salt', 'peste_limita'",
+          "title": "Flag"
+        }
+      },
+      "required": [
+        "t"
+      ],
+      "title": "SeriesPoint",
+      "type": "object"
+    },
+    "Source": {
+      "enum": [
+        "A",
+        "B",
+        "C"
+      ],
+      "title": "Source",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "contract_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "work_item_id": {
+      "title": "Work Item Id",
+      "type": "string"
+    },
+    "source": {
+      "$ref": "#/$defs/Source"
+    },
+    "title_ro": {
+      "title": "Title Ro",
+      "type": "string"
+    },
+    "unit": {
+      "description": "kWh, km/h, pu etc.",
+      "title": "Unit",
+      "type": "string"
+    },
+    "points": {
+      "items": {
+        "$ref": "#/$defs/SeriesPoint"
+      },
+      "minItems": 1,
+      "title": "Points",
+      "type": "array"
+    },
+    "thresholds": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "description": "De exemplu {'limita_tensiune_pu': 1.10}",
+      "title": "Thresholds",
+      "type": "object"
+    },
+    "annotations": {
+      "items": {
+        "$ref": "#/$defs/SeriesAnnotation"
+      },
+      "title": "Annotations",
+      "type": "array"
+    },
+    "synthetic": {
+      "title": "Synthetic",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "work_item_id",
+    "source",
+    "title_ro",
+    "unit",
+    "points",
+    "synthetic"
+  ],
+  "title": "Series",
+  "type": "object"
+}

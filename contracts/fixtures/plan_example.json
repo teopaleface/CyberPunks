@@ -1,0 +1,146 @@
+{
+  "contract_version": "1.0",
+  "plan_id": "PLAN-fixture",
+  "plan_date": "2026-11-09",
+  "generated_at": "2026-11-08T06:00:00+02:00",
+  "planner_version": "planner@fixture",
+  "scenario": "fixture",
+  "summary": {
+    "items_in": 8,
+    "items_valid": 7,
+    "items_invalid": 1,
+    "assigned": 3,
+    "deferred": 1,
+    "human_review": 1,
+    "remote_actions": 0,
+    "notifications": 1,
+    "crews_used": 2,
+    "expected_value_lei": 2741.2,
+    "total_km": 31.4
+  },
+  "routes": [
+    {
+      "crew_id": "E-BV-2",
+      "depot_id": "D-BUC-V",
+      "stops": [
+        {
+          "seq": 1,
+          "work_item_id": "A-20261109-MTR-004217",
+          "eta": "2026-11-09T08:25:00+02:00",
+          "duration_min": 40,
+          "travel_km": 6.1
+        },
+        {
+          "seq": 2,
+          "work_item_id": "A-20261109-MTR-019833",
+          "eta": "2026-11-09T09:50:00+02:00",
+          "duration_min": 40,
+          "travel_km": 11.8
+        }
+      ],
+      "total_km": 29.0,
+      "total_work_min": 80,
+      "total_travel_min": 95
+    },
+    {
+      "crew_id": "E-BV-3",
+      "depot_id": "D-BUC-V",
+      "stops": [
+        {
+          "seq": 1,
+          "work_item_id": "C-20261109-PT-1432",
+          "eta": "2026-11-09T11:00:00+02:00",
+          "duration_min": 120,
+          "travel_km": 2.4
+        }
+      ],
+      "total_km": 4.8,
+      "total_work_min": 120,
+      "total_travel_min": 14
+    }
+  ],
+  "decisions": [
+    {
+      "work_item_id": "A-20261109-MTR-004217",
+      "decision": "assigned",
+      "reason_ro": "Valoarea așteptată depășește costul vizitei și există capacitate.",
+      "rule_id": "R-VALUE-OVER-COST",
+      "threshold": {
+        "min_net_value_lei": 0.0,
+        "score_min": 0.5
+      },
+      "priority_score": 1239.75,
+      "rank": 1,
+      "crew_id": "E-BV-2",
+      "audit_id": "e8d43cf9-6bf3-4b30-8e5e-dd4a7cb6eb3f"
+    },
+    {
+      "work_item_id": "C-20261109-PT-1432",
+      "decision": "assigned",
+      "reason_ro": "Valoarea așteptată depășește costul vizitei și există capacitate.",
+      "rule_id": "R-VALUE-OVER-COST",
+      "threshold": {
+        "min_net_value_lei": 0.0,
+        "score_min": 0.5
+      },
+      "priority_score": 746.2,
+      "rank": 2,
+      "crew_id": "E-BV-3",
+      "audit_id": "2c90a4cf-0626-4bae-a6ae-0ad3121b8e44"
+    },
+    {
+      "work_item_id": "A-20261109-MTR-019833",
+      "decision": "assigned",
+      "reason_ro": "Valoarea așteptată depășește costul vizitei și există capacitate.",
+      "rule_id": "R-VALUE-OVER-COST",
+      "threshold": {
+        "min_net_value_lei": 0.0,
+        "score_min": 0.5
+      },
+      "priority_score": 912.0,
+      "rank": 3,
+      "crew_id": "E-BV-2",
+      "audit_id": "73600e48-4c2a-4ab6-bc8c-2eb0e283083a"
+    },
+    {
+      "work_item_id": "A-20261109-MTR-027710",
+      "decision": "human_review",
+      "reason_ro": "Modelul nu e sigur: prea puțin istoric. Decide un om.",
+      "rule_id": "R-ABSTAIN",
+      "threshold": {},
+      "priority_score": null,
+      "rank": null,
+      "crew_id": null,
+      "audit_id": "4285add9-20f9-4885-89d6-00d945b024e8"
+    }
+  ],
+  "alerts": [
+    {
+      "alert_id": "AL-1",
+      "severity": "warning",
+      "title_ro": "Risc de avarii în zona Medgidia",
+      "body_ro": "Rafale de 85 km/h între 12:00 și 20:00. Recomand o echipă în zonă de la 11:00.",
+      "work_item_ids": [
+        "B-20261109-CT-MEDGIDIA"
+      ],
+      "channel": "dispecerat",
+      "created_at": "2026-11-08T06:00:00+02:00"
+    }
+  ],
+  "notifications": [
+    {
+      "notification_id": "N-1",
+      "audience": "prosumatori",
+      "asset_id": "PT-1432",
+      "message_ro": "Mâine între 11 și 15 e soare puternic. Dacă puteți, porniți atunci mașina de spălat și boilerul.",
+      "scheduled_for": "2026-11-08T18:00:00+02:00",
+      "work_item_id": "C-20261109-PT-1432",
+      "demo_only": true
+    }
+  ],
+  "sources_status": {
+    "A": "ok",
+    "B": "ok",
+    "C": "ok"
+  }
+}

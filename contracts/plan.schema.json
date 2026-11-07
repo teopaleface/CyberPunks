@@ -1,0 +1,462 @@
+{
+  "$defs": {
+    "Alert": {
+      "additionalProperties": false,
+      "properties": {
+        "alert_id": {
+          "title": "Alert Id",
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "info",
+            "warning",
+            "critical"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "title_ro": {
+          "title": "Title Ro",
+          "type": "string"
+        },
+        "body_ro": {
+          "title": "Body Ro",
+          "type": "string"
+        },
+        "work_item_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Work Item Ids",
+          "type": "array"
+        },
+        "channel": {
+          "enum": [
+            "dispecerat",
+            "echipa",
+            "clienti"
+          ],
+          "title": "Channel",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "alert_id",
+        "severity",
+        "title_ro",
+        "body_ro",
+        "channel",
+        "created_at"
+      ],
+      "title": "Alert",
+      "type": "object"
+    },
+    "Decision": {
+      "additionalProperties": false,
+      "properties": {
+        "work_item_id": {
+          "title": "Work Item Id",
+          "type": "string"
+        },
+        "decision": {
+          "$ref": "#/$defs/DecisionType"
+        },
+        "reason_ro": {
+          "minLength": 1,
+          "title": "Reason Ro",
+          "type": "string"
+        },
+        "rule_id": {
+          "description": "Regula din stratul de decizie care a produs decizia",
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "threshold": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Pragurile folosite, cu valorile lor",
+          "title": "Threshold",
+          "type": "object"
+        },
+        "priority_score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Priority Score"
+        },
+        "rank": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rank"
+        },
+        "crew_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Crew Id"
+        },
+        "audit_id": {
+          "title": "Audit Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "work_item_id",
+        "decision",
+        "reason_ro",
+        "rule_id",
+        "audit_id"
+      ],
+      "title": "Decision",
+      "type": "object"
+    },
+    "DecisionType": {
+      "enum": [
+        "assigned",
+        "deferred",
+        "human_review",
+        "remote_action",
+        "notify",
+        "rejected_invalid"
+      ],
+      "title": "DecisionType",
+      "type": "string"
+    },
+    "Notification": {
+      "additionalProperties": false,
+      "properties": {
+        "notification_id": {
+          "title": "Notification Id",
+          "type": "string"
+        },
+        "audience": {
+          "enum": [
+            "prosumatori",
+            "clienti_zona",
+            "echipa"
+          ],
+          "title": "Audience",
+          "type": "string"
+        },
+        "asset_id": {
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "message_ro": {
+          "title": "Message Ro",
+          "type": "string"
+        },
+        "scheduled_for": {
+          "format": "date-time",
+          "title": "Scheduled For",
+          "type": "string"
+        },
+        "work_item_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Work Item Id"
+        },
+        "demo_only": {
+          "default": true,
+          "description": "În demo nu se trimite nimic în afară",
+          "title": "Demo Only",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "notification_id",
+        "audience",
+        "asset_id",
+        "message_ro",
+        "scheduled_for"
+      ],
+      "title": "Notification",
+      "type": "object"
+    },
+    "PlanSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "items_in": {
+          "minimum": 0,
+          "title": "Items In",
+          "type": "integer"
+        },
+        "items_valid": {
+          "minimum": 0,
+          "title": "Items Valid",
+          "type": "integer"
+        },
+        "items_invalid": {
+          "minimum": 0,
+          "title": "Items Invalid",
+          "type": "integer"
+        },
+        "assigned": {
+          "minimum": 0,
+          "title": "Assigned",
+          "type": "integer"
+        },
+        "deferred": {
+          "minimum": 0,
+          "title": "Deferred",
+          "type": "integer"
+        },
+        "human_review": {
+          "minimum": 0,
+          "title": "Human Review",
+          "type": "integer"
+        },
+        "remote_actions": {
+          "minimum": 0,
+          "title": "Remote Actions",
+          "type": "integer"
+        },
+        "notifications": {
+          "minimum": 0,
+          "title": "Notifications",
+          "type": "integer"
+        },
+        "crews_used": {
+          "minimum": 0,
+          "title": "Crews Used",
+          "type": "integer"
+        },
+        "expected_value_lei": {
+          "title": "Expected Value Lei",
+          "type": "number"
+        },
+        "total_km": {
+          "minimum": 0.0,
+          "title": "Total Km",
+          "type": "number"
+        }
+      },
+      "required": [
+        "items_in",
+        "items_valid",
+        "items_invalid",
+        "assigned",
+        "deferred",
+        "human_review",
+        "remote_actions",
+        "notifications",
+        "crews_used",
+        "expected_value_lei",
+        "total_km"
+      ],
+      "title": "PlanSummary",
+      "type": "object"
+    },
+    "Route": {
+      "additionalProperties": false,
+      "properties": {
+        "crew_id": {
+          "title": "Crew Id",
+          "type": "string"
+        },
+        "depot_id": {
+          "title": "Depot Id",
+          "type": "string"
+        },
+        "stops": {
+          "items": {
+            "$ref": "#/$defs/Stop"
+          },
+          "title": "Stops",
+          "type": "array"
+        },
+        "total_km": {
+          "minimum": 0.0,
+          "title": "Total Km",
+          "type": "number"
+        },
+        "total_work_min": {
+          "minimum": 0,
+          "title": "Total Work Min",
+          "type": "integer"
+        },
+        "total_travel_min": {
+          "minimum": 0,
+          "title": "Total Travel Min",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "crew_id",
+        "depot_id",
+        "stops",
+        "total_km",
+        "total_work_min",
+        "total_travel_min"
+      ],
+      "title": "Route",
+      "type": "object"
+    },
+    "Stop": {
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "minimum": 1,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "work_item_id": {
+          "title": "Work Item Id",
+          "type": "string"
+        },
+        "eta": {
+          "format": "date-time",
+          "title": "Eta",
+          "type": "string"
+        },
+        "duration_min": {
+          "exclusiveMinimum": 0,
+          "title": "Duration Min",
+          "type": "integer"
+        },
+        "travel_km": {
+          "minimum": 0.0,
+          "title": "Travel Km",
+          "type": "number"
+        }
+      },
+      "required": [
+        "seq",
+        "work_item_id",
+        "eta",
+        "duration_min",
+        "travel_km"
+      ],
+      "title": "Stop",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "contract_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "plan_id": {
+      "title": "Plan Id",
+      "type": "string"
+    },
+    "plan_date": {
+      "format": "date",
+      "title": "Plan Date",
+      "type": "string"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "planner_version": {
+      "title": "Planner Version",
+      "type": "string"
+    },
+    "scenario": {
+      "title": "Scenario",
+      "type": "string"
+    },
+    "summary": {
+      "$ref": "#/$defs/PlanSummary"
+    },
+    "routes": {
+      "items": {
+        "$ref": "#/$defs/Route"
+      },
+      "title": "Routes",
+      "type": "array"
+    },
+    "decisions": {
+      "items": {
+        "$ref": "#/$defs/Decision"
+      },
+      "title": "Decisions",
+      "type": "array"
+    },
+    "alerts": {
+      "items": {
+        "$ref": "#/$defs/Alert"
+      },
+      "title": "Alerts",
+      "type": "array"
+    },
+    "notifications": {
+      "items": {
+        "$ref": "#/$defs/Notification"
+      },
+      "title": "Notifications",
+      "type": "array"
+    },
+    "sources_status": {
+      "additionalProperties": {
+        "enum": [
+          "ok",
+          "missing",
+          "degraded"
+        ],
+        "type": "string"
+      },
+      "propertyNames": {
+        "enum": [
+          "A",
+          "B",
+          "C"
+        ]
+      },
+      "title": "Sources Status",
+      "type": "object"
+    }
+  },
+  "required": [
+    "plan_id",
+    "plan_date",
+    "generated_at",
+    "planner_version",
+    "scenario",
+    "summary",
+    "routes",
+    "decisions",
+    "sources_status"
+  ],
+  "title": "Plan",
+  "type": "object"
+}
