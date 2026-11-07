@@ -84,8 +84,8 @@ def test_7_series_ref_cannot_leave_outputs(tmp_path: Path, monkeypatch: pytest.M
     secret = tmp_path / "secret.json"
     secret.write_text(json.dumps({"parola": "x"}), encoding="utf-8")
     a = fixture_items("A")
-    it = variant(a[0], "MTR-700007", **{"extra": {"series_ref": str(secret)}})
-    rel = variant(a[1], "MTR-700008", **{"extra": {"series_ref": "../../secret.json"}})
+    it = variant(a[0], "MTR-700007", extra={"series_ref": str(secret)})
+    rel = variant(a[1], "MTR-700008", extra={"series_ref": "../../secret.json"})
     write_items(out, "A", [it, rel])
     agent.run(SCENARIO, date=DATE, mode="existing", out_root=out)
     monkeypatch.setattr(app_mod, "store", Store(outputs=out, demo=tmp_path / "demo", reports=tmp_path / "rep"))
@@ -151,7 +151,7 @@ def test_12_baselines_use_the_same_storm_deadline() -> None:
     from cyberpunks.planner.simulate import SimDay
 
     b = fixture_items("B")[0]
-    it = variant(b, "CT-ACEEASI", **{"extra": {"storm_onset": (D + timedelta(hours=15)).isoformat()}})
+    it = variant(b, "CT-ACEEASI", extra={"storm_onset": (D + timedelta(hours=15)).isoformat()})
     it["time_window"] = {"start": (D + timedelta(hours=8)).isoformat(), "end": (D + timedelta(hours=20)).isoformat()}
     day = SimDay(D.date(), [it], {it["work_item_id"]: True})
     res = run_baseline(day, Settings.load(), "top_k_scor", 1)
