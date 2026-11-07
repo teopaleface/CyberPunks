@@ -1,7 +1,7 @@
 # Status: Teo-B-furtuna
-Actualizat: 2026-11-07 17:35
+Actualizat: 2026-11-07 18:10
 Milestone curent: **B FINAL** (17:35). Modelul nu se mai schimbă; repar doar bug-uri, dacă apar.
-Gata de merge: da (commit 0b13f07), B FINAL
+Gata de merge: da (commit 4cee835), B FINAL (reparație de date, modelul neschimbat)
 
 ## Făcut
 - 12:44 Citit memoria, tema, planul, contractele, fixture-urile. `uv sync` și `make check` trec.
@@ -37,6 +37,9 @@ Gata de merge: da (commit 0b13f07), B FINAL
 
 - 17:35 **B FINAL** (decizia lui Teo de la 17:25): renunțăm la vremea pe 2021-2022. Procesul care aștepta ora 02:05 a fost oprit înainte să descarce ceva. În fișa modelului, 2021-2022 apare ca îmbunătățire viitoare, limitată de cota Open-Meteo, alături de calibrarea pe istoricul RER, evaluarea pe prognoza din ziua de dinainte și zăpadă. Fișa modelului, `docs/data/B.md` și `docs/QA-JURIU.md` au cifrele finale, verificate una câte una față de `reports/B/`. Experimentele finale includ și `zapada_uda_viscol` (0,275, nu ajută). Corectură: pe 17 iulie, Slobozia e pe locul 1 din 26, la egalitate cu Oravița (aceeași probabilitate, 0,357).
 - **Modelul din git e cel final:** `models/release/b_model.joblib`, ultima schimbare în 803c29c (15:05), `b-lgbm@c5c8344`.
+
+- 18:05 **Reparație de date (QA cap-coadă, 17:55):** seriile lucrărilor B au acum `expected`, adică riscul zilei estimat de model, cu vremea de până la acea oră (0-1, pe toate orele zilei țintă; curba nu scade). La ora 23:00, valoarea e exact scorul din lucrare: diferența e 0,0000 pe toate cele 26 de serii, în ambele scenarii. Exemplu, Timișoara pe 8 iulie: 0,11 noaptea, 0,19 la 14:00, apoi 0,36 la 15:00, când începe ploaia de furtună, și 0,43 de la 16:00. Fereastra seriei e acum ziua țintă, de la 00:00 până a doua zi la 06:00. Seriile pentru `demo-vara` și `maine` sunt regenerate și valide. Am adăugat un test. Modelul e neschimbat (ultima schimbare: 803c29c).
+- 18:05 **Orele sunt corecte: ora României (+03:00 vara)**, pentru că vremea e cerută de la Open-Meteo cu fusul Europe/Bucharest. În arhivă, la Timișoara, rafala maximă e de 50 km/h la 14:00 (47 km/h la 12:00), iar ploaia de furtună începe la 15:00. Explicația pentru juriu e în `docs/QA-JURIU.md`, întrebarea 31: arhiva netezește vijeliile; furtuna reală a avut 90-120 km/h; ICON dădea 68-72 km/h la Reșița, Caransebeș și Deva; ANM avea cod roșu pentru 15:00-21:00; riscul modelului urcă exact la 15:00.
 
 ## Urmează
 - Nimic planificat: **B FINAL**. Repar doar bug-uri, dacă le găsește cineva la testare. Sunt liber pentru alte sarcini ale echipei.
