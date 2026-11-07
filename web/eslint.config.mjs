@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     // generate sau statice, nu cod de-al nostru
     "public/maplibre/**",
     "design/**",
+    // site-ul de prezentare (Vite, separat), cu lintul lui
+    "site/**",
   ]),
 ]);
 
