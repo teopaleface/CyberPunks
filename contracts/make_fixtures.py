@@ -21,6 +21,9 @@ from cyberpunks.common.contracts import (
     Plan,
     PlanSummary,
     Route,
+    Series,
+    SeriesAnnotation,
+    SeriesPoint,
     Stop,
     WorkItem,
 )
@@ -219,7 +222,7 @@ def main() -> None:
                 decision="assigned",
                 reason_ro="Valoarea așteptată depășește costul vizitei și există capacitate.",
                 rule_id="R-VALUE-OVER-COST",
-                threshold={"min_net_value_lei": 0.0, "score_min": 0.5},
+                threshold={"min_net_value_lei": 0.0, "score_min": 0.5, "visit_cost_lei": 250.0},
                 priority_score=round(it["impact"]["expected_value_lei"], 2),
                 rank=rank,
                 crew_id="E-BV-2" if it["source"] == "A" else "E-BV-3",
@@ -251,6 +254,25 @@ def main() -> None:
     )
     audit.append(AuditRecord(audit_id=aid, ts=NOW, actor="agent", action="human_review", work_item_id=a[2]["work_item_id"]))
 
+    # Decizii pentru restul lucrărilor, câte una din fiecare tip
+    def add(item_id: str, kind: str, reason: str, rule: str, threshold: dict | None = None, crew: str | None = None,
+            rank: int | None = None, prio: float | None = None) -> None:
+        aid = pid()
+        decisions.append(Decision(work_item_id=item_id, decision=kind, reason_ro=reason, rule_id=rule,
+                                  threshold=threshold or {}, crew_id=crew, rank=rank, priority_score=prio, audit_id=aid))
+        audit.append(AuditRecord(audit_id=aid, ts=NOW, actor="agent", action=kind, work_item_id=item_id, rule_id=rule,
+                                 threshold=threshold or {}))
+
+    add(b[0]["work_item_id"], "assigned", "Risc mare de avarii între 12:00 și 20:00; echipa ajunge în zonă la 11:00.",
+        "R-STORM-PREPOSITION", {"score_min": 0.6, "preposition_cost_lei": 2700.0}, crew="E-CT-1", rank=4,
+        prio=round(b[0]["impact"]["expected_value_lei"], 2))
+    add(b[1]["work_item_id"], "deferred", "Riscul e sub prag; zona rămâne urmărită.", "R-BELOW-THRESHOLD",
+        {"score_min": 0.6})
+    add(c[1]["work_item_id"], "notify", "Depășire probabilă, dar sub costul unei intervenții: mesaj către prosumatori.",
+        "R-CHEAP-ACTION", {"score_min": 0.8, "tap_change_visit_cost_lei": 450.0})
+    add("A-20261109-MTR-BAD", "rejected_invalid", "Intrare greșită: coordonate în afara României, scor peste 1.",
+        "R-QUARANTINE")
+
     plan = Plan(
         plan_id="PLAN-fixture",
         plan_date=D,
@@ -258,12 +280,13 @@ def main() -> None:
         planner_version="planner@fixture",
         scenario="fixture",
         summary=PlanSummary(
-            items_in=8, items_valid=7, items_invalid=1, assigned=3, deferred=1, human_review=1, remote_actions=0,
-            notifications=1, crews_used=2, expected_value_lei=2741.2, total_km=31.4,
+            items_in=8, items_valid=7, items_invalid=1, assigned=4, deferred=1, human_review=1, remote_actions=0,
+            notifications=1, crews_used=3, expected_value_lei=round(sum(
+                it["impact"]["expected_value_lei"] for it in (a[0], a[1], c[0], b[0])), 2), total_km=0.0,
         ),
         routes=[
             Route(
-                crew_id="E-BV-2", depot_id="D-BUC-V",
+                crew_id="E-BV-2", depot_id="D-BUC-V", depart_at=t0, return_at=t0 + timedelta(minutes=175),
                 stops=[
                     Stop(seq=1, work_item_id=a[0]["work_item_id"], eta=t0 + timedelta(minutes=25), duration_min=40, travel_km=6.1),
                     Stop(seq=2, work_item_id=a[1]["work_item_id"], eta=t0 + timedelta(minutes=110), duration_min=40, travel_km=11.8),
@@ -271,7 +294,8 @@ def main() -> None:
                 total_km=29.0, total_work_min=80, total_travel_min=95,
             ),
             Route(
-                crew_id="E-BV-3", depot_id="D-BUC-V",
+                crew_id="E-BV-3", depot_id="D-BUC-V", depart_at=t0 + timedelta(hours=2, minutes=53),
+                return_at=t0 + timedelta(hours=5, minutes=7),
                 stops=[Stop(seq=1, work_item_id=c[0]["work_item_id"], eta=t0 + timedelta(hours=3), duration_min=120, travel_km=2.4)],
                 total_km=4.8, total_work_min=120, total_travel_min=14,
             ),
@@ -293,6 +317,50 @@ def main() -> None:
         ],
         sources_status={"A": "ok", "B": "ok", "C": "ok"},
     )
+    plan.routes.append(Route(
+        crew_id="E-CT-1", depot_id="D-CTA", depart_at=datetime(2026, 11, 9, 10, 15, tzinfo=TZ),
+        return_at=datetime(2026, 11, 9, 20, 45, tzinfo=TZ),
+        stops=[Stop(seq=1, work_item_id=b[0]["work_item_id"], eta=datetime(2026, 11, 9, 11, 0, tzinfo=TZ),
+                    duration_min=480, travel_km=36.2)],
+        total_km=72.4, total_work_min=480, total_travel_min=90,
+    ))
+    plan.summary.total_km = round(sum(r.total_km for r in plan.routes), 1)
+    Plan.model_validate(plan.model_dump())
+
+    # Serii ilustrative pentru graficele din detaliul lucrării
+    import math
+    days = [D - timedelta(days=59 - i) for i in range(60)]
+    pts_a = []
+    for i, d in enumerate(days):
+        normal = round(7.5 + 1.8 * math.sin(i / 7 * 2 * math.pi), 2)
+        zero = i >= 51
+        pts_a.append(SeriesPoint(t=d, value=0.0 if zero else round(normal * (0.95 + 0.1 * ((i * 37) % 10) / 10), 2),
+                                 expected=normal, flag="zero" if zero else None))
+    hours = [datetime(2026, 11, 9, 0, 0, tzinfo=TZ) + timedelta(hours=h) for h in range(48)]
+    pts_b = []
+    for h, t in enumerate(hours):
+        gust = round(25 + 60 * math.exp(-((h - 15) ** 2) / 18), 1)
+        pts_b.append(SeriesPoint(t=t, value=gust, expected=round(min(0.95, gust / 100), 3)))
+    quarter = [datetime(2026, 11, 9, 0, 0, tzinfo=TZ) + timedelta(minutes=15 * q) for q in range(96)]
+    pts_c = []
+    for q, t in enumerate(quarter):
+        sun = max(0.0, math.sin((q - 28) / 56 * math.pi)) if 28 <= q <= 84 else 0.0
+        p50 = round(1.02 + 0.10 * sun, 3)
+        pts_c.append(SeriesPoint(t=t, value=None, expected=p50, low=round(p50 - 0.02 * sun - 0.005, 3),
+                                 high=round(p50 + 0.015 * sun + 0.005, 3),
+                                 flag="peste_limita" if p50 > 1.10 else None))
+    series = [
+        Series(work_item_id=a[0]["work_item_id"], source="A", title_ro="Consum zilnic, ultimele 60 de zile", unit="kWh",
+               points=pts_a, annotations=[SeriesAnnotation(t=days[51], label_ro="începe consumul zero")], synthetic=True),
+        Series(work_item_id=b[0]["work_item_id"], source="B", title_ro="Rafale de vânt și riscul de avarii, 48 de ore",
+               unit="km/h", points=pts_b, thresholds={"rafala_prag_kmh": 70.0},
+               annotations=[SeriesAnnotation(t=hours[12], label_ro="începe fereastra de risc")], synthetic=True),
+        Series(work_item_id=c[0]["work_item_id"], source="C", title_ro="Tensiunea maximă la post, la 15 minute",
+               unit="pu", points=pts_c, thresholds={"limita_tensiune_pu": 1.10}, synthetic=True),
+    ]
+    for sr in series:
+        (OUT / f"series_{sr.work_item_id}.json").write_text(sr.model_dump_json(indent=2) + "\n", encoding="utf-8")
+
     (OUT / "plan_example.json").write_text(plan.model_dump_json(indent=2) + "\n", encoding="utf-8")
     (OUT / "audit_example.jsonl").write_text("".join(r.model_dump_json() + "\n" for r in audit), encoding="utf-8")
     print(f"Fixture-uri scrise în {OUT}")
