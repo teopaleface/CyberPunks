@@ -610,18 +610,20 @@ def _fusion_note(wi: WorkItem) -> tuple[str, dict[str, float]]:
         post = str(f.get("post_id", "?"))
     except (KeyError, TypeError, ValueError):
         return "", {}
+    th = {"fusion_a_score": a, "fusion_combined_score": c, "fusion_post_loss_lei_month": round(loss, 2), "fusion_confirmed": 1.0 if c > a + 0.005 else 0.0}
+    if c <= a + 0.005:
+        return "", th  # bilanțul nu confirmă: decizia rămâne pe scorul modelului A (rândul R-FUSION-BILANT e în jurnal)
     text = f"Confirmat de bilanțul postului {post}: lipsă peste normal de ~{lei(loss)} pe lună; scorul a urcat de la {pct(a)} la {pct(c)}. "
-    return text, {"fusion_a_score": a, "fusion_combined_score": c, "fusion_post_loss_lei_month": round(loss, 2)}
+    return text, th
 
 
 def rule_meters_fused(ctx: Context, item: Item) -> Proposal:
     p = rule_meters(ctx, item)
     text, th = _fusion_note(item.wi)
-    if text:
-        for q in (p, p.fallback):
-            if q is not None:
-                q.reason_ro = text + q.reason_ro
-                q.threshold.update(th)
+    for q in (p, p.fallback):
+        if q is not None:
+            q.reason_ro = text + q.reason_ro
+            q.threshold.update(th)
     return p
 
 
@@ -834,8 +836,13 @@ def _combo_ro(combo: tuple[RemedyOption, ...]) -> str:
         text += " singure"
     elif len(combo) == 1 and combo[0].action == RecommendedAction.offer_battery:
         text += " singură"
+    return text
+
+
+def _combo_extra(combo: tuple[RemedyOption, ...], cost: float) -> str:
+    """Costul și, la mesaje, rata de participare folosită: „12 lei, la 20% participare”."""
     rates = [o.participation_rate for o in combo if o.participation_rate is not None]
-    return text + (f" (la {pct(rates[0])} participare)" if rates else "")
+    return lei(cost) + (f", la {pct(rates[0])} participare" if rates else "")
 
 
 def _ladder_notifications(ctx: Context, wi: WorkItem, combo: tuple[RemedyOption, ...]) -> list[NotificationSpec]:
@@ -913,14 +920,14 @@ def rule_remedy_ladder(ctx: Context, item: Item, th: dict[str, float]) -> Propos
         combo, p90_after, cost = min(feasible, key=lambda c: (c[2], len(c[0]), max(conf[o.confidence.value] for o in c[0]), c[1]))
     else:
         combo, p90_after, cost = min(cands, key=lambda c: (c[1], c[2]))
-    cheaper = sorted({(c[2], c[1], _combo_ro(c[0])) for c in cands if c[2] < cost})
-    why_not = [f"{name} ({lei(c_cost)}) scade tensiunea doar până la {num(c_p90, 3)} pu" for c_cost, c_p90, name in cheaper[:3]]
+    cheaper = sorted({(c[2], c[1], _combo_ro(c[0]), _combo_extra(c[0], c[2])) for c in cands if c[2] < cost})
+    why_not = [f"cu {name} ({extra}), tensiunea ajunge doar la {num(c_p90, 3)} pu" for _c_cost, c_p90, name, extra in cheaper[:3]]
     th = {**th, "p90_before_pu": round(base, 4), "p90_after_pu": p90_after, "remedy_cost_lei": cost, "remedy_steps": float(len(combo)),
           "remedy_options_checked": float(len(cands))}
     rates = [o.participation_rate for o in combo if o.participation_rate is not None]
     if rates:
         th["participation_rate"] = float(rates[0])
-    chosen_txt = f"Aleg {_combo_ro(combo)} ({lei(cost)}): P90 scade de la {num(base, 3)} la {num(p90_after, 3)} pu, sub limita de {num(limit, 2)}."
+    chosen_txt = f"Aleg {_combo_ro(combo)} ({_combo_extra(combo, cost)}): P90 scade de la {num(base, 3)} la {num(p90_after, 3)} pu, sub limita de {num(limit, 2)}."
     why_txt = (" N-am ales o variantă mai ieftină: " + "; ".join(why_not) + ".") if why_not else " E cea mai ieftină treaptă din scară."
     battery = next((o for o in combo if o.action == RecommendedAction.offer_battery), None)
     ladder = {
@@ -951,9 +958,15 @@ def rule_remedy_ladder(ctx: Context, item: Item, th: dict[str, float]) -> Propos
         notice = int(s.econ("outages", f"planned_notice_working_days_{level}", 2))
         on = earliest_outage_date(ctx.as_of.date(), notice)
         th["planned_notice_working_days"] = float(notice)
+        interim = ""
+        group = next((o for o in opts if o.action == RecommendedAction.notify_customers and o not in combo), None)
+        if group is not None:
+            # Mesajul de grup aproape nu costă nimic: pleacă oricum, cât timp treptele cu echipă așteaptă preavizul.
+            notes = notes + _ladder_notifications(ctx, wi, (group,))
+            interim = f" Până atunci trimit și mesajul de grup către clienții Ore Smart (tensiunea ar ajunge la {num(group.p90_after_pu, 3)} pu, nu e destul singur)."
         reason = (f"{_factors(wi)}. {chosen_txt}{why_txt} Treptele cu echipă cer o întrerupere planificată, anunțată cu cel puțin "
-                  f"{notice} zile lucrătoare înainte (Ord. ANRE 46/2021, art. 12): le programez pe {zi(on)}."
-                  + (" Până atunci: mesajele de mai jos." if notes else ""))
+                  f"{notice} zile lucrătoare înainte (Ord. ANRE 46/2021, art. 12): le programez pe {zi(on)}.{interim}"
+                  + (" Mesajele și ofertele sunt mai jos (demo, nimic trimis)." if notes else ""))
         return _final(item, DecisionType.notify, "R-REMEDY-LADDER", reason, "notify_customers", th,
                       notifications=notes + [_outage_notice(ctx, wi, on)], costs=notify_costs, ladder=ladder)
     primary = crew[0]
