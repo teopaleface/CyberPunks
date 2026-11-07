@@ -110,6 +110,54 @@ def run() -> pd.DataFrame:
     return df
 
 
+BANAT_CUSTOMERS = 967_682  # RER Banat, 31.12.2024 (Planul de dezvoltare RER 2026-2035, tabelul 2.1)
+# Rețele Electrice Banat, anexa 2 ANRE pe 2025: SAIDI din condiții meteorologice deosebite (CMD), minute pe utilizator
+CMD_SAIDI_2025 = {"rural JT": 92.87, "rural MT": 65.06, "urban JT": 16.94, "urban MT": 15.18}
+CMD_SOURCE = "https://www.reteleelectrice.ro/wp-content/uploads/banat-anexa-2-2025.pdf"
+ANRE_2025 = ("ANRE 2025 (prin Economica): 236 de minute de întrerupere pe client la nivel național, din care 91,41 "
+             "neplanificate, https://www.economica.net/romanii-au-stat-fara-electricitate-in-medie-patru-ore-in-2025-"
+             "situatie-putin-mai-proasta-fata-de-anul-precedent_961648.html")
+
+
+def _n(x: float) -> str:
+    """Număr întreg cu separatorul de mii din română."""
+    return f"{round(x):,}".replace(",", ".")
+
+
+def _de(x: float) -> str:
+    """„de” după numerale, ca în română: 10 minute, dar 20 de minute."""
+    n = round(x)
+    return " de" if n % 100 >= 20 or n % 100 == 0 else ""
+
+
+def order_of_magnitude(df: pd.DataFrame) -> list[str]:
+    """Verificarea de ordin de mărime cu cifrele oficiale din România (anuale, nu pe furtună)."""
+    affected = 40_000  # prefectul Timișului, cumulat 7-9 iulie 2025 (vezi PRESS)
+    share = affected / BANAT_CUSTOMERS
+    b = df[(df["region"] == "banat") & df["date"].isin(DAYS[1:3])]
+    expected = (b["p"] * b["cust_p50"]).sum()
+    share_ro = f"{100 * share:.1f}%".replace(".", ",")
+    lines = ["", "## Ordin de mărime, cu cifrele oficiale din România", "",
+             (f"- Furtuna din 7-9 iulie 2025 a afectat circa {_n(affected)} de consumatori (prefectul Timișului), adică "
+              f"{share_ro} din cei {_n(BANAT_CUSTOMERS)} de utilizatori Rețele Electrice Banat.")]
+    for hours in (4, 8, 12):  # IPOTEZĂ: durata medie a întreruperii pentru un consumator afectat
+        mins = affected * hours * 60 / BANAT_CUSTOMERS
+        lines.append(f"  - Dacă întreruperea a durat în medie {hours} ore (IPOTEZĂ), furtuna adaugă circa {mins:.0f}{_de(mins)} "
+                     "minute la SAIDI-ul anual al Banatului.")
+    lines += [
+        (f"- Rețele Electrice Banat, 2025, SAIDI din condiții meteorologice deosebite: "
+         f"{str(CMD_SAIDI_2025['rural JT']).replace('.', ',')} de minute în mediul rural la JT și "
+         f"{str(CMD_SAIDI_2025['urban JT']).replace('.', ',')} în mediul urban la JT ({CMD_SOURCE}). O singură furtună ca "
+         "aceasta are, deci, același ordin de mărime cu minutele anuale din cauza vremii: cifrele din presă și cele "
+         "oficiale se potrivesc ca mărime."),
+        (f"- Modelul: suma vârfurilor așteptate pe zonele din Banat pe 7-8 iulie e de circa {_n(expected)} de clienți "
+         "(P × P50), același ordin de mărime cu cei circa 40.000 de consumatori cumulați în trei zile."),
+        f"- Pentru context: {ANRE_2025}. Cifrele ANRE sunt anuale, deci servesc doar la verificare, nu la antrenare.",
+        "",
+    ]
+    return lines
+
+
 def write_summary(df: pd.DataFrame) -> Path:
     """Cifrele-cheie ale celor trei cazuri, pentru fișa modelului (reports/B/backtest_summary.json)."""
     c1 = df[df["date"].isin(DAYS[1:3])]
@@ -265,6 +313,7 @@ def write_md(df: pd.DataFrame, model: BModel) -> None:
         gmax = dob["gust"].dropna().max()
         lines.append(f"| {d:%d.%m.%Y} | {dob['p'].mean():.2f} | {(dob['action'] == 'preposition_crew').sum()} din {len(dob)} | "
                      f"{gmax:.0f} | {rest['p'].mean():.2f} | {top} |")
+    lines += order_of_magnitude(df)
     d26 = c3[c3["date"].isin(CASE3_DAYS[2:4])]
     dob26, rest26 = d26[d26["region"] == CASE3_REGION], d26[d26["region"] != CASE3_REGION]
     lines += [

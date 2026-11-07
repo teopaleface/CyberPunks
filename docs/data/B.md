@@ -85,3 +85,21 @@ make b-test       # testele B, fără rețea
 - Suprafața unei zone e suprafața județului împărțită la numărul de zone.
 - **Anomalie cunoscută:** Giurgiu are 1,22 clienți RER pe locuitor, iar Ilfov doar 0,23. Probabil zonele de rețea RER nu urmează exact granițele județelor. Folosim cifrele ca atare și semnalăm anomalia în lucrări.
 - Bucureștiul (1,06 mil. de clienți, peste 4.000 pe km²) iese din ce a văzut modelul la antrenare (comitate cu 10.000-600.000 de clienți). Pentru el agentul spune „nu sunt sigur” și trimite decizia la om.
+
+## Varianta europeană: avarii reale din nordul Scoției (SSEN)
+
+- **Sursa:** arhiva Zenodo „Power outages across three electricity distribution networks”, DOI 10.5281/zenodo.23303815, CC BY 4.0 (https://zenodo.org/records/23303815), cu datele NaFIRS LV ale SSEN Distribution. Sursa originală se actualizează săptămânal: https://data.ssen.co.uk/@ssen-distribution/nafirs-lv-faults . Pe portal licența apare „No License”, iar pe Open Net Zero CC BY 4.0, așa că citez Zenodo.
+- **Fișierele** (în afara git, în `data/raw/B/ssen/`, cu md5 verificat la descărcare față de API-ul Zenodo):
+  - `20260804_nafirs_lv_shepd_csv.csv`: 7.436.861 octeți, md5 e02d35510457a656cb4b44a0d8844ab5, 41.389 de avarii JT în nordul Scoției, 2015-04 → 2026-08.
+  - `20260804_nafirs_lv_sepd_csv.csv`: 32.329.849 octeți, md5 5f90b6f7dfb697e3a22dc1ae770c73f9, 181.389 de avarii în sudul Angliei. E descărcat, dar nefolosit: vremea pentru cele 24 de districte ar fi costat circa 6.300 de apeluri Open-Meteo.
+  - Linkurile din API-ul Zenodo sunt separate pe fișier (`https://zenodo.org/api/records/23303815/files/<nume>/content`), deci nu există confuzia SHEPD/SEPD de pe pagina web.
+- **Eticheta:** cel puțin o avarie JT cu cauză de vreme în district, în ziua respectivă. Cauzele de vreme: vânt și furtună, copaci vii sau uscați căzuți, materiale purtate de vânt, trăsnet, inundație, ploaie, zăpadă și viscol, gheață, ceață înghețată. „Copacii care cresc” nu sunt eveniment meteo și nu intră. Pragurile severe: cel puțin 2 avarii de vreme pe zi, respectiv cel puțin 5.
+- **Districtele folosite** (5 din 7), cu un punct de vreme aproximativ: orașul principal sau centrul districtului, pentru că arhiva nu are pozițiile stațiilor primare (APROXIMARE):
+  - ARGYLL: Lochgilphead, 56,038 N, 5,433 V;
+  - HIGH: Inverness, 57,478 N, 4,224 V;
+  - N/EAST: Inverurie, 57,284 N, 2,374 V;
+  - TAYCEN: Perth, 56,396 N, 3,437 V;
+  - WISLES: Stornoway, 58,209 N, 6,389 V.
+  - Orkney și Shetland sunt lăsate deoparte: au doar 2 și 12 zile cu cel puțin 2 avarii de vreme în 10 ani.
+- **Vremea:** Open-Meteo, aceleași 10 variabile zilnice, 2015-12-25 → 2025-12-31, circa 1.300 de apeluri. E în git, în `data/samples/B/ssen_weather_daily.parquet`, iar tabelul district × zi în `data/samples/B/ssen_district_day.parquet`.
+- **Comenzi:** `uv run python -m cyberpunks.b_furtuna.ssen download | weather | dataset | evaluate`. Evaluarea rulează din tabelul din git, fără descărcări, și scrie `reports/B/metrics_ssen.json` și `reports/B/metrics_ssen_detail.json`.

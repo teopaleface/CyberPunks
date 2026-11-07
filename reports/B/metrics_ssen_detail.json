@@ -1,0 +1,84 @@
+{
+  "test_rows": 3655,
+  "test_events": 397,
+  "prevalence_test": 0.1086,
+  "train_rows": 14610,
+  "train_events": 1313,
+  "districts": [
+    "ARGYLL",
+    "HIGH",
+    "N/EAST",
+    "TAYCEN",
+    "WISLES"
+  ],
+  "ssen_model": {
+    "pr_auc": 0.2961,
+    "roc_auc": 0.6924,
+    "brier": 0.0872,
+    "threshold": 0.16,
+    "precision_at_thr": 0.3807,
+    "recall_at_thr": 0.3174,
+    "recall_severe_at_thr": 0.5909,
+    "recall_extreme_at_thr": 0.6897
+  },
+  "clim_district_month": {
+    "pr_auc": 0.1609,
+    "roc_auc": 0.6517,
+    "brier": 0.0948,
+    "threshold": 0.13,
+    "precision_at_thr": 0.1772,
+    "recall_at_thr": 0.3753,
+    "recall_severe_at_thr": 0.4015,
+    "recall_extreme_at_thr": 0.3448
+  },
+  "gust_rule": {
+    "pr_auc": 0.2471,
+    "roc_auc": 0.6445
+  },
+  "us_model_on_ssen_test": {
+    "pr_auc": 0.2765,
+    "roc_auc": 0.6201
+  },
+  "ssen_model_on_us_test_2025": {
+    "pr_auc": 0.1591,
+    "roc_auc": 0.5927,
+    "prevalence": 0.1032
+  },
+  "us_model_on_us_test_2025_pr_auc": 0.2777,
+  "romania_backtest": {
+    "banat_2025_07_07_08": {
+      "ssen_p_banat": 0.094,
+      "ssen_p_rest": 0.029,
+      "us": {
+        "p_banat": 0.308,
+        "p_rest": 0.068,
+        "crews_banat_zone_days": 22,
+        "crews_rest_zone_days": 0
+      }
+    },
+    "slobozia_2025_07_17": {
+      "ssen_rank": 2,
+      "ssen_p": 0.124,
+      "us": {
+        "rank": 1,
+        "zones": 26,
+        "p": 0.357,
+        "tied_with": [
+          "CS-ORAVITA"
+        ]
+      }
+    },
+    "dobrogea_2023_11_26": {
+      "ssen_p_dobrogea": 0.732,
+      "ssen_p_rest": 0.218,
+      "us": {
+        "p_dobrogea": 0.868,
+        "p_rest": 0.092,
+        "crews_dobrogea": 10,
+        "zones_dobrogea": 10
+      }
+    }
+  },
+  "decision": "us",
+  "decision_ro": "Agentul rămâne pe modelul pe SUA („B FINAL”); modelul SSEN e păstrat ca variantă evaluată. Pe Scoția 2024-2025, modelul SSEN are PR-AUC 0,296, față de 0,277 pentru modelul pe SUA, care n-a văzut date europene și bate climatologia locală (0,161). Pe SUA 2025, modelul SSEN are doar 0,159, față de 0,278. Pe furtuna de vară din Banat (8 iulie 2025), modelul SSEN dă 0,09 în Banat, sub pragul de 0,16, deci n-ar trimite nicio echipă; a învățat mai ales furtunile de iarnă dinspre ocean, iar România are furtuni convective vara."
+}

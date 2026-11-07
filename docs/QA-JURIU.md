@@ -145,6 +145,12 @@ Sursa: `reports/B/metrics.json` (`decision_threshold`), `config/planner.yaml`, `
 **31. În fereastra furtunii (15:00-21:00), vântul din grafic scade. De ce trimiteți echipa?**
 Graficul arată arhiva Open-Meteo, care netezește vijeliile: la Timișoara dă cel mult 50 km/h la 14:00 și 37 km/h la 15:00. Furtuna reală a avut rafale măsurate de 90-120 km/h (Transelectrica), iar ANM a dat cod roșu de vijelii exact pentru 15:00-21:00. Cu o seară înainte, prognoza ICON dădea 68-72 km/h la Reșița, Caransebeș și Deva, iar ECMWF arăta aer foarte instabil la Timișoara (CAPE de 1.960 J/kg). Riscul modelului din grafic urcă exact la 15:00, odată cu ploaia de furtună: de la 0,19 la 0,36, apoi la 0,43. Orele sunt ora României (+03:00): vremea e cerută cu fusul Europe/Bucharest. Sursa: seria `B-20250708-TM-TIMISOARA` (`expected` = riscul zilei, cu vremea de până la acea oră), `reports/B/backtest_romania.md`, `docs/research/B.md` (secțiunea 3).
 
+**32. Ați încercat și date europene? De ce nu folosiți un model antrenat în Europa?**
+Da: am antrenat a doua variantă pe avariile reale de joasă tensiune din nordul Scoției (SSEN, 2016-2025), unde fiecare avarie are cauza scrisă, și am testat-o pe anii nevăzuți 2024-2025. În Scoția, varianta europeană are PR-AUC 0,296, iar modelul nostru pe SUA, care n-a văzut niciodată date europene, are 0,277; amândouă bat climatologia locală (0,161). Invers, pe SUA modelul european scade la 0,159, față de 0,278. Pe furtuna de vară din Banat dă doar 0,09, pentru că a învățat mai ales furtunile de iarnă dinspre ocean, deci agentul rămâne pe modelul pe SUA. Sursa: `reports/B/metrics_ssen.json`, `reports/B/metrics_ssen_detail.json` (`decision_ro`), `reports/B/model_card.md`.
+
+**33. Cum verificați mărimea avariilor în România, fără istoricul Rețele Electrice?**
+Cu cifrele oficiale anuale, nu pe furtună. Rețele Electrice Banat a raportat pentru 2025 un SAIDI din condiții meteorologice deosebite de 92,87 de minute pe utilizator în mediul rural și de 16,94 în mediul urban, la joasă tensiune. Furtuna din 7-9 iulie 2025 a afectat circa 40.000 de consumatori (4,1% din clienții din Banat); la o întrerupere medie de 8 ore (ipoteză), asta înseamnă circa 20 de minute de SAIDI, același ordin de mărime. Sursa: `reports/B/backtest_romania.md` (Ordin de mărime), `docs/research/B.md` (secțiunea 5).
+
 ## Puncte slabe (de reparat sau de pregătit răspunsul)
 
 1. **Platforma PPC (S3, Spark, NiFi):** niciun fișier nu descrie cum ar rula modelele pe ea, cât ar costa în cloud sau cât ar dura pe peste 2 mil. de contoare.

@@ -57,6 +57,24 @@ Testul: pe timp: antrenare 2023-2024, test 2025 (an nevăzut), 80 comitate din 8
 - **Dobrogea, 26 noiembrie 2023** (cod portocaliu de viscol): riscul mediu e 0,87 în Dobrogea, față de 0,09 în rest; 10 din 10 zone primesc echipă.
 - Fără istoricul de avarii Rețele Electrice, verificarea e calitativă: zonele lovite, ziua, ordinul de mărime.
 
+## Varianta europeană: avarii reale din nordul Scoției (SSEN)
+
+Date: avariile de joasă tensiune SSEN (SHEPD), 5 districte, cu cauza fiecărei avarii (arhiva Zenodo 10.5281/zenodo.23303815, CC BY 4.0), și vremea Open-Meteo pe districte. Eticheta: cel puțin o avarie cu cauză de vreme în district, în ziua respectivă. Antrenare 2016-2023 (14.610 zile-district), test 2024-2025 (3.655 zile-district, prevalență 10,9%).
+
+| Pe testul din Scoția 2024-2025 | PR-AUC | ROC-AUC |
+|---|---|---|
+| Modelul SSEN (antrenat pe Scoția) | **0,296** | 0,692 |
+| Modelul pe SUA, fără date europene | 0,277 | 0,620 |
+| Climatologia pe district și lună | 0,161 | 0,652 |
+| Regula pe rafală | 0,247 | 0,644 |
+
+- Invers, modelul SSEN pe testul din SUA (2025): PR-AUC 0,159, față de 0,278 pentru modelul pe SUA (prevalență 10,3%).
+- România, Banat 7-8 iulie 2025: SSEN 0,09 în Banat față de 0,03 în rest; modelul pe SUA 0,31 față de 0,07.
+- România, Slobozia 17 iulie 2025: SSEN locul 2 din 26; modelul pe SUA locul 1.
+- România, viscolul din Dobrogea 26 nov. 2023: SSEN 0,73 față de 0,22; modelul pe SUA 0,87 față de 0,09.
+
+**Decizia pentru demo:** Agentul rămâne pe modelul pe SUA („B FINAL”); modelul SSEN e păstrat ca variantă evaluată. Pe Scoția 2024-2025, modelul SSEN are PR-AUC 0,296, față de 0,277 pentru modelul pe SUA, care n-a văzut date europene și bate climatologia locală (0,161). Pe SUA 2025, modelul SSEN are doar 0,159, față de 0,278. Pe furtuna de vară din Banat (8 iulie 2025), modelul SSEN dă 0,09 în Banat, sub pragul de 0,16, deci n-ar trimite nicio echipă; a învățat mai ales furtunile de iarnă dinspre ocean, iar România are furtuni convective vara.
+
 ## Ce am încercat
 
 | Varianta | Ce | PR-AUC | Brier |

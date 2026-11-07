@@ -29,6 +29,48 @@ def ro_int(n: float) -> str:
     return f"{int(n):,}".replace(",", ".")
 
 
+def ssen_section() -> list[str]:
+    """Varianta europeană (SSEN), dacă a fost evaluată: cele patru comparații, din fișierele de metrici."""
+    p_m, p_d = REPORTS / "B" / "metrics_ssen.json", REPORTS / "B" / "metrics_ssen_detail.json"
+    if not (p_m.exists() and p_d.exists()):
+        return []
+    d = json.loads(p_d.read_text(encoding="utf-8"))
+    s, c, g, us = d["ssen_model"], d["clim_district_month"], d["gust_rule"], d["us_model_on_ssen_test"]
+    inv = d["ssen_model_on_us_test_2025"]
+    ro = d.get("romania_backtest", {})
+    out = [
+        "## Varianta europeană: avarii reale din nordul Scoției (SSEN)",
+        "",
+        (f"Date: avariile de joasă tensiune SSEN (SHEPD), {len(d['districts'])} districte, cu cauza fiecărei avarii "
+         "(arhiva Zenodo 10.5281/zenodo.23303815, CC BY 4.0), și vremea Open-Meteo pe districte. Eticheta: cel puțin o "
+         f"avarie cu cauză de vreme în district, în ziua respectivă. Antrenare 2016-2023 ({ro_int(d['train_rows'])} zile-district), "
+         f"test 2024-2025 ({ro_int(d['test_rows'])} zile-district, prevalență {pct(d['prevalence_test'])})."),
+        "",
+        "| Pe testul din Scoția 2024-2025 | PR-AUC | ROC-AUC |",
+        "|---|---|---|",
+        f"| Modelul SSEN (antrenat pe Scoția) | **{num(s['pr_auc'])}** | {num(s['roc_auc'])} |",
+        f"| Modelul pe SUA, fără date europene | {num(us['pr_auc'])} | {num(us['roc_auc'])} |",
+        f"| Climatologia pe district și lună | {num(c['pr_auc'])} | {num(c['roc_auc'])} |",
+        f"| Regula pe rafală | {num(g['pr_auc'])} | {num(g['roc_auc'])} |",
+        "",
+        (f"- Invers, modelul SSEN pe testul din SUA (2025): PR-AUC {num(inv['pr_auc'])}, față de "
+         f"{num(d['us_model_on_us_test_2025_pr_auc'])} pentru modelul pe SUA (prevalență {pct(inv['prevalence'])})."),
+    ]
+    if ro:
+        a, b2, c3 = ro["banat_2025_07_07_08"], ro["slobozia_2025_07_17"], ro["dobrogea_2023_11_26"]
+        out += [
+            (f"- România, Banat 7-8 iulie 2025: SSEN {num(a['ssen_p_banat'], 2)} în Banat față de {num(a['ssen_p_rest'], 2)} în "
+             f"rest; modelul pe SUA {num(a['us']['p_banat'], 2)} față de {num(a['us']['p_rest'], 2)}."),
+            (f"- România, Slobozia 17 iulie 2025: SSEN locul {b2['ssen_rank']} din 26; modelul pe SUA locul {b2['us']['rank']}."),
+            (f"- România, viscolul din Dobrogea 26 nov. 2023: SSEN {num(c3['ssen_p_dobrogea'], 2)} față de "
+             f"{num(c3['ssen_p_rest'], 2)}; modelul pe SUA {num(c3['us']['p_dobrogea'], 2)} față de {num(c3['us']['p_rest'], 2)}."),
+        ]
+    dec = d.get("decision_ro")
+    if dec:
+        out += ["", f"**Decizia pentru demo:** {dec}"]
+    return out + [""]
+
+
 def run() -> str:
     m = json.loads((REPORTS / "B" / "metrics.json").read_text(encoding="utf-8"))
     d = json.loads((REPORTS / "B" / "metrics_detail.json").read_text(encoding="utf-8"))
@@ -167,6 +209,7 @@ def run() -> str:
             "- Fără istoricul de avarii Rețele Electrice, verificarea e calitativă: zonele lovite, ziua, ordinul de mărime.",
             "",
         ]
+    lines += ssen_section()
     if exps:
         lines += ["## Ce am încercat", "", "| Varianta | Ce | PR-AUC | Brier |", "|---|---|---|---|"]
         lines += [f"| {e['varianta']} | {e['ce']} | {num(e['pr_auc'])} | {num(e['brier'], 4)} |" for e in exps]
