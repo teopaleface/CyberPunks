@@ -55,6 +55,14 @@ STORM_GUST_KMH = 55.0
 STORM_RAIN_MM = 1.0
 SAFETY_GUST_KMH = 75.0  # peste această rafală, lucrul la înălțime e periculos: semnalăm planificatorului
 DISAGREE_WIDTH = 0.35  # lățimea intervalului de probabilitate de la care spunem "nu sunt sigur"
+ZONE_FEATURES = {"log_customers", "log_density"}
+SCORE_MIN, SCORE_MAX = 0.005, 0.99
+# Vreme periculoasă: o zonă în afara antrenării merge la om doar atunci (pe vreme liniștită riscul e oricum mic)
+HAZARD = {"gust_max_2d": 50.0, "precip_48h": 15.0, "snow_3d": 3.0, "ice_proxy": 1.0}
+
+
+def hazardous(row: pd.Series) -> bool:
+    return any(pd.notna(row.get(f)) and float(row.get(f)) >= v for f, v in HAZARD.items())
 DATA_SOURCES = [
     "Open-Meteo (archive ERA5/IFS pentru istoric; forecast și ensemble ICON-EPS pentru mâine)",
     "Model antrenat pe EAGLE-I (ORNL, SUA, 2023-2024), validat pe 2025 și pe state nevăzute",
@@ -233,10 +241,11 @@ def build_items(model: BModel, zones: list[romania.Zone], feats: pd.DataFrame, h
     fill_cols = list(dict.fromkeys([*cols, *CASE_FEATURES]))
     med = feats[fill_cols].median(numeric_only=True)
     filled[fill_cols] = filled[fill_cols].fillna(med).fillna(0.0)
-    p = model.predict_proba(filled)
+    # Calibrarea izotonică poate da 0 sau 1 la capete; un model nu e niciodată sigur, deci în lucrări folosim [0,005; 0,99].
+    p = np.clip(model.predict_proba(filled), SCORE_MIN, SCORE_MAX)
     q = model.predict_quantiles(filled)
-    lo = p.copy() if lo is None else np.minimum(lo, p)
-    hi = p.copy() if hi is None else np.maximum(hi, p)
+    lo = p.copy() if lo is None else np.clip(np.minimum(lo, p), SCORE_MIN, SCORE_MAX)
+    hi = p.copy() if hi is None else np.clip(np.maximum(hi, p), SCORE_MIN, SCORE_MAX)
     ood = model.out_of_range(feats)
     factors = explain.top_factors(model, filled)
     cases = explain.similar_cases(model, filled)
@@ -259,8 +268,16 @@ def build_items(model: BModel, zones: list[romania.Zone], feats: pd.DataFrame, h
             if {"gust_max", "precip"} & set(miss_cols):
                 abstain_reasons.append("lipsesc rafala sau ploaia pentru ziua țintă")
         if ood.iloc[i]:
+            zone_ood = [f for f in ood.iloc[i] if f in ZONE_FEATURES]
+            wx_ood = [f for f in ood.iloc[i] if f not in ZONE_FEATURES]
             issues.append(f"în afara datelor de antrenare: {', '.join(ood.iloc[i])}")
-            abstain_reasons.append("zona sau vremea iese din ce a văzut modelul la antrenare (" + ", ".join(ood.iloc[i]) + ")")
+            if wx_ood:
+                abstain_reasons.append("vremea iese din ce a văzut modelul la antrenare (" + ", ".join(wx_ood) + ")")
+            elif zone_ood and hazardous(row):
+                abstain_reasons.append("zona e mai mare sau mai densă decât orice comitat din antrenare, iar vremea e "
+                                       "periculoasă (" + ", ".join(zone_ood) + ")")
+            else:
+                issues.append("zona iese din datele de antrenare, dar vremea e liniștită: riscul rămâne mic, fără decizie la om")
         width = float(hi[i] - lo[i])
         if width >= DISAGREE_WIDTH and lo[i] < thr <= hi[i]:
             abstain_reasons.append(f"sursele meteo nu se pun de acord: riscul e între {lo[i]:.0%} și {hi[i]:.0%}")

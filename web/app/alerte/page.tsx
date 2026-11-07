@@ -1,6 +1,6 @@
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { LogoMark } from "@/components/brand/logo";
+import { Wordmark } from "@/components/brand/logo";
 import { AppShell } from "@/components/shell/app-shell";
 import { RunAgentButton } from "@/components/shell/run-agent";
 import { SOURCE_LABEL_RO } from "@/lib/data/labels";
@@ -88,10 +88,9 @@ async function Alerts({ searchParams }: { searchParams: SearchParams }) {
 
 function AlertsSkeleton() {
   return (
-    <div className="flex min-h-dvh flex-col" aria-busy="true" aria-label="Se încarcă alertele și mesajele">
+    <div role="status" className="flex min-h-dvh flex-col" aria-busy="true" aria-label="Se încarcă alertele și mesajele…">
       <div className="flex h-16 shrink-0 items-center gap-3 border-b border-rule bg-panel px-7">
-        <LogoMark size={26} />
-        <span className="text-[21px] font-[650]">Tura de mâine</span>
+        <Wordmark />
       </div>
       <div className="h-[98px] shrink-0 border-b border-rule bg-panel" />
       <div className="grid flex-1 grid-cols-[minmax(0,1.12fr)_minmax(0,1fr)]">

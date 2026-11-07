@@ -77,7 +77,31 @@ function byWorkItem(records: AuditRecord[], workItemId?: string): AuditRecord[] 
 // Citiri simple
 // ---------------------------------------------------------------------------------------------
 
-export function getPlan(scenario: string, options: ResolveOptions = {}): Promise<Sourced<Plan | null>> {
+/**
+ * Planul, curățat de dubluri: aceeași lucrare poate apărea de două ori în `alerts[].work_item_ids`,
+ * ceea ce ar dubla rândurile și numărătorile. Ordinea rămâne. Dacă titlul începe cu numărul cu dubluri
+ * („194 cazuri”, din 103 lucrări distincte), numărul devine cel fără dubluri.
+ */
+export function dedupePlan(plan: Plan): Plan {
+  if (!plan.alerts?.some((a) => (a.work_item_ids?.length ?? 0) !== new Set(a.work_item_ids ?? []).size)) return plan;
+  return {
+    ...plan,
+    alerts: plan.alerts.map((a) => {
+      if (!a.work_item_ids) return a;
+      const unique = [...new Set(a.work_item_ids)];
+      if (unique.length === a.work_item_ids.length) return a;
+      const title = a.title_ro.replace(new RegExp(`^${a.work_item_ids.length}(?=\\s)`), String(unique.length));
+      return { ...a, title_ro: title, work_item_ids: unique };
+    }),
+  };
+}
+
+export async function getPlan(scenario: string, options: ResolveOptions = {}): Promise<Sourced<Plan | null>> {
+  const result = await readPlan(scenario, options);
+  return result.data ? { ...result, data: dedupePlan(result.data) } : result;
+}
+
+function readPlan(scenario: string, options: ResolveOptions): Promise<Sourced<Plan | null>> {
   return resolveData<Plan | null>(
     {
       api: async () => ok(await apiPlan(scenario), { detail: apiUrl("/plan", { scenario }) }),

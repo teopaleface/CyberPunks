@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { RemedyChoice } from "@/lib/data/remedies";
-import { fmtDec, fmtInt, fmtLei } from "@/lib/format";
+import { fmtDec, fmtInt, fmtLei, plural } from "@/lib/format";
 import { DemoStamp } from "./parts";
 
 /**
@@ -63,7 +63,7 @@ export function BatteryOffers({ remedies, scenario }: { remedies: RemedyChoice[]
                 </td>
                 <td className="py-2.5 pr-4 text-right tabular-nums">{fmtLei(r.battery?.revenue_lei ?? 0)}</td>
                 <td className="py-2.5 pr-4 text-right tabular-nums">{r.battery?.payback_years != null ? `${fmtDec(r.battery.payback_years, 1)} ani` : "–"}</td>
-                <td className="py-2.5 text-[14px] text-muted-foreground">{r.chosen.length} trepte, {fmtLei(r.cost_lei)}</td>
+                <td className="py-2.5 text-[14px] text-muted-foreground">{plural(r.chosen.length, "treaptă", "trepte")}, {fmtLei(r.cost_lei)}</td>
               </tr>
             ))}
           </tbody>

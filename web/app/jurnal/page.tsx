@@ -1,7 +1,7 @@
 import { DownloadIcon } from "lucide-react";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { LogoMark } from "@/components/brand/logo";
+import { Wordmark } from "@/components/brand/logo";
 import { AppShell } from "@/components/shell/app-shell";
 import { RunAgentButton } from "@/components/shell/run-agent";
 import { Button } from "@/components/ui/button";
@@ -82,10 +82,9 @@ async function Journal({ searchParams }: { searchParams: SearchParams }) {
 /** Aceleași înălțimi ca ecranul real, ca nimic să nu sară când vin datele. */
 function JournalSkeleton() {
   return (
-    <div className="flex min-h-dvh flex-col" aria-busy="true" aria-label="Se încarcă jurnalul deciziilor">
+    <div role="status" className="flex min-h-dvh flex-col" aria-busy="true" aria-label="Se încarcă jurnalul deciziilor…">
       <div className="flex h-16 shrink-0 items-center gap-3 border-b border-rule bg-panel px-7">
-        <LogoMark size={26} />
-        <span className="text-[21px] font-[650]">Tura de mâine</span>
+        <Wordmark />
       </div>
       <div className="h-[98px] shrink-0 border-b border-rule bg-panel" />
       <div className="h-[88px] shrink-0 border-b border-rule bg-canvas" />

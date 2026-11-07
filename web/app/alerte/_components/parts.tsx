@@ -78,7 +78,7 @@ export function WorkItemRef({
           dangerouslySetInnerHTML={{ __html: markerSvg({ source, kind: markerKind(decision?.decision) }, 32) }}
         />
       ) : null}
-      <span className="code-id shrink-0 text-ink underline decoration-rule underline-offset-4 group-hover:decoration-ink">{id}</span>
+      <span translate="no" className="code-id shrink-0 text-ink underline decoration-rule underline-offset-4 group-hover:decoration-ink">{id}</span>
       {workItem ? <span className="min-w-0 truncate text-[14.5px] text-muted-foreground">{shortTitle(workItem)}</span> : null}
     </Link>
   );

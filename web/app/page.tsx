@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { LogoMark } from "@/components/brand/logo";
+import { Wordmark } from "@/components/brand/logo";
 import { PlanScreen } from "@/components/plan/plan-screen";
 import { Readouts } from "@/components/plan/readouts";
 import { AppShell } from "@/components/shell/app-shell";
@@ -85,7 +85,7 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/">["searchPara
         data={data}
         geo={geo}
         initialSelected={initialSelected}
-        postsInfo={posts ? { posts: posts.data, derived: posts.derived, lossCostNote: posts.lossCost?.note ?? null } : undefined}
+        postsInfo={posts ? { posts: posts.data, derived: posts.derived, lossCostNote: posts.lossCost?.note ?? null, thresholds: posts.thresholds } : undefined}
         approval={approval}
         initialRegion={typeof params.zona === "string" ? params.zona : null}
         initialMode={params.harta === "posturi" ? "posts" : "items"}
@@ -97,10 +97,9 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/">["searchPara
 /** Aceleași înălțimi ca ecranul real, ca nimic să nu sară când vin datele. */
 function PlanSkeleton() {
   return (
-    <div className="flex h-dvh min-h-[720px] flex-col overflow-hidden" aria-busy="true" aria-label="Se încarcă planul de mâine">
+    <div role="status" className="flex h-dvh min-h-[720px] flex-col overflow-hidden" aria-busy="true" aria-label="Se încarcă planul de mâine…">
       <div className="flex h-16 shrink-0 items-center gap-3 border-b border-rule bg-panel px-7">
-        <LogoMark size={26} />
-        <span className="text-[21px] font-[650]">Tura de mâine</span>
+        <Wordmark />
       </div>
       <div className="h-[92px] shrink-0 border-b border-rule bg-panel/60" />
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_clamp(460px,38vw,732px)]">

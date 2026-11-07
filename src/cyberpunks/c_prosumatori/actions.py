@@ -24,6 +24,8 @@ ASSUMPTIONS = {
     "min_horizon_days": 10,  # IPOTEZĂ: chiar în afara sezonului mai sunt câteva zile senine
     "notify_shift_share": 0.15,  # IPOTEZĂ: cât din kWh pierduți se salvează dacă prosumatorii mută consumul la prânz
     "complaint_full_season_days": 60,  # IPOTEZĂ: reclamațiile apar după câteva săptămâni de opriri dese
+    "notify_min_p_season": 0.05,  # IPOTEZĂ: în martie-octombrie un mesaj costă puțin și consumul mutat ajută
+    "notify_min_p_off_season": 0.2,  # IPOTEZĂ: în afara sezonului, fără mesaje la risc mic (oboseala clienților)
 }
 ORE_SMART = "PPC Ore Smart+: preț redus zilnic 11:00-14:59 între 1 martie și 31 octombrie"
 
@@ -147,12 +149,15 @@ def decide(
         return Decision("measurement_campaign", "C-R7-MASURARE",
                         "Risc real, dar nesigur: un analizor la post 7 zile (Ord. ANRE 46/2021) confirmă sau infirmă.",
                         value_fix, 60, 2, False)
-    if p >= 0.05 and n_prosumers > 0:
+    # mesajele pleacă doar când ajută: în sezon de la 5% risc, în afara lui (noiembrie-februarie) doar la risc real
+    notify_min = ASSUMPTIONS["notify_min_p_season"] if in_ore_smart_season(target) else ASSUMPTIONS["notify_min_p_off_season"]
+    if p >= notify_min and n_prosumers > 0:
         notify_value = round(lost_kwh * eco["lost_pv_value_lei_per_kwh"] * ASSUMPTIONS["notify_shift_share"] * horizon, 2)
         why = ("Risc mic" if p < 0.2 else "Risc real, dar o vizită nu se justifică în afara sezonului")
         return Decision("notify_customers", "C-R8-MESAJ",
                         f"{why}: mesaj către prosumatorii postului să mute consumul la prânz.", notify_value, 5, 1, False)
-    if p >= 0.02 or q90 >= LIMIT_PU - 0.01:
+    # urmărire: intervalul atinge limita sau riscul nu e neglijabil (IPOTEZĂ: 5%)
+    if p >= 0.05 or q90 >= LIMIT_PU:
         return Decision("watchlist", "C-R9-URMARIRE", "Aproape de limită, fără vizită: postul rămâne urmărit.", 0.0, 5, 1, False)
     return None
 
@@ -169,9 +174,12 @@ LADDER_EFFORT = {
 }
 
 
-def needs_ladder(dec: Decision | None, q90: float) -> bool:
-    """Scara se calculează pentru posturile la care o echipă ar avea de lucru: depășire probabilă sau P90 peste limită."""
-    return dec is not None and not dec.abstain and q90 > LIMIT_PU and dec.action in ("adjust_tap", "measurement_campaign")
+def needs_ladder(dec: Decision | None, q90: float, phase_evidence: bool = False) -> bool:
+    """Scara se calculează pentru posturile la care o echipă ar avea de lucru (P90 peste limită) sau la care bilanțul
+    a găsit și dezechilibru pe faze (o soluție ieftină posibilă)."""
+    if dec is None or dec.abstain or q90 <= LIMIT_PU:
+        return False
+    return dec.action in ("adjust_tap", "measurement_campaign") or phase_evidence
 
 
 def from_ladder(dec: Decision, ladder) -> Decision:

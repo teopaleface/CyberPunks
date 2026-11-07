@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { WorkItem } from "@/lib/contracts";
-import { auditActionRo, factorLabelRo, thresholdLabelRo, thresholdValueRo } from "@/lib/data/labels";
+import { auditActionRo, clampPercentRo, factorLabelRo, thresholdLabelRo, thresholdValueRo } from "@/lib/data/labels";
 import { fmtDateLong, fmtLei, fmtScore, plural } from "@/lib/format";
 import { itemPlace, itemTitle } from "@/lib/plan-screen";
 
@@ -24,12 +24,23 @@ describe("pragurile, în cuvinte", () => {
 });
 
 describe("textele factorilor", () => {
-  test("zecimale cu virgulă, procente absurde limitate", () => {
+  test("zecimale cu virgulă, procentele peste 999% devin „de peste 10 ori”", () => {
     expect(factorLabelRo("Variația în cursul zilei: 0.46 din medie")).toBe("Variația în cursul zilei: 0,46 din medie");
     expect(factorLabelRo("consumul de noapte a crescut cu 18273047% față de istoric")).toBe(
-      "Consumul de noapte a crescut cu peste 1.000% față de istoric",
+      "Consumul de noapte a crescut de peste 10 ori față de istoric",
+    );
+    expect(factorLabelRo("față de vecini, o scădere bruscă de 1250.5%")).toBe("Față de vecini, o scădere bruscă de peste 10 ori");
+    expect(factorLabelRo("consumul a scăzut cu ~18.273.047 %")).toBe("Consumul a scăzut de peste 10 ori");
+    expect(factorLabelRo("consumul de noapte a crescut cu 999% față de istoric")).toBe(
+      "Consumul de noapte a crescut cu 999% față de istoric",
     );
     expect(factorLabelRo("cu 72% sub vecini")).toBe("Cu 72% sub vecini");
+    expect(factorLabelRo("85% din intervalele de 30 de minute sunt negative")).toBe("85% din intervalele de 30 de minute sunt negative");
+  });
+
+  test("rezumatele trec prin aceeași plasă", () => {
+    expect(clampPercentRo("Consumul a crescut cu 5000%, iar bilanțul confirmă.")).toBe("Consumul a crescut de peste 10 ori, iar bilanțul confirmă.");
+    expect(clampPercentRo("Tensiunea 1.12 pu, 40% peste")).toBe("Tensiunea 1.12 pu, 40% peste");
   });
 });
 
@@ -81,5 +92,40 @@ describe("orele față de ziua planului", () => {
     );
     expect(tl.back).toBeGreaterThan(tl.depart);
     expect(tl.back).toBe(24 * 60 + 15);
+  });
+});
+
+describe("alertele, față de decizii", () => {
+  test("numără ce s-a decis de fapt pentru lucrările alertei", async () => {
+    const { alertOutcomeRo } = await import("@/lib/data/labels");
+    const d = (decision: string) => ({ decision });
+    const decisions = { a: d("assigned"), b: d("remote_action"), c: d("remote_action"), e: d("deferred") };
+    expect(alertOutcomeRo(["a", "b", "c", "e", "x"], decisions)).toBe("1 în traseu, 2 verificate de la distanță, 1 amânată, 1 fără decizie");
+    expect(alertOutcomeRo(["a"], decisions)).toBeNull();
+    expect(alertOutcomeRo(["x", "y"], decisions)).toBeNull();
+  });
+});
+
+describe("jurnalul real, în cuvinte", () => {
+  test("acțiunea de fuziune, pragurile noi, valorile da/nu", () => {
+    expect(auditActionRo("fusion")).toBe("verificat cu bilanțul");
+    expect(thresholdLabelRo("a_score")).toBe("scorul modelului A");
+    expect(thresholdValueRo("fusion_confirmed", true)).toBe("da");
+    expect(thresholdValueRo("smart_meter", false)).toBe("nu");
+    expect(thresholdValueRo("post_excess_loss_lei_month", 5019.34)).toBe("5.019 lei pe lună");
+    expect(thresholdValueRo("post_excess_loss_kwh_day", 239.02)).toBe("239,0 kWh/zi");
+    expect(thresholdValueRo("participation_rate", 0.1)).toBe("10%");
+    expect(thresholdValueRo("fusion_a_score", 0.981)).toBe("0,98");
+  });
+});
+
+describe("zilele scurte", () => {
+  test("ziua și luna, cu sau fără miezul nopții", async () => {
+    const { fmtDayMonth, isWholeDay } = await import("@/lib/format");
+    expect(fmtDayMonth("2025-05-10T00:00:00")).toBe("10.05");
+    expect(fmtDayMonth("2025-06-02")).toBe("02.06");
+    expect(isWholeDay("2025-06-02T00:00:00")).toBe(true);
+    expect(isWholeDay("2025-06-02")).toBe(true);
+    expect(isWholeDay("2025-07-08T14:00:00+03:00")).toBe(false);
   });
 });

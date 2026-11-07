@@ -90,7 +90,7 @@ function MessageItem({
           <WorkItemRef id={wid} workItem={w} decision={d} scenario={scenario} />
         ) : (
           <span>
-            Activul <span className="code-id text-ink">{n.asset_id}</span>
+            Activul <span translate="no" className="code-id text-ink">{n.asset_id}</span>
           </span>
         )}
       </div>

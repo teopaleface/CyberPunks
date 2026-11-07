@@ -12,4 +12,4 @@ make check       # lint și teste
 make validate-fixtures
 ```
 
-Pașii completi de reproducere (date, antrenare, evaluare, demo) se adaugă pe măsură ce firele livrează.
+Pașii completi de reproducere (date, antrenare, evaluare, demo), cu durata măsurată a fiecărui pas într-o clonă curată: [`docs/REPRODUCERE.md`](docs/REPRODUCERE.md). Întrebările tehnice probabile ale juriului, cu răspunsuri: [`docs/QA-JURIU.md`](docs/QA-JURIU.md).

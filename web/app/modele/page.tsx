@@ -6,6 +6,7 @@ import { AppShell } from "@/components/shell/app-shell";
 import type { Source } from "@/lib/contracts";
 import { REPO_ROOT, getMetrics } from "@/lib/data";
 import { SOURCE_LABEL_RO } from "@/lib/data/labels";
+import { sentence } from "@/lib/format";
 import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
 import { SOURCE_ORDER } from "@/lib/sources";
 import { ErrorAnalysis } from "./_components/error-analysis";
@@ -14,7 +15,9 @@ import { PlannerSection } from "./_components/planner-section";
 
 export default function ModelsPage({ searchParams }: PageProps<"/modele">) {
   return (
-    <Suspense fallback={<div className="min-h-dvh bg-canvas" aria-busy="true" aria-label="Se încarcă modelele" />}>
+    <Suspense fallback={<div role="status" className="min-h-dvh bg-canvas" aria-busy="true">
+        <span className="sr-only">Se încarcă modelele…</span>
+      </div>}>
       <Models searchParams={searchParams} />
     </Suspense>
   );
@@ -53,7 +56,7 @@ async function Models({ searchParams }: { searchParams: PageProps<"/modele">["se
               ? `Publicate: ${published.join(", ")}`
               : "Niciun raport publicat încă"}
           . Rapoartele vin din: {SOURCE_LABEL_RO[metrics.source]}
-          {metrics.degradedReason ? `. ${metrics.degradedReason}` : ""}.
+          {metrics.degradedReason ? `. ${sentence(metrics.degradedReason).replace(/\.$/, "")}` : ""}.
         </p>
 
         <div className="mt-7 grid grid-cols-1 gap-y-10 xl:grid-cols-3 xl:gap-x-0 xl:divide-x xl:divide-rule">

@@ -15,12 +15,12 @@ const archivo = Archivo({
 
 export const metadata: Metadata = {
   title: {
-    default: "Tura de mâine, consola dispecerului",
-    template: "%s, Tura de mâine",
+    default: "Daybreak, consola dispecerului",
+    template: "%s, Daybreak",
   },
   description:
     "Agentul care decide unde merg mâine echipele de teren Rețele Electrice, din trei modele ML antrenate de echipa CyberPunks (SmartHack XI 2026, tema PPC).",
-  applicationName: "Tura de mâine",
+  applicationName: "Daybreak",
 };
 
 export const viewport: Viewport = {

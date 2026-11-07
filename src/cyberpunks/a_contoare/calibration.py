@@ -37,7 +37,12 @@ class VennAbers:
         y_cal = np.asarray(y_cal, dtype=float)
         self.s_cal, self.y_cal = s_cal, y_cal
         qs = np.linspace(0, 1, self.grid_size)
-        grid = np.unique(np.concatenate([np.quantile(s_cal, qs), [s_cal.min() - 1e-9, s_cal.max() + 1e-9]]))
+        # cuantile (dese unde sunt multe scoruri) plus puncte egal distanțate (acoperă și zonele rare, cu scoruri mari)
+        grid = np.unique(np.concatenate([
+            np.quantile(s_cal, qs),
+            np.linspace(s_cal.min(), s_cal.max(), self.grid_size),
+            [s_cal.min() - 1e-9, s_cal.max() + 1e-9],
+        ]))
         p0 = np.empty(len(grid))
         p1 = np.empty(len(grid))
         for i, g in enumerate(grid):

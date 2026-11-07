@@ -1,7 +1,40 @@
 # Status: Teo-bilant
-Actualizat: 2026-11-07 15:04
-Milestone curent: M3 făcut (robustețe, analiza erorilor, planul B), M4 aproape (docs, fișa modelului)
-Gata de merge: da (commit b645a1b)
+Actualizat: 2026-11-07 16:46
+Milestone curent: M4 făcut; îmbunătățirile cerute la 16:40 terminate. **Sunt liber.**
+Gata de merge: da (commit 15c51e2)
+
+## Răspuns la cererea orchestratorului de la 16:40 (sunt liber)
+1. **Diagnosticele.** Cifrele din cerere erau vechi: clientul la postul greșit e la **0,77** (de la 16:12, cu identificarea topologiei din tensiuni), iar contorul de client la 0,40. Am mai încercat două lucruri pe același test, fără câștig, deci **modelul rămâne cel actual** (F1 macro 0,714):
+   - lot de antrenare nou, cu defecte de contor trase ca la A (`train2`): F1 macro 0,594 singur și 0,706 împreună cu lotul vechi;
+   - ponderile claselor: 0,714-0,716. Contorul de client urcă la 0,43 doar dacă clientul la postul greșit coboară la 0,74.
+   Reproductibil: `uv run python -m cyberpunks.a_bilant.experiments` → `reports/bilant/experiments.md`.
+2. **Cifrele pentru slide** (din `reports/bilant/headline.md`, generat din `metrics.json`):
+   - **„Bilanțul găsește 85% din energia pierdută pe care contoarele nu o văd deloc: ~25.000 lei pe lună pe 300 de posturi.”** (furt înainte de contor, cabluri, contor de post setat greșit, client la postul greșit; A găsește 0 aici prin construcție)
+   - **„48% din energia pierdută nu apare la niciun contor de client.”** (ziua demo)
+   - **„Cauza corectă: F1 0,71, față de 0,48 la regulile clasice.”** Opțional: contorul postului setat greșit e prins în 99% din cazuri, clientul trecut la alt post cu precizie 91%.
+   - De nu pus pe slide ca cifră principală: „cu bilanț față de fără” la clasarea contoarelor (zero câștig cu scorurile reale ale lui A).
+3. **Postul pentru prezentare: PT-1269**, împreună cu **firul C**:
+   - bilanțul: `A-20250708-PT-1269` (`grid_inspection`), pierderi pe cabluri de 2,2 ori normalul, faza estimată ~69% din case (adevărul 76/15/9), în `extra.phase_rebalance_input`;
+   - C: `C-20250708-PT-1269` (tensiune prea mare), cu `phase_rebalance` prima treaptă în `extra.remedy_options`;
+   - mesajul: o singură mutare a câtorva case pe altă fază rezolvă și pierderile (bilanț), și tensiunea (C). Seria: `outputs/series/demo-vara/A-20250708-PT-1269.json`.
+
+## Postul pentru prezentare și interfață
+- **PT-1269**: dezechilibrul de faze găsit de bilanț e intrarea pentru `phase_rebalance` la C.
+  - Lucrarea bilanțului: `A-20250708-PT-1269` (`grid_inspection`), cu `extra.phase_rebalance_input` = pierderea pe cabluri de 2,2 ori normalul și faza estimată ~69% din case. Adevărul din simulare: 76/15/9.
+  - Lucrarea lui C pe același post: `C-20250708-PT-1269` (tensiune prea mare), cu `phase_rebalance` prima treaptă în `extra.remedy_options`.
+  - Seria: `outputs/series/demo-vara/A-20250708-PT-1269.json`.
+- Celelalte cazuri verificate (`reports/bilant/demo_posts.md`):
+  - contorul A confirmat de bilanț;
+  - contorul postului ×2;
+  - perechea cu client mutat: PT-1155 și PT-1029, prinse amândouă, cu `office_correction`.
+
+## Răspuns la cererea orchestratorului de la 15:50
+1. **M4: verificat dintr-o clonă curată** (`git clone --branch Teo-bilant`, apoi exact comenzile din `docs/data/bilant.md`, de la `uv sync` la `make bilant-test`, ~10 minute, fără intervenție). Toate cele 142 de cifre din `metrics.json` au ieșit identice, iar `A_bilant.jsonl` a avut aceleași lucrări. Comenzile exacte, timpii și ieșirile sunt în `docs/data/bilant.md` (secțiunile „Comenzile” și „Verificarea dintr-o clonă curată”), pentru `docs/REPRODUCERE.md`.
+2. **Cifra principală, după ce A a trecut pe registrul C:** `reports/bilant/headline.md`, generat din `metrics.json` de `uv run python -m cyberpunks.a_bilant.headline` (inclus în `make bilant-eval`).
+   - **Cauzele pe care contoarele nu le văd (A = 0):** bilanțul găsește postul la 74% din furturile înainte de contor (cauza corectă 55%), 64% din pierderile tehnice (42%), 99% din contoarele de post setate greșit (99%) și 53% din clienții la postul greșit (42%). **Total: 85% din energia pierdută din aceste cauze, ~25.100 lei pe lună** pe cele 300 de posturi. Din posturile marcate, 13% sunt de fapt normale. În ziua demo, 48% din energia pierdută e invizibilă la contoare.
+   - **Mai multe K, deplasări degeaba evitate:** la calitatea lui A pe Londra, 0,20 / 0,28 / 0,28 / 0,05 pe zi la K = 10 / 20 / 50 / 100; lei pe zi de la 824 la 855 (K = 10) și de la 1.177 la 1.458 (K = 50). La calitatea pe SGCC, lei pe zi de la 126 la 456 (×3,6). Cu scorurile reale ale lui A: 0 până la K = 300, iar la K = 500 cu 12 deplasări degeaba mai mult. **Pentru prezentare recomand cifra cu cauzele (85%, ~25.000 lei pe lună, A = 0), nu clasarea contoarelor.**
+3. **Clientul la postul greșit:** de la 0,57 la **0,77** (precizie 0,91, recall 0,67), cu identificarea topologiei din tensiuni. Contorul cu tensiunea cea mai ciudată dintr-un post seamănă mai bine cu un vecin decât cu postul lui (`dataset.voltage_topology`, `volt_elsewhere`, `volt_claimed`; metoda din literatură: Short 2013, comparația din 2022). Pierderea tehnică a urcat la 0,52. F1 macro: **0,71** față de 0,48 la reguli.
+- Lucrări demo-vara: 74, toate pe posturi cu probleme reale. La om: 11 posturi, 0 suprapuneri cu A (A: 138). `make check`: 257 trec.
 
 ## Răspuns la cererea orchestratorului de la 14:50
 - `git merge Teo` făcut. `reports/bilant/metrics.json` din `Teo` era identic cu al meu (bilant-lgbm@4b1ad06). Acum e regenerat, cu cifrele de mai jos.
@@ -56,8 +89,8 @@ Gata de merge: da (commit b645a1b)
 ## Cifre (doar din scripturi, cu comanda `make bilant-data bilant-eval`)
 SIMULARE pe date publice. Test: cele 300 de posturi ale registrului C (rețele nevăzute).
 - Pierderea normală: MAE 5,30 kWh/zi (formula fizică 14,91; procent fix 20,59); fără istoric 12,56; acoperirea P10-P90 88,1%; mediana pierderii 3,8% din energia care trece prin post.
-- Diagnosticul: F1 macro 0,67 față de 0,48 la reguli; furt înainte de contor 0,70 față de 0,35; client la postul greșit 0,57 față de 0,34; pierdere tehnică 0,46 față de 0,28; contor de post ×2 0,99; se abține în 13,1% din ferestre.
-- Cauzele de post (A = 0): găsite 74% / 65% / 99% / 50%; 85% din energie, ~25.000 lei pe lună.
+- Diagnosticul: F1 macro 0,71 față de 0,48 la reguli; client la postul greșit 0,77 față de 0,34; furt înainte de contor 0,70 față de 0,35; pierdere tehnică 0,52 față de 0,28; contor de post ×2 0,99; se abține în 12,7% din ferestre.
+- Cauzele de post (A = 0): găsite 74% / 64% / 99% / 53%; 85% din energie, ~25.100 lei pe lună.
 - Energia invizibilă la contoare: 48%. Planul B: 36% față de 20%. Fuziunea: tabelul de mai sus.
 
 ## Decizii (cu ora)
@@ -66,4 +99,6 @@ SIMULARE pe date publice. Test: cele 300 de posturi ale registrului C (rețele n
 - 14:30: fuziunea doar confirmă; testul pe mai multe zile trece pe lotul train (lotul hărții are acum defectele lui A, apărute doar în ultimele 60 de zile).
 - 14:35: rezolvarea automată a lui „nu sunt sigur” e oprită (0 din 5 corecte pe demo).
 - 14:35: bilanțul lasă lui A posturile unde A are deja lucrare la om sau pe contor.
+- 16:55: lotul train2 și ponderile claselor încercate pe același test, fără câștig: modelul rămâne neschimbat.
+- 16:20: identificarea topologiei din tensiuni pentru clientul la postul greșit; extinderea regulii de pereche testată și lăsată deoparte (0,567 → 0,574, zgomot).
 - 15:00: trăsătura „oglindă” și legarea perechii pentru clientul la postul greșit; forma orară a lipsei pentru pierderea tehnică; comparația cu normalul fără istoric, scoasă (F1 macro mai mic).

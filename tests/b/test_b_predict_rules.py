@@ -112,11 +112,18 @@ def test_missing_weather_goes_to_human_review(tiny_model):
     assert items[1].prediction.abstain is False or "lipsesc" not in (items[1].prediction.abstain_reason or "")
 
 
-def test_out_of_range_zone_is_not_trusted(tiny_model):
+def test_out_of_range_zone_is_not_trusted_in_a_storm(tiny_model):
     zones = [z for z in romania.load_zones() if z.zone_id == "B-BUCURESTI"]  # 1 mil. clienți, peste antrenare
-    items, _ = _build(tiny_model, zones, _feats(zones))
+    items, _ = _build(tiny_model, zones, _feats(zones, gust=70.0, precip=25.0))
     assert items[0].recommended_action == "human_review"
     assert "antrenare" in items[0].prediction.abstain_reason
+
+
+def test_out_of_range_zone_on_a_calm_day_is_not_sent_to_a_human(tiny_model):
+    zones = [z for z in romania.load_zones() if z.zone_id == "B-BUCURESTI"]
+    items, _ = _build(tiny_model, zones, _feats(zones, gust=20.0, precip=0.0))
+    assert items[0].prediction.abstain is False
+    assert any("vremea e liniștită" in s for s in items[0].data_quality.input_issues)
 
 
 def test_extreme_gust_flags_safety_and_ood(tiny_model):

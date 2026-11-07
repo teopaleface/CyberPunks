@@ -67,4 +67,4 @@ def test_label_ro_is_plain_romanian():
     assert text == "rafale de vânt de 95 km/h"
     assert val == 95
     text, _ = label_ro("log_customers", row)
-    assert "50000" in text
+    assert "50.000 clienți" in text  # separatorul de mii din română

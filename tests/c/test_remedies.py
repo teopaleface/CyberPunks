@@ -126,3 +126,20 @@ def test_widen_never_crosses_median() -> None:
     assert lo[0] == pytest.approx(1.03) and hi[0] == pytest.approx(1.07)
     lo, hi = widen(q10, q50, q90, -0.02)  # strângere prea mare: se oprește la P50
     assert lo[0] == pytest.approx(1.05) and hi[0] == pytest.approx(1.05)
+
+
+def test_bilant_phase_share_drives_unbalance(demo_day: remedies.Day) -> None:
+    """Cu dezechilibrul găsit de bilanț, estimarea urmează repartiția lui; un dezechilibru mai mare dă un exces mai mare."""
+    pid = posts.load_posts().sort_values("pv_kw_per_kva", ascending=False).post_id.iloc[0]
+    post = remedies.get_post(pid)
+    base = remedies.run_sim(post, demo_day)
+    low = remedies.phase_unbalance(post, base, max_share=0.40)
+    high = remedies.phase_unbalance(post, base, max_share=0.90)
+    if high["n_single"] < 2:
+        pytest.skip("prea puține case monofazate")
+    assert high.get("raw_before", 0) >= low.get("raw_before", 0)
+    assert 0.0 <= high["after"] <= high["before"] <= remedies.ASSUMPTIONS["unbalance_cap_pu"] + 1e-12
+    lad = remedies.build_ladder(pid, demo_day, 1.12, 100, 55, bilant={"max_phase_share_est": 0.8, "loss_ratio_vs_normal": 2.5,
+                                                                      "work_item_id": f"A-20250708-{pid}"})
+    ph = next(o for o in lad.options if o["action"] == "phase_rebalance")
+    assert ph["confidence"] == "medium" and "Bilanțul" in ph["note_ro"] and lad.bilant_ref == f"A-20250708-{pid}"

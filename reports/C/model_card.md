@@ -37,7 +37,21 @@ Test pe **rețele nevăzute** (leave-one-topology-out pe cele 6 topologii) și *
 | Brier | 0,015 | 0,058 |
 | Eroarea de calibrare (ECE) | 0,003 | 0,013 |
 
-- Pe topologii: MAE între 0,0044 și 0,0064 pu (baseline 0,0200-0,0269). Reper din literatură, pe aceleași 6 rețele, leave-one-grid-out: RMSE 0,0134 pu pe noduri (BOOST-RPF, arXiv:2603.21977; altă sarcină, același ordin de mărime).
+Pe fiecare topologie lăsată deoparte (intervalul are margini conformale pe patru grupe de rețea, după cât ridică panourile tensiunea):
+
+| Topologie | MAE model (pu) | MAE baseline (pu) | Acoperire P10-P90 | PR-AUC depășiri | Recall | Rata depășirilor |
+|---|---|---|---|---|---|---|
+| rural1 | 0,0044 | 0,0200 | 82,3% | — (nicio depășire) | — | 0% |
+| rural2 | 0,0061 | 0,0269 | 87,1% | 0,978 | 93,2% | 26,9% |
+| rural3 | 0,0064 | 0,0254 | 80,1% | 0,939 | 81,2% | 16,4% |
+| semiurb4 | 0,0047 | 0,0216 | 86,6% | 0,852 | 31,0% | 1,8% |
+| semiurb5 | 0,0061 | 0,0214 | 75,8% | 0,881 | 88,5% | 3,6% |
+| urban6 | 0,0048 | 0,0211 | 80,9% | — (nicio depășire) | — | 0% |
+
+- Pe semiurb4 depășirile sunt rare (1,8%), iar la pragul 0,5 recall-ul e mic (31%), deși PR-AUC e 0,85: pe o rețea nouă cu depășiri rare, modelul e prudent. Pe semiurb5 intervalul acoperă 75,8%, sub țintă.
+- Reper din literatură, pe aceleași 6 rețele, leave-one-grid-out: RMSE 0,0134 pu pe noduri (BOOST-RPF, arXiv:2603.21977; altă sarcină, același ordin de mărime).
+- Viteza: 300 de posturi pe o zi în 0,05-0,09 s, față de 62-87 s cu pandapower (`evaluate --speed-only`).
+- Reproductibil: dintr-o clonă curată, 29 din 30 de cifre din `metrics.json` ies identic (ECE diferă la a cincea zecimală).
 - Modelul orar (seria din grafic): MAE 0,0049 pu, acoperire P10-P90 80,4% după lărgirea conformală, calibrată imbricat doar pe perioada de antrenare și fără topologia testată (49,8% înainte).
 - Backtest pe ziua demo (8 iulie 2025, populația de 300 de posturi): simularea fizică dă 16 posturi peste 1,10 pu; modelul le dă probabilitate peste 50% tuturor celor 16, plus 2 posturi aflate la 1,097 pu. MAE în ziua aceea: 0,0052 pu.
 - Ablații (aceeași evaluare): fără trăsăturile fizice din topologie, MAE 0,0119 pu și PR-AUC 0,384 (sub baseline); fără tensiunea de pornire și priză, MAE 0,0205 pu. Modelul are nevoie de topologia din GIS și de priza fiecărui post.
@@ -45,7 +59,11 @@ Test pe **rețele nevăzute** (leave-one-topology-out pe cele 6 topologii) și *
 
 ## Explicabilitatea
 
-Fiecare lucrare are 3-5 motive din contribuțiile SHAP ale modelului P50 (TreeSHAP), grupate și spuse simplu, cu cifrele postului (de exemplu „315 kW de panouri pe un transformator de 250 kVA (44 prosumatori)”, „soare 956 W/m² pe panou la prânz”), cazuri similare din simulare și o frază din șablon. Pentru fiecare post cu depășire, scara de soluții arată efectul simulat al fiecărei măsuri și de ce nu s-a ales una mai ieftină.
+Fiecare lucrare are 3-5 motive din contribuțiile SHAP la scorul ei (TreeSHAP pe clasificatorul P(tensiune > 1,10 pu), în log-odds; pozitiv împinge spre depășire), grupate și spuse simplu, cu cifrele postului; cât mută fiecare grup tensiunea P50, în pu, e în `extra.voltage_contributions_pu` (de exemplu „315 kW de panouri pe un transformator de 250 kVA (44 prosumatori)”, „soare 956 W/m² pe panou la prânz”), cazuri similare din simulare și o frază din șablon. Pentru fiecare post cu depășire, scara de soluții arată efectul simulat al fiecărei măsuri și de ce nu s-a ales una mai ieftină.
+
+## Legătura cu bilanțul pe post
+
+Când bilanțul pe post (firul `Teo-bilant`) găsește dezechilibru pe faze (`extra.phase_rebalance_input` în `A_bilant.jsonl`: ce parte din case stă pe faza cea mai încărcată, estimată din pierderi), scara C îl folosește în locul repartiției la întâmplare, iar treapta „3 case mutate pe altă fază” capătă încredere medie. Exemplul pentru prezentare: PT-1082 (1 Decembrie, sintetic), unde bilanțul găsește 77% din case pe o fază și pierderi pe cabluri de 2,9 ori normalul; mutarea caselor plus o treaptă de priză plus ofertele de baterii coboară P90 de la 1,138 la 1,095 pu, pentru 1.966 lei. Fără mutarea caselor, combinația ieftină nu ajunge sub limită.
 
 ## Robustețe
 

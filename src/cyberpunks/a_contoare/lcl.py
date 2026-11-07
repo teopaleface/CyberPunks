@@ -72,13 +72,32 @@ def _read_one(path) -> pd.DataFrame:
     return df[["LCLid", "DateTime", "kwh"]]
 
 
+def expected_lcl_files() -> list[str]:
+    """Fișierele LCL din manifestul de sume de control din git (data/samples/A/checksums_lcl.sha256)."""
+    from cyberpunks.a_contoare.download import LCL_CHECKSUMS, LCL_DEFAULT_FILES
+
+    if LCL_CHECKSUMS.exists():
+        names = [ln.split()[1] for ln in LCL_CHECKSUMS.read_text(encoding="utf-8").splitlines()
+                 if ln.strip() and not ln.startswith("#")]
+        if names:
+            return names
+    return [f"LCL-June2015v2_{k}.csv" for k in LCL_DEFAULT_FILES]
+
+
 def load_lcl(force: bool = False) -> tuple[np.ndarray, pd.DataFrame]:
     """Tabloul (gospodării × zile × 48) în kWh pe 30 de minute și tabelul gospodăriilor."""
     if HH_NPY.exists() and HH_META.exists() and not force:
         return np.load(HH_NPY, mmap_mode="r"), pd.read_parquet(HH_META)
     files = sorted(LCL_DIR.glob("LCL-June2015v2_*.csv"), key=lambda p: int(p.stem.rsplit("_", 1)[1]))
-    if not files:
-        raise SystemExit("Lipsesc fișierele LCL. Rulează: uv run python -m cyberpunks.a_contoare.download --only lcl")
+    expected = expected_lcl_files()
+    missing = sorted(set(expected) - {p.name for p in files})
+    if not files or missing:
+        # un set incomplet ar antrena pe alte gospodării și ar da alte cifre, fără niciun avertisment
+        raise SystemExit(
+            f"Lipsesc fișierele LCL ({len(missing) or 'toate'}: {', '.join(missing[:5])}...). "
+            "Rulează: uv run python -m cyberpunks.a_contoare.download --only lcl"
+        )
+    files = [p for p in files if p.name in set(expected)]
     df = pd.concat([_read_one(p) for p in files], ignore_index=True)
     ts = pd.to_datetime(df["DateTime"], format="%Y-%m-%d %H:%M:%S.%f", errors="coerce")
     ok = ts.notna() & df["kwh"].notna() & ts.dt.minute.isin([0, 30]) & (ts.dt.second == 0)
