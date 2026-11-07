@@ -91,6 +91,35 @@ Găsită la a doua căutare, 7 nov. 2026.
 - Riscul de neplată completează AI Claims Agent, dar nu există date publice de facturare la energie, deci ar fi doar sintetice.
 - Programarea consumului în orele Ore Smart se suprapune cu myEnergy Coach.
 
+## Propunerile unui coleg din echipă (7 nov., în jur de 12:15)
+
+Din două capturi de ecran trimise de Teo (textul colegului e parțial, capturile încep și se termină la mijloc). Teo a spus că sună foarte bine. Evaluarea de mai jos e a mea.
+
+### H. BlueFlow (PPC Blue): stația pare liberă acum, dar va fi plină când ajungi
+
+- Ideea colegului: modelul estimează congestia la o stație în ora următoare, cu probabilitate și incertitudine. Motorul de decizie găsește o stație alternativă cu locuri libere și verifică dacă redirecționarea merită. Agentul creează o alertă operațională și o notificare cu stația recomandată. Operatorul vede motivul predicției. Demo: "Stația A, 3 din 4 puncte ocupate, 87% probabilitate de ocupare completă" (valoare ilustrativă). Colegul notează corect că ar fi "prototip validat pe date externe, nu model calibrat pentru PPC".
+- Date (verificat prin căutare, 7 nov.): UrbanEV, Shenzhen, 1.682 de stații publice, 24.798 de puncte de încărcare, ocupare orară sept. 2022-feb. 2023, cu vreme, prețuri și distanțe între zone. Licență CC0. GitHub: https://github.com/IntelligentSystemsLab/UrbanEV, Dryad: https://datadryad.org/dataset/doi:10.5061/dryad.np5hqc04z, articol: Scientific Data 12, 523 (2025), DOI 10.1038/s41597-025-04874-4. Alternative: ACN-Data (Caltech), Palo Alto.
+- Puncte tari: cele mai bune date publice dintre toate variantele (licență liberă, multe stații, ocupare gata calculată). Demo ușor de înțeles în 5 minute. PDF-ul PPC pomenește explicit sesiunile de încărcare și locațiile stațiilor.
+- Puncte slabe: e o funcție pentru șoferi, mai mult decât o decizie zilnică a colegilor PPC, iar PDF-ul pune accent pe deciziile colegilor. În România sunt mai puține mașini electrice decât în Shenzhen, deci juriul poate întreba cât de des apare congestia la PPC Blue. Decizia "trimite șoferul la altă stație" e subțire pentru cele 25 de puncte ale agentului.
+- Cum o facem mai puternică: o mutăm spre operatorul PPC Blue. Agentul decide reduceri de preț în orele aglomerate (UrbanEV are prețuri), programează mentenanța stațiilor defecte în orele cu cerere mică, ordonată după venitul pierdut, și ține cont de puterea maximă a racordului fiecărei stații.
+
+### I. Solar Recovery (PPC Renewables): pierderi neexplicate în parcurile solare
+
+- Ideea colegului: modelul învață legătura dintre radiație, temperatură, poziția soarelui și producție. Agentul compară producția estimată cu cea reală, calculează energia pierdută și pregătește tichete de mentenanță, ordonate după valoarea recuperabilă. Pentru echipele de operare și mentenanță ale parcurilor. Riscul, spus de coleg: PPC are deja Smart Sentry, deci diferența trebuie să vină din deciziile economice.
+- Date: NREL PVDAQ (multe sisteme fotovoltaice, cu senzori meteo, licență CC BY), un set cu defecte de umbrire etichetate (acoperiș de 4 kW din Réunion, Data in Brief 2023, pe Zenodo), PVGIS și Open-Meteo. Defectele se pot și injecta sintetic.
+- Evaluare: structura e aceeași ca la A (anomalie, apoi lucrări ordonate pentru echipe cu capacitate limitată) și se potrivește cu PDF-ul ("ce echipamente riscă să se defecteze", "SCADA de la invertoare"). Riscul real e suprapunerea cu Smart Sentry.
+
+### J. FlexShift (PPC Energie): ce aparate programezi și când
+
+- Ideea colegului: modelul estimează profilul de consum, agentul propune sau programează în simulare un program mai ieftin pe tarifele diferențiate.
+- Evaluare: se suprapune cu myEnergy Coach și cu ofertele Ore Smart, pe care PPC le are deja. Relevanță mai mică.
+
+### Ordinea mea după propuneri
+
+1. A (contoare): cea mai apropiată de exemplele din PDF.
+2. I (Solar Recovery) și H (BlueFlow, varianta pentru operator), apropiate. H are cele mai bune date și cel mai ușor demo. I are relevanța mai mare.
+3. C (prosumatori): cea mai originală, dar cea mai grea tehnic.
+
 ## Lecții de aplicat oricare ar fi direcția
 
 - Codul și modelul nostru decid, LLM-ul doar formulează (lecția R Systems, cerința PPC).

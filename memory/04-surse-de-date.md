@@ -59,6 +59,9 @@ Tema cere doar date publice sau sintetice, cu sursa citată.
 - **ANRE, prosumatori**: 359.378 la 30 iunie 2026 (324.535 persoane fizice, 34.843 firme). Sursă: https://startupcafe.ro/romani-panouri-solare-cati-prosumatori-racordare-retelele-electrice-romania-105065 și https://tvrinfo.ro/revolutia-de-pe-acoperisuri-romania-are-peste-330-000-de-prosumatori-retelele-trebuie-sa-tina-pasul/ (332.684 la final de aprilie, 3.789 MW, peste 101.000 cu baterii).
 - **Prețuri negative în România, 2026 (presă)**: https://balkangreenenergynews.com/record-solar-output-in-romania-pushes-power-prices-into-negative-territory/ și https://www.economica.net/?p=935480
 - **Ember, prețuri angro europene**: https://ember-energy.org/data/european-wholesale-electricity-price-data (pagina a refuzat accesul automat, neverificat).
+- **UrbanEV, încărcare mașini electrice (Shenzhen)**: https://github.com/IntelligentSystemsLab/UrbanEV (CC0). 1.682 de stații, 24.798 de puncte, ocupare orară pe 275 de zone, sept. 2022-feb. 2023, cu vreme, prețuri (`s_price.csv`), ocupare (`occupancy.csv`), distanțe. Date complete pe Dryad: https://datadryad.org/dataset/doi:10.5061/dryad.np5hqc04z
+- **NREL PVDAQ, sisteme fotovoltaice**: https://catalog-old.data.gov/dataset/photovoltaic-data-acquisition-pvdaq-public-datasets (CC BY). Producție și senzori meteo pentru multe sisteme.
+- **Acoperiș fotovoltaic cu defecte de umbrire etichetate (Réunion)**: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9800176/ (Data in Brief, 2023, date pe Zenodo). Date de la invertor (AC, DC), radiație, temperaturi.
 - **ENTSO-E pentru România**: prețuri PZU și producție pe tipuri. Exportul din site și API-ul cer cont; tokenul de API se cere prin email.
 
 ## Ce nu avem

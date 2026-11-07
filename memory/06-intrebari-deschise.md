@@ -28,7 +28,7 @@ Se bifează când primim răspunsul, cu ora și cine a răspuns.
 
 ## Despre echipă
 
-- [ ] Cine e în echipa CyberPunks (3-5 oameni), cu userul GitHub al fiecăruia, ca să-i adăugăm în repo.
+- [x] Echipa: Teo (`teopaleface`, proprietarul repo-ului), Tudor (`tudor013`), Eden (`EdenIBD`). Invitații trimise pe 7 nov., cu drept de scriere; trebuie acceptate din GitHub (expiră în 7 zile).
 - [ ] Ce stack știm cu toții (Python pentru ML e aproape sigur; ce folosim pentru interfață?).
 
 ## Despre research
