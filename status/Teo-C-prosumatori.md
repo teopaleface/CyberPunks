@@ -1,7 +1,10 @@
 # Status: Teo-C-prosumatori
-Actualizat: 2026-11-07 16:50
+Actualizat: 2026-11-07 17:12
 Milestone curent: M4 terminat (M0 13:10, M1 13:45, M2 14:11, M3 15:40, M4 16:50)
 Gata de merge: da (commit 2ffeda1; `git merge Teo` făcut la 16:42, `make check` trece: 272 de teste, 32 în `tests/c`)
+
+## Testele C fără rețea (cererea de la 17:05)
+- Cele 32 de teste din `tests/c` rulează offline: vremea vine din mostra din git `data/samples/C/weather_2025_utc.parquet` (2025, 0,15 MB), descărcările sunt blocate în `tests/c/conftest.py`. Verificat cu `data/raw/C`, `data/processed/C`, `data/interim/C` și `models/C` ascunse și rețeaua blocată (proxy invalid, `uv run --offline`): 32 trec.
 
 ## Postul pentru prezentare (legătura bilanț → C): **PT-1082**
 - PT-1082, 1 Decembrie (Ilfov, sintetic). Bilanțul (`A-20250708-PT-1082`, `grid_inspection`) are `extra.phase_rebalance_input`: pierderi pe cabluri de 2,87 ori normalul, circa 77% din case pe o fază.

@@ -82,6 +82,8 @@ uv run python -m cyberpunks.c_prosumatori.connection --post PT-1020 --kwp 25
 
 Verificat dintr-o clonă curată (7 nov., 16:00): `make c-weather c-sim c-population c-train c-predict c-eval` refac `reports/C/metrics.json`; 29 din 30 de cifre ies identic, iar eroarea de calibrare (ECE) diferă la a cincea zecimală (0,00316 față de 0,00317), din rotunjirile LightGBM pe mai multe fire de execuție. Timpii depind de cât de ocupată e mașina.
 
+Testele C (`make c-test`, parte din `make check`) rulează fără rețea: vremea vine din mostra din git `data/samples/C/weather_2025_utc.parquet` (vremea orară Open-Meteo pe 2025, 0,15 MB, refăcută cu `uv run python -m cyberpunks.c_prosumatori.weather sample`), iar descărcările sunt blocate în `tests/c/conftest.py`. Verificat cu datele locale ascunse și rețeaua blocată.
+
 Dintr-o clonă curată, `predict.py` merge și fără pașii grei: modelul e în `models/release/C/`, registrul posturilor în `data/samples/C/posts.csv`, mostra pentru cazurile similare în `data/samples/C/similar_cases.parquet`; vremea se descarcă de la Open-Meteo.
 
 ## Ce iese
