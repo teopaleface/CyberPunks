@@ -103,15 +103,15 @@ export function Readouts({
           plan generat {fmtMoment(generatedAt)}
         </p>
       </div>
-      <dl className="flex min-w-0 flex-1">
+      <dl className="@container flex min-w-0 flex-1">
         {cells.map((c, i) => (
-          <div key={i} className="flex min-w-0 flex-auto items-center gap-3 border-l border-rule px-5 first:border-l-0 min-[1700px]:px-6 max-[1680px]:flex-col max-[1680px]:items-start max-[1680px]:justify-center max-[1680px]:gap-1 max-[1680px]:px-4">
-            <dt className="order-2 text-[14px] leading-[1.3] whitespace-nowrap text-muted-foreground [&_b]:font-[560] [&_b]:text-ink max-[1680px]:text-[13px] max-[1680px]:[&_br]:hidden max-[1680px]:[&_b]:mr-1 max-[1400px]:[&_.sec]:hidden">
+          <div key={i} className="flex min-w-0 flex-auto items-center gap-3 border-l border-rule px-5 first:border-l-0 @min-[1300px]:px-6 @max-[1240px]:flex-col @max-[1240px]:items-start @max-[1240px]:justify-center @max-[1240px]:gap-1 @max-[1240px]:px-4">
+            <dt className="order-2 text-[14px] leading-[1.3] whitespace-nowrap text-muted-foreground [&_b]:font-[560] [&_b]:text-ink @max-[1240px]:text-[13px] @max-[1240px]:[&_br]:hidden @max-[1240px]:[&_b]:mr-1 @max-[1000px]:[&_.sec]:hidden">
               {c.label}
             </dt>
             <dd
               className={
-                "num-wide order-1 text-[clamp(26px,2.1vw,40px)] whitespace-nowrap max-[1680px]:text-[clamp(24px,2vw,32px)] [&_small]:ml-1.5 [&_small]:text-[0.46em] [&_small]:font-[520] [&_small]:tracking-normal [&_small]:text-muted-foreground " +
+                "num-wide order-1 text-[clamp(22px,2.4cqw,38px)] whitespace-nowrap @max-[1240px]:text-[clamp(20px,2.6cqw,30px)] [&_small]:ml-1.5 [&_small]:text-[0.46em] [&_small]:font-[520] [&_small]:tracking-normal [&_small]:text-muted-foreground " +
                 (c.attention ? "text-att" : "")
               }
             >

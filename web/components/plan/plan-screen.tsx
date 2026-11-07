@@ -49,7 +49,7 @@ export function PlanScreen({
   initialSelected,
   postsInfo,
   approval,
-  theme = "light",
+  theme = "dark",
   scene,
   initialRegion,
   initialMode = "items",

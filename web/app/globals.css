@@ -147,10 +147,10 @@
   }
 }
 
-/* Cifre aliniate peste tot: consola e plină de ore, scoruri și lei. */
+/* Cifrele proporționale în text (ID-uri, fraze); coloanele de numere își pun singure `tabular-nums`. */
 @layer base {
   html {
-    font-variant-numeric: tabular-nums;
+    font-variant-numeric: normal;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -182,26 +182,25 @@
   }
 }
 
-/* Lățimile fontului Archivo (axa wdth 62–125): cifrele de panou sunt late, orele și ID-urile înguste. */
+/* Cifrele mari și ID-urile (designul „Noapte”, Inter). */
 @utility num-wide {
-  font-stretch: 122%;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 @utility num-tall {
-  font-stretch: 75%;
   font-weight: 650;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.01em;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 @utility dense {
-  font-stretch: 88%;
+  letter-spacing: -0.005em;
 }
 @utility code-id {
-  font-stretch: 88%;
   font-weight: 600;
-  letter-spacing: 0.005em;
+  letter-spacing: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
