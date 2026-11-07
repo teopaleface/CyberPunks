@@ -47,6 +47,23 @@ def git_sha() -> str:
         return "nogit"
 
 
+def grouped_split(y: np.ndarray, groups: np.ndarray, test_size: float = 0.15, seed: int = 42,
+                  tries: int = 20) -> tuple[np.ndarray, np.ndarray]:
+    """Împărțire pe grupuri întregi (de exemplu gospodării), cu toate clasele în ambele părți.
+
+    Încearcă mai multe seed-uri; dacă niciunul nu dă toate clasele, se oprește cu eroare, în loc să amestece
+    ferestrele aceleiași gospodării în ambele părți.
+    """
+    from sklearn.model_selection import GroupShuffleSplit
+
+    classes = np.unique(y)
+    for t in range(tries):
+        tr, va = next(GroupShuffleSplit(n_splits=1, test_size=test_size, random_state=seed + t).split(y, y, groups))
+        if len(np.unique(y[va])) == len(classes) and len(np.unique(y[tr])) == len(classes):
+            return tr, va
+    raise ValueError("Nu găsesc o împărțire pe grupuri cu toate clasele în ambele părți.")
+
+
 @dataclass
 class MeterModel:
     model_id: str
@@ -70,11 +87,7 @@ class MeterModel:
         if groups is None:
             tr, va = train_test_split(np.arange(len(y)), test_size=0.15, stratify=y, random_state=seed)
         else:
-            from sklearn.model_selection import GroupShuffleSplit
-
-            tr, va = next(GroupShuffleSplit(n_splits=1, test_size=0.15, random_state=seed).split(x, y, groups))
-            if len(np.unique(y[va])) < len(np.unique(y)):  # foarte rar: o clasă lipsește din validare
-                tr, va = train_test_split(np.arange(len(y)), test_size=0.15, stratify=y, random_state=seed)
+            tr, va = grouped_split(y, groups, test_size=0.15, seed=seed)
         p = {**LGBM_PARAMS, **(params or {}), "random_state": seed}
         multiclass = len(self.classes) > 2
         self.clf = lgb.LGBMClassifier(objective="multiclass" if multiclass else "binary", **p)

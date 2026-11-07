@@ -203,9 +203,9 @@ def build() -> str:
         "Ceasul decalat mută consumul cu 30-120 de minute, la fel de mult cât variază obiceiurile unei case de la o "
         "săptămână la alta. Deriva lentă și bypass-ul cu instalare treptată seamănă, în primele săptămâni, cu o "
         "scădere normală de consum. Pentru ceasul decalat am adăugat decalajul profilului zilei (`profile_lag`, "
-        "`profile_lag_gain`), iar pentru derivă panta față de vecini (`peer_ratio_slope`). Pe calibrare, ceasul "
-        "decalat a urcat de la 0% la 12% în primele 5%, iar deriva de la 10% la 20%. Rămân puncte slabe, spuse "
-        "deschis. Ceasul decalat nu schimbă energia totală, deci contează doar la tarifele pe ore.\n"
+        "`profile_lag_gain`), iar pentru derivă panta față de vecini (`peer_ratio_slope`); efectul lor e în "
+        "secțiunea 8. Rămân puncte slabe, spuse deschis. Ceasul decalat nu schimbă energia totală, deci contează "
+        "doar la tarifele pe ore.\n"
     )
 
     parts.append("## 4. Schimbări normale care NU trebuie semnalate\n")
@@ -313,7 +313,10 @@ def build() -> str:
         f"200 de scoruri de test: maximum {f2(L.get('venn_abers_grid_vs_exact', {}).get('max_abs_p'), 4)}). Scorul mediu "
         "e aproape egal cu prevalența reală, deci planificatorul poate înmulți scorul cu valoarea în lei.\n\n"
         "Conformal lucrează pe scorul brut al modelului, cu pragurile alese pe calibrare (alpha 1% pentru normal, "
-        "30% pentru problemă). Garanția privește acoperirea MULȚIMII: \"conține clasa reală\". Nu e același lucru cu "
+        "30% pentru problemă). Funcția de scor (modelul și features) e aleasă fără etichetele de calibrare. Totuși, "
+        "garanția formală cere rânduri interschimbabile, iar la Londra setul de calibrare are mai multe ferestre "
+        "din aceeași gospodărie. De aceea prezentăm acoperirea ca EMPIRICĂ, măsurată pe test (tabelul de mai sus), "
+        "nu ca garanție. Acoperirea privește MULȚIMEA: \"conține clasa reală\". Nu e același lucru cu "
         "\"recunoscut sigur\". O problemă din zona gri e acoperită (mulțimea are ambele clase), dar merge la om, nu la "
         f"echipă. În probabilitate calibrată, zona gri e între {pct(conf_l.get('p_threshold_problem'))} și "
         f"{pct(conf_l.get('p_threshold_normal'))} pe Londra. Pe SGCC e mai largă, pentru că etichetele reale sunt mai "
@@ -325,13 +328,17 @@ def build() -> str:
         so, sn = sel["sgcc"]["vechi"], sel["sgcc"]["nou"]
         lo, ln, lf = sel["lcl"]["vechi"], sel["lcl"]["nou"], sel["lcl"]["nou_fara_sezoniere_brute"]
         sel_txt = (
-            f"PR-AUC SGCC {f2(so['pr_auc'])} -> {f2(sn['pr_auc'])}, precizia@K {f2(so['precision_at_k'])} -> "
-            f"{f2(sn['precision_at_k'])}; Londra PR-AUC {f2(lo['pr_auc'])} -> {f2(ln['pr_auc'])}; în primele 5%: ceasul "
-            f"decalat {pct(lo['top5_by_kind']['clock_drift'])} -> {pct(ln['top5_by_kind']['clock_drift'])}, deriva "
-            f"{pct(lo['top5_by_kind']['drift'])} -> {pct(ln['top5_by_kind']['drift'])}, furtul de noapte "
-            f"{pct(lo['top5_by_kind']['night'])} -> {pct(ln['top5_by_kind']['night'])}. Fără features sezoniere "
-            f"brute, PR-AUC a rămas {f2(lf['pr_auc'])}, dar ceasul decalat a scăzut la "
-            f"{pct(lf['top5_by_kind']['clock_drift'])}, deci le-am păstrat."
+            f"PR-AUC SGCC {f2(so['pr_auc'])} -> {f2(sn['pr_auc'])}, ROC-AUC {f2(so['roc_auc'])} -> {f2(sn['roc_auc'])}; "
+            f"Londra PR-AUC {f2(lo['pr_auc'])} -> {f2(ln['pr_auc'])}; ROC-AUC pe tip, față de contoarele normale: "
+            f"ceasul decalat {f2(lo['auc_by_kind']['clock_drift'])} -> {f2(ln['auc_by_kind']['clock_drift'])}, deriva "
+            f"{f2(lo['auc_by_kind']['drift'])} -> {f2(ln['auc_by_kind']['drift'])}, furtul de noapte "
+            f"{f2(lo['auc_by_kind']['night'])} -> {f2(ln['auc_by_kind']['night'])}. Fără features sezoniere brute, "
+            f"PR-AUC {f2(lf['pr_auc'])} și ceasul decalat {f2(lf['auc_by_kind']['clock_drift'])}, deci le-am păstrat. "
+            "Costul: concediul seamănă puțin mai mult cu o problemă (ROC-AUC față de contoarele normale "
+            f"{f2(lo['auc_benign_vs_normal']['vacation'])} -> {f2(ln['auc_benign_vs_normal']['vacation'])}; 0,5 = de "
+            "nedeosebit, deci mai mic e mai bine aici). "
+            "Validarea are prevalența de antrenare (aproape jumătate probleme), deci cifrele absolute nu se compară cu "
+            "testul; contează doar diferența dintre variante."
         )
     else:
         sel_txt = "rulează select_features.py pentru cifre."
@@ -356,7 +363,8 @@ def build() -> str:
         "3. **Sezonul și tipurile slabe.** În iulie, consumul scade natural față de primăvară, iar modelul vedea "
         "scăderi peste tot. Am adăugat 10 features: scăderea și panta raportate la vecinii de pe post "
         "(`max_drop_peer`, `peer_ratio_slope`), care scot vremea și sezonul, decalajul profilului zilei, forma "
-        "distribuției, golurile separate și ritmul săptămânal. Le-am ales pe setul de calibrare, nu pe test "
+        "distribuției, golurile separate și ritmul săptămânal. Le-am ales pe o validare din setul de antrenare "
+        "(gospodării ținute deoparte), nu pe calibrare și nu pe test "
         f"(`select_features.py`): {sel_txt}\n"
         "4. **Un baseline mai corect.** Pe lângă regula simplă cerută (zero >= 7 zile sau scădere >= 50%), am "
         "construit regula VEE completă: zero, valori repetate, goluri, negative, salturi, scădere. Pragurile de "
@@ -472,8 +480,8 @@ def build_model_card() -> str:
         ),
         "",
         (f"- Calibrare (Londra, test): Brier {f2(L['calibration']['brier'], 3)}, ECE {f2(L['calibration']['ece'], 3)}. "
-         f"Conformal (acoperirea mulțimii, garanția): {pct(L['conformal']['set_coverage_normal'])} la normale "
-         f"(țintă 99%), {pct(L['conformal']['set_coverage_problem'])} la probleme (țintă 70%). Ca decizii: "
+         f"Conformal (acoperirea empirică a mulțimii, pe test): {pct(L['conformal']['set_coverage_normal'])} la "
+         f"normale (țintă 99%), {pct(L['conformal']['set_coverage_problem'])} la probleme (țintă 70%). Ca decizii: "
          f"{pct(L['conformal']['problem_recall_sure'])} din probleme recunoscute sigur, precizia deciziilor "
          f"\"problemă\" {pct(L['conformal']['problem_precision_sure'])}, "
          f"{pct(L['conformal']['normal_to_problem'])} din contoarele normale declarate \"problemă\", "

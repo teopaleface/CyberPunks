@@ -9,9 +9,10 @@
   (funcția de scor e fixată înainte de setul de calibrare, deci split conformal e valid). Scorul de
   neconformitate e s pentru clasa "normal" și 1 - s pentru "problemă"; pragul fiecărei clase e a k-a valoare
   sortată, k = ceil((n + 1)(1 - alpha)). Mulțimea de predicție: {normal}, {problemă}, ambele sau niciuna; ambele
-  sau niciuna = "nu sunt sigur". Garanția (dacă datele noi seamănă cu cele de calibrare): mulțimea conține clasa
-  reală în cel puțin 1 - alpha din cazuri, separat pe clasă. Atenție: asta e acoperirea MULȚIMII, nu precizia
-  deciziilor; cele două se raportează separat.
+  sau niciuna = "nu sunt sigur". Garanția (dacă rândurile de calibrare și cele noi sunt interschimbabile): mulțimea
+  conține clasa reală în cel puțin 1 - alpha din cazuri, separat pe clasă. La Londra, calibrarea are mai multe
+  ferestre din aceeași gospodărie, deci raportăm acoperirea ca empirică (măsurată pe test). Atenție: e acoperirea
+  MULȚIMII, nu precizia deciziilor; cele două se raportează separat.
 """
 
 from __future__ import annotations
