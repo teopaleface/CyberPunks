@@ -1,7 +1,7 @@
 # Status: Teo-ui
-Actualizat: 2026-11-07 19:10
-Milestone curent: designul „Noapte” cerut de Teo la 18:55 (14 imagini), aplicat pe toate ecranele; lucru în curs
-Gata de merge: nu încă (redesign în lucru; ultima versiune bună: 63fac7a)
+Actualizat: 2026-11-07 20:15
+Milestone curent: designul „Noapte” aplicat; site-ul de prezentare îmbinat; consola publicată pe Cloudflare
+Gata de merge: da (ultimul commit pe origin/Teo-ui; include web/site de la Tudor, consola la /app)
 
 ## Făcut
 - 12:45 Citite instrucțiunile, memoria, planul, contractele; `uv sync` și `make check` trec.
@@ -59,6 +59,10 @@ Gata de merge: nu încă (redesign în lucru; ultima versiune bună: 63fac7a)
 - 18:45 Review `web-design-guidelines` pe ecranele noi (0 grave, 8 medii, toate reparate), testul de fum 15/15 (cu `/harta`), 50 de teste, consola fără erori; capturile noi pentru slideuri (15) în `web/design/captures/`.
 - 18:55 Teo a trimis 14 imagini de design („Noapte”: fundal bleumarin închis, meniu în stânga, carduri, pastile, indicatori semicirculari) și a cerut consola „identic așa”. Decizie: aspectul din imagini, datele reale din API (imaginile au cifre inventate de generator, de ex. „1.284 posturi”, „PT-1223 Domnești”, rânduri de jurnal; nu le copiem).
 - 19:01 Fundația: tema închisă (culori luate cu pipeta din imagini), fontul Inter, meniul din stânga cu cele opt ecrane, filele Consola / Rezultate / Rulează / Vezi demo, căutarea (⌘K), pe telefon bara de jos; piesele comune în `web/components/ds/`. Șase subagenți refac în paralel ecranele (planul, Nu sunt sigur + Rulare agent, posturile, lucrările A/B/C, jurnal + alerte + modele, ordinul de lucru + prezentarea).
+- 19:20 Toate ecranele în designul „Noapte” (șase subagenți în paralel, apoi tur vizual la 1440×900, 1920×1080 și 390×844, review `web-design-guidelines`: 1 grav și 14 medii, toate reparate). Ecrane noi: Rulare agent (`/rulare`), Lucrări cu ordinul de lucru printabil (`/lucrari`).
+- 19:45 Teo a cerut îmbinarea cu site-ul de prezentare al lui Tudor (ramura `design`, `web/site`, Vite). Prima pagină (`/`) și paginile `/bilant`, `/diagnostic`, `/plan`, `/agent`, `/intra` sunt site-ul lui Tudor, neschimbat la vedere, construit în `web/public/landing/` la dev/build; consola începe la `/app`; legăturile site-ului spre `/app/...` duc la ecranele consolei. Din `design` am luat doar `web/site` și cele două fișiere de configurare (ramura șterge datele și modelele).
+- 20:00 Normalizare: consola folosește aceleași fonturi ca site-ul (Geist, Unbounded pentru numele Daybreak).
+- 20:10 Publicat pe Cloudflare Workers (confirmat de Teo): https://daybreak.ghiseateodor245.workers.dev (contul lui Teo, workerul `daybreak`, OpenNext). Pe Cloudflare nu rulează agentul Python: consola arată planul salvat din git (`DATA_SOURCE=demo`), datele sunt copiate ca fișiere statice (`scripts/cloudflare-data.ts`, `lib/server/read-file.ts`), fără Cache Components (blocau workerul). Comenzi: `cd web && bun run cf:build && bun run cf:deploy`.
 
 ## Urmează
 - Până la 20:00: captura paginii unui post cu graficul bilanțului, dacă seriile ajung în API sau în instantaneu; altfel nimic nou, doar ce găsește testarea.
@@ -68,6 +72,7 @@ Gata de merge: nu încă (redesign în lucru; ultima versiune bună: 63fac7a)
 - niciunul
 
 ## Cereri către orchestrator
+- (20:15) Cloudflare: contul lui Teo e pe planul gratuit Workers (10 ms de procesor pe cerere). `/alerte` și `/rulare` depășesc limita (eroarea 1102), `/jurnal` trece doar uneori; restul ecranelor merg. Soluția: planul Workers Paid (5 $/lună) din dashboard; nu trebuie schimbat nimic în cod. Decizia (plata) e a lui Teo.
 - (18:45) Raportul nou al lui A (`primary_metric: subtle_precision_at_k`, 0,625 față de 0,07) e în `Teo`, dar API-ul de pe 8710 servește încă raportul vechi (precizia@K 1,00) și la fel instantaneul `outputs/demo/reports/`. Consola urmează automat `primary_metric`; trebuie doar ca API-ul (checkout-ul planificatorului) să ia `Teo` și `make demo-snapshot` să refacă instantaneul.
 - (18:45) Seriile bilanțului: lucrarea `A-20250708-PT-1269` are `extra.series_ref = outputs/series/demo-vara/A-20250708-PT-1269.json`; fișierul există doar în `/tmp/bilant_clean/outputs/series/demo-vara/` (78 de fișiere), nu și în checkout-ul principal sau în cel din care rulează API-ul. Consola le găsește singură dacă stau în `outputs/series/demo-vara/` al checkout-ului (verificat: graficul apare pe `/posturi/PT-1269`). Propunere: `make bilant-predict` în checkout-ul API-ului, apoi `make demo-snapshot`.
 - (17:05) Către planificator: în `alerts[].work_item_ids` aceeași lucrare apare de două ori (alerta „cazuri cu risc de siguranță”: 194 de intrări, 103 lucrări distincte), iar titlul și „și încă N” din text numără dublurile. Interfața le scoate și corectează numărul din titlu; textul („și încă 188”) rămâne cum vine. Tot acolo: „Întăriri necesare: 1 cazuri de siguranță” (plural).
@@ -88,7 +93,7 @@ Gata de merge: nu încă (redesign în lucru; ultima versiune bună: 63fac7a)
 - Rezolvate de orchestrator la 13:20: seriile de exemplu, planul complet, `depart_at`/`return_at`, `visit_cost_lei`, structura `outputs/demo/`, `scenario_id`, jurnalul.
 
 ## Pornirea consolei pentru testare
-1. Prima dată: `make web-install` (instalează pachetele consolei cu bun).
+1. Prima dată: `make web-install` (instalează pachetele consolei cu bun). Prima pagină e site-ul de prezentare; consola e la http://localhost:3710/app.
 2. Cu agentul în direct: `make api` într-un terminal și `make web-demo` în altul, apoi http://localhost:3710 (planul) și http://localhost:3710/demo (prezentarea, tema închisă).
 3. Fără modele și fără API: `make web`; consola citește singură planul salvat din `outputs/demo/` și scrie sus „Ultimul plan salvat”.
 4. Verificări: `make web-test` (38 de teste) și, cu consola pornită, `make web-smoke` (14 ecrane).
