@@ -1,0 +1,79 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--ground);
+    }
+    #s6-scene {
+      position: absolute;
+      inset: 0;
+    }
+    #s6-bg {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      object-fit: cover;
+      transform-origin: 50% 30%;
+    }
+    #s6-shade {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 55% at 50% 52%, rgba(7, 9, 13, 0.78) 0%, rgba(7, 9, 13, 0.5) 60%, rgba(7, 9, 13, 0.2) 100%);
+    }
+    .s6-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 128px;
+      font-weight: 600;
+      letter-spacing: -0.05em;
+      line-height: 1;
+      color: var(--ink);
+    }
+    .s6-line span {
+      display: inline-block;
+    }
+    #s6-l1 {
+      top: 360px;
+    }
+    #s6-l2 {
+      top: 540px;
+    }
+    #s6-ai {
+      position: absolute;
+      left: 120px;
+      bottom: 40px;
+      font-size: 20px;
+      font-weight: 450;
+      color: var(--ink-3);
+    }
+  </style>
+  <div id="root" data-composition-id="s6" data-width="1920" data-height="1080">
+    <div id="s6-scene" class="clip" data-start="0" data-duration="2.5" data-layout-allow-overflow>
+      <img id="s6-bg" src="assets/img/gen-transformer_pole.jpg" alt="" />
+      <div id="s6-shade"></div>
+      <h2 id="s6-l1" class="s6-line"><span>Nu</span> <span>sunt</span> <span>sigur.</span></h2>
+      <h2 id="s6-l2" class="s6-line"><span>Un</span> <span>om</span> <span>decide.</span></h2>
+      <p id="s6-ai" data-layout-ignore>Imagine generată cu AI</p>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      // Pauza din muzică: tobele tac, imaginea stă, doar textul.
+      tl.fromTo("#s6-bg", { opacity: 0, scale: 1.04 }, { opacity: 0.55, scale: 1.0, duration: 2.5, ease: "power2.out" }, 0);
+      tl.fromTo("#s6-l1 span", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out", stagger: 0.09 }, 0.1);
+      tl.fromTo("#s6-l2 span", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out", stagger: 0.09 }, 1.0);
+      // Atenția trece de la îndoiala agentului la decizia omului.
+      tl.to("#s6-l1", { opacity: 0.45, duration: 0.4, ease: "power2.out" }, 1.15);
+      tl.fromTo("#s6-ai", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0.3);
+      tl.to(["#s6-l1", "#s6-l2", "#s6-ai"], { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power3.in" }, 2.3);
+      window.__timelines["s6"] = tl;
+    })();
+  </script>
+</template>

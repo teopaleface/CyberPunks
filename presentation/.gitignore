@@ -6,3 +6,6 @@ video/boards/.posed.html
 # Muzica se regenerează din compose.py; în git intră doar varianta comprimată folosită în video
 music/out/*.wav
 music/out/stems/
+
+# Originalele PNG ale imaginilor generate (în git intră variantele JPEG din video/assets/img/)
+assets/gen/*.png

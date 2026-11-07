@@ -1,5 +1,13 @@
 <!doctype html>
-<html lang="ro" data-resolution="landscape">
+<html
+  lang="ro"
+  data-resolution="landscape"
+  data-composition-variables='[
+    {"id":"color-ground","type":"color","label":"Fundal (noapte)","default":"#07090D"},
+    {"id":"color-ink","type":"color","label":"Text (hârtie)","default":"#F2EFE8"},
+    {"id":"color-accent","type":"color","label":"Accent (chihlimbar)","default":"#FFA53D"}
+  ]'
+>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1920, height=1080" />
@@ -24,9 +32,11 @@
           U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
       }
       :root {
-        --ground: #07090d;
-        --ink: #f2efe8;
-        --accent: #ffa53d;
+        --ground: var(--color-ground, #07090d);
+        --ink: var(--color-ink, #f2efe8);
+        --ink-2: rgba(242, 239, 232, 0.64);
+        --ink-3: rgba(242, 239, 232, 0.42);
+        --accent: var(--color-accent, #ffa53d);
         --font-display: "Hanken Grotesk", sans-serif;
       }
       * {
@@ -47,64 +57,38 @@
         height: 100%;
         font-family: var(--font-display);
         color: var(--ink);
+        -webkit-font-smoothing: antialiased;
       }
-      #test-card {
+      #bg-ground {
         position: absolute;
         inset: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 28px;
-      }
-      #test-title {
-        font-size: 120px;
-        font-weight: 600;
-        letter-spacing: -0.04em;
-        line-height: 1;
-      }
-      #test-title span {
-        display: inline-block;
-      }
-      #test-title .acc {
-        color: var(--accent);
-      }
-      #test-sub {
-        font-size: 34px;
-        font-weight: 450;
-        letter-spacing: -0.01em;
-        color: rgba(242, 239, 232, 0.72);
+        background: var(--ground);
       }
     </style>
   </head>
   <body>
+    <!-- 96 BPM: o măsură = 2,5 s = 75 de cadre la 30 fps. Scenele încep pe măsuri (vezi STORYBOARD.md). -->
     <div
       id="root"
       data-composition-id="main"
       data-start="0"
-      data-duration="2"
+      data-duration="30"
       data-width="1920"
       data-height="1080"
     >
-      <div id="test-card" class="clip" data-start="0" data-duration="2" data-track-index="0">
-        <h1 id="test-title"><span id="w1">Tura</span> <span id="w2">de</span> <span id="w3" class="acc">mâine</span></h1>
-        <p id="test-sub">Test HyperFrames · diacritice: ș ț ă â î · 2 secunde</p>
-      </div>
+      <div id="bg-ground"></div>
+      <div id="s1" data-composition-id="s1" data-composition-src="compositions/s1-noapte.html" data-start="0" data-duration="5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="s2" data-composition-id="s2" data-composition-src="compositions/s2-scor.html" data-start="5" data-duration="5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="s3" data-composition-id="s3" data-composition-src="compositions/s3-nume.html" data-start="10" data-duration="2.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="s4" data-composition-id="s4" data-composition-src="compositions/s4-semnale.html" data-start="12.5" data-duration="2.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="s5" data-composition-id="s5" data-composition-src="compositions/s5-agent.html" data-start="15" data-duration="7.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="s6" data-composition-id="s6" data-composition-src="compositions/s6-om.html" data-start="22.5" data-duration="2.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="s7" data-composition-id="s7" data-composition-src="compositions/s7-cifra.html" data-start="25" data-duration="2.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="s8" data-composition-id="s8" data-composition-src="compositions/s8-final.html" data-start="27.5" data-duration="2.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
     </div>
     <script>
       window.__timelines = window.__timelines || {};
-      const tl = gsap.timeline({ paused: true });
-      // Fiecare cuvânt intră cu blur, fără translație (regula din motion.md), 0,067 s între cuvinte.
-      ["#w1", "#w2", "#w3"].forEach((sel, i) => {
-        tl.fromTo(
-          sel,
-          { opacity: 0, filter: "blur(10px)" },
-          { opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out" },
-          0.25 + i * 0.12,
-        );
-      });
-      tl.fromTo("#test-sub", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 0.8);
-      window.__timelines["main"] = tl;
+      window.__timelines["main"] = gsap.timeline({ paused: true });
     </script>
   </body>
 </html>

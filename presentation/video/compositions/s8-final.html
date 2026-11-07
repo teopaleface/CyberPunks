@@ -1,0 +1,98 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--ground);
+    }
+    #s8-scene {
+      position: absolute;
+      inset: 0;
+    }
+    #s8-dawn {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      object-fit: cover;
+      transform-origin: 50% 88%;
+    }
+    #s8-name {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 330px;
+      text-align: center;
+      font-size: 140px;
+      font-weight: 600;
+      letter-spacing: -0.05em;
+      line-height: 1;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+    #s8-name .w {
+      display: inline-block;
+    }
+    #s8-dot {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      margin-left: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    #s8-team {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 535px;
+      text-align: center;
+      font-size: 46px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    #s8-event {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 600px;
+      text-align: center;
+      font-size: 34px;
+      font-weight: 450;
+      color: var(--ink-2);
+    }
+    #s8-ai {
+      position: absolute;
+      left: 120px;
+      bottom: 40px;
+      font-size: 20px;
+      font-weight: 450;
+      color: var(--ink-3);
+    }
+  </style>
+  <div id="root" data-composition-id="s8" data-width="1920" data-height="1080">
+    <div id="s8-scene" class="clip" data-start="0" data-duration="2.5" data-layout-allow-overflow>
+      <img id="s8-dawn" src="assets/img/gen-dawn_horizon.jpg" alt="" />
+      <h1 id="s8-name"><span class="w" id="s8-w1">Tura</span> <span class="w" id="s8-w2">de</span> <span class="w" id="s8-w3">mâine</span><span id="s8-dot"></span></h1>
+      <p id="s8-team">CyberPunks</p>
+      <p id="s8-event">SmartHack XI 2026, tema PPC</p>
+      <p id="s8-ai" data-layout-ignore>Imagine generată cu AI</p>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      // Inundație de culoare: noaptea se face dimineață. Acordul final cade pe 0 s (27,5 s în film).
+      tl.fromTo("#s8-dawn", { opacity: 0, scale: 1.06 }, { opacity: 1, scale: 1.0, duration: 1.6, ease: "power2.inOut" }, 0);
+      tl.fromTo(["#s8-w1", "#s8-w2", "#s8-w3"], { opacity: 0, filter: "blur(12px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.55, ease: "expo.out", stagger: 0.08 }, 0.0);
+      tl.fromTo("#s8-dot", { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.5, ease: "expo.out" }, 0.25);
+      tl.fromTo("#s8-team", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out" }, 0.3);
+      tl.fromTo("#s8-event", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out" }, 0.38);
+      tl.fromTo("#s8-ai", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 0.8);
+      window.__timelines["s8"] = tl;
+    })();
+  </script>
+</template>

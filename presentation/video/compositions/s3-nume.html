@@ -1,0 +1,100 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--ground);
+    }
+    #s3-scene {
+      position: absolute;
+      inset: 0;
+    }
+    #s3-haze {
+      position: absolute;
+      left: -1888px;
+      top: -1848px;
+      width: 4608px;
+      height: 3584px;
+      opacity: 0.1;
+      filter: blur(36px);
+    }
+    #s3-move {
+      position: absolute;
+      inset: 0;
+    }
+    #s3-name {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 372px;
+      text-align: center;
+      font-size: 156px;
+      font-weight: 600;
+      letter-spacing: -0.05em;
+      line-height: 1;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+    #s3-name .w {
+      display: inline-block;
+    }
+    /* Punctul chihlimbar: o oprire pe traseul de mâine. Ține locul punctului de la final. */
+    #s3-dot {
+      display: inline-block;
+      width: 27px;
+      height: 27px;
+      margin-left: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    #s3-sub {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 600px;
+      text-align: center;
+      font-size: 46px;
+      font-weight: 450;
+      letter-spacing: -0.015em;
+      color: var(--ink-2);
+    }
+    #s3-sub span {
+      display: inline-block;
+    }
+  </style>
+  <div id="root" data-composition-id="s3" data-width="1920" data-height="1080">
+    <div id="s3-scene" class="clip" data-start="0" data-duration="2.5" data-layout-allow-overflow>
+      <img id="s3-haze" src="assets/img/romania_night_z8.jpg" alt="" data-layout-ignore />
+      <div id="s3-move">
+        <h1 id="s3-name"><span class="w" id="s3-w1">Tura</span> <span class="w" id="s3-w2">de</span> <span class="w" id="s3-w3">mâine</span><span id="s3-dot"></span></h1>
+        <p id="s3-sub">
+          <span>Agentul</span> <span>care</span> <span>planifică</span> <span>echipele</span> <span>de</span> <span>teren.</span>
+        </p>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      // Punctul pornește din centrul cadrului (unde s-a strâns scorul) și ajunge la capătul numelui.
+      // Deplasarea e măsurată pe randare: centrul punctului final e la aprox. (1452, 523).
+      tl.fromTo("#s3-dot", { x: -492, y: 17, scale: 0.7 }, { x: 0, y: 0, scale: 1, duration: 0.75, ease: "expo.inOut" }, 0);
+      tl.fromTo(
+        ["#s3-w1", "#s3-w2", "#s3-w3"],
+        { opacity: 0, filter: "blur(12px)" },
+        { opacity: 1, filter: "blur(0px)", duration: 0.55, ease: "expo.out", stagger: 0.1 },
+        0.12,
+      );
+      tl.fromTo(
+        "#s3-sub span",
+        { opacity: 0, filter: "blur(8px)" },
+        { opacity: 1, filter: "blur(0px)", duration: 0.45, ease: "expo.out", stagger: 0.07 },
+        0.55,
+      );
+      // Whip spre semnale: totul pleacă spre stânga, cu blur pe orizontală.
+      tl.to("#s3-move", { x: -260, opacity: 0, filter: "blur(14px)", duration: 0.22, ease: "power3.in" }, 2.28);
+      window.__timelines["s3"] = tl;
+    })();
+  </script>
+</template>

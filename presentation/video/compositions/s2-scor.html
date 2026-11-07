@@ -1,0 +1,119 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--ground);
+    }
+    #s2-scene {
+      position: absolute;
+      inset: 0;
+    }
+    /* Aceeași lume, nefocalizată: luminile nopții, foarte slab, în spate. */
+    #s2-haze {
+      position: absolute;
+      left: -1888px;
+      top: -1848px;
+      width: 4608px;
+      height: 3584px;
+      opacity: 0.16;
+      filter: blur(36px);
+    }
+    #s2-flare {
+      position: absolute;
+      left: 960px;
+      top: 540px;
+      width: 1500px;
+      height: 1500px;
+      margin: -750px 0 0 -750px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 236, 205, 0.95) 0%, rgba(255, 214, 160, 0.55) 22%, rgba(255, 190, 120, 0.12) 48%, rgba(7, 9, 13, 0) 70%);
+    }
+    #s2-col {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    #s2-score {
+      font-size: 300px;
+      font-weight: 600;
+      letter-spacing: -0.055em;
+      line-height: 0.9;
+      font-variant-numeric: lining-nums;
+      color: var(--ink);
+    }
+    #s2-score-label {
+      margin-top: 18px;
+      font-size: 34px;
+      font-weight: 450;
+      color: var(--ink-2);
+    }
+    #s2-quote {
+      margin-top: 76px;
+      max-width: 1240px;
+      font-size: 64px;
+      font-weight: 500;
+      letter-spacing: -0.025em;
+      line-height: 1.12;
+      color: var(--ink);
+    }
+    #s2-quote span {
+      display: inline-block;
+    }
+    #s2-source {
+      margin-top: 36px;
+      font-size: 28px;
+      font-weight: 450;
+      color: var(--ink-3);
+    }
+  </style>
+  <div id="root" data-composition-id="s2" data-width="1920" data-height="1080">
+    <div id="s2-scene" class="clip" data-start="0" data-duration="5" data-layout-allow-overflow>
+      <img id="s2-haze" src="assets/img/romania_night_z8.jpg" alt="" data-layout-ignore />
+      <div id="s2-flare" data-layout-ignore></div>
+      <div id="s2-col">
+        <div id="s2-score">0,87</div>
+        <div id="s2-score-label">scor de anomalie</div>
+        <p id="s2-quote">
+          <span>nu</span> <span>îi</span> <span>spune</span> <span>unui</span> <span>tehnician</span> <span>unde</span>
+          <span>să</span> <span>meargă</span> <span>mâine</span> <span>dimineață.</span>
+        </p>
+        <div id="s2-source">Din tema PPC</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      // Lumina din zoom se strânge, scorul iese din ea.
+      tl.fromTo("#s2-flare", { scale: 1, opacity: 1 }, { scale: 0.25, opacity: 0, duration: 0.55, ease: "expo.out" }, 0);
+      tl.fromTo("#s2-haze", { opacity: 0 }, { opacity: 0.16, duration: 1.2, ease: "power2.out" }, 0.2);
+      tl.fromTo(
+        "#s2-score",
+        { opacity: 0, scale: 1.18, filter: "blur(24px)" },
+        { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.7, ease: "expo.out" },
+        0.02,
+      );
+      tl.fromTo("#s2-score-label", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.4, ease: "expo.out" }, 0.45);
+      // Citatul din tema PPC intră pe bătaia 3 a măsurii (6,25 s în film).
+      tl.fromTo(
+        "#s2-quote span",
+        { opacity: 0, filter: "blur(10px)" },
+        { opacity: 1, filter: "blur(0px)", duration: 0.45, ease: "expo.out", stagger: 0.07 },
+        1.25,
+      );
+      tl.fromTo("#s2-source", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 2.0);
+      // Respirația dinaintea numelui: totul pleacă, scorul se strânge într-un punct.
+      tl.to(["#s2-quote span", "#s2-score-label", "#s2-source"], { opacity: 0, filter: "blur(8px)", duration: 0.25, ease: "power3.in" }, 4.4);
+      tl.to("#s2-score", { scale: 0.04, opacity: 0, filter: "blur(6px)", duration: 0.4, ease: "power3.in" }, 4.55);
+      tl.to("#s2-haze", { opacity: 0.1, duration: 0.4, ease: "power2.in" }, 4.55);
+      window.__timelines["s2"] = tl;
+    })();
+  </script>
+</template>

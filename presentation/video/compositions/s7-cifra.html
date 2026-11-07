@@ -1,0 +1,99 @@
+<template>
+  <!-- Cifra principală față de baseline. Valorile vin DOAR din reports/ (după 21:30). Până atunci: locuri goale, marcate. -->
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--ground);
+    }
+    #s7-scene {
+      position: absolute;
+      inset: 0;
+    }
+    #s7-col {
+      position: absolute;
+      left: 360px;
+      right: 360px;
+      top: 250px;
+    }
+    #s7-big {
+      font-size: 220px;
+      font-weight: 600;
+      letter-spacing: -0.055em;
+      line-height: 0.9;
+      color: var(--accent);
+    }
+    #s7-what {
+      margin-top: 28px;
+      font-size: 46px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    .s7-row {
+      position: relative;
+      margin-top: 30px;
+      height: 46px;
+    }
+    #s7-row1 {
+      margin-top: 72px;
+    }
+    .s7-name {
+      position: absolute;
+      left: 0;
+      top: 4px;
+      width: 220px;
+      font-size: 32px;
+      font-weight: 500;
+      color: var(--ink-2);
+    }
+    .s7-bar {
+      position: absolute;
+      left: 230px;
+      top: 6px;
+      height: 34px;
+      border-radius: 3px;
+      transform-origin: 0 50%;
+    }
+    #s7-bar1 {
+      width: 900px;
+      background: var(--accent);
+    }
+    #s7-bar2 {
+      width: 520px;
+      background: rgba(242, 239, 232, 0.3);
+    }
+    #s7-note {
+      position: absolute;
+      left: 360px;
+      bottom: 60px;
+      font-size: 24px;
+      font-weight: 450;
+      color: var(--ink-3);
+    }
+  </style>
+  <div id="root" data-composition-id="s7" data-width="1920" data-height="1080">
+    <div id="s7-scene" class="clip" data-start="0" data-duration="2.5" data-layout-allow-overflow>
+      <div id="s7-col">
+        <div id="s7-big">+—%</div>
+        <div id="s7-what">valoare găsită de agent, față de baseline</div>
+        <div id="s7-row1" class="s7-row"><span class="s7-name">Agentul</span><div id="s7-bar1" class="s7-bar"></div></div>
+        <div id="s7-row2" class="s7-row"><span class="s7-name">Baseline</span><div id="s7-bar2" class="s7-bar"></div></div>
+      </div>
+      <p id="s7-note" data-layout-ignore>Loc pentru cifra reală din reports/ (după 21:30). Fără cifră, cadrul rămâne fără cifră.</p>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#s7-big", { opacity: 0, filter: "blur(16px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.55, ease: "expo.out" }, 0.05);
+      tl.fromTo("#s7-what", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.45, ease: "expo.out" }, 0.3);
+      tl.fromTo(".s7-name", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out", stagger: 0.1 }, 0.45);
+      tl.fromTo("#s7-bar2", { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: "power3.out" }, 0.5);
+      tl.fromTo("#s7-bar1", { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: "power3.out" }, 0.6);
+      tl.to("#s7-col", { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power3.in" }, 2.3);
+      window.__timelines["s7"] = tl;
+    })();
+  </script>
+</template>

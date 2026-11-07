@@ -1,0 +1,131 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--ground);
+    }
+    #s1-scene {
+      position: absolute;
+      inset: 0;
+    }
+    #s1-lens {
+      position: absolute;
+      inset: 0;
+    }
+    /* Lumea: imaginea NASA la mărimea ei (2304 x 1792), cu straturile SVG aliniate pixel cu pixel. */
+    #s1-world {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2304px;
+      height: 1792px;
+      transform-origin: 0 0;
+    }
+    #s1-world img {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2304px;
+      height: 1792px;
+    }
+    .s1-region-label {
+      position: absolute;
+      font-size: 33px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      color: var(--ink-2);
+      white-space: nowrap;
+      transform: translate(-50%, -50%);
+    }
+    .s1-line {
+      position: absolute;
+      left: 120px;
+      top: 92px;
+      font-size: 84px;
+      font-weight: 600;
+      letter-spacing: -0.035em;
+      line-height: 1.05;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+    .s1-line span {
+      display: inline-block;
+    }
+    #s1-credit {
+      position: absolute;
+      left: 120px;
+      bottom: 40px;
+      font-size: 20px;
+      font-weight: 450;
+      color: var(--ink-3);
+    }
+  </style>
+  <div id="root" data-composition-id="s1" data-width="1920" data-height="1080">
+    <div id="s1-scene" class="clip" data-start="0" data-duration="5" data-layout-allow-overflow>
+      <div id="s1-lens">
+        <div id="s1-world">
+          <img id="s1-night" src="assets/img/romania_night_z8.jpg" alt="" />
+          <img id="s1-dim" src="assets/geo/dim_outside.svg" alt="" />
+          <img id="s1-ro" src="assets/geo/romania_outline.svg" alt="" />
+          <img id="s1-reg" src="assets/geo/regions_outline.svg" alt="" />
+          <div id="s1-lab-banat" class="s1-region-label" style="left: 691px; top: 881px">Banat</div>
+          <div id="s1-lab-munt" class="s1-region-label" style="left: 1409px; top: 1262px">Muntenia Sud</div>
+          <div id="s1-lab-dobr" class="s1-region-label" style="left: 1760px; top: 1110px">Dobrogea</div>
+        </div>
+      </div>
+      <h2 id="s1-l1" class="clip s1-line" data-start="0.3" data-duration="2.05">
+        <span>2</span> <span>milioane</span> <span>de</span> <span>contoare</span> <span>inteligente.</span>
+      </h2>
+      <h2 id="s1-l2" class="clip s1-line" data-start="2.35" data-duration="2.55">
+        <span>192</span> <span>de</span> <span>milioane</span> <span>de</span> <span>citiri</span> <span>pe</span> <span>zi.</span>
+      </h2>
+      <p id="s1-credit" data-layout-ignore>Imagine NASA Black Marble 2016, granițe geoBoundaries</p>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      // Camera: imaginea are 2304 x 1792 px. Cele trei regiuni stau în jumătatea de jos a cadrului.
+      tl.fromTo(
+        "#s1-world",
+        { x: -38, y: -145, scale: 0.85 },
+        { x: -87, y: -185, scale: 0.89, duration: 4.3, ease: "power2.inOut" },
+        0,
+      );
+      // Zoom prin lumina Bucureștiului (1424, 1194 px în imagine) spre scorul din scena 2.
+      tl.to("#s1-world", { x: 960 - 24 * 1424, y: 540 - 24 * 1194, scale: 24, duration: 0.7, ease: "power3.in" }, 4.3);
+      tl.fromTo("#s1-lens", { filter: "blur(0px)" }, { filter: "blur(18px)", duration: 0.45, ease: "power2.in" }, 4.55);
+
+      tl.fromTo("#s1-night", { opacity: 0.55 }, { opacity: 1, duration: 1.2, ease: "power2.out" }, 0);
+      tl.fromTo("#s1-dim", { opacity: 0 }, { opacity: 0.78, duration: 1.2, ease: "power2.inOut" }, 0.2);
+      tl.fromTo("#s1-ro", { opacity: 0 }, { opacity: 0.22, duration: 1.0, ease: "power2.out" }, 0.4);
+      tl.fromTo("#s1-reg", { opacity: 0 }, { opacity: 0.5, duration: 1.0, ease: "power2.out" }, 0.6);
+      tl.fromTo(
+        ["#s1-lab-banat", "#s1-lab-munt", "#s1-lab-dobr"],
+        { opacity: 0 },
+        { opacity: 1, duration: 0.6, ease: "power2.out", stagger: 0.08 },
+        1.0,
+      );
+      tl.to(["#s1-lab-banat", "#s1-lab-munt", "#s1-lab-dobr", "#s1-ro", "#s1-reg"], { opacity: 0, duration: 0.25, ease: "power3.in" }, 4.2);
+
+      // Cuvintele intră cu blur, fără alunecare.
+      const words = (sel, at, gap) =>
+        tl.fromTo(
+          sel + " span",
+          { opacity: 0, filter: "blur(10px)" },
+          { opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out", stagger: gap },
+          at,
+        );
+      words("#s1-l1", 0.3, 0.08);
+      tl.to("#s1-l1 span", { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power3.in" }, 2.12);
+      words("#s1-l2", 2.38, 0.07);
+      tl.to("#s1-l2 span", { opacity: 0, filter: "blur(8px)", duration: 0.25, ease: "power3.in" }, 4.55);
+      tl.fromTo("#s1-credit", { opacity: 0 }, { opacity: 1, duration: 0.8, ease: "power2.out" }, 0.6);
+      tl.to("#s1-credit", { opacity: 0, duration: 0.2, ease: "power3.in" }, 4.3);
+
+      window.__timelines["s1"] = tl;
+    })();
+  </script>
+</template>
