@@ -23,8 +23,7 @@ def test_meter_problem_only_after_onset(kind):
     x = np.linspace(0.2, 1.0, 96)
     day = np.repeat(np.arange(4), 24)
     on = day >= 2
-    params = {"type": kind, "s": 1.0, "seed": 1, "alpha": 0.5, "p": 0.5, "ramp_days": 1}
-    y = P.apply_meter_problem(x, on, params, day)
+    y = P.apply_meter_problem(x, on, {"type": kind, "seed": 1}, day)
     assert np.allclose(y[~on], x[~on])
     assert y[on].sum() < x[on].sum()  # toate tipurile ascund consum (stuck: valoarea dinainte e mai mică aici)
 
