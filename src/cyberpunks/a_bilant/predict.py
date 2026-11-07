@@ -28,6 +28,7 @@ import pandas as pd
 
 from cyberpunks.a_bilant import LABEL_RO, registry, world
 from cyberpunks.a_bilant import diagnose as G
+from cyberpunks.a_bilant import inputs as I
 from cyberpunks.a_bilant import features as F
 from cyberpunks.a_bilant import normal as N
 from cyberpunks.a_bilant import windows as W
@@ -41,6 +42,8 @@ TZ = ZoneInfo("Europe/Bucharest")
 MODEL_ID = "bilant-diagnoza-lgbm"
 MIN_P_PROBLEM = 0.5  # sub acest prag postul nu primește lucrare (doar starea pentru fuziune)
 SERIES_DAYS = 60
+# Cazuri de test pentru robustețe, vizibile în demo (intrări greșite SIMULATE peste datele postului)
+DEMO_INPUT_FAULTS = {"PT-1003": "wh", "PT-1007": "missing_balance", "PT-1011": "duplicates"}
 DATA_SOURCES = [
     "SimBench 1-LV-* (ODbL), variante sintetice (firul C)",
     "Open-Meteo archive (CC BY 4.0)",
@@ -153,6 +156,33 @@ def ensure_ready(pool: str = "pop") -> None:
         evaluate.main()
 
 
+def input_checks(pool: str, tday: int, post_ids: set[str]) -> dict[str, tuple[bool, list[str]]]:
+    """Verificarea intrărilor pe ultimele 14 zile ale fiecărui post (`inputs.clean`), cu cazurile de test din demo."""
+    wx = world.load_weather()
+    hours = np.flatnonzero((wx.local_day > tday - W.WINDOW) & (wx.local_day <= tday))
+    idx = wx.index[hours]
+    h = np.load(DATA_PROCESSED / "bilant" / pool / "hourly.npz")
+    out = {}
+    for pid in post_ids:
+        if f"bal__{pid}" not in h.files:
+            continue
+        bal = pd.Series(h[f"bal__{pid}"][hours].astype(float), index=idx)
+        cust = pd.Series(h[f"db__{pid}"][hours].astype(float), index=idx)
+        fault = DEMO_INPUT_FAULTS.get(pid)
+        if fault == "wh":
+            bal = bal * 1000
+        elif fault == "missing_balance":
+            bal = None
+        elif fault == "duplicates":
+            bal = pd.concat([bal, bal.iloc[:6] * 1.7])
+        r = I.clean(bal, cust, has_prosumers=True)
+        issues = [f"{x} (caz de test simulat)" if fault else x for x in r.issues]
+        if r.has_balance and fault and not np.allclose(r.balance_kwh.reindex(idx).to_numpy(), h[f"bal__{pid}"][hours], rtol=1e-4, equal_nan=True):
+            issues.append("corecția nu a refăcut exact datele: postul trece la verificare umană")
+        out[pid] = (r.has_balance, issues)
+    return out
+
+
 def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
     ensure_ready(pool)
     scen = load_config("scenarios")["scenarios"][scenario]
@@ -174,6 +204,7 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
     sig_scale = json.loads((N.MODEL_DIR / "fusion_sigma.json").read_text()) if (N.MODEL_DIR / "fusion_sigma.json").exists() else {"level": 0.9, "delta": 0.5}
     now = datetime.now(TZ).replace(microsecond=0)
     version = json.loads((N.MODEL_DIR / "version.json").read_text())["version"] if (N.MODEL_DIR / "version.json").exists() else f"{MODEL_ID}@local"
+    checks = input_checks(pool, tday, set(win["post_id"]))
     shap_idx = np.array([CLASSES.index(c) for c in win["label"]])
     shap = _shap(G.load(), win, shap_idx)
 
@@ -184,6 +215,7 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
         rg = reg.loc[pid]
         pred_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"bilant|{scenario}|{target}|{pid}|{version}"))
         half = float(r["width_kwh"]) / 2.56
+        has_bal, post_issues = checks.get(pid, (True, []))
         states[pid] = {
             "lat": float(rg["lat"]),
             "lon": float(rg["lon"]),
@@ -194,8 +226,11 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
             "p_problem": round(float(r["p_problem"]), 4),
             "abstain": bool(r["abstain"]),
             "prediction_id": pred_id,
-            "has_balance": True,
+            "has_balance": has_bal,
+            "input_issues": post_issues,
         }
+        if not has_bal:
+            continue  # planul B: fără contor de post nu se vede lipsa (reports/bilant/plan_b.md)
         # lucrare doar dacă problema e probabilă și lipsa (sau surplusul) e mai mare decât incertitudinea normalului
         material = abs(float(r["r_mean_kwh"])) > half
         if r["p_problem"] < MIN_P_PROBLEM or not material or (r["label"] == "normal" and not r["abstain"]):
@@ -297,7 +332,7 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
             },
             "effort": {"duration_min": dur, "crew_skill": skill, "crew_size": size, "requires_planned_outage": False},
             "explanation": {"top_factors": factors or [{"feature": "r_mean_kwh", "label_ro": "Lipsă peste normal la post", "value": round(float(r["r_mean_kwh"]), 2), "contribution": 0.0}], "summary_ro": summary},
-            "data_quality": {"missing_ratio": miss, "input_issues": issues + ([f"{miss * 100:.1f}% ore lipsă la contoare, completate din istoricul aceluiași contor"] if miss > 0 else []), "synthetic": True, "data_sources": DATA_SOURCES},
+            "data_quality": {"missing_ratio": miss, "input_issues": issues + post_issues + ([f"{miss * 100:.1f}% ore lipsă la contoare, completate din istoricul aceluiași contor"] if miss > 0 else []), "synthetic": True, "data_sources": DATA_SOURCES},
             "recommended_action": action,
             "created_at": now.isoformat(),
             "extra": {**extra, "label_ro": LABEL_RO, "lei_per_month": round(lei_month, 2), "simulated_day": sim_day.isoformat()},
