@@ -1,0 +1,753 @@
+{
+  "format": {
+    "sample_rate": 48000,
+    "bits": 24,
+    "channels": 2,
+    "samples": 1440000,
+    "duration_s": 30.0,
+    "exact_30s": true
+  },
+  "loudness": {
+    "integrated_lufs_internal": -16.02,
+    "true_peak_dbtp_internal": -1.3,
+    "sample_peak_dbfs": -1.34,
+    "clipped_samples": 0
+  },
+  "ffmpeg": {
+    "loudnorm": {
+      "input_i": "-16.17",
+      "input_tp": "-1.29",
+      "input_lra": "4.90",
+      "input_thresh": "-26.53"
+    },
+    "ebur128": {
+      "integrated_lufs": -16.0,
+      "lra_lu": 3.4,
+      "true_peak_dbfs": -1.3,
+      "sample_peak_dbfs": -1.3
+    },
+    "ffprobe": {
+      "codec_name": "pcm_s24le",
+      "sample_rate": "48000",
+      "channels": 2,
+      "bits_per_sample": 24,
+      "duration_ts": 1440000,
+      "duration": "30.000000"
+    }
+  },
+  "sections_lufs_ungated": {
+    "cârlig 0-6": -18.4,
+    "groove 6-17,5": -15.8,
+    "Nu sunt sigur 17,5-19": -19.6,
+    "Aprobă 19-20": -14.7,
+    "build 20-22": -15.6,
+    "drop 22-26": -15.1,
+    "final 26-29,9": -16.7
+  },
+  "silences": {
+    "last_100ms_is_digital_zero": true,
+    "last_100ms_max_abs": 0.0,
+    "level_29_0_to_29_5_rms_dbfs": -33.8,
+    "level_29_5_to_29_9_rms_dbfs": -54.2,
+    "air_after_un_plan": {
+      "hit_2_0_to_2_3_rms_dbfs": -14.8,
+      "air_2_5_to_3_0_rms_dbfs": -28.8
+    }
+  },
+  "stems": {
+    "names": [
+      "drums",
+      "bass",
+      "pad",
+      "stabs",
+      "lead",
+      "fx"
+    ],
+    "max_abs_diff_sum_vs_mix": 0.0,
+    "max_diff_lsb_24bit": 0.0,
+    "sum_matches_mix": true
+  },
+  "loudness_per_bar_lufs_ungated": [
+    {
+      "bar": 1,
+      "section": "cârlig",
+      "mix": -20.3,
+      "drums": -28.3,
+      "bass": -25.4,
+      "pad": -200.7,
+      "stabs": -23.1,
+      "lead": -200.7,
+      "fx": -200.7
+    },
+    {
+      "bar": 2,
+      "section": "cârlig",
+      "mix": -18.6,
+      "drums": -22.5,
+      "bass": -23.7,
+      "pad": -200.7,
+      "stabs": -22.8,
+      "lead": -200.7,
+      "fx": -200.7
+    },
+    {
+      "bar": 3,
+      "section": "cârlig",
+      "mix": -16.8,
+      "drums": -22.5,
+      "bass": -22.5,
+      "pad": -32.7,
+      "stabs": -21.4,
+      "lead": -200.7,
+      "fx": -27.6
+    },
+    {
+      "bar": 4,
+      "section": "groove",
+      "mix": -15.7,
+      "drums": -17.5,
+      "bass": -22.7,
+      "pad": -26.5,
+      "stabs": -25.7,
+      "lead": -200.7,
+      "fx": -44.5
+    },
+    {
+      "bar": 5,
+      "section": "groove",
+      "mix": -15.3,
+      "drums": -17.7,
+      "bass": -22.9,
+      "pad": -26.9,
+      "stabs": -25.1,
+      "lead": -29.8,
+      "fx": -114.8
+    },
+    {
+      "bar": 6,
+      "section": "groove",
+      "mix": -16.0,
+      "drums": -18.0,
+      "bass": -24.3,
+      "pad": -26.2,
+      "stabs": -72.5,
+      "lead": -24.9,
+      "fx": -38.5
+    },
+    {
+      "bar": 7,
+      "section": "groove",
+      "mix": -15.6,
+      "drums": -17.9,
+      "bass": -22.5,
+      "pad": -26.3,
+      "stabs": -26.0,
+      "lead": -30.1,
+      "fx": -57.2
+    },
+    {
+      "bar": 8,
+      "section": "groove",
+      "mix": -15.7,
+      "drums": -17.8,
+      "bass": -23.1,
+      "pad": -26.2,
+      "stabs": -26.2,
+      "lead": -30.6,
+      "fx": -137.0
+    },
+    {
+      "bar": 9,
+      "section": "groove",
+      "mix": -16.9,
+      "drums": -19.5,
+      "bass": -24.6,
+      "pad": -27.0,
+      "stabs": -25.2,
+      "lead": -31.9,
+      "fx": -200.7
+    },
+    {
+      "bar": 10,
+      "section": "groove",
+      "mix": -16.8,
+      "drums": -19.6,
+      "bass": -23.6,
+      "pad": -27.8,
+      "stabs": -24.8,
+      "lead": -34.0,
+      "fx": -200.7
+    },
+    {
+      "bar": 11,
+      "section": "build",
+      "mix": -15.6,
+      "drums": -17.6,
+      "bass": -28.4,
+      "pad": -26.4,
+      "stabs": -62.9,
+      "lead": -31.2,
+      "fx": -22.6
+    },
+    {
+      "bar": 12,
+      "section": "drop",
+      "mix": -14.7,
+      "drums": -17.2,
+      "bass": -22.6,
+      "pad": -25.9,
+      "stabs": -25.6,
+      "lead": -22.0,
+      "fx": -43.4
+    },
+    {
+      "bar": 13,
+      "section": "drop",
+      "mix": -15.5,
+      "drums": -17.8,
+      "bass": -22.7,
+      "pad": -25.8,
+      "stabs": -24.6,
+      "lead": -52.7,
+      "fx": -113.8
+    },
+    {
+      "bar": 14,
+      "section": "final",
+      "mix": -14.5,
+      "drums": -21.6,
+      "bass": -20.0,
+      "pad": -24.2,
+      "stabs": -18.3,
+      "lead": -33.6,
+      "fx": -200.7
+    },
+    {
+      "bar": 15,
+      "section": "final",
+      "mix": -22.1,
+      "drums": -50.0,
+      "bass": -25.0,
+      "pad": -32.4,
+      "stabs": -26.7,
+      "lead": -101.0,
+      "fx": -200.7
+    }
+  ],
+  "spectrum_groove": {
+    "window_s": [
+      6.0,
+      17.5
+    ],
+    "bands_db_rel_mid": {
+      "sub_20_60": 3.43,
+      "bass_60_120": 2.33,
+      "lowmid_120_300": -0.62,
+      "mid_300_2k": 0.0,
+      "presence_2k_6k": -11.68,
+      "air_6k_16k": -13.19
+    }
+  },
+  "third_octave_groove": {
+    "max_local_bump_2k_6k_db": 1.51,
+    "max_local_bump_2k_6k_at_hz": 2000.0,
+    "window_s": [
+      6.0,
+      17.5
+    ],
+    "slope_db_per_octave_500_10k": -3.72,
+    "max_excess_2k_6k_db": 2.47,
+    "max_excess_2k_6k_at_hz": 2000.0,
+    "lowmid_125_250_minus_500_1k_db": 3.06,
+    "bands_db": {
+      "20": -39.2,
+      "25": -33.1,
+      "31": -28.4,
+      "39": -8.9,
+      "50": 0.0,
+      "62": -1.9,
+      "79": -2.9,
+      "99": -4.0,
+      "125": -6.8,
+      "157": -7.1,
+      "198": -7.5,
+      "250": -9.5,
+      "315": -7.5,
+      "397": -9.2,
+      "500": -9.7,
+      "630": -10.7,
+      "794": -11.9,
+      "1000": -10.7,
+      "1260": -11.2,
+      "1587": -11.4,
+      "2000": -13.4,
+      "2520": -18.4,
+      "3175": -22.4,
+      "4000": -22.5,
+      "5040": -21.3,
+      "6350": -21.9,
+      "8000": -21.0,
+      "10079": -19.9,
+      "12699": -19.7,
+      "16000": -21.8,
+      "20159": -24.8
+    }
+  },
+  "third_octave_drop": {
+    "max_local_bump_2k_6k_db": 2.35,
+    "max_local_bump_2k_6k_at_hz": 2000.0,
+    "window_s": [
+      22.0,
+      26.0
+    ],
+    "slope_db_per_octave_500_10k": -4.09,
+    "max_excess_2k_6k_db": 3.22,
+    "max_excess_2k_6k_at_hz": 2000.0,
+    "lowmid_125_250_minus_500_1k_db": 1.7,
+    "bands_db": {
+      "20": -38.3,
+      "25": -32.7,
+      "31": -27.4,
+      "39": -6.4,
+      "50": 0.0,
+      "62": -1.7,
+      "79": -1.5,
+      "99": -6.4,
+      "125": -7.6,
+      "157": -6.7,
+      "198": -6.2,
+      "250": -9.8,
+      "315": -6.3,
+      "397": -8.1,
+      "500": -7.4,
+      "630": -11.7,
+      "794": -8.7,
+      "1000": -9.3,
+      "1260": -10.5,
+      "1587": -10.3,
+      "2000": -11.7,
+      "2520": -17.8,
+      "3175": -20.0,
+      "4000": -22.4,
+      "5040": -21.3,
+      "6350": -21.9,
+      "8000": -20.8,
+      "10079": -19.7,
+      "12699": -19.6,
+      "16000": -21.8,
+      "20159": -25.0
+    }
+  },
+  "third_octave_whole": {
+    "max_local_bump_2k_6k_db": 1.21,
+    "max_local_bump_2k_6k_at_hz": 2000.0,
+    "window_s": [
+      0.0,
+      29.9
+    ],
+    "slope_db_per_octave_500_10k": -3.77,
+    "max_excess_2k_6k_db": 1.91,
+    "max_excess_2k_6k_at_hz": 2000.0,
+    "lowmid_125_250_minus_500_1k_db": 1.99,
+    "bands_db": {
+      "20": -39.8,
+      "25": -34.0,
+      "31": -29.0,
+      "39": -6.0,
+      "50": 0.0,
+      "62": -2.8,
+      "79": -3.4,
+      "99": -5.5,
+      "125": -7.5,
+      "157": -7.0,
+      "198": -6.8,
+      "250": -9.3,
+      "315": -6.8,
+      "397": -8.9,
+      "500": -7.9,
+      "630": -10.3,
+      "794": -10.4,
+      "1000": -10.0,
+      "1260": -11.3,
+      "1587": -11.1,
+      "2000": -13.1,
+      "2520": -17.5,
+      "3175": -20.0,
+      "4000": -21.1,
+      "5040": -20.8,
+      "6350": -21.1,
+      "8000": -20.6,
+      "10079": -20.0,
+      "12699": -20.0,
+      "16000": -22.1,
+      "20159": -25.1
+    }
+  },
+  "mono": {
+    "lr_correlation": 0.95,
+    "side_below_120_vs_mid_below_120_db": -37.0,
+    "mono_vs_stereo_loudness_db": -0.2
+  },
+  "tempo": {
+    "window_s": [
+      6.0,
+      17.5
+    ],
+    "method": "autocorelație cu pieptene (1×, 2×, 4×)",
+    "beat_period_s": 0.5,
+    "bpm": 120.0
+  },
+  "hits": {
+    "detector_offset_ms": -3.58,
+    "tolerance_ms": 30,
+    "mix": {
+      "detected": 23,
+      "of": 23,
+      "median_abs_ms": 1.25,
+      "median_signed_ms": 1.25,
+      "max_abs_ms": 4.25
+    },
+    "carrier": {
+      "detected": 23,
+      "of": 23,
+      "median_abs_ms": 2.25,
+      "median_signed_ms": 2.25,
+      "max_abs_ms": 3.25
+    },
+    "hits": [
+      {
+        "name": "un_scor",
+        "time": 0.0,
+        "frame": 0,
+        "kind": "stab",
+        "on_screen": "„Un scor”",
+        "mix_onset_error_ms": 0.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 160.7,
+        "mix_jump_db": 165.7
+      },
+      {
+        "name": "de_087",
+        "time": 0.5,
+        "frame": 15,
+        "kind": "stab",
+        "on_screen": "„de 0,87”",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 2.25,
+        "carrier_jump_db": 26.7,
+        "mix_jump_db": 31.3
+      },
+      {
+        "name": "nu_e",
+        "time": 1.5,
+        "frame": 45,
+        "kind": "stab",
+        "on_screen": "„nu e”",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 2.25,
+        "carrier_jump_db": 42.2,
+        "mix_jump_db": 43.7
+      },
+      {
+        "name": "un_plan",
+        "time": 2.0,
+        "frame": 60,
+        "kind": "accent",
+        "on_screen": "„un plan.” (apoi aer până la 3,0)",
+        "mix_onset_error_ms": 0.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 2.25,
+        "carrier_jump_db": 26.3,
+        "mix_jump_db": 34.2
+      },
+      {
+        "name": "contoare",
+        "time": 3.0,
+        "frame": 90,
+        "kind": "stab",
+        "on_screen": "„Contoare.” (contorul 3D intră)",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 2.25,
+        "carrier_jump_db": 37.9,
+        "mix_jump_db": 25.1
+      },
+      {
+        "name": "furtuni",
+        "time": 3.5,
+        "frame": 105,
+        "kind": "stab",
+        "on_screen": "„Furtuni.” (norul de furtună)",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 20.5,
+        "mix_jump_db": 25.6
+      },
+      {
+        "name": "tensiune",
+        "time": 4.0,
+        "frame": 120,
+        "kind": "stab",
+        "on_screen": "„Tensiune.” (panoul solar)",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 23.2,
+        "mix_jump_db": 28.5
+      },
+      {
+        "name": "aceleasi_echipe",
+        "time": 4.5,
+        "frame": 135,
+        "kind": "hold",
+        "on_screen": "„Aceleași echipe.” (cele patru obiecte)",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 2.25,
+        "carrier_jump_db": 24.4,
+        "mix_jump_db": 31.2
+      },
+      {
+        "name": "consola",
+        "time": 6.0,
+        "frame": 180,
+        "kind": "big",
+        "on_screen": "consola urcă: intră groove-ul",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 2.25,
+        "carrier_jump_db": 21.3,
+        "mix_jump_db": 13.3
+      },
+      {
+        "name": "spre_buton",
+        "time": 8.0,
+        "frame": 240,
+        "kind": "accent",
+        "on_screen": "camera zboară spre „Rulează agentul”",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 2.25,
+        "carrier_jump_db": 67.9,
+        "mix_jump_db": 11.9
+      },
+      {
+        "name": "apasat",
+        "time": 9.0,
+        "frame": 270,
+        "kind": "press",
+        "on_screen": "butonul „Rulează agentul” e APĂSAT",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 2.25,
+        "carrier_jump_db": 32.7,
+        "mix_jump_db": 10.3
+      },
+      {
+        "name": "perceive",
+        "time": 9.5,
+        "frame": 285,
+        "kind": "note",
+        "on_screen": "„Perceive ✓”",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "lead",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 156.3,
+        "mix_jump_db": 8.8
+      },
+      {
+        "name": "estimate",
+        "time": 10.0,
+        "frame": 300,
+        "kind": "note",
+        "on_screen": "„Estimate ✓”",
+        "mix_onset_error_ms": 2.25,
+        "carrier_stem": "lead",
+        "carrier_onset_error_ms": 2.25,
+        "carrier_jump_db": 15.6,
+        "mix_jump_db": 9.9
+      },
+      {
+        "name": "decide",
+        "time": 10.5,
+        "frame": 315,
+        "kind": "note",
+        "on_screen": "„Decide ✓”",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "lead",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 26.8,
+        "mix_jump_db": 10.0
+      },
+      {
+        "name": "act",
+        "time": 11.0,
+        "frame": 330,
+        "kind": "note",
+        "on_screen": "„Act ✓”",
+        "mix_onset_error_ms": 2.25,
+        "carrier_stem": "lead",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 24.2,
+        "mix_jump_db": 8.6
+      },
+      {
+        "name": "harta",
+        "time": 11.5,
+        "frame": 345,
+        "kind": "lift",
+        "on_screen": "harta: traseele se desenează",
+        "mix_onset_error_ms": 0.25,
+        "carrier_stem": "lead",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 13.7,
+        "mix_jump_db": 10.6
+      },
+      {
+        "name": "scor_087",
+        "time": 13.5,
+        "frame": 405,
+        "kind": "accent",
+        "on_screen": "lucrarea: scorul 0,87 și bilanțul postului",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 161.0,
+        "mix_jump_db": 11.8
+      },
+      {
+        "name": "tensiune_fix",
+        "time": 15.5,
+        "frame": 465,
+        "kind": "accent",
+        "on_screen": "cazul de tensiune: soluția cea mai ieftină",
+        "mix_onset_error_ms": 2.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 2.25,
+        "carrier_jump_db": 70.0,
+        "mix_jump_db": 10.7
+      },
+      {
+        "name": "nu_sunt_sigur",
+        "time": 17.5,
+        "frame": 525,
+        "kind": "soft",
+        "on_screen": "cardul „Nu sunt sigur” (energia scade 1,5 s)",
+        "mix_onset_error_ms": 4.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 3.25,
+        "carrier_jump_db": 69.9,
+        "mix_jump_db": 4.0
+      },
+      {
+        "name": "aproba",
+        "time": 19.0,
+        "frame": 570,
+        "kind": "press_big",
+        "on_screen": "„Aprobă” APĂSAT (energia revine)",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 2.25,
+        "carrier_jump_db": 34.1,
+        "mix_jump_db": 15.0
+      },
+      {
+        "name": "drop",
+        "time": 22.0,
+        "frame": 660,
+        "kind": "big",
+        "on_screen": "pastila neagră umple ecranul; cifra urcă 22,0-23,5",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 108.7,
+        "mix_jump_db": 9.8
+      },
+      {
+        "name": "al_doilea_rand",
+        "time": 24.0,
+        "frame": 720,
+        "kind": "accent",
+        "on_screen": "al doilea rând de text",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 67.3,
+        "mix_jump_db": 7.7
+      },
+      {
+        "name": "final",
+        "time": 26.0,
+        "frame": 780,
+        "kind": "final",
+        "on_screen": "logoul: soarele răsare peste traseu",
+        "mix_onset_error_ms": 2.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 70.0,
+        "mix_jump_db": 9.4
+      }
+    ]
+  },
+  "onsets_grid": {
+    "mix_16th": {
+      "grid_s": 0.125,
+      "count": 149,
+      "within_10ms": 145,
+      "median_abs_dev_ms": 2.25,
+      "p95_abs_dev_ms": 4.25,
+      "off_grid": [
+        21.5653,
+        21.6892,
+        21.8142,
+        21.9403
+      ]
+    },
+    "mix_32nd": {
+      "grid_s": 0.0625,
+      "count": 149,
+      "within_10ms": 149,
+      "median_abs_dev_ms": 2.25,
+      "p95_abs_dev_ms": 4.25,
+      "off_grid": []
+    },
+    "drums_32nd": {
+      "grid_s": 0.0625,
+      "count": 143,
+      "within_10ms": 143,
+      "median_abs_dev_ms": 1.25,
+      "p95_abs_dev_ms": 3.25,
+      "off_grid": []
+    }
+  },
+  "determinism": {
+    "renders": 2,
+    "identical": true,
+    "files": {
+      "tura_120bpm_30s.wav": true,
+      "cues_120.json": true,
+      "stems_120/drums.wav": true,
+      "stems_120/bass.wav": true,
+      "stems_120/pad.wav": true,
+      "stems_120/stabs.wav": true,
+      "stems_120/lead.wav": true,
+      "stems_120/fx.wav": true,
+      "tura_120bpm_30s.m4a": true
+    },
+    "sha256": {
+      "tura_120bpm_30s.wav": "d44e90fa5062bd5e699dae74632ddbc1f3f64d2f90bd94bb0e215039af56dd05",
+      "cues_120.json": "727a1745a4061242ec1a4413ec9260cfead53a4fec8cdc753bd401e29f987ec8",
+      "stems_120/drums.wav": "e0d76514b698728166c5b4acbdb13f7f0d73fe5959a7f30e1719e31b8051f0a5",
+      "stems_120/bass.wav": "e995060db66be4677073a969a3f2937d64dbc1b8ceec6ec190d321fd47d5b6be",
+      "stems_120/pad.wav": "4ed5447994256b20e87386aabec55171b40f4ee18144b5977fed033c77418726",
+      "stems_120/stabs.wav": "8955a481d8a084fd1655eadf3217fa5229c966e5fa3bbdbc30e0e9fcf99e2b26",
+      "stems_120/lead.wav": "9e75d2f87df2f4d8fdfb6946b5392caea1f9e5fa7de23eda9c569eb21b71c4d5",
+      "stems_120/fx.wav": "7051c6170b9e9f106328cc41ae4f535395239c526bfca6831b620582c78c97d1",
+      "tura_120bpm_30s.m4a": "2ecf0fe548c53a92c1da6417daeb5b2f419d2722e8fefa56f7637aa8f8dba3b6"
+    }
+  }
+}

@@ -1,0 +1,1724 @@
+{
+  "title": "Tura de mâine, varianta cinetică (muzica filmului de 30 s)",
+  "file": "tura_120bpm_30s.wav",
+  "bpm": 120,
+  "time_signature": "4/4",
+  "key": "la major (cârligul pornește din fa diez minor)",
+  "sample_rate": 48000,
+  "fps": 30,
+  "duration_seconds": 30.0,
+  "bar_seconds": 2.0,
+  "bar_frames": 60,
+  "beat_seconds": 0.5,
+  "beat_frames": 15,
+  "sixteenth_seconds": 0.125,
+  "sections": [
+    {
+      "name": "cârlig",
+      "start": 0.0,
+      "end": 6.0,
+      "note": "acorduri pe cuvinte, fără kick continuu"
+    },
+    {
+      "name": "groove",
+      "start": 6.0,
+      "end": 20.0,
+      "note": "kick pe fiecare timp, clap pe 2 și 4"
+    },
+    {
+      "name": "energie mai mică",
+      "start": 17.5,
+      "end": 19.0,
+      "note": "„Nu sunt sigur”: filtru închis"
+    },
+    {
+      "name": "build",
+      "start": 20.0,
+      "end": 22.0,
+      "note": "rafală de snare și riser până fix la 22,0"
+    },
+    {
+      "name": "drop",
+      "start": 22.0,
+      "end": 26.0,
+      "note": "mai rar, dar tot plin de energie"
+    },
+    {
+      "name": "final",
+      "start": 26.0,
+      "end": 30.0,
+      "note": "logoul; zero digital de la 29,9"
+    }
+  ],
+  "chords": [
+    {
+      "time": 0.0,
+      "frame": 0,
+      "chord": "F#m9"
+    },
+    {
+      "time": 1.5,
+      "frame": 45,
+      "chord": "E/G#"
+    },
+    {
+      "time": 2.0,
+      "frame": 60,
+      "chord": "Dmaj9"
+    },
+    {
+      "time": 3.0,
+      "frame": 90,
+      "chord": "Bm11"
+    },
+    {
+      "time": 3.5,
+      "frame": 105,
+      "chord": "C#m7"
+    },
+    {
+      "time": 4.0,
+      "frame": 120,
+      "chord": "Dmaj7#11"
+    },
+    {
+      "time": 4.5,
+      "frame": 135,
+      "chord": "Esus4"
+    },
+    {
+      "time": 6.0,
+      "frame": 180,
+      "chord": "A"
+    },
+    {
+      "time": 8.0,
+      "frame": 240,
+      "chord": "E/G#"
+    },
+    {
+      "time": 10.0,
+      "frame": 300,
+      "chord": "F#m9"
+    },
+    {
+      "time": 12.0,
+      "frame": 360,
+      "chord": "Dmaj9"
+    },
+    {
+      "time": 13.5,
+      "frame": 405,
+      "chord": "A/C#"
+    },
+    {
+      "time": 15.5,
+      "frame": 465,
+      "chord": "E"
+    },
+    {
+      "time": 17.5,
+      "frame": 525,
+      "chord": "F#m9"
+    },
+    {
+      "time": 19.0,
+      "frame": 570,
+      "chord": "Dmaj9"
+    },
+    {
+      "time": 20.0,
+      "frame": 600,
+      "chord": "Esus4"
+    },
+    {
+      "time": 21.5,
+      "frame": 645,
+      "chord": "E"
+    },
+    {
+      "time": 22.0,
+      "frame": 660,
+      "chord": "A"
+    },
+    {
+      "time": 24.0,
+      "frame": 720,
+      "chord": "Dmaj9"
+    },
+    {
+      "time": 25.0,
+      "frame": 750,
+      "chord": "Esus4"
+    },
+    {
+      "time": 25.5,
+      "frame": 765,
+      "chord": "E"
+    },
+    {
+      "time": 26.0,
+      "frame": 780,
+      "chord": "Afinal"
+    }
+  ],
+  "bars": [
+    {
+      "bar": 1,
+      "start": 0.0,
+      "end": 2.0,
+      "frame_start": 0,
+      "frame_end": 60,
+      "section": "cârlig",
+      "on_screen": "„Un scor de 0,87 nu e un plan.”",
+      "music": "acorduri scurte pe fiecare cuvânt; fără tobe continue",
+      "chord_at_start": "F#m9",
+      "chord_changes": [
+        "F#m9",
+        "E/G#"
+      ]
+    },
+    {
+      "bar": 2,
+      "start": 2.0,
+      "end": 4.0,
+      "frame_start": 60,
+      "frame_end": 120,
+      "section": "cârlig",
+      "on_screen": "„un plan.”, aer, „Contoare.” „Furtuni.”",
+      "music": "lovitură mare și sub care coboară, apoi liniște",
+      "chord_at_start": "Dmaj9",
+      "chord_changes": [
+        "Dmaj9",
+        "Bm11",
+        "C#m7"
+      ]
+    },
+    {
+      "bar": 3,
+      "start": 4.0,
+      "end": 6.0,
+      "frame_start": 120,
+      "frame_end": 180,
+      "section": "cârlig",
+      "on_screen": "„Tensiune.” „Aceleași echipe.”",
+      "music": "acordul de pe 4,5 ține; riser 5,0-6,0",
+      "chord_at_start": "Dmaj7#11",
+      "chord_changes": [
+        "Dmaj7#11",
+        "Esus4"
+      ]
+    },
+    {
+      "bar": 4,
+      "start": 6.0,
+      "end": 8.0,
+      "frame_start": 180,
+      "frame_end": 240,
+      "section": "groove",
+      "on_screen": "consola urcă",
+      "music": "intră kick-ul pe fiecare timp, clap, hi-hat, bas, pad cu sidechain",
+      "chord_at_start": "A",
+      "chord_changes": [
+        "A"
+      ]
+    },
+    {
+      "bar": 5,
+      "start": 8.0,
+      "end": 10.0,
+      "frame_start": 240,
+      "frame_end": 300,
+      "section": "groove",
+      "on_screen": "spre buton; APĂSAT; Perceive",
+      "music": "accent pe 8,0; apăsarea pe 9,0; prima notă a motivului",
+      "chord_at_start": "E/G#",
+      "chord_changes": [
+        "E/G#"
+      ]
+    },
+    {
+      "bar": 6,
+      "start": 10.0,
+      "end": 12.0,
+      "frame_start": 300,
+      "frame_end": 360,
+      "section": "groove",
+      "on_screen": "Estimate, Decide, Act; harta",
+      "music": "motivul urcă (C#5, E5, A5); umplutură pe 11,5",
+      "chord_at_start": "F#m9",
+      "chord_changes": [
+        "F#m9"
+      ]
+    },
+    {
+      "bar": 7,
+      "start": 12.0,
+      "end": 14.0,
+      "frame_start": 360,
+      "frame_end": 420,
+      "section": "groove",
+      "on_screen": "scorul 0,87 și bilanțul (13,5)",
+      "music": "intră arpegiul și hi-hat-ul deschis; acord împins pe 13,5",
+      "chord_at_start": "Dmaj9",
+      "chord_changes": [
+        "Dmaj9",
+        "A/C#"
+      ]
+    },
+    {
+      "bar": 8,
+      "start": 14.0,
+      "end": 16.0,
+      "frame_start": 420,
+      "frame_end": 480,
+      "section": "groove",
+      "on_screen": "soluția cea mai ieftină (15,5)",
+      "music": "acord împins pe 15,5",
+      "chord_at_start": "A/C#",
+      "chord_changes": [
+        "E"
+      ]
+    },
+    {
+      "bar": 9,
+      "start": 16.0,
+      "end": 18.0,
+      "frame_start": 480,
+      "frame_end": 540,
+      "section": "groove",
+      "on_screen": "„Nu sunt sigur” (17,5)",
+      "music": "de pe 17,5 tobele se rup, filtrul se închide",
+      "chord_at_start": "E",
+      "chord_changes": [
+        "F#m9"
+      ]
+    },
+    {
+      "bar": 10,
+      "start": 18.0,
+      "end": 20.0,
+      "frame_start": 540,
+      "frame_end": 600,
+      "section": "groove",
+      "on_screen": "„Aprobă” (19,0)",
+      "music": "pe 19,0 totul revine",
+      "chord_at_start": "F#m9",
+      "chord_changes": [
+        "Dmaj9"
+      ]
+    },
+    {
+      "bar": 11,
+      "start": 20.0,
+      "end": 22.0,
+      "frame_start": 600,
+      "frame_end": 660,
+      "section": "build",
+      "on_screen": "spre pastila neagră",
+      "music": "rafală de snare, riser, filtrul se deschide",
+      "chord_at_start": "Esus4",
+      "chord_changes": [
+        "Esus4",
+        "E"
+      ]
+    },
+    {
+      "bar": 12,
+      "start": 22.0,
+      "end": 24.0,
+      "frame_start": 660,
+      "frame_end": 720,
+      "section": "drop",
+      "on_screen": "pastila neagră; cifra urcă",
+      "music": "lovitura mare; arpegiul numără până la 23,5",
+      "chord_at_start": "A",
+      "chord_changes": [
+        "A"
+      ]
+    },
+    {
+      "bar": 13,
+      "start": 24.0,
+      "end": 26.0,
+      "frame_start": 720,
+      "frame_end": 780,
+      "section": "drop",
+      "on_screen": "al doilea rând (24,0)",
+      "music": "accent; IV - V spre final",
+      "chord_at_start": "Dmaj9",
+      "chord_changes": [
+        "Dmaj9",
+        "Esus4",
+        "E"
+      ]
+    },
+    {
+      "bar": 14,
+      "start": 26.0,
+      "end": 28.0,
+      "frame_start": 780,
+      "frame_end": 840,
+      "section": "final",
+      "on_screen": "logoul (26,0)",
+      "music": "acordul de la major; tobele se opresc",
+      "chord_at_start": "Afinal",
+      "chord_changes": [
+        "Afinal"
+      ]
+    },
+    {
+      "bar": 15,
+      "start": 28.0,
+      "end": 30.0,
+      "frame_start": 840,
+      "frame_end": 900,
+      "section": "final",
+      "on_screen": "logoul rămâne",
+      "music": "coada se stinge; zero digital de la 29,9",
+      "chord_at_start": "Afinal",
+      "chord_changes": []
+    }
+  ],
+  "beats": [
+    {
+      "time": 0.0,
+      "frame": 0,
+      "bar": 1,
+      "beat": 1,
+      "downbeat": true
+    },
+    {
+      "time": 0.5,
+      "frame": 15,
+      "bar": 1,
+      "beat": 2,
+      "downbeat": false
+    },
+    {
+      "time": 1.0,
+      "frame": 30,
+      "bar": 1,
+      "beat": 3,
+      "downbeat": false
+    },
+    {
+      "time": 1.5,
+      "frame": 45,
+      "bar": 1,
+      "beat": 4,
+      "downbeat": false
+    },
+    {
+      "time": 2.0,
+      "frame": 60,
+      "bar": 2,
+      "beat": 1,
+      "downbeat": true
+    },
+    {
+      "time": 2.5,
+      "frame": 75,
+      "bar": 2,
+      "beat": 2,
+      "downbeat": false
+    },
+    {
+      "time": 3.0,
+      "frame": 90,
+      "bar": 2,
+      "beat": 3,
+      "downbeat": false
+    },
+    {
+      "time": 3.5,
+      "frame": 105,
+      "bar": 2,
+      "beat": 4,
+      "downbeat": false
+    },
+    {
+      "time": 4.0,
+      "frame": 120,
+      "bar": 3,
+      "beat": 1,
+      "downbeat": true
+    },
+    {
+      "time": 4.5,
+      "frame": 135,
+      "bar": 3,
+      "beat": 2,
+      "downbeat": false
+    },
+    {
+      "time": 5.0,
+      "frame": 150,
+      "bar": 3,
+      "beat": 3,
+      "downbeat": false
+    },
+    {
+      "time": 5.5,
+      "frame": 165,
+      "bar": 3,
+      "beat": 4,
+      "downbeat": false
+    },
+    {
+      "time": 6.0,
+      "frame": 180,
+      "bar": 4,
+      "beat": 1,
+      "downbeat": true
+    },
+    {
+      "time": 6.5,
+      "frame": 195,
+      "bar": 4,
+      "beat": 2,
+      "downbeat": false
+    },
+    {
+      "time": 7.0,
+      "frame": 210,
+      "bar": 4,
+      "beat": 3,
+      "downbeat": false
+    },
+    {
+      "time": 7.5,
+      "frame": 225,
+      "bar": 4,
+      "beat": 4,
+      "downbeat": false
+    },
+    {
+      "time": 8.0,
+      "frame": 240,
+      "bar": 5,
+      "beat": 1,
+      "downbeat": true
+    },
+    {
+      "time": 8.5,
+      "frame": 255,
+      "bar": 5,
+      "beat": 2,
+      "downbeat": false
+    },
+    {
+      "time": 9.0,
+      "frame": 270,
+      "bar": 5,
+      "beat": 3,
+      "downbeat": false
+    },
+    {
+      "time": 9.5,
+      "frame": 285,
+      "bar": 5,
+      "beat": 4,
+      "downbeat": false
+    },
+    {
+      "time": 10.0,
+      "frame": 300,
+      "bar": 6,
+      "beat": 1,
+      "downbeat": true
+    },
+    {
+      "time": 10.5,
+      "frame": 315,
+      "bar": 6,
+      "beat": 2,
+      "downbeat": false
+    },
+    {
+      "time": 11.0,
+      "frame": 330,
+      "bar": 6,
+      "beat": 3,
+      "downbeat": false
+    },
+    {
+      "time": 11.5,
+      "frame": 345,
+      "bar": 6,
+      "beat": 4,
+      "downbeat": false
+    },
+    {
+      "time": 12.0,
+      "frame": 360,
+      "bar": 7,
+      "beat": 1,
+      "downbeat": true
+    },
+    {
+      "time": 12.5,
+      "frame": 375,
+      "bar": 7,
+      "beat": 2,
+      "downbeat": false
+    },
+    {
+      "time": 13.0,
+      "frame": 390,
+      "bar": 7,
+      "beat": 3,
+      "downbeat": false
+    },
+    {
+      "time": 13.5,
+      "frame": 405,
+      "bar": 7,
+      "beat": 4,
+      "downbeat": false
+    },
+    {
+      "time": 14.0,
+      "frame": 420,
+      "bar": 8,
+      "beat": 1,
+      "downbeat": true
+    },
+    {
+      "time": 14.5,
+      "frame": 435,
+      "bar": 8,
+      "beat": 2,
+      "downbeat": false
+    },
+    {
+      "time": 15.0,
+      "frame": 450,
+      "bar": 8,
+      "beat": 3,
+      "downbeat": false
+    },
+    {
+      "time": 15.5,
+      "frame": 465,
+      "bar": 8,
+      "beat": 4,
+      "downbeat": false
+    },
+    {
+      "time": 16.0,
+      "frame": 480,
+      "bar": 9,
+      "beat": 1,
+      "downbeat": true
+    },
+    {
+      "time": 16.5,
+      "frame": 495,
+      "bar": 9,
+      "beat": 2,
+      "downbeat": false
+    },
+    {
+      "time": 17.0,
+      "frame": 510,
+      "bar": 9,
+      "beat": 3,
+      "downbeat": false
+    },
+    {
+      "time": 17.5,
+      "frame": 525,
+      "bar": 9,
+      "beat": 4,
+      "downbeat": false
+    },
+    {
+      "time": 18.0,
+      "frame": 540,
+      "bar": 10,
+      "beat": 1,
+      "downbeat": true
+    },
+    {
+      "time": 18.5,
+      "frame": 555,
+      "bar": 10,
+      "beat": 2,
+      "downbeat": false
+    },
+    {
+      "time": 19.0,
+      "frame": 570,
+      "bar": 10,
+      "beat": 3,
+      "downbeat": false
+    },
+    {
+      "time": 19.5,
+      "frame": 585,
+      "bar": 10,
+      "beat": 4,
+      "downbeat": false
+    },
+    {
+      "time": 20.0,
+      "frame": 600,
+      "bar": 11,
+      "beat": 1,
+      "downbeat": true
+    },
+    {
+      "time": 20.5,
+      "frame": 615,
+      "bar": 11,
+      "beat": 2,
+      "downbeat": false
+    },
+    {
+      "time": 21.0,
+      "frame": 630,
+      "bar": 11,
+      "beat": 3,
+      "downbeat": false
+    },
+    {
+      "time": 21.5,
+      "frame": 645,
+      "bar": 11,
+      "beat": 4,
+      "downbeat": false
+    },
+    {
+      "time": 22.0,
+      "frame": 660,
+      "bar": 12,
+      "beat": 1,
+      "downbeat": true
+    },
+    {
+      "time": 22.5,
+      "frame": 675,
+      "bar": 12,
+      "beat": 2,
+      "downbeat": false
+    },
+    {
+      "time": 23.0,
+      "frame": 690,
+      "bar": 12,
+      "beat": 3,
+      "downbeat": false
+    },
+    {
+      "time": 23.5,
+      "frame": 705,
+      "bar": 12,
+      "beat": 4,
+      "downbeat": false
+    },
+    {
+      "time": 24.0,
+      "frame": 720,
+      "bar": 13,
+      "beat": 1,
+      "downbeat": true
+    },
+    {
+      "time": 24.5,
+      "frame": 735,
+      "bar": 13,
+      "beat": 2,
+      "downbeat": false
+    },
+    {
+      "time": 25.0,
+      "frame": 750,
+      "bar": 13,
+      "beat": 3,
+      "downbeat": false
+    },
+    {
+      "time": 25.5,
+      "frame": 765,
+      "bar": 13,
+      "beat": 4,
+      "downbeat": false
+    },
+    {
+      "time": 26.0,
+      "frame": 780,
+      "bar": 14,
+      "beat": 1,
+      "downbeat": true
+    },
+    {
+      "time": 26.5,
+      "frame": 795,
+      "bar": 14,
+      "beat": 2,
+      "downbeat": false
+    },
+    {
+      "time": 27.0,
+      "frame": 810,
+      "bar": 14,
+      "beat": 3,
+      "downbeat": false
+    },
+    {
+      "time": 27.5,
+      "frame": 825,
+      "bar": 14,
+      "beat": 4,
+      "downbeat": false
+    },
+    {
+      "time": 28.0,
+      "frame": 840,
+      "bar": 15,
+      "beat": 1,
+      "downbeat": true
+    },
+    {
+      "time": 28.5,
+      "frame": 855,
+      "bar": 15,
+      "beat": 2,
+      "downbeat": false
+    },
+    {
+      "time": 29.0,
+      "frame": 870,
+      "bar": 15,
+      "beat": 3,
+      "downbeat": false
+    },
+    {
+      "time": 29.5,
+      "frame": 885,
+      "bar": 15,
+      "beat": 4,
+      "downbeat": false
+    }
+  ],
+  "hits": [
+    {
+      "name": "un_scor",
+      "time": 0.0,
+      "frame": 0,
+      "frame_exact": 0.0,
+      "on_screen": "„Un scor”",
+      "kind": "stab",
+      "music": "stab + kick scurt + bas",
+      "chord": "F#m9",
+      "notes": [
+        "F#3",
+        "C#4",
+        "E4",
+        "A4",
+        "C#5"
+      ]
+    },
+    {
+      "name": "de_087",
+      "time": 0.5,
+      "frame": 15,
+      "frame_exact": 15.0,
+      "on_screen": "„de 0,87”",
+      "kind": "stab",
+      "music": "stab + kick scurt + bas",
+      "chord": "F#m9",
+      "notes": [
+        "A3",
+        "E4",
+        "G#4",
+        "C#5",
+        "E5"
+      ]
+    },
+    {
+      "name": "nu_e",
+      "time": 1.5,
+      "frame": 45,
+      "frame_exact": 45.0,
+      "on_screen": "„nu e”",
+      "kind": "stab",
+      "music": "stab + kick scurt + bas",
+      "chord": "E/G#",
+      "notes": [
+        "G#3",
+        "B3",
+        "E4",
+        "B4",
+        "F#5"
+      ]
+    },
+    {
+      "name": "un_plan",
+      "time": 2.0,
+      "frame": 60,
+      "frame_exact": 60.0,
+      "on_screen": "„un plan.” (apoi aer până la 3,0)",
+      "kind": "accent",
+      "music": "stab mare + kick + clap + sub care coboară o octavă (re); apoi aer până la 3,0",
+      "chord": "Dmaj9",
+      "notes": [
+        "D3",
+        "A3",
+        "E4",
+        "F#4",
+        "C#5",
+        "A5"
+      ]
+    },
+    {
+      "name": "contoare",
+      "time": 3.0,
+      "frame": 90,
+      "frame_exact": 90.0,
+      "on_screen": "„Contoare.” (contorul 3D intră)",
+      "kind": "stab",
+      "music": "stab + kick scurt + bas",
+      "chord": "Bm11",
+      "notes": [
+        "B3",
+        "E4",
+        "A4",
+        "D5",
+        "F#5"
+      ]
+    },
+    {
+      "name": "furtuni",
+      "time": 3.5,
+      "frame": 105,
+      "frame_exact": 105.0,
+      "on_screen": "„Furtuni.” (norul de furtună)",
+      "kind": "stab",
+      "music": "stab + kick scurt + bas",
+      "chord": "C#m7",
+      "notes": [
+        "C#4",
+        "F#4",
+        "B4",
+        "E5",
+        "G#5"
+      ]
+    },
+    {
+      "name": "tensiune",
+      "time": 4.0,
+      "frame": 120,
+      "frame_exact": 120.0,
+      "on_screen": "„Tensiune.” (panoul solar)",
+      "kind": "stab",
+      "music": "stab + kick scurt + bas",
+      "chord": "Dmaj7#11",
+      "notes": [
+        "D4",
+        "G#4",
+        "C#5",
+        "F#5",
+        "A5"
+      ]
+    },
+    {
+      "name": "aceleasi_echipe",
+      "time": 4.5,
+      "frame": 135,
+      "frame_exact": 135.0,
+      "on_screen": "„Aceleași echipe.” (cele patru obiecte)",
+      "kind": "hold",
+      "music": "acord ținut + kick + clap + crash mic; riser 5,0-6,0",
+      "chord": "Esus4",
+      "notes": [
+        "E3",
+        "E4",
+        "A4",
+        "D5",
+        "G#5",
+        "B5"
+      ]
+    },
+    {
+      "name": "consola",
+      "time": 6.0,
+      "frame": 180,
+      "frame_exact": 180.0,
+      "on_screen": "consola urcă: intră groove-ul",
+      "kind": "big",
+      "music": "stab + kick + boom + clap + crash",
+      "chord": "A",
+      "notes": [
+        "A3",
+        "E4",
+        "B4",
+        "C#5",
+        "E5"
+      ]
+    },
+    {
+      "name": "spre_buton",
+      "time": 8.0,
+      "frame": 240,
+      "frame_exact": 240.0,
+      "on_screen": "camera zboară spre „Rulează agentul”",
+      "kind": "accent",
+      "music": "stab mare + kick + clap (+ crash în groove)",
+      "chord": "E/G#",
+      "notes": [
+        "G#3",
+        "E4",
+        "F#4",
+        "B4",
+        "E5"
+      ]
+    },
+    {
+      "name": "apasat",
+      "time": 9.0,
+      "frame": 270,
+      "frame_exact": 270.0,
+      "on_screen": "butonul „Rulează agentul” e APĂSAT",
+      "kind": "press",
+      "music": "stab foarte scurt + clap strâns",
+      "chord": "E/G#",
+      "notes": [
+        "G#3",
+        "E4",
+        "B4"
+      ]
+    },
+    {
+      "name": "perceive",
+      "time": 9.5,
+      "frame": 285,
+      "frame_exact": 285.0,
+      "on_screen": "„Perceive ✓”",
+      "kind": "note",
+      "music": "o notă din motiv (coardă ciupită + clopoțel)",
+      "chord": "E/G#",
+      "notes": [
+        "B4"
+      ]
+    },
+    {
+      "name": "estimate",
+      "time": 10.0,
+      "frame": 300,
+      "frame_exact": 300.0,
+      "on_screen": "„Estimate ✓”",
+      "kind": "note",
+      "music": "o notă din motiv (coardă ciupită + clopoțel)",
+      "chord": "F#m9",
+      "notes": [
+        "C#5"
+      ]
+    },
+    {
+      "name": "decide",
+      "time": 10.5,
+      "frame": 315,
+      "frame_exact": 315.0,
+      "on_screen": "„Decide ✓”",
+      "kind": "note",
+      "music": "o notă din motiv (coardă ciupită + clopoțel)",
+      "chord": "F#m9",
+      "notes": [
+        "E5"
+      ]
+    },
+    {
+      "name": "act",
+      "time": 11.0,
+      "frame": 330,
+      "frame_exact": 330.0,
+      "on_screen": "„Act ✓”",
+      "kind": "note",
+      "music": "o notă din motiv (coardă ciupită + clopoțel)",
+      "chord": "F#m9",
+      "notes": [
+        "A5"
+      ]
+    },
+    {
+      "name": "harta",
+      "time": 11.5,
+      "frame": 345,
+      "frame_exact": 345.0,
+      "on_screen": "harta: traseele se desenează",
+      "kind": "lift",
+      "music": "4 note în șaisprezecimi + rafală",
+      "chord": "F#m9",
+      "notes": [
+        "E5",
+        "F#5",
+        "A5",
+        "C#6"
+      ]
+    },
+    {
+      "name": "scor_087",
+      "time": 13.5,
+      "frame": 405,
+      "frame_exact": 405.0,
+      "on_screen": "lucrarea: scorul 0,87 și bilanțul postului",
+      "kind": "accent",
+      "music": "stab mare + kick + clap (+ crash în groove)",
+      "chord": "A/C#",
+      "notes": [
+        "C#4",
+        "E4",
+        "A4",
+        "B4",
+        "E5"
+      ]
+    },
+    {
+      "name": "tensiune_fix",
+      "time": 15.5,
+      "frame": 465,
+      "frame_exact": 465.0,
+      "on_screen": "cazul de tensiune: soluția cea mai ieftină",
+      "kind": "accent",
+      "music": "stab mare + kick + clap (+ crash în groove)",
+      "chord": "E",
+      "notes": [
+        "E3",
+        "B3",
+        "E4",
+        "G#4",
+        "B4"
+      ]
+    },
+    {
+      "name": "nu_sunt_sigur",
+      "time": 17.5,
+      "frame": 525,
+      "frame_exact": 525.0,
+      "on_screen": "cardul „Nu sunt sigur” (energia scade 1,5 s)",
+      "kind": "soft",
+      "music": "acord moale, filtrat; tobele se rup până la 19,0",
+      "chord": "F#m9",
+      "notes": [
+        "F#3",
+        "C#4",
+        "E4",
+        "G#4",
+        "C#5"
+      ]
+    },
+    {
+      "name": "aproba",
+      "time": 19.0,
+      "frame": 570,
+      "frame_exact": 570.0,
+      "on_screen": "„Aprobă” APĂSAT (energia revine)",
+      "kind": "press_big",
+      "music": "stab + kick + clap + crash",
+      "chord": "Dmaj9",
+      "notes": [
+        "D3",
+        "A3",
+        "E4",
+        "F#4",
+        "C#5"
+      ]
+    },
+    {
+      "name": "drop",
+      "time": 22.0,
+      "frame": 660,
+      "frame_exact": 660.0,
+      "on_screen": "pastila neagră umple ecranul; cifra urcă 22,0-23,5",
+      "kind": "big",
+      "music": "stab + kick + boom + clap + crash",
+      "chord": "A",
+      "notes": [
+        "A2",
+        "E3",
+        "A3",
+        "C#4",
+        "E4",
+        "B4",
+        "E5"
+      ]
+    },
+    {
+      "name": "al_doilea_rand",
+      "time": 24.0,
+      "frame": 720,
+      "frame_exact": 720.0,
+      "on_screen": "al doilea rând de text",
+      "kind": "accent",
+      "music": "stab mare + kick + clap (+ crash în groove)",
+      "chord": "Dmaj9",
+      "notes": [
+        "D3",
+        "A3",
+        "E4",
+        "F#4",
+        "C#5"
+      ]
+    },
+    {
+      "name": "final",
+      "time": 26.0,
+      "frame": 780,
+      "frame_exact": 780.0,
+      "on_screen": "logoul: soarele răsare peste traseu",
+      "kind": "final",
+      "music": "A add9 mare + kick + boom + crash + clopoței; tobele se opresc",
+      "chord": "Afinal",
+      "notes": [
+        "A2",
+        "E3",
+        "A3",
+        "C#4",
+        "E4",
+        "B4",
+        "C#5",
+        "E5"
+      ]
+    }
+  ],
+  "accents": {
+    "un_scor": {
+      "time": 0.0,
+      "frame": 0
+    },
+    "de_087": {
+      "time": 0.5,
+      "frame": 15
+    },
+    "nu_e": {
+      "time": 1.5,
+      "frame": 45
+    },
+    "un_plan": {
+      "time": 2.0,
+      "frame": 60
+    },
+    "contoare": {
+      "time": 3.0,
+      "frame": 90
+    },
+    "furtuni": {
+      "time": 3.5,
+      "frame": 105
+    },
+    "tensiune": {
+      "time": 4.0,
+      "frame": 120
+    },
+    "aceleasi_echipe": {
+      "time": 4.5,
+      "frame": 135
+    },
+    "consola": {
+      "time": 6.0,
+      "frame": 180
+    },
+    "spre_buton": {
+      "time": 8.0,
+      "frame": 240
+    },
+    "apasat": {
+      "time": 9.0,
+      "frame": 270
+    },
+    "perceive": {
+      "time": 9.5,
+      "frame": 285
+    },
+    "estimate": {
+      "time": 10.0,
+      "frame": 300
+    },
+    "decide": {
+      "time": 10.5,
+      "frame": 315
+    },
+    "act": {
+      "time": 11.0,
+      "frame": 330
+    },
+    "harta": {
+      "time": 11.5,
+      "frame": 345
+    },
+    "scor_087": {
+      "time": 13.5,
+      "frame": 405
+    },
+    "tensiune_fix": {
+      "time": 15.5,
+      "frame": 465
+    },
+    "nu_sunt_sigur": {
+      "time": 17.5,
+      "frame": 525
+    },
+    "aproba": {
+      "time": 19.0,
+      "frame": 570
+    },
+    "drop": {
+      "time": 22.0,
+      "frame": 660
+    },
+    "al_doilea_rand": {
+      "time": 24.0,
+      "frame": 720
+    },
+    "final": {
+      "time": 26.0,
+      "frame": 780
+    },
+    "fade_start": {
+      "time": 28.9,
+      "frame": 867
+    },
+    "silent_from": {
+      "time": 29.9,
+      "frame": 897
+    }
+  },
+  "events": {
+    "kick": [
+      0.0,
+      0.5,
+      1.5,
+      2.0,
+      3.0,
+      3.5,
+      4.0,
+      4.5,
+      6.0,
+      6.5,
+      7.0,
+      7.5,
+      8.0,
+      8.5,
+      9.0,
+      9.5,
+      10.0,
+      10.5,
+      11.0,
+      11.5,
+      12.0,
+      12.5,
+      13.0,
+      13.5,
+      14.0,
+      14.5,
+      15.0,
+      15.5,
+      16.0,
+      16.5,
+      17.0,
+      18.0,
+      19.0,
+      19.5,
+      20.0,
+      20.5,
+      21.0,
+      21.5,
+      22.0,
+      22.5,
+      23.0,
+      23.5,
+      24.0,
+      24.5,
+      25.0,
+      25.5,
+      26.0
+    ],
+    "clap": [
+      2.0,
+      4.5,
+      6.0,
+      6.5,
+      7.5,
+      8.0,
+      8.5,
+      9.0,
+      9.5,
+      10.5,
+      11.5,
+      12.5,
+      13.5,
+      14.5,
+      15.5,
+      16.5,
+      18.5,
+      19.0,
+      19.5,
+      22.0,
+      22.5,
+      23.5,
+      24.0,
+      24.5,
+      25.5
+    ],
+    "snare_roll": [
+      5.5,
+      5.625,
+      5.75,
+      5.875,
+      11.5,
+      11.625,
+      11.75,
+      11.875,
+      20.0,
+      20.25,
+      20.5,
+      20.75,
+      21.0,
+      21.125,
+      21.25,
+      21.375,
+      21.5,
+      21.5625,
+      21.625,
+      21.6875,
+      21.75,
+      21.8125,
+      21.875,
+      21.9375,
+      25.75,
+      25.875
+    ],
+    "hat_closed": [
+      3.25,
+      3.75,
+      4.25,
+      4.75,
+      4.875,
+      5.0,
+      5.125,
+      5.25,
+      5.375,
+      5.5,
+      5.625,
+      5.75,
+      5.875,
+      6.25,
+      6.75,
+      7.25,
+      7.75,
+      8.25,
+      8.75,
+      9.25,
+      9.75,
+      10.125,
+      10.25,
+      10.375,
+      10.625,
+      10.75,
+      10.875,
+      11.125,
+      11.25,
+      11.375,
+      11.625,
+      11.75,
+      11.875,
+      12.125,
+      12.375,
+      12.625,
+      12.875,
+      13.125,
+      13.375,
+      13.625,
+      13.875,
+      14.125,
+      14.375,
+      14.625,
+      14.875,
+      15.125,
+      15.375,
+      15.625,
+      15.875,
+      16.125,
+      16.375,
+      16.625,
+      16.875,
+      17.125,
+      17.375,
+      19.125,
+      19.375,
+      19.625,
+      19.875,
+      20.0,
+      20.125,
+      20.25,
+      20.375,
+      20.5,
+      20.625,
+      20.75,
+      20.875,
+      21.0,
+      21.125,
+      21.25,
+      21.375,
+      21.5,
+      21.625
+    ],
+    "hat_open": [
+      12.25,
+      12.75,
+      13.25,
+      13.75,
+      14.25,
+      14.75,
+      15.25,
+      15.75,
+      16.25,
+      16.75,
+      17.25,
+      19.25,
+      19.75,
+      22.25,
+      22.75,
+      23.25,
+      23.75,
+      24.25,
+      24.75,
+      25.25,
+      25.75
+    ],
+    "crash": [
+      4.5,
+      6.0,
+      8.0,
+      13.5,
+      15.5,
+      19.0,
+      22.0,
+      24.0,
+      26.0
+    ],
+    "stab": [
+      0.0,
+      0.5,
+      1.5,
+      2.0,
+      3.0,
+      3.5,
+      4.0,
+      4.5,
+      6.0,
+      8.0,
+      9.0,
+      13.5,
+      15.5,
+      17.5,
+      19.0,
+      22.0,
+      24.0,
+      26.0
+    ],
+    "lead": [
+      9.5,
+      10.0,
+      10.5,
+      11.0,
+      11.5,
+      11.625,
+      11.75,
+      11.875,
+      23.5,
+      26.0
+    ],
+    "arp": [
+      12.0,
+      12.125,
+      12.25,
+      12.375,
+      12.5,
+      12.625,
+      12.75,
+      12.875,
+      13.0,
+      13.125,
+      13.25,
+      13.375,
+      13.5,
+      13.625,
+      13.75,
+      13.875,
+      14.0,
+      14.125,
+      14.25,
+      14.375,
+      14.5,
+      14.625,
+      14.75,
+      14.875,
+      15.0,
+      15.125,
+      15.25,
+      15.375,
+      15.5,
+      15.625,
+      15.75,
+      15.875,
+      16.0,
+      16.125,
+      16.25,
+      16.375,
+      16.5,
+      16.625,
+      16.75,
+      16.875,
+      17.0,
+      17.125,
+      17.25,
+      17.375,
+      19.0,
+      19.125,
+      19.25,
+      19.375,
+      19.5,
+      19.625,
+      19.75,
+      19.875,
+      20.0,
+      20.125,
+      20.25,
+      20.375,
+      20.5,
+      20.625,
+      20.75,
+      20.875,
+      21.0,
+      21.125,
+      21.25,
+      21.375,
+      21.5,
+      21.625,
+      22.0,
+      22.125,
+      22.25,
+      22.375,
+      22.5,
+      22.625,
+      22.75,
+      22.875,
+      23.0,
+      23.125,
+      23.25,
+      23.375
+    ],
+    "bass": [
+      0.0,
+      0.5,
+      1.5,
+      3.0,
+      3.5,
+      4.0,
+      4.5,
+      6.25,
+      6.75,
+      7.25,
+      7.75,
+      8.25,
+      8.75,
+      9.25,
+      9.75,
+      10.25,
+      10.375,
+      10.75,
+      10.875,
+      11.25,
+      11.375,
+      11.75,
+      11.875,
+      12.25,
+      12.375,
+      12.75,
+      12.875,
+      13.25,
+      13.375,
+      13.75,
+      13.875,
+      14.25,
+      14.375,
+      14.75,
+      14.875,
+      15.25,
+      15.375,
+      15.75,
+      15.875,
+      16.25,
+      16.375,
+      16.75,
+      16.875,
+      17.25,
+      17.375,
+      17.5,
+      19.25,
+      19.375,
+      19.75,
+      19.875,
+      20.25,
+      20.375,
+      20.75,
+      20.875,
+      21.25,
+      21.375,
+      22.25,
+      22.75,
+      23.25,
+      23.75,
+      24.25,
+      24.75,
+      25.25,
+      25.75,
+      26.0
+    ],
+    "risers": [
+      {
+        "start": 5.0,
+        "end": 6.0,
+        "kind": "noise"
+      },
+      {
+        "start": 5.0,
+        "end": 6.0,
+        "kind": "pitch"
+      },
+      {
+        "start": 11.5,
+        "end": 12.0,
+        "kind": "noise"
+      },
+      {
+        "start": 20.0,
+        "end": 22.0,
+        "kind": "noise"
+      },
+      {
+        "start": 20.0,
+        "end": 22.0,
+        "kind": "pitch"
+      }
+    ]
+  },
+  "stems": [
+    "drums",
+    "bass",
+    "pad",
+    "stabs",
+    "lead",
+    "fx"
+  ],
+  "master": {
+    "lufs_integrated_internal": -16.02,
+    "true_peak_dbtp_internal": -1.3,
+    "gain_db": -9.99,
+    "max_limiting_db": 1.49
+  },
+  "license": "CC0: muzică originală compusă în cod de echipa CyberPunks, fără sample-uri"
+}
