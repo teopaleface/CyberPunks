@@ -73,7 +73,8 @@ def _plan_or_404(scenario: str) -> dict[str, Any]:
 
 class RunRequest(BaseModel):
     scenario: str = DEFAULT_SCENARIO
-    date: str | None = Field(default=None, description="YYYY-MM-DD; implicit data din config/scenarios.yaml")
+    date: str | None = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$", description="YYYY-MM-DD; implicit data din config/scenarios.yaml")
+    mode: Literal["auto", "existing", "fixtures"] = Field(default="auto", description="auto rulează modelele A, B, C; existing folosește ieșirile lor")
 
 
 class ReviewRequest(BaseModel):
@@ -130,10 +131,18 @@ def run(req: RunRequest) -> dict[str, Any]:
     if not _run_lock.acquire(blocking=False):
         raise HTTPException(409, "agentul rulează deja; încearcă din nou peste câteva secunde")
     try:
-        result = agent.run(scenario=scenario, date=req.date)
+        result = agent.run(scenario=scenario, date=req.date, mode=req.mode, out_root=store.outputs)
+    except SystemExit as exc:  # de exemplu data scenariului nu e cunoscută
+        raise HTTPException(422, str(exc)) from exc
     finally:
         _run_lock.release()
-    return {"plan_id": result.plan.plan_id, "timings": result.timings, "summary": result.plan.summary.model_dump()}
+    return {
+        "plan_id": result.plan.plan_id,
+        "timings": result.timings,
+        "summary": result.plan.summary.model_dump(),
+        "sources_status": result.plan.sources_status,
+        "solver": result.meta.get("solver", {}),
+    }
 
 
 @api.get("/plan")
@@ -188,7 +197,8 @@ def review(work_item_id: str, req: ReviewRequest, scenario: str = Query(DEFAULT_
         raise HTTPException(409, "agentul rulează; încearcă din nou")
     try:
         record = review_mod.apply_review(
-            scenario=scenario, work_item_id=work_item_id, decision=req.decision, note=req.note, reviewer=req.reviewer
+            scenario=scenario, work_item_id=work_item_id, decision=req.decision, note=req.note, reviewer=req.reviewer,
+            out_root=store.outputs,
         )
     except KeyError as exc:
         raise HTTPException(404, str(exc)) from exc
