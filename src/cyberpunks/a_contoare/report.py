@@ -241,8 +241,8 @@ def build() -> str:
         "zile cu zero înseamnă mai puțini kWh absoluți, iar zgomotul relativ e mai mare. Pe SGCC, tiparul e "
         "invers: furturile reale sunt la consumatori mari, iar alarmele false ale modelului cresc spre chintila de sus. "
         "Regula simplă face greșeala opusă și mult mai mare: pe SGCC trimite echipa la "
-        f"{pct(s_rule[0].get('false_alarm_rate'))} dintre consumatorii cei mai mici fără problemă, modelul la "
-        f"{pct(S['false_alarms_by_level'][0]['false_alarm_rate'])}. "
+        f"{f2(100 * s_rule[0].get('false_alarm_rate', float('nan')), 1)}% dintre consumatorii cei mai mici fără "
+        f"problemă, modelul la {f2(100 * S['false_alarms_by_level'][0]['false_alarm_rate'], 1)}%. "
         "Consumul mic poate însemna o locuință goală sau sărăcie energetică. De aceea, în agent:\n"
         "- un furt suspectat la un contor din chintila de jos a consumului NU merge direct la vizită. Merge la un "
         "om, cu motivul scris (`extra.low_consumption_guard`, `abstain_reason`);\n"
@@ -384,7 +384,52 @@ def build() -> str:
         "6. **Paza pentru consum mic** (secțiunea 5).\n"
     )
 
-    parts.append("## 9. Limite cunoscute\n")
+    fc_path = REP / "fusion_check.json"
+    if fc_path.exists():
+        fc = json.loads(fc_path.read_text(encoding="utf-8"))
+        parts.append("## 9. Fuziunea cu bilanțul pe post (verificare pe testul A)\n")
+        parts.append(
+            "Am aplicat formula de fuziune a firului bilanț (`cyberpunks.a_bilant.fuse.combine_arrays`, doar confirmare, "
+            "neschimbată) pe populația demo. Bilanțul fiecărui post e construit din adevărul injectat: energia "
+            "nemăsurată de contoarele postului, plus zgomotul pierderilor normale, cu abaterea sigma = 1%, 2% sau 4% din "
+            "consumul postului. Rezultatele sunt mediate pe 3 trageri ale zgomotului (`reports/A/fusion_check.json`, "
+            "`uv run python -m cyberpunks.a_contoare.fusion_check`).\n"
+        )
+        rows = []
+        for sc in ("demo-vara", "maine"):
+            for sg in ("sigma_1pct", "sigma_2pct", "sigma_4pct"):
+                a = fc.get(sc, {}).get(sg)
+                if not a:
+                    continue
+                cs = a["confirmed_share"]
+                rows.append([sc, sg.replace("sigma_", "").replace("pct", "%"),
+                             f"{f2(a['precision_at_10_a'])} -> {f2(a['precision_at_10_fused'])}",
+                             f"{f2(a['precision_at_100_a'])} -> {f2(a['precision_at_100_fused'])}",
+                             f"{f2(a['pr_auc_a'], 3)} -> {f2(a['pr_auc_fused'], 3)}",
+                             pct(cs["furt_real"]), pct(cs["defect_real"]), pct(cs["fara_problema"])])
+        parts.append(table(["Scenariu", "Sigma bilanț", "Precizia@10", "Precizia@100", "PR-AUC",
+                            "Furturi confirmate", "Defecte confirmate", "Fără problemă, confirmate"], rows) + "\n")
+        k1 = fc.get("demo-vara", {}).get("sigma_1pct", {}).get("confirmed_share_by_kind", {})
+        g1 = fc.get("demo-vara", {}).get("sigma_1pct", {}).get("gray_zone", {})
+        if k1:
+            parts.append(
+                "**Unde ajută și unde nu** (demo-vara, bilanț precis, sigma 1%, ce parte din fiecare tip e confirmată):\n"
+                f"- defectele care pierd multă energie: contor oprit {pct(k1.get('zero'))}, citiri negative "
+                f"{pct(k1.get('negative'))}, valoare blocată {pct(k1.get('stuck'))}. Pe acestea modelul le pune oricum "
+                "în vârful listei, deci precizia în primele 10-100 nu se schimbă;\n"
+                f"- furtul: consum redus constant {pct(k1.get('h1'))}, oprire pe ore {pct(k1.get('h3'))}, bypass "
+                f"{pct(k1.get('bypass'))}. Pierderea unui contor (câțiva kWh/zi) e mică față de zgomotul postului;\n"
+                f"- tiparele care nu schimbă energia nu pot fi confirmate: profil aplatizat {pct(k1.get('h4'))}, profil "
+                f"inversat {pct(k1.get('h6'))}, ceas decalat {pct(k1.get('clock_drift'))}, goluri {pct(k1.get('gaps'))}, "
+                f"salturi {pct(k1.get('spikes'))}. E corect că fuziunea doar confirmă și nu coboară scorul;\n"
+                f"- riscul: bilanțul confirmă POSTUL, nu contorul. Pe un post cu energie lipsă, și vecinii fără problemă "
+                f"cu o scădere naturală sunt confirmați: concediu {pct(k1.get('vacation'))}, schimbarea ocupanților "
+                f"{pct(k1.get('occupancy_change'))};\n"
+                f"- în zona gri a lui A ({int(g1.get('meters', 0))} de contoare, {pct(g1.get('real_problem_share'))} probleme "
+                f"reale), cele confirmate au {pct(g1.get('real_problem_share_if_confirmed'))} probleme reale, deci "
+                "confirmarea nu le separă. Asta susține decizia bilanțului de a nu rezolva automat cazurile nesigure.\n"
+            )
+    parts.append("## 10. Limite cunoscute\n")
     parts.append(
         "- Etichetele din Londra sunt sintetice: modelul învață tiparele pe care le-am injectat noi. Le-am făcut "
         "realiste, cu parametri din literatură, intensități mici, instalare treptată și schimbări normale "

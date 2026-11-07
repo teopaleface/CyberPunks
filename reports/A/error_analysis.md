@@ -115,7 +115,7 @@ Concediul și schimbarea ocupanților arată ca o scădere de consum. Regula sim
 
 Figura: `reports/A/figures/false_alarms_by_consumption.png`.
 
-Alarmă falsă = un contor fără problemă ajunge în primele 5% din clasament. Pe Londra, casele cu cel mai mic consum primesc de câteva ori mai multe alarme false decât celelalte. La ele, o scădere sau câteva zile cu zero înseamnă mai puțini kWh absoluți, iar zgomotul relativ e mai mare. Pe SGCC, tiparul e invers: furturile reale sunt la consumatori mari, iar alarmele false ale modelului cresc spre chintila de sus. Regula simplă face greșeala opusă și mult mai mare: pe SGCC trimite echipa la 19% dintre consumatorii cei mai mici fără problemă, modelul la 0%. Consumul mic poate însemna o locuință goală sau sărăcie energetică. De aceea, în agent:
+Alarmă falsă = un contor fără problemă ajunge în primele 5% din clasament. Pe Londra, casele cu cel mai mic consum primesc de câteva ori mai multe alarme false decât celelalte. La ele, o scădere sau câteva zile cu zero înseamnă mai puțini kWh absoluți, iar zgomotul relativ e mai mare. Pe SGCC, tiparul e invers: furturile reale sunt la consumatori mari, iar alarmele false ale modelului cresc spre chintila de sus. Regula simplă face greșeala opusă și mult mai mare: pe SGCC trimite echipa la 19,4% dintre consumatorii cei mai mici fără problemă, modelul la 0,4%. Consumul mic poate însemna o locuință goală sau sărăcie energetică. De aceea, în agent:
 - un furt suspectat la un contor din chintila de jos a consumului NU merge direct la vizită. Merge la un om, cu motivul scris (`extra.low_consumption_guard`, `abstain_reason`);
 - nivelul de consum rămâne feature, pentru că din el se calculează și valoarea pierderii. În schimb, rata de alarme false pe chintile se verifică la fiecare evaluare (tabelul de mai sus).
 
@@ -176,7 +176,27 @@ Conformal lucrează pe scorul brut al modelului, cu pragurile alese pe calibrare
 5. **Pragurile pentru "nu sunt sigur".** Cu 5% / 20%, aproape orice scor peste 0,08 devenea "problemă", iar zona gri era goală. Cu 1% / 30% (pe demo: demo-vara: deciziile "problemă" au precizie 87%, iar în zona gri sunt 14% probleme reale; maine: deciziile "problemă" au precizie 68%, iar în zona gri sunt 22% probleme reale), zona gri chiar merită privirea unui om.
 6. **Paza pentru consum mic** (secțiunea 5).
 
-## 9. Limite cunoscute
+## 9. Fuziunea cu bilanțul pe post (verificare pe testul A)
+
+Am aplicat formula de fuziune a firului bilanț (`cyberpunks.a_bilant.fuse.combine_arrays`, doar confirmare, neschimbată) pe populația demo. Bilanțul fiecărui post e construit din adevărul injectat: energia nemăsurată de contoarele postului, plus zgomotul pierderilor normale, cu abaterea sigma = 1%, 2% sau 4% din consumul postului. Rezultatele sunt mediate pe 3 trageri ale zgomotului (`reports/A/fusion_check.json`, `uv run python -m cyberpunks.a_contoare.fusion_check`).
+
+| Scenariu | Sigma bilanț | Precizia@10 | Precizia@100 | PR-AUC | Furturi confirmate | Defecte confirmate | Fără problemă, confirmate |
+|---|---|---|---|---|---|---|---|
+| demo-vara | 1% | 1,00 -> 1,00 | 1,00 -> 1,00 | 0,707 -> 0,707 | 21% | 24% | 6% |
+| demo-vara | 2% | 1,00 -> 1,00 | 1,00 -> 1,00 | 0,707 -> 0,715 | 8% | 11% | 2% |
+| demo-vara | 4% | 1,00 -> 1,00 | 1,00 -> 1,00 | 0,707 -> 0,716 | 2% | 3% | 1% |
+| maine | 1% | 1,00 -> 1,00 | 1,00 -> 1,00 | 0,679 -> 0,688 | 17% | 23% | 3% |
+| maine | 2% | 1,00 -> 1,00 | 1,00 -> 1,00 | 0,679 -> 0,688 | 5% | 10% | 1% |
+| maine | 4% | 1,00 -> 1,00 | 1,00 -> 1,00 | 0,679 -> 0,687 | 1% | 2% | 0% |
+
+**Unde ajută și unde nu** (demo-vara, bilanț precis, sigma 1%, ce parte din fiecare tip e confirmată):
+- defectele care pierd multă energie: contor oprit 53%, citiri negative 55%, valoare blocată 27%. Pe acestea modelul le pune oricum în vârful listei, deci precizia în primele 10-100 nu se schimbă;
+- furtul: consum redus constant 28%, oprire pe ore 29%, bypass 26%. Pierderea unui contor (câțiva kWh/zi) e mică față de zgomotul postului;
+- tiparele care nu schimbă energia nu pot fi confirmate: profil aplatizat 4%, profil inversat 7%, ceas decalat 8%, goluri 1%, salturi 6%. E corect că fuziunea doar confirmă și nu coboară scorul;
+- riscul: bilanțul confirmă POSTUL, nu contorul. Pe un post cu energie lipsă, și vecinii fără problemă cu o scădere naturală sunt confirmați: concediu 24%, schimbarea ocupanților 14%;
+- în zona gri a lui A (537 de contoare, 14% probleme reale), cele confirmate au 14% probleme reale, deci confirmarea nu le separă. Asta susține decizia bilanțului de a nu rezolva automat cazurile nesigure.
+
+## 10. Limite cunoscute
 
 - Etichetele din Londra sunt sintetice: modelul învață tiparele pe care le-am injectat noi. Le-am făcut realiste, cu parametri din literatură, intensități mici, instalare treptată și schimbări normale ca exemple grele, dar un furt real poate arăta altfel. Pe etichete reale, SGCC dă un reper mai modest.
 - SGCC are o etichetă pe client, fără dată, și vine din altă țară și altă rețea. Îl folosim ca dovadă că aceleași features merg pe furt real, nu ca model pentru București.
