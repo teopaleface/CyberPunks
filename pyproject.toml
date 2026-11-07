@@ -27,6 +27,7 @@ dependencies = [
   "fpdf2>=2.8",
   "pandapower>=3.4",
   "simbench>=1.6",
+  "optuna>=5.0.0",
 ]
 
 [project.scripts]

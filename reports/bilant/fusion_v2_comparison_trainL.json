@@ -1,0 +1,114 @@
+{
+  "validation_objective": {
+    "A_singur": 0.1530952380952381,
+    "regula_v1": 0.1711904761904762,
+    "regula_reglata": 0.21095238095238097,
+    "invatata": 0.36714285714285716
+  },
+  "best_rule_params": {
+    "k_sigma": 0.6556829280841304,
+    "u_def": 0.056424240764329225,
+    "cap": 2.8573315867256612,
+    "demote": true
+  },
+  "test_sim_multi_day": {
+    "A_singur": {
+      "precision_at_10": 0.8,
+      "wasted_trips_per_day_at_10": 2.0,
+      "value_lei_per_day_at_10": 4966.478256711736,
+      "precision_at_20": 0.6437499999999999,
+      "wasted_trips_per_day_at_20": 7.125,
+      "value_lei_per_day_at_20": 7917.447761474177,
+      "precision_at_50": 0.4425,
+      "wasted_trips_per_day_at_50": 27.875,
+      "value_lei_per_day_at_50": 11716.23262747284,
+      "precision_at_100": 0.31375,
+      "wasted_trips_per_day_at_100": 68.625,
+      "value_lei_per_day_at_100": 13817.894617323764,
+      "roc_auc": 0.9055382971216481
+    },
+    "regula_v1": {
+      "precision_at_10": 0.7749999999999999,
+      "wasted_trips_per_day_at_10": 2.25,
+      "value_lei_per_day_at_10": 6986.3628945518285,
+      "precision_at_20": 0.6187500000000001,
+      "wasted_trips_per_day_at_20": 7.625,
+      "value_lei_per_day_at_20": 9590.320520605892,
+      "precision_at_50": 0.405,
+      "wasted_trips_per_day_at_50": 29.75,
+      "value_lei_per_day_at_50": 12395.294647118077,
+      "precision_at_100": 0.2875,
+      "wasted_trips_per_day_at_100": 71.25,
+      "value_lei_per_day_at_100": 15584.67378812749,
+      "roc_auc": 0.9012728888208649
+    },
+    "regula_reglata": {
+      "precision_at_10": 0.7625,
+      "wasted_trips_per_day_at_10": 2.375,
+      "value_lei_per_day_at_10": 7502.104511948302,
+      "precision_at_20": 0.65,
+      "wasted_trips_per_day_at_20": 7.0,
+      "value_lei_per_day_at_20": 10300.004623297602,
+      "precision_at_50": 0.4,
+      "wasted_trips_per_day_at_50": 30.0,
+      "value_lei_per_day_at_50": 12477.523514606059,
+      "precision_at_100": 0.275,
+      "wasted_trips_per_day_at_100": 72.5,
+      "value_lei_per_day_at_100": 14875.810517295264,
+      "roc_auc": 0.8648135680697072
+    },
+    "invatata": {
+      "precision_at_10": 0.7875000000000001,
+      "wasted_trips_per_day_at_10": 2.125,
+      "value_lei_per_day_at_10": 6688.709631929174,
+      "precision_at_20": 0.7,
+      "wasted_trips_per_day_at_20": 6.0,
+      "value_lei_per_day_at_20": 10689.024765204638,
+      "precision_at_50": 0.47,
+      "wasted_trips_per_day_at_50": 26.5,
+      "value_lei_per_day_at_50": 16231.903901651502,
+      "precision_at_100": 0.31875,
+      "wasted_trips_per_day_at_100": 68.125,
+      "value_lei_per_day_at_100": 18901.515789527446,
+      "roc_auc": 0.7592889888684273
+    }
+  },
+  "test_real_a_demo": {
+    "A_singur": {
+      "roc_auc": 0.9166824628096304,
+      "precision_at_10": 1.0,
+      "precision_at_100": 1.0,
+      "precision_at_300": 1.0,
+      "precision_at_500": 0.962,
+      "precision_at_865": 0.6497109826589595
+    },
+    "regula_v1": {
+      "roc_auc": 0.9161985877978172,
+      "precision_at_10": 1.0,
+      "precision_at_100": 1.0,
+      "precision_at_300": 1.0,
+      "precision_at_500": 0.874,
+      "precision_at_865": 0.6439306358381502
+    },
+    "regula_reglata": {
+      "roc_auc": 0.8897937629344181,
+      "precision_at_10": 1.0,
+      "precision_at_100": 1.0,
+      "precision_at_300": 0.99,
+      "precision_at_500": 0.86,
+      "precision_at_865": 0.6346820809248555
+    },
+    "invatata": {
+      "roc_auc": 0.8094411559922157,
+      "precision_at_10": 0.8,
+      "precision_at_100": 0.78,
+      "precision_at_300": 0.6033333333333334,
+      "precision_at_500": 0.556,
+      "precision_at_865": 0.3988439306358382
+    }
+  },
+  "a_sim_auc_train": 0.9092934875880084,
+  "a_sim_auc_test": 0.9055382971216481,
+  "test_days": 8,
+  "seconds": 33.3
+}

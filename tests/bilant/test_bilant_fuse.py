@@ -11,6 +11,12 @@ from cyberpunks.common.contracts import BilantFusion, WorkItem
 from cyberpunks.common.paths import CONTRACTS
 
 
+@pytest.fixture(autouse=True)
+def _v1_params(monkeypatch):
+    """Testele de mai jos verifică mecanica regulii cu parametrii v1 (rezerva), indiferent de reglajul v2."""
+    monkeypatch.setattr(fuse, "fusion_params", lambda: dict(fuse.V1_PARAMS))
+
+
 def test_combine_confirms_and_refutes():
     up, lr_up = fuse.combine(0.5, excess_kwh=8.0, sigma_kwh=2.0, meter_deficit_kwh=8.0)
     down, lr_down = fuse.combine(0.5, excess_kwh=0.0, sigma_kwh=2.0, meter_deficit_kwh=8.0, demote=True)
@@ -87,3 +93,14 @@ def test_abstain_stays_with_human_by_default(items_and_state):
     data["recommended_action"] = "human_review"
     w = fuse.fuse([WorkItem.model_validate(data)], "demo-vara", "2025-07-08")[0]
     assert w.prediction.abstain and w.recommended_action.value == "human_review"
+
+
+def test_v2_params_file_is_confirm_only():
+    from cyberpunks.common.paths import REPORTS
+
+    p = REPORTS / "bilant" / "fusion_v2_params.json"
+    if not p.exists():
+        pytest.skip("fără reglaj v2")
+    prm = json.loads(p.read_text())["params"]
+    assert set(prm) >= {"k_sigma", "u_def", "cap", "demote"}
+    assert prm["demote"] is False  # nu coboară niciodată un contor găsit de A

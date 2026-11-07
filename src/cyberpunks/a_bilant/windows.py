@@ -64,6 +64,10 @@ WIN_FEATURES = [
 # calculate și salvate, dar scoase din model: au ridicat pierderea tehnică (F1 0,46 → 0,47) și au coborât F1 macro
 # (0,668 → 0,658), diferențe în zgomot (7 nov., 15:15)
 EXTRA_COLUMNS = ["ratio_vs_gis", "r_vs_gis_kwh"]
+WIN_FEATURES_V1 = list(WIN_FEATURES)  # varianta curentă (rezervă), neschimbată
+# varianta v2 (7 nov., 22:15): trăsături noi pentru contorul de client și pierderea tehnică
+NEW_V2 = ["n_drop50", "top3_drop_match", "zero7", "const7", "neg7", "ratio_vs_gis", "r_vs_gis_kwh"]
+WIN_FEATURES_V2 = WIN_FEATURES_V1 + NEW_V2
 MIRROR_DAYS = 28  # fereastra pentru oglinda lipsă/surplus cu vecinii
 LONG_REF = (90, 62)  # referința lungă: zilele e-90..e-62 (înaintea problemelor apărute în ultimele două luni)
 METER_MATERIAL_KWH = 1.0  # sub 1 kWh/zi lipsă, un contor de client nu se vede în bilanț: eticheta rămâne „normal”
@@ -180,10 +184,19 @@ def build_windows(d: pd.DataFrame, pred: pd.DataFrame, pool: str, days: list[int
             match = float(1 - abs(r_mean + nmin) / max(abs(r_mean), abs(nmin), 1.0)) if nr else 0.0
             # contoarele de client: consumul dispărut (înainte: zilele e-34..e-14; după: ultimele 7 zile)
             max_drop, drop_match, drop_share = 0.0, 0.0, 0.0
+            n_drop50, top3_match, zero7, const7, neg7 = 0.0, 0.0, 0.0, 0.0, 0.0
             if cd is not None and e - 34 >= 0:
                 before = cd[:, e - 34 : e - 13].mean(1)
-                after = cd[:, e - 6 : e + 1].mean(1)
+                last7 = cd[:, e - 6 : e + 1]
+                after = last7.mean(1)
                 drop = before - after
+                # v2: câți clienți și-au înjumătățit consumul, cât din lipsă explică primii 3, semne clare pe 7 zile
+                n_drop50 = float(((drop / np.maximum(np.abs(before), 0.5)) > 0.5).sum())
+                top3 = float(np.sort(np.clip(drop, 0, None))[-3:].sum())
+                top3_match = float(max(0.0, 1 - abs(top3 - r_mean) / max(abs(r_mean), top3, 1.0)))
+                zero7 = float(((last7 == 0).sum(1) >= 4).sum() - ((cd[:, e - 34 : e - 13] == 0).sum(1) >= 12).sum())
+                const7 = float(((np.abs(np.diff(last7, axis=1)) < 1e-6).sum(1) >= 4).sum())
+                neg7 = float((((last7 < -0.05).sum(1) >= 4) & (before > 0.5)).sum())
                 j = int(np.argmax(drop))
                 max_drop = float(drop[j])
                 if max_drop > 0:
@@ -230,6 +243,11 @@ def build_windows(d: pd.DataFrame, pred: pd.DataFrame, pool: str, days: list[int
                     "max_drop_kwh": max_drop,
                     "drop_match": drop_match,
                     "drop_share": drop_share,
+                    "n_drop50": n_drop50,
+                    "top3_drop_match": top3_match,
+                    "zero7": zero7,
+                    "const7": const7,
+                    "neg7": neg7,
                     "vcorr_min": vmin,
                     "vcorr_gap": vgap,
                     "miss_share_w": float(w["miss_share"].mean()),
@@ -258,3 +276,28 @@ def build_windows(d: pd.DataFrame, pred: pd.DataFrame, pool: str, days: list[int
                 }
             )
     return pd.DataFrame(rows)
+
+
+def _bw_job(args: tuple) -> pd.DataFrame:
+    d, pred, pool, days = args
+    return build_windows(d, pred, pool, days)
+
+
+def build_windows_parallel(d: pd.DataFrame, pred: pd.DataFrame, pool: str, workers: int = 8, days: list[int] | None = None) -> pd.DataFrame:
+    """La fel ca `build_windows`, în procese separate, pe grupuri de cartiere (vecinii unui post sunt în același grup)."""
+    from concurrent.futures import ProcessPoolExecutor
+    from multiprocessing import get_context
+
+    o = DATA_PROCESSED / "bilant" / pool
+    posts = pd.read_parquet(o / "posts.parquet")[["post_id", "cluster"]]
+    clusters = sorted(posts["cluster"].unique())
+    groups = [set(posts.loc[posts["cluster"].isin(clusters[i::workers * 3]), "post_id"]) for i in range(workers * 3)]
+    pred = pred.set_axis(d.index)
+    jobs = []
+    for gset in groups:
+        m = d["post_id"].isin(gset).to_numpy()
+        if m.any():
+            jobs.append((d[m], pred[m], pool, days))
+    with ProcessPoolExecutor(max_workers=workers, mp_context=get_context("spawn")) as ex:
+        parts = list(ex.map(_bw_job, jobs))
+    return pd.concat(parts, ignore_index=True)
