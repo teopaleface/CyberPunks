@@ -139,6 +139,8 @@ def apply_meter_problem(x: np.ndarray, on: np.ndarray, params: dict, local_day: 
         grid[d, : 2 * k] = np.repeat(h[:k] / 2.0, 2)
     onset = int(local_day[on][0])
     overrides = {k: v for k, v in params.items() if k in ("alpha", "p", "s", "D")}
+    if params["type"] in ("vacation", "occupancy_change", "none"):
+        return x.copy()
     yg, _ = inject(grid, params["type"], np.random.default_rng(params["seed"]), start_day=onset, **overrides)
     y = x.copy()
     for d in range(onset, D):

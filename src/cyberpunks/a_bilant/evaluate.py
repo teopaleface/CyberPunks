@@ -218,11 +218,23 @@ def main() -> None:
     (N.MODEL_DIR / "fusion_sigma.json").write_text(json.dumps(sig))
     (N.MODEL_DIR / "version.json").write_text(json.dumps({"version": f"bilant-diagnoza-lgbm@{sha}"}))
     eco = load_config("economics")
-    t = FE.meter_table("pop", wte, sig["delta"])
-    fw, fwo = FE.evaluate(t, float(eco["energy"]["loss_cost_lei_per_kwh"]), int(eco["meters"]["detection_horizon_days"]))
-    a_sc, _, _ = FE.simulate_a_scores(t)
-    t.assign(a=a_sc, fused=combine_arrays(a_sc, t["excess"].to_numpy(), t["sigma"].to_numpy(), np.maximum(t["drop"].to_numpy(), 0.0))).to_parquet(DATA_PROCESSED / "bilant" / "fusion_meters_pop.parquet")
+    price = float(eco["energy"]["loss_cost_lei_per_kwh"])
+    horizon = int(eco["meters"]["detection_horizon_days"])
+    # (a) mai multe zile, scoruri A simulate, pe lotul train (problemele de contor apar pe tot anul; pierderea normală
+    # prezisă fără ca postul să fi fost văzut). Lotul pop are acum defectele reale ale lui A, apărute în ultimele 60 de zile.
+    t = FE.meter_table("train", wtr, sig["delta"])
+    fw, fwo = FE.evaluate(t, price, horizon)
+    fs, fso = FE.evaluate(t, price, horizon, target_auc=FE.A_SGCC_AUC)
     fig_fusion(fw, fwo)
+    a_sc, _, _ = FE.simulate_a_scores(t)
+    t.assign(a=a_sc, fused=combine_arrays(a_sc, t["excess"].to_numpy(), t["sigma"].to_numpy(), np.maximum(t["drop"].to_numpy(), 0.0))).to_parquet(DATA_PROCESSED / "bilant" / "fusion_meters_train.parquet")
+    metrics.update({f"fuziune_sgcc_{k}": v for k, v in fs.items() if not k.startswith("info_")})
+    baseline.update({f"fuziune_sgcc_{k}": v for k, v in fso.items()})
+    # (b) ziua demo, scorurile REALE ale lui A pe cele ~15.850 de contoare
+    real = FE.evaluate_real_a(wte, sig["delta"], price, horizon)
+    metrics.update({f"fuziune_a_real_{k}": v for k, v in real.items()})
+    # (c) energia pe care contoarele nu o văd (doar bilanțul o vede), ziua demo
+    metrics.update({f"invizibil_{k}": v for k, v in FE.invisible_energy(te, int(te["day"].max())).items()})
     metrics.update({f"fuziune_{k}": v for k, v in fw.items()})
     baseline.update({f"fuziune_{k}": v for k, v in fwo.items()})
     report = ModelReport(
