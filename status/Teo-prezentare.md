@@ -1,6 +1,6 @@
 # Status: Teo-prezentare
-Actualizat: 2026-11-07 13:43
-Milestone curent: v0 animat cu muzică gata (termenul era 19:00); review-urile independente rulează
+Actualizat: 2026-11-07 14:26
+Milestone curent: filmul nou (varianta 2, după referința lui Teo): cadrele-cheie așteaptă "da" de la Teo
 Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul comun)
 
 ## Făcut
@@ -18,6 +18,11 @@ Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul co
 - 13:43 Primul export cu sunet (v0): H.264 High, BT.709, 1920×1080, 30 fps, AAC 48 kHz, -16,1 LUFS, vârf -1,1 dBTP, 15,4 MB. Pornite cele două review-uri independente: vizual (Claude) și tehnic (Codex).
 - Planul slideurilor (`presentation/slides/OUTLINE.md`) și prima schiță a scriptului de demo (`presentation/demo-script.md`).
 
+- 13:45 Teo a respins varianta 1 ("prea banal, greu de văzut, culori nașpa") și a dat o referință (film Trust). Studiul referinței: `presentation/research/REFERINTA-trust.md` (2 tăieturi în 21 s, alb pur, text de 150-190 px, un accent, obiecte 3D, interfața la scară uriașă, final pe negru, ~134 BPM).
+- 14:20 Filmul nou în 9 scene (`presentation/video/compositions/k1-k9`): alb, text uriaș, obiecte 3D (Codex), consola REALĂ capturată din http://localhost:3710/ la rezoluție dublă (agent-browser, server local), cifrele citite din `reports/` și din `outputs/demo/` de `presentation/scripts/cifre_film.py`. `hyperframes check` trece.
+- 14:26 12 cadre-cheie cu textul final și timpii, arătate lui Teo (`presentation/video/boards/kf/`). Animarea completă vine după "da".
+- În lucru: obiecte 3D adevărate în Blender (Codex Sol și Astra în paralel, calitate maximă), muzica nouă de 120 BPM (subagent).
+
 ## Urmează
 - Arăt storyboard-ul lui Teo (gata înainte de 15:00).
 - Repar ce găsesc review-urile, apoi v0.1.
@@ -28,6 +33,8 @@ Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul co
 - Niciunul.
 
 ## Cereri către orchestrator
+- Bug vizibil pentru juriu, în consola reală (coada "Nu sunt sigur", `/coada`): factori de tipul "Consumul de noapte a crescut cu 18273047% față de istoric" (și 25359262%, 19488814%). Probabil împărțire la un istoric aproape zero în textul factorului (firul A sau șablonul de text). Ar trebui plafonat sau formulat altfel ("de la aproape zero").
+- Pagina postului (`/posturi/PT-0267`) spune "Bilanțul pe acest post nu e calculat încă": filmul folosește deocamdată curbe ilustrative pentru bilanț; când intră bilanțul în consolă, capturez pagina reală.
 - (rezolvat 13:20) Harta întunecată și cardul "Nu sunt sigur" în `/demo`: cerute interfeței de orchestrator. Mulțumesc.
 - (rezolvat 13:20) Cifra principală: valoarea capturată din `reports/planner/agent_eval.json` față de cea mai bună strategie simplă; în slideuri și metrica principală a fiecărui model din `reports/<X>/metrics.json`.
 - Nou: când există `reports/planner/agent_eval.json` și `reports/<A|B|C>/metrics.json` în `Teo`, vă rog spuneți-mi (sau le iau eu la verificarea de la 21:30).
