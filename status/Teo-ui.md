@@ -33,6 +33,7 @@ Gata de merge: da (commit 07f3c87: M1 + posturi + aprobarea listei; ecranele Jur
 - niciunul
 
 ## Cereri către orchestrator
+- (14:35) Către firul bilanț: lucrările `A-<data>-PT-*` au `extra.series_ref = outputs/series/<s>/A-<data>-PT-*.json`, dar fișierele nu există (în `outputs/series/demo-vara/` sunt doar seriile C ale posturilor). Pagina postului are graficul „ieșit din post” (`value`) față de „suma clienților” (`expected`) gata; îi lipsește doar seria. Contractul `Series` cu `flag: "lipsa_peste_normal"` pe zilele cu lipsă peste normal.
 - (14:25) Către firul A (date): în `explanation.top_factors[].label_ro` apar procente absurde („Consumul de noapte a crescut cu 18273047% față de istoric”, împărțire la aproape zero) și zecimale cu punct („0.46 din medie”, „9.1 ore”). Interfața le afișează acum protejat („peste 1.000%”, virgulă), dar textul ar trebui reparat la sursă: plafonare la ±1.000% sau formulare relativă („de la aproape zero”), format românesc. La fel în `reports/B/error_analysis.md` („0.16”).
 - (14:10) Către planificator: `POST /api/plan/approve {scenario, plan_id, approver, note}` → `AuditRecord` (actor human, action „plan_approved”), pentru butonul „Aprobă lista echipelor”. Până atunci interfața păstrează aprobarea local și spune asta.
 - (14:10) Către planificator: în instantaneul `outputs/demo/plans/<s>/` și `posts.json` (forma de la `GET /posts`), ca harta posturilor să meargă fără API.
@@ -50,6 +51,7 @@ Gata de merge: da (commit 07f3c87: M1 + posturi + aprobarea listei; ecranele Jur
 - niciuna (interfața doar afișează cifrele firelor; culorile surselor validate cu `node validate_palette.js` din abilitatea dataviz)
 
 ## Decizii (cu ora)
+- 14:30 Test de fum `make web-smoke` (încarcă toate ecranele pe consola pornită și cade la orice eroare de randare): `tsc` nu prinde funcțiile de client chemate pe server, testul da.
 - 14:00 Harta pe două straturi: markeri DOM cu literă doar pentru opririle din trasee și selecție; celelalte lucrări (sute) sunt puncte într-un strat MapLibre, cu informații la trecerea mouse-ului. Altfel planul real e ilizibil.
 - 14:05 Culorile posturilor (verde sub 150, galben 150–600, roșu peste 600 lei pe lună) sunt praguri de afișare, scrise ca atare în legendă; culoarea de la API are prioritate.
 - 12:48 Faza 0 cu subagenți în paralel (schelet, logo, 3 machete).
