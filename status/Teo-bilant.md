@@ -1,7 +1,36 @@
 # Status: Teo-bilant
-Actualizat: 2026-11-07 17:57
-Milestone curent: M4 făcut; contorul martor și Weave gata (termen 20:00). **Sunt liber**, de acum doar reparații.
-Gata de merge: da (commit 55eab83)
+Actualizat: 2026-11-07 22:36
+Milestone curent: v2 (sarcina de la 22:10) terminată. **Sunt liber**, de acum doar reparații.
+Gata de merge: da (commit 85174c8)
+
+## Răspuns la sarcina de la 22:10 (v2: de 10 ori mai multe posturi, reglaj automat): gata de merge
+**Dependență nouă:** `optuna` (5.0.0), prin `uv add optuna`. `pyproject.toml` și `uv.lock` sunt modificate în acest commit.
+
+**Ce s-a făcut.** Toate comparațiile sunt pe același test: cele 300 de posturi din registrul C, rețele nevăzute. v1 rămâne rezervă, neștearsă: `models/bilant/diagnose.*` și `fuse.V1_PARAMS`.
+1. **Loturi mari:** `trainL`, ~3.000 de posturi sintetice pentru diagnostic, și `trainLA`, ~3.000 de posturi cu defectele de contor ca la A, apărute în ultimele 60 de zile, ca pe harta de test, pentru fuziune. Fiecare lot se simulează în ~2 minute pe 8 procese.
+2. **Diagnosticul v2** (`v2.py`): trăsături noi pentru clasele slabe (clienți cu consumul înjumătățit, cât explică primii 3, contoare noi cu zero / blocate / cu semn schimbat pe 7 zile, raportul față de normalul din GIS), plus setări LightGBM căutate cu Optuna (40 de încercări). Validarea e pe 20% din cartierele `trainL`, niciodată pe test.
+3. **Fuziunea v2** (`fusion_v2.py`): aceeași regulă, care doar confirmă, cu parametrii căutați cu Optuna (60 de încercări) pe `trainLA`. Am încercat și o fuziune învățată (LightGBM): **respinsă**. Câștigul ei pe simulare venea din felul în care e construit scorul A simulat, iar pe scorurile reale ale lui A cădea la AUC 0,85.
+4. **Pragurile contorului martor** sunt cele corecte: 0,5% pentru regula martor față de contorul de balanță; pierderea normală de câteva procente o învață modelul separat.
+
+**Cifrele, înainte (v1) → după (v2), pe același test**
+- **Diagnosticul, F1 macro: 0,704 → 0,754**, iar exactitatea 0,82 → 0,86.
+  - Pași intermediari: doar mai multe posturi 0,717; plus trăsăturile noi 0,735; plus căutarea 0,754 (`reports/bilant/v2_comparison.json`).
+  - Pe clase: contor de client 0,38 → **0,47**, pierdere tehnică 0,51 → 0,49 (ușor mai jos, cinstit), furt înainte de contor 0,67 → 0,77, client la postul greșit 0,76 → 0,87.
+- **Fuziunea „cu bilanț față de fără”** (harta, defectele lui A, scoruri A simulate, ultimele 50 de zile):
+
+  | K pe zi | A singur | regula v1 | regula v2 | deplasări degeaba evitate (v2 față de A) | lei pe zi, A → v2 |
+  |---|---|---|---|---|---|
+  | 10 | 80% | 78% | **90%** | 1,0 | 4.966 → 8.278 |
+  | 20 | 64% | 62% | **68%** | 0,8 | 7.917 → 10.444 |
+  | 50 | 44% | 40% | **46%** | 1,0 | 11.716 → 13.595 |
+  | 100 | 31% | 29% | **33%** | 2,0 | 13.818 → 17.484 |
+
+  **Cu scorurile reale ale lui A** (ziua demo): AUC 0,917 (A) → 0,919 (v2; v1: 0,916); precizia în primele 500: 96,2% → 96,0%. Pe scorurile reale, A e deja precis în vârf; v2 nu strică, dar nici nu adaugă vizibil. **Pentru prezentare:** cifra cu deplasările degeaba se poate folosi doar cu mențiunea „pe simulare, cu scoruri de tip A simulate”. Cifra principală rămâne cea cu cauzele pe care contoarele nu le văd.
+- **Cauzele de post (A = 0), cu v2:** postul găsit la 76% din furturile înainte de contor (cauza corectă 62%), 64% din pierderile tehnice (50%), 99% din contoarele de balanță setate greșit, 58% din clienții la postul greșit (54%). Asta înseamnă **84% din energia pierdută, ~24.700 lei pe lună**. Din posturile marcate, 18% sunt de fapt normale (cu v1: 14%).
+- Regula martorului: 98% prinse, 0 alarme false. Postul demo rămâne **PT-1269** (cu C: `C-20250708-PT-1269`).
+- Lucrări demo-vara: 84, toate pe posturi cu probleme reale. `make check`: 299 trec.
+
+**Ce intră în git:** doar setările (`reports/bilant/v2_params.json`, `reports/bilant/fusion_v2_params.json`) și comparațiile. Modelul de diagnostic v2 (~34 MB) și loturile mari (~1 GB) rămân în afara git (regula de 5 MB) și se refac cu `make bilant-v2`, apoi `make bilant-eval`. Fără loturile mari, evaluarea revine singură la v1.
 
 ## Răspuns la QA de la 17:55: gata de merge, sunt liber
 1. **Siguranța:** bilanțul marca `safety_flag` pe toate furturile înainte de contor, adică **31** de lucrări. Regula nouă (`predict.safety`) marchează doar riscul real pentru oameni, și numai când modelul e sigur (≥ 90%, fără „nu sunt sigur”):
@@ -141,6 +170,7 @@ SIMULARE pe date publice. Test: cele 300 de posturi ale registrului C (rețele n
 - 14:30: fuziunea doar confirmă; testul pe mai multe zile trece pe lotul train (lotul hărții are acum defectele lui A, apărute doar în ultimele 60 de zile).
 - 14:35: rezolvarea automată a lui „nu sunt sigur” e oprită (0 din 5 corecte pe demo).
 - 14:35: bilanțul lasă lui A posturile unde A are deja lucrare la om sau pe contor.
+- 22:35: v2 păstrat (diagnostic 0,754 față de 0,704; fuziunea reglată bate v1 pe simulare și nu strică pe scorurile reale); fuziunea învățată respinsă (artefact al scorului simulat).
 - 18:00: `safety_flag` doar pentru risc real (31 → 6); probabilitățile afișate ≤ 0,99.
 - 17:30: regula contorului martor (0,5%, pe ultimele 3 zile) peste model; eroarea contoarelor de balanță 0,07% (diferența normală martor ~0,1%, mentorul PPC); Weave doar ca verificare de realism.
 - 17:15: fără fișiere grele în git: modelele și datele bilanțului rămân în afara git, refăcute din comenzi.
