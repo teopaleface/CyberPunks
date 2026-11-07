@@ -19,6 +19,7 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 | `13-stare-infrastructura.md` | Verificarea unei copii curate a ramurii integrate, demo și ce mai rămâne pentru predare |
 | `14-date-furtuni-eden.md` | Datele românești descărcate local pentru testarea modelului de furtuni |
 | `15-date-experimente-eden.md` | Datele A, B și C de pe Eden: ce este în Git, reproducere, rezultate și limite |
+| `17-date-noi-si-optuna-eden.md` | Experimentele lui Eden din noaptea de 7-8 nov.: date noi, variabile meteo noi, Optuna pentru A, B, C |
 | `journal.md` | Ce s-a întâmplat și ce s-a decis, cu ora |
 
 ## Reguli
