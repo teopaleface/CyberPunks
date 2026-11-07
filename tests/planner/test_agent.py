@@ -253,6 +253,16 @@ def test_human_review_approve_then_replan(out_root: Path) -> None:
     assert next(d for d in plan.decisions if d.work_item_id == wid).rule_id == "R-HUMAN-REJECT"
 
 
+def test_fresh_run_ignores_previous_human_decisions(out_root: Path) -> None:
+    agent.run("demo-vara", mode="fixtures", out_root=out_root)
+    wid = "A-20261109-MTR-027710"
+    apply_review("demo-vara", wid, "approve", None, "Ana", out_root=out_root)
+    res = agent.run("demo-vara", mode="fixtures", out_root=out_root)  # rulare nouă: de la zero
+    assert _decisions(res)[wid].rule_id == "R-ABSTAIN"
+    history = list((out_root / "plans" / "demo-vara" / "history").iterdir())
+    assert any((h / "overrides.json").exists() for h in history)  # decizia omului e păstrată în istoric
+
+
 def test_review_unknown_item(out_root: Path) -> None:
     agent.run("demo-vara", mode="fixtures", out_root=out_root)
     with pytest.raises(KeyError):

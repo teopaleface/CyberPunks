@@ -146,7 +146,8 @@ def _decide_and_act(
     plan_dir: Path, timings: dict[str, float], meta: dict[str, Any], append_audit: bool, solver: str | None,
 ) -> RunResult:
     t0 = time.perf_counter()
-    overrides = load_overrides(plan_dir)
+    # Deciziile omului se reaplică doar la replanificare; o rulare nouă pornește de la zero (cele vechi rămân în history/).
+    overrides = load_overrides(plan_dir) if append_audit else {}
     ctx = Context.build(settings, plan_date, as_of=as_of, overrides=overrides)
     items = [it for s in "ABC" for it in loads[s].items]
     proposals = decide(ctx, items)
