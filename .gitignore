@@ -34,3 +34,10 @@ web/node_modules/
 web/.next/
 presentation/**/node_modules/
 presentation/**/renders/tmp/
+
+# Fișiere grele care nu intră în git (Teo, 7 nov.): randări 3D, arhive, audio, video brute
+presentation/assets/3d-*/
+presentation/**/*.zip
+presentation/**/*.wav
+presentation/**/renders/
+*.mov
