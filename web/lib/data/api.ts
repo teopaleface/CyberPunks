@@ -242,6 +242,7 @@ export async function apiMetrics(): Promise<MetricsBundle> {
     A: report(payload.A),
     B: report(payload.B),
     C: report(payload.C),
+    bilant: report(payload.bilant),
     planner: isRecord(payload.planner) ? payload.planner : null,
   };
 }

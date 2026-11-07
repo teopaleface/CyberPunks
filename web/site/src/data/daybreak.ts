@@ -5,7 +5,8 @@
  * synthetic, placed on the real map; weather and days are real.
  */
 import raw from "./daybreak.json"
-import { CASE_COPY_EN, EVALUATION_NAMES_EN } from "./daybreak-copy"
+import { EVALUATION_NAMES_EN } from "./daybreak-copy"
+import { englishText } from "../../../lib/english"
 
 export type SourceKey = "A" | "B" | "C"
 export type Decision = "assigned" | "remote_action" | "human_review" | "deferred" | "notify"
@@ -270,14 +271,13 @@ const sourceData = raw as unknown as Data
 export const DB: Data = {
   ...sourceData,
   cases: sourceData.cases.map((c) => {
-    const copy = CASE_COPY_EN[c.post]
     return {
       ...c,
       label: c.label.replace(" (sintetic)", " (synthetic)"),
       diagnosisRo: DIAGNOSIS_RO[c.diagnosis],
       decisionRo: DECISION_RO[c.decision],
-      reason: copy.reason,
-      factors: c.factors.map((f, i) => ({ ...f, label: copy.factors[i] })),
+      reason: c.reason ? englishText(c.reason) : null,
+      factors: c.factors.map((f) => ({ ...f, label: englishText(f.label) })),
     }
   }),
   evaluation: {

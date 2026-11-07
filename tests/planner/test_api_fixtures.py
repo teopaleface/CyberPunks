@@ -95,7 +95,7 @@ def test_cors_for_ui(client: TestClient) -> None:
 
 def test_metrics_shape_without_reports(client: TestClient) -> None:
     body = client.get("/api/metrics").json()
-    assert set(body) == {"A", "B", "C", "planner"}
+    assert set(body) == {"A", "B", "C", "bilant", "planner"}
 
 
 def test_scenarios_listed(client: TestClient) -> None:

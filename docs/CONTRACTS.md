@@ -65,7 +65,7 @@ Reguli verificate automat: litera din ID = sursa; `kind` potrivit sursei; `absta
 | `GET /series/{id}?scenario=` | `Series` |
 | `GET /audit?scenario=&work_item_id=` | listă de `AuditRecord` |
 | `POST /review/{id}` `{decision: approve|reject|defer, note, reviewer}` | `AuditRecord` cu `actor: human`; planul se recalculează |
-| `GET /metrics` | `{A, B, C: ModelReport, planner: {...}}` |
+| `GET /metrics` | `{A, B, C, bilant: ModelReport, planner: {...}}`; fiecare raport lipsă este `null` |
 | `GET /work-orders/{crew_id}.pdf?scenario=` | PDF-ul ordinului de lucru |
 
 Până la ora 16:00 API-ul servește `contracts/fixtures/`. Interfața are rezervă: dacă API-ul nu răspunde, citește `outputs/demo/` sau fixture-urile.

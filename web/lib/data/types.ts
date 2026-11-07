@@ -173,6 +173,7 @@ export interface MetricsBundle {
   A: ModelReport | null;
   B: ModelReport | null;
   C: ModelReport | null;
+  bilant?: ModelReport | null;
   planner: Record<string, unknown> | null;
 }
 
