@@ -1,5 +1,5 @@
 # Status: Teo-C-prosumatori
-Actualizat: 2026-11-07 15:54
+Actualizat: 2026-11-07 16:05
 Milestone curent: M3 în lucru (M2 terminat la 14:11; M3 aproape gata: analiza erorilor, investiții, racordări, teste)
 Gata de merge: da (commit d716b16; `make check` trece)
 
@@ -56,7 +56,6 @@ Gata de merge: da (commit d716b16; `make check` trece)
 - 14:55 Rezervă pentru lipsa prognozei: ultima copie salvată, apoi clima medie a perioadei (incertitudine mare, cazurile de lângă prag la om); testat cu rețeaua tăiată.
 
 ## Urmează
-- Rulez lanțul C într-o clonă curată (prima încercare s-a oprit: Overpass a dat 502) și compar cifrele cu cele din git.
 - Notă pentru orchestrator: modelul C are 4 versiuni în istoricul git (8,7 MB fiecare); nu mai adaug altele decât dacă modelul se schimbă.
 - M4: comenzi reproductibile verificate dintr-o clonă curată, curățenie.
 
@@ -64,6 +63,8 @@ Gata de merge: da (commit d716b16; `make check` trece)
 - niciunul
 
 - 15:55 Clona curată a scos la iveală o dependență fragilă: populația cerea OpenStreetMap (Overpass a căzut cu 502). Acum `make c-population` refolosește registrul din git (aceleași coduri PT pentru toate firele), cu parametrii scriși la precizie completă (rețeaua se reface identic); OSM doar la `--from-osm`, cu două servere și reîncercări. În `posts.csv`, lat/lon au acum 5 zecimale (înainte 4); codurile, zonele și topologiile sunt aceleași.
+
+- 16:00 **Reproductibilitate verificată dintr-o clonă curată**: `make c-weather c-sim c-population c-train c-predict c-eval` refac `reports/C/metrics.json`; 29 din 30 de cifre identice, ECE diferă la a cincea zecimală (LightGBM pe mai multe fire). Lucrările `demo-vara` și `maine` ies valide.
 
 ## Cereri către orchestrator
 0. Pentru planificator, despre scară: P90 de pornire al scării e `extra.ladder_base_p90_pu` = P90 al modelului (`prediction.point_interval[1]`, calcul echilibrat) + dezechilibrul estimat pe faze (cel mult 0,02 pu). `p90_after_pu` din fiecare opțiune pornește de la el; combinațiile se aproximează adunând `effect_pu`. Alegerea mea e în `extra.ladder_choice` și `extra.ladder_reason_ro`.
