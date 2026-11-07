@@ -350,6 +350,13 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
         who = f"{CLASS_RO[label]}, probabil clientul {extra['suspect_meter']} ({extra['suspect_meter_reason_ro']})" if label == "contor_client" and "suspect_meter" in extra else CLASS_RO[label]
         if r["abstain"]:
             summary = f"Postul {pid}: ~{lei_month:.0f} lei pe lună pierduți peste normal. Nu sunt sigur de cauză ({r['abstain_reason']}): {CLASS_RO[label]} {r['p_label']:.0%} sau {CLASS_RO[r['second']]} {r['p_second']:.0%}. Decide un om."
+        elif label == "client_post_gresit":
+            side = "lipsă" if float(r["r_mean_kwh"]) > 0 else "surplus"
+            mirror = str(r.get("mirror_post") or "")
+            if mirror:
+                extra["pair_post"] = mirror
+            other = f" Perechea probabilă: {mirror}." if mirror else ""
+            summary = f"Postul {pid}: {side} de ~{abs(float(r['r_mean_kwh'])):.1f} kWh/zi (~{lei_month:.0f} lei pe lună contați la postul greșit). Cauza probabilă ({r['p_label']:.0%}): client trecut la postul greșit în bază; tensiunea contorului seamănă cu a altui post.{other} Recomand: {ACTION_RO[action]}."
         elif label == "contor_bilant_setat":
             summary = f"Postul {pid}: contorul postului arată de {r['bal_db_ratio']:.2f} ori suma clienților ({r['p_label']:.0%} contor de post setat greșit). Lipsa de ~{r['r_mean_kwh']:.0f} kWh/zi e doar pe hârtie. Recomand: {ACTION_RO[action]} (raportul de transformare)."
         else:

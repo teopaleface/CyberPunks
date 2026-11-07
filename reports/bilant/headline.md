@@ -1,6 +1,6 @@
 # Bilanț pe post: cifrele pentru prezentare
 
-SIMULARE pe date publice, gândită pentru datele PPC. Sursa: `reports/bilant/metrics.json` (bilant-lgbm@18dd150), comanda `make bilant-data bilant-eval`. Test: cele 300 de posturi ale hărții (registrul C), rețele nevăzute la antrenare; defectele de contor sunt cele ale firului A.
+SIMULARE pe date publice, gândită pentru datele PPC. Sursa: `reports/bilant/metrics.json` (bilant-lgbm@6eba102), comanda `make bilant-data bilant-eval`. Test: cele 300 de posturi ale hărții (registrul C), rețele nevăzute la antrenare; defectele de contor sunt cele ale firului A.
 
 ## 1. Ce vede doar bilanțul (cifra principală)
 
@@ -9,13 +9,13 @@ Contoarele clienților (modelul A) nu au cum să vadă aceste probleme: A găse�
 | Problema | Bilanțul găsește postul | și cauza corectă | Energia lipsă găsită |
 |---|---|---|---|
 | furt înainte de contor | 74% | 55% | 86% |
-| pierderi în cabluri sau faze dezechilibrate | 65% | 42% | 95% |
+| pierderi în cabluri sau faze dezechilibrate | 64% | 42% | 95% |
 | contorul postului setat greșit | 99% | 99% | doar pe hârtie |
-| client trecut în bază la alt post | 50% | 30% | 70% |
+| client trecut în bază la alt post | 53% | 42% | 72% |
 
-- **Bilanțul găsește 85% din energia pierdută din aceste cauze, ~25.010 lei pe lună** pe cele 300 de posturi (la 0,70 lei/kWh, `config/economics.yaml`). Din posturile marcate, 13% sunt de fapt normale.
+- **Bilanțul găsește 85% din energia pierdută din aceste cauze, ~25.137 lei pe lună** pe cele 300 de posturi (la 0,70 lei/kWh, `config/economics.yaml`). Din posturile marcate, 13% sunt de fapt normale.
 - În ziua demo, **48% din energia pierdută peste normal nu apare la niciun contor de client**.
-- Diagnosticul cauzei: F1 macro 0,67 față de 0,48 la tabelul de reguli din concept.
+- Diagnosticul cauzei: F1 macro 0,71 față de 0,48 la tabelul de reguli din concept.
 
 ## 2. Cu bilanț față de fără, la verificările de contoare
 
