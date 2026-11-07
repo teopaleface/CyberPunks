@@ -1,7 +1,7 @@
 # Status: Teo-ui
-Actualizat: 2026-11-07 15:10
+Actualizat: 2026-11-07 16:30
 Milestone curent: M3 (M0 13:50, M1 13:55, M2 14:40)
-Gata de merge: da (commit 02b4957: M2 + reparațiile din review-ul Codex, consola adaptată la 1280–1600 px, scara de soluții cu combinația aleasă, ofertele de baterii, lista posturilor)
+Gata de merge: da (commit a4e9364: numele Daybreak, graficul bilanțului pe seriile reale, culorile posturilor din API, alertele cu ce a decis agentul, `make web-demo`)
 
 ## Făcut
 - 12:45 Citite instrucțiunile, memoria, planul, contractele; `uv sync` și `make check` trec.
@@ -33,16 +33,28 @@ Gata de merge: da (commit 02b4957: M2 + reparațiile din review-ul Codex, consol
 - 15:00 Scara de soluții arată combinația aleasă de agent (`GET /remedies` sau `plans/<s>/remedies.json`): treptele alese, P90 înainte/după, de ce nu ajunge ceva mai ieftin. Ofertele de baterii pentru PPC Energie pe „Alerte și mesaje” (clienți, kWh, efect, venit, recuperare).
 - 15:08 Review independent Codex: 18 probleme, toate reparate (validare completă a lucrărilor, surse coerente când API-ul cade la mijloc, ruta PDF sigură, orele după miezul nopții, cache-ul detaliilor legat de plan, eroare cu Reîncearcă, contrast în tema închisă, scenariul păstrat în meniu, stare goală pentru scenariu fără plan, scenele /demo cu regiunea lor). Lista posturilor `/posturi` ca alternativă la hartă. 25 de teste, test de fum pe 14 ecrane.
 
+- 16:05 Merge Teo (C, bilanț, planificator finale).
+- 16:15 Numele produsului e **Daybreak** peste tot în `web/` (titlul paginii, antetul, scheletele de încărcare, `/demo`, README, convenții). Antetul arată doar cuvântul „Daybreak”, cu fontul interfeței, fără semn grafic. Logourile cu soarele, respinse, au ieșit din `web/public/` în `web/design/brand-respins/` (istoric, nefolosite); favicon-ul cu soarele e șters.
+- 16:15 Plasa pentru procente: orice procent peste 999% se afișează „de peste 10 ori” („a crescut cu 18273047%” devine „a crescut de peste 10 ori”), în factori, rezumate și adnotări. În datele live de acum nu mai apare niciunul (verificat pe 689 de lucrări).
+- 16:20 Graficul bilanțului pe pagina postului, pe formatul real al seriilor (zilnic, valori și sub zero): „ieșit din post” față de „suma clienților”, banda pierderii normale (`low`–`high`), lipsa peste normal colorată exact de unde linia trece de bandă, surplusul sub normal (`surplus_sub_normal`), adnotarea „Lipsa crește de aici”, o notă pentru valorile sub zero. Verificat cu seriile reale ale firului bilanț (copie temporară în /tmp, ștearsă).
+- 16:20 Reparat: posturile roșii apăreau gri pe hartă (API-ul scrie „rosu”, fără diacritică). Cauza din bilanț apare în cuvinte, nu cod. Pragurile de culoare se citesc din `config/planner.yaml` (200 și 600 lei); legenda spunea 150.
+- 16:25 Alerta principală arată, lângă textul planificatorului, ce a decis agentul pentru lucrările ei, numărat din decizii („11 în trasee, 182 verificate de la distanță”). La fel pe „Alerte și mesaje”.
+- 16:25 `make web-demo`: build de producție (~10 s, fără avertismente) și consola pe 3710; testul de fum trece 14/14, paginile se încarcă de 2–3 ori mai repede decât în modul de dezvoltare.
+
 ## Urmează
-- Graficul bilanțului pe post, când firul bilanț publică seriile.
-- Lustruire pe datele finale (M4), capturi pentru slideuri, verificare la 1920×1080 cu planul real de la API.
-- Scara de soluții C și bilanțul apar automat când firele C și bilanț pun `extra.remedy_options` și lucrările `A_bilant` (componentele sunt gata).
-- Până la 01:00: `/demo` pentru înregistrări, cu varianta întunecată cerută de firul de prezentare.
+- Verificare la 1920×1080 pe planul real de la API: posturile, scara de soluții, ofertele de baterii, coada „Nu sunt sigur”, aprobarea listei.
+- `/demo` în tema închisă pentru înregistrări.
+- Review final cu `web-design-guidelines` și `impeccable`, reparații, apoi capturi pentru slideuri în `web/design/captures/`.
 
 ## Blocaje
 - niciunul
 
 ## Cereri către orchestrator
+- (16:30) **Seriile bilanțului lipsesc în continuare** din API și din instantaneu. Lucrările `A-20250708-PT-*` au `extra.series_ref = outputs/series/demo-vara/A-20250708-PT-*.json`, dar `GET /api/series/A-20250708-PT-1269` dă 404 și `outputs/demo/series/demo-vara/` are doar seriile A (contoare), B și C. În worktree-ul Teo-bilant există acum doar `outputs/series/maine/A-20261108-PT-*.json` (98); cele pentru demo-vara nu mai sunt. Propunere: `make bilant-predict` în checkout-ul din care rulează API-ul, apoi `make demo-snapshot`. Graficul e gata și verificat pe formatul real; consola caută seria în API, în `outputs/demo/series/<s>/` și în `outputs/series/<s>/`.
+- (16:30) Către planificator, text fals în alerta principală: „193 cazuri cu risc de siguranță: Intră primele în trasee, oricare ar fi costul”, dar din cele 193 doar 11 sunt în trasee, 182 merg la verificare de la distanță (`R-SAFETY-OVER-CAP`). În listă, numele se repetă („PT-1293, Sector 3 (sintetic), PT-1293, Sector 3 (sintetic)”: postul și contorul de pe el). Interfața arată acum, lângă text, numărătoarea reală din decizii, dar textul ar trebui reparat la sursă (de exemplu „11 intră în trasee azi; 182 se verifică întâi de la distanță, echipele sunt pline”).
+- (16:30) Către firul bilanț (texte): lipse negative („La post lipsesc ~-448,0 kWh/zi peste pierderea normală (-38,5% din energie)”, „Lipsa de ~-448 kWh/zi e doar pe hârtie”, „Postul vecin are surplus de ~-3,3 kWh/zi (potrivire -12%)”) și zecimale cu punct în rezumat („de 1.70 ori”). Pentru surplus, formularea ar trebui să fie de surplus, nu de lipsă.
+- (16:30) Pentru demo, consola în modul de producție e mai rapidă și fără uneltele de dezvoltare: `make web-demo`. Ținta `demo` din secțiunea planificatorului pornește `make web` (dezvoltare); dacă vreți, `$(MAKE) -j2 api web-demo`.
+- Rezolvate: `posts.json` în instantaneu (da), `POST /api/plan/approve` (există, consola îl folosește), instantaneul `outputs/demo/` în git (da), procentele absurde ale lui A (reparate la sursă; plasa din interfață rămâne).
 - (15:10) Pentru demo: consola merge cu API-ul (8710) sau, dacă pică, cu instantaneul `outputs/demo/` din git. Instantaneul planificatorului din checkout-ul principal (`outputs/demo/plans/demo-vara/…`, `series/`, `reports/`, `remedies.json`) e exact ce citește interfața; intră în git la merge?
 - (14:40) Către planificator (texte): zecimale cu punct în mesaje și alerte („9.1 ore”, „~38.9 kWh”), plural greșit („1 lucrări așteaptă”, „72 lucrări”: corect „1 lucrare”, „72 de lucrări”), data „marți 08.07.2025” în mesaje (în română: „marți, 8 iulie”). Interfața le arată așa cum vin.
 - (14:35) Către firul bilanț: lucrările `A-<data>-PT-*` au `extra.series_ref = outputs/series/<s>/A-<data>-PT-*.json`, dar fișierele nu există (în `outputs/series/demo-vara/` sunt doar seriile C ale posturilor). Pagina postului are graficul „ieșit din post” (`value`) față de „suma clienților” (`expected`) gata; îi lipsește doar seria. Contractul `Series` cu `flag: "lipsa_peste_normal"` pe zilele cu lipsă peste normal.
@@ -55,17 +67,20 @@ Gata de merge: da (commit 02b4957: M2 + reparațiile din review-ul Codex, consol
 - Rezolvate de orchestrator la 13:20: seriile de exemplu, planul complet, `depart_at`/`return_at`, `visit_cost_lei`, structura `outputs/demo/`, `scenario_id`, jurnalul.
 
 ## Cum se rulează (comenzile exacte)
-- `make web` → http://localhost:3710 (cu API-ul pe 8710 dacă rulează; altfel instantaneul demo sau fixture-urile, automat)
-- `make web-test` (17 teste, stratul de date), `cd web && bun run lint`, `cd web && bunx tsc --noEmit`
+- **Pentru demo:** `make api` (sau `make api-demo` fără modele) într-un terminal, apoi `make web-demo` în altul → http://localhost:3710 (planul), http://localhost:3710/demo (prezentarea în tema închisă: ← → sau 1–5 schimbă scena, `?scena=N`, `?auto=1`). Fără API, consola merge singură pe instantaneul `outputs/demo/` din git.
+- La dezvoltare: `make web` → http://localhost:3710 (cu API-ul pe 8710 dacă rulează; altfel instantaneul demo sau fixture-urile, automat)
+- `make web-test` (35 de teste), `make web-smoke` (14 ecrane, pe consola pornită), `cd web && bun run lint`, `cd web && bunx tsc --noEmit`
 - Forțarea sursei: `DATA_SOURCE=fixtures make web` (sau `demo`, `api`); alt API: `API_BASE=http://127.0.0.1:8710/api`.
 
 ## Cifre (doar din scripturi, cu comanda)
 - niciuna (interfața doar afișează cifrele firelor; culorile surselor validate cu `node validate_palette.js` din abilitatea dataviz)
 
 ## Decizii (cu ora)
+- 16:15 Daybreak (decizia lui Teo, 15:30): antetul are doar cuvântul, cu fontul interfeței, până la identitatea aleasă separat; culorile surselor A, B, C rămân. Logourile respinse ies din `public/`, ca nimeni să nu le folosească din greșeală în slideuri.
+- 16:25 Când textul unei alerte și deciziile nu se potrivesc, interfața arată deciziile (numărate), lângă text, fără să rescrie textul planificatorului.
+- 16:20 Pragurile de culoare ale posturilor vin din `config/planner.yaml`, aceleași cu ale planificatorului; culoarea primită de la API are prioritate, normalizată („rosu” → „roșu”).
 - 14:30 Test de fum `make web-smoke` (încarcă toate ecranele pe consola pornită și cade la orice eroare de randare): `tsc` nu prinde funcțiile de client chemate pe server, testul da.
 - 14:00 Harta pe două straturi: markeri DOM cu literă doar pentru opririle din trasee și selecție; celelalte lucrări (sute) sunt puncte într-un strat MapLibre, cu informații la trecerea mouse-ului. Altfel planul real e ilizibil.
-- 14:05 Culorile posturilor (verde sub 150, galben 150–600, roșu peste 600 lei pe lună) sunt praguri de afișare, scrise ca atare în legendă; culoarea de la API are prioritate.
 - 12:48 Faza 0 cu subagenți în paralel (schelet, logo, 3 machete).
 - 12:50 Trimiterea la PPC rămâne discretă: familia bleumarin + albastru + o culoare caldă, fără valorile lor exacte și fără fontul PingLCG.
 - 12:54 Logoul: Codex desenează doar semnul; numele îl scriem cu fontul interfeței (diacritice sigure).
