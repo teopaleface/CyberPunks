@@ -148,7 +148,7 @@ solver-bench:     ## OR-Tools față de greedy pe 100-300 de lucrări (reports/p
 
 demo-snapshot:    ## copiază planurile demo-vara și maine în outputs/demo/ (intră în git; interfața îl folosește ca rezervă)
 	uv run python -m cyberpunks.planner.snapshot --scenario demo-vara
-	uv run python -m cyberpunks.planner.snapshot --scenario maine
+	uv run python -m cyberpunks.planner.snapshot --scenario maine --series plan
 
 api-demo:         ## API-ul pe instantaneul din git (outputs/demo/), fără să ruleze modelele
 	CYBERPUNKS_API_SOURCE=demo uv run uvicorn cyberpunks.api.app:app --host 127.0.0.1 --port 8710

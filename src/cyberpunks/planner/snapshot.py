@@ -27,7 +27,9 @@ REPORT_FILES = {
 }
 
 
-def snapshot(scenario: str, src: Path = OUTPUTS, dest: Path | None = None, reports: Path = REPORTS) -> list[Path]:
+def snapshot(scenario: str, src: Path = OUTPUTS, dest: Path | None = None, reports: Path = REPORTS, series: str = "all") -> list[Path]:
+    """Copiază un scenariu în instantaneu. `series="plan"`: doar graficele lucrărilor din trasee și din coada dispecerului
+    (instantaneul rămâne mic; regula lui Teo pentru mărimea repo-ului)."""
     dest = dest or src / "demo"
     plan_src = src / "plans" / scenario
     if not (plan_src / "plan.json").exists():
@@ -45,6 +47,10 @@ def snapshot(scenario: str, src: Path = OUTPUTS, dest: Path | None = None, repor
         shutil.copytree(plan_src / "work_orders", plan_dst / "work_orders")
         written += sorted((plan_dst / "work_orders").glob("*.pdf"))
     ids = {json.loads(x)["work_item_id"] for x in (plan_src / "work_items.jsonl").read_text(encoding="utf-8").splitlines() if x.strip()}
+    if series == "plan":
+        plan = json.loads((plan_src / "plan.json").read_text(encoding="utf-8"))
+        ids = {st["work_item_id"] for r in plan["routes"] for st in r["stops"]}
+        ids |= {d["work_item_id"] for d in plan["decisions"] if d["decision"] == "human_review"}
     series_src, series_dst = src / "series" / scenario, dest / "series" / scenario
     if series_dst.exists():
         shutil.rmtree(series_dst)
@@ -82,8 +88,10 @@ def snapshot(scenario: str, src: Path = OUTPUTS, dest: Path | None = None, repor
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Copiază rezultatele unui scenariu în outputs/demo/.")
     ap.add_argument("--scenario", default="demo-vara")
+    ap.add_argument("--series", choices=["all", "plan"], default="all",
+                    help="all: graficele tuturor lucrărilor; plan: doar cele din trasee și din coada dispecerului")
     args = ap.parse_args(argv)
-    files = snapshot(args.scenario)
+    files = snapshot(args.scenario, series=args.series)
     size = sum(f.stat().st_size for f in files if f.exists())
     print(f"Copiat {len(files)} fișiere ({size / 1e6:.1f} MB) în {OUTPUTS / 'demo'}")
     return 0

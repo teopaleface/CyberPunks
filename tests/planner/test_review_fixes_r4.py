@@ -164,3 +164,20 @@ def test_an_output_for_another_day_is_missing_not_quarantined(out_root: Path, mo
     info = res.meta["sources"]["A"]
     assert info["origin"] == "missing" and "e pentru 2026-11-09, nu pentru 2026-11-10" in info["note"]
     assert res.plan.summary.items_invalid == 0
+
+
+def test_snapshot_can_keep_only_the_charts_of_the_plan(out_root: Path, tmp_path: Path) -> None:
+    from cyberpunks.planner.snapshot import snapshot
+
+    small = variant(fixture_items("A")[1], "MTR-T900", **{"prediction.score": 0.4, "impact.value_if_true_lei": 100.0})
+    write_items(out_root, "A", [*fixture_items("A"), small])  # o lucrare mică: citire la distanță, fără grafic în instantaneu
+    res = agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root)
+    series_dir = out_root / "series" / SCENARIO
+    series_dir.mkdir(parents=True, exist_ok=True)
+    for d in res.plan.decisions:
+        (series_dir / f"{d.work_item_id}.json").write_text("{}", encoding="utf-8")
+    snapshot(SCENARIO, src=out_root, dest=tmp_path / "demo", reports=tmp_path / "rep", series="plan")
+    kept = {f.stem for f in (tmp_path / "demo" / "series" / SCENARIO).glob("*.json")}
+    wanted = {st.work_item_id for r in res.plan.routes for st in r.stops} | {
+        d.work_item_id for d in res.plan.decisions if d.decision.value == "human_review"}
+    assert kept == wanted and len(kept) < len(res.plan.decisions)
