@@ -103,65 +103,100 @@ function ConsumptionChart({ series }: { series: Series }) {
 }
 
 // ------------------------------------------------------------------ B: furtună
+// pragurile de rafale din serie (B): începutul furtunii și rafalele periculoase; `rafala_prag_kmh` e forma veche
+const GUST_LINES: { key: string; label: string; stroke: string }[] = [
+  { key: "rafala_inceput_furtuna_kmh", label: "începe furtuna", stroke: "var(--ink)" },
+  { key: "rafala_prag_kmh", label: "pragul de rafale", stroke: "var(--ink)" },
+  { key: "rafala_periculoasa_kmh", label: "rafale periculoase", stroke: "var(--att)" },
+];
+
+function gustThresholds(series: Series): { value: number; label: string; stroke: string }[] {
+  const t = (series.thresholds ?? {}) as Record<string, unknown>;
+  return GUST_LINES.flatMap((g) => (typeof t[g.key] === "number" ? [{ value: t[g.key] as number, label: g.label, stroke: g.stroke }] : []));
+}
+
+/** Seria B are și riscul pe ore (`expected`)? Până atunci, doar rafalele. */
+function hasStormRisk(series: Series): boolean {
+  return series.points.some((p) => typeof p.expected === "number");
+}
+
 function StormCharts({ series, w }: { series: Series; w: WorkItem }) {
   const data: Row[] = series.points.map((p) => ({ t: String(p.t), gust: p.value ?? null, risk: p.expected ?? null }));
-  const gustLimit = series.thresholds?.rafala_prag_kmh;
+  const withRisk = hasStormRisk(series);
+  const lines = gustThresholds(series);
+  const maxGust = Math.max(0, ...data.map((r) => (typeof r.gust === "number" ? r.gust : 0)), ...lines.map((l) => l.value));
   const win = w.time_window;
   const inWindow = (t: string) => win && new Date(t) >= new Date(win.start) && new Date(t) <= new Date(win.end);
   const firstIn = data.find((r) => inWindow(String(r.t)))?.t as string | undefined;
   const lastIn = data.toReversed().find((r) => inWindow(String(r.t)))?.t as string | undefined;
   const tick = (t: string) => (isDay(t) ? dayLabel(t) : fmtTime(t));
   const winLabel = win ? `furtuna, ${hhmm(minutesOfDay(win.start))}–${hhmm(minutesOfDay(win.end))}` : "";
-  const area = firstIn && lastIn ? (
-    <ReferenceArea x1={firstIn} x2={lastIn} fill="color-mix(in oklab, var(--src-b) 12%, var(--panel))" stroke="none" />
-  ) : null;
+  // adnotările (echipa pe poziție, începutul furtunii), doar cele care cad pe un punct al seriei
+  const times = new Set(data.map((r) => String(r.t)));
+  const notes = (series.annotations ?? []).filter((a) => times.has(String(a.t)));
+  const area = (label: boolean) =>
+    firstIn && lastIn ? (
+      <ReferenceArea
+        x1={firstIn}
+        x2={lastIn}
+        fill="color-mix(in oklab, var(--src-b) 12%, var(--panel))"
+        stroke="none"
+        label={label ? { value: winLabel, position: "insideTopLeft", fontSize: 12.5, fill: "var(--src-b)" } : undefined}
+      />
+    ) : null;
   const tooltip = (
     <Tooltip
       cursor={{ stroke: "var(--ink)", strokeWidth: 1, strokeDasharray: "3 3" }}
       content={({ active, payload }) => {
         if (!active || !payload?.length) return null;
         const r = payload[0].payload as Row;
-        return (
-          <TooltipBox
-            title={`${dayLabel(String(r.t))}, ${fmtTime(String(r.t))}`}
-            rows={[
-              ["rafale", r.gust == null ? "lipsă" : `${fmtInt(Number(r.gust))} km/h`],
-              ["risc de avarii", r.risk == null ? "–" : fmtScore(Number(r.risk))],
-            ]}
-          />
-        );
+        const rows: [string, string][] = [["rafale", r.gust == null ? "lipsă" : `${fmtInt(Number(r.gust))} km/h`]];
+        if (withRisk) rows.push(["risc de avarii", r.risk == null ? "–" : fmtScore(Number(r.risk))]);
+        return <TooltipBox title={`${dayLabel(String(r.t))}, ${fmtTime(String(r.t))}`} rows={rows} />;
       }}
     />
   );
   return (
     <div className="space-y-1">
       <p className="text-[14px] text-muted-foreground">Rafale de vânt, km/h</p>
-      <ResponsiveContainer width="100%" height={200}>
-        <ComposedChart data={data} syncId="storm" margin={{ top: 16, right: 18, bottom: 0, left: 4 }}>
+      <ResponsiveContainer width="100%" height={withRisk ? 200 : 300}>
+        <ComposedChart data={data} syncId="storm" margin={{ top: 16, right: 18, bottom: withRisk ? 0 : 4, left: 4 }}>
           <CartesianGrid vertical={false} stroke={GRID} />
-          {area}
-          <XAxis dataKey="t" tickFormatter={tick} tick={AXIS} tickLine={false} axisLine={{ stroke: "var(--rule)" }} minTickGap={36} hide />
-          <YAxis tick={AXIS} tickLine={false} axisLine={false} width={44} />
-          {typeof gustLimit === "number" ? (
-            <ReferenceLine y={gustLimit} stroke="var(--ink)" strokeDasharray="4 4" label={{ value: `prag ${fmtInt(gustLimit)} km/h`, position: "insideTopRight", fontSize: 12.5, fill: "var(--ink)" }} />
-          ) : null}
+          {area(!withRisk)}
+          <XAxis dataKey="t" tickFormatter={tick} tick={AXIS} tickLine={false} axisLine={{ stroke: "var(--rule)" }} minTickGap={36} hide={withRisk} />
+          <YAxis tick={AXIS} tickLine={false} axisLine={false} width={44} domain={[0, Math.ceil((maxGust + 8) / 10) * 10]} />
+          {lines.map((l) => (
+            <ReferenceLine
+              key={l.label}
+              y={l.value}
+              stroke={l.stroke}
+              strokeDasharray="5 4"
+              strokeWidth={1.4}
+              label={{ value: `${l.label}, ${fmtInt(l.value)} km/h`, position: "insideTopRight", fontSize: 12.5, fill: l.stroke, fontWeight: 600 }}
+            />
+          ))}
+          {notes.map((a) => (
+            <ReferenceLine key={String(a.t)} x={String(a.t)} stroke="var(--ink)" strokeWidth={1} strokeDasharray="2 3" />
+          ))}
           <Line dataKey="gust" type="monotone" stroke="var(--src-b)" strokeWidth={2.2} dot={false} isAnimationActive={false} />
           {tooltip}
         </ComposedChart>
       </ResponsiveContainer>
-      <p className="pt-2 text-[14px] text-muted-foreground">Riscul de avarii estimat de model (probabilitate)</p>
-      <ResponsiveContainer width="100%" height={160}>
-        <ComposedChart data={data} syncId="storm" margin={{ top: 8, right: 18, bottom: 4, left: 4 }}>
-          <CartesianGrid vertical={false} stroke={GRID} />
-          {firstIn && lastIn ? (
-            <ReferenceArea x1={firstIn} x2={lastIn} fill="color-mix(in oklab, var(--src-b) 12%, var(--panel))" stroke="none" label={{ value: winLabel, position: "insideTopLeft", fontSize: 12.5, fill: "var(--src-b)" }} />
-          ) : null}
-          <XAxis dataKey="t" tickFormatter={tick} tick={AXIS} tickLine={false} axisLine={{ stroke: "var(--rule)" }} minTickGap={36} />
-          <YAxis tick={AXIS} tickLine={false} axisLine={false} width={44} domain={[0, 1]} tickFormatter={(v: number) => fmtDec(v, 1)} />
-          <Area dataKey="risk" type="monotone" stroke="var(--src-b)" fill="color-mix(in oklab, var(--src-b) 22%, transparent)" strokeWidth={1.8} isAnimationActive={false} />
-          {tooltip}
-        </ComposedChart>
-      </ResponsiveContainer>
+      {withRisk ? (
+        <>
+          <p className="pt-2 text-[14px] text-muted-foreground">Riscul de avarii estimat de model (probabilitate)</p>
+          <ResponsiveContainer width="100%" height={160}>
+            <ComposedChart data={data} syncId="storm" margin={{ top: 8, right: 18, bottom: 4, left: 4 }}>
+              <CartesianGrid vertical={false} stroke={GRID} />
+              {area(true)}
+              <XAxis dataKey="t" tickFormatter={tick} tick={AXIS} tickLine={false} axisLine={{ stroke: "var(--rule)" }} minTickGap={36} />
+              <YAxis tick={AXIS} tickLine={false} axisLine={false} width={44} domain={[0, 1]} tickFormatter={(v: number) => fmtDec(v, 1)} />
+              <Area dataKey="risk" type="monotone" stroke="var(--src-b)" fill="color-mix(in oklab, var(--src-b) 22%, transparent)" strokeWidth={1.8} isAnimationActive={false} />
+              {tooltip}
+            </ComposedChart>
+          </ResponsiveContainer>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -379,9 +414,11 @@ export function SeriesLegend({ source, bilant = false, series }: { source: Serie
         ]
       : source === "B"
         ? [
-            [line("var(--src-b)"), "rafale și risc"],
+            [line("var(--src-b)"), series && !hasStormRisk(series) ? "rafale" : "rafale și risc"],
             [box("color-mix(in oklab, var(--src-b) 12%, var(--panel))"), "fereastra furtunii"],
-            [line("var(--ink)", true), "pragul de rafale"],
+            ...(series && gustThresholds(series).length
+              ? gustThresholds(series).map((l) => [line(l.stroke, true), l.label] as [React.ReactNode, string])
+              : ([[line("var(--ink)", true), "pragul de rafale"]] as [React.ReactNode, string][])),
           ]
         : [
             [line("var(--src-c-ink)"), "tensiunea estimată (P50)"],

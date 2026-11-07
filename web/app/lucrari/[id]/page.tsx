@@ -23,7 +23,7 @@ import { auditActionRo, clampPercentRo, factorLabelRo,
   thresholdLabelRo,
   thresholdValueRo,
 } from "@/lib/data/labels";
-import { BILANT_LABEL, bilantFusion, isBilantPost, remedyOptions } from "@/lib/extras";
+import { BILANT_LABEL, bilantFusion, isBilantPost, ladderBaseP90, ladderChoice, remedyOptions } from "@/lib/extras";
 import { fmtDayMonth, fmtDec, fmtDuration, fmtInt, fmtLei, fmtMoment, fmtPercent, fmtScore, fmtTime, isWholeDay, plural, sentence } from "@/lib/format";
 import { markerKind, markerSvg } from "@/lib/marker-svg";
 import { itemPlace, itemTitle } from "@/lib/plan-screen";
@@ -83,6 +83,8 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
   const meta = SOURCES[w.source];
   const p = w.prediction;
   const options = w.source === "C" ? remedyOptions(w) : [];
+  // la tensiune, agentul alege o combinație de trepte; antetul o arată pe ea, nu doar tipul deciziei
+  const chosenCombo = w.source === "C" ? ladderChoice(w, remedies?.data.find((r) => r.work_item_id === w.work_item_id)) : [];
   const fusion = bilantFusion(w);
   const external = w.data_quality.data_sources.filter((s) => EXTERNAL.test(s));
   const scoreMin = typeof decision?.threshold?.score_min === "number" ? decision.threshold.score_min : null;
@@ -117,7 +119,9 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
                 (decision.decision === "human_review" ? "bg-att text-on-att" : "bg-ink text-panel")
               }
             >
-              {sentence(DECISION_LABEL_RO[decision.decision]).replace(/\.$/, "")}
+              {chosenCombo.length > 1
+                ? sentence(chosenCombo.map((a) => ACTION_RO[a as keyof typeof ACTION_RO] ?? a.replaceAll("_", " ")).join(" + "))
+                : sentence(DECISION_LABEL_RO[decision.decision]).replace(/\.$/, "")}
               {decision.crew_id ? `, ${decision.crew_id}` : ""}
             </span>
           ) : (
@@ -214,7 +218,7 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
                 options={options}
                 decision={decision}
                 recommended={w.recommended_action}
-                p90Before={p.point_interval?.[1] ?? null}
+                p90Before={ladderBaseP90(w, remedies?.data.find((r) => r.work_item_id === w.work_item_id))}
                 choice={remedies?.data.find((r) => r.work_item_id === w.work_item_id) ?? null}
               />
             </section>

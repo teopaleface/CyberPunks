@@ -12,7 +12,7 @@ import { getSeries } from "@/lib/data";
 import { clampPercentRo, factorLabelRo, DECISION_LABEL_RO, predictionLabelRo, ruleRo } from "@/lib/data/labels";
 import { getPosts } from "@/lib/data/posts";
 import { getRemedies } from "@/lib/data/remedies";
-import { BILANT_LABEL, bilantFusion, remedyOptions } from "@/lib/extras";
+import { BILANT_LABEL, bilantFusion, ladderBaseP90, remedyOptions } from "@/lib/extras";
 import { fmtDec, fmtInt, fmtScore, sentence } from "@/lib/format";
 import { markerKind, markerSvg } from "@/lib/marker-svg";
 import { loadPlanView, loadShellInfo, resolveScenario } from "@/lib/server/queries";
@@ -287,7 +287,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
                   options={options}
                   decision={cDecision ?? null}
                   recommended={cItem.recommended_action}
-                  p90Before={cItem.prediction.point_interval?.[1] ?? null}
+                  p90Before={ladderBaseP90(cItem, remedies?.data.find((r) => r.work_item_id === cItem.work_item_id))}
                   choice={remedies?.data.find((r) => r.work_item_id === cItem.work_item_id) ?? null}
                 />
               </div>

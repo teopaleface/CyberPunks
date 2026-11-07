@@ -142,7 +142,9 @@ function quiet(map: MLMap, theme: "light" | "dark") {
           map.setLayoutProperty(id, "visibility", "none");
           continue;
         }
-        if (map.getLayoutProperty(id, "text-field") !== undefined) map.setLayoutProperty(id, "text-field", ["get", "name"]);
+        // numele în română dacă există, altfel cu litere latine (fără БЕОГРАД / СРБИЈА la vecini), altfel numele local
+        if (map.getLayoutProperty(id, "text-field") !== undefined)
+          map.setLayoutProperty(id, "text-field", ["coalesce", ["get", "name:ro"], ["get", "name:latin"], ["get", "name"]]);
         map.setPaintProperty(id, "text-color", /city|capital|state|country/.test(id) ? P.city : P.text);
         map.setPaintProperty(id, "text-halo-color", P.bg);
         map.setPaintProperty(id, "text-halo-width", 1.4);
