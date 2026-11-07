@@ -1,19 +1,19 @@
 # Planul pentru marți 08.07.2025
 
-Scenariu: `demo-vara`. Plan `PLAN-demo-vara-20250708-162906-54c5`, generat la 2026-11-07 16:29 de `planner@0.1.0+34ba7c5`.
+Scenariu: `demo-vara`. Plan `PLAN-demo-vara-20250708-172556-fd43`, generat la 2026-11-07 17:25 de `planner@0.1.0+a23ffdb`.
 Activele și echipele din demo sunt sintetice, plasate pe hartă reală. Nimic nu a fost trimis în afară.
 
 ## Pe scurt
 
-- Lucrări primite: 697 (697 valide, 0 în carantină).
+- Lucrări primite: 689 (689 valide, 0 în carantină).
 - În trasee: 20, cu 8 echipe și 291,8 km; valoare așteptată 71.803 lei.
-- Citiri la distanță: 504. Mesaje (demo): 46. La om: 25. Amânate: 130.
+- Citiri la distanță: 504. Mesaje (demo): 48. La om: 25. Amânate: 122.
 
 ## Contextul zilei
 
 - Contoare și posturi: 630 lucrări; 17 în trasee, 504 verificări de la distanță sau corecții în birou, 17 la dispecer.
 - Furtună: 26 zone analizate, cel mai mare risc 58%; 3 echipe trimise din timp.
-- Tensiune: 41 posturi cu risc din 300 (soare pe panou până la 956 W/m² la prânz, 35 °C): 0 echipe, 18 mesaje către prosumatori, 23 posturi la urmărire.
+- Tensiune: 33 posturi cu risc din 300 (soare pe panou până la 956 W/m² la prânz, 35 °C): 15 posturi rămân la urmărire (15 sub prag sau sub limită chiar și în scenariul pesimist), 18 primesc mesaje către prosumatori, 0 primesc echipă.
 
 ## Sursele
 
@@ -22,7 +22,7 @@ Activele și echipele din demo sunt sintetice, plasate pe hartă reală. Nimic n
 | A (contoare) | ok | modelul nostru | 532 | 0 |
 | A, bilanț pe post | ok | modelul nostru | 98 | 0 |
 | B (furtună) | ok | modelul nostru | 26 | 0 |
-| C (tensiune) | ok | modelul nostru | 41 | 0 |
+| C (tensiune) | ok | modelul nostru | 33 | 0 |
 
 ## Întâi: verificări de la distanță și corecții în birou
 
@@ -202,21 +202,22 @@ Lista o aprobă un om (consola: aprobă traseul echipei); verdictul de după viz
 
 ## Alerte
 
-- **critical** 194 cazuri cu risc de siguranță. Intră primele în trasee, oricare ar fi costul: PT-1293, Sector 3 (sintetic), PT-1293, Sector 3 (sintetic), PT-1097, Sector 1 (sintetic), PT-1097, Sector 1 (sintetic), Contor MTR-007525, PT-1145, Sector 2 (sintetic), Contor MTR-007525, PT-1145, Sector 2 (sintetic) și încă 188.
+- **critical** 103 cazuri cu risc de siguranță. Intră primele în trasee, oricare ar fi costul: PT-1293, Sector 3 (sintetic), PT-1097, Sector 1 (sintetic), Contor MTR-007525, PT-1145, Sector 2 (sintetic), PT-1098, 1 Decembrie (sintetic), PT-1194, Ștefăneștii de Jos (sintetic), PT-1154, Sector 5 (sintetic) și încă 97.
 - **critical** 20 cazuri de siguranță de decis azi. Modelul nu e sigur, dar e risc pentru oameni: Contor MTR-013553, PT-1255, Sector 6 (sintetic), Contor MTR-005980, PT-1116, Tunari (sintetic), Contor MTR-005165, PT-1101, Sector 4 (sintetic), PT-1182, Sector 3 (sintetic), PT-1238, Chitila (sintetic), Contor MTR-004149, PT-1081, Sector 3 (sintetic) și încă 14.
 - **warning** Risc de avarii: Zona Oravița (Caraș-Severin). Rafale de vânt de 70 km/h; sezonul de vară: frunziș bogat, furtuni convective. Furtuna e așteptată de la 15:00 (fereastra 15:00-21:00). Probabilitate de avarii 50%; în scenariul pesimist (P90), 2.455 clienți fără curent.
 - **warning** Risc de avarii: Zona Timișoara (Timiș). 15 mm de ploaie în 48 de ore; sezonul de vară: frunziș bogat, furtuni convective. Furtuna e așteptată de la 15:00 (fereastra 15:00-21:00). Probabilitate de avarii 43%; în scenariul pesimist (P90), 14.693 clienți fără curent.
+- **warning** Risc de avarii: Zona Ineu (Arad) (model nesigur, decide dispecerul). 19 mm de ploaie în 48 de ore; rafale de 78 km/h în ziua de dinainte. Furtuna e așteptată de la 15:00 (fereastra 15:00-21:00). Probabilitate de avarii 58%; în scenariul pesimist (P90), 4.886 clienți fără curent.
 - **critical** Întăriri necesare: 1 cazuri de siguranță nu încap în turele de mâine. Au primit o citire la distanță și trec primele în planul următor. Propun ore suplimentare sau echipe din alte baze: PT-1194, Ștefăneștii de Jos (sintetic).
 - **critical** Întăriri necesare: 7 zone de furtună fără echipă. Plafonul de echipe trimise din timp e atins în Banat. Valoare așteptată 36.762 lei: Zona Lugoj (Timiș), Zona Sânnicolau Mare (Timiș), Zona Lipova (Arad), Zona Reșița (Caraș-Severin), Zona Caransebeș (Caraș-Severin), Zona Deva (Hunedoara) și încă 1. Propun echipe din alte regiuni sau contractori; dispecerul aprobă zonele din coada „nu sunt sigur”.
 - **info** 25 lucrări așteaptă decizia unui om. Valoare așteptată totală 50.102 lei. Aprobă, respinge sau amână din consolă.
 - **warning** 181 lucrări n-au încăput în turele de mâine. Valoare așteptată 144.869 lei. Ce s-a putut, trece pe citire la distanță; restul rămâne pentru planul următor.
-- **info** Contextul zilei. Contoare și posturi: 630 lucrări; 17 în trasee, 504 verificări de la distanță sau corecții în birou, 17 la dispecer. Furtună: 26 zone analizate, cel mai mare risc 58%; 3 echipe trimise din timp. Tensiune: 41 posturi cu risc din 300 (soare pe panou până la 956 W/m² la prânz, 35 °C): 0 echipe, 18 mesaje către prosumatori, 23 posturi la urmărire.
+- **info** Contextul zilei. Contoare și posturi: 630 lucrări; 17 în trasee, 504 verificări de la distanță sau corecții în birou, 17 la dispecer. Furtună: 26 zone analizate, cel mai mare risc 58%; 3 echipe trimise din timp. Tensiune: 33 posturi cu risc din 300 (soare pe panou până la 956 W/m² la prânz, 35 °C): 15 posturi rămân la urmărire (15 sub prag sau sub limită chiar și în scenariul pesimist), 18 primesc mesaje către prosumatori, 0 primesc echipă.
 
 ## Scara de soluții pentru tensiune
 
 | Post | Aleasă | Cost | P90 înainte → după | De ce nu una mai ieftină |
 |---|---|---|---|---|
-| PT-1269, Afumați (sintetic) | phase_rebalance, offer_battery, export_limit | 12.439 lei | 1,177 → 1,095 pu | cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,175 pu; cu oferta de baterii singură (24 lei), tensiunea ajunge doar la 1,162 pu; cu mesajele către clienții Ore Smart și oferta de baterii (27 lei, la 10% participare), tensiunea ajunge doar la 1,160 pu |
+| PT-1269, Afumați (sintetic) | phase_rebalance, offer_battery, export_limit | 12.439 lei | 1,177 → 1,094 pu | cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,175 pu; cu oferta de baterii singură (24 lei), tensiunea ajunge doar la 1,162 pu; cu mesajele către clienții Ore Smart și oferta de baterii (27 lei, la 10% participare), tensiunea ajunge doar la 1,160 pu |
 | PT-1076, Cornetu (sintetic) | phase_rebalance, offer_battery, export_limit | 8.587 lei | 1,161 → 1,094 pu | cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,159 pu; cu oferta de baterii singură (14 lei), tensiunea ajunge doar la 1,152 pu; cu mesajele către clienții Ore Smart și oferta de baterii (17 lei, la 10% participare), tensiunea ajunge doar la 1,150 pu |
 | PT-1300, Ștefăneștii de Jos (sintetic) | phase_rebalance, offer_battery, export_limit | 9.812 lei | 1,155 → 1,099 pu | cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,153 pu; cu oferta de baterii singură (22 lei), tensiunea ajunge doar la 1,145 pu; cu mesajele către clienții Ore Smart și oferta de baterii (25 lei, la 10% participare), tensiunea ajunge doar la 1,143 pu |
 | PT-1147, Tunari (sintetic) | phase_rebalance, adjust_tap, offer_battery | 1.978 lei | 1,150 → 1,095 pu | cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,148 pu; cu oferta de baterii singură (22 lei), tensiunea ajunge doar la 1,138 pu; cu mesajele către clienții Ore Smart și oferta de baterii (25 lei, la 10% participare), tensiunea ajunge doar la 1,136 pu |
@@ -229,6 +230,7 @@ Lista o aprobă un om (consola: aprobă traseul echipei); verdictul de după viz
 | PT-1087, Otopeni (sintetic) | phase_rebalance, adjust_tap | 1.956 lei | 1,141 → 1,100 pu | cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,138 pu; cu oferta de baterii singură (6 lei), tensiunea ajunge doar la 1,131 pu; cu mesajele către clienții Ore Smart și oferta de baterii (9 lei, la 10% participare), tensiunea ajunge doar la 1,128 pu |
 | PT-1263, Sector 4 (sintetic) | adjust_tap, offer_battery | 1.658 lei | 1,134 → 1,100 pu | cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,133 pu; cu oferta de baterii singură (20 lei), tensiunea ajunge doar la 1,126 pu; cu mesajele către clienții Ore Smart și oferta de baterii (23 lei, la 10% participare), tensiunea ajunge doar la 1,125 pu |
 | PT-1252, Popești-Leordeni (sintetic) | phase_rebalance, adjust_tap | 1.956 lei | 1,133 → 1,091 pu | cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,131 pu; cu oferta de baterii singură (32 lei), tensiunea ajunge doar la 1,129 pu; cu mesajele către clienții Ore Smart și oferta de baterii (35 lei, la 10% participare), tensiunea ajunge doar la 1,127 pu |
+| PT-1082, 1 Decembrie (sintetic) | phase_rebalance, adjust_tap, offer_battery | 1.966 lei | 1,138 → 1,095 pu | cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,136 pu; cu oferta de baterii singură (10 lei), tensiunea ajunge doar la 1,130 pu; cu mesajele către clienții Ore Smart și oferta de baterii (13 lei, la 10% participare), tensiunea ajunge doar la 1,128 pu |
 
 ### Pentru PPC Energie: oferte de baterii
 
@@ -240,6 +242,7 @@ Lista o aprobă un om (consola: aprobă traseul echipei); verdictul de după viz
 - PT-1072, Voluntari (sintetic): 20 kWh, 6 prosumatori, venit estimat 4.500 lei, recuperare ~5,3 ani. Canal: magazinele PPC (demo, nu s-a trimis nimic).
 - PT-1255, Sector 6 (sintetic): 20 kWh, 6 prosumatori, venit estimat 4.500 lei, recuperare ~6,4 ani. Canal: magazinele PPC (demo, nu s-a trimis nimic).
 - PT-1263, Sector 4 (sintetic): 30 kWh, 10 prosumatori, venit estimat 6.750 lei, recuperare ~6,1 ani. Canal: magazinele PPC (demo, nu s-a trimis nimic).
+- PT-1082, 1 Decembrie (sintetic): 20 kWh, 5 prosumatori, venit estimat 4.500 lei, recuperare ~5,2 ani. Canal: magazinele PPC (demo, nu s-a trimis nimic).
 
 ### Investiții (raportul firului C)
 
@@ -268,17 +271,17 @@ Fuziunea cu bilanțul pe post: ok, 530 contoare confirmate.
 | `R-BILANT-REMOTE` | 51 |
 | `R-ABSTAIN-WATCH` | 48 |
 | `R-HUMAN-QUEUE-FULL` | 25 |
-| `R-C-WATCH` | 23 |
 | `R-ABSTAIN` | 17 |
+| `R-C-WATCH` | 15 |
+| `R-REMEDY-LADDER` | 14 |
 | `R-B-BELOW-THRESHOLD` | 14 |
 | `R-A-WATCH` | 14 |
-| `R-REMEDY-LADDER` | 13 |
 | `R-SAFETY` | 11 |
 | `R-BILANT-OFFICE` | 7 |
 | `R-CAPACITY` | 7 |
 | `R-B-REGION-CAP` | 7 |
-| `R-C-NOTIFY` | 5 |
 | `R-BILANT-GRID` | 4 |
+| `R-C-NOTIFY` | 4 |
 | `R-B-PREPOSITION` | 3 |
 | `R-A-VISIT` | 2 |
 | `R-SAFETY-NO-CREW` | 1 |
@@ -288,7 +291,7 @@ Fuziunea cu bilanțul pe post: ok, 530 contoare confirmate.
 
 ## Cum a lucrat agentul
 
-- Timpi (secunde): Perceive 0.01, Estimate 14.69, Decide 7.77, Act 0.00.
-- Optimizator: ortools (SUCCESS), 293 lucrări candidate, 11 echipe, 7.64 s.
+- Timpi (secunde): Perceive 0.01, Estimate 15.40, Decide 7.81, Act 0.00.
+- Optimizator: ortools (SUCCESS), 293 lucrări candidate, 11 echipe, 7.67 s.
 - Ipotezele de cost: `config/economics.yaml` (cu sursele); pragurile: `config/planner.yaml`.
 - Fiecare decizie are în jurnal (`audit.jsonl`) ID-ul predicției, versiunea modelului, regula și pragurile.

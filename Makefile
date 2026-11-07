@@ -126,7 +126,7 @@ bilant-test:      ## Bilanț: testele firului
 	uv run pytest tests/bilant
 
 # ---- Planificator și API (firul Teo-planificator) ----
-.PHONY: api api-dev run-demo test-planner agent-eval solver-bench demo-snapshot api-demo demo demo-offline
+.PHONY: api api-dev run-demo test-planner agent-eval solver-bench demo-snapshot api-demo demo demo-offline demo-ports
 
 api:              ## API-ul agentului pe http://127.0.0.1:8710/api (documentație: /docs)
 	uv run uvicorn cyberpunks.api.app:app --host 127.0.0.1 --port 8710
@@ -152,12 +152,19 @@ demo-snapshot:    ## copiază planul demo-vara în outputs/demo/ (intră în git
 api-demo:         ## API-ul pe instantaneul din git (outputs/demo/), fără să ruleze modelele
 	CYBERPUNKS_API_SOURCE=demo uv run uvicorn cyberpunks.api.app:app --host 127.0.0.1 --port 8710
 
-demo:             ## DEMO: planul real pentru demo-vara, apoi API-ul (8710) și consola (3710), în paralel; Ctrl-C le oprește
-	uv run cyberpunks run --scenario demo-vara
-	$(MAKE) -j2 api web
+demo-ports:       ## verifică dacă porturile demo-ului (API 8710, consola 3710) sunt libere
+	@for p in 8710 3710; do \
+	  if lsof -nP -iTCP:$$p -sTCP:LISTEN >/dev/null 2>&1; then \
+	    echo "Portul $$p e ocupat (un API sau o consolă pornite deja). Oprește-le întâi: lsof -ti tcp:8710,3710 | xargs kill"; exit 1; \
+	  fi; \
+	done
 
-demo-offline:     ## DEMO fără modele: API-ul pe instantaneul din git și consola, în paralel (fără Rulează și fără aprobări)
-	$(MAKE) -j2 api-demo web
+demo: demo-ports  ## DEMO: planul real pentru demo-vara, apoi API-ul (8710) și consola de producție (3710), în paralel; Ctrl-C le oprește
+	uv run cyberpunks run --scenario demo-vara
+	$(MAKE) -j2 api web-demo
+
+demo-offline: demo-ports  ## DEMO fără modele: API-ul pe instantaneul din git și consola de producție (fără Rulează și fără aprobări)
+	$(MAKE) -j2 api-demo web-demo
 
 # ---- Interfață (firul Teo-ui) ----
 .PHONY: web web-install web-build web-demo web-test web-smoke
