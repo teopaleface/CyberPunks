@@ -52,7 +52,9 @@ def run(
     for col in ("Sursă", "Stare", "De unde", "Valide", "Respinse"):
         src.add_column(col)
     for s, info in res.meta["sources"].items():
-        src.add_row(s, p.sources_status[s], info["origin"], str(info["valid"]), str(info["invalid"]))
+        if info.get("optional") and info["origin"] == "missing":
+            continue  # sursă suplimentară care încă nu există (de exemplu bilanțul pe post)
+        src.add_row(s, p.sources_status.get(s, info["status"]), info["origin"], str(info["valid"]), str(info["invalid"]))
     console.print(src)
     s = p.summary
     console.print(

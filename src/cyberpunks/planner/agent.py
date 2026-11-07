@@ -12,26 +12,48 @@
 from __future__ import annotations
 
 import importlib
+import importlib.util
 import json
 import shutil
+import sys
 import time
+import uuid
 from dataclasses import dataclass, field
 from datetime import date as Date
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Literal
 
-from cyberpunks.common.contracts import AuditRecord, Plan
+from pydantic import ValidationError
+
+from cyberpunks.common.contracts import Alert, AuditRecord, BilantFusion, Plan, Source, WorkItem
 from cyberpunks.common.paths import CONTRACTS, OUTPUTS
 from cyberpunks.planner import planner_version
 from cyberpunks.planner.actions import build_plan, finalize, quarantine_rows, write_json, write_jsonl
 from cyberpunks.planner.decide import Context, Override, decide
-from cyberpunks.planner.ingest import Origin, SourceLoad, finalize_status, infer_plan_date, load_source
+from cyberpunks.planner.ingest import (
+    Item,
+    Origin,
+    SourceLoad,
+    finalize_status,
+    infer_plan_date,
+    load_source,
+    semantic_errors,
+)
 from cyberpunks.planner.routing import Task, Vehicle, build_problem, minutes_of, solve
 from cyberpunks.planner.settings import TZ, Scenario, Settings
 
-PREDICTORS = {"A": "cyberpunks.a_contoare.predict", "B": "cyberpunks.b_furtuna.predict", "C": "cyberpunks.c_prosumatori.predict"}
-FIXTURES = {s: CONTRACTS / "fixtures" / f"work_items_{s}.jsonl" for s in "ABC"}
+# Fișierele de lucrări: A_bilant are tot sursa A (bilanțul pe post), în fișierul lui; sources_status["A"] le acoperă pe amândouă.
+PREDICTORS = {
+    "A": "cyberpunks.a_contoare.predict",
+    "A_bilant": "cyberpunks.a_bilant.predict",
+    "B": "cyberpunks.b_furtuna.predict",
+    "C": "cyberpunks.c_prosumatori.predict",
+}
+SOURCE_OF = {"A": "A", "A_bilant": "A", "B": "B", "C": "C"}
+OPTIONAL = {"A_bilant"}  # dacă modulul nu există încă, lipsa lui nu strică starea sursei A
+FIXTURES = {k: CONTRACTS / "fixtures" / f"work_items_{k}.jsonl" for k in PREDICTORS}
+FUSION_MODULE = "cyberpunks.a_bilant.fuse"
 Mode = Literal["auto", "existing", "fixtures"]
 
 
@@ -111,17 +133,80 @@ def build_routing(ctx: Context, proposals: list) -> Any:
         if not p.route:
             continue
         wi = p.wi
-        allowed = [v for v, veh in enumerate(vehicles) if wi.effort.crew_skill.value in veh.crew.skills and veh.crew.size >= wi.effort.crew_size]
+        skill = p.skill or wi.effort.crew_skill.value
+        size = p.crew_size or wi.effort.crew_size
+        duration = p.duration_min or wi.effort.duration_min
+        allowed = [v for v, veh in enumerate(vehicles) if skill in veh.crew.skills and veh.crew.size >= size]
         tasks.append(
             Task(
                 id=p.id, lat=wi.location.lat, lon=wi.location.lon,
-                service_min=0 if p.terminal else wi.effort.duration_min, display_min=wi.effort.duration_min,
-                skill=wi.effort.crew_skill.value, crew_size=wi.effort.crew_size,
+                service_min=0 if p.terminal else duration, display_min=duration,
+                skill=skill, crew_size=size,
                 earliest=minutes_of(p.earliest, ctx.plan_date), latest=minutes_of(p.latest, ctx.plan_date),
                 terminal=p.terminal, penalty=round((p.priority or 0.0) * scale), mandatory=p.mandatory, allowed=allowed,
             )
         )
     return build_problem(tasks, vehicles, ctx.travel, scale)
+
+
+def _module_available(name: str) -> bool:
+    if name in sys.modules:
+        return True
+    try:
+        return importlib.util.find_spec(name) is not None
+    except (ImportError, ValueError):
+        return False
+
+
+# ------------------------------------------------------------------ fuziunea cu bilanțul pe post
+
+
+def apply_fusion(items: list[Item], scenario: str, plan_date: Date) -> tuple[list[Item], list[tuple[Item, BilantFusion]], dict[str, Any]]:
+    """Aplică `cyberpunks.a_bilant.fuse.fuse` pe lucrările A, dacă modulul există. O lucrare fuzionată se păstrează doar
+    dacă trece contractul, verificările de sens și are `extra["fusion"]` valid; altfel rămâne lucrarea originală."""
+    a_items = [it for it in items if it.wi.source == Source.A]
+    if not a_items:
+        return items, [], {"status": "fără lucrări A"}
+    try:
+        mod = importlib.import_module(FUSION_MODULE)
+        fuse = mod.fuse
+    except (ImportError, AttributeError):
+        return items, [], {"status": "indisponibilă (modulul bilanțului nu există încă)"}
+    try:
+        fused_raw = fuse([it.wi for it in a_items], scenario, plan_date.isoformat())
+    except Exception as exc:  # noqa: BLE001 - fuziunea căzută nu oprește planul
+        return items, [], {"status": "eroare", "note": f"{type(exc).__name__}: {str(exc)[:200]}"}
+    fused: dict[str, WorkItem] = {}
+    rejected = 0
+    for w in fused_raw or []:
+        try:
+            wi = w if isinstance(w, WorkItem) else WorkItem.model_validate(w)
+        except ValidationError:
+            rejected += 1
+            continue
+        fused[wi.work_item_id] = wi
+    out: list[Item] = []
+    events: list[tuple[Item, BilantFusion]] = []
+    for it in items:
+        new = fused.get(it.id) if it.wi.source == Source.A else None
+        raw_f = new.extra.get("fusion") if new is not None else None
+        if new is None or raw_f is None:
+            out.append(it)
+            continue
+        try:
+            fusion = BilantFusion.model_validate(raw_f)
+        except ValidationError:
+            rejected += 1
+            out.append(it)
+            continue
+        if semantic_errors(new, plan_date) or new.source != it.wi.source or new.asset_id != it.wi.asset_id:
+            rejected += 1
+            out.append(it)
+            continue
+        fused_item = Item(new, it.sha256, it.line_no, it.origin)
+        out.append(fused_item)
+        events.append((fused_item, fusion))
+    return out, events, {"status": "ok", "fused": len(events), "rejected": rejected}
 
 
 # ------------------------------------------------------------------ suprascrierile omului
@@ -146,9 +231,11 @@ def _decide_and_act(
     plan_dir: Path, timings: dict[str, float], meta: dict[str, Any], append_audit: bool, solver: str | None,
 ) -> RunResult:
     t0 = time.perf_counter()
-    overrides = load_overrides(plan_dir)
+    # Deciziile omului se reaplică doar la replanificare; o rulare nouă pornește de la zero (cele vechi rămân în history/).
+    overrides = load_overrides(plan_dir) if append_audit else {}
     ctx = Context.build(settings, plan_date, as_of=as_of, overrides=overrides)
-    items = [it for s in "ABC" for it in loads[s].items]
+    items = [it for key in loads for it in loads[key].items]
+    items, fusion_events, fusion_meta = apply_fusion(items, scenario, plan_date)
     proposals = decide(ctx, items)
     pb = build_routing(ctx, proposals)
     rr = solve(
@@ -172,11 +259,25 @@ def _decide_and_act(
         audit_id=f"run-{plan_id}", ts=generated_at, actor="agent", action="replan" if append_audit else "run",
         rule_id=None, note=(
             f"scenariu {scenario}, data {plan_date.isoformat()}, surse "
-            + ", ".join(f"{s}={loads[s].status}/{loads[s].origin}" for s in "ABC")
+            + ", ".join(f"{k}={loads[k].status}/{loads[k].origin}" for k in loads)
             + f"; solver {rr.solver} ({rr.status}, {rr.solve_seconds:.2f} s)"
         ),
     )
-    audit_rows = [run_record.model_dump(mode="json")] + [a.model_dump(mode="json") for a in outcome.audit]
+    fusion_rows = [
+        AuditRecord(
+            audit_id=str(uuid.uuid4()), ts=generated_at, actor="agent", action="fusion", work_item_id=it.id,
+            prediction_id=it.wi.prediction.prediction_id, model_version=it.wi.prediction.model_version, rule_id="R-FUSION-BILANT",
+            threshold={"a_score": f.a_score, "combined_score": f.combined_score, "post_excess_loss_lei_month": f.post_excess_loss_lei_month,
+                       "post_excess_loss_kwh_day": f.post_excess_loss_kwh_day},
+            inputs_sha256=it.sha256, note=f"{f.note_ro} (postul {f.post_id}, predicția bilanțului {f.bilant_prediction_id})",
+        ).model_dump(mode="json")
+        for it, f in fusion_events
+    ]
+    if fusion_meta.get("status") == "eroare":
+        plan.alerts.append(Alert(alert_id=f"AL-{len(plan.alerts) + 1}", severity="warning", title_ro="Fuziunea cu bilanțul n-a mers",
+                                 body_ro=f"Planul folosește scorurile A fără confirmarea bilanțului ({fusion_meta.get('note', '')}).",
+                                 channel="dispecerat", created_at=generated_at))
+    audit_rows = [run_record.model_dump(mode="json")] + fusion_rows + [a.model_dump(mode="json") for a in outcome.audit]
     write_jsonl(plan_dir / "audit.jsonl", audit_rows, append=append_audit)
     write_json(plan_dir / "plan.json", plan.model_dump(mode="json"))
     write_jsonl(plan_dir / "work_items.jsonl", [it.wi.model_dump(mode="json") for it in items])
@@ -191,8 +292,11 @@ def _decide_and_act(
             "solver": {"name": rr.solver, "status": rr.status, "seconds": round(rr.solve_seconds, 3),
                        "objective_lei": rr.objective_lei, "tasks": len(pb.tasks), "crews": len(pb.vehicles)},
             "overrides": len(overrides),
+            "fusion": fusion_meta,
+            "remedies": [p.ladder for p in outcome.final.values() if p.ladder],
         }
     )
+    write_json(plan_dir / "remedies.json", meta["remedies"])
     try:
         from cyberpunks.planner.workorders import write_work_orders
 
@@ -253,6 +357,14 @@ def run(
 
     t1 = time.perf_counter()
     picks = estimate(scenario, plan_date, mode, out_root)
+    fixture_date = _fixture_date()
+    if mode == "auto" and date is None and fixture_date and fixture_date != plan_date and all(picks[k].origin == "missing" for k in "ABC"):
+        # Niciun model nu are încă ieșiri pentru data scenariului: planul rulează pe exemple, marcat clar (surse "degraded").
+        note = f"nicio ieșire de model pentru {plan_date.isoformat()}; plan pe exemplele din contracts/fixtures/ ({fixture_date.isoformat()})"
+        plan_date = fixture_date
+        picks = estimate(scenario, plan_date, "fixtures", out_root)
+        for pick in picks.values():
+            pick.note = f"{note}; {pick.note}"
     timings["estimate"] = round(time.perf_counter() - t1, 3)
 
     plan_dir = out_root / "plans" / scenario
@@ -261,24 +373,27 @@ def run(
     seen: set[str] = set()
     loads: dict[str, SourceLoad] = {}
     t2 = time.perf_counter()
-    for s in "ABC":
-        pick = picks[s]
-        snap = inputs_dir / f"{s}.jsonl"
+    for key in PREDICTORS:
+        pick = picks[key]
+        snap = inputs_dir / f"{key}.jsonl"
         if pick.path is not None and pick.path.exists():
             shutil.copyfile(pick.path, snap)  # copia exactă a intrărilor, pentru replanificare și jurnal
         elif snap.exists():
             snap.unlink()
-        load = load_source(s, snap if pick.path else None, pick.origin, plan_date, seen)
+        load = load_source(SOURCE_OF[key], snap if pick.path else None, pick.origin, plan_date, seen)
         load.note = pick.note if not load.note else f"{pick.note}; {load.note}"
         finalize_status(load, settings)
-        loads[s] = load
+        # Bilanțul e o completare: dacă lipsește ieșirea lui (modul absent sau încă nerulat), starea sursei A nu se strică.
+        load.optional = key in OPTIONAL and load.origin == "missing"
+        loads[key] = load
     ingest_s = time.perf_counter() - t2
     meta = {
         "mode": mode,
         "sources": {
-            s: {"origin": loads[s].origin, "status": loads[s].status, "note": loads[s].note, "valid": len(loads[s].items),
-                "invalid": len(loads[s].quarantined), "path": str(picks[s].path) if picks[s].path else None, "seconds": round(picks[s].seconds, 3)}
-            for s in "ABC"
+            k: {"origin": loads[k].origin, "status": loads[k].status, "note": loads[k].note, "valid": len(loads[k].items),
+                "invalid": len(loads[k].quarantined), "path": str(picks[k].path) if picks[k].path else None,
+                "seconds": round(picks[k].seconds, 3), "optional": loads[k].optional}
+            for k in PREDICTORS
         },
     }
     result = _decide_and_act(
@@ -304,13 +419,13 @@ def replan(scenario: str, *, out_root: Path = OUTPUTS, settings: Settings | None
     t0 = time.perf_counter()
     seen: set[str] = set()
     loads: dict[str, SourceLoad] = {}
-    for s in "ABC":
-        info = old["sources"][s]
-        snap = plan_dir / "inputs" / f"{s}.jsonl"
-        load = load_source(s, snap if snap.exists() else None, info["origin"], plan_date, seen)
+    for key, info in old["sources"].items():
+        snap = plan_dir / "inputs" / f"{key}.jsonl"
+        load = load_source(SOURCE_OF.get(key, key[0]), snap if snap.exists() else None, info["origin"], plan_date, seen)
         load.note = info.get("note", "")
         finalize_status(load, settings)
-        loads[s] = load
+        load.optional = bool(info.get("optional", False))
+        loads[key] = load
     timings = {"perceive": 0.0, "estimate": 0.0}
     meta = {"mode": "replan", "sources": old["sources"]}
     result = _decide_and_act(
