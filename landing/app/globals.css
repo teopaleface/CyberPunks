@@ -1,0 +1,222 @@
+@import "tailwindcss";
+
+/*
+ * Daybreak, landing-ul. Paleta PPC (verificată de firul Interfață din CSS-ul site-urilor PPC):
+ * bleumarin #000f1e, albastru #00a3e0, portocaliu #fa4616; albastrul PPC Energie #163fe8.
+ * Ideea: culorile PPC formează un răsărit (noapte → albastru → cian → soarele portocaliu).
+ * Agentul lucrează noaptea, planul e gata în zori.
+ *
+ * Culorile surselor A, B, C sunt cele din consolă (varianta pentru fundal închis, validată
+ * pentru daltonism de firul Interfață): A #3b82f0, B #b84fc0, C #c4880a. Apar doar pe date.
+ * Portocaliul înseamnă, ca în consolă, „decide un om”.
+ *
+ * Contrast pe #000f1e (WCAG): text 17,3; text secundar 9,9; terțiar 6,4; albastru PPC 6,7;
+ * portocaliu 5,5; A 5,2; B 4,5; C 6,3. Alb pe #163fe8: 7,2 (butonul principal).
+ */
+
+@theme {
+  --color-night: #000f1e;
+  --color-night-2: #04182b;
+  --color-night-3: #0a2238;
+  --color-rule: #15304a;
+  --color-rule-strong: #23466a;
+  --color-ink: #eef3f8;
+  --color-ink-2: #a9bccd;
+  --color-ink-3: #8197ac;
+  --color-ppc-blue: #00a3e0;
+  --color-ppc-orange: #fa4616;
+  --color-ppc-orange-soft: #ff6a3d;
+  --color-ppc-energy: #163fe8;
+  --color-ppc-energy-soft: #5b7cff;
+  --color-src-a: #3b82f0;
+  --color-src-b: #b84fc0;
+  --color-src-c: #c4880a;
+  --color-src-c-ink: #e0a42a;
+
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+@layer base {
+  html {
+    background: var(--color-night);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+    color-scheme: dark;
+  }
+  body {
+    min-height: 100dvh;
+  }
+  ::selection {
+    background: var(--color-ppc-blue);
+    color: var(--color-night);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-ppc-blue);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+  /* cifrele aliniate: anii, procentele și scorurile stau una sub alta */
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ------------------------------------------------------------------ hero: o singură secvență la încărcare */
+/*
+ * Perceive → Estimate → Decide → Act, pe hartă, în circa 4 secunde, doar CSS (merge și fără JS,
+ * de pe disc). Cu prefers-reduced-motion, harta apare direct în starea finală.
+ */
+@keyframes dawn-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes cell-on {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.6);
+  }
+}
+@keyframes route-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes ring-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes step-on {
+  from {
+    color: var(--color-ink-3);
+  }
+  to {
+    color: var(--color-ink);
+  }
+}
+@keyframes step-bar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+/* lucrarea apare aprinsă (Perceive), apoi se stinge (Decide: merge la verificare de la distanță) */
+@keyframes demote {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  65% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.38;
+  }
+}
+@keyframes horizon-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+.hero-base {
+  animation: dawn-fade 900ms var(--ease-out-quint) both;
+}
+.hero-cell {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cell-on 700ms var(--ease-out-quint) both;
+  animation-delay: calc(500ms + var(--order) * 1100ms);
+}
+.hero-dim {
+  animation: dawn-fade 600ms ease-out both;
+  animation-delay: var(--delay, 0ms);
+}
+.hero-demote {
+  animation: demote 1500ms ease-out both;
+  animation-delay: 700ms;
+}
+.hero-route {
+  stroke-dasharray: 1;
+  animation: route-draw 1300ms var(--ease-in-out-quart) both;
+  animation-delay: var(--delay, 2400ms);
+}
+.hero-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ring-pulse 700ms var(--ease-out-quint) both;
+  animation-delay: var(--delay, 2000ms);
+}
+.hero-step {
+  animation: step-on 300ms ease-out both;
+  animation-delay: var(--delay);
+}
+.hero-step-bar {
+  transform-origin: left;
+  animation: step-bar 700ms var(--ease-out-quint) both;
+  animation-delay: var(--delay);
+}
+.hero-horizon {
+  animation: horizon-rise 1600ms var(--ease-out-quint) both;
+  animation-delay: 2800ms;
+}
+.hero-rise {
+  animation: rise 900ms var(--ease-out-quint) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-base,
+  .hero-cell,
+  .hero-dim,
+  .hero-demote,
+  .hero-route,
+  .hero-ring,
+  .hero-step,
+  .hero-step-bar,
+  .hero-horizon,
+  .hero-rise {
+    animation: none;
+  }
+}
