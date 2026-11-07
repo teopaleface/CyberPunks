@@ -88,7 +88,27 @@ function invalidReason(raw: Record<string, unknown>, decision: Decision | undefi
   return reasons.length ? `Intrare greșită: ${reasons.join(" și ")}.` : "Intrare greșită: nu respectă contractul.";
 }
 
-export function toPlanScreenData(view: PlanView): PlanScreenData {
+/**
+ * Lucrarea fără câmpurile grele (factori, cazuri similare, extra, surse): ecranul planului are nevoie de ele
+ * doar pentru lucrarea selectată, pe care o încarcă la cerere. Rezumatul și scorul rămân.
+ */
+export function slimItem(w: WorkItem): WorkItem {
+  const extra = (w.extra ?? {}) as Record<string, unknown>;
+  const keep: Record<string, unknown> = {};
+  for (const k of ["post_id", "estimated_kwh_lost_per_day", "lei_per_month"]) if (k in extra) keep[k] = extra[k];
+  return {
+    ...w,
+    explanation: { top_factors: [], similar_cases: [], summary_ro: w.explanation.summary_ro },
+    data_quality: { missing_ratio: w.data_quality.missing_ratio, synthetic: w.data_quality.synthetic, data_sources: [], input_issues: [] },
+    extra: { ...keep, _slim: true },
+  };
+}
+
+export function isSlim(w: WorkItem): boolean {
+  return Boolean((w.extra as Record<string, unknown> | undefined)?._slim);
+}
+
+export function toPlanScreenData(view: PlanView, fullIds: string[] = []): PlanScreenData {
   const { plan } = view;
   const decisions = view.decisionsByWorkItemId;
 
@@ -168,7 +188,7 @@ export function toPlanScreenData(view: PlanView): PlanScreenData {
     planDate: plan.plan_date,
     shift: view.shift,
     summary: plan.summary,
-    items: view.workItems,
+    items: view.workItems.map((w) => (fullIds.includes(w.work_item_id) ? w : slimItem(w))),
     decisions,
     routes: view.routes,
     depots: view.depots,

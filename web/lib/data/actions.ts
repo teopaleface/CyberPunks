@@ -114,3 +114,16 @@ export async function approvePlan(
     return { ok: false, error: explain(err, "Aprobarea nu a putut fi trimisă") };
   }
 }
+
+/** Lucrarea întreagă (factori, cazuri similare, extra), pentru detaliul de pe ecranul planului. */
+export async function loadWorkItemDetail(
+  workItemId: string,
+  scenario: string,
+): Promise<ActionResult<{ workItem: import("@/lib/contracts").WorkItem }>> {
+  if (typeof workItemId !== "string" || !WORK_ITEM_RE.test(workItemId)) return { ok: false, error: "ID-ul lucrării nu e valid." };
+  if (typeof scenario !== "string" || !SCENARIO_RE.test(scenario)) return { ok: false, error: "Scenariul nu e valid." };
+  const { getWorkItem } = await import("./index");
+  const r = await getWorkItem(workItemId, scenario);
+  if (!r.data) return { ok: false, error: `Lucrarea ${workItemId} nu s-a găsit.` };
+  return { ok: true, workItem: r.data.workItem };
+}

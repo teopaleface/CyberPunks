@@ -11,7 +11,7 @@ import { factorLabelRo, ACTION_RO, CONFIDENCE_RO, DECISION_LABEL_RO, outcomeRo, 
 import type { ReviewDecision } from "@/lib/data/types";
 import { fmtDec, fmtInt, fmtLei, fmtScore, fmtTime, sentence } from "@/lib/format";
 import { markerKind, markerSvg } from "@/lib/marker-svg";
-import { itemPlace, itemTitle } from "@/lib/plan-screen";
+import { isSlim, itemPlace, itemTitle } from "@/lib/plan-screen";
 import { ScoreScale } from "./score-scale";
 
 function Marker({ w, decision, selected = false }: { w: WorkItem; decision?: Decision | null; selected?: boolean }) {
@@ -252,6 +252,7 @@ export function WorkItemPeek({
     );
   }
   const p = w.prediction;
+  const slim = isSlim(w);
   const maxContribution = Math.max(0.0001, ...w.explanation.top_factors.map((f) => Math.abs(f.contribution)));
   const cost = costOf(decision);
   const ev = w.impact.expected_value_lei;
@@ -318,7 +319,16 @@ export function WorkItemPeek({
         </dd>
 
         <dt>De ce</dt>
-        <dd className="space-y-1.5">
+        <dd className="space-y-1.5" aria-busy={slim}>
+          {slim
+            ? [0, 1, 2].map((i) => (
+                <div key={i} className="grid grid-cols-[minmax(0,1fr)_140px_48px] items-center gap-x-3" aria-hidden="true">
+                  <span className="h-3.5 animate-pulse rounded-[2px] bg-muted" style={{ width: `${78 - i * 14}%` }} />
+                  <span className="h-2.5 animate-pulse bg-muted" />
+                  <span className="h-3.5 animate-pulse rounded-[2px] bg-muted" />
+                </div>
+              ))
+            : null}
           {w.explanation.top_factors.slice(0, 4).map((f) => (
             <div key={f.feature} className="grid grid-cols-[minmax(0,1fr)_140px_48px] items-center gap-x-3">
               <span>{factorLabelRo(f.label_ro)}</span>
@@ -386,7 +396,8 @@ export function WorkItemPeek({
             </>
           ) : null}
           <span className="mt-1 block">
-            {w.data_quality.synthetic ? "Activ sintetic" : "Date reale"}, surse: {w.data_quality.data_sources.join(", ")}
+            {w.data_quality.synthetic ? "Activ sintetic" : "Date reale"}
+            {w.data_quality.data_sources.length ? `, surse: ${w.data_quality.data_sources.join(", ")}` : ""}
             {w.created_at ? `; estimat la ${fmtTime(w.created_at)}` : ""}.
           </span>
           <Link

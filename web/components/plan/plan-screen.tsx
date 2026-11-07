@@ -2,14 +2,15 @@
 
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { cn } from "cn";
 import type { WorkItem } from "@/lib/contracts";
 import { DECISION_LABEL_RO } from "@/lib/data/labels";
 import type { PostSummary } from "@/lib/data/types";
 import { fmtDec, fmtInt, hhmm, minutesOfDay } from "@/lib/format";
 import { markerKind, markerSvg } from "@/lib/marker-svg";
-import { RE_BOUNDS, itemTitle, type PlanScreenData } from "@/lib/plan-screen";
+import { loadWorkItemDetail } from "@/lib/data/actions";
+import { RE_BOUNDS, isSlim, itemTitle, type PlanScreenData } from "@/lib/plan-screen";
 import type { LocatorGeo } from "@/lib/server/geo";
 import { Feeders } from "./feeders";
 import type { Bounds, MapItem, MapPost } from "./plan-map";
@@ -185,7 +186,23 @@ export function PlanScreen({
     () => Object.values(data.decisions).filter((d) => d.decision === "human_review"),
     [data.decisions],
   );
-  const selItem = selected ? (itemsById[selected] ?? null) : null;
+  // detaliile lucrării selectate (factori, cazuri similare) se încarcă la cerere și rămân în cache
+  const [details, setDetails] = useState<Record<string, WorkItem>>({});
+  const [, startDetail] = useTransition();
+  const selectedBase = selected ? itemsById[selected] : undefined;
+  const needsDetail = Boolean(selected && selectedBase && isSlim(selectedBase) && !details[selected]);
+  useEffect(() => {
+    if (!needsDetail || !selected) return;
+    let cancelled = false;
+    startDetail(async () => {
+      const r = await loadWorkItemDetail(selected, data.scenario);
+      if (!cancelled && r.ok) setDetails((d) => ({ ...d, [selected]: r.workItem }));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [needsDetail, selected, data.scenario]);
+  const selItem = selected ? (details[selected] ?? itemsById[selected] ?? null) : null;
   const selStop = selected ? stopInfo.get(selected) : undefined;
 
   return (
