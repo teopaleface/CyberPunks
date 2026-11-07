@@ -10,6 +10,7 @@ import { SyntheticGlyph } from "@/components/shell/provenance";
 import { AppShell } from "@/components/shell/app-shell";
 import type { AuditRecord, Decision, WorkItem } from "@/lib/contracts";
 import { getSeries, getWorkItem } from "@/lib/data";
+import { getRemedies } from "@/lib/data/remedies";
 import { auditActionRo, factorLabelRo,
   ACTION_RO,
   CONFIDENCE_RO,
@@ -52,7 +53,12 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
   await connection();
   const id = safeDecode((await params).id);
   const scenario = await resolveScenario(searchParams);
-  const [{ info }, result, series] = await Promise.all([loadShellInfo(scenario), getWorkItem(id, scenario), getSeries(id, scenario)]);
+  const [{ info }, result, series, remedies] = await Promise.all([
+    loadShellInfo(scenario),
+    getWorkItem(id, scenario),
+    getSeries(id, scenario),
+    id.startsWith("C-") ? getRemedies(scenario).catch(() => null) : Promise.resolve(null),
+  ]);
   const detail = result.data;
 
   if (!detail) {
@@ -207,6 +213,7 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
                 decision={decision}
                 recommended={w.recommended_action}
                 p90Before={p.point_interval?.[1] ?? null}
+                choice={remedies?.data.find((r) => r.work_item_id === w.work_item_id) ?? null}
               />
             </section>
           ) : null}
