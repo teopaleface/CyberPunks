@@ -22,6 +22,7 @@ uniform vec2 uRes;
 uniform float uTime;
 uniform vec2 uMouse;
 uniform float uLight;
+uniform float uPivot;
 
 float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float noise(float x){ float i = floor(x); float f = fract(x); return mix(hash(vec2(i, 0.0)), hash(vec2(i + 1.0, 0.0)), smoothstep(0.0, 1.0, f)); }
@@ -55,7 +56,7 @@ void main(){
 
   // the beam: thin core + soft glow, flickering, slightly tilted by the pointer
   float y = p.y;
-  float bx = p.x - (uMouse.x - 0.5) * 0.06 * y;
+  float bx = p.x - (uMouse.x - 0.5) * 0.06 * (y - uPivot);
   float flick = 0.75 + 0.25 * noise(t * 6.0) + 0.15 * sin(y * 30.0 - t * 9.0);
   float w = mix(0.007, 0.0016, smoothstep(0.0, 1.0, y));
   float beamCore = exp(-abs(bx) / w);
@@ -122,10 +123,20 @@ export function EnergyBeamShader({ className }: { className?: string }) {
     const uRes = gl.getUniformLocation(prog, "uRes")
     const uTime = gl.getUniformLocation(prog, "uTime")
     const uMouse = gl.getUniformLocation(prog, "uMouse")
+    const uPivot = gl.getUniformLocation(prog, "uPivot")
     gl.uniform1f(gl.getUniformLocation(prog, "uLight"), theme === "light" ? 1 : 0)
 
     const mouse = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5 }
     let visible = true
+    let pivot = 0
+    const anchor = document.querySelector("[data-beam-anchor]")
+    const measure = () => {
+      const r = canvas.getBoundingClientRect()
+      if (!anchor || !r.height) return
+      const a = anchor.getBoundingClientRect()
+      // Match the beam's fixed point to the gap between the two hero links.
+      pivot = 1.05 - (a.top + a.height / 2 - r.top) / r.height
+    }
     let raf = 0
     const start = performance.now()
 
@@ -136,6 +147,7 @@ export function EnergyBeamShader({ className }: { className?: string }) {
       canvas.width = Math.max(1, Math.round(w * dpr))
       canvas.height = Math.max(1, Math.round(h * dpr))
       gl.viewport(0, 0, canvas.width, canvas.height)
+      measure()
       if (reduce) render(0)
     }
     const ro = new ResizeObserver(() => resize())
@@ -154,11 +166,17 @@ export function EnergyBeamShader({ className }: { className?: string }) {
       gl.uniform2f(uRes, canvas.width, canvas.height)
       gl.uniform1f(uTime, reduce ? 4 : (now - start) / 1000)
       gl.uniform2f(uMouse, mouse.x, mouse.y)
+      gl.uniform1f(uPivot, pivot)
       gl.drawArrays(gl.TRIANGLES, 0, 3)
     }
 
     resize()
     ro.observe(canvas)
+    if (anchor) ro.observe(anchor)
+    const settle = window.setTimeout(() => {
+      measure()
+      if (reduce) render(0)
+    }, 900)
 
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop)
@@ -169,6 +187,7 @@ export function EnergyBeamShader({ className }: { className?: string }) {
 
     return () => {
       cancelAnimationFrame(raf)
+      window.clearTimeout(settle)
       ro.disconnect()
       io.disconnect()
       window.removeEventListener("pointermove", onMove)

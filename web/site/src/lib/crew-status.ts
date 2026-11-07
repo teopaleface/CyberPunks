@@ -131,3 +131,21 @@ export function useSimClock() {
   }, [])
   return { now, label: hhmm(now) }
 }
+
+export const SHIFT = { start: SHIFT_START, end: SHIFT_END }
+export { hhmm }
+
+/** Estimated work windows from the planned arrivals, not live crew tracking. */
+export function crewDay(crew: string) {
+  const route = DB.routes.find((r) => r.crew === crew)
+  if (!route) return null
+  const back = route.back ? toMin(route.back) : SHIFT_END
+  const stops = DB.routeStops
+    .filter((s) => s.crew === crew)
+    .sort((a, b) => a.seq - b.seq)
+    .flatMap((s) => {
+      const window = WINDOWS.get(s.id)
+      return window ? [{ arrive: window.arrive, leave: Math.max(window.arrive, Math.min(window.leave, back)) }] : []
+    })
+  return { depart: toMin(route.depart), back, open: !route.back, stops }
+}

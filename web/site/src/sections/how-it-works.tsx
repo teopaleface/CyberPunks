@@ -1,8 +1,11 @@
 import { motion } from "motion/react"
 import { useState, type ReactNode } from "react"
+import { CountUp } from "@/components/count-up"
+import { DecideFlow } from "@/components/decide-flow"
+import { SHIFT, crewDay, hhmm } from "@/lib/crew-status"
 import { Reveal } from "@/components/reveal"
 import { SourceIcon } from "@/components/ui/animated-icons"
-import { DB, DECISION_RO, SOURCES, type Decision, type SourceKey } from "@/data/daybreak"
+import { DB, SOURCES, type SourceKey } from "@/data/daybreak"
 import { cn, fmt } from "@/lib/utils"
 
 const ease = [0.22, 1, 0.36, 1] as const
@@ -16,7 +19,18 @@ const INPUTS = [
   { t: "Grid", d: "Transformers, connected customers, crews and depots are synthetic, on a real map." },
 ]
 
-export function PerceiveVisual() {
+export function PerceiveVisual({ compact = false }: { compact?: boolean }) {
+  if (compact) return (
+    <div className="flex flex-col items-center py-5 text-center">
+      <CountUp value={S.items_valid} className="text-[clamp(4rem,9vw,8rem)] leading-none font-semibold tracking-[-0.04em]" />
+      <p className="mt-4 text-lg text-foreground/80">validated jobs</p>
+      <details className="mt-6 w-full text-left">
+        <summary className="cursor-pointer py-2 text-sm text-foreground/75">Data inputs and validation</summary>
+        <p className="mt-3 text-sm text-foreground/70">{fmt(S.items_in)} incoming jobs; {fmt(S.items_invalid)} quarantined.</p>
+        <dl className="mt-4 space-y-4">{INPUTS.map((x) => <div key={x.t}><dt className="font-medium">{x.t}</dt><dd className="text-sm text-foreground/75">{x.d}</dd></div>)}</dl>
+      </details>
+    </div>
+  )
   return (
     <div className="flex h-full flex-col justify-center gap-7">
       <dl className="tabular grid grid-cols-3 gap-4">
@@ -90,83 +104,45 @@ export function EstimateVisual() {
   )
 }
 
-const DECISION_ORDER: Decision[] = ["remote_action", "deferred", "assigned", "human_review", "notify"]
-
 export function DecideVisual() {
-  const max = Math.max(...DECISION_ORDER.map((d) => DB.decisionCounts[d] ?? 0))
+  return <DecideFlow />
+}
+
+export function ActVisual({ compact = false }: { compact?: boolean }) {
+  const routes = compact ? DB.routes.slice(0, 4) : DB.routes
+  const hours = Array.from({ length: Math.floor((SHIFT.end - SHIFT.start) / 120) + 1 }, (_, i) => SHIFT.start + i * 120)
+  const x = (m: number) => `${((Math.min(Math.max(m, SHIFT.start), SHIFT.end) - SHIFT.start) / (SHIFT.end - SHIFT.start)) * 100}%`
+  const width = (a: number, b: number) => `${Math.max(0, (Math.min(b, SHIFT.end) - Math.max(a, SHIFT.start)) / (SHIFT.end - SHIFT.start)) * 100}%`
   return (
-    <div className="flex h-full flex-col justify-center gap-6">
-      <ul className="space-y-3" aria-label="Agent decisions">
-        {DECISION_ORDER.map((d, i) => {
-          const n = DB.decisionCounts[d] ?? 0
+    <div className="flex flex-col gap-5">
+      <div className="grid grid-cols-[5rem_1fr] gap-3 sm:grid-cols-[7rem_1fr] sm:gap-5">
+        <span />
+        <div className="tabular relative h-5 text-xs text-foreground/60">
+          {hours.map((m, i) => <span key={m} className={`absolute ${i === 0 ? "" : i === hours.length - 1 ? "-translate-x-full" : "-translate-x-1/2"}`} style={{ left: x(m) }}>{hhmm(m)}</span>)}
+        </div>
+      </div>
+      <ul className="grid gap-5" aria-label="Planned crew day, with estimated work windows">
+        {routes.map((r, i) => {
+          const day = crewDay(r.crew)
+          if (!day) return null
           return (
-            <li key={d} className="grid grid-cols-[minmax(0,1fr)_minmax(24px,0.6fr)_2.5rem] items-center gap-3 sm:grid-cols-[11rem_1fr_3.5rem] sm:gap-4">
-              <span className={cn("text-[15px]", d === "human_review" ? "font-medium text-accent-ink" : "text-foreground/85")}>{DECISION_RO[d]}</span>
-              <span className="h-2 overflow-hidden rounded-full bg-foreground/10">
-                <motion.span
-                  className={cn("block h-full rounded-full", d === "human_review" ? "bg-ember" : "bg-foreground/70")}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(n / max) * 100}%` }}
-                  transition={{ delay: i * 0.05, duration: 0.4, ease }}
-                />
-              </span>
-              <span className="tabular text-right font-medium">{fmt(n)}</span>
+            <li key={r.crew} className="grid grid-cols-[5rem_1fr] items-center gap-3 sm:grid-cols-[7rem_1fr] sm:gap-5">
+              <span className="text-sm font-medium">{r.crew}<span className="block text-xs font-normal text-foreground/60">{r.stops} {r.stops === 1 ? "stop" : "stops"}</span></span>
+              <div>
+                <span className="relative block h-7">
+                  {hours.map((m) => <span key={m} aria-hidden className="absolute inset-y-0 w-px bg-foreground/10" style={{ left: x(m) }} />)}
+                  <motion.span aria-hidden className="absolute top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-amber/45" style={{ left: x(day.depart), width: width(day.depart, day.back), transformOrigin: "left" }} initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: i * 0.04, duration: 0.4, ease }} />
+                  {day.stops.map((stop, j) => (
+                    <span key={j} title={`Planned arrival ${hhmm(stop.arrive)}; estimated departure ${hhmm(stop.leave)}`} className="absolute inset-y-0 rounded-sm bg-amber" style={{ left: x(stop.arrive), width: `max(3px, ${width(stop.arrive, stop.leave)})` }} />
+                  ))}
+                </span>
+                <p className="tabular mt-1 text-xs text-foreground/70">{day.open ? `From ${hhmm(day.depart)}, on call` : `${hhmm(day.depart)}–${hhmm(day.back)}`} · {fmt(r.km, 1)} km</p>
+              </div>
             </li>
           )
         })}
       </ul>
-    </div>
-  )
-}
-
-const toMin = (t: string) => {
-  const [h, m] = t.split(":").map(Number)
-  return h * 60 + m
-}
-
-export function ActVisual() {
-  const start = 8 * 60,
-    end = 17 * 60
-  return (
-    <div className="flex h-full flex-col justify-center gap-5">
-      <ul className="space-y-2" aria-label="Crew routes">
-        {DB.routes.map((r, i) => {
-          const a = Math.max(0, (toMin(r.depart) - start) / (end - start))
-          const b = Math.min(1, (toMin(r.back || "17:00") - start) / (end - start))
-          const src = (Object.keys(r.sources)[0] as SourceKey) ?? "A"
-          return (
-            <li key={r.crew} className="grid grid-cols-[4.5rem_1fr_7rem] items-center gap-3 text-sm">
-              <span className="font-medium">{r.crew}</span>
-              <span className="relative h-5 rounded-[4px] bg-foreground/[0.06]">
-                <motion.span
-                  className="absolute inset-y-0 rounded-[4px]"
-                  style={{ left: `${a * 100}%`, background: `var(--source-${src.toLowerCase()})` }}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(b - a) * 100}%` }}
-                  transition={{ delay: i * 0.04, duration: 0.4, ease }}
-                />
-              </span>
-              <span className="tabular text-right text-foreground/75">
-                {r.stops === 1 ? "1 stop" : `${r.stops} stops`}, {fmt(r.km, 1)} km
-              </span>
-            </li>
-          )
-        })}
-      </ul>
-      <dl className="tabular grid grid-cols-3 gap-4">
-        <div>
-          <dd className="text-2xl font-semibold">{fmt(S.total_km, 1)} km</dd>
-          <dt className="text-sm text-foreground/65">for {S.crews_used} crews</dt>
-        </div>
-        <div>
-          <dd className="text-2xl font-semibold">{fmt(S.notifications)}</dd>
-          <dt className="text-sm text-foreground/65">notifications</dt>
-        </div>
-        <div>
-          <dd className="text-2xl font-semibold">{fmt(DB.alerts.length)}</dd>
-          <dt className="text-sm text-foreground/65">dispatcher alerts</dt>
-        </div>
-      </dl>
+      <p className="text-xs leading-relaxed text-foreground/65">Lines show the route window; blocks show estimated on-site time from planned arrivals.{compact && DB.routes.length > routes.length ? ` ${routes.length} of ${DB.routes.length} crews shown; all routes are on the plan page.` : ""}</p>
     </div>
   )
 }
@@ -183,7 +159,7 @@ export const STEPS: Step[] = [
   {
     title: "Perceive",
     body: "Reads meter, weather and grid data. Invalid coordinates and impossible scores are quarantined before planning.",
-    visual: <PerceiveVisual />,
+    visual: <PerceiveVisual compact />,
   },
   {
     title: "Estimate",
@@ -198,7 +174,7 @@ export const STEPS: Step[] = [
   {
     title: "Act",
     body: "Assigns work within crew capacity, plans routes, creates work orders and notifications, and records each action in the audit log.",
-    visual: <ActVisual />,
+    visual: <ActVisual compact />,
   },
 ]
 

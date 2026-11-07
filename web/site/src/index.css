@@ -24,6 +24,7 @@
 :root {
   --bg-dark: #000000;
   --foreground: #ffffff;
+  --countup-ink: #a3e635;
   --accent-ink: #ffdc6b;
   --focus-ring: #ffc502;
   --source-a: #3b82f0;
@@ -51,6 +52,7 @@
 :root.light {
   --bg-dark: #ffffff;
   --foreground: #000000;
+  --countup-ink: #3f6212;
   --surface: #f3f3f4;
   --surface-2: #e6e6e9;
   --muted: #57575f;

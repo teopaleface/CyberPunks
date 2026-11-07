@@ -1,5 +1,3 @@
-import { Balance } from "@/sections/balance"
-import { Demo } from "@/sections/demo"
 import { Footer } from "@/sections/footer"
 import { Hero } from "@/sections/hero"
 import { HowItWorks } from "@/sections/how-it-works"
@@ -12,8 +10,6 @@ export default function Landing() {
         <Hero />
         <Plan />
         <HowItWorks />
-        <Balance />
-        <Demo />
       </main>
       <Footer screen />
     </>

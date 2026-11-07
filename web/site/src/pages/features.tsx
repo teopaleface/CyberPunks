@@ -26,7 +26,7 @@ export function PlanPage() {
           <DecideVisual />
         </div>
       </Block>
-      <Block title="Crews" intro="Eight crews, limited by their skills and shifts. OR-Tools calculates their routes.">
+      <Block title="Crews" intro={`${DB.summary.crews_used} crews, limited by their skills and shifts. OR-Tools calculates their routes.`}>
         <div data-ui className="rounded-2xl bg-surface p-[clamp(20px,3vw,40px)]">
           <ActVisual />
         </div>

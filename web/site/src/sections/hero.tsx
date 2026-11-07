@@ -46,11 +46,11 @@ export function Hero() {
           {SITE.name} uses meter, weather and grid data to plan field work for Rețele Electrice.
           Every decision has a reason. Uncertain cases go to a dispatcher.
         </motion.p>
-        <motion.div {...drop(0.26)} className="mt-10 flex flex-wrap items-center justify-center gap-3">
-          <GlassLink href={ROUTES.app} size="lg">
+        <motion.div {...drop(0.26)} data-beam-anchor className="mt-10 flex flex-col items-center gap-3 sm:grid sm:w-full sm:grid-cols-2 sm:gap-4">
+          <GlassLink href={ROUTES.app} size="lg" className="sm:justify-self-end">
             Open demo
           </GlassLink>
-          <GlassLink href="#plan" size="lg" variant="frost">
+          <GlassLink href="#plan" size="lg" variant="frost" className="sm:justify-self-start">
             See the plan
           </GlassLink>
         </motion.div>
