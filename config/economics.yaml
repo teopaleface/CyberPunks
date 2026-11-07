@@ -13,12 +13,19 @@ meters:                                  # A
   detection_horizon_days: 90             # IPOTEZĂ: intervalul maxim de citire la casnici e 3 luni (Legea 123/2012 art. 45 alin. 10, după presă); pierderea durează până la prima citire care o arată
   recalculation_cap_years: 3             # SURSĂ: Ord. ANRE 190/2020, art. 12 alin. (1): recalcularea consumului la contor defect nu poate depăși 3 ani
   service_time_min: 40                   # IPOTEZĂ: verificarea contorului la fața locului (citire index, sigilii, fotografii)
+  smart_meter_share_2025: {muntenia_sud: 0.5881, dobrogea: 0.6685, banat: 0.5645}   # SURSĂ (secundară): gradul de integrare a contoarelor inteligente la 31.12.2025 (infobuz, după documentul de research). Lucrările A vin din curbe la 15 minute, deci din contoare inteligente
   fraud_finding_tariff_lei: 830.85       # SURSĂ: tarif Rețele Electrice Muntenia 2026, poz. 64 "constatare intervenție frauduloasă (<=10 kVA)", fără TVA (reper, nu intră în decizie)
 storm:                                   # B
   preposition_cost_lei_per_crew_shift: 2700   # CALCUL (IPOTEZĂ): 3 oameni × 8 h × 58,1 lei/h (câștig mediu brut iulie 2026, 9.709 lei/lună) × 1,0225 (CAM) × 1,75 (spor ore suplimentare, Codul muncii art. 123) + ~200 lei vehicul; interval 1.500-4.100
   cost_per_customer_hour_lei: 12              # CALCUL (IPOTEZĂ): VoLL casnic România 4,52 €/kWh (CEPA pentru ACER, 2018, tabel G.1) × 0,23 kWh/h × 5,34 lei/€ ≈ 5,5 lei; cu 15% clienți non-casnici ≈ 15 lei; interval 5,5-15
   restoration_speedup_hours: 2.5              # IPOTEZĂ: n-am găsit un studiu verificabil; de variat 1-4 h
-  compensation_lei_per_customer_lv: 30        # SURSĂ: Ord. ANRE 46/2021, Anexa 1: 30 lei JT (200 MT, 300 la 110 kV) la depășirea duratei maxime de restabilire; plată automată (art. 36)
+  compensation_lei_per_customer_lv: 30        # SURSĂ: Ord. ANRE 46/2021, Anexa 1: 30 lei JT la depășirea duratei maxime de restabilire; plată automată (art. 36)
+  compensation_lei_per_customer_mv: 200       # SURSĂ: idem, medie tensiune
+  compensation_lei_per_customer_hv: 300       # SURSĂ: idem, 110 kV
+  compensation_cap_lei_per_month_lv: 50       # SURSĂ: art. 36 alin. (5): plafonul lunar al compensațiilor pentru un client JT
+  compensations_paid_2024_lei: 23000000       # SURSĂ (context, presă): RER a plătit circa 23 mil. lei compensații în 2024 (https://www.forbes.ro/?p=458099, preluat de firul B)
+  customers_total: 3180331                    # SURSĂ: Planul de dezvoltare RER 2026-2035, tabelele 2.1-2.3 (31.12.2024); pe județe în config/area.yaml
+  share_of_national_compensations: 0.85       # SURSĂ (secundară): RER plătește circa 85% din compensațiile automate din țară (raportul ANRE pe 2024, după documentul de research din 7 nov.); doar procentul, sumele absolute diferă între surse
   restoration_limit_hours:                    # SURSĂ: Ord. ANRE 46/2021, art. 15 alin. (1)
     urban: 6
     county_seat: 4
@@ -32,6 +39,10 @@ voltage:                                 # C
   overvoltage_limit_pu: 1.10             # SURSĂ: Ord. ANRE 228/2018, Tabelul 2P: maxima de tensiune 1,1 Un mediată la 10 minute (treapta instantanee 1,15 Un, 0,5 s); EN 50160 ±10%
   planned_outage_hours: 1.0              # IPOTEZĂ: întreruperea scurtă pentru schimbarea prizei (comutator fără sarcină)
   notification_cost_lei_per_customer: 0.05    # IPOTEZĂ: un SMS (în demo nu se trimite nimic)
+  complaint_compensation_lei: 70         # SURSĂ (firul C): Ord. ANRE 46/2021, anexa 4: compensația pentru o reclamație de calitate a tensiunii nerezolvată la termen, client casnic
+  complaint_compensation_lei_legal: 130  # SURSĂ (firul C): idem, persoane juridice
+  quality_limit_95pct_pu: 1.05           # SURSĂ (firul C): Ord. ANRE 46/2021, art. 25 alin. (2): limita pentru 95% din valorile medii la 10 minute
+  ore_smart_midday: "11:00-14:59, 1 martie - 31 octombrie"   # SURSĂ: PPC Energie, comunicat 18.03.2026 (intervalele Smart de la prânz)
 outages:                                 # reguli ANRE pentru întreruperile planificate
   planned_notice_working_days_lv: 2      # SURSĂ: Ord. ANRE 46/2021, art. 12 alin. (2) lit. c): JT, minimum 2 zile lucrătoare, presă și site
   planned_notice_working_days_mv: 5      # SURSĂ: art. 12 alin. (2) lit. b): MT/IT, minimum 5 zile lucrătoare
@@ -47,3 +58,26 @@ travel:
   urban_km: 10                           # IPOTEZĂ: primii 10 km ai unui drum se fac cu viteza urbană, restul cu cea extraurbană
   road_factor: 1.35                      # IPOTEZĂ: distanța pe drum ≈ distanța în linie dreaptă × factor (circuity factor)
   vehicle_cost_lei_per_km: 1.2           # IPOTEZĂ: combustibil (~8 l/100 km) plus întreținere și amortizare pentru o autoutilitară
+bilant:                                  # bilanț pe post (firul Teo-bilant): lucrări cu sursa A în A_bilant.jsonl
+  office_correction_cost_lei: 15         # CALCUL (IPOTEZĂ): 15 minute de lucru în birou × 59,4 lei/h (crew.cost_lei_per_person_hour)
+  grid_inspection_cost_lei: 486          # PROXY: tarif Rețele Electrice Muntenia 2026, "constatare de comisia de expertiză a stării tehnice a echipamentului", 485,67 lei fără TVA
+  grid_inspection_service_min: 90        # IPOTEZĂ: verificarea postului și a plecărilor de joasă tensiune, dacă lucrarea nu dă durata
+remedies:                                # scara de soluții pentru tensiune (C), de la ieftin la scump
+  phase_rebalance_cost_lei: 300          # CALCUL (IPOTEZĂ): 3 oameni × 1,5 h × 59,4 lei/h + ~30 lei vehicul
+  phase_rebalance_outage_hours: 0.5      # IPOTEZĂ: casele mutate pe altă fază rămân fără curent cel mult o jumătate de oră (întrerupere planificată, cu preaviz)
+  notify_participation_rate: 0.2         # IPOTEZĂ: ce parte din clienții Ore Smart țintiți mută consumul la orele cu risc după un mesaj de grup
+  notify_participation_range: [0.1, 0.2, 0.3]   # IPOTEZĂ: intervalul simulat de C (pesimist, central, optimist)
+  battery_sizes_kwh: [5, 10, 15]         # variantele de baterie pe profil, din conceptul lui Teo
+  battery_price_lei_per_kwh: 1250        # IPOTEZĂ între surse: 1.250 (o versiune a ghidului AFM, după presă) și 1.500 lei/kWh (ghidul final, cu montaj inclus)
+  battery_installation_cost_lei: 2500    # IPOTEZĂ: la 10 kWh dă 15.000 lei, adică 1.500 lei/kWh, costul standard maxim eligibil AFM (cu montaj și invertor)
+  afm_cost_cap_lei_per_kwh: 1500         # SURSĂ: Casa Verde Baterii 2026, Ord. 1.904/2026 (MO 775/14.09.2026): cost standard maxim eligibil, cu montaj și invertor hibrid (startupcafe.ro, 16.09.2026)
+  afm_grant_share: 0.75                  # SURSĂ: idem, cel mult 75% din valoarea proiectului
+  afm_grant_cap_lei: 15000               # SURSĂ: idem, cel mult 15.000 lei cu TVA
+  afm_min_kwh: 10                        # SURSĂ: idem, capacitate minimă 10 kWh (o versiune anterioară a ghidului cerea 12 kWh)
+  battery_offer_cost_lei_per_customer: 2 # IPOTEZĂ: costul ofertei prin canalele PPC Energie (venitul îl calculează C în revenue_lei)
+  export_limit_cost_lei: 50              # IPOTEZĂ: setarea limitei de injecție la invertoare, cu acordul prosumatorului (energia neinjectată e în costul calculat de C)
+  transformer_upgrade_cost_lei: 80000    # IPOTEZĂ: transformator MT/JT nou, cu montaj; n-am găsit cifre românești (docs/research/C.md)
+losses:                                  # pierderile în rețea (CPT): pentru bilanț și pentru prețul energiei pierdute
+  cpt_rate_muntenia_2023: 0.0866         # SURSĂ (secundară): Planul de dezvoltare RER 2024-2033, după documentul de research din 7 nov. (10,78% în 2018)
+  cpt_recognized_rate_muntenia: 0.0897   # SURSĂ (secundară): idem, nivelul CPT recunoscut de ANRE; ce depășește nivelul recunoscut plătește distribuitorul
+  cpt_share_lv: 0.6354                   # SURSĂ (secundară): idem, partea din CPT pierdută la joasă tensiune (unde lucrează bilanțul pe post)

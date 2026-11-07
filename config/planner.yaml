@@ -9,17 +9,18 @@ global:
   max_interval_width: 0.5           # interval de încredere mai larg de 0,5 = modelul nu e sigur, chiar dacă nu s-a abținut
   max_missing_ratio: 0.4            # peste 40% date lipsă la intrare, scorul nu e de încredere
   safety_priority_multiplier: 3.0   # riscul pentru oameni triplează prioritatea și intră primul în traseu
-  urgency_reference_hours: 24       # o lucrare care trebuie făcută în 24 h are factorul de urgență 1
-  urgency_min_factor: 0.25          # factorul de urgență = 24 / urgency_hours, dar nu sub 0,25
   degraded_invalid_share: 0.2       # peste 20% linii respinse, sursa e "degraded"
 
 meters:                             # A
   remote_min_score: 0.3             # sub 0,3, nici citirea la distanță nu merită: contorul intră la urmărire
+  medium_confidence_margin: 0.25    # la încredere medie, vizita trebuie să aducă în plus 25% din costul ei (marjă de siguranță)
+  visit_min_score: 0.5              # prag etic: echipa merge la ușa unui client doar dacă problema e mai probabilă decât lipsa ei; sub prag, citire la distanță
   smart_meter_default: true         # dacă lucrarea nu spune altfel (extra.smart_meter), contorul e inteligent și se poate citi de la distanță
 
 storm:                              # B
-  arrive_before_start_min: 60       # echipa ajunge în zonă cu cel puțin o oră înainte de începutul ferestrei de risc
-  max_crews_per_region: 2           # câte echipe se mută din timp într-o regiune (restul rămân pentru lucrările curente)
+  arrive_before_start_min: 60       # echipa ajunge cu cel puțin o oră înainte de începutul furtunii (extra.storm_onset; altfel time_window.start)
+  max_crews_per_region: 3           # câte echipe se mută din timp într-o regiune (restul rămân pentru lucrările curente și avariile obișnuite)
+  safety_gust_note: true            # la B, safety_flag = rafale ≥ 75 km/h: avertisment pentru echipă (nu lucrează la înălțime), nu prioritate obligatorie
   alert_min_score: 0.4              # de la acest scor, dispeceratul primește alerta, chiar dacă nu trimitem echipa
   critical_alert_min_score: 0.75    # de la acest scor, alerta e critică
 
@@ -28,6 +29,17 @@ voltage:                            # C
   outage_voltage_level: lv          # schimbarea prizei afectează clienți JT: preaviz outages.planned_notice_working_days_lv
   notify_window: ["11:00", "15:00"] # fereastra de soare pentru mesajul către prosumatori, dacă lucrarea nu are time_window
   notify_send_time: "18:00"         # mesajele pentru mâine pleacă azi la 18:00 (doar demo)
+
+bilant:                             # bilanț pe post (lucrări A în A_bilant.jsonl)
+  visit_min_score: 0.0              # la nivel de post nu batem la ușa unui client, deci fără pragul etic al contoarelor
+
+remedy:                             # scara de soluții pentru tensiune (C)
+  max_combination: 3                # câte trepte se combină cel mult (efectele se adună: P90 = P90 inițial + suma efectelor)
+  crew_steps_need_notice: [adjust_tap, phase_rebalance]   # trepte cu întrerupere planificată: preaviz ANRE
+
+posts:                              # harta posturilor din interfață, după lei pierduți pe lună (bilanț)
+  yellow_lei_month: 200             # IPOTEZĂ: de aici postul e galben
+  red_lei_month: 600                # exemplul din conceptul lui Teo ("aproximativ 600 lei pe lună"): de aici postul e roșu
 
 routing:
   solver: ortools                   # ortools | greedy

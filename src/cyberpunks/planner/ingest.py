@@ -78,6 +78,7 @@ class SourceLoad:
     quarantined: list[Quarantined] = field(default_factory=list)
     note: str = ""
     status: SourceStatus = "ok"  # calculat de finalize_status
+    optional: bool = False  # sursă suplimentară care încă nu există (de exemplu bilanțul): lipsa ei nu strică starea
 
 
 def _pydantic_errors(exc: ValidationError) -> list[str]:
