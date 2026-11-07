@@ -68,12 +68,12 @@ const FACT_ICON: Record<Fact["icon"], ComponentType<{ size?: number; strokeWidth
   limit: GaugeIcon,
 };
 const FACT_TONE: Record<Fact["icon"], string> = {
-  rain: "text-[#8db8ff]",
-  wind: "text-[#8db8ff]",
-  data: "text-[#d6a8f0]",
-  kwh: "text-[#f5c66b]",
-  volt: "text-[#f5c66b]",
-  limit: "text-[#ffa27c]",
+  rain: "text-src-a",
+  wind: "text-src-a",
+  data: "text-src-b",
+  kwh: "text-src-c-ink",
+  volt: "text-src-c-ink",
+  limit: "text-att-ink",
 };
 const CAT_TONE: Record<Category["tone"], Tone> = { blue: "blue", violet: "violet", amber: "amber", orange: "orange", grey: "grey" };
 const SRC_VAR = { A: "var(--src-a)", B: "var(--src-b)", C: "var(--src-c)" } as const;

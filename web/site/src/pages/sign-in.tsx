@@ -1,5 +1,4 @@
 import { CheckCircle2, Loader2 } from "lucide-react"
-import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useId, useState, type FormEvent, type ReactNode } from "react"
 import { Link, useSearchParams } from "react-router-dom"
 import { GlassButton } from "@/components/ui/liquid-glass-button"
@@ -12,8 +11,8 @@ import { cn } from "@/lib/utils"
 type Mode = "intra" | "cont-nou" | "resetare"
 
 const TITLES: Record<Mode | "parola-noua", string> = {
-  intra: "Sign in",
-  "cont-nou": "Create account",
+  intra: "Account access",
+  "cont-nou": "Account access",
   resetare: "Password help",
   "parola-noua": "New password",
 }
@@ -96,6 +95,7 @@ export default function SignInPage() {
     ? (params.get("mod") as Mode)
     : "intra"
   const view = auth.recovering ? "parola-noua" : mode
+  const localPreview = ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname)
 
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -190,66 +190,74 @@ export default function SignInPage() {
         </div>
       )}
 
+      {localPreview && (
+        <p className="mb-6 text-sm text-foreground/70">
+          Local preview uses separate accounts.{" "}
+          <a href="https://daybreak.ghiseateodor245.workers.dev/intra" className="text-foreground underline underline-offset-4">Open live sign in</a>
+        </p>
+      )}
+
       {!supabaseReady && (
         <Notice tone="error">
           Accounts are unavailable on this server. You can still explore the demo without an account.
         </Notice>
       )}
 
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.form
-          key={view}
-          noValidate
-          onSubmit={submit}
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 6 }}
-          transition={{ duration: 0.2 }}
-          className="mt-2 space-y-5"
-        >
-          {done ? (
-            <Notice tone="success">{done}</Notice>
-          ) : (
-            <>
-              {view === "resetare" && (
-                <p className="text-foreground/85">Email password recovery is unavailable. Ask the administrator for help or create a new account.</p>
-              )}
-              {view === "cont-nou" && (
-                <Field label="Name" value={name} onChange={setName} autoComplete="name" error={nameErr} disabled={busy} />
-              )}
-              {view !== "parola-noua" && view !== "resetare" && (
-                <Field label="Email" type="email" value={email} onChange={setEmail} autoComplete="email" error={emailErr} disabled={busy} />
-              )}
-              {view !== "resetare" && (
-                <Field
-                  label={view === "parola-noua" ? "New password" : "Password"}
-                  type="password"
-                  value={password}
-                  onChange={setPassword}
-                  autoComplete={view === "intra" ? "current-password" : "new-password"}
-                  error={passErr}
-                  hint={view !== "intra" ? "At least 6 characters." : undefined}
-                  disabled={busy}
-                />
-              )}
+      <form
+        noValidate
+        onSubmit={submit}
+        className="mt-2 space-y-5"
+      >
+        {done ? (
+          <Notice tone="success">{done}</Notice>
+        ) : (
+          <>
+            {view === "resetare" && (
+              <p className="text-foreground/85">Email password recovery is unavailable. Ask the administrator for help or create a new account.</p>
+            )}
+            {view !== "parola-noua" && view !== "resetare" && (
+              <Field label="Email" type="email" value={email} onChange={setEmail} autoComplete="email" error={emailErr} disabled={busy} />
+            )}
+            {view !== "resetare" && (
+              <Field
+                label={view === "parola-noua" ? "New password" : "Password"}
+                type="password"
+                value={password}
+                onChange={setPassword}
+                autoComplete={view === "intra" ? "current-password" : "new-password"}
+                error={passErr}
+                hint="At least 6 characters."
+                disabled={busy}
+              />
+            )}
 
-              {error && <Notice tone="error">{error}</Notice>}
+            {view !== "parola-noua" && view !== "resetare" && (
+              // Reserve the name row so shared fields and actions stay put when switching modes.
+              <div className="min-h-[5.25rem]">
+                {view === "cont-nou" && (
+                  <Field label="Name" value={name} onChange={setName} autoComplete="name" error={nameErr} disabled={busy} />
+                )}
+              </div>
+            )}
 
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-4 pt-2">
-                {view !== "resetare" && <GlassButton type="submit" size="lg" variant="signal" disabled={busy || !supabaseReady} aria-busy={busy}>
-                  {busy && <Loader2 className="size-4 animate-spin" aria-hidden />}
-                  {view === "intra"
+            {error && <Notice tone="error">{error}</Notice>}
+
+            <div className="grid items-center justify-items-start gap-x-6 gap-y-4 pt-2 sm:flex sm:flex-wrap">
+              {view !== "resetare" && <GlassButton type="submit" size="lg" variant="signal" disabled={busy || !supabaseReady} aria-busy={busy}>
+                {busy && <Loader2 className="size-4 animate-spin" aria-hidden />}
+                {view === "intra"
+                  ? busy
+                    ? "Signing in…"
+                    : "Sign in"
+                  : view === "cont-nou"
                     ? busy
-                      ? "Signing in…"
-                      : "Sign in"
-                    : view === "cont-nou"
-                      ? busy
-                        ? "Creating account…"
-                        : "Create account"
-                      : busy
-                        ? "Saving…"
-                        : "Save password"}
-                </GlassButton>}
+                      ? "Creating account…"
+                      : "Create account"
+                    : busy
+                      ? "Saving…"
+                      : "Save password"}
+              </GlassButton>}
+              <div className="min-h-7">
                 {view === "intra" && (
                   <button type="button" onClick={() => setMode("resetare")} className="cursor-pointer text-foreground/80 underline-offset-4 hover:text-foreground hover:underline">
                     Forgot password?
@@ -261,10 +269,10 @@ export default function SignInPage() {
                   </button>
                 )}
               </div>
-            </>
-          )}
-        </motion.form>
-      </AnimatePresence>
+            </div>
+          </>
+        )}
+      </form>
 
       <p className="mt-12 text-foreground/70">
         The public site explains how Daybreak works.{" "}
@@ -279,9 +287,9 @@ export default function SignInPage() {
 
 function Shell({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <main className="container-page flex min-h-[100svh] items-center py-[clamp(172px,18vh,200px)]">
-      <div className="grid w-full items-center gap-12 lg:grid-cols-12">
-        <div className="lg:col-span-6">
+    <main className="container-page flex min-h-[100svh] items-start py-[clamp(172px,18vh,200px)]">
+      <div className="grid w-full items-start gap-12 lg:grid-cols-12">
+        <div className="lg:col-span-6 lg:pt-44">
           <h1 className="text-[clamp(2.2rem,min(4.2vw,7.5vh),3.9rem)] leading-[1.02] font-semibold tracking-[-0.03em]">
             Your Daybreak workspace
           </h1>

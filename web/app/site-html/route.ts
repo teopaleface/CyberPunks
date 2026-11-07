@@ -9,7 +9,8 @@ import { readText } from "@/lib/server/read-file";
 export async function GET() {
   try {
     const html = await readText(path.join(process.cwd(), "public", "landing", "index.html"));
-    return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=60" } });
+    // Revalidate the HTML so a new build cannot leave cached references to removed asset hashes.
+    return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-cache" } });
   } catch {
     return new Response("Site-ul de prezentare nu e construit încă (bun run landing).", { status: 503, headers: { "content-type": "text/plain; charset=utf-8" } });
   }
