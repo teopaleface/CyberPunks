@@ -156,3 +156,14 @@ def test_12_baselines_use_the_same_storm_deadline() -> None:
     day = SimDay(D.date(), [it], {it["work_item_id"]: True})
     res = run_baseline(day, Settings.load(), "top_k_scor", 1)
     assert res.storms_covered == 1
+
+
+def test_notice_skips_legal_holidays() -> None:
+    from datetime import date
+
+    from cyberpunks.planner.decide import earliest_outage_date, working_days_between
+
+    # 30 noiembrie (Sf. Andrei) și 1 decembrie (Ziua națională) sunt libere: anunțat vineri 27.11.2026,
+    # zilele lucrătoare pline sunt 2 și 3 decembrie, deci întreruperea poate fi cel mai devreme pe 4 decembrie
+    assert working_days_between(date(2026, 11, 27), date(2026, 12, 3)) == 1
+    assert earliest_outage_date(date(2026, 11, 27), 2) == date(2026, 12, 4)

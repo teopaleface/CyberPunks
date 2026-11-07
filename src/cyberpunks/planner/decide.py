@@ -235,11 +235,21 @@ def _label(wi: WorkItem) -> str:
     return wi.location.label or wi.asset_id
 
 
+def is_free_day(d: date) -> bool:
+    """Weekend sau sărbătoare legală (calendarul firului C, dacă există; altfel doar weekendul)."""
+    try:
+        from cyberpunks.c_prosumatori.profiles import is_free_day as c_free_day
+
+        return bool(c_free_day(d))
+    except (ImportError, AttributeError):
+        return d.weekday() >= 5
+
+
 def working_days_between(d0: date, d1: date) -> int:
-    """Zile lucrătoare (luni-vineri) strict între d0 și d1. Sărbătorile legale nu sunt încă în calcul."""
+    """Zile lucrătoare (fără weekend și sărbători legale) strict între d0 și d1."""
     n, d = 0, d0 + timedelta(days=1)
     while d < d1:
-        if d.weekday() < 5:
+        if not is_free_day(d):
             n += 1
         d += timedelta(days=1)
     return n
@@ -248,7 +258,7 @@ def working_days_between(d0: date, d1: date) -> int:
 def earliest_outage_date(announce: date, notice_days: int) -> date:
     """Prima zi lucrătoare în care se poate face întreruperea, după `notice_days` zile lucrătoare pline de preaviz."""
     d = announce + timedelta(days=1)
-    while working_days_between(announce, d) < notice_days or d.weekday() >= 5:
+    while working_days_between(announce, d) < notice_days or is_free_day(d):
         d += timedelta(days=1)
     return d
 
