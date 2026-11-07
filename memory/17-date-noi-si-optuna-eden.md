@@ -39,7 +39,7 @@ cu interval bootstrap 90% al diferenței față de modelul livrat. Varianta de b
 - Fizica v2 (răcirea panourilor de vânt, modelul Faiman; panouri sub zăpadă): randament mai aproape de PVGIS
   (~1.314 față de 1.348 kWh/kWp, PVGIS 1.282). Cu etichetele v2, modelul are nevoie de vânt și zăpadă ca trăsături:
   MAE 0,00576 -> 0,00546, acoperire 0,81 -> 0,83. Parametrii fizicii v2 sunt IPOTEZĂ.
-- Optuna: vezi raportul (MAE pe validare 0,00532 -> 0,00521).
+- Optuna (30 de încercări): MAE pe 2025 0,00533 -> 0,00527 pu, PR-AUC 0,950 -> 0,952, aceeași direcție în toate cele 5 regiuni. Câștig mic, dar constant; singurul loc unde Optuna a ajutat.
 
 ## Ce aș propune echipei
 
