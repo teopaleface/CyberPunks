@@ -223,10 +223,15 @@ def build_items(model: BModel, zones: list[romania.Zone], feats: pd.DataFrame, h
                 hi: np.ndarray | None = None, unc_source: str = "", wx_issues: list[str] | None = None,
                 ) -> tuple[list[WorkItem], list[Series]]:
     """Regulile de decizie ale lui B, fără rețea: din features și vreme orară -> WorkItem-uri și serii."""
-    missing = feats[FEATURES].isna()
+    feats = feats.copy()
+    for f in model.features:  # modelul salvat poate cere și variabile pe care codul curent nu le mai folosește
+        if f not in feats:
+            feats[f] = np.nan
+    cols = list(model.features)
+    missing = feats[cols].isna()
     filled = feats.copy()
-    med = feats[FEATURES].median(numeric_only=True)
-    filled[FEATURES] = filled[FEATURES].fillna(med).fillna(0.0)
+    med = feats[cols].median(numeric_only=True)
+    filled[cols] = filled[cols].fillna(med).fillna(0.0)
     p = model.predict_proba(filled)
     q = model.predict_quantiles(filled)
     lo = p.copy() if lo is None else np.minimum(lo, p)
@@ -246,7 +251,7 @@ def build_items(model: BModel, zones: list[romania.Zone], feats: pd.DataFrame, h
         if not 0.3 <= z.customers_per_capita_county <= 0.9:
             issues.append(f"județul {z.county} are {z.customers_per_capita_county:.2f} clienți RER pe locuitor (neobișnuit):"
                           " zonele de rețea RER nu urmează exact granițele județului; folosit ca atare")
-        miss_cols = [c for c in FEATURES if missing.iloc[i][c]]
+        miss_cols = [c for c in cols if missing.iloc[i][c]]
         abstain_reasons = []
         if miss_cols:
             issues.append(f"vreme lipsă pentru {', '.join(miss_cols)}: completată cu mediana zonelor")

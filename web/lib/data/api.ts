@@ -1,7 +1,7 @@
 import "server-only";
 import type { AuditRecord, Decision, ModelReport, Plan, Series, WorkItem } from "@/lib/contracts";
 import { getConfig, TIMEOUTS } from "./config";
-import type {
+import type { PostSummary,
   ApiHealth,
   MetricsBundle,
   ReviewDecision,
@@ -223,6 +223,12 @@ export async function apiAudit(scenario: string, workItemId?: string): Promise<A
   return asList<AuditRecord>(payload, apiUrl("/audit", query), ["records", "audit", "items", "data"]);
 }
 
+export async function apiPosts(scenario: string): Promise<PostSummary[]> {
+  const query = { scenario };
+  const payload = await request<unknown>("GET", "/posts", { query });
+  return asList<PostSummary>(payload, apiUrl("/posts", query), ["posts", "items", "data"]);
+}
+
 export async function apiMetrics(): Promise<MetricsBundle> {
   const payload = await request<unknown>("GET", "/metrics");
   if (!isRecord(payload)) {
@@ -249,8 +255,14 @@ export function apiRun(body: { scenario: string; date?: string }): Promise<RunRe
 export function apiReview(
   id: string,
   body: { decision: ReviewDecision; note: string; reviewer: string },
+  scenario?: string,
 ): Promise<AuditRecord> {
-  return request<AuditRecord>("POST", `/review/${encodeURIComponent(id)}`, { body });
+  return request<AuditRecord>("POST", `/review/${encodeURIComponent(id)}`, { body, query: scenario ? { scenario } : undefined });
+}
+
+/** Aprobarea listei de mâine de către dispecer (POST /plan/approve). */
+export function apiApprovePlan(body: { scenario: string; plan_id: string; approver: string; note: string }): Promise<AuditRecord> {
+  return request<AuditRecord>("POST", "/plan/approve", { body, query: { scenario: body.scenario } });
 }
 
 /** Lista de scenarii poate veni ca listă de obiecte, listă de nume sau dicționar (ca în YAML). */

@@ -61,7 +61,7 @@ def train_specs(n_per_topology: int = 50) -> tuple[list[grids.PostSpec], pd.Data
 
 def pop_specs() -> tuple[list[grids.PostSpec], pd.DataFrame]:
     reg = registry.load_posts()
-    specs = [registry.spec_from_row(r) for _, r in reg.iterrows()]
+    specs = [registry.spec_for(pid) for pid in reg["post_id"]]
     meta = reg[["post_id", "lat", "lon", "zone_id"]].copy()
     meta["cluster"] = meta["zone_id"]
     return specs, meta
