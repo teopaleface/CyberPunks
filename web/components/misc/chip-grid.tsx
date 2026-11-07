@@ -31,7 +31,10 @@ export function ChipGrid({
   return (
     <>
       <Chips label={label} items={[{ id: "all", label: "Toate" }, ...chips]} value={value} onChange={setValue} className="mt-5" />
-      <div className={cn("mt-5 grid grid-cols-1 gap-5", columns)} aria-live="polite">
+      <p role="status" className="sr-only">
+        {shown.length} carduri afișate
+      </p>
+      <div className={cn("mt-5 grid grid-cols-1 gap-5", columns)}>
         {shown.length ? (
           shown.map((c) => (
             <div key={c.id} className={cn("flex min-w-0 flex-col [&>*]:flex-1", c.span)}>

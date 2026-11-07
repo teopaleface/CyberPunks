@@ -4,11 +4,11 @@ import { cn } from "cn";
 export type SolidTone = "green" | "orange" | "blue" | "violet" | "amber" | "grey" | "red";
 
 const BG: Record<SolidTone, string> = {
-  green: "bg-[#1a9e4f] text-white",
-  orange: "bg-[#e5481a] text-white",
+  green: "bg-[#15803d] text-white",
+  orange: "bg-[#c93a10] text-white",
   blue: "bg-[#1f5fd6] text-white",
   violet: "bg-[#8c47b3] text-white",
-  amber: "bg-[#b87a12] text-white",
+  amber: "bg-[#e59b15] text-[#1a1203]",
   grey: "bg-[#3a4a63] text-white",
   red: "bg-[#c93a3a] text-white",
 };

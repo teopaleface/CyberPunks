@@ -182,7 +182,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
 
   const causes = bilant ? causeProbs(bilant.extra) : [];
   const causeCard = (
-    <Card title="Cauze (din bilanț)" icon={Search} iconTone="blue" id="cauze" className="h-full">
+    <Card title="Cauze (din bilanț)" icon={Search} iconTone="blue" id="cauze" className="h-full scroll-mt-20">
       {causes.length ? (
         <ul className="space-y-2">
           {causes.slice(0, 5).map((c) => {

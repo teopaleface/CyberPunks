@@ -20,6 +20,7 @@ import type { ComponentType } from "react";
 import { cn } from "cn";
 import { Card, Dot, Gauge, PageTitle, Pill, SOURCE_TONE, btn, type Tone } from "@/components/ds";
 import { ReviewActions } from "@/components/detail/review-actions";
+import { CaseLink } from "@/components/queue/case-link";
 import { CaseChart, type CasePoint } from "@/components/queue/case-chart";
 import { AppShell } from "@/components/shell/app-shell";
 import type { Decision, Series, WorkItem } from "@/lib/contracts";
@@ -201,7 +202,7 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
                       <th scope="col" className="py-2 font-[450]">Post/loc</th>
                       <th scope="col" className="w-[22%] py-2 font-[450] max-sm:hidden">Motiv</th>
                       <th scope="col" className="w-[18%] py-2 text-right font-[450]">Încredere</th>
-                      <th scope="col" className="w-[20%] py-2 pr-1 text-right font-[450]">Impact</th><td className="w-8" />
+                      <th scope="col" className="w-[20%] py-2 pr-1 text-right font-[450]">Impact</th><th scope="col" className="w-8"><span className="sr-only">Deschide cazul</span></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -211,16 +212,15 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
                         <tr key={x.w.work_item_id} className={cn("relative border-b border-rule/60 last:border-b-0", on && "bg-[#0f2547] outline outline-2 -outline-offset-2 outline-[#3b82f6]")}>
                           <td className="py-2.5 pl-2 tabular-nums">{(page - 1) * PER_PAGE + i + 1}</td>
                           <td className="py-2.5 pr-2 font-[560]">
-                            <Link
+                            <CaseLink
                               href={href({ caz: x.w.work_item_id })}
-                              scroll={false}
                               prefetch={false}
                               aria-current={on ? "true" : undefined}
                               className="flex items-center gap-2 after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-ring"
                             >
                               <Dot tone={CAT_TONE[x.cat.tone]} className="size-2 sm:hidden" />
                               <span className="truncate max-sm:max-w-[110px]" translate="no" title={placeOf(x.w)}>{placeOf(x.w)}</span>
-                            </Link>
+                            </CaseLink>
                           </td>
                           <td className="py-2.5 pr-2 max-sm:hidden">
                             <Pill tone={CAT_TONE[x.cat.tone]} size="sm" className="max-w-full border-transparent bg-transparent px-0 text-ink">
@@ -343,6 +343,8 @@ function Approval({ sel, scenario, series }: { sel: Waiting; scenario: string; s
   return (
     <Card
       title="Aprobare"
+      id="aprobare"
+      className="scroll-mt-20"
       icon={ClipboardCheck}
       action={
         <Pill tone={tone} size="lg">

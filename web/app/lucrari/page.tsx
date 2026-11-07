@@ -84,10 +84,10 @@ function Content({
         actions={
           <>
             <PrintButton />
-            <Link href={`/ordine/${encodeURIComponent(crewId)}?${sc}`} className={btn("primary")}>
+            <a href={`/ordine/${encodeURIComponent(crewId)}?${sc}`} download className={btn("primary")}>
               <Download aria-hidden="true" size={19} strokeWidth={1.8} />
               Descarcă PDF
-            </Link>
+            </a>
           </>
         }
       />

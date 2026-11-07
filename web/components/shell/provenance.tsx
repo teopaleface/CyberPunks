@@ -1,7 +1,7 @@
 "use client";
 
 import { useId } from "react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover } from "radix-ui";
 import { PROVENANCE_SHORT_RO, SOURCE_LABEL_RO } from "@/lib/data/labels";
 import type { DataSource } from "@/lib/data/types";
 
@@ -29,7 +29,7 @@ const DOT: Record<DataSource, string> = {
 
 /**
  * Transparența datelor, mereu vizibilă: ce e sintetic și de unde vine planul afișat
- * (agentul în direct, ultimul plan salvat sau datele de test). Motivul apare la trecerea cu mouse-ul.
+ * (agentul în direct, ultimul plan salvat sau datele de test). Explicația se deschide la clic sau la atingere.
  */
 export function Provenance({
   source,
@@ -46,10 +46,11 @@ export function Provenance({
 }) {
   const allSynthetic = totalItems > 0 && syntheticItems === totalItems;
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
+    <Popover.Root>
+      <Popover.Trigger asChild>
         <button
           type="button"
+          aria-haspopup="dialog"
           className="flex w-full flex-col items-start gap-1 rounded-[10px] border border-[#2a3a52] px-3 py-2.5 text-left text-[13.5px] hover:bg-[#0f1a2b]"
         >
           <span className="flex items-center gap-2 font-[560]">
@@ -61,8 +62,15 @@ export function Provenance({
             {PROVENANCE_SHORT_RO[source]}
           </span>
         </button>
-      </TooltipTrigger>
-      <TooltipContent side="right" align="end" className="max-w-[360px] text-[14px] leading-snug">
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content
+          side="right"
+          align="end"
+          sideOffset={8}
+          collisionPadding={12}
+          className="z-[60] max-w-[360px] rounded-[10px] border border-[#2a3a52] bg-panel p-3.5 text-[14px] leading-snug text-ink shadow-lg outline-hidden"
+        >
         <p>
           Contoarele, posturile de transformare, bazele și echipele sunt sintetice, puse pe harta reală. Vremea și
           rețelele de test vin din surse publice, citate la fiecare lucrare.
@@ -72,7 +80,8 @@ export function Provenance({
           {detail ? <span className="block opacity-80">{detail}</span> : null}
         </p>
         {degradedReason ? <p className="mt-2">{degradedReason}</p> : null}
-      </TooltipContent>
-    </Tooltip>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import type { ShellInfo } from "@/lib/server/queries";
@@ -12,6 +12,8 @@ export function SearchButton({ index }: { index: ShellInfo["search"] }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
+  const listId = useId();
+  const optId = (i: number) => `${listId}-o${i}`;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -30,6 +32,10 @@ export function SearchButton({ index }: { index: ShellInfo["search"] }) {
       .sort((a, b) => Number(!a.id.toLowerCase().startsWith(t)) - Number(!b.id.toLowerCase().startsWith(t)))
       .slice(0, 10);
   }, [q, index]);
+  useEffect(() => {
+    if (open) document.getElementById(optId(active))?.scrollIntoView({ block: "nearest" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, open]);
   const go = (href: string) => {
     setOpen(false);
     setQ("");
@@ -49,6 +55,11 @@ export function SearchButton({ index }: { index: ShellInfo["search"] }) {
           <Search aria-hidden="true" size={19} strokeWidth={1.8} className="text-ink-soft" />
           <input
             autoFocus
+            role="combobox"
+            aria-expanded="true"
+            aria-controls={listId}
+            aria-autocomplete="list"
+            aria-activedescendant={results[active] ? optId(active) : undefined}
             name="cauta"
             autoComplete="off"
             spellCheck={false}
@@ -73,26 +84,30 @@ export function SearchButton({ index }: { index: ShellInfo["search"] }) {
             className="h-14 flex-1 bg-transparent text-[16.5px] outline-none placeholder:text-ink-soft/70"
           />
         </div>
-        <ul role="listbox" aria-label="Rezultate" className="max-h-[50vh] overflow-y-auto p-2">
+        <p role="status" className="sr-only">
+          {results.length ? `${results.length} rezultate` : "Niciun rezultat"}
+        </p>
+        <ul id={listId} role="listbox" aria-label="Rezultate" className="max-h-[50vh] overflow-y-auto p-2">
           {results.length ? (
             results.map((r, i) => (
-              <li key={`${r.kind}:${r.id}`} role="option" aria-selected={i === active}>
-                <button
-                  type="button"
-                  onMouseEnter={() => setActive(i)}
-                  onClick={() => go(r.href)}
-                  className={`flex w-full items-center gap-3 rounded-[10px] px-3 py-2.5 text-left ${i === active ? "bg-[#16233a]" : ""}`}
-                >
-                  <span className="w-16 shrink-0 text-[12.5px] text-ink-soft">{r.kind}</span>
-                  <span className="font-[600]" translate="no">
-                    {r.id}
-                  </span>
-                  <span className="min-w-0 truncate text-ink-soft">{r.label}</span>
-                </button>
+              <li
+                key={`${r.kind}:${r.id}`}
+                id={optId(i)}
+                role="option"
+                aria-selected={i === active}
+                onMouseEnter={() => setActive(i)}
+                onClick={() => go(r.href)}
+                className={`flex cursor-pointer items-center gap-3 rounded-[10px] px-3 py-2.5 text-left ${i === active ? "bg-[#16233a]" : ""}`}
+              >
+                <span className="w-16 shrink-0 text-[12.5px] text-ink-soft">{r.kind}</span>
+                <span className="font-[600]" translate="no">
+                  {r.id}
+                </span>
+                <span className="min-w-0 truncate text-ink-soft">{r.label}</span>
               </li>
             ))
           ) : (
-            <li className="px-3 py-6 text-center text-ink-soft">Nimic nu se potrivește cu „{q}”.</li>
+            <li role="presentation" className="px-3 py-6 text-center text-ink-soft">Nimic nu se potrivește cu „{q}”.</li>
           )}
         </ul>
       </DialogContent>

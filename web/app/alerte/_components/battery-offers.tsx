@@ -38,13 +38,13 @@ export function BatteryOffers({ remedies, scenario, bare = false }: { remedies: 
         <table className="w-full min-w-[880px] border-collapse text-[15px]">
           <thead>
             <tr className="border-y border-rule text-left text-[13.5px] text-muted-foreground">
-              <th className="py-2 pr-4 font-[500]">Postul</th>
-              <th className="py-2 pr-4 text-right font-[500]">Clienți vizați</th>
-              <th className="py-2 pr-4 text-right font-[500]">Baterii</th>
-              <th className="py-2 pr-4 text-right font-[500]">Tensiunea P90</th>
-              <th className="py-2 pr-4 text-right font-[500]">Venit estimat</th>
-              <th className="py-2 pr-4 text-right font-[500]">Recuperare pentru client</th>
-              <th className="py-2 font-[500]">Combinația aleasă</th>
+              <th scope="col" className="py-2 pr-4 font-[500]">Postul</th>
+              <th scope="col" className="py-2 pr-4 text-right font-[500]">Clienți vizați</th>
+              <th scope="col" className="py-2 pr-4 text-right font-[500]">Baterii</th>
+              <th scope="col" className="py-2 pr-4 text-right font-[500]">Tensiunea P90</th>
+              <th scope="col" className="py-2 pr-4 text-right font-[500]">Venit estimat</th>
+              <th scope="col" className="py-2 pr-4 text-right font-[500]">Recuperare pentru client</th>
+              <th scope="col" className="py-2 font-[500]">Combinația aleasă</th>
             </tr>
           </thead>
           <tbody>

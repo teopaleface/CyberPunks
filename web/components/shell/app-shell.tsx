@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Wordmark } from "@/components/brand/logo";
 import type { ShellInfo } from "@/lib/server/queries";
+import { MobileMenu } from "./mobile-menu";
 import { Provenance } from "./provenance";
 import { ScenarioSwitch } from "./scenario-switch";
 import { SearchButton } from "./search";
@@ -29,6 +30,7 @@ export function AppShell({ info, fit = false, children }: { info: ShellInfo; fit
           <TopTabs />
           <span className="flex-1" />
           <SearchButton index={info.search} />
+          <MobileMenu info={info} />
         </div>
       </header>
       <div className={fit ? "flex min-h-0 flex-1" : "flex flex-1"}>

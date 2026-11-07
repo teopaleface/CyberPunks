@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useId, useState, useTransition } from "react";
+import { useId, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Check, Clock, NotebookPen, X } from "lucide-react";
 import { btn } from "@/components/ds";
@@ -21,7 +21,32 @@ export function ReviewActions({ workItemId, scenario, layout = "default" }: { wo
   const [noteOpen, setNoteOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [acting, setActing] = useState<ReviewDecision | null>(null);
+  const [undoing, setUndoing] = useState<ReviewDecision | null>(null);
+  const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Respinge și Amână replanifică ziua: 5 secunde în care decizia se poate anula, apoi se trimite
   const act = (d: ReviewDecision) => {
+    if (d === "approve") return send(d);
+    setUndoing(d);
+    const toastId = toast(`${DONE[d]} ${workItemId}`, {
+      description: "Se trimite în 5 secunde.",
+      duration: 5000,
+      action: {
+        label: "Anulează",
+        onClick: () => {
+          if (undoTimer.current) clearTimeout(undoTimer.current);
+          undoTimer.current = null;
+          setUndoing(null);
+        },
+      },
+    });
+    undoTimer.current = setTimeout(() => {
+      undoTimer.current = null;
+      toast.dismiss(toastId);
+      setUndoing(null);
+      send(d);
+    }, 5000);
+  };
+  const send = (d: ReviewDecision) => {
     setActing(d);
     startTransition(async () => {
       const r = await submitReview(workItemId, d, note, scenario);
@@ -60,17 +85,17 @@ export function ReviewActions({ workItemId, scenario, layout = "default" }: { wo
           />
         </div>
         <div className="grid grid-cols-3 gap-3 max-sm:grid-cols-1">
-          <button type="button" className={btn("primary", "lg")} onClick={() => act("approve")} disabled={pending} aria-describedby={itemId}>
+          <button type="button" className={btn("primary", "lg")} onClick={() => act("approve")} disabled={pending || undoing !== null} aria-describedby={itemId}>
             <Check aria-hidden="true" size={22} strokeWidth={2.2} />
             {acting === "approve" ? "Se trimite…" : "Aprobă"}
           </button>
-          <button type="button" className={btn("danger", "lg")} onClick={() => act("reject")} disabled={pending} aria-describedby={itemId}>
+          <button type="button" className={btn("danger", "lg")} onClick={() => act("reject")} disabled={pending || undoing !== null} aria-describedby={itemId}>
             <X aria-hidden="true" size={22} strokeWidth={2.2} />
-            {acting === "reject" ? "Se trimite…" : "Respinge"}
+            {acting === "reject" || undoing === "reject" ? "Se trimite…" : "Respinge"}
           </button>
-          <button type="button" className={btn("outline", "lg")} onClick={() => act("defer")} disabled={pending} aria-describedby={itemId}>
+          <button type="button" className={btn("outline", "lg")} onClick={() => act("defer")} disabled={pending || undoing !== null} aria-describedby={itemId}>
             <Clock aria-hidden="true" size={22} strokeWidth={1.9} />
-            {acting === "defer" ? "Se trimite…" : "Amână"}
+            {acting === "defer" || undoing === "defer" ? "Se trimite…" : "Amână"}
           </button>
         </div>
       </div>
@@ -82,14 +107,14 @@ export function ReviewActions({ workItemId, scenario, layout = "default" }: { wo
         lucrarea {workItemId}
       </span>
       <div className="flex flex-wrap items-center gap-3">
-        <Button size="panel" className="min-w-[116px] text-[17px]" onClick={() => act("approve")} disabled={pending} aria-describedby={itemId}>
+        <Button size="panel" className="min-w-[116px] text-[17px]" onClick={() => act("approve")} disabled={pending || undoing !== null} aria-describedby={itemId}>
           {acting === "approve" ? "Se trimite…" : "Aprobă"}
         </Button>
-        <Button size="panel" variant="outline" className="text-[17px]" onClick={() => act("reject")} disabled={pending} aria-describedby={itemId}>
-          {acting === "reject" ? "Se trimite…" : "Respinge"}
+        <Button size="panel" variant="outline" className="text-[17px]" onClick={() => act("reject")} disabled={pending || undoing !== null} aria-describedby={itemId}>
+          {acting === "reject" || undoing === "reject" ? "Se trimite…" : "Respinge"}
         </Button>
-        <Button size="panel" variant="outline" className="text-[17px]" onClick={() => act("defer")} disabled={pending} aria-describedby={itemId}>
-          {acting === "defer" ? "Se trimite…" : "Amână"}
+        <Button size="panel" variant="outline" className="text-[17px]" onClick={() => act("defer")} disabled={pending || undoing !== null} aria-describedby={itemId}>
+          {acting === "defer" || undoing === "defer" ? "Se trimite…" : "Amână"}
         </Button>
       </div>
       {noteOpen ? (

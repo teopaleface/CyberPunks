@@ -7,6 +7,7 @@ import { cn } from "cn";
 /** Text scurt într-un chenar, cu buton de copiere (versiunea modelului, ID-uri). */
 export function CopyChip({ text, label, className }: { text: string; label: string; className?: string }) {
   const [done, setDone] = useState(false);
+  const [failed, setFailed] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
     () => () => {
@@ -18,12 +19,16 @@ export function CopyChip({ text, label, className }: { text: string; label: stri
     try {
       await navigator.clipboard.writeText(text);
       setDone(true);
+      setFailed(false);
     } catch {
       setDone(false);
-      return;
+      setFailed(true);
     }
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => setDone(false), 1800);
+    timer.current = setTimeout(() => {
+      setDone(false);
+      setFailed(false);
+    }, 1800);
   };
   return (
     <span className={cn("inline-flex max-w-full items-center gap-2 rounded-[8px] border border-[#2a3a52] bg-surface-2 py-1 pr-1 pl-2.5 text-[14px]", className)}>
@@ -39,7 +44,7 @@ export function CopyChip({ text, label, className }: { text: string; label: stri
         {done ? <CheckIcon size={15} aria-hidden="true" className="text-ok-ink" /> : <CopyIcon size={15} aria-hidden="true" />}
       </button>
       <span role="status" className="sr-only">
-        {done ? "Copiat." : ""}
+        {done ? "Copiat." : failed ? "Copierea nu a reușit." : ""}
       </span>
     </span>
   );

@@ -122,8 +122,8 @@ export function btn(kind: "primary" | "danger" | "success" | "outline" | "ghost"
     "inline-flex items-center justify-center gap-2 rounded-[10px] font-[600] whitespace-nowrap transition-[background-color,border-color,transform] duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
     size === "lg" ? "h-12 px-6 text-[17px]" : size === "sm" ? "h-9 px-3.5 text-[14px]" : "h-11 px-5 text-[15.5px]",
     kind === "primary" && "bg-action text-white hover:bg-[#2459ff]",
-    kind === "danger" && "bg-att text-white hover:bg-[#ff6a3a]",
-    kind === "success" && "bg-ok text-white hover:bg-[#1fb257]",
+    kind === "danger" && "bg-[#d03c0c] text-white hover:bg-[#b9340a]",
+    kind === "success" && "bg-[#15803d] text-white hover:bg-[#166534]",
     kind === "outline" && "border border-[#2a3a52] bg-transparent text-ink hover:border-[#3d5170] hover:bg-[#0f1a2b]",
     kind === "ghost" && "text-ink-soft hover:bg-[#0f1a2b] hover:text-ink",
   );

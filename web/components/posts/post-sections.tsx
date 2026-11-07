@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Chips } from "@/components/ds/chips";
 import type { Tone } from "@/components/ds";
 import { cn } from "cn";
@@ -36,6 +36,21 @@ export function PostSections({ sections, stare, initial }: { sections: SectionDe
     else url.searchParams.set("sectiune", s);
     window.history.replaceState(window.history.state, "", url);
   };
+  // „Analizează” (#cauze): arată cardul Cauze, chiar dacă o filă îl ascunde, apoi derulează la el
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      const a = e.target instanceof Element ? e.target.closest('a[href="#cauze"]') : null;
+      if (!a) return;
+      e.preventDefault();
+      setSection("cauze");
+      const url = new URL(window.location.href);
+      url.searchParams.set("sectiune", "cauze");
+      window.history.replaceState(window.history.state, "", url);
+      window.setTimeout(() => document.getElementById("cauze")?.scrollIntoView({ block: "start" }), 0);
+    };
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
+  }, []);
   return (
     <>
       <Chips label="Părți ale paginii" items={CHIPS} value={section} onChange={choose} className="mt-5" />

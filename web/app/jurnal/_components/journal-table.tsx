@@ -63,8 +63,9 @@ function DecisionPill({ r }: { r: JournalRow }) {
 
 function Dash() {
   return (
-    <span className="text-muted-foreground" aria-label="fără valoare">
-      —
+    <span className="text-muted-foreground">
+      <span aria-hidden="true">—</span>
+      <span className="sr-only">fără valoare</span>
     </span>
   );
 }

@@ -208,6 +208,16 @@ export function DemoStage({
         <span className="flex items-center gap-2 rounded-full border border-[#2a3a52] px-3 py-1 text-[14px] font-[520] max-md:hidden">
           <SyntheticGlyph /> Date sintetice pe hartă reală
         </span>
+        {auto ? (
+          <button
+            type="button"
+            aria-pressed={autoOn}
+            onClick={() => setAutoOn((v) => !v)}
+            className="rounded-[10px] border border-[#2a3a52] px-3 py-1.5 text-[14px] font-[560] text-ink hover:bg-[#0f1a2b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            {autoOn ? "Pauză" : "Pornește"}
+          </button>
+        ) : null}
         <nav aria-label="Scenele prezentării" className="flex items-center">
           {scenes.map((sc, i) => (
             <button
@@ -225,7 +235,7 @@ export function DemoStage({
       </header>
       {/* regiunea anunțată rămâne montată */}
       <p role="status" className="sr-only">
-        Scena {index + 1} din {scenes.length}: {scene.title}. {scene.text}
+        Scena {index + 1} din {scenes.length}
       </p>
 
       <div className="mx-auto flex min-h-0 w-full max-w-[1760px] flex-1 flex-col gap-3 px-6 pt-4 pb-4 max-md:px-4">
@@ -238,7 +248,7 @@ export function DemoStage({
           <Kpi icon={RouteIcon} tone="amber" value={fmtDec(s.total_km, 0)} unit="km" />
         </div>
 
-        <div aria-hidden="true" key={index} className="animate-in fade-in duration-300 motion-reduce:animate-none">
+        <div key={index} className="animate-in fade-in duration-300 motion-reduce:animate-none">
           <h1 className="text-[40px] leading-[1.1] font-[750] tracking-[-0.025em] max-md:text-[28px]">{scene.headline ?? `${scene.title}.`}</h1>
           <p className="mt-1 max-w-[110ch] text-[17px] text-ink-soft">{scene.text}</p>
         </div>
@@ -305,7 +315,7 @@ export function DemoStage({
                   <span className={"flex h-11 items-center justify-center gap-2 rounded-[10px] text-[15.5px] font-[600] " + (planned ? "bg-[#0b2a18] text-ok-ink" : "bg-[#121e30] text-ink-soft")}>
                     {planned ? `Echipa ${decision?.crew_id ?? ""}${stopInfo.get(scene.item ?? "") ? `, ${fmtTime(stopInfo.get(scene.item ?? "")?.eta ?? "")}` : ""}` : human ? "Fără echipă trimisă" : (ACTION_RO[item.recommended_action] ?? "").replace(/^./, (c) => c.toUpperCase())}
                   </span>
-                  <span className={"flex h-11 items-center justify-center gap-2 rounded-[10px] text-[15.5px] font-[600] " + (human ? "bg-att text-white" : "bg-[#0f2547] text-[#8db8ff]")}>
+                  <span className={"flex h-11 items-center justify-center gap-2 rounded-[10px] text-[15.5px] font-[600] " + (human ? "bg-[#d03c0c] text-white" : "bg-[#0f2547] text-[#8db8ff]")}>
                     {human ? "Necesită o persoană" : decision ? DECISION_LABEL_RO[decision.decision] : "—"}
                   </span>
                 </div>

@@ -9,7 +9,6 @@ import {
   GiftIcon,
   MapPinIcon,
   MessageSquareIcon,
-  SendIcon,
   UsersIcon,
   ZapIcon,
 } from "lucide-react";
@@ -22,6 +21,7 @@ import type { Alert, Decision, Notification, WorkItem } from "@/lib/contracts";
 import { DECISION_LABEL_RO } from "@/lib/data/labels";
 import type { RemedyChoice } from "@/lib/data/remedies";
 import { fmtInt, fmtLei, fmtTime } from "@/lib/format";
+import { CopyMessage } from "./copy-message";
 import { BatteryOffers } from "./battery-offers";
 import { itemPlace, itemTitle } from "@/lib/plan-screen";
 
@@ -153,7 +153,7 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
               </Link>
               {waiting ? (
                 <Link href={`/coada${q(scenario)}`} className={btn("danger")}>
-                  Deschide De decis
+                  Deschide „Nu sunt sigur”
                 </Link>
               ) : null}
             </div>
@@ -193,10 +193,7 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
             ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <button type="button" disabled aria-describedby="demo-nota" className={btn("primary")}>
-              <SendIcon size={18} aria-hidden="true" />
-              Trimite mesajul
-            </button>
+            <CopyMessage text={msg.message_ro} noteId="demo-nota" />
             <p id="demo-nota" className="text-[14.5px] text-ink-soft">
               În demo nu se trimite nimic.
             </p>
