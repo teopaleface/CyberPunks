@@ -1,0 +1,1017 @@
+{
+  "format": {
+    "sample_rate": 48000,
+    "bits": 24,
+    "channels": 2,
+    "samples": 1728000,
+    "duration_s": 36.0,
+    "exact_36s": true
+  },
+  "loudness": {
+    "integrated_lufs_internal": -16.0,
+    "true_peak_dbtp_internal": -1.3,
+    "sample_peak_dbfs": -1.31,
+    "clipped_samples": 0
+  },
+  "ffmpeg": {
+    "loudnorm": {
+      "input_i": "-16.18",
+      "input_tp": "-1.30",
+      "input_lra": "7.00",
+      "input_thresh": "-26.59"
+    },
+    "ebur128": {
+      "integrated_lufs": -16.0,
+      "lra_lu": 6.3,
+      "true_peak_dbfs": -1.3,
+      "sample_peak_dbfs": -1.3
+    },
+    "ffprobe": {
+      "codec_name": "pcm_s24le",
+      "sample_rate": "48000",
+      "channels": 2,
+      "bits_per_sample": 24,
+      "duration_ts": 1728000,
+      "duration": "36.000000"
+    }
+  },
+  "sections_lufs_ungated": {
+    "cârlig 0-4": -17.3,
+    "puls 4-6": -20.1,
+    "aer 6-7,75": -33.2,
+    "probleme 8-12": -15.9,
+    "răspuns 12-15": -15.0,
+    "produs 15-23": -15.2,
+    "uman 23-26": -20.5,
+    "Aprobă 26-27": -14.3,
+    "build 27-29": -15.6,
+    "drop 29-32": -14.4,
+    "final 32-35,9": -17.1
+  },
+  "silences": {
+    "last_100ms_is_digital_zero": true,
+    "last_100ms_max_abs": 0.0,
+    "level_34_0_to_35_0_rms_dbfs": -22.1,
+    "level_35_0_to_35_9_rms_dbfs": -43.3,
+    "drums_stem_23_06_to_25_99_max_abs": 0.0
+  },
+  "air": {
+    "window_s": [
+      6.0,
+      7.75
+    ],
+    "air_rms_dbfs": -35.8,
+    "air_lufs_ungated": -33.2,
+    "air_after_attack_6_3_to_7_75_rms_dbfs": -37.3,
+    "hook_hits": [
+      {
+        "time": 0.0,
+        "rms_dbfs": -16.8,
+        "lufs_ungated": -16.1,
+        "air_below_db_rms": 19.0,
+        "air_below_db_lufs": 17.1
+      },
+      {
+        "time": 1.0,
+        "rms_dbfs": -13.5,
+        "lufs_ungated": -13.5,
+        "air_below_db_rms": 22.3,
+        "air_below_db_lufs": 19.7
+      },
+      {
+        "time": 2.0,
+        "rms_dbfs": -13.2,
+        "lufs_ungated": -12.5,
+        "air_below_db_rms": 22.6,
+        "air_below_db_lufs": 20.7
+      }
+    ],
+    "min_gap_db": 17.1,
+    "other_stems_max_abs_6_001_to_7_75": {
+      "drums": 0.0,
+      "bass": 0.0,
+      "pad": 0.0,
+      "lead": 0.0,
+      "fx": 0.0
+    },
+    "only_the_suspended_chord": true
+  },
+  "stems": {
+    "names": [
+      "drums",
+      "bass",
+      "pad",
+      "stabs",
+      "lead",
+      "fx"
+    ],
+    "max_abs_diff_sum_vs_mix": 0.0,
+    "max_diff_lsb_24bit": 0.0,
+    "sum_matches_mix": true
+  },
+  "loudness_per_bar_lufs_ungated": [
+    {
+      "bar": 1,
+      "section": "cârlig",
+      "mix": -16.7,
+      "drums": -24.7,
+      "bass": -22.1,
+      "pad": -38.4,
+      "stabs": -20.8,
+      "lead": -200.7,
+      "fx": -33.7
+    },
+    {
+      "bar": 2,
+      "section": "cârlig",
+      "mix": -18.0,
+      "drums": -22.5,
+      "bass": -23.1,
+      "pad": -27.6,
+      "stabs": -25.6,
+      "lead": -200.7,
+      "fx": -43.4
+    },
+    {
+      "bar": 3,
+      "section": "întrebare",
+      "mix": -20.1,
+      "drums": -25.9,
+      "bass": -23.1,
+      "pad": -28.2,
+      "stabs": -30.9,
+      "lead": -200.7,
+      "fx": -89.5
+    },
+    {
+      "bar": 4,
+      "section": "întrebare",
+      "mix": -32.8,
+      "drums": -39.9,
+      "bass": -79.6,
+      "pad": -109.6,
+      "stabs": -33.7,
+      "lead": -200.7,
+      "fx": -200.5
+    },
+    {
+      "bar": 5,
+      "section": "probleme",
+      "mix": -15.6,
+      "drums": -19.2,
+      "bass": -20.4,
+      "pad": -26.9,
+      "stabs": -23.6,
+      "lead": -200.7,
+      "fx": -200.7
+    },
+    {
+      "bar": 6,
+      "section": "probleme",
+      "mix": -16.3,
+      "drums": -20.0,
+      "bass": -21.6,
+      "pad": -25.5,
+      "stabs": -26.1,
+      "lead": -200.7,
+      "fx": -28.5
+    },
+    {
+      "bar": 7,
+      "section": "răspuns",
+      "mix": -14.7,
+      "drums": -16.6,
+      "bass": -22.1,
+      "pad": -25.3,
+      "stabs": -24.7,
+      "lead": -33.1,
+      "fx": -46.3
+    },
+    {
+      "bar": 8,
+      "section": "produs",
+      "mix": -15.2,
+      "drums": -17.3,
+      "bass": -23.0,
+      "pad": -25.5,
+      "stabs": -25.5,
+      "lead": -101.8,
+      "fx": -113.4
+    },
+    {
+      "bar": 9,
+      "section": "produs",
+      "mix": -15.1,
+      "drums": -17.6,
+      "bass": -21.8,
+      "pad": -25.4,
+      "stabs": -32.3,
+      "lead": -24.8,
+      "fx": -200.7
+    },
+    {
+      "bar": 10,
+      "section": "produs",
+      "mix": -14.9,
+      "drums": -17.1,
+      "bass": -22.8,
+      "pad": -25.5,
+      "stabs": -25.0,
+      "lead": -26.4,
+      "fx": -200.7
+    },
+    {
+      "bar": 11,
+      "section": "produs",
+      "mix": -15.7,
+      "drums": -17.5,
+      "bass": -22.6,
+      "pad": -25.1,
+      "stabs": -96.4,
+      "lead": -29.8,
+      "fx": -200.7
+    },
+    {
+      "bar": 12,
+      "section": "produs / uman",
+      "mix": -17.1,
+      "drums": -20.4,
+      "bass": -23.6,
+      "pad": -26.3,
+      "stabs": -24.2,
+      "lead": -51.9,
+      "fx": -200.7
+    },
+    {
+      "bar": 13,
+      "section": "uman",
+      "mix": -21.7,
+      "drums": -200.7,
+      "bass": -23.6,
+      "pad": -27.3,
+      "stabs": -41.5,
+      "lead": -33.8,
+      "fx": -200.7
+    },
+    {
+      "bar": 14,
+      "section": "uman / build",
+      "mix": -15.2,
+      "drums": -17.2,
+      "bass": -22.9,
+      "pad": -25.5,
+      "stabs": -25.2,
+      "lead": -67.3,
+      "fx": -46.2
+    },
+    {
+      "bar": 15,
+      "section": "build / drop",
+      "mix": -14.3,
+      "drums": -16.0,
+      "bass": -23.9,
+      "pad": -25.7,
+      "stabs": -25.2,
+      "lead": -34.7,
+      "fx": -23.5
+    },
+    {
+      "bar": 16,
+      "section": "drop",
+      "mix": -14.9,
+      "drums": -17.1,
+      "bass": -22.1,
+      "pad": -25.1,
+      "stabs": -26.1,
+      "lead": -31.6,
+      "fx": -80.5
+    },
+    {
+      "bar": 17,
+      "section": "final",
+      "mix": -14.6,
+      "drums": -19.9,
+      "bass": -21.9,
+      "pad": -24.6,
+      "stabs": -21.0,
+      "lead": -31.0,
+      "fx": -200.7
+    },
+    {
+      "bar": 18,
+      "section": "final",
+      "mix": -24.6,
+      "drums": -50.5,
+      "bass": -27.1,
+      "pad": -32.6,
+      "stabs": -31.9,
+      "lead": -99.4,
+      "fx": -200.7
+    }
+  ],
+  "spectrum_groove": {
+    "window_s": [
+      12.0,
+      23.0
+    ],
+    "bands_db_rel_mid": {
+      "sub_20_60": 3.37,
+      "bass_60_120": 2.82,
+      "lowmid_120_300": -0.11,
+      "mid_300_2k": 0.0,
+      "presence_2k_6k": -11.81,
+      "air_6k_16k": -11.8
+    }
+  },
+  "third_octave_groove": {
+    "max_local_bump_2k_6k_db": 0.88,
+    "max_local_bump_2k_6k_at_hz": 2000.0,
+    "window_s": [
+      12.0,
+      23.0
+    ],
+    "slope_db_per_octave_500_10k": -3.53,
+    "max_excess_2k_6k_db": 1.79,
+    "max_excess_2k_6k_at_hz": 2000.0,
+    "lowmid_125_250_minus_500_1k_db": 3.29,
+    "bands_db": {
+      "20": -39.9,
+      "25": -33.9,
+      "31": -29.7,
+      "39": -11.9,
+      "50": 0.0,
+      "62": -2.0,
+      "79": -2.4,
+      "99": -3.8,
+      "125": -7.2,
+      "157": -6.8,
+      "198": -6.4,
+      "250": -9.8,
+      "315": -7.9,
+      "397": -9.8,
+      "500": -9.1,
+      "630": -10.2,
+      "794": -12.6,
+      "1000": -11.5,
+      "1260": -11.6,
+      "1587": -11.2,
+      "2000": -14.0,
+      "2520": -18.6,
+      "3175": -23.0,
+      "4000": -22.1,
+      "5040": -21.1,
+      "6350": -21.1,
+      "8000": -19.7,
+      "10079": -18.5,
+      "12699": -18.4,
+      "16000": -20.7,
+      "20159": -24.7
+    }
+  },
+  "third_octave_drop": {
+    "max_local_bump_2k_6k_db": 1.43,
+    "max_local_bump_2k_6k_at_hz": 2000.0,
+    "window_s": [
+      29.0,
+      32.0
+    ],
+    "slope_db_per_octave_500_10k": -3.28,
+    "max_excess_2k_6k_db": 2.2,
+    "max_excess_2k_6k_at_hz": 2000.0,
+    "lowmid_125_250_minus_500_1k_db": 3.31,
+    "bands_db": {
+      "20": -37.9,
+      "25": -32.1,
+      "31": -26.6,
+      "39": -5.6,
+      "50": 0.0,
+      "62": -2.0,
+      "79": -1.1,
+      "99": -7.2,
+      "125": -7.7,
+      "157": -7.5,
+      "198": -5.5,
+      "250": -10.1,
+      "315": -6.9,
+      "397": -8.6,
+      "500": -9.4,
+      "630": -11.6,
+      "794": -12.0,
+      "1000": -11.1,
+      "1260": -11.9,
+      "1587": -11.5,
+      "2000": -13.5,
+      "2520": -18.4,
+      "3175": -22.9,
+      "4000": -22.2,
+      "5040": -20.7,
+      "6350": -20.5,
+      "8000": -19.0,
+      "10079": -18.1,
+      "12699": -18.1,
+      "16000": -20.2,
+      "20159": -24.4
+    }
+  },
+  "third_octave_whole": {
+    "max_local_bump_2k_6k_db": 0.96,
+    "max_local_bump_2k_6k_at_hz": 2000.0,
+    "window_s": [
+      0.0,
+      35.9
+    ],
+    "slope_db_per_octave_500_10k": -3.56,
+    "max_excess_2k_6k_db": 1.52,
+    "max_excess_2k_6k_at_hz": 2000.0,
+    "lowmid_125_250_minus_500_1k_db": 3.77,
+    "bands_db": {
+      "20": -39.5,
+      "25": -33.9,
+      "31": -29.4,
+      "39": -7.1,
+      "50": 0.0,
+      "62": -2.2,
+      "79": -2.6,
+      "99": -5.9,
+      "125": -7.6,
+      "157": -6.5,
+      "198": -5.8,
+      "250": -9.2,
+      "315": -7.8,
+      "397": -8.6,
+      "500": -8.8,
+      "630": -11.2,
+      "794": -12.0,
+      "1000": -12.1,
+      "1260": -12.9,
+      "1587": -12.4,
+      "2000": -14.7,
+      "2520": -19.0,
+      "3175": -22.6,
+      "4000": -22.2,
+      "5040": -21.5,
+      "6350": -21.5,
+      "8000": -20.5,
+      "10079": -19.8,
+      "12699": -19.8,
+      "16000": -22.1,
+      "20159": -26.1
+    }
+  },
+  "mono": {
+    "lr_correlation": 0.956,
+    "side_below_120_vs_mid_below_120_db": -35.7,
+    "mono_vs_stereo_loudness_db": -0.17
+  },
+  "tempo": {
+    "window_s": [
+      12.0,
+      23.0
+    ],
+    "method": "autocorelație cu pieptene (1×, 2×, 4×)",
+    "beat_period_s": 0.5,
+    "bpm": 120.0
+  },
+  "hits": {
+    "detector_offset_ms": -3.58,
+    "search_window_ms": 30,
+    "tolerance_ms": 10.0,
+    "mix": {
+      "detected": 25,
+      "of": 25,
+      "median_abs_ms": 1.25,
+      "median_signed_ms": 1.25,
+      "max_abs_ms": 3.25
+    },
+    "carrier": {
+      "detected": 25,
+      "of": 25,
+      "median_abs_ms": 1.25,
+      "median_signed_ms": 1.25,
+      "max_abs_ms": 2.25
+    },
+    "all_within_10ms": true,
+    "hits": [
+      {
+        "name": "data",
+        "time": 0.0,
+        "frame": 0,
+        "frame_exact": 0.0,
+        "picture_hit": true,
+        "kind": "soft_low",
+        "on_screen": "„8 iulie 2025.”",
+        "mix_onset_error_ms": 0.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 0.25,
+        "carrier_jump_db": 160.0,
+        "mix_jump_db": 164.8,
+        "within_10ms": true
+      },
+      {
+        "name": "vijelie",
+        "time": 1.0,
+        "frame": 30,
+        "frame_exact": 30.0,
+        "picture_hit": true,
+        "kind": "storm",
+        "on_screen": "„Vijelie în Banat.” (norul de furtună 3D intră)",
+        "mix_onset_error_ms": 0.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 20.2,
+        "mix_jump_db": 25.5,
+        "within_10ms": true
+      },
+      {
+        "name": "fara_curent",
+        "time": 2.0,
+        "frame": 60,
+        "frame_exact": 60.0,
+        "picture_hit": true,
+        "kind": "heavy",
+        "on_screen": "„Zeci de mii de case fără curent.” (apoi pad întunecat până la 4,0)",
+        "mix_onset_error_ms": 0.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 2.25,
+        "carrier_jump_db": 9.1,
+        "mix_jump_db": 11.2,
+        "within_10ms": true
+      },
+      {
+        "name": "echipele",
+        "time": 4.0,
+        "frame": 120,
+        "frame_exact": 120.0,
+        "picture_hit": true,
+        "kind": "pulse",
+        "on_screen": "„Mâine dimineață pleacă echipele.” (casca intră)",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 2.25,
+        "carrier_jump_db": 52.7,
+        "mix_jump_db": 9.5,
+        "within_10ms": true
+      },
+      {
+        "name": "dar_unde",
+        "time": 6.0,
+        "frame": 180,
+        "frame_exact": 180.0,
+        "picture_hit": true,
+        "kind": "sus",
+        "on_screen": "„Dar unde?” (totul tace, rămâne un acord suspendat)",
+        "mix_onset_error_ms": 2.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 2.25,
+        "carrier_jump_db": 64.0,
+        "mix_jump_db": -5.6,
+        "within_10ms": true
+      },
+      {
+        "name": "pickup",
+        "time": 7.75,
+        "frame": 232,
+        "frame_exact": 232.5,
+        "picture_hit": false,
+        "kind": "pickup",
+        "on_screen": "două lovituri mici de snare spre 8,0",
+        "mix_onset_error_ms": 0.25,
+        "carrier_stem": "drums",
+        "carrier_onset_error_ms": 0.25,
+        "carrier_jump_db": 148.9,
+        "mix_jump_db": 16.9,
+        "within_10ms": true
+      },
+      {
+        "name": "stalpi",
+        "time": 8.0,
+        "frame": 240,
+        "frame_exact": 240.0,
+        "picture_hit": true,
+        "kind": "step",
+        "on_screen": "„Stâlpi căzuți.” (stâlpul 3D)",
+        "mix_onset_error_ms": 0.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 35.5,
+        "mix_jump_db": 31.5,
+        "within_10ms": true
+      },
+      {
+        "name": "curent_furat",
+        "time": 9.0,
+        "frame": 270,
+        "frame_exact": 270.0,
+        "picture_hit": true,
+        "kind": "step",
+        "on_screen": "„Curent furat.” (al doilea obiect 3D)",
+        "mix_onset_error_ms": 0.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 39.6,
+        "mix_jump_db": 14.0,
+        "within_10ms": true
+      },
+      {
+        "name": "prea_mult_soare",
+        "time": 10.0,
+        "frame": 300,
+        "frame_exact": 300.0,
+        "picture_hit": true,
+        "kind": "step",
+        "on_screen": "„Prea mult soare.” (panoul solar)",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 41.3,
+        "mix_jump_db": 14.0,
+        "within_10ms": true
+      },
+      {
+        "name": "riser",
+        "time": 11.0,
+        "frame": 330,
+        "frame_exact": 330.0,
+        "picture_hit": true,
+        "kind": "build",
+        "on_screen": "riser și rafală de snare spre 12,0",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "drums",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 52.1,
+        "mix_jump_db": 11.1,
+        "within_10ms": true
+      },
+      {
+        "name": "tura_de_maine",
+        "time": 12.0,
+        "frame": 360,
+        "frame_exact": 360.0,
+        "picture_hit": true,
+        "kind": "lift",
+        "on_screen": "„Tura de mâine face planul.” (soarele logoului răsare)",
+        "mix_onset_error_ms": 2.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 72.3,
+        "mix_jump_db": 13.4,
+        "within_10ms": true
+      },
+      {
+        "name": "consola",
+        "time": 15.0,
+        "frame": 450,
+        "frame_exact": 450.0,
+        "picture_hit": true,
+        "kind": "accent",
+        "on_screen": "consola apare",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 103.3,
+        "mix_jump_db": 10.7,
+        "within_10ms": true
+      },
+      {
+        "name": "ruleaza",
+        "time": 16.0,
+        "frame": 480,
+        "frame_exact": 480.0,
+        "picture_hit": true,
+        "kind": "press",
+        "on_screen": "CLIC pe „Rulează agentul”",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 35.2,
+        "mix_jump_db": 8.4,
+        "within_10ms": true
+      },
+      {
+        "name": "traseu_1",
+        "time": 16.5,
+        "frame": 495,
+        "frame_exact": 495.0,
+        "picture_hit": true,
+        "kind": "note",
+        "on_screen": "traseele echipelor se desenează (1/4)",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "lead",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 156.9,
+        "mix_jump_db": 10.2,
+        "within_10ms": true
+      },
+      {
+        "name": "traseu_2",
+        "time": 17.0,
+        "frame": 510,
+        "frame_exact": 510.0,
+        "picture_hit": true,
+        "kind": "note",
+        "on_screen": "traseele (2/4)",
+        "mix_onset_error_ms": 2.25,
+        "carrier_stem": "lead",
+        "carrier_onset_error_ms": 2.25,
+        "carrier_jump_db": 14.5,
+        "mix_jump_db": 8.6,
+        "within_10ms": true
+      },
+      {
+        "name": "traseu_3",
+        "time": 17.5,
+        "frame": 525,
+        "frame_exact": 525.0,
+        "picture_hit": true,
+        "kind": "note",
+        "on_screen": "traseele (3/4)",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "lead",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 16.7,
+        "mix_jump_db": 10.2,
+        "within_10ms": true
+      },
+      {
+        "name": "fiecare_echipa",
+        "time": 18.0,
+        "frame": 540,
+        "frame_exact": 540.0,
+        "picture_hit": true,
+        "kind": "accent_note",
+        "on_screen": "„Fiecare echipă știe unde merge.” (4/4)",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "lead",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 19.0,
+        "mix_jump_db": 10.8,
+        "within_10ms": true
+      },
+      {
+        "name": "umplutura",
+        "time": 22.0,
+        "frame": 660,
+        "frame_exact": 660.0,
+        "picture_hit": true,
+        "kind": "fill",
+        "on_screen": "umplutură ușoară spre 23,0",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "drums",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 34.4,
+        "mix_jump_db": 8.8,
+        "within_10ms": true
+      },
+      {
+        "name": "dispecerul",
+        "time": 23.0,
+        "frame": 690,
+        "frame_exact": 690.0,
+        "picture_hit": true,
+        "kind": "soft",
+        "on_screen": "„Când nu e sigur, întreabă dispecerul.” (tobele ies)",
+        "mix_onset_error_ms": 3.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 158.9,
+        "mix_jump_db": 4.6,
+        "within_10ms": true
+      },
+      {
+        "name": "cardul",
+        "time": 25.0,
+        "frame": 750,
+        "frame_exact": 750.0,
+        "picture_hit": true,
+        "kind": "card",
+        "on_screen": "cardul real apare",
+        "mix_onset_error_ms": 2.25,
+        "carrier_stem": "lead",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 153.5,
+        "mix_jump_db": 4.6,
+        "within_10ms": true
+      },
+      {
+        "name": "aproba",
+        "time": 26.0,
+        "frame": 780,
+        "frame_exact": 780.0,
+        "picture_hit": true,
+        "kind": "press_big",
+        "on_screen": "CLIC pe „Aprobă” (tobele revin)",
+        "mix_onset_error_ms": 0.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 83.4,
+        "mix_jump_db": 15.4,
+        "within_10ms": true
+      },
+      {
+        "name": "build",
+        "time": 27.0,
+        "frame": 810,
+        "frame_exact": 810.0,
+        "picture_hit": true,
+        "kind": "build",
+        "on_screen": "build: rafală de snare și riser spre 29,0",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "drums",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 39.8,
+        "mix_jump_db": 8.3,
+        "within_10ms": true
+      },
+      {
+        "name": "drop",
+        "time": 29.0,
+        "frame": 870,
+        "frame_exact": 870.0,
+        "picture_hit": true,
+        "kind": "drop",
+        "on_screen": "pastila neagră umple ecranul: „Aceleași echipe.”",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 108.4,
+        "mix_jump_db": 13.1,
+        "within_10ms": true
+      },
+      {
+        "name": "castig",
+        "time": 30.0,
+        "frame": 900,
+        "frame_exact": 900.0,
+        "picture_hit": true,
+        "kind": "accent",
+        "on_screen": "„Aproape cu jumătate mai mult câștig.”",
+        "mix_onset_error_ms": 1.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 32.0,
+        "mix_jump_db": 8.3,
+        "within_10ms": true
+      },
+      {
+        "name": "final",
+        "time": 32.0,
+        "frame": 960,
+        "frame_exact": 960.0,
+        "picture_hit": true,
+        "kind": "final",
+        "on_screen": "logoul: soarele răsare peste traseu",
+        "mix_onset_error_ms": 2.25,
+        "carrier_stem": "stabs",
+        "carrier_onset_error_ms": 1.25,
+        "carrier_jump_db": 72.7,
+        "mix_jump_db": 9.8,
+        "within_10ms": true
+      }
+    ]
+  },
+  "onsets_grid": {
+    "mix_16th": {
+      "grid_s": 0.125,
+      "count": 157,
+      "within_10ms": 155,
+      "median_abs_dev_ms": 2.25,
+      "p95_abs_dev_ms": 3.25,
+      "off_grid": [
+        0.8212,
+        8.5152
+      ]
+    },
+    "mix_32nd": {
+      "grid_s": 0.0625,
+      "count": 157,
+      "within_10ms": 156,
+      "median_abs_dev_ms": 2.25,
+      "p95_abs_dev_ms": 3.25,
+      "off_grid": [
+        8.5152
+      ]
+    },
+    "drums_32nd": {
+      "grid_s": 0.0625,
+      "count": 149,
+      "within_10ms": 149,
+      "median_abs_dev_ms": 1.25,
+      "p95_abs_dev_ms": 3.25,
+      "off_grid": []
+    }
+  },
+  "determinism": {
+    "renders": 2,
+    "identical": true,
+    "files": {
+      "tura_v3_36s.wav": true,
+      "cues_v3.json": true,
+      "stems_v3/drums.wav": true,
+      "stems_v3/bass.wav": true,
+      "stems_v3/pad.wav": true,
+      "stems_v3/stabs.wav": true,
+      "stems_v3/lead.wav": true,
+      "stems_v3/fx.wav": true,
+      "tura_v3_36s.m4a": true
+    },
+    "sha256": {
+      "tura_v3_36s.wav": "bb27ef612b98bf2e065e3c35a1f3d1720a8362b68a41bfb66fc1c9a5f684d41f",
+      "cues_v3.json": "c8fbb66b62fefaf1baef1b9e66c4bb1c3c17a506c9fe9de25f543ef9b8c46de5",
+      "stems_v3/drums.wav": "9ce30ace94049f994ab558bc4bd1590afce5407f248b6adf9b9931bc320633c5",
+      "stems_v3/bass.wav": "4e6889e1152eb188155a0a8c3193b5aae2894a101ead94511a6940ddf87ef760",
+      "stems_v3/pad.wav": "62a366053c0a36c9f57a0ba5da41a59b9277769de711a996eadb218cc112a4a0",
+      "stems_v3/stabs.wav": "bfd57b4e43308bd7f04318e1f8663d56299e5c12bded7a103ca8d1d89d2321f7",
+      "stems_v3/lead.wav": "edbf3f8bc98a656bf1f3241a085b0437878502660549af9c371f80c2945cd151",
+      "stems_v3/fx.wav": "d360b994c30de035cb71a98e1df9a368d73f82939ed2dd9dfad4714f82940cff",
+      "tura_v3_36s.m4a": "2c52e846134c9659b227889601fde2d5d5f360ca8cb94783016b3a4fd6103972"
+    }
+  },
+  "plot_axes": {
+    "width_px": 2340,
+    "height_px": 806,
+    "x0": 0.032110636277302956,
+    "x1": 0.9634140550807219,
+    "y0": 0.05748552522746064,
+    "y1": 0.9122712603606631,
+    "t0": 0.0,
+    "t1": 36.0
+  },
+  "checks": {
+    "loudness_-16_lufs_pm_0.5": {
+      "value": -16.0,
+      "pass": true
+    },
+    "true_peak_max_-1.0_dbtp": {
+      "value": -1.3,
+      "pass": true
+    },
+    "no_clipping": {
+      "value": 0,
+      "pass": true
+    },
+    "mono_below_120hz": {
+      "value_db_side_vs_mid": -35.7,
+      "pass": true
+    },
+    "no_harsh_2k_6k_peaks": {
+      "max_local_bump_db": {
+        "third_octave_groove": 0.88,
+        "third_octave_drop": 1.43,
+        "third_octave_whole": 0.96
+      },
+      "limit_db": 3.0,
+      "pass": true
+    },
+    "hits_within_10ms": {
+      "mix_max_abs_ms": 3.25,
+      "carrier_max_abs_ms": 2.25,
+      "detected": "25/25",
+      "pass": true
+    },
+    "air_6_0_to_7_75_at_least_15db_below_hook_hits": {
+      "min_gap_db": 17.1,
+      "pass": true
+    },
+    "duration_exactly_36_000s": {
+      "samples": 1728000,
+      "pass": true
+    },
+    "digital_silence_from_35_9": {
+      "pass": true
+    },
+    "stems_sum_to_mix": {
+      "max_diff_lsb": 0.0,
+      "pass": true
+    },
+    "two_renders_byte_identical": {
+      "files": 9,
+      "pass": true
+    },
+    "all_pass": true,
+    "listening_copy_exactly_36s": {
+      "pass": true
+    }
+  },
+  "listening_copy": {
+    "file": "tura_v3_36s_asculta.mp4",
+    "format_duration_s": 36.0,
+    "video": {
+      "codec_name": "h264",
+      "codec_type": "video",
+      "width": 1920,
+      "height": 662,
+      "r_frame_rate": "30/1",
+      "duration": "36.000000",
+      "nb_frames": "1080"
+    },
+    "audio": {
+      "codec_name": "aac",
+      "codec_type": "audio",
+      "sample_rate": "48000",
+      "r_frame_rate": "0/0",
+      "duration": "36.000000",
+      "nb_frames": "1689"
+    },
+    "exact_36s": true
+  }
+}

@@ -7,6 +7,7 @@ video/boards/.posed.html
 music/out/*.wav
 music/out/stems/
 music/out/stems_120/
+music/out/stems_v3/
 
 # Originalele PNG ale imaginilor generate (în git intră variantele JPEG din video/assets/img/)
 assets/gen/*.png
@@ -18,3 +19,4 @@ assets/gen3d/*.png
 # Folderele de lucru ale agenților 3D (Blender, cadre, arhive): rămân locale; în video intră doar foile alese, în video/assets/3d/
 assets/3d-astra/
 assets/3d-sol/
+music/out/*_asculta.mp4
