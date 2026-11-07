@@ -1,7 +1,7 @@
 # Status: Teo-ui
-Actualizat: 2026-11-07 18:47
+Actualizat: 2026-11-07 18:50
 Milestone curent: trecerea de simplificare cerută de Teo (până la 22:00), după M4; înghețarea de la 20:00 nu se aplică acestei treceri
-Gata de merge: da (commit 4dfe4ca: reparațiile din QA-ul de la 17:55, primul ecran simplu ales de Teo, navigarea cu trei intrări, De decis / lucrarea / postul cu verdictul întâi, /demo cu subtitrarea pe banda ei, review-ul final reparat, capturile noi)
+Gata de merge: da (commit 9483c87: reparațiile din QA-ul de la 17:55, primul ecran simplu ales de Teo, navigarea cu trei intrări, De decis / lucrarea / postul cu verdictul întâi, /demo cu subtitrarea pe banda ei, review-ul final reparat, capturile noi)
 
 ## Făcut
 - 12:45 Citite instrucțiunile, memoria, planul, contractele; `uv sync` și `make check` trec.
@@ -55,6 +55,7 @@ Gata de merge: da (commit 4dfe4ca: reparațiile din QA-ul de la 17:55, primul ec
   - De decis, lucrarea și postul: verdictul într-o frază, apoi graficul; tot ce e tehnic (factori, regula, pragurile, scara de soluții, ID-urile modelului) în secțiuni care se deschid la cerere;
   - numere omenești („circa 5.000 de lei”, „încredere mică”), două greutăți de font, mai mult spațiu, o singură culoare de accent pentru acțiunea principală.
 - 18:40 `/demo`: scenele 1 și 2 pe noul prim ecran, în tema închisă; scenele 3–5 pe harta mare; subtitrarea scenei pe o bandă opacă a ei, nu peste hartă.
+- 18:50 Posturi, simplificat la fel: o frază („22 de posturi pierd mult: peste 600 de lei pe lună.”), lista cu cele mai mari pierderi, în lei rotunjiți, tabelul complet cu cifrele exacte la cerere.
 - 18:45 Review `web-design-guidelines` pe ecranele noi (0 grave, 8 medii, toate reparate), testul de fum 15/15 (cu `/harta`), 50 de teste, consola fără erori; capturile noi pentru slideuri (15) în `web/design/captures/`.
 
 ## Urmează
