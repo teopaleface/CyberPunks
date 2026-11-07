@@ -1,5 +1,5 @@
 {
-  "version": "c-lgbm@448c933",
+  "version": "c-lgbm@0280870",
   "cqr_margin": 0.004856574972628074,
   "cqr_margin_hourly": 0.0037406841767344133,
   "rows_daily": 671520,
@@ -8,5 +8,5 @@
   "excluded_dates": [
     "2025-07-08"
   ],
-  "seconds": 164.7
+  "seconds": 195.5
 }

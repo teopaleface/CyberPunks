@@ -279,7 +279,10 @@ if __name__ == "__main__":
         det = summarize(pd.read_parquet(T.DATA_PROCESSED / "C" / "eval_predictions.parquet"), old_det.get("seconds", 0.0))
         det.update({k: old_det[k] for k in ("hourly", "speed") if k in old_det})
     else:
+        old_path = OUT / "metrics_detail.json"
+        keep = json.loads(old_path.read_text()) if old_path.exists() else {}
         det = evaluate(oof_frac=a.oof_frac, monotone=not a.no_monotone)
+        det.update({k: keep[k] for k in ("hourly",) if k in keep})  # modelul orar nu se reantrenează aici
     if a.hourly:
         det["hourly"] = hourly_eval()
     spd = det.get("speed")
