@@ -50,13 +50,13 @@ export function HowItWorks({ city }: { city: CityMapData | null }) {
           </h2>
         </div>
 
-        <Scrolly className="city mt-16 grid gap-10 sm:mt-24 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
-          <div className="relative z-10 lg:order-none">
+        <Scrolly className="mt-16 grid gap-10 sm:mt-24 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
+          <div className="relative z-0">
             {steps.map((s, i) => (
               <article
                 key={s.name}
                 data-scrolly-step={i + 1}
-                className="city-step flex min-h-[46vh] flex-col justify-center py-10 lg:min-h-[78vh]"
+                className="city-step flex min-h-[62vh] flex-col justify-start pt-8 pb-10 lg:min-h-[78vh] lg:justify-center lg:py-10"
               >
                 <h3 className="t-title text-ink">
                   <span className="num mr-3 text-ink-3">{i + 1}</span>
@@ -74,7 +74,7 @@ export function HowItWorks({ city }: { city: CityMapData | null }) {
             ))}
           </div>
 
-          <div className="max-lg:order-first max-lg:sticky max-lg:top-[60px] max-lg:z-0">
+          <div className="max-lg:sticky max-lg:top-[52px] max-lg:z-20 max-lg:order-first max-lg:-mx-5 max-lg:bg-night max-lg:px-5 max-lg:pt-3 max-lg:pb-2 max-sm:[&_figcaption]:hidden">
             <div className="lg:sticky lg:top-[calc(52px+8vh)]">
               <CityFigure city={city} />
             </div>

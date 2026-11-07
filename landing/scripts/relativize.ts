@@ -20,7 +20,7 @@ function walk(dir: string): string[] {
 let changed = 0;
 for (const file of walk(OUT)) {
   const ext = path.extname(file);
-  if (![".html", ".css", ".txt"].includes(ext)) continue;
+  if (ext !== ".html" && ext !== ".css") continue;
   const before = readFileSync(file, "utf8");
   let after = before;
   if (ext === ".css") {
@@ -28,8 +28,9 @@ for (const file of walk(OUT)) {
     after = after.replaceAll("/_next/", `${rel}/`);
   } else {
     const rel = path.relative(path.dirname(file), OUT).split(path.sep).join("/") || ".";
-    // atribute HTML, url() din <style> inline și căile din payload-ul RSC
-    after = after.replace(/(["'(\s=])\/_next\//g, `$1${rel}/_next/`);
+    // doar atributele src/href și url() din <style>; datele interne ale paginii (self.__next_f) rămân
+    // neatinse: rescrise, opresc hidratarea. Interacțiunile merg oricum prin scriptul inline (enhance.tsx).
+    after = after.replace(/(\s(?:src|href)=")\/_next\//g, `$1${rel}/_next/`).replace(/url\(\/_next\//g, `url(${rel}/_next/`);
   }
   if (after !== before) {
     writeFileSync(file, after);
