@@ -174,6 +174,28 @@ function labelHtml(item: MapItem): string {
   return `<div class="lab"><span class="t">${esc(item.title)}</span>${sub}</div>`;
 }
 
+/** Markerul DOM al unei lucrări: buton cu nume, accesibil din tastatură. */
+function markerElement(item: MapItem, selected: boolean, onSelect: (id: string) => void): HTMLDivElement {
+  const el = document.createElement("div");
+  el.className = "mk item";
+  el.dataset.pinned = item.pinned ? "1" : "0";
+  el.setAttribute("role", "button");
+  el.setAttribute("tabindex", "0");
+  el.setAttribute("aria-label", `${item.title}${item.sub ? `, ${item.sub}` : ""}`); // atributul nu interpretează HTML
+  el.innerHTML = markerSvg({ source: item.source, kind: item.kind, selected }) + labelHtml(item);
+  el.addEventListener("click", (e) => {
+    e.stopPropagation();
+    onSelect(item.id);
+  });
+  el.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onSelect(item.id);
+    }
+  });
+  return el;
+}
+
 export interface MapPadding {
   top: number;
   bottom: number;
@@ -404,23 +426,7 @@ export function PlanMap({
       const sel = latest.current.selectedId;
       for (const item of items) {
         if (!item.prominent && item.id !== sel) continue;
-        const el = document.createElement("div");
-        el.className = "mk item";
-        el.dataset.pinned = item.pinned ? "1" : "0";
-        el.setAttribute("role", "button");
-        el.setAttribute("tabindex", "0");
-        el.setAttribute("aria-label", `${item.title}${item.sub ? `, ${item.sub}` : ""}`); // atributul nu interpretează HTML
-        el.innerHTML = markerSvg({ source: item.source, kind: item.kind, selected: item.id === latest.current.selectedId }) + labelHtml(item);
-        el.addEventListener("click", (e) => {
-          e.stopPropagation();
-          onSelectRef.current(item.id);
-        });
-        el.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onSelectRef.current(item.id);
-          }
-        });
+        const el = markerElement(item, item.id === sel, (id) => onSelectRef.current(id));
         const marker = new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([item.lon, item.lat]).addTo(map);
         markersRef.current.set(item.id, { marker, el, item });
       }
@@ -447,11 +453,8 @@ export function PlanMap({
       (async () => {
         const maplibregl = await import("maplibre-gl");
         if (cancelled) return;
-        const el = document.createElement("div");
-        el.className = "mk item";
-        el.dataset.pinned = "0";
+        const el = markerElement({ ...selItem, pinned: false }, true, (id) => onSelectRef.current(id));
         el.dataset.selected = "1";
-        el.innerHTML = markerSvg({ source: selItem.source, kind: selItem.kind, selected: true }) + labelHtml(selItem);
         el.style.zIndex = "5";
         const marker = new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([selItem.lon, selItem.lat]).addTo(map);
         markersRef.current.set(selItem.id, { marker, el, item: selItem });
@@ -498,7 +501,7 @@ export function PlanMap({
     <div className={className}>
       <div ref={containerRef} className="plan-map h-full w-full" aria-label="Harta planului" role="region" />
       {failed ? (
-        <div className="absolute inset-0 grid place-items-center bg-canvas/80 p-8 text-center text-[15px]">
+        <div role="alert" className="absolute inset-0 grid place-items-center bg-canvas/80 p-8 text-center text-[15px]">
           <p>
             Harta nu s-a putut încărca (dalele OpenFreeMap nu răspund). Planul e întreg în linia de timp și în lista din
             dreapta.

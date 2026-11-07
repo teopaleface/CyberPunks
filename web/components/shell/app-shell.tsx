@@ -32,9 +32,9 @@ export function AppShell({ info, fit = false, children }: { info: ShellInfo; fit
         <Provenance {...info.provenance} />
         <RunAgentButton scenario={info.scenario} scenarioLabel={scenarioLabel} />
       </header>
-      <div id="continut" className={fit ? "flex min-h-0 flex-1 flex-col" : "flex-1"}>
+      <main id="continut" tabIndex={-1} className={(fit ? "flex min-h-0 flex-1 flex-col" : "flex-1") + " outline-none"}>
         {children}
-      </div>
+      </main>
     </div>
   );
 }

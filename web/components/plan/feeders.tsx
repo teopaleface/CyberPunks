@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Decision, WorkItem } from "@/lib/contracts";
 import type { Crew, Depot, ResolvedRoute } from "@/lib/data/types";
-import { fmtDec, hhmm, hhmmDay, parseHHMM } from "@/lib/format";
+import { fmtDec, fmtInt, hhmm, hhmmDay, parseHHMM } from "@/lib/format";
 import { markerSvg } from "@/lib/marker-svg";
 import { crewTimeline, timelineRange, workItemWindow, type CrewTimeline } from "@/lib/plan-derive";
 import type { QuarantineEntry } from "@/lib/plan-screen";
@@ -161,7 +161,7 @@ export function Feeders({
               width={width}
               height={height}
               viewBox={`0 0 ${width} ${height}`}
-              role="img"
+              role="group"
               aria-label="Linia de timp a echipelor pentru mâine"
               className="block font-sans"
               style={{ marginTop: -(AXIS_H - 8) }}
@@ -231,7 +231,7 @@ export function Feeders({
               <span className="truncate">
                 <b className="font-[620]">Carantină:</b>{" "}
                 {quarantine.length === 1 ? "1 lucrare respinsă la intrare" : `${quarantine.length} lucrări respinse la intrare`},{" "}
-                <span className="code-id">{quarantine[0].id}</span>: {quarantine[0].reason.replace(/^Intrare greșită:\s*/i, "").replace(/\.$/, "")}
+                <span translate="no" className="code-id">{quarantine[0].id}</span>: {quarantine[0].reason.replace(/^Intrare greșită:\s*/i, "").replace(/\.$/, "")}
               </span>
             </span>
           </>
@@ -306,7 +306,7 @@ function CrewRow({
         </text>
       </a>
       <text x={28} y={cy + 15} fontSize={13.5} style={{ fill: "var(--muted-foreground)" }}>
-        {stops === 1 ? "1 oprire" : `${stops} opriri`}, {fmtDec(tl.totalKm, 1)} km, {tl.totalWorkMin} min lucru
+        {stops === 1 ? "1 oprire" : `${stops} opriri`}, {fmtDec(tl.totalKm, 1)} km, {fmtInt(tl.totalWorkMin)} min lucru
       </text>
 
       {/* întrerupătorul închis de la bară până la axa timpului */}

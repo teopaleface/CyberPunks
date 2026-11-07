@@ -8,7 +8,7 @@ import { cn } from "cn";
 import type { WorkItem } from "@/lib/contracts";
 import { DECISION_LABEL_RO } from "@/lib/data/labels";
 import type { PostSummary } from "@/lib/data/types";
-import { fmtDec, fmtInt, hhmm, minutesOfPlanDay } from "@/lib/format";
+import { fmtDec, fmtInt, hhmm, minutesOfPlanDay, plural } from "@/lib/format";
 import { markerKind, markerSvg } from "@/lib/marker-svg";
 import { loadWorkItemDetail } from "@/lib/data/actions";
 import { RE_BOUNDS, isSlim, itemTitle, type PlanScreenData } from "@/lib/plan-screen";
@@ -178,7 +178,7 @@ export function PlanScreen({
     return list.map((p) => {
       const parts: string[] = [];
       if (p.loss_lei_month != null) parts.push(`${fmtInt(p.loss_lei_month)} lei pe lună pierduți${p.derived ? " (estimat din A)" : ""}`);
-      if (p.meters_flagged) parts.push(`${p.meters_flagged} ${p.meters_flagged === 1 ? "contor semnalat" : "contoare semnalate"}`);
+      if (p.meters_flagged) parts.push(plural(p.meters_flagged, "contor semnalat", "contoare semnalate"));
       if (p.voltage_p90_pu != null) parts.push(`tensiune P90 ${fmtDec(p.voltage_p90_pu, 3).replace(/0$/, "")} pu`);
       if (p.diagnosis) parts.push(p.diagnosis);
       return {
@@ -467,7 +467,7 @@ function ModeSwitch({ mode, onChange, posts }: { mode: "items" | "posts"; onChan
   return (
     <div role="group" aria-label="Ce arată harta" className="flex overflow-hidden rounded-[4px] border border-rule bg-panel text-[14px]">
       {btn("items", "Lucrările de mâine")}
-      {btn("posts", `Posturile (${posts})`)}
+      {btn("posts", `Posturile (${fmtInt(posts)})`)}
     </div>
   );
 }

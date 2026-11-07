@@ -88,7 +88,7 @@ async function Alerts({ searchParams }: { searchParams: SearchParams }) {
 
 function AlertsSkeleton() {
   return (
-    <div className="flex min-h-dvh flex-col" aria-busy="true" aria-label="Se încarcă alertele și mesajele">
+    <div role="status" className="flex min-h-dvh flex-col" aria-busy="true" aria-label="Se încarcă alertele și mesajele…">
       <div className="flex h-16 shrink-0 items-center gap-3 border-b border-rule bg-panel px-7">
         <Wordmark />
       </div>

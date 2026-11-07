@@ -182,7 +182,9 @@ export function AlertsPanel({
   return (
     <section aria-label="Alerte" className="border-b border-rule px-7 py-3 [@media(max-height:950px)]:hidden">
       <ul className="space-y-3">
-        {shown.map((a) => (
+        {shown.map((a) => {
+          const outcome = alertOutcomeRo(a.work_item_ids, decisions);
+          return (
           <li key={a.alert_id}>
             <div className="flex items-center gap-2.5">
               <SeverityIcon severity={a.severity} />
@@ -198,11 +200,11 @@ export function AlertsPanel({
                 </button>
               ) : null}
             </div>
-            {alertOutcomeRo(a.work_item_ids, decisions) ? (
+            {outcome ? (
               // numărătoarea din decizii stă în față: textul alertei poate promite mai mult decât face planul
               <p className="mt-0.5 line-clamp-1 pl-[32px] text-[15px]" title={a.body_ro}>
                 <span className="text-muted-foreground">Ce a decis agentul: </span>
-                {alertOutcomeRo(a.work_item_ids, decisions)}
+                {outcome}
               </p>
             ) : (
               <p className="mt-0.5 line-clamp-1 pl-[32px] text-[15px]" title={a.body_ro}>
@@ -210,7 +212,8 @@ export function AlertsPanel({
               </p>
             )}
           </li>
-        ))}
+          );
+        })}
       </ul>
       {sorted.length > shown.length ? (
         <Link href="/alerte" className="mt-1.5 inline-block pl-[32px] text-[14.5px] font-[560] underline decoration-rule underline-offset-4 hover:decoration-ink">
@@ -383,7 +386,7 @@ export function WorkItemPeek({
             <dd>
               {w.explanation.similar_cases.slice(0, 2).map((c) => (
                 <div key={c.case_id}>
-                  <span className="code-id">{c.case_id}</span>, {outcomeRo(c.outcome)}, similaritate {fmtScore(c.similarity)}
+                  <span translate="no" className="code-id">{c.case_id}</span>, {outcomeRo(c.outcome)}, similaritate {fmtScore(c.similarity)}
                 </div>
               ))}
             </dd>
@@ -395,7 +398,7 @@ export function WorkItemPeek({
             <dt>Regula</dt>
             <dd>
               <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1">
-                <span className="code-id">{decision.rule_id}</span>
+                <span translate="no" className="code-id">{decision.rule_id}</span>
                 {ruleText ? <span className="text-muted-foreground">{ruleText}</span> : null}
               </div>
               {cost ? (

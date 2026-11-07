@@ -1,19 +1,22 @@
 "use client";
 
+import { useId } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { PROVENANCE_SHORT_RO, SOURCE_LABEL_RO } from "@/lib/data/labels";
 import type { DataSource } from "@/lib/data/types";
 
 /** Pătratul hașurat: semnul „date sintetice”, același în toată consola. */
 export function SyntheticGlyph({ size = 16 }: { size?: number }) {
+  // un id propriu pe fiecare semn: cu un id comun, un semn ascuns (display: none) lua hașura tuturor
+  const id = `syn-hatch-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true" className="shrink-0">
       <defs>
-        <pattern id="syn-hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <pattern id={id} width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
           <rect width="1.6" height="4" fill="currentColor" />
         </pattern>
       </defs>
-      <rect x=".5" y=".5" width="15" height="15" fill="url(#syn-hatch)" stroke="currentColor" />
+      <rect x=".5" y=".5" width="15" height="15" fill={`url(#${id})`} stroke="currentColor" />
     </svg>
   );
 }

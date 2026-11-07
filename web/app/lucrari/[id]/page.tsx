@@ -24,7 +24,7 @@ import { auditActionRo, clampPercentRo, factorLabelRo,
   thresholdValueRo,
 } from "@/lib/data/labels";
 import { BILANT_LABEL, bilantFusion, isBilantPost, remedyOptions } from "@/lib/extras";
-import { fmtDec, fmtDuration, fmtInt, fmtLei, fmtMoment, fmtPercent, fmtScore, fmtTime, sentence } from "@/lib/format";
+import { fmtDayMonth, fmtDec, fmtDuration, fmtInt, fmtLei, fmtMoment, fmtPercent, fmtScore, fmtTime, isWholeDay, plural, sentence } from "@/lib/format";
 import { markerKind, markerSvg } from "@/lib/marker-svg";
 import { itemPlace, itemTitle } from "@/lib/plan-screen";
 import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
@@ -40,7 +40,9 @@ function safeDecode(value: string): string {
 
 export default function WorkItemPage({ params, searchParams }: PageProps<"/lucrari/[id]">) {
   return (
-    <Suspense fallback={<div className="min-h-dvh bg-canvas" aria-busy="true" aria-label="Se încarcă lucrarea" />}>
+    <Suspense fallback={<div role="status" className="min-h-dvh bg-canvas" aria-busy="true">
+        <span className="sr-only">Se încarcă lucrarea…</span>
+      </div>}>
       <Detail params={params} searchParams={searchParams} />
     </Suspense>
   );
@@ -153,7 +155,7 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
                     <SeriesLegend source={series.data.source} bilant={isBilantSeries(series.data)} series={series.data} />
                     {series.data.annotations?.length ? (
                       <span className="text-[14px] text-muted-foreground">
-                        {series.data.annotations.map((a) => `${String(a.t).length > 10 ? fmtTime(String(a.t)) : String(a.t).slice(8, 10) + "." + String(a.t).slice(5, 7)}: ${clampPercentRo(a.label_ro)}`).join("; ")}
+                        {series.data.annotations.map((a) => `${isWholeDay(String(a.t)) ? fmtDayMonth(String(a.t)) : fmtTime(String(a.t))}: ${clampPercentRo(a.label_ro)}`).join("; ")}
                       </span>
                     ) : null}
                   </div>
@@ -182,7 +184,7 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
               <ul className="mt-3 divide-y divide-rule border-y border-rule">
                 {w.explanation.similar_cases.map((c) => (
                   <li key={c.case_id} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_160px] items-center gap-4 py-2.5 text-[15px]">
-                    <span className="code-id">{c.case_id}</span>
+                    <span translate="no" className="code-id">{c.case_id}</span>
                     <span>
                       {outcomeRo(c.outcome)}
                       {c.note_ro ? <span className="block text-[14px] text-muted-foreground">{c.note_ro}</span> : null}
@@ -385,7 +387,7 @@ function DecisionBlock({ w, decision }: { w: WorkItem; decision: Decision | null
       </h2>
       <p className="mt-1.5 text-[16.5px] leading-relaxed">{decision.reason_ro.charAt(0).toLocaleUpperCase("ro-RO") + decision.reason_ro.slice(1)}</p>
       <div className="mt-3 flex flex-wrap items-baseline gap-x-3">
-        <span className="code-id text-[16px]">{decision.rule_id}</span>
+        <span translate="no" className="code-id text-[16px]">{decision.rule_id}</span>
         <span className="text-[15px] text-muted-foreground">
           {[rule, decision.rank ? `locul ${decision.rank} în prioritate` : null].filter(Boolean).join(", ")}
         </span>
@@ -421,13 +423,14 @@ function DecisionBlock({ w, decision }: { w: WorkItem; decision: Decision | null
         <dd>{ACTION_RO[w.recommended_action]}</dd>
         <dt>Efort</dt>
         <dd>
-          {fmtDuration(w.effort.duration_min)}, {w.effort.crew_size} oameni, {SKILL_RO[w.effort.crew_skill]}
+          {fmtDuration(w.effort.duration_min)}
+          {w.effort.crew_size != null ? `, ${plural(w.effort.crew_size, "om", "oameni")}` : ""}, {SKILL_RO[w.effort.crew_skill]}
           {w.effort.requires_planned_outage ? ", cere întrerupere planificată" : ""}
         </dd>
         <dt>Clienți afectați</dt>
         <dd>{fmtInt(w.impact.customers_affected ?? 0)}</dd>
         <dt>Urgență</dt>
-        <dd>în {fmtInt(w.impact.urgency_hours)} ore{w.impact.safety_flag ? ", cu risc pentru oameni" : ""}</dd>
+        <dd>în {plural(Math.round(w.impact.urgency_hours), "oră", "ore")}{w.impact.safety_flag ? ", cu risc pentru oameni" : ""}</dd>
       </dl>
     </section>
   );

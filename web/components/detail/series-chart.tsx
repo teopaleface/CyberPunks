@@ -13,7 +13,7 @@ import {
   YAxis,
 } from "recharts";
 import type { Series, WorkItem } from "@/lib/contracts";
-import { fmtDec, fmtInt, fmtScore, fmtTime, hhmm, minutesOfDay } from "@/lib/format";
+import { fmtDayMonth, fmtDec, fmtInt, fmtScore, fmtTime, hhmm, isWholeDay, minutesOfDay } from "@/lib/format";
 import { clampPercentRo, factorLabelRo } from "@/lib/data/labels";
 import { bilantRows, isBilantSeries, seriesTimeMs, type BilantRow } from "@/lib/series-utils";
 
@@ -35,8 +35,7 @@ function isDay(t: string) {
 }
 
 function dayLabel(t: string) {
-  const [, m, d] = t.slice(0, 10).split("-");
-  return `${Number(d)}.${m}`;
+  return fmtDayMonth(t);
 }
 
 function TooltipBox({ title, rows }: { title: string; rows: [string, string][] }) {
@@ -311,11 +310,47 @@ function BilantChart({ series }: { series: Series }) {
   );
 }
 
+/** Ce arată graficul, în cuvinte: numele accesibil al graficului (datele detaliate sunt în tooltip). */
+export function chartSummaryRo(series: Series): string {
+  const pts = series.points;
+  const first = pts[0] ? String(pts[0].t) : "";
+  const last = pts.length ? String(pts[pts.length - 1].t) : "";
+  const when = (t: string) => (isWholeDay(t) ? fmtDayMonth(t) : fmtTime(t));
+  const span = first && last ? `, de la ${when(first)} la ${when(last)}` : "";
+  const title = series.title_ro.replace(/\.$/, "");
+  if (isBilantSeries(series)) {
+    const over = pts.filter((p) => p.value != null && p.high != null && p.value > p.high).length;
+    const under = pts.filter((p) => p.value != null && p.low != null && p.value < p.low).length;
+    const negative = pts.some((p) => (p.value ?? 0) < 0 || (p.expected ?? 0) < 0);
+    return `${title}${span}. Lipsă peste normal în ${over} din ${pts.length} zile${under ? `, surplus sub normal în ${under}` : ""}.${negative ? " Sub zero sunt zilele în care panourile clienților au dat energie înapoi în rețea, prin post." : ""}`;
+  }
+  if (series.source === "A") {
+    const zero = pts.filter((p) => p.flag === "zero").length;
+    return `${title}${span}. ${zero ? `${zero} zile cu consum zero.` : "Fără zile cu consum zero."}`;
+  }
+  if (series.source === "C") {
+    const top = Math.max(...pts.map((p) => p.high ?? p.value ?? Number.NEGATIVE_INFINITY));
+    const limit = series.thresholds?.limita_tensiune_pu ?? 1.1;
+    return `${title}${span}. ${Number.isFinite(top) ? `Maximul P90 ${fmtDec(top, 3)} pu, limita ${fmtDec(limit, 2)} pu.` : ""}`;
+  }
+  return `${title}${span}.`;
+}
+
 export function SeriesChart({ series, workItem }: { series: Series; workItem: WorkItem }) {
-  if (isBilantSeries(series)) return <BilantChart series={series} />;
-  if (series.source === "A") return <ConsumptionChart series={series} />;
-  if (series.source === "B") return <StormCharts series={series} w={workItem} />;
-  return <VoltageChart series={series} />;
+  const chart = isBilantSeries(series) ? (
+    <BilantChart series={series} />
+  ) : series.source === "A" ? (
+    <ConsumptionChart series={series} />
+  ) : series.source === "B" ? (
+    <StormCharts series={series} w={workItem} />
+  ) : (
+    <VoltageChart series={series} />
+  );
+  return (
+    <div role="img" aria-label={chartSummaryRo(series)}>
+      {chart}
+    </div>
+  );
 }
 
 /** Legenda graficului, cu semnele folosite (identitatea nu stă doar în culoare). */

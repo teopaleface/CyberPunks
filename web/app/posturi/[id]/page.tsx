@@ -27,7 +27,9 @@ function safeDecode(value: string): string {
 
 export default function PostPage({ params, searchParams }: PageProps<"/posturi/[id]">) {
   return (
-    <Suspense fallback={<div className="min-h-dvh bg-canvas" aria-busy="true" aria-label="Se încarcă postul" />}>
+    <Suspense fallback={<div role="status" className="min-h-dvh bg-canvas" aria-busy="true">
+        <span className="sr-only">Se încarcă postul…</span>
+      </div>}>
       <Post params={params} searchParams={searchParams} />
     </Suspense>
   );
@@ -94,7 +96,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
           <span className="h-6 w-px bg-rule" aria-hidden="true" />
           <span className="size-7 shrink-0 rounded-full border-2 border-panel" style={{ background: status.color }} aria-hidden="true" />
           <div className="min-w-0">
-            <h1 className="code-id text-[24px] leading-tight">
+            <h1 translate="no" className="code-id text-[24px] leading-tight">
               Postul de transformare <span translate="no">{post.post_id}</span>
             </h1>
             <p className="text-[15.5px] text-muted-foreground">
@@ -166,7 +168,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
                 </ul>
                 {bilantDecision ? (
                   <p className="mt-3 text-[15px]">
-                    <span className="code-id">{bilantDecision.rule_id}</span>{" "}
+                    <span translate="no" className="code-id">{bilantDecision.rule_id}</span>{" "}
                     <span className="text-muted-foreground">{ruleRo(bilantDecision.rule_id) ?? ""}</span>: {bilantDecision.reason_ro}
                   </p>
                 ) : null}
@@ -192,7 +194,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
                   return (
                     <li key={w.work_item_id} className="grid grid-cols-[36px_minmax(0,1.2fr)_minmax(0,1fr)_110px_minmax(0,1fr)] items-center gap-x-4 py-2.5 text-[15px]">
                       <span className="block size-9" dangerouslySetInnerHTML={{ __html: markerSvg({ source: "A", kind: markerKind(d?.decision) }) }} />
-                      <Link href={`/lucrari/${encodeURIComponent(w.work_item_id)}`} className="code-id underline decoration-rule underline-offset-4 hover:decoration-ink">
+                      <Link href={`/lucrari/${encodeURIComponent(w.work_item_id)}`} translate="no" className="code-id underline decoration-rule underline-offset-4 hover:decoration-ink">
                         {w.asset_id}
                       </Link>
                       <span className="text-muted-foreground">{predictionLabelRo(w.prediction.label)}</span>
@@ -247,7 +249,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
               <dd>{post.voltage_p90_pu != null ? `${fmtDec(post.voltage_p90_pu, 3).replace(/0$/, "")} pu (limita 1,10)` : "–"}</dd>
               <dt>Culoarea pe hartă</dt>
               <dd>
-                {status.label}; praguri de afișare: {posts.thresholds.yellow} și {posts.thresholds.red} lei pe lună
+                {status.label}; praguri de afișare: {fmtInt(posts.thresholds.yellow)} și {fmtInt(posts.thresholds.red)} lei pe lună
               </dd>
             </dl>
           </section>
@@ -260,7 +262,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
               <p className="mt-1.5 text-[15.5px]">{clampPercentRo(cItem.explanation.summary_ro)}</p>
               {cDecision ? (
                 <p className="mt-2 text-[15px]">
-                  Decizia: <b className="font-[600]">{DECISION_LABEL_RO[cDecision.decision]}</b>, <span className="code-id">{cDecision.rule_id}</span>.
+                  Decizia: <b className="font-[600]">{DECISION_LABEL_RO[cDecision.decision]}</b>, <span translate="no" className="code-id">{cDecision.rule_id}</span>.
                 </p>
               ) : null}
               {cSeries?.data ? (

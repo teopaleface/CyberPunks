@@ -11,7 +11,9 @@ export const metadata: Metadata = { title: "Prezentare" };
 
 export default function DemoPage({ searchParams }: PageProps<"/demo">) {
   return (
-    <Suspense fallback={<div className="dark h-dvh bg-canvas" aria-busy="true" />}>
+    <Suspense fallback={<div role="status" className="dark h-dvh bg-canvas" aria-busy="true">
+        <span className="sr-only">Se încarcă prezentarea…</span>
+      </div>}>
       <Demo searchParams={searchParams} />
     </Suspense>
   );

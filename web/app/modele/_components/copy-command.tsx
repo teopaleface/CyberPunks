@@ -34,17 +34,21 @@ export function CopyCommand({ cmd, label = "Copiază comanda" }: { cmd: string; 
 
   return (
     <div className="flex min-w-0 items-stretch rounded-[4px] border border-rule bg-panel">
-      <code ref={codeRef} className="dense min-w-0 flex-1 px-3 py-2 text-[14px] leading-6 break-words whitespace-pre-wrap">
+      <code ref={codeRef} translate="no" className="dense min-w-0 flex-1 px-3 py-2 text-[14px] leading-6 break-words whitespace-pre-wrap">
         {cmd}
       </code>
       <button
         type="button"
         onClick={copy}
         className="shrink-0 border-l border-rule px-3 text-[14px] font-[560] whitespace-nowrap transition-colors duration-150 hover:bg-muted focus-visible:outline-2 focus-visible:outline-ink"
-        aria-label={`${label}: ${cmd}`}
+        aria-label={label}
       >
-        <span aria-live="polite">{state === "done" ? "Copiat" : state === "failed" ? "Selectată, copiaz-o" : "Copiază"}</span>
+        {state === "done" ? "Copiat" : state === "failed" ? "Selectată, copiaz-o" : "Copiază"}
       </button>
+      {/* anunțul stă în afara butonului: numele butonului nu-l mai acoperă */}
+      <span role="status" className="sr-only">
+        {state === "done" ? "Comanda e copiată." : state === "failed" ? "Clipboard indisponibil; comanda e selectată, copiaz-o." : ""}
+      </span>
     </div>
   );
 }
