@@ -17,22 +17,27 @@ Video-ul "Tura de mâine" urmează articolul lui leo (@leomeethewoo), "Make your
 
 Filmul merge de la noapte la dimineață: seara, 2 milioane de contoare trimit date; un scor singur nu trimite pe nimeni nicăieri; agentul face planul; dimineața echipele pleacă. "Tura de mâine" chiar asta înseamnă.
 
-### Cele 3 culori (și ce are voie să poarte fiecare)
+### Cele 3 culori (aceleași ca în produs)
+
+Filmul folosește culorile consolei "Panou" și ale logoului, ca juriul să vadă un singur produs în film, în demo și în slideuri (decizie 13:25, după alegerea interfeței).
 
 | Culoare | Hex | Ce poartă |
 |---|---|---|
-| Noapte | `#07090D` | Fundalul: cerul nopții, spațiul din jurul obiectelor. Niciodată un gol: fiecare cadru are o lume (România noaptea, obiectele, consola, zorii). |
-| Hârtie | `#F2EFE8` | Tot textul care se citește. Textul secundar: aceeași culoare la 64%. |
-| Chihlimbar | `#FFA53D` | Doar acțiunile agentului: punctul unei opriri, traseele echipelor, "Act", cifra noastră față de baseline. Cel mult un element chihlimbar pe cadru. E culoarea vestelor reflectorizante și a zorilor. |
+| Cerneală | `#0B1622` | Fundalul: cerneala logoului, ca cerul nopții. Niciodată un gol: fiecare cadru are o lume (România noaptea, obiectele, consola, zorii). |
+| Hârtie | `#F5F4F0` | Tot textul și acțiunile agentului: traseele, opririle, "Act", bara noastră. Textul secundar: aceeași culoare la 66%. |
+| Soare | `#F2A20C` | Doar soarele din logo și zorii de la final. |
 
-Culorile din fotografii (luminile NASA, imaginile de produs) aparțin lumii, nu interfeței, și sunt gradate spre aceste trei tonuri.
+Culorile surselor, exact ca în consolă (variantele pentru fundal închis, testate pentru daltonism de firul UI), apar doar pe markerii surselor, cu litera în ei: A contoare `#3B82F0`, B furtună `#B84FC0`, C tensiune `#C4880A`. În produs chihlimbarul înseamnă sursa C, deci filmul nu îl mai folosește pentru acțiunile agentului.
 
-Punctul chihlimbar e atomul vizual al filmului: o oprire pe traseul de mâine. Apare la nume ("Tura de mâine."), pe hartă și pe cartea de final.
+Culorile din fotografii (luminile NASA, imaginile de produs) aparțin lumii, nu interfeței.
+
+Semnul produsului e logoul făcut de firul UI ("răsărit pe traseu": un soare care răsare în spatele traseului unei echipe, cu trei opriri). Apare animat la nume (traseul se desenează, soarele răsare) și pe cartea de final, odată cu zorii.
 
 ### Tipografia
 
-- Un singur font: Hanken Grotesk (licență OFL, fișierele în `video/assets/fonts/`). Un grotesc neutru, cald, care se citește de departe; are ș și ț cu virgulă (verificat în randare).
-- Titluri: 600, 120-160 px, spațiere -4%. Afirmații: 500, 64-84 px, -2,5%. Text mic: 450, 30-34 px. Minim 28 px pentru orice text de citit.
+- Un singur font, același ca în consolă: Archivo (licență OFL, varianta cu lățime și greutate variabile, fișierele în `video/assets/fonts/`). Are ș și ț cu virgulă (verificat în randare).
+- Titluri: 600, 124-136 px, spațiere -3,5%. Afirmații: 600, 84-92 px. Text mic: 450, 34-44 px. Minim 28 px pentru orice text de citit.
+- Cifrele mari (0,87, cifra față de baseline) sunt late (lățime 112%), ca cifrele zilei din consolă.
 - Doar litere mici la început de propoziție (sentence case), fără majuscule pe etichete, fără supratitluri, fără numerotări decorative.
 - "Perceive, Estimate, Decide, Act" rămân în engleză: sunt cuvintele din tema PPC, juriul le recunoaște.
 
@@ -42,8 +47,8 @@ Punctul chihlimbar e atomul vizual al filmului: o oprire pe traseul de mâine. A
 - Camera: `power2.inOut`, 1,5-5 s, împingeri lente (scara 1,00 → 1,06).
 - Ieșiri: `power3.in`, cu 40-50% mai scurte decât intrările.
 - Un titlu ajuns pe loc stă nemișcat. Mișcarea trece la următorul element sau la lumea din spate.
-- Tranziții, fiecare cu o cauză pe ecran: zoom printr-o lumină (harta → scorul), obiectul devine lumea (scorul → punctul chihlimbar → numele), schimb cu blur pe aceeași scenă, whip între cele trei semnale, inundație de culoare (noaptea → zorii, la final).
-- Ritmul: încet la început (2 cadre de câte 5 s), repede la mijloc (semnalele, 0,8 s fiecare), încet pe hartă (7,5 s), oprire la "Nu sunt sigur", final ținut 2,5 s.
+- Tranziții, fiecare cu o cauză pe ecran: zoom printr-o lumină (harta → scorul), obiectul devine lumea (scorul → prima oprire a traseului din logo → numele), schimb cu blur pe aceeași scenă, whip între cele trei semnale, inundație de culoare (noaptea → zorii, la final).
+- Ritmul: încet la început (2 cadre de câte 5 s), repede la mijloc (semnalele, 1,25 s fiecare), încet pe hartă (6,25 s), oprire la "Nu sunt sigur", final ținut 2,5 s.
 
 ### Muzica și sunetul
 
@@ -62,10 +67,12 @@ Punctul chihlimbar e atomul vizual al filmului: o oprire pe traseul de mâine. A
 - Text care se mișcă în timp ce e citit.
 - Logo lipit în colț.
 - Cifre care nu vin din `reports/`.
+- Chihlimbarul pe altceva decât soarele din logo, zorii și sursa C.
 
 ### Transparență (cerută și de PPC, vezi `memory/08-ppc-workshop-ai.md`)
 
 - Pe cadrele cu imagini generate cu AI: eticheta discretă "Imagine generată cu AI".
 - Pe consolă: "Date sintetice" acolo unde datele sunt sintetice.
+- Ziua demo-ului, 8 iulie 2025, e reală: cod roșu ANM de vijelii în Banat, caniculă și 881 W/m² la prânz în București (surse în `docs/research/B.md`).
 - Harta de noapte: "NASA Black Marble 2016". Granițele: geoBoundaries (CC BY 4.0).
 - Toate sursele și uneltele sunt în `CREDITS.md`.

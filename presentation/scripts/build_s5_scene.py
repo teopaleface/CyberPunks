@@ -108,9 +108,9 @@ def main() -> None:
     for i, (x, y, kind, score) in enumerate(pts):
         r = 7 if kind == "A" else 6
         shape = (
-            f'<circle id="s5-p{i}" class="s5-pt" cx="{x:.1f}" cy="{y:.1f}" r="{r}"/>'
+            f'<circle id="s5-p{i}" class="s5-pt s5-a" cx="{x:.1f}" cy="{y:.1f}" r="{r}"/>'
             if kind == "A"
-            else f'<rect id="s5-p{i}" class="s5-pt" x="{x - r:.1f}" y="{y - r:.1f}" width="{2 * r}" height="{2 * r}" rx="2"/>'
+            else f'<rect id="s5-p{i}" class="s5-pt s5-c" x="{x - r:.1f}" y="{y - r:.1f}" width="{2 * r}" height="{2 * r}" rx="2"/>'
         )
         circles.append(shape)
         if i in review:
@@ -127,7 +127,7 @@ def main() -> None:
         f'<rect class="s5-depot" x="{x - 11:.1f}" y="{y - 11:.1f}" width="22" height="22" rx="4"/>' for x, y in depots.values()
     )
     stop_svg = "".join(
-        f'<circle id="s5-s{ri}-{si}" class="s5-stop" cx="{pts[i][0]:.1f}" cy="{pts[i][1]:.1f}" r="9"/>'
+        f'<circle id="s5-s{ri}-{si}" class="s5-stop" cx="{pts[i][0]:.1f}" cy="{pts[i][1]:.1f}" r="15"/>'
         for ri, si, n, i in stops
     )
     data = {
@@ -178,12 +178,13 @@ TEMPLATE = """<template>
     }}
     .s5-area {{ fill: rgba(242, 239, 232, 0.035); stroke: rgba(242, 239, 232, 0.28); stroke-width: 1.5; }}
     .s5-buc {{ fill: rgba(242, 239, 232, 0.04); stroke: rgba(242, 239, 232, 0.2); stroke-width: 1.2; }}
-    .s5-pt {{ fill: var(--ink); }}
+    .s5-a {{ fill: var(--src-a); }}
+    .s5-c {{ fill: var(--src-c); }}
     .s5-review {{ fill: none; stroke: var(--ink); stroke-width: 2; stroke-dasharray: 5 5; }}
     .s5-review-label {{ fill: var(--ink); font-family: var(--font-display); font-size: 28px; font-weight: 500; }}
-    .s5-route {{ fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }}
-    .s5-stop {{ fill: var(--accent); }}
-    .s5-depot {{ fill: var(--ground); stroke: var(--accent); stroke-width: 3; }}
+    .s5-route {{ fill: none; stroke: var(--ink); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }}
+    .s5-stop {{ fill: none; stroke: var(--ink); stroke-width: 3.5; }}
+    .s5-depot {{ fill: var(--ground); stroke: var(--ink); stroke-width: 3; }}
     #s5-steps {{
       position: absolute;
       left: 0;
@@ -197,17 +198,26 @@ TEMPLATE = """<template>
       letter-spacing: -0.02em;
     }}
     .s5-step {{ color: var(--ink); opacity: 0.3; }}
+    #s5-head {{
+      position: absolute;
+      left: 120px;
+      top: 84px;
+      font-size: 64px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+    }}
     #s5-note {{
       position: absolute;
       left: 120px;
-      top: 60px;
+      bottom: 36px;
       font-size: 24px;
       font-weight: 450;
       color: var(--ink-3);
     }}
   </style>
   <div id="root" data-composition-id="s5" data-width="1920" data-height="1080">
-    <div id="s5-scene" class="clip" data-start="0" data-duration="7.5" data-layout-allow-overflow>
+    <div id="s5-scene" class="clip" data-start="0" data-duration="6.25" data-layout-allow-overflow>
       <div id="s5-cam">
         <svg id="s5-map" viewBox="0 0 1920 1080" data-layout-ignore>
           <path class="s5-area" d="{area}"/>
@@ -226,6 +236,7 @@ TEMPLATE = """<template>
         <span id="s5-st3" class="s5-step">Decide</span>
         <span id="s5-st4" class="s5-step">Act</span>
       </div>
+      <h2 id="s5-head">Aceleași echipe, un singur plan.</h2>
       <p id="s5-note" data-layout-ignore>Schiță cu date sintetice. Se înlocuiește cu captura reală din consola dispecerului.</p>
     </div>
   </div>
@@ -233,11 +244,10 @@ TEMPLATE = """<template>
     (function () {{
       const D = {data};
       const tl = gsap.timeline({{ paused: true }});
-      tl.fromTo("#s5-cam", {{ scale: 1.0 }}, {{ scale: 1.07, duration: 7.5, ease: "power2.inOut" }}, 0);
+      tl.fromTo("#s5-cam", {{ scale: 1.0 }}, {{ scale: 1.06, duration: 6.25, ease: "power2.inOut" }}, 0);
       tl.fromTo("#s5-map", {{ opacity: 0, filter: "blur(10px)" }}, {{ opacity: 1, filter: "blur(0px)", duration: 0.35, ease: "expo.out" }}, 0);
-      const step = (id, at, accent) => {{
+      const step = (id, at) => {{
         tl.fromTo(id, {{ opacity: 0.3 }}, {{ opacity: 1, duration: 0.3, ease: "power2.out" }}, at);
-        if (accent) tl.fromTo(id, {{ color: "#F2EFE8" }}, {{ color: "#FFA53D", duration: 0.3, ease: "power2.out" }}, at);
       }};
       // Perceive (0 s): lucrările apar din datele celor trei modele.
       step("#s5-st1", 0.0);
@@ -256,7 +266,7 @@ TEMPLATE = """<template>
       tl.fromTo(".s5-review", {{ opacity: 0, scale: 0.4, transformOrigin: "50% 50%" }}, {{ opacity: 1, scale: 1, duration: 0.45, ease: "expo.out", stagger: 0.06 }}, 2.6);
       tl.fromTo(".s5-review-label", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.35, ease: "power2.out", stagger: 0.06 }}, 2.75);
       // Act (3,75 s): traseele echipelor se desenează din bazele operative.
-      step("#s5-st4", 3.75, true);
+      step("#s5-st4", 3.75);
       tl.fromTo(".s5-depot", {{ opacity: 0, scale: 0.5, transformOrigin: "50% 50%" }}, {{ opacity: 1, scale: 1, duration: 0.4, ease: "expo.out" }}, 3.75);
       D.routes.forEach(([ri, n]) => {{
         tl.fromTo("#s5-r" + ri, {{ strokeDasharray: "1 1", strokeDashoffset: 1 }}, {{ strokeDashoffset: 0, duration: 1.5, ease: "power2.inOut" }}, 3.85 + ri * 0.08);
@@ -264,7 +274,9 @@ TEMPLATE = """<template>
           tl.fromTo("#s5-s" + ri + "-" + si, {{ opacity: 0, scale: 0.3, transformOrigin: "50% 50%" }}, {{ opacity: 1, scale: 1, duration: 0.3, ease: "expo.out" }}, 3.95 + ri * 0.08 + (1.4 * (si + 1)) / n);
         }}
       }});
-      tl.to(["#s5-cam", "#s5-steps"], {{ opacity: 0, filter: "blur(8px)", duration: 0.22, ease: "power3.in" }}, 7.28);
+      tl.fromTo("#s5-head", {{ opacity: 0, filter: "blur(10px)" }}, {{ opacity: 1, filter: "blur(0px)", duration: 0.45, ease: "expo.out" }}, 0.15);
+      tl.to("#s5-head", {{ opacity: 0, filter: "blur(8px)", duration: 0.25, ease: "power3.in" }}, 2.45);
+      tl.to(["#s5-cam", "#s5-steps", "#s5-note"], {{ opacity: 0, filter: "blur(8px)", duration: 0.22, ease: "power3.in" }}, 6.03);
       window.__timelines["s5"] = tl;
     }})();
   </script>

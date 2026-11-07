@@ -38,34 +38,34 @@ Citatul PPC, aproape cuvânt cu cuvânt. Scorul se strânge într-un punct.
 ## Frame 3 — Numele (10-12,5s)
 
 - act: Răspunsul
-- scene: Punctul devine chihlimbar și ajunge la capătul numelui: "Tura de mâine."
+- scene: Punctul în care s-a strâns scorul devine prima oprire a traseului din logo. Traseul se desenează, soarele răsare în spatele lui, apoi semnul se așază lângă nume, ca în antetul consolei.
 - duration: 2.5s
-- transition_in: obiectul devine lumea (scorul → punctul → numele)
-- reads: "Tura de mâine." (10,1-12,3 s); "Agentul care planifică echipele de teren." (10,6-12,3 s)
+- transition_in: obiectul devine lumea (scorul → prima oprire → logoul → numele)
+- reads: "Tura de mâine" (10,7-12,3 s); "Planifică echipele de teren." (10,9-12,3 s)
 - sound: pe 10,0 armonia se deschide, intră toba mare și basul
 - status: built
 - src: compositions/s3-nume.html
 
-## Frame 4 — Semnalele (12,5-15s)
+## Frame 4 — Semnalele (12,5-16,25s)
 
 - act: Răspunsul
-- scene: Trei lumi, câte una pe 0,83 s: contorul, furtuna, panourile solare. Fiecare e o sursă de lucrări și un model antrenat de noi (A, B, C).
-- duration: 2.5s
+- scene: Ziua reală a demo-ului, marți, 8 iulie 2025. Trei lumi, câte una pe 1,25 s: contorul, furtuna, panourile solare. Fiecare are markerul sursei din consolă (A, B, C) și e un model antrenat de noi.
+- duration: 3.75s
 - transition_in: whip
-- reads: "Contoare." (12,6-13,3 s); "Furtuni." (13,4-14,2 s); "Tensiune." (14,2-15,0 s)
+- reads: "Marți, 8 iulie 2025" (12,55-16,1 s); "Contoare suspecte." (12,6-13,75 s); "Vijelie în Banat." (13,85-15,0 s); "Tensiune peste limită." (15,1-16,1 s)
 - sound: groove-ul pornește: tobă pe 1 și 3, rim pe 2 și 4
 - status: built
 - src: compositions/s4-semnale.html
 
 Imaginile sunt generate cu Codex și au eticheta "Imagine generată cu AI".
 
-## Frame 5 — Agentul (15-22,5s)
+## Frame 5 — Agentul (16,25-22,5s)
 
 - act: Agentul
 - scene: Harta București-Ilfov. Perceive: lucrările apar. Estimate: fiecare primește mărimea scorului. Decide: ce e sigur primește echipă, ce nu e sigur merge "la om", restul se amână. Act: traseele echipelor se desenează din bazele operative.
-- duration: 7.5s
+- duration: 6.25s
 - transition_in: blur pe aceeași scenă
-- reads: "Perceive" (15,0), "Estimate" (16,25), "Decide" (17,5), "Act" (18,75), apoi traseele până la 22,3 s
+- reads: "Aceleași echipe, un singur plan." (16,4-18,7 s); "Perceive" (16,25), "Estimate" (17,5), "Decide" (18,75), "Act" (20,0), apoi traseele până la 22,3 s
 - sound: groove plin, câte o notă pe fiecare pas; cea mai caldă parte a piesei
 - status: built (schiță cu date sintetice; se înlocuiește cu captura din consolă după 01:00)
 - src: compositions/s5-agent.html
@@ -95,10 +95,10 @@ Imaginile sunt generate cu Codex și au eticheta "Imagine generată cu AI".
 ## Frame 8 — Dimineața (27,5-30s)
 
 - act: Final
-- scene: Noaptea se face dimineață: câmpia la primele lumini, stâlpi la orizont. "Tura de mâine." cu punctul chihlimbar, apoi echipa.
+- scene: Noaptea se face dimineață: câmpia la primele lumini, stâlpi la orizont. Logoul și numele, iar soarele din logo răsare odată cu zorii; apoi echipa.
 - duration: 2.5s
 - transition_in: inundație de culoare
-- reads: "Tura de mâine." (27,5-30 s); "CyberPunks" și "SmartHack XI 2026, tema PPC" (27,9-30 s)
+- reads: "Tura de mâine" (27,6-30 s); "CyberPunks" și "SmartHack XI 2026, tema PPC" (27,9-30 s)
 - sound: acord major de rezolvare exact pe 27,5, apoi coada de reverb până la liniște
 - status: built
 - src: compositions/s8-final.html

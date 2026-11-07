@@ -3,9 +3,9 @@
   lang="ro"
   data-resolution="landscape"
   data-composition-variables='[
-    {"id":"color-ground","type":"color","label":"Fundal (noapte)","default":"#07090D"},
-    {"id":"color-ink","type":"color","label":"Text (hârtie)","default":"#F2EFE8"},
-    {"id":"color-accent","type":"color","label":"Accent (chihlimbar)","default":"#FFA53D"}
+    {"id":"color-ground","type":"color","label":"Fundal (cerneala logoului)","default":"#0B1622"},
+    {"id":"color-ink","type":"color","label":"Text (hârtie)","default":"#F5F4F0"},
+    {"id":"color-sun","type":"color","label":"Soarele din logo","default":"#F2A20C"}
   ]'
 >
   <head>
@@ -14,30 +14,35 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
     <style>
       @font-face {
-        font-family: "Hanken Grotesk";
+        font-family: "Archivo";
         font-style: normal;
-        font-weight: 300 800;
+        font-weight: 100 900;
+        font-stretch: 62% 125%;
         font-display: block;
-        src: url("assets/fonts/HankenGrotesk-normal-300_800-latin-ext.woff2") format("woff2");
-        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
-          U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+        src: url("assets/fonts/Archivo-wdth62_125-wght100_900-latin-ext.woff2") format("woff2");
+        unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
       }
       @font-face {
-        font-family: "Hanken Grotesk";
+        font-family: "Archivo";
         font-style: normal;
-        font-weight: 300 800;
+        font-weight: 100 900;
+        font-stretch: 62% 125%;
         font-display: block;
-        src: url("assets/fonts/HankenGrotesk-normal-300_800-latin.woff2") format("woff2");
-        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
-          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+        src: url("assets/fonts/Archivo-wdth62_125-wght100_900-latin.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
       }
+      /* Culorile produsului (logoul și consola "Panou"): cerneala, hârtia și soarele din logo.
+         Culorile surselor sunt variantele pentru fundal închis din interfață (testate pentru daltonism). */
       :root {
-        --ground: var(--color-ground, #07090d);
-        --ink: var(--color-ink, #f2efe8);
-        --ink-2: rgba(242, 239, 232, 0.64);
-        --ink-3: rgba(242, 239, 232, 0.42);
-        --accent: var(--color-accent, #ffa53d);
-        --font-display: "Hanken Grotesk", sans-serif;
+        --ground: var(--color-ground, #0b1622);
+        --ink: var(--color-ink, #f5f4f0);
+        --ink-2: rgba(245, 244, 240, 0.66);
+        --ink-3: rgba(245, 244, 240, 0.44);
+        --sun: var(--color-sun, #f2a20c);
+        --src-a: #3b82f0;
+        --src-b: #b84fc0;
+        --src-c: #c4880a;
+        --font-display: "Archivo", sans-serif;
       }
       * {
         margin: 0;
@@ -80,8 +85,8 @@
       <div id="s1" data-composition-id="s1" data-composition-src="compositions/s1-noapte.html" data-start="0" data-duration="5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
       <div id="s2" data-composition-id="s2" data-composition-src="compositions/s2-scor.html" data-start="5" data-duration="5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
       <div id="s3" data-composition-id="s3" data-composition-src="compositions/s3-nume.html" data-start="10" data-duration="2.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
-      <div id="s4" data-composition-id="s4" data-composition-src="compositions/s4-semnale.html" data-start="12.5" data-duration="2.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
-      <div id="s5" data-composition-id="s5" data-composition-src="compositions/s5-agent.html" data-start="15" data-duration="7.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="s4" data-composition-id="s4" data-composition-src="compositions/s4-semnale.html" data-start="12.5" data-duration="3.75" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+      <div id="s5" data-composition-id="s5" data-composition-src="compositions/s5-agent.html" data-start="16.25" data-duration="6.25" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
       <div id="s6" data-composition-id="s6" data-composition-src="compositions/s6-om.html" data-start="22.5" data-duration="2.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
       <div id="s7" data-composition-id="s7" data-composition-src="compositions/s7-cifra.html" data-start="25" data-duration="2.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
       <div id="s8" data-composition-id="s8" data-composition-src="compositions/s8-final.html" data-start="27.5" data-duration="2.5" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>

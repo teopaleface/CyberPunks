@@ -23,15 +23,33 @@
       position: absolute;
       inset: 0;
     }
-    #s3-name {
+    /* Semnul și numele, ca în antetul consolei: semnul (soarele care răsare pe traseu) la stânga, numele la dreapta. */
+    #s3-lockup {
       position: absolute;
       left: 0;
       right: 0;
-      top: 372px;
-      text-align: center;
-      font-size: 156px;
+      top: 420px;
+      height: 150px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+    }
+    #s3-markwrap {
+      width: 220px;
+      height: 140px;
+      flex: none;
+    }
+    #s3-mark {
+      display: block;
+      width: 220px;
+      height: 140px;
+      overflow: visible;
+    }
+    #s3-name {
+      font-size: 136px;
       font-weight: 600;
-      letter-spacing: -0.05em;
+      letter-spacing: -0.035em;
       line-height: 1;
       color: var(--ink);
       white-space: nowrap;
@@ -39,24 +57,15 @@
     #s3-name .w {
       display: inline-block;
     }
-    /* Punctul chihlimbar: o oprire pe traseul de mâine. Ține locul punctului de la final. */
-    #s3-dot {
-      display: inline-block;
-      width: 27px;
-      height: 27px;
-      margin-left: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-    }
     #s3-sub {
       position: absolute;
       left: 0;
       right: 0;
-      top: 600px;
+      top: 640px;
       text-align: center;
-      font-size: 46px;
+      font-size: 44px;
       font-weight: 450;
-      letter-spacing: -0.015em;
+      letter-spacing: -0.01em;
       color: var(--ink-2);
     }
     #s3-sub span {
@@ -67,9 +76,26 @@
     <div id="s3-scene" class="clip" data-start="0" data-duration="2.5" data-layout-allow-overflow>
       <img id="s3-haze" src="assets/img/romania_night_z8.jpg" alt="" data-layout-ignore />
       <div id="s3-move">
-        <h1 id="s3-name"><span class="w" id="s3-w1">Tura</span> <span class="w" id="s3-w2">de</span> <span class="w" id="s3-w3">mâine</span><span id="s3-dot"></span></h1>
+        <div id="s3-lockup">
+          <div id="s3-markwrap">
+            <!-- Logoul produsului, conceptul A "răsărit pe traseu" (web/public/brand/logo-a-dark.svg), animat pe părți. -->
+            <svg id="s3-mark" viewBox="10 18 44 28" aria-hidden="true">
+              <defs>
+                <clipPath id="s3-horizon"><rect x="0" y="0" width="64" height="36.2" /></clipPath>
+              </defs>
+              <g clip-path="url(#s3-horizon)">
+                <path id="s3-sun" style="fill: var(--sun)" d="M18 36a14 14 0 0 1 28 0Z" />
+              </g>
+              <path id="s3-route" pathLength="1" d="M16 40h12l8-6h12" style="fill: none; stroke: var(--ink); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round" />
+              <circle id="s3-d1" cx="16" cy="40" r="4" style="fill: var(--ink)" />
+              <circle id="s3-d2" cx="36" cy="34" r="4" style="fill: var(--ink)" />
+              <circle id="s3-d3" cx="48" cy="34" r="4" style="fill: var(--ink)" />
+            </svg>
+          </div>
+          <h1 id="s3-name"><span class="w" id="s3-w1">Tura</span> <span class="w" id="s3-w2">de</span> <span class="w" id="s3-w3">mâine</span></h1>
+        </div>
         <p id="s3-sub">
-          <span>Agentul</span> <span>care</span> <span>planifică</span> <span>echipele</span> <span>de</span> <span>teren.</span>
+          <span>Planifică</span> <span>echipele</span> <span>de</span> <span>teren.</span>
         </p>
       </div>
     </div>
@@ -77,16 +103,27 @@
   <script>
     (function () {
       const tl = gsap.timeline({ paused: true });
-      // Punctul pornește din centrul cadrului (unde s-a strâns scorul) și „scrie” cuvântul „mâine”.
-      // Măsurat pe randare: punctul final are centrul la (1411, 490), deci pornește de la (-451, +50).
-      tl.fromTo(["#s3-w1", "#s3-w2"], { opacity: 0, filter: "blur(12px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out", stagger: 0.08 }, 0.04);
-      tl.fromTo("#s3-dot", { x: -451, y: 50, scale: 0.75 }, { x: 0, y: 0, scale: 1, duration: 0.72, ease: "power3.inOut" }, 0.12);
-      tl.fromTo("#s3-w3", { clipPath: "inset(-20% 100% -20% 0%)", filter: "blur(4px)" }, { clipPath: "inset(-20% 0% -20% 0%)", filter: "blur(0px)", duration: 0.72, ease: "power3.inOut" }, 0.12);
+      // Semnul începe mare, cu prima oprire exact în centrul cadrului (unde s-a strâns scorul din scena 2),
+      // apoi se așază la stânga numelui. MX, MY: deplasarea centrului semnului față de poziția finală (măsurată pe randare).
+      const MX = 1088 - 532, MY = 476 - 495;
+      tl.fromTo("#s3-markwrap", { x: MX, y: MY, scale: 1.6 }, { x: 0, y: 0, scale: 1, duration: 0.5, ease: "power3.inOut" }, 0.45);
+      tl.fromTo("#s3-d1", { scale: 0.4, transformOrigin: "50% 50%" }, { scale: 1, duration: 0.3, ease: "expo.out" }, 0);
+      tl.fromTo("#s3-route", { strokeDasharray: "1 1", strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.42, ease: "power2.inOut" }, 0.05);
+      tl.fromTo("#s3-d2", { scale: 0, transformOrigin: "50% 50%" }, { scale: 1, duration: 0.3, ease: "expo.out" }, 0.3);
+      tl.fromTo("#s3-d3", { scale: 0, transformOrigin: "50% 50%" }, { scale: 1, duration: 0.3, ease: "expo.out" }, 0.44);
+      // Răsăritul: soarele urcă din spatele traseului.
+      tl.fromTo("#s3-sun", { y: 15 }, { y: 0, duration: 0.65, ease: "expo.out" }, 0.18);
+      tl.fromTo(
+        ["#s3-w1", "#s3-w2", "#s3-w3"],
+        { opacity: 0, filter: "blur(12px)" },
+        { opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out", stagger: 0.08 },
+        0.72,
+      );
       tl.fromTo(
         "#s3-sub span",
         { opacity: 0, filter: "blur(8px)" },
-        { opacity: 1, filter: "blur(0px)", duration: 0.45, ease: "expo.out", stagger: 0.07 },
-        0.55,
+        { opacity: 1, filter: "blur(0px)", duration: 0.45, ease: "expo.out", stagger: 0.06 },
+        0.9,
       );
       // Whip spre semnale: totul pleacă spre stânga, cu blur pe orizontală.
       tl.to("#s3-move", { x: -260, opacity: 0, filter: "blur(14px)", duration: 0.22, ease: "power3.in" }, 2.28);

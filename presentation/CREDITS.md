@@ -15,11 +15,12 @@ Tot ce apare în materialele de prezentare, cu sursa și licența. Ce e generat 
 | `video/assets/img/romania_night_z8.jpg` | România noaptea, din satelit | NASA Earth Observatory, VIIRS Black Marble 2016, prin NASA GIBS (date publice NASA). Script: `scripts/fetch_night_lights.py` |
 | `video/assets/geo/*.svg`, `regions.json` | Granițele României și ale celor trei regiuni Rețele Electrice | geoBoundaries ROU ADM1 (Banca Mondială), CC BY 4.0. Script: `scripts/build_map_overlay.py` |
 | `video/assets/img/gen-*.jpg` | Contor, stâlp cu transformator, panouri solare, front de furtună, câmpie în zori | Generate cu AI (Codex, 7 nov. 2026). Prompturile exacte: `assets/gen/PROMPTS.md` |
+| `video/assets/brand/logo-a*.svg` | Logoul "Tura de mâine" ("răsărit pe traseu") | Firul UI al echipei: concept generat cu Codex, SVG desenat de mână (`web/public/brand/README.md`) |
 | `video/compositions/s5-agent.html` | Harta București-Ilfov cu lucrări și trasee | Schiță cu date SINTETICE, generată de `scripts/build_s5_scene.py`; se înlocuiește cu captura reală din consola dispecerului |
 
 ## Font
 
-- Hanken Grotesk (The Hanken Grotesk Project Authors), SIL Open Font License 1.1. Fișierele și licența: `video/assets/fonts/`.
+- Archivo (The Archivo Project Authors, Omnibus-Type), SIL Open Font License 1.1, același font ca în consola dispecerului. Fișierele și licența: `video/assets/fonts/`.
 
 ## Muzică
 
