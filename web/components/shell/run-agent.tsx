@@ -62,7 +62,7 @@ export function RunAgentButton({ scenario, scenarioLabel }: { scenario: string; 
       }}
     >
       <DialogTrigger asChild>
-        <Button size="panel" className="px-5 max-[1600px]:px-3.5">
+        <Button size="panel" variant="outline" className="px-4 max-[1600px]:px-3">
           <svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true">
             <path d="M1 1.2v11.6a.6.6 0 0 0 .9.5l9.4-5.8a.6.6 0 0 0 0-1L1.9.7a.6.6 0 0 0-.9.5Z" fill="currentColor" />
           </svg>

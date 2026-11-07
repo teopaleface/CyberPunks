@@ -2,12 +2,14 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { ReviewActions } from "@/components/detail/review-actions";
+import { Disclosure } from "@/components/simple/disclosure";
 import { ScoreScale } from "@/components/plan/score-scale";
 import { AppShell } from "@/components/shell/app-shell";
 import type { AuditRecord, Decision, WorkItem } from "@/lib/contracts";
 import { getAudit } from "@/lib/data";
 import { factorLabelRo, CONFIDENCE_RO, DECISION_LABEL_RO, SOURCE_LABEL_RO, predictionLabelRo, ruleRo } from "@/lib/data/labels";
 import { fmtLei, fmtMoment, fmtScore, plural, sentence } from "@/lib/format";
+import { approxLei, confidenceWord, scoreText, withDe } from "@/lib/human";
 import { markerSvg } from "@/lib/marker-svg";
 import { itemPlace, itemTitle } from "@/lib/plan-screen";
 import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
@@ -68,23 +70,30 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
 
   return (
     <AppShell info={info}>
-      <div className="mx-auto max-w-[1760px] px-7 pt-7 pb-16">
+      <div className="mx-auto max-w-[1100px] px-7 pt-8 pb-20 text-[17px] leading-[1.5]">
         <div className="flex items-center gap-3">
-          <h1 className="text-[30px] leading-tight font-[650]">Nu sunt sigur</h1>
+          <h1 className="text-[32px] leading-tight font-[620]">De decis</h1>
           {waiting.length ? (
-            <span className="inline-grid h-8 min-w-8 place-items-center rounded-full bg-att px-2.5 text-[17px] font-[700] text-on-att tabular-nums">
+            <span className="inline-grid h-8 min-w-8 place-items-center rounded-full bg-att px-2.5 text-[17px] font-[620] text-on-att tabular-nums">
               {waiting.length}
               <span className="sr-only"> {waiting.length === 1 ? "lucrare așteaptă" : "lucrări așteaptă"} un om</span>
             </span>
           ) : null}
         </div>
-        <p className="mt-2 max-w-[96ch] text-[16.5px] leading-relaxed">
-          Aici trimite agentul ce nu poate decide singur: modelul s-a abținut, intervalul de încredere trece de pragul regulii, datele de intrare
-          au probleme, sau e un risc pentru oameni și nu e nicio echipă liberă. Decide un om. Decizia intră în jurnal cu actorul „om”, iar planul
-          se recalculează.
-        </p>
+        {waiting.length ? (
+          <p className="mt-2 max-w-[62ch] text-[19px]">
+            Agentul n-a putut decide singur {withDe(waiting.length, waiting.length === 1 ? "caz" : "cazuri")}. Pentru fiecare: aprobă, respinge sau amână.
+          </p>
+        ) : null}
 
-        {waiting.length > 1 ? <Summary waiting={waiting} /> : null}
+        <Disclosure title="Cum ajunge un caz aici" className="mt-6 border-b border-rule">
+          <p className="max-w-[72ch]">
+            Aici trimite agentul ce nu poate decide singur: modelul s-a abținut, intervalul de încredere trece de pragul regulii, datele de intrare
+            au probleme, sau e un risc pentru oameni și nu e nicio echipă liberă. Decide un om. Decizia intră în jurnal cu actorul „om”, iar planul
+            se recalculează.
+          </p>
+          {waiting.length > 1 ? <Summary waiting={waiting} /> : null}
+        </Disclosure>
 
         {!plan ? (
           <div className="mt-8 border-y border-rule bg-panel px-5 py-6">
@@ -94,11 +103,11 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
             </p>
           </div>
         ) : waiting.length ? (
-          <section aria-labelledby="wait-title" className="mt-7">
+          <section aria-labelledby="wait-title" className="mt-4">
             <h2 id="wait-title" className="sr-only">
               Lucrări care așteaptă un om
             </h2>
-            <ul className="border-y border-rule">
+            <ul>
               {waiting.map((x) => (
                 <WaitingRow key={x.decision.work_item_id} item={x} scenario={scenario} />
               ))}
@@ -158,7 +167,7 @@ function Summary({ waiting }: { waiting: Waiting[] }) {
   const sources = (["A", "B", "C"] as const).filter((s) => bySource.get(s));
   const rules = [...byRule.entries()].sort((a, b) => b[1] - a[1]);
   return (
-    <div className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-2 text-[15px]">
+    <div className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-2 text-[16px]">
       <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
         {sources.map((s) => (
           <span key={s} className="flex items-center gap-1.5">
@@ -189,89 +198,86 @@ function WaitingRow({ item: { decision, w }, scenario }: { item: Waiting; scenar
   const factors = w?.explanation.top_factors.slice(0, 2) ?? [];
   const maxF = Math.max(0.0001, ...factors.map((f) => Math.abs(f.contribution)));
   const rule = ruleRo(decision.rule_id);
+  const stake = w ? (w.impact.expected_value_lei > 0 ? w.impact.expected_value_lei : w.impact.value_if_true_lei) : 0;
+  const quiet = [p ? confidenceWord(p.confidence, p.score) : null, stake > 0 ? `${approxLei(stake)} în joc` : null].filter(Boolean).join(", ");
 
   return (
-    <li className="grid grid-cols-1 gap-x-10 gap-y-5 border-t border-rule py-6 first:border-t-0 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(400px,0.95fr)]">
-      {/* ce e și de ce a ajuns aici */}
-      <div className="min-w-0">
-        <div className="flex items-center gap-3">
+    <li className="border-t border-rule py-9 first:border-t-0 first:pt-5">
+      <div className="grid grid-cols-1 gap-x-12 gap-y-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+        <div className="flex min-w-0 gap-4">
           {source ? (
-            <span className="size-9 shrink-0" dangerouslySetInnerHTML={{ __html: markerSvg({ source, kind: "human" }) }} />
+            <span className="mt-0.5 size-9 shrink-0" dangerouslySetInnerHTML={{ __html: markerSvg({ source, kind: "human" }) }} />
           ) : null}
           <div className="min-w-0">
-            <Link href={linkTo(id, scenario)} translate="no" className="code-id block truncate text-[19px] underline decoration-rule underline-offset-4 hover:decoration-ink">
-              {id}
-            </Link>
-            {w ? (
-              <p className="truncate text-[15px] text-muted-foreground">
-                {itemTitle(w)}, {itemPlace(w)}: {predictionLabelRo(w.prediction.label)}
-              </p>
+            <h3 className="text-[22px] leading-snug font-[620]">
+              {w ? `${itemPlace(w)}, ${itemTitle(w)}` : "Lucrare necunoscută"}
+            </h3>
+            <p className="mt-1.5 max-w-[60ch]">{reason}</p>
+            {quiet ? <p className="mt-1 text-[16px] text-muted-foreground">{quiet}</p> : null}
+            {w?.impact.safety_flag ? <p className="mt-2 text-[16px] font-[620] text-att-ink">Risc pentru oameni</p> : null}
+          </div>
+        </div>
+        <div className="min-w-0 lg:w-[400px]">
+          <ReviewActions workItemId={id} scenario={scenario} />
+        </div>
+      </div>
+
+      <Disclosure title="Detalii tehnice" className="mt-5 border-t-0">
+        <div className="grid gap-x-12 gap-y-5 text-[16px] lg:grid-cols-2">
+          <div className="min-w-0 space-y-2">
+            <p>
+              Lucrarea{" "}
+              <Link href={linkTo(id, scenario)} translate="no" className="code-id underline decoration-rule underline-offset-4 hover:decoration-ink">
+                {id}
+              </Link>
+              {w ? `: ${predictionLabelRo(w.prediction.label)}` : ". Lucrarea nu e în lista primită; decizia se poate lua oricum."}
+            </p>
+            <p className="text-muted-foreground">
+              <span translate="no" className="code-id text-ink">{decision.rule_id}</span>
+              {rule ? `: ${rule}` : ""}
+            </p>
+            {w?.impact.safety_flag ? <p className="font-[620]">Risc pentru oameni: nu e nicio echipă liberă.</p> : null}
+            <Value w={w} abstained={Boolean(p?.abstain)} />
+          </div>
+          <div className="min-w-0">
+            {p ? (
+              <>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+                  <span className="num-wide text-[36px] leading-none">{scoreText(p.score)}</span>
+                  <ScoreScale score={p.score} low={p.interval_low} high={p.interval_high} threshold={scoreMin} width={190} tone="att" />
+                  <span className="text-[15px] leading-snug text-muted-foreground">
+                    {p.interval_low != null && p.interval_high != null ? `interval ${fmtScore(p.interval_low)}–${fmtScore(p.interval_high)}` : "fără interval"}
+                    <br />
+                    {CONFIDENCE_RO[p.confidence]}
+                    {scoreMin != null ? `, pragul regulii ${fmtScore(scoreMin)}` : ""}
+                  </span>
+                </div>
+                {factors.length ? (
+                  <div className="mt-4 space-y-2">
+                    {factors.map((f) => (
+                      <div key={f.feature} className="grid grid-cols-[minmax(0,1fr)_120px_52px] items-center gap-x-3">
+                        <span className="min-w-0">{factorLabelRo(f.label_ro)}</span>
+                        <span className="relative h-2.5 bg-muted" aria-hidden="true">
+                          <i
+                            className="absolute inset-y-0 left-0"
+                            style={{ width: `${((Math.abs(f.contribution) / maxF) * 100).toFixed(1)}%`, background: f.contribution >= 0 ? "var(--ink)" : "var(--idle)" }}
+                          />
+                        </span>
+                        <span className="text-right font-[620] tabular-nums">
+                          {f.contribution >= 0 ? "+" : "−"}
+                          {fmtScore(Math.abs(f.contribution))}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </>
             ) : (
-              <p className="text-[15px] text-muted-foreground">Lucrarea nu e în lista primită; decizia se poate lua oricum.</p>
+              <p className="text-muted-foreground">Fără predicție pentru această lucrare.</p>
             )}
           </div>
         </div>
-        <p className="mt-3 text-[17.5px] leading-snug font-[580]">{reason}</p>
-        <p className="mt-1.5 text-[14.5px] text-muted-foreground">
-          <span translate="no" className="code-id text-ink">{decision.rule_id}</span>
-          {rule ? `: ${rule}` : ""}
-        </p>
-        {w?.impact.safety_flag ? (
-          <p className="mt-2 flex items-center gap-2 text-[15px] font-[600]">
-            <svg width="16" height="18" viewBox="0 0 16 18" aria-hidden="true">
-              <path d="M8 1 L15 3.5 V8.5 C15 12.8 12 15.8 8 17 C4 15.8 1 12.8 1 8.5 V3.5 Z" fill="none" style={{ stroke: "var(--ink)" }} strokeWidth="1.6" />
-              <path d="M8.8 4.5 L5.5 9.6 H8 L7.2 13.5 L10.5 8.4 H8 Z" style={{ fill: "var(--ink)" }} />
-            </svg>
-            Risc pentru oameni
-          </p>
-        ) : null}
-      </div>
-
-      {/* scorul, factorii, valoarea */}
-      <div className="min-w-0">
-        {p ? (
-          <>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-              <span className="num-wide text-[40px] leading-none">{fmtScore(p.score)}</span>
-              <ScoreScale score={p.score} low={p.interval_low} high={p.interval_high} threshold={scoreMin} width={190} tone="att" />
-              <span className="text-[14.5px] leading-snug text-muted-foreground">
-                {p.interval_low != null && p.interval_high != null ? `interval ${fmtScore(p.interval_low)}–${fmtScore(p.interval_high)}` : "fără interval"}
-                <br />
-                {CONFIDENCE_RO[p.confidence]}
-                {scoreMin != null ? `, pragul regulii ${fmtScore(scoreMin)}` : ""}
-              </span>
-            </div>
-            {factors.length ? (
-              <div className="mt-4 space-y-2">
-                {factors.map((f) => (
-                  <div key={f.feature} className="grid grid-cols-[minmax(0,1fr)_120px_52px] items-center gap-x-3 text-[15px]">
-                    <span className="min-w-0">{factorLabelRo(f.label_ro)}</span>
-                    <span className="relative h-2.5 bg-muted" aria-hidden="true">
-                      <i
-                        className="absolute inset-y-0 left-0"
-                        style={{ width: `${((Math.abs(f.contribution) / maxF) * 100).toFixed(1)}%`, background: f.contribution >= 0 ? "var(--ink)" : "var(--idle)" }}
-                      />
-                    </span>
-                    <span className="text-right font-[620] tabular-nums">
-                      {f.contribution >= 0 ? "+" : "−"}
-                      {fmtScore(Math.abs(f.contribution))}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-            <Value w={w} abstained={Boolean(p.abstain)} />
-          </>
-        ) : (
-          <p className="text-[15px] text-muted-foreground">Fără predicție pentru această lucrare.</p>
-        )}
-      </div>
-
-      {/* decizia omului */}
-      <div className="min-w-0 border-l-[3px] border-att bg-att-surface px-5 py-4">
-        <p className="mb-2 text-[16px] font-[650] text-att-ink">Decide tu</p>
-        <ReviewActions workItemId={id} scenario={scenario} />
-      </div>
+      </Disclosure>
     </li>
   );
 }
@@ -284,14 +290,14 @@ function Value({ w, abstained }: { w: WorkItem | null; abstained: boolean }) {
   const lei = (n: number) => fmtLei(n);
   if (ev > 0 || !abstained) {
     return (
-      <p className="mt-4 text-[15.5px]">
+      <p>
         Valoare așteptată <b className="font-[650] tabular-nums">{lei(ev)}</b>
         {ifTrue > 0 ? <span className="text-muted-foreground">; {lei(ifTrue)} dacă problema e reală</span> : null}
       </p>
     );
   }
   return (
-    <p className="mt-4 text-[15.5px]">
+    <p>
       {ifTrue > 0 ? (
         <>
           În joc <b className="font-[650] tabular-nums">{lei(ifTrue)}</b>

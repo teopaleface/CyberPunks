@@ -6,6 +6,8 @@ import { ReviewActions } from "@/components/detail/review-actions";
 import { SeriesChart, SeriesLegend } from "@/components/detail/series-chart";
 import { isBilantSeries } from "@/lib/series-utils";
 import { ScoreScale } from "@/components/plan/score-scale";
+import { Disclosure } from "@/components/simple/disclosure";
+import { VerdictBlock, shortTitle } from "@/components/simple/verdict-block";
 import { SyntheticGlyph } from "@/components/shell/provenance";
 import { AppShell } from "@/components/shell/app-shell";
 import type { AuditRecord, Decision, WorkItem } from "@/lib/contracts";
@@ -18,7 +20,6 @@ import { auditActionRo, clampPercentRo, factorLabelRo,
   SKILL_RO,
   SOURCE_LABEL_RO,
   outcomeRo,
-  predictionLabelRo,
   ruleRo,
   thresholdLabelRo,
   thresholdValueRo,
@@ -26,9 +27,11 @@ import { auditActionRo, clampPercentRo, factorLabelRo,
 import { BILANT_LABEL, bilantFusion, isBilantPost, ladderBaseP90, ladderChoice, remedyOptions } from "@/lib/extras";
 import { fmtDayMonth, fmtDec, fmtDuration, fmtInt, fmtLei, fmtMoment, fmtPercent, fmtScore, fmtTime, isWholeDay, plural, sentence } from "@/lib/format";
 import { markerKind, markerSvg } from "@/lib/marker-svg";
-import { itemPlace, itemTitle } from "@/lib/plan-screen";
+import { itemPlace } from "@/lib/plan-screen";
 import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
 import { SOURCES } from "@/lib/sources";
+import { scoreText } from "@/lib/human";
+import { verdictRo } from "@/lib/verdict";
 
 function safeDecode(value: string): string {
   try {
@@ -85,37 +88,38 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
   const options = w.source === "C" ? remedyOptions(w) : [];
   // la tensiune, agentul alege o combinație de trepte; antetul o arată pe ea, nu doar tipul deciziei
   const chosenCombo = w.source === "C" ? ladderChoice(w, remedies?.data.find((r) => r.work_item_id === w.work_item_id)) : [];
+  const choice = remedies?.data.find((r) => r.work_item_id === w.work_item_id);
+  const verdict = verdictRo(w, decision, { chosen: chosenCombo, costLei: choice?.cost_lei ?? null });
   const fusion = bilantFusion(w);
+  const summary = clampPercentRo(w.explanation.summary_ro);
+  const summaryShort = summary.length <= 220;
+  const chartTitle = series.data?.title_ro ?? "Ce vede modelul";
   const external = w.data_quality.data_sources.filter((s) => EXTERNAL.test(s));
   const scoreMin = typeof decision?.threshold?.score_min === "number" ? decision.threshold.score_min : null;
 
   return (
     <AppShell info={info}>
-      {/* antetul lucrării */}
+      {/* antetul, subțire: înapoi, codul lucrării, locul */}
       <section className="border-b border-rule bg-panel">
-        <div className="mx-auto flex max-w-[1760px] flex-wrap items-center gap-x-6 gap-y-3 px-7 py-5">
+        <div className="mx-auto flex max-w-[1100px] flex-wrap items-center gap-x-5 gap-y-2 px-7 py-3.5">
           <Link href={`/?lucrare=${encodeURIComponent(w.work_item_id)}`} className="text-[15px] text-muted-foreground underline decoration-rule underline-offset-4 hover:text-ink">
             Planul de mâine
           </Link>
-          <span className="h-6 w-px bg-rule" aria-hidden="true" />
-          <span className="size-9 shrink-0" dangerouslySetInnerHTML={{ __html: markerSvg({ source: w.source, kind: markerKind(decision?.decision) }) }} />
-          <div className="min-w-0">
-            <h1 className="code-id text-[24px] leading-tight" translate="no">{w.work_item_id}</h1>
-            <p className="text-[15.5px] text-muted-foreground">
-              {itemTitle(w)}, {itemPlace(w)}: {predictionLabelRo(p.label)}
-            </p>
-          </div>
-          <span className="flex items-center gap-2 rounded-[4px] border border-rule px-2.5 py-1 text-[14px]">
-            <span className="size-2.5 rounded-full" style={{ background: meta.color }} aria-hidden="true" />
-            {meta.letter} {meta.name}: {meta.problem}
-          </span>
-          <span className="flex-1" />
+          <span className="h-5 w-px bg-rule" aria-hidden="true" />
+          <span className="size-7 shrink-0" dangerouslySetInnerHTML={{ __html: markerSvg({ source: w.source, kind: markerKind(decision?.decision) }) }} />
+          <span className="code-id text-[15px]" translate="no">{w.work_item_id}</span>
+          <span className="text-[15px] text-muted-foreground">{itemPlace(w)}</span>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-[1100px] space-y-10 px-7 pt-10 pb-20 text-[18px] leading-[1.5]">
+        <VerdictBlock verdict={verdict}>
           {invalid ? (
-            <span className="rounded-[4px] border border-att px-3 py-1.5 text-[15px] font-[600] text-att-ink">Respinsă la intrare: date greșite</span>
+            <span className="inline-block rounded-[4px] border border-att px-3 py-1.5 text-[16px] font-[600] text-att-ink">Respinsă la intrare: date greșite</span>
           ) : decision ? (
             <span
               className={
-                "rounded-[4px] px-3 py-1.5 text-[15px] font-[600] " +
+                "inline-block rounded-[4px] px-3 py-1.5 text-[16px] font-[600] " +
                 (decision.decision === "human_review" ? "bg-att text-on-att" : "bg-ink text-panel")
               }
             >
@@ -125,183 +129,158 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
               {decision.crew_id ? `, ${decision.crew_id}` : ""}
             </span>
           ) : (
-            <span className="rounded-[4px] border border-rule px-3 py-1.5 text-[15px]">Fără decizie în plan</span>
+            <span className="inline-block rounded-[4px] border border-rule px-3 py-1.5 text-[16px]">Fără decizie în plan</span>
           )}
-        </div>
-      </section>
-
-      <div className="mx-auto grid max-w-[1760px] grid-cols-1 gap-x-10 gap-y-8 px-7 py-7 xl:grid-cols-[minmax(0,1.55fr)_minmax(420px,1fr)]">
-        {/* coloana stângă: ce vede modelul și de ce */}
-        <div className="min-w-0 space-y-8">
-          <section aria-labelledby="chart-title">
-            <div className="flex flex-wrap items-baseline justify-between gap-3">
-              <h2 id="chart-title" className="text-[20px] font-[650]">
-                {series.data?.title_ro ?? "Ce vede modelul"}
+          {decision?.decision === "human_review" ? (
+            <div aria-labelledby="hr-title" role="group" className="max-w-[640px] border-l-[3px] border-att bg-att-surface px-5 py-4">
+              <h2 id="hr-title" className="text-[20px] font-[620] text-att-ink">
+                Nu sunt sigur: decide tu
               </h2>
-              {series.data ? (
-                <span className="flex items-center gap-2 text-[14px] text-muted-foreground">
-                  {series.data.synthetic ? (
-                    <>
-                      <SyntheticGlyph size={14} /> Date sintetice
-                    </>
-                  ) : (
-                    "Date reale"
-                  )}
-                  {series.source === "fixtures" ? ", exemplu de test" : series.source === "demo" ? ", ultimul plan salvat" : ""}
-                </span>
-              ) : null}
+              <p className="mt-1 mb-3 text-[16px]">{p.abstain_reason ? sentence(p.abstain_reason) : decision.reason_ro}</p>
+              <ReviewActions workItemId={w.work_item_id} scenario={scenario} />
             </div>
-            <div className="mt-3 border-y border-rule bg-panel px-4 pt-3 pb-4">
-              {series.data ? (
-                <>
-                  <SeriesChart series={series.data} workItem={w} />
-                  <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-                    <SeriesLegend source={series.data.source} bilant={isBilantSeries(series.data)} series={series.data} />
-                    {series.data.annotations?.length ? (
-                      <span className="text-[14px] text-muted-foreground">
-                        {series.data.annotations.map((a) => `${isWholeDay(String(a.t)) ? fmtDayMonth(String(a.t)) : fmtTime(String(a.t))}: ${clampPercentRo(a.label_ro)}`).join("; ")}
-                      </span>
-                    ) : null}
-                  </div>
-                </>
-              ) : (
-                <p className="py-10 text-center text-[15px] text-muted-foreground">
-                  Seria pentru grafic nu e disponibilă ({series.degradedReason ?? "sursa n-a trimis-o"}). Explicația de mai jos vine direct din model.
-                </p>
-              )}
-            </div>
-          </section>
-
-          <section aria-labelledby="why-title">
-            <h2 id="why-title" className="text-[20px] font-[650]">
-              De ce
-            </h2>
-            <p className="mt-1.5 max-w-[72ch] text-[16.5px] leading-relaxed">{clampPercentRo(w.explanation.summary_ro)}</p>
-            <Factors w={w} />
-          </section>
-
-          {w.explanation.similar_cases?.length ? (
-            <section aria-labelledby="sim-title">
-              <h2 id="sim-title" className="text-[20px] font-[650]">
-                Cazuri asemănătoare din istoric
-              </h2>
-              <ul className="mt-3 divide-y divide-rule border-y border-rule">
-                {w.explanation.similar_cases.map((c) => (
-                  <li key={c.case_id} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_160px] items-center gap-4 py-2.5 text-[15px]">
-                    <span translate="no" className="code-id">{c.case_id}</span>
-                    <span>
-                      {outcomeRo(c.outcome)}
-                      {c.note_ro ? <span className="block text-[14px] text-muted-foreground">{c.note_ro}</span> : null}
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <span className="relative h-2 flex-1 bg-muted" aria-hidden="true">
-                        <i className="absolute inset-y-0 left-0 bg-ink" style={{ width: `${(c.similarity * 100).toFixed(0)}%` }} />
-                      </span>
-                      <span className="w-10 text-right tabular-nums">{fmtScore(c.similarity)}</span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-1.5 text-[13.5px] text-muted-foreground">Similaritatea compară factorii acestei lucrări cu ai cazurilor din setul de antrenare.</p>
-            </section>
           ) : null}
+        </VerdictBlock>
 
+        {/* graficul principal */}
+        <section aria-labelledby="chart-title">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <h2 id="chart-title" title={chartTitle} className="text-[20px] font-[620]">
+              {shortTitle(chartTitle)}
+            </h2>
+            {series.data ? (
+              <span className="flex items-center gap-2 text-[14px] text-muted-foreground">
+                {series.data.synthetic ? (
+                  <>
+                    <SyntheticGlyph size={14} /> Date sintetice
+                  </>
+                ) : (
+                  "Date reale"
+                )}
+                {series.source === "fixtures" ? ", exemplu de test" : series.source === "demo" ? ", ultimul plan salvat" : ""}
+              </span>
+            ) : null}
+          </div>
+          <div className="mt-3 border-y border-rule bg-panel px-4 pt-3 pb-4">
+            {series.data ? (
+              <>
+                <SeriesChart series={series.data} workItem={w} />
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+                  <SeriesLegend source={series.data.source} bilant={isBilantSeries(series.data)} series={series.data} />
+                  {series.data.annotations?.length ? (
+                    <span className="text-[14px] text-muted-foreground">
+                      {series.data.annotations.map((a) => `${isWholeDay(String(a.t)) ? fmtDayMonth(String(a.t)) : fmtTime(String(a.t))}: ${clampPercentRo(a.label_ro)}`).join("; ")}
+                    </span>
+                  ) : null}
+                </div>
+              </>
+            ) : (
+              <p className="py-10 text-center text-[15px] text-muted-foreground">
+                Seria pentru grafic nu e disponibilă ({series.degradedReason ?? "sursa n-a trimis-o"}). Explicația de mai jos vine direct din model.
+              </p>
+            )}
+          </div>
+        </section>
+
+        {summaryShort ? (
+          <section aria-labelledby="mean-title">
+            <h2 id="mean-title" className="text-[20px] font-[620]">
+              Ce înseamnă
+            </h2>
+            <p className="mt-1.5 max-w-[72ch]">{summary}</p>
+          </section>
+        ) : null}
+
+        {/* tot restul, la un click */}
+        <div className="border-b border-rule">
           {options.length ? (
-            <section aria-labelledby="ladder-title">
-              <h2 id="ladder-title" className="text-[20px] font-[650]">
-                Scara de soluții pentru tensiune
-              </h2>
-              <p className="mt-1 mb-3 max-w-[72ch] text-[15px] text-muted-foreground">
-                De la cea mai ieftină la cea mai scumpă. Punctul arată P90 al tensiunii maxime după soluție; linia portocalie e limita.
+            <Disclosure title="Scara de soluții" hint="de la cea mai ieftină la cea mai scumpă">
+              <p className="mb-3 max-w-[72ch] text-[15px] text-muted-foreground">
+                Punctul arată P90 al tensiunii maxime după soluție; linia portocalie e limita.
               </p>
               <RemedyLadder
                 options={options}
                 decision={decision}
                 recommended={w.recommended_action}
-                p90Before={ladderBaseP90(w, remedies?.data.find((r) => r.work_item_id === w.work_item_id))}
-                choice={remedies?.data.find((r) => r.work_item_id === w.work_item_id) ?? null}
+                p90Before={ladderBaseP90(w, choice)}
+                choice={choice ?? null}
               />
-            </section>
+            </Disclosure>
           ) : null}
 
           {fusion ? (
-            <section aria-labelledby="fusion-title" className="border-l-[3px] border-ink bg-panel px-5 py-4">
-              <h2 id="fusion-title" className="text-[18px] font-[650]">
-                Confirmat de bilanțul postului {fusion.post_id}
-              </h2>
-              <p className="mt-1 text-[15.5px]">{fusion.note_ro}</p>
-              <p className="mt-2 text-[15px]">
+            <Disclosure title={`Confirmat de bilanțul postului ${fusion.post_id}`} hint="două surse independente">
+              <p className="max-w-[72ch] text-[16px]">{fusion.note_ro}</p>
+              <p className="mt-2 text-[15.5px]">
                 Scorul contorului: {fmtScore(fusion.a_score)} → {fmtScore(fusion.combined_score)} după confirmare. La post lipsesc{" "}
                 {fmtDec(fusion.post_excess_loss_kwh_day, 1)} kWh pe zi peste normal ({fmtLei(fusion.post_excess_loss_lei_month)} pe lună).
               </p>
-              <p className="mt-1 text-[13.5px] text-muted-foreground">{BILANT_LABEL}</p>
-            </section>
-          ) : null}
-          {isBilantPost(w) && !fusion ? <p className="text-[13.5px] text-muted-foreground">{BILANT_LABEL}</p> : null}
-        </div>
-
-        {/* coloana dreaptă: decizia, încrederea, urmărirea */}
-        <div className="min-w-0 space-y-7">
-          {decision?.decision === "human_review" ? (
-            <section aria-labelledby="hr-title" className="border-l-[3px] border-att bg-att-surface px-5 py-4">
-              <h2 id="hr-title" className="text-[20px] font-[650] text-att-ink">
-                Nu sunt sigur: decide tu
-              </h2>
-              <p className="mt-1 mb-3 text-[15.5px]">{p.abstain_reason ? sentence(p.abstain_reason) : decision.reason_ro}</p>
-              <ReviewActions workItemId={w.work_item_id} scenario={scenario} />
-            </section>
+              <p className="mt-2 text-[13.5px] text-muted-foreground">{BILANT_LABEL}</p>
+            </Disclosure>
           ) : null}
 
-          <DecisionBlock w={w} decision={decision} />
-
-          <section aria-labelledby="conf-title">
-            <h2 id="conf-title" className="text-[18px] font-[650]">
-              Încrederea modelului
-            </h2>
-            <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2">
-              <span className="num-wide text-[44px]">{fmtScore(p.score)}</span>
-              <ScoreScale score={p.score} low={p.interval_low} high={p.interval_high} threshold={scoreMin} width={180} tone={decision?.decision === "human_review" ? "att" : "ink"} />
-              <span className="text-[14.5px] leading-snug text-muted-foreground">
-                {p.interval_low != null && p.interval_high != null ? `interval ${fmtScore(p.interval_low)}–${fmtScore(p.interval_high)}` : "fără interval"}
-                <br />
-                {CONFIDENCE_RO[p.confidence]}
-                {scoreMin != null ? `, pragul regulii ${fmtScore(scoreMin)}` : ""}
-              </span>
-            </div>
-            <p className="mt-2 text-[14.5px] text-muted-foreground">
-              Scorul e o probabilitate calibrată ca problema să fie reală.
-              {p.abstain ? " Modelul a spus singur „nu sunt sigur”, așa că agentul nu trimite echipa fără un om." : ""}
-            </p>
-          </section>
-
-          <section aria-labelledby="trace-title">
-            <h2 id="trace-title" className="text-[18px] font-[650]">
-              Urmărirea până la model
-            </h2>
-            <dl className="mt-2 grid grid-cols-[150px_minmax(0,1fr)] gap-x-4 text-[15px] [&>dd]:border-t [&>dd]:border-rule [&>dd]:py-1.5 [&>dt]:border-t [&>dt]:border-rule [&>dt]:py-1.5 [&>dt]:text-muted-foreground">
-              <dt>ID predicție</dt>
-              <dd className="dense font-[560] break-all">{p.prediction_id}</dd>
-              <dt>Model</dt>
-              <dd className="dense font-[560]">{p.model_id}</dd>
-              <dt>Versiune</dt>
-              <dd className="dense font-[560]">{p.model_version}</dd>
-              <dt>Estimat la</dt>
-              <dd>{fmtMoment(w.created_at)}</dd>
-              {decision ? (
-                <>
-                  <dt>ID decizie</dt>
-                  <dd className="dense font-[560] break-all">{decision.audit_id}</dd>
-                </>
+          <Disclosure title="De ce a ieșit așa" hint="factorii modelului și cazuri asemănătoare">
+            <div className="space-y-8 text-[16px]">
+              {!summaryShort ? <p className="max-w-[72ch] text-[17px]">{summary}</p> : null}
+              <div>
+                <h3 className="text-[17px] font-[620]">Ce a cântărit modelul</h3>
+                <Factors w={w} />
+              </div>
+              {w.explanation.similar_cases?.length ? (
+                <div>
+                  <h3 className="text-[17px] font-[620]">Cazuri asemănătoare din istoric</h3>
+                  <ul className="mt-3 divide-y divide-rule border-y border-rule">
+                    {w.explanation.similar_cases.map((c) => (
+                      <li key={c.case_id} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_160px] items-center gap-4 py-2.5 text-[15px]">
+                        <span translate="no" className="code-id">{c.case_id}</span>
+                        <span>
+                          {outcomeRo(c.outcome)}
+                          {c.note_ro ? <span className="block text-[14px] text-muted-foreground">{c.note_ro}</span> : null}
+                        </span>
+                        <span className="flex items-center gap-2">
+                          <span className="relative h-2 flex-1 bg-muted" aria-hidden="true">
+                            <i className="absolute inset-y-0 left-0 bg-ink" style={{ width: `${(c.similarity * 100).toFixed(0)}%` }} />
+                          </span>
+                          <span className="w-10 text-right tabular-nums">{fmtScore(c.similarity)}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-1.5 text-[13.5px] text-muted-foreground">Similaritatea compară factorii acestei lucrări cu ai cazurilor din setul de antrenare.</p>
+                </div>
               ) : null}
-            </dl>
-            <AuditTrail audit={audit} />
-          </section>
+            </div>
+          </Disclosure>
 
-          <section aria-labelledby="dq-title">
-            <h2 id="dq-title" className="text-[18px] font-[650]">
-              Datele de intrare
-            </h2>
-            <ul className="mt-2 space-y-1.5 text-[15px]">
+          <Disclosure title="Detalii tehnice" hint="regula, pragurile, valoare și cost, încrederea">
+            <div className="space-y-8 text-[16px]">
+              <span className="flex w-fit items-center gap-2 rounded-[4px] border border-rule px-2.5 py-1 text-[14px]">
+                <span className="size-2.5 rounded-full" style={{ background: meta.color }} aria-hidden="true" />
+                {meta.letter} {meta.name}: {meta.problem}
+              </span>
+              <DecisionBlock w={w} decision={decision} />
+              <div>
+                <h3 className="text-[17px] font-[620]">Încrederea modelului</h3>
+                <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2">
+                  <span className="num-wide text-[44px]">{scoreText(p.score)}</span>
+                  <ScoreScale score={p.score} low={p.interval_low} high={p.interval_high} threshold={scoreMin} width={180} tone={decision?.decision === "human_review" ? "att" : "ink"} />
+                  <span className="text-[14.5px] leading-snug text-muted-foreground">
+                    {p.interval_low != null && p.interval_high != null ? `interval ${fmtScore(p.interval_low)}–${fmtScore(p.interval_high)}` : "fără interval"}
+                    <br />
+                    {CONFIDENCE_RO[p.confidence]}
+                    {scoreMin != null ? `, pragul regulii ${fmtScore(scoreMin)}` : ""}
+                  </span>
+                </div>
+                <p className="mt-2 text-[14.5px] text-muted-foreground">
+                  Scorul e o probabilitate calibrată ca problema să fie reală.
+                  {p.abstain ? " Modelul a spus singur „nu sunt sigur”, așa că agentul nu trimite echipa fără un om." : ""}
+                </p>
+              </div>
+            </div>
+          </Disclosure>
+
+          <Disclosure title="Datele de intrare" hint="sintetice sau reale, surse, probleme găsite">
+            <ul className="space-y-1.5 text-[15.5px]">
               <li className="flex items-center gap-2">
                 {w.data_quality.synthetic ? (
                   <>
@@ -331,8 +310,30 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
               Datele vin din: {SOURCE_LABEL_RO[result.source]}
               {result.degradedReason ? `. ${result.degradedReason}` : ""}.
             </p>
-          </section>
+          </Disclosure>
+
+          <Disclosure title="Urmărirea până la model" hint="ID-uri, model, jurnalul deciziei">
+            <dl className="grid grid-cols-[150px_minmax(0,1fr)] gap-x-4 text-[15px] [&>dd]:border-t [&>dd]:border-rule [&>dd]:py-1.5 [&>dt]:border-t [&>dt]:border-rule [&>dt]:py-1.5 [&>dt]:text-muted-foreground">
+              <dt>ID predicție</dt>
+              <dd className="dense font-[560] break-all">{p.prediction_id}</dd>
+              <dt>Model</dt>
+              <dd className="dense font-[560]">{p.model_id}</dd>
+              <dt>Versiune</dt>
+              <dd className="dense font-[560]">{p.model_version}</dd>
+              <dt>Estimat la</dt>
+              <dd>{fmtMoment(w.created_at)}</dd>
+              {decision ? (
+                <>
+                  <dt>ID decizie</dt>
+                  <dd className="dense font-[560] break-all">{decision.audit_id}</dd>
+                </>
+              ) : null}
+            </dl>
+            <AuditTrail audit={audit} />
+          </Disclosure>
         </div>
+
+        {isBilantPost(w) && !fusion ? <p className="text-[13.5px] text-muted-foreground">{BILANT_LABEL}</p> : null}
       </div>
     </AppShell>
   );
@@ -371,7 +372,7 @@ function DecisionBlock({ w, decision }: { w: WorkItem; decision: Decision | null
   if (!decision) {
     return (
       <section>
-        <h2 className="text-[18px] font-[650]">Decizia agentului</h2>
+        <h3 className="text-[17px] font-[620]">Decizia agentului</h3>
         <p className="mt-2 text-[15px] text-muted-foreground">Lucrarea nu are încă o decizie în planul curent.</p>
       </section>
     );
@@ -386,9 +387,9 @@ function DecisionBlock({ w, decision }: { w: WorkItem; decision: Decision | null
 
   return (
     <section aria-labelledby="dec-title">
-      <h2 id="dec-title" className="text-[18px] font-[650]">
+      <h3 id="dec-title" className="text-[17px] font-[620]">
         Decizia agentului
-      </h2>
+      </h3>
       <p className="mt-1.5 text-[16.5px] leading-relaxed">{decision.reason_ro.charAt(0).toLocaleUpperCase("ro-RO") + decision.reason_ro.slice(1)}</p>
       <div className="mt-3 flex flex-wrap items-baseline gap-x-3">
         <span translate="no" className="code-id text-[16px]">{decision.rule_id}</span>
