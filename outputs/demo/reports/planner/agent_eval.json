@@ -1,8 +1,8 @@
 {
   "description": "Agentul față de strategii simple, pe o lume SINTETICĂ cu adevărul cunoscut (scoruri calibrate prin construcție).",
   "reproduce_cmd": "uv run python -m cyberpunks.planner.evaluate --days 30 --seed 7 --meters 120",
-  "planner_version": "planner@0.1.0+6861cce",
-  "created_at": "2026-11-07T14:17:14+02:00",
+  "planner_version": "planner@0.1.0+4f9fcba",
+  "created_at": "2026-11-07T14:34:22+02:00",
   "synthetic": true,
   "main": {
     "days": 30,
@@ -28,8 +28,8 @@
         "storms_covered_total": 37,
         "remote_readings_total": 1406,
         "remote_readings_true": 746,
-        "human_review_total": 92,
-        "human_review_true": 38,
+        "human_review_total": 46,
+        "human_review_true": 22,
         "notifications_total": 32,
         "value_by_source_lei": {
           "A": 429624.38,
@@ -46,7 +46,7 @@
           "B": 30,
           "C": 15
         },
-        "solve_seconds_mean": 0.407
+        "solve_seconds_mean": 0.352
       },
       "top_k_scor": {
         "net_value_lei_total": 697651.53,
@@ -84,7 +84,7 @@
           "B": 31,
           "C": 43
         },
-        "solve_seconds_mean": 0.003,
+        "solve_seconds_mean": 0.002,
         "agent_minus_strategy_net_lei": 354190.81
       },
       "primul_venit": {
@@ -123,7 +123,7 @@
           "B": 36,
           "C": 38
         },
-        "solve_seconds_mean": 0.003,
+        "solve_seconds_mean": 0.002,
         "agent_minus_strategy_net_lei": 345286.21
       },
       "aleator": {
@@ -162,7 +162,7 @@
           "B": 30,
           "C": 55
         },
-        "solve_seconds_mean": 0.003,
+        "solve_seconds_mean": 0.002,
         "agent_minus_strategy_net_lei": 505753.41
       },
       "doar_contoare": {
@@ -201,7 +201,7 @@
           "B": 0,
           "C": 0
         },
-        "solve_seconds_mean": 0.003,
+        "solve_seconds_mean": 0.002,
         "agent_minus_strategy_net_lei": 888059.04
       }
     },
@@ -694,7 +694,7 @@
         "storms_covered_total": 8,
         "remote_readings_total": 463,
         "remote_readings_true": 165,
-        "human_review_total": 36,
+        "human_review_total": 25,
         "human_review_true": 8,
         "notifications_total": 9,
         "value_by_source_lei": {
@@ -712,7 +712,7 @@
           "B": 12,
           "C": 7
         },
-        "solve_seconds_mean": 0.418
+        "solve_seconds_mean": 0.321
       },
       "top_k_scor": {
         "net_value_lei_total": 140112.88,
@@ -789,7 +789,7 @@
           "B": 15,
           "C": 11
         },
-        "solve_seconds_mean": 0.003,
+        "solve_seconds_mean": 0.002,
         "agent_minus_strategy_net_lei": 101377.43
       },
       "aleator": {
@@ -828,7 +828,7 @@
           "B": 13,
           "C": 16
         },
-        "solve_seconds_mean": 0.003,
+        "solve_seconds_mean": 0.002,
         "agent_minus_strategy_net_lei": 128838.95
       },
       "doar_contoare": {
@@ -867,7 +867,7 @@
           "B": 0,
           "C": 0
         },
-        "solve_seconds_mean": 0.003,
+        "solve_seconds_mean": 0.002,
         "agent_minus_strategy_net_lei": 160707.88
       }
     },
@@ -1056,8 +1056,8 @@
       "storms_covered_total": 37,
       "remote_readings_total": 1341,
       "remote_readings_true": 731,
-      "human_review_total": 92,
-      "human_review_true": 38,
+      "human_review_total": 46,
+      "human_review_true": 22,
       "notifications_total": 32,
       "value_by_source_lei": {
         "A": 635093.52,
@@ -1074,7 +1074,7 @@
         "B": 30,
         "C": 15
       },
-      "solve_seconds_mean": 0.852
+      "solve_seconds_mean": 0.631
     },
     "greedy_in_loc_de_ortools": {
       "label_ro": "Aceleași reguli, trasee făcute greedy în loc de OR-Tools",
@@ -1095,8 +1095,8 @@
       "storms_covered_total": 37,
       "remote_readings_total": 1428,
       "remote_readings_true": 761,
-      "human_review_total": 92,
-      "human_review_true": 38,
+      "human_review_total": 46,
+      "human_review_true": 22,
       "notifications_total": 32,
       "value_by_source_lei": {
         "A": 416094.96,
@@ -1163,63 +1163,63 @@
   "demo_day": {
     "scenario": "demo-vara",
     "plan_date": "2025-07-08",
-    "work_items": 249,
-    "true_problems": 183,
-    "true_value_lei_total": 120206.9,
+    "work_items": 391,
+    "true_problems": 274,
+    "true_value_lei_total": 186011.67,
     "truth_source": "outputs/work_items/demo-vara/A_ground_truth.csv",
     "strategies": {
       "agent": {
-        "net_value_lei_total": 10407.03,
-        "net_value_lei_per_day": 10407.03,
+        "net_value_lei_total": 2529.09,
+        "net_value_lei_per_day": 2529.09,
         "net_value_lei_per_day_std": 0.0,
-        "value_captured_lei_total": 19015.67,
-        "costs_lei_total": 8608.64,
-        "km_total": 121.91,
-        "km_per_day": 121.91,
-        "visits_total": 30,
-        "useless_visits_total": 4,
-        "useless_visit_rate": 0.1333,
-        "urgent_total": 16,
-        "urgent_missed_total": 0,
-        "urgent_missed_rate": 0.0,
+        "value_captured_lei_total": 12463.35,
+        "costs_lei_total": 9934.26,
+        "km_total": 179.69,
+        "km_per_day": 179.69,
+        "visits_total": 33,
+        "useless_visits_total": 0,
+        "useless_visit_rate": 0.0,
+        "urgent_total": 50,
+        "urgent_missed_total": 21,
+        "urgent_missed_rate": 0.42,
         "storms_true_total": 0,
         "storms_covered_total": 0,
-        "remote_readings_total": 152,
-        "remote_readings_true": 144,
-        "human_review_total": 59,
-        "human_review_true": 5,
+        "remote_readings_total": 292,
+        "remote_readings_true": 224,
+        "human_review_total": 25,
+        "human_review_true": 9,
         "notifications_total": 0,
         "value_by_source_lei": {
-          "A": 19015.67,
+          "A": 12463.35,
           "B": 0.0,
           "C": 0.0
         },
         "visits_by_source": {
-          "A": 30,
+          "A": 33,
           "B": 0,
           "C": 0
         },
         "useless_visits_by_source": {
-          "A": 4,
+          "A": 0,
           "B": 0,
           "C": 0
         },
-        "solve_seconds_mean": 1.991
+        "solve_seconds_mean": 3.75
       },
       "top_k_scor": {
-        "net_value_lei_total": 5213.39,
-        "net_value_lei_per_day": 5213.39,
+        "net_value_lei_total": 6178.72,
+        "net_value_lei_per_day": 6178.72,
         "net_value_lei_per_day_std": 0.0,
-        "value_captured_lei_total": 12566.83,
-        "costs_lei_total": 7353.44,
-        "km_total": 236.73,
-        "km_per_day": 236.73,
+        "value_captured_lei_total": 13436.93,
+        "costs_lei_total": 7258.21,
+        "km_total": 217.6,
+        "km_per_day": 217.6,
         "visits_total": 24,
         "useless_visits_total": 0,
         "useless_visit_rate": 0.0,
-        "urgent_total": 16,
-        "urgent_missed_total": 16,
-        "urgent_missed_rate": 1.0,
+        "urgent_total": 50,
+        "urgent_missed_total": 48,
+        "urgent_missed_rate": 0.96,
         "storms_true_total": 0,
         "storms_covered_total": 0,
         "remote_readings_total": 0,
@@ -1228,7 +1228,7 @@
         "human_review_true": 0,
         "notifications_total": 0,
         "value_by_source_lei": {
-          "A": 12566.83,
+          "A": 13436.93,
           "B": 0.0,
           "C": 0.0
         },
@@ -1242,22 +1242,22 @@
           "B": 0,
           "C": 0
         },
-        "solve_seconds_mean": 0.009
+        "solve_seconds_mean": 0.013
       },
       "primul_venit": {
-        "net_value_lei_total": 22081.08,
-        "net_value_lei_per_day": 22081.08,
+        "net_value_lei_total": 28824.53,
+        "net_value_lei_per_day": 28824.53,
         "net_value_lei_per_day_std": 0.0,
-        "value_captured_lei_total": 29625.56,
-        "costs_lei_total": 7544.48,
-        "km_total": 163.01,
-        "km_per_day": 163.01,
-        "visits_total": 26,
+        "value_captured_lei_total": 35659.38,
+        "costs_lei_total": 6834.85,
+        "km_total": 175.58,
+        "km_per_day": 175.58,
+        "visits_total": 23,
         "useless_visits_total": 0,
         "useless_visit_rate": 0.0,
-        "urgent_total": 16,
-        "urgent_missed_total": 15,
-        "urgent_missed_rate": 0.9375,
+        "urgent_total": 50,
+        "urgent_missed_total": 48,
+        "urgent_missed_rate": 0.96,
         "storms_true_total": 0,
         "storms_covered_total": 0,
         "remote_readings_total": 0,
@@ -1266,12 +1266,12 @@
         "human_review_true": 0,
         "notifications_total": 0,
         "value_by_source_lei": {
-          "A": 29625.56,
+          "A": 35659.38,
           "B": 0.0,
           "C": 0.0
         },
         "visits_by_source": {
-          "A": 26,
+          "A": 23,
           "B": 0,
           "C": 0
         },
@@ -1280,22 +1280,22 @@
           "B": 0,
           "C": 0
         },
-        "solve_seconds_mean": 0.009
+        "solve_seconds_mean": 0.012
       },
       "aleator": {
-        "net_value_lei_total": 4775.84,
-        "net_value_lei_per_day": 4775.84,
+        "net_value_lei_total": 985.77,
+        "net_value_lei_per_day": 985.77,
         "net_value_lei_per_day_std": 0.0,
-        "value_captured_lei_total": 13238.64,
-        "costs_lei_total": 8462.8,
-        "km_total": 246.33,
-        "km_per_day": 246.33,
-        "visits_total": 28,
-        "useless_visits_total": 7,
-        "useless_visit_rate": 0.25,
-        "urgent_total": 16,
-        "urgent_missed_total": 15,
-        "urgent_missed_rate": 0.9375,
+        "value_captured_lei_total": 9246.23,
+        "costs_lei_total": 8260.46,
+        "km_total": 264.84,
+        "km_per_day": 264.84,
+        "visits_total": 27,
+        "useless_visits_total": 12,
+        "useless_visit_rate": 0.4444,
+        "urgent_total": 50,
+        "urgent_missed_total": 45,
+        "urgent_missed_rate": 0.9,
         "storms_true_total": 0,
         "storms_covered_total": 0,
         "remote_readings_total": 0,
@@ -1304,61 +1304,61 @@
         "human_review_true": 0,
         "notifications_total": 0,
         "value_by_source_lei": {
-          "A": 13238.64,
+          "A": 9246.23,
           "B": 0.0,
           "C": 0.0
         },
         "visits_by_source": {
-          "A": 28,
+          "A": 27,
           "B": 0,
           "C": 0
         },
         "useless_visits_by_source": {
-          "A": 7,
+          "A": 12,
           "B": 0,
           "C": 0
         },
-        "solve_seconds_mean": 0.011
+        "solve_seconds_mean": 0.016
       },
       "agent_fara_siguranta_obligatorie": {
-        "net_value_lei_total": 14799.54,
-        "net_value_lei_per_day": 14799.54,
+        "net_value_lei_total": 25394.32,
+        "net_value_lei_per_day": 25394.32,
         "net_value_lei_per_day_std": 0.0,
-        "value_captured_lei_total": 23293.95,
-        "costs_lei_total": 8494.41,
-        "km_total": 109.45,
-        "km_per_day": 109.45,
-        "visits_total": 30,
-        "useless_visits_total": 3,
-        "useless_visit_rate": 0.1,
-        "urgent_total": 16,
-        "urgent_missed_total": 4,
-        "urgent_missed_rate": 0.25,
+        "value_captured_lei_total": 34002.08,
+        "costs_lei_total": 8607.76,
+        "km_total": 130.09,
+        "km_per_day": 130.09,
+        "visits_total": 29,
+        "useless_visits_total": 0,
+        "useless_visit_rate": 0.0,
+        "urgent_total": 50,
+        "urgent_missed_total": 36,
+        "urgent_missed_rate": 0.72,
         "storms_true_total": 0,
         "storms_covered_total": 0,
-        "remote_readings_total": 147,
-        "remote_readings_true": 139,
-        "human_review_total": 59,
-        "human_review_true": 5,
+        "remote_readings_total": 274,
+        "remote_readings_true": 206,
+        "human_review_total": 25,
+        "human_review_true": 9,
         "notifications_total": 0,
         "value_by_source_lei": {
-          "A": 23293.95,
+          "A": 34002.08,
           "B": 0.0,
           "C": 0.0
         },
         "visits_by_source": {
-          "A": 30,
+          "A": 29,
           "B": 0,
           "C": 0
         },
         "useless_visits_by_source": {
-          "A": 3,
+          "A": 0,
           "B": 0,
           "C": 0
         },
-        "solve_seconds_mean": 1.974
+        "solve_seconds_mean": 5.114
       }
     }
   },
-  "runtime_s": 117.8
+  "runtime_s": 108.1
 }
