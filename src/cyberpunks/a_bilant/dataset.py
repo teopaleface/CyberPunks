@@ -33,8 +33,12 @@ from cyberpunks.common.paths import DATA_PROCESSED
 OUT = DATA_PROCESSED / "bilant"
 WINDOW = 14  # zile: fereastra diagnosticului
 EVAL_EVERY = 7  # o fereastră de evaluare la 7 zile
-SEEDS = {"train": 20261107, "pop": 8112026, "train2": 20261108}
-P_POST = {"train": 0.40, "pop": 0.25, "train2": 0.40}  # ce parte din posturi au o problemă la nivel de post (IPOTEZĂ)
+SEEDS = {"train": 20261107, "pop": 8112026, "train2": 20261108, "trainL": 20261109, "trainLA": 20261110}
+P_POST = {"train": 0.40, "pop": 0.25, "train2": 0.40, "trainL": 0.40, "trainLA": 0.25}
+# trainL: ~3.000 de posturi (diagnosticul v2); trainLA: ~3.000 de posturi cu defectele de contor ca la A, apărute în
+# ultimele 60 de zile, ca pe harta de test (antrenarea fuziunii v2)
+N_PER_TOPOLOGY = {"train": 50, "train2": 50, "trainL": 500, "trainLA": 500}
+MAX_WORKERS = 8  # ce parte din posturi au o problemă la nivel de post (IPOTEZĂ)
 
 
 # ------------------------------------------------------------------------------------------------------------
@@ -44,7 +48,7 @@ P_POST = {"train": 0.40, "pop": 0.25, "train2": 0.40}  # ce parte din posturi au
 
 def train_specs(n_per_topology: int = 50, pool: str = "train") -> tuple[list[grids.PostSpec], pd.DataFrame]:
     rng = np.random.default_rng(SEEDS[pool])
-    prefix = "BT" if pool == "train" else "BT2"
+    prefix = {"train": "BT", "train2": "BT2", "trainL": "BTL", "trainLA": "BTLA"}[pool]
     specs, meta = [], []
     k = 0
     for topo in grids.TOPOLOGIES:
@@ -158,6 +162,10 @@ def plans_for(pool: str, specs: list[grids.PostSpec], meta: pd.DataFrame, n_days
         r2 = np.random.default_rng(SEEDS[pool] + 3)
         for s_ in specs:
             P.a_like_meter_problems(plans[s_.post_id], n_customers(s_), n_days, r2)
+    if pool == "trainLA":  # ca adevărul lui A pe hartă: ~5,5% din contoare, apărute în ultimele 60 de zile
+        r2 = np.random.default_rng(SEEDS[pool] + 3)
+        for s_ in specs:
+            P.a_like_meter_problems(plans[s_.post_id], n_customers(s_), n_days, r2, p_meter=0.055, min_onset=n_days - 61)
     # clientul la postul greșit: receptorul e un vecin fără altă problemă de post
     nb = neighbors(meta)
     taken = set()
@@ -419,7 +427,7 @@ def cluster_voltage(meta: pd.DataFrame, T: int, seed: int) -> dict[str, np.ndarr
 
 def build(pool: str, workers: int = 4, limit: int | None = None) -> pd.DataFrame:
     wx = world.load_weather()
-    specs, meta = train_specs(pool=pool) if pool in ("train", "train2") else pop_specs()
+    specs, meta = train_specs(N_PER_TOPOLOGY[pool], pool=pool) if pool in N_PER_TOPOLOGY else pop_specs()
     if limit:
         specs, meta = specs[:limit], meta.iloc[:limit]
     plans = plans_for(pool, specs, meta, wx.D)
@@ -430,10 +438,10 @@ def build(pool: str, workers: int = 4, limit: int | None = None) -> pd.DataFrame
     jobs = [(s.to_dict(), plan_to_dict(plans[s.post_id]), cl[s.post_id]) for s in specs]
     t0 = time.perf_counter()
     res: dict[str, dict] = {}
-    with ProcessPoolExecutor(max_workers=min(workers, 4), mp_context=get_context("spawn"), initializer=_init, initargs=(wx, cmv)) as ex:
+    with ProcessPoolExecutor(max_workers=min(workers, MAX_WORKERS), mp_context=get_context("spawn"), initializer=_init, initargs=(wx, cmv)) as ex:
         for i, r in enumerate(ex.map(run_post, jobs, chunksize=2), 1):
             res[r["post_id"]] = r
-            if i % 25 == 0:
+            if i % 100 == 0 or (len(jobs) <= 300 and i % 25 == 0):
                 print(f"  {pool}: {i}/{len(jobs)} posturi, {time.perf_counter() - t0:.0f} s", flush=True)
 
     # receptorii clientului mutat: baza lor primește clientul de la ziua mutării
@@ -494,7 +502,7 @@ def build(pool: str, workers: int = 4, limit: int | None = None) -> pd.DataFrame
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--pool", choices=["train", "train2", "pop", "all"], default="all")
+    ap.add_argument("--pool", choices=["train", "train2", "trainL", "trainLA", "pop", "all"], default="all")
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--limit", type=int, default=None)
     a = ap.parse_args()

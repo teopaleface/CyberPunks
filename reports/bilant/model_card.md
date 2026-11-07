@@ -38,8 +38,8 @@ Pe lotul hărții, defectele de contor sunt exact cele ale firului A (`A_ground_
 | Pierderea normală, MAE (kWh/zi) | **5,40** (15% din 37,0) | formula fizică I²R 14,92; procent fix 20,62 |
 | Același, fără istoricul postului | 12,49 | - |
 | Acoperirea intervalului P10-P90 | 88,1% | formula fizică 86,6% (interval de ~10 ori mai larg) |
-| Diagnosticul, F1 macro (model + regula martorului) | **0,70** | tabelul de reguli din concept 0,48 |
-| Diagnosticul, exactitate | 0,82 | 0,78 |
+| Diagnosticul v2, F1 macro (model + regula martorului) | **0,75** | v1 (rezerva) 0,70; tabelul de reguli din concept 0,48 |
+| Diagnosticul v2, exactitate | 0,86 | v1 0,82; reguli 0,78 |
 | Regula contorului martor (posturile cu martor): contoare de balanță setate greșit prinse | **98%**, 0 alarme false | doar modelul: F1 0,97; cu regula 0,99 |
 | Primele 10 posturi pe zi prind din energia lipsă | 85% | 80% |
 | **Energia pierdută pe care niciun contor de client nu o vede** (furt înainte de contor, pierderi tehnice peste normal, client la postul greșit), ziua demo | **48%** | o vede doar bilanțul |
@@ -76,6 +76,13 @@ Regula din producție: bilanțul doar confirmă, nu coboară niciodată un conto
 | | 500 | 93,0% → 90,6% | -12 | - |
 
 Concluzia cinstită: cu scorurile reale ale lui A nu există câștig la clasare. A e deja precis în vârful listei, iar cele două lumi simulate (curbele din Londra ale lui A, curbele SimBench ale bilanțului) împart doar contorul cu problemă și ziua apariției. Câștigul apare când modelul de contoare e mai slab (de exemplu, la calitatea SGCC, lei recuperați în primele 10 cresc de 3,6 ori). Valoarea principală a bilanțului e alta: vede 48% din energia pierdută, pe care contoarele n-o văd deloc, și spune cauza la nivel de post.
+
+## Varianta v2 (7 nov., 22:10-22:35)
+
+Regula: v2 se păstrează doar dacă bate v1 pe același test (cele 300 de posturi ale hărții). v1 rămâne rezervă: `models/bilant/diagnose.*`, `fuse.V1_PARAMS`.
+
+- **Diagnosticul v2:** ~3.000 de posturi de antrenare (lotul `trainL`, față de 300), 7 trăsături noi (clienți cu consumul înjumătățit, cât explică primii 3, contoare noi cu zero / blocate / cu semn schimbat pe 7 zile, raportul față de normalul din GIS) și setări LightGBM căutate cu Optuna (40 de încercări, validare pe 20% din cartierele `trainL`). Pe test, F1 macro: v1 0,704 → doar mai multe posturi 0,717 → plus trăsături 0,735 → plus căutare **0,754**. Pe clase: contor de client 0,38 → 0,47, furt înainte de contor 0,67 → 0,77, client la postul greșit 0,76 → 0,87, pierdere tehnică 0,51 → 0,49 (ușor mai jos). Detalii: `reports/bilant/v2_comparison.json`.
+- **Fuziunea v2:** aceeași regulă (doar confirmă), cu parametrii căutați automat (Optuna, 60 de încercări) pe un lot separat de ~3.000 de posturi cu defectele de contor ca la A (`trainLA`). Pe harta de test, scoruri A simulate: precizia în primele 10 contoare pe zi 80% doar cu A, 78% cu v1, **90% cu v2**; în primele 100: 31% → 33%; deplasări degeaba evitate pe zi față de A: 1,0 / 0,8 / 1,0 / 2,0 la K = 10 / 20 / 50 / 100; lei pe zi în primele 10: 4.966 → 8.278. Cu scorurile reale ale lui A: AUC 0,917 → 0,919 (v1: 0,916), deci v2 nu strică. Fuziunea învățată (LightGBM) a fost respinsă: câștigul ei pe simulare venea din construcția scorului A simulat, iar pe scorurile reale cădea la AUC 0,85 (`reports/bilant/fusion_v2_comparison_trainLA.json`).
 
 ## Incertitudine și „nu sunt sigur”
 

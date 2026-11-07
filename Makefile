@@ -111,7 +111,7 @@ c-test:           ## C: testele firului C
 c-all: c-weather c-sim c-population c-train c-predict c-eval  ## C: tot lanțul, de la date la lucrări (circa 15 minute)
 
 # ---- Bilanț pe post (firul Teo-bilant) ----
-.PHONY: bilant-data bilant-eval bilant-predict bilant-test
+.PHONY: bilant-data bilant-eval bilant-predict bilant-test bilant-v2
 bilant-data:      ## Bilanț: lumea simulată, 600 de posturi cu probleme ascunse (data/processed/bilant), cel mult 4 procese
 	uv run python -m cyberpunks.a_bilant.dataset --workers 4
 bilant-eval:      ## Bilanț: modelele și metodele simple, reports/bilant/metrics.json, figurile, planul B, analiza erorilor
@@ -122,6 +122,11 @@ bilant-predict:   ## Bilanț: lucrările A_bilant.jsonl, seriile, starea pentru 
 	uv run python -m cyberpunks.a_bilant.predict --scenario demo-vara
 	uv run python -m cyberpunks.a_bilant.demo_story
 	uv run python -m cyberpunks.a_bilant.headline
+bilant-v2:        ## Bilanț v2: loturile mari (2 × ~3.000 de posturi, ~5 min, 8 procese), căutarea pentru diagnostic și fuziune (~25 min)
+	uv run python -m cyberpunks.a_bilant.dataset --pool trainL --workers 8
+	uv run python -m cyberpunks.a_bilant.dataset --pool trainLA --workers 8
+	uv run python -m cyberpunks.a_bilant.v2 --trials 40
+	uv run python -m cyberpunks.a_bilant.fusion_v2 --trials 60 --train-pool trainLA
 bilant-test:      ## Bilanț: testele firului
 	uv run pytest tests/bilant
 

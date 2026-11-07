@@ -29,6 +29,17 @@ from cyberpunks.common.contracts import BilantFusion, Factor, WorkItem
 from cyberpunks.common.paths import OUTPUTS
 
 LOG_LR_CAP = 3.0
+V1_PARAMS = {"k_sigma": 1.0, "u_def": 0.5, "cap": LOG_LR_CAP, "demote": False}
+
+
+def fusion_params() -> dict:
+    """Parametrii regulii: v2 (reglați automat, `reports/bilant/fusion_v2_params.json`) dacă există, altfel v1 (rezervă)."""
+    from cyberpunks.common.paths import REPORTS
+
+    p = REPORTS / "bilant" / "fusion_v2_params.json"
+    if p.exists():
+        return {**V1_PARAMS, **json.loads(p.read_text(encoding="utf-8"))["params"]}
+    return dict(V1_PARAMS)
 RESOLVE_ABSTAIN_LOG_LR = 1.5  # raportul e plafonat la ~2 de incertitudinea lipsei contorului
 # Oprit (7 nov., 14:45): pe ziua demo, cele 5 lucrări A „nu sunt sigur” rezolvate așa nu aveau nicio problemă reală
 # (lipsa estimată de A vine din curbele lui, nu din contorul din lumea bilanțului). Le decide omul.
@@ -40,21 +51,27 @@ def state_path(scenario: str, date: str | Date) -> Path:
     return OUTPUTS / "bilant" / scenario / f"posts_{date}.json"
 
 
-def combine(a_score: float, excess_kwh: float, sigma_kwh: float, meter_deficit_kwh: float, demote: bool = False) -> tuple[float, float]:
-    """(scor combinat, log LR). Toate valorile pe zi. Fără `demote`, log LR negativ devine 0 (doar confirmare)."""
+def combine(a_score: float, excess_kwh: float, sigma_kwh: float, meter_deficit_kwh: float, demote: bool = False, params: dict | None = None) -> tuple[float, float]:
+    """(scor combinat, log LR). Toate valorile pe zi. Fără `demote`, log LR negativ devine 0 (doar confirmare).
+
+    `params` (k_sigma, u_def, cap): implicit cei v2 reglați, dacă există, altfel v1."""
+    p = params or fusion_params()
+    demote = demote or bool(p.get("demote", False))
     d = max(float(meter_deficit_kwh), 0.0)
-    s = math.sqrt(max(sigma_kwh, 0.1) ** 2 + (0.5 * d) ** 2)
+    s = math.sqrt(max(sigma_kwh * p["k_sigma"], 0.1) ** 2 + (p["u_def"] * d) ** 2)
     log_lr = (-((excess_kwh - d) ** 2) + excess_kwh**2) / (2 * s**2)
-    log_lr = float(np.clip(log_lr, -LOG_LR_CAP if demote else 0.0, LOG_LR_CAP))
+    log_lr = float(np.clip(log_lr, -p["cap"] if demote else 0.0, p["cap"]))
     a = float(np.clip(a_score, 1e-4, 1 - 1e-4))
     z = math.log(a / (1 - a)) + log_lr
     return float(1 / (1 + math.exp(-z))), log_lr
 
 
-def combine_arrays(a_score: np.ndarray, excess: np.ndarray, sigma: np.ndarray, deficit: np.ndarray, demote: bool = False) -> np.ndarray:
+def combine_arrays(a_score: np.ndarray, excess: np.ndarray, sigma: np.ndarray, deficit: np.ndarray, demote: bool = False, params: dict | None = None) -> np.ndarray:
+    p = params or fusion_params()
+    demote = demote or bool(p.get("demote", False))
     d = np.maximum(deficit, 0.0)
-    s = np.sqrt(np.maximum(sigma, 0.1) ** 2 + (0.5 * d) ** 2)
-    log_lr = np.clip((-((excess - d) ** 2) + excess**2) / (2 * s**2), -LOG_LR_CAP if demote else 0.0, LOG_LR_CAP)
+    s = np.sqrt(np.maximum(sigma * p["k_sigma"], 0.1) ** 2 + (p["u_def"] * d) ** 2)
+    log_lr = np.clip((-((excess - d) ** 2) + excess**2) / (2 * s**2), -p["cap"] if demote else 0.0, p["cap"])
     a = np.clip(a_score, 1e-4, 1 - 1e-4)
     return 1 / (1 + np.exp(-(np.log(a / (1 - a)) + log_lr)))
 

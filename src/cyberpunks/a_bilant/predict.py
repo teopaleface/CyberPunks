@@ -117,8 +117,8 @@ def _shap(diag: G.Diagnoser, X: pd.DataFrame, cls_idx: np.ndarray) -> np.ndarray
     import lightgbm as lgb
 
     booster = diag.model if isinstance(diag.model, lgb.Booster) else diag.model.booster_
-    c = booster.predict(X[W.WIN_FEATURES], pred_contrib=True)
-    nf = len(W.WIN_FEATURES) + 1
+    c = booster.predict(X[diag.features], pred_contrib=True)
+    nf = len(diag.features) + 1
     c = np.asarray(c).reshape(len(X), len(CLASSES), nf)
     return c[np.arange(len(X)), cls_idx, :-1]
 
@@ -147,6 +147,12 @@ def _factor_text(feat: str, r: pd.Series, extra: dict) -> str | None:
         return f"Tensiunea unui contor seamănă puțin cu a postului (corelație {r['vcorr_min']:.2f} față de mediana {r['vcorr_min'] + r['vcorr_gap']:.2f})"
     if f in ("width_kwh", "p50_mean_kwh", "hist_days"):
         return f"Pierderea normală estimată: {r['p50_mean_kwh']:.1f} kWh/zi (interval P10-P90 de {r['width_kwh']:.1f} kWh)"
+    if f in ("n_drop50", "top3_drop_match"):
+        return f"{int(r['n_drop50'])} clienți și-au înjumătățit consumul; primii 3 explică {r['top3_drop_match']:.0%} din lipsă"
+    if f in ("zero7", "const7", "neg7"):
+        return f"Pe ultimele 7 zile: {int(max(r['zero7'], 0))} contoare noi cu zero, {int(r['const7'])} blocate, {int(r['neg7'])} cu semn schimbat"
+    if f in ("ratio_vs_gis", "r_vs_gis_kwh"):
+        return f"Postul pierde de {r['ratio_vs_gis']:.1f} ori cât îi spun cablurile din GIS și încărcarea"
     if f == "miss_share_w":
         return f"Date lipsă la contoare: {r['miss_share_w'] * 100:.1f}% din ore (completate din istoric)"
     return None
@@ -158,7 +164,7 @@ def post_states(pool: str, target_day: int) -> tuple[pd.DataFrame, pd.DataFrame,
     models = {"warm": N.load("normal"), "cold": N.load("normal_cold")}
     pred = W.predict_normal(models, d)
     win = W.build_windows(d, pred, pool, days=[target_day])
-    diag = G.load()
+    diag = G.load_best()
     proba = diag.proba(win)
     dec = G.apply_martor_rule(win, G.pair_consistency(win, G.decide(proba, win)))
     d = d.assign(p10=pred["p10"].to_numpy(), p50=pred["p50"].to_numpy(), p90=pred["p90"].to_numpy())
@@ -274,7 +280,8 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
     a_by_post = a_items_by_post(scenario)
     dedup = {"human_review_left_to_A": 0, "meter_work_left_to_A": 0}
     shap_idx = np.array([CLASSES.index(c) for c in win["label"]])
-    shap = _shap(G.load(), win, shap_idx)
+    diag_m = G.load_best()
+    shap = _shap(diag_m, win, shap_idx)
 
     items, series, states = [], {}, {}
     rmean = dict(zip(win["post_id"], win["r_mean_kwh"], strict=True))
@@ -369,7 +376,7 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
         order = np.argsort(-np.abs(shap[k]))
         factors, seen = [], set()
         for j in order:
-            feat = W.WIN_FEATURES[j]
+            feat = diag_m.features[j]
             txt = _factor_text(feat, r, extra)
             if not txt or txt in seen:
                 continue
