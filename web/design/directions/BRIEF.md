@@ -50,7 +50,7 @@ Etichete cu majuscule peste tot; eticheta mică deasupra fiecărui titlu; șirur
   agent-browser set viewport 1920 1080
   agent-browser open file:///Users/teo/.t3/worktrees/CyberPunks/Teo-ui/web/design/directions/<slug>.html
   agent-browser wait --fn "window.__ready === true"
-  agent-browser screenshot /Users/teo/.t3/worktrees/CyberPunks/Teo-ui/web/design/directions/<slug>.png
+  agent-browser screenshot /Users/teo/.t3/worktrees/CyberPunks/Teo-ui/web/design/directions/<slug>.jpg (după captură, salvată ca JPG)
   ```
   Uită-te la captură (citește PNG-ul), repară ce nu merge (text tăiat, suprapuneri, diacritice, contrast), refă captura. La final `agent-browser close`.
-- Scrii doar în `web/design/directions/` (fișierele tale: `<slug>.html`, `<slug>.png`). Fără `git commit`, `git push`, `git stash`. Alt agent construiește în paralel aplicația Next.js în `web/`: nu atinge nimic altceva.
+- Scrii doar în `web/design/directions/` (fișierele tale: `<slug>.html`, `<slug>.jpg (după captură, salvată ca JPG)`). Fără `git commit`, `git push`, `git stash`. Alt agent construiește în paralel aplicația Next.js în `web/`: nu atinge nimic altceva.
