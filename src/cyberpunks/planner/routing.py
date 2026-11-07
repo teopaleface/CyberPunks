@@ -148,7 +148,7 @@ def schedule(pb: Problem, v: int, seq: list[int]) -> tuple[bool, list[int], int]
             return False, [], 0
         node = pb.node_of_task(k)
         t = max(t + pb.matrix.minutes[loc][node], task.earliest)
-        if t > task.latest:
+        if t > task.latest or (task.terminal and t > veh.end_min):
             return False, [], 0
         arrivals.append(t)
         t += task.service_min

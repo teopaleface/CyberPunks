@@ -195,7 +195,8 @@ def finalize(
                          reason_ro="Intrare greșită, pusă în carantină: " + "; ".join(q.errors), rule_id="R-QUARANTINE",
                          threshold={}, audit_id=aid)
             )
-            pred = (q.raw.get("prediction") or {}) if isinstance(q.raw, dict) else {}
+            pred = q.raw.get("prediction") if isinstance(q.raw, dict) else None
+            pred = pred if isinstance(pred, dict) else {}
             audit.append(
                 AuditRecord(audit_id=aid, ts=generated_at, actor="agent", action="rejected_invalid", work_item_id=q.work_item_id,
                             prediction_id=pred.get("prediction_id") if isinstance(pred.get("prediction_id"), str) else None,

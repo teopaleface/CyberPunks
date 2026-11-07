@@ -76,7 +76,8 @@ def approve_route(scenario: str, crew_id: str, reviewer: str, note: str | None =
     approvals = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
     approvals[crew_id] = {
         "crew_id": crew_id, "reviewer": reviewer, "note": note, "ts": now.isoformat(), "plan_id": plan["plan_id"],
-        "work_item_ids": [s["work_item_id"] for s in route["stops"]], "audit_ids": [r.audit_id for r in records],
+        "work_item_ids": [s["work_item_id"] for s in route["stops"]], "route_signature": _signature(route),
+        "audit_ids": [r.audit_id for r in records],
     }
     write_json(path, approvals)
     return approvals[crew_id]
@@ -88,12 +89,17 @@ def approvals(scenario: str, *, out_root: Path = OUTPUTS) -> list[dict[str, Any]
     if not path.exists():
         return []
     current = (json.loads((plan_dir / "plan.json").read_text(encoding="utf-8")) if (plan_dir / "plan.json").exists() else {})
-    routes = {r["crew_id"]: [s["work_item_id"] for s in r["stops"]] for r in current.get("routes", [])}
+    routes = {r["crew_id"]: _signature(r) for r in current.get("routes", [])}
     out = []
     for a in json.loads(path.read_text(encoding="utf-8")).values():
-        stale = a.get("plan_id") != current.get("plan_id") and routes.get(a["crew_id"]) != a.get("work_item_ids")
+        # Veche dacă traseul echipei s-a schimbat de la aprobare: alte opriri, altă ordine sau alte ore.
+        stale = routes.get(a["crew_id"]) != a.get("route_signature")
         out.append({**a, "stale": bool(stale)})
     return out
+
+
+def _signature(route: dict[str, Any]) -> list[list[str]]:
+    return [[s["work_item_id"], str(s["seq"]), s["eta"]] for s in route.get("stops", [])]
 
 
 def record_verdict(

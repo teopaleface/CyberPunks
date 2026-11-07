@@ -31,7 +31,7 @@ from cyberpunks.common.paths import REPORTS
 from cyberpunks.planner import planner_version
 from cyberpunks.planner.actions import finalize
 from cyberpunks.planner.agent import build_routing
-from cyberpunks.planner.decide import Context, action_cost, decide
+from cyberpunks.planner.decide import Context, action_cost, decide, storm_onset
 from cyberpunks.planner.ingest import Item
 from cyberpunks.planner.routing import Task, Vehicle, build_problem, minutes_of, solve, solve_greedy
 from cyberpunks.planner.settings import TZ, Settings
@@ -203,8 +203,9 @@ def run_baseline(day: SimDay, settings: Settings, strategy: str, seed: int) -> D
         wi = it.wi
         terminal = action == "preposition_crew"
         latest = end - timedelta(minutes=wi.effort.duration_min)
-        if terminal and wi.time_window is not None:
-            latest = wi.time_window.start.astimezone(TZ) - timedelta(minutes=before)
+        onset = storm_onset(wi) if terminal else None
+        if onset is not None:
+            latest = onset.astimezone(TZ) - timedelta(minutes=before)
         allowed = [
             v
             for v, veh in enumerate(vehicles)

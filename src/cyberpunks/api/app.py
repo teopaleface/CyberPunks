@@ -300,10 +300,14 @@ def approve_route(crew_id: str, req: ApproveRequest, scenario: str = Query(DEFAU
         raise HTTPException(422, f"echipă invalidă: {crew_id!r}")
     if store.view(_scenario(scenario)).mode != "live":
         raise HTTPException(409, "aprobarea cere o rulare a agentului (POST /api/run)")
+    if not _run_lock.acquire(timeout=30):
+        raise HTTPException(409, "agentul rulează; încearcă din nou")
     try:
         return feedback.approve_route(scenario, crew_id, req.reviewer, req.note, out_root=store.outputs)
     except KeyError as exc:
         raise HTTPException(404, str(exc)) from exc
+    finally:
+        _run_lock.release()
 
 
 @api.get("/approvals")
@@ -321,10 +325,14 @@ def verdict(work_item_id: str, req: VerdictRequest, scenario: str = Query(DEFAUL
     _item_id(work_item_id)
     if store.view(_scenario(scenario)).mode != "live":
         raise HTTPException(409, "verdictul cere o rulare a agentului (POST /api/run)")
+    if not _run_lock.acquire(timeout=30):
+        raise HTTPException(409, "agentul rulează; încearcă din nou")
     try:
         record, label = feedback.record_verdict(scenario, work_item_id, req.outcome, req.reviewer, req.note, out_root=store.outputs)
     except KeyError as exc:
         raise HTTPException(404, str(exc)) from exc
+    finally:
+        _run_lock.release()
     return {"audit": record.model_dump(mode="json"), "label": label}
 
 
