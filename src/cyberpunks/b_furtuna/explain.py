@@ -25,6 +25,8 @@ def top_factors(model: BModel, rows: pd.DataFrame, k: int = 4) -> list[list[Fact
         g2 = contrib.pop("gust_max_2d", 0.0)
         key = "gust_max" if (row.get("gust_max") or 0) >= (row.get("gust_prev") or 0) else "gust_prev"
         contrib[key] = contrib.get(key, 0.0) + g2
+        # ploaia zilei e inclusă în ploaia pe 48 h: un singur factor, ca să nu apară de două ori aceeași ploaie
+        contrib["precip_48h"] = contrib.get("precip_48h", 0.0) + contrib.pop("precip", 0.0)
         ranked = sorted(contrib.items(), key=lambda kv: kv[1], reverse=True)
         positive = [(f, c) for f, c in ranked if c > 0.01]
         chosen = positive[:k] if positive else sorted(contrib.items(), key=lambda kv: abs(kv[1]), reverse=True)[:k]
