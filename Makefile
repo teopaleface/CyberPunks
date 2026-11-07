@@ -28,6 +28,19 @@ validate-fixtures:
 # ---- C: prosumatori (firul Teo-C-prosumatori) ----
 
 # ---- Planificator și API (firul Teo-planificator) ----
+.PHONY: api api-dev run-demo test-planner
+
+api:              ## API-ul agentului pe http://127.0.0.1:8710/api (documentație: /docs)
+	uv run uvicorn cyberpunks.api.app:app --host 127.0.0.1 --port 8710
+
+api-dev:          ## la fel, cu reîncărcare la fiecare schimbare de cod
+	uv run uvicorn cyberpunks.api.app:app --host 127.0.0.1 --port 8710 --reload --reload-dir src
+
+run-demo:         ## agentul cap-coadă pe scenariul demo-vara
+	uv run cyberpunks run --scenario demo-vara
+
+test-planner:     ## testele planificatorului și ale API-ului
+	uv run pytest tests/planner
 
 # ---- Interfață (firul Teo-ui) ----
 
