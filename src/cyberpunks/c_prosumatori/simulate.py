@@ -157,7 +157,8 @@ def simulate_post(
     )
     out = out.astype("float32")
     if detail:
-        return {"hourly": out, "trips": trips, "curtailed_kwh": curtailed.sum(axis=0), "vlv": Vlv, "vm": vm, "pv": pv, "load": load}
+        return {"hourly": out, "trips": trips, "curtailed_kwh": curtailed.sum(axis=0), "vlv": Vlv, "vm": vm, "pv": pv, "load": load,
+                "bat": bat}
     return out
 
 

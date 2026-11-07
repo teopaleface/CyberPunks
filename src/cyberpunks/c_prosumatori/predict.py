@@ -20,12 +20,12 @@ from zoneinfo import ZoneInfo
 import numpy as np
 import pandas as pd
 
-from cyberpunks.c_prosumatori import actions, explain, profiles, weather
+from cyberpunks.c_prosumatori import actions, explain, profiles, remedies, weather
 from cyberpunks.c_prosumatori import features as F
 from cyberpunks.c_prosumatori import train as T
 from cyberpunks.c_prosumatori.population import BBOX
 from cyberpunks.common.config import load
-from cyberpunks.common.contracts import Series, WorkItem
+from cyberpunks.common.contracts import RemedyOption, Series, WorkItem
 from cyberpunks.common.paths import DATA_PROCESSED, OUTPUTS, work_items_path
 
 TZ = ZoneInfo(profiles.TZ)
@@ -214,6 +214,21 @@ def _confidence(p: float, width: float, abstain: bool) -> str:
     return "low"
 
 
+def ladder_extra(L) -> dict:
+    """Scara de soluții în `extra`: opțiunile (contractul RemedyOption), P90 de pornire, alegerea și motivul."""
+    return {
+        "remedy_options": L.options,
+        "ladder_base_p90_pu": round(L.p90_start, 4),
+        "ladder_model_p90_pu": round(L.p90_model, 4),
+        "phase_unbalance_pu": {"inainte": round(L.unbalance["before"], 4), "dupa": round(L.unbalance["after"], 4)},
+        "ladder_choice": L.choice,
+        "ladder_reason_ro": L.reason_ro,
+        "ladder_reaches_target": L.reaches_target,
+        "risk_hours": [remedies.fmt_window(L.hours)],
+        "inverter_trips_base": round(L.base_trips, 1),
+    }
+
+
 def tap_extra(st: pd.Series, d: date, created: datetime) -> dict:
     """Preavizul întreruperii (Ord. ANRE 46/2021, art. 12): cea mai devreme zi pentru priză și anunțul către clienți."""
     eco = actions.economics()
@@ -250,7 +265,7 @@ def run(scenario: str, date_str: str | None = None) -> Path:
     now = datetime.now(TZ).replace(microsecond=0)
     created = now if d > now.date() else datetime(d.year, d.month, d.day, 6, 0, tzinfo=TZ) - timedelta(days=1)
     weather_uncertain = forecast and (20 <= info["cloud_noon"] <= 80 or info["cloud_std_noon"] > 25)
-    out_items, counts = [], {}
+    out_items, counts, offers, day = [], {}, [], None
     series_dir = OUTPUTS / "series" / scenario
     series_dir.mkdir(parents=True, exist_ok=True)
     for i, r in X.iterrows():
@@ -264,6 +279,16 @@ def run(scenario: str, date_str: str | None = None) -> Path:
         )
         if dec is None:
             continue
+        ladder = None
+        if actions.needs_ladder(dec, float(r["q90"])):
+            if day is None:
+                day = remedies.day_inputs(d, wx)
+            ladder = remedies.build_ladder(st["post_id"], day, float(r["q90"]), int(st["n_customers"]), actions.season_horizon_days(d))
+            dec = actions.from_ladder(dec, ladder)
+            for o in ladder.options:
+                RemedyOption.model_validate(o)
+            if not ladder.battery_offers.empty:
+                offers.append(ladder.battery_offers.assign(target_date=d.isoformat()))
         counts[dec.action] = counts.get(dec.action, 0) + 1
         ser = hourly_series(bundle, st, wx)
         h0, h1 = _window(ser)
@@ -334,7 +359,8 @@ def run(scenario: str, date_str: str | None = None) -> Path:
                 "customer_message_ro": actions.customer_message(d, int(st["n_prosumers"]), (h0, h1))
                 if dec.action in ("notify_customers", "adjust_tap") and int(st["n_prosumers"]) > 0 else None,
                 "season_horizon_days": actions.season_horizon_days(d),
-                **(tap_extra(st, d, created) if dec.action == "adjust_tap" else {}),
+                **(tap_extra(st, d, created) if dec.action == "adjust_tap" or (ladder and "adjust_tap" in ladder.choice) else {}),
+                **(ladder_extra(ladder) if ladder else {}),
             },
         }
         item["explanation"]["summary_ro"] = _summary(dec, r, d, h0, h1, factors)
@@ -388,6 +414,11 @@ def run(scenario: str, date_str: str | None = None) -> Path:
         "reason_ro": reason, "synthetic": True, "created_at": created.isoformat(),
     }
     (path.parent / "C_summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if offers:
+        allo = pd.concat(offers, ignore_index=True)
+        allo.to_csv(path.parent / "C_battery_offers.csv", index=False)
+        summary["battery_offers"] = len(allo)
+        (path.parent / "C_summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return path
 
 
