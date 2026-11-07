@@ -4,6 +4,28 @@ This folder is a [HyperFrames](https://hyperframes.heygen.com) video: HTML, CSS 
 animations (GSAP by default) that the `hyperframes` CLI previews in the browser and renders to
 MP4.
 
+## Filmul CyberPunks: abilitățile obligatorii (Teo, 7 nov. 2026)
+
+Teo cere ca filmul să fie făcut cu abilitățile de mai jos. Sunt instalate în `~/.claude/skills`.
+Înainte de orice modificare într-o scenă, încarcă abilitatea pentru pasul respectiv cu tool-ul Skill
+și scrie în `status/Teo-prezentare.md` ce abilități ai folosit la fiecare export.
+
+| Pasul | Abilități (în ordine) |
+|---|---|
+| Orice scenă nouă sau modificată | `hyperframes`, apoi `motion-doctrine` (poarta: regulile ei au prioritate), apoi `apple-design` |
+| Aspectul în stil Apple | `apple-launch-film` (doar gramatica: legenda scurtă, fundalul plin, câte o idee pe cadru; nu notch-ul și nici „hello”), `emil-design-eng`, `frontend-design` |
+| Studiul referinței și compararea cu ea | `reference-to-motion` pe `presentation/research/REFERINTA-trust.md` și pe cadrele referinței; `reverse-any-video` pentru compararea cadru cu cadru (dacă cere HyperFrames Pro, folosește doar `reference-to-motion`) |
+| Tranzițiile dintre scene | `cut-the-curve` (zoom-through, cut-the-curve, waterfall, rack-focus), `seam-craft` (fără flash alb la tăieturi) |
+| Scena consolei, butonul, cursorul | `oversized-cursor`, `motion-effects` (butonul care devine panou, zoom pe dashboard) |
+| Cadrul cu cifra | `milestone-reveal` sau `animated-chart`; cifra vine doar din `reports/`, prin `presentation/scripts/cifre_film.py` |
+| Blocuri gata făcute | caută întâi în `hyperframes-registry`, apoi construiești de mână |
+| Codul de animație | `gsap-timeline`, `gsap-core`, `gsap-performance`, `gsap-utils` |
+| Verificarea și randarea | `hyperframes-cli` (check, snapshot, render) |
+| Slideurile | `slideshow` |
+
+Brandul: `presentation/STYLE.md` ține locul lui `brand.md` și `MOTION.md`. Nu rula interviul din
+`brand-intake`. Fontul, culorile A/B/C și logoul vin din consolă (Archivo, `#2C6FD9`, `#A23C9E`, `#D99100`).
+
 ## Skills — read these first
 
 **Invoke the relevant skill before writing or modifying compositions.** Skills encode framework-specific patterns (e.g., `window.__timelines` registration, `data-*` attribute semantics, shader-compatible CSS rules) that generic web docs don't cover, so compositions written without them break.
