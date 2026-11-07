@@ -219,6 +219,8 @@ class Stop(_Strict):
 class Route(_Strict):
     crew_id: str
     depot_id: str
+    depart_at: datetime | None = Field(default=None, description="Plecarea din bază")
+    return_at: datetime | None = Field(default=None, description="Întoarcerea în bază")
     stops: list[Stop]
     total_km: float = Field(ge=0.0)
     total_work_min: int = Field(ge=0)

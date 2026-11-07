@@ -1,0 +1,218 @@
+"""Agentul cap-coadă: contracte, carantină, surse lipsă, rezerva solverului, reguli, om în buclă, determinism."""
+
+from __future__ import annotations
+
+import json
+from datetime import datetime
+from pathlib import Path
+
+import pytest
+
+from cyberpunks.common.contracts import AuditRecord, Plan, WorkItem
+from cyberpunks.planner import agent, routing
+from cyberpunks.planner.review import apply_review
+from cyberpunks.planner.settings import TZ
+
+from .conftest import DATE, SCENARIO, fixture_items, variant, write_items
+
+
+def _decisions(res) -> dict[str, object]:
+    return {d.work_item_id: d for d in res.plan.decisions}
+
+
+def _audit(plan_dir: Path) -> list[AuditRecord]:
+    return [AuditRecord.model_validate_json(line) for line in (plan_dir / "audit.jsonl").read_text(encoding="utf-8").splitlines()]
+
+
+def test_fixtures_end_to_end_contracts(out_root: Path) -> None:
+    res = agent.run("demo-vara", mode="fixtures", out_root=out_root)
+    plan_dir = out_root / "plans" / "demo-vara"
+    Plan.model_validate_json((plan_dir / "plan.json").read_text(encoding="utf-8"))
+    audit = _audit(plan_dir)
+    items = [WorkItem.model_validate_json(x) for x in (plan_dir / "work_items.jsonl").read_text(encoding="utf-8").splitlines()]
+    # fiecare lucrare are exact o decizie, iar fiecare decizie duce la predicția ei prin jurnal
+    ids = [d.work_item_id for d in res.plan.decisions]
+    assert sorted(ids) == sorted(it.work_item_id for it in items)
+    by_audit = {a.audit_id: a for a in audit}
+    for d in res.plan.decisions:
+        rec = by_audit[d.audit_id]
+        assert rec.rule_id == d.rule_id and rec.inputs_sha256 and rec.prediction_id
+    assert set(res.timings) >= {"perceive", "estimate", "decide", "act"}
+    for name in ("report.md", "alerts.json", "notifications.json", "run.json", "quarantine.jsonl"):
+        assert (plan_dir / name).exists(), name
+    assert all(n.demo_only for n in res.plan.notifications)
+
+
+def test_rules_on_fixtures(out_root: Path) -> None:
+    d = _decisions(agent.run("demo-vara", mode="fixtures", out_root=out_root))
+    assert d["A-20261109-MTR-027710"].decision.value == "human_review"  # abstain → om
+    assert d["A-20261109-MTR-027710"].rule_id == "R-ABSTAIN"
+    assert d["A-20261109-MTR-004217"].rule_id == "R-SAFETY" and d["A-20261109-MTR-004217"].decision.value == "assigned"
+    assert d["A-20261109-MTR-019833"].decision.value == "remote_action"  # încredere medie → citire la distanță
+    # pe valorile din fixture, priza (450 lei + întreruperea pentru 38 de clienți) costă mai mult decât valoarea așteptată
+    assert d["C-20261109-PT-1432"].rule_id == "R-C-NOTIFY" and d["C-20261109-PT-1432"].threshold["net_tap_value_lei"] < 0
+    for dec in d.values():
+        assert dec.reason_ro and dec.rule_id
+
+
+def test_bad_inputs_are_quarantined_and_plan_continues(out_root: Path) -> None:
+    a = fixture_items("A")
+    good = variant(a[1], "MTR-100001")
+    rows = [
+        good,
+        "{nu e json",
+        variant(a[1], "MTR-100002", **{"prediction.score": 1.4}),  # probabilitate imposibilă
+        variant(a[1], "MTR-100003", **{"location.lat": 51.5}),  # în afara României
+        variant(a[1], "MTR-100004", **{"location.lat": 47.9, "location.lon": 26.9}),  # România, dar nu zona Rețele Electrice
+        variant(a[1], "MTR-100005", **{"impact.expected_value_lei": 99999.0}),  # incoerent cu scorul
+        good,  # ID duplicat
+        {**variant(a[1], "MTR-100006"), "source": "C"},  # sursă greșită în fișierul A
+    ]
+    write_items(out_root, "A", rows)
+    write_items(out_root, "C", fixture_items("C"))
+    res = agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root)
+    d = _decisions(res)
+    invalid = [x for x in res.plan.decisions if x.decision.value == "rejected_invalid"]
+    assert len(invalid) == 7
+    assert all(x.rule_id == "R-QUARANTINE" and x.reason_ro.startswith("Intrare greșită") for x in invalid)
+    assert d[good["work_item_id"]].decision.value != "rejected_invalid"
+    q = [json.loads(x) for x in (out_root / "plans" / SCENARIO / "quarantine.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert len(q) == 7 and all(row["errors"] for row in q)
+    assert res.plan.sources_status["A"] == "degraded"  # peste 20% linii respinse
+
+
+def test_missing_source_plan_continues(out_root: Path) -> None:
+    write_items(out_root, "A", fixture_items("A"))
+    write_items(out_root, "C", fixture_items("C"))
+    res = agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root)
+    assert res.plan.sources_status == {"A": "ok", "B": "missing", "C": "ok"}
+    assert any("Sursa B" in a.title_ro and "lipsește" in a.title_ro for a in res.plan.alerts)
+    assert res.plan.summary.assigned >= 1
+
+
+def test_wrong_date_items_rejected(out_root: Path) -> None:
+    write_items(out_root, "A", fixture_items("A"))
+    res = agent.run(SCENARIO, date="2026-11-10", mode="existing", out_root=out_root)
+    assert all(x.decision.value == "rejected_invalid" for x in res.plan.decisions)
+    assert "planul e pentru 2026-11-10" in res.plan.decisions[0].reason_ro
+
+
+def test_solver_failure_falls_back_to_greedy(out_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(routing, "solve_ortools", lambda *a, **k: None)  # solverul nu termină la timp
+    res = agent.run("demo-vara", mode="fixtures", out_root=out_root)
+    assert res.meta["solver"]["name"] == "greedy" and res.meta["solver"]["status"].startswith("FALLBACK")
+    assert any("rezervă" in a.title_ro for a in res.plan.alerts)
+    assert res.plan.summary.assigned >= 1
+
+
+def test_greedy_and_ortools_respect_windows_and_skills(out_root: Path) -> None:
+    for solver in ("ortools", "greedy"):
+        res = agent.run("demo-vara", mode="fixtures", out_root=out_root, solver=solver)
+        items = {it["work_item_id"]: it for s in "ABC" for it in fixture_items(s)}
+        from cyberpunks.planner.settings import Settings
+
+        crews = {c.crew_id: c for c in Settings.load().crews}
+        for r in res.plan.routes:
+            for st in r.stops:
+                it = items[st.work_item_id]
+                assert it["effort"]["crew_skill"] in crews[r.crew_id].skills, solver
+                assert crews[r.crew_id].size >= it["effort"]["crew_size"], solver
+                if it["source"] == "B":  # echipa ajunge cu o oră înainte de furtună
+                    assert st.eta <= datetime.fromisoformat(it["time_window"]["start"]).astimezone(TZ).replace(tzinfo=TZ) - __import__("datetime").timedelta(minutes=60)
+
+
+def test_low_confidence_goes_to_human_or_watch(out_root: Path) -> None:
+    a = fixture_items("A")
+    rich = variant(a[1], "MTR-200001", **{"prediction.confidence": "low", "prediction.score": 0.6})
+    poor = variant(a[1], "MTR-200002", **{"prediction.confidence": "low", "prediction.score": 0.05})
+    wide = variant(a[1], "MTR-200003", **{"prediction.interval_low": 0.1, "prediction.interval_high": 0.95})
+    write_items(out_root, "A", [rich, poor, wide])
+    d = _decisions(agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root))
+    assert d[rich["work_item_id"]].decision.value == "human_review"
+    assert d[poor["work_item_id"]].decision.value == "deferred"  # prea puțină valoare pentru timpul unui om
+    assert d[wide["work_item_id"]].rule_id == "R-WIDE-INTERVAL"
+
+
+def test_high_confidence_meter_visit_when_worth_it(out_root: Path) -> None:
+    a = fixture_items("A")
+    hi = variant(a[1], "MTR-300001", **{"prediction.confidence": "high", "prediction.score": 0.9})
+    cheap = variant(a[1], "MTR-300002", **{"prediction.confidence": "high", "prediction.score": 0.12})
+    write_items(out_root, "A", [hi, cheap])
+    d = _decisions(agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root))
+    assert d[hi["work_item_id"]].rule_id == "R-A-VISIT" and d[hi["work_item_id"]].decision.value == "assigned"
+    assert d[cheap["work_item_id"]].decision.value in ("deferred", "remote_action")  # sub pragul de rentabilitate
+    th = d[hi["work_item_id"]].threshold
+    assert th["net_value_lei"] > th["min_net_value_lei"] and "breakeven_score" in th
+
+
+def test_capacity_overflow_falls_back_to_remote_reading(out_root: Path) -> None:
+    a = fixture_items("A")
+    rows = [
+        variant(a[1], f"MTR-4{i:05d}", **{"prediction.confidence": "high", "prediction.score": 0.9, "location.lat": 44.40 + 0.002 * i})
+        for i in range(40)
+    ]
+    write_items(out_root, "A", rows)
+    res = agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root)
+    kinds = {d.decision.value for d in res.plan.decisions}
+    assert "assigned" in kinds and "remote_action" in kinds
+    assert any(d.rule_id == "R-CAPACITY-REMOTE" for d in res.plan.decisions)
+    # rutele nu depășesc tura (08:30 plecare, 15:30 întoarcere)
+    for r in res.plan.routes:
+        assert r.stops[-1].eta.hour < 16
+
+
+def test_tap_change_needs_notice_and_value(out_root: Path, tmp_path: Path) -> None:
+    c = fixture_items("C")[0]
+    worth = variant(c, "PT-9001", **{"impact.value_if_true_lei": 5000.0})  # sezonul întreg de energie pierdută
+    small = variant(c, "PT-9002", **{"impact.value_if_true_lei": 300.0})  # nu acoperă priza + întreruperea
+    write_items(out_root, "C", [worth, small])
+    early = datetime(2026, 11, 2, 18, 0, tzinfo=TZ)  # întreruperea anunțată cu o săptămână înainte
+    d = _decisions(agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root, as_of=early))
+    assert d[worth["work_item_id"]].rule_id == "R-C-TAP" and d[worth["work_item_id"]].decision.value == "assigned"
+    assert d[small["work_item_id"]].rule_id == "R-C-NOTIFY"
+    late = datetime(2026, 11, 8, 18, 0, tzinfo=TZ)  # seara dinainte: fără preaviz legal
+    d = _decisions(agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root, as_of=late))
+    assert d[worth["work_item_id"]].rule_id == "R-C-TAP-NOTICE"
+    assert "miercuri 11.11.2026" in d[worth["work_item_id"]].reason_ro  # 2 zile lucrătoare pline după duminică
+
+
+def test_storm_region_cap(out_root: Path) -> None:
+    b = fixture_items("B")[0]
+    rows = [variant(b, f"CT-Z{i}", **{"location.lon": 28.2 + 0.05 * i}) for i in range(4)]
+    write_items(out_root, "B", rows)
+    d = _decisions(agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root))
+    assert sum(1 for x in d.values() if x.rule_id == "R-B-REGION-CAP") == 2
+
+
+def test_human_review_approve_then_replan(out_root: Path) -> None:
+    agent.run("demo-vara", mode="fixtures", out_root=out_root)
+    wid = "A-20261109-MTR-027710"
+    rec = apply_review("demo-vara", wid, "approve", "verificat la telefon", "Ana", out_root=out_root)
+    assert rec.actor == "human" and rec.action == "review_approve"
+    plan_dir = out_root / "plans" / "demo-vara"
+    plan = Plan.model_validate_json((plan_dir / "plan.json").read_text(encoding="utf-8"))
+    dec = next(d for d in plan.decisions if d.work_item_id == wid)
+    assert dec.rule_id == "R-HUMAN-APPROVE" and dec.decision.value == "assigned"
+    trail = [a for a in _audit(plan_dir) if a.work_item_id == wid]
+    assert [a.actor for a in trail] == ["agent", "human", "agent"]  # agentul → omul → agentul (replanificare)
+    apply_review("demo-vara", wid, "reject", "client plecat", "Ana", out_root=out_root)
+    plan = Plan.model_validate_json((plan_dir / "plan.json").read_text(encoding="utf-8"))
+    assert next(d for d in plan.decisions if d.work_item_id == wid).rule_id == "R-HUMAN-REJECT"
+
+
+def test_review_unknown_item(out_root: Path) -> None:
+    agent.run("demo-vara", mode="fixtures", out_root=out_root)
+    with pytest.raises(KeyError):
+        apply_review("demo-vara", "A-20261109-NU-EXISTA", "approve", None, "Ana", out_root=out_root)
+
+
+def test_deterministic_plan(out_root: Path, tmp_path: Path) -> None:
+    r1 = agent.run("demo-vara", mode="fixtures", out_root=out_root)
+    r2 = agent.run("demo-vara", mode="fixtures", out_root=tmp_path / "o2")
+    def key(r):
+        return [(d.work_item_id, d.decision.value, d.rule_id, d.crew_id) for d in r.plan.decisions]
+
+    assert key(r1) == key(r2)
+    assert [(r.crew_id, [s.work_item_id for s in r.stops]) for r in r1.plan.routes] == [
+        (r.crew_id, [s.work_item_id for s in r.stops]) for r in r2.plan.routes
+    ]
