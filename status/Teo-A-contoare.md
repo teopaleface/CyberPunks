@@ -1,7 +1,7 @@
 # Status: Teo-A-contoare
-Actualizat: 2026-11-07 13:33
-Milestone curent: M1 gata (13:33); lucrez la M2
-Gata de merge: da (commit 9c42400)
+Actualizat: 2026-11-07 14:05
+Milestone curent: M2 aproape gata (14:05); M1 gata la 13:33
+Gata de merge: da (commit 827729e)
 
 ## Făcut
 - 13:30 M0: `docs/research/A.md`, date descărcate cu sume de control (SGCC, 45 de fișiere Low Carbon London).
@@ -16,18 +16,19 @@ Gata de merge: da (commit 9c42400)
 - Am găsit și reparat un artefact: injecțiile prin înmulțire dădeau valori nerotunjite, iar modelul semnala 46% din contoarele demo. După rotunjirea la 0,001 kWh semnalează 5-6%.
 - `git merge Teo` făcut de două ori (ultima la 13:28); `make check` trece (114 teste, ruff curat).
 
-## Urmează (M2, până la 21:30)
-- Features raportate la vecini (scăderea și panta față de post), ca sezonul să nu mai pară problemă: în iulie, 11% din contoarele demo ies "nu sunt sigur", față de 5% pe testul de toamnă.
-- Features noi pentru ce prindem slab: decalajul de ceas (corelație cu decalaj), deriva lentă față de vecini.
-- O regulă VEE completă (goluri, salturi, negative, valori repetate) ca al doilea baseline, mai corect decât regula simplă.
+- 14:00 Contoarele stau acum pe posturile din registrul comun al lui C (PT-1001..PT-1300): 15.850 de contoare integrate = 58,81% din cei 27.045 de clienți ai celor 300 de posturi (gradul de integrare Muntenia la 31.12.2025, din memory/12). Posturile mele PT-0001..PT-0400 sunt scoase; `data/samples/A/meters.csv` are `post_id` din registru.
+- 13:45 M2: 10 features noi (alese pe calibrare), regula VEE completă ca al doilea baseline, metrici pe problemele subtile, praguri conformal noi (1% / 30%), experimente de robustețe (`reports/A/robustness.json`), 10 teste de robustețe.
+- 14:00 Precizia@K = 1,00 verificată (cerința orchestratorului de la 13:55): fără scurgeri, explicată mai jos la Cifre.
+
+## Urmează (M2-M3)
+- `reports/A/error_analysis.md` (generat din cifrele scripturilor) și `reports/A/model_card.md`.
 - Încercare: un singur model antrenat pe Londra + SGCC; îl păstrez doar dacă nu strică niciun test.
-- Analiza erorilor (pe tipuri, pe consum, pe goluri), teste de robustețe, model card.
 
 ## Blocaje
 - Niciunul.
 
 ## Cereri către orchestrator
-- Registrul de posturi al lui C (`data/samples/C/posts.csv`) încă nu există în `Teo`. Când apare, leg cele 10.000 de contoare de aceleași `post_id` (azi au posturile mele, `PT-0001`..`PT-0400`, în `data/samples/A/posts.csv`). Încape la M2 dacă registrul apare până pe la 19:00.
+- Făcut: contoarele A folosesc `post_id` din registrul C (`data/samples/C/posts.csv`); citesc CSV-ul direct, ca să nu import pandapower prin `posts.py`. Dacă C schimbă registrul, regenerez cu `uv run python -m cyberpunks.a_contoare.topology`.
 - Pentru firul bilanț: API-ul public pe care îl importă rămâne la fel. `inject.py`: `inject`, `sample_kind`, `sample_and_inject`, `Injection`, `KIND_*`, `PARAMS`. `lcl.py`: `load_lcl`, `daily_from_halfhours`, `build_samples`, `kind_probs`, `value_lei`. Am adăugat `lcl.quantize(hh)` și `lcl.economics()`. **Sfat:** după orice injecție, rotunjiți cu `quantize()`, altfel modelul învață valorile nerotunjite în loc de tipar (ni s-a întâmplat).
 - Opțional, pentru planificator: componenta fixă a valorii unui contor defect e azi o vizită evitată (`meters.inspection_visit_cost_lei`, CALCUL). Dacă vreți altă cifră, adăugați `meters.faulty_meter_fixed_value_lei` în `config/economics.yaml`; o citesc automat.
 
@@ -40,18 +41,23 @@ Gata de merge: da (commit 9c42400)
 - Câmpuri în `extra`: `series_ref`, `p_faulty`, `p_tamper`, `conformal`, `post_id`, `estimated_kwh_lost_per_day`, `rule_vee_fired`, `smart_meter` (false = contorul nu comunică acum), `comm_down`, `level_kwh_day`, `low_consumption_guard`.
 
 ## Cifre (doar din scripturi, cu comanda)
-Comanda: `uv run python -m cyberpunks.a_contoare.evaluate --retrain`. K = 1% din contoarele din test; intervalele sunt bootstrap 95%.
-- SGCC, etichete reale de furt, 8.475 de clienți nevăzuți (723 cu furt):
-  - modelul: precizia@K 0,765 [0,66-0,86], PR-AUC 0,367, ROC-AUC 0,802;
-  - regula simplă: 0,035 / 0,080 / 0,496; IsolationForest: 0,129 / 0,098 / 0,547.
-  - Reper din literatură, fără scurgeri: ROC-AUC 0,78-0,92.
-- Londra, probleme injectate (sintetic), 13.028 de eșantioane din gospodării nevăzute, sept. 2013 - feb. 2014 (597 cu probleme):
-  - modelul: precizia@K 1,00, PR-AUC 0,669, ROC-AUC 0,907; regula simplă: 0,52 / 0,20 / 0,70.
-  - Valoarea capturată în primele 130 de vizite: model față de regulă (lei), în `metrics_full.json`.
-- Pe tipuri, modelul prinde aproape tot la contor oprit, blocat, goluri, negative și h3. Slab: ceas decalat (AUC 0,63), sub-înregistrare (0,78), bypass (0,76).
-- Alarme false la concediu: 4% (regula: 32%).
-- Etică: alarmele false sunt mai multe la chintila de jos a consumului (5,2% față de 1-1,6%). De aceea furtul suspectat la consum mic merge întâi la un om.
-- Demo (`A_summary.json`, adevărul injectat): pe `demo-vara`, 249 de lucrări și 97% din vizitele recomandate sunt probleme reale; pe `maine`, 264 de lucrări.
+Comanda: `uv run python -m cyberpunks.a_contoare.evaluate --retrain` (cifrele de mai jos) și `make a-robustness`. K = 1% din contoarele din test; intervalele sunt bootstrap 95%.
+- SGCC, etichete reale de furt, 8.475 de clienți nevăzuți (723 cu furt), precizia@K / PR-AUC / ROC-AUC:
+  - modelul: 0,812 [0,74-0,91] / 0,405 / 0,820;
+  - regula simplă: 0,035 / 0,080 / 0,496; regula VEE completă: 0,106 / 0,097 / 0,556; IsolationForest: 0,188 / 0,105 / 0,554.
+- Londra, probleme injectate (sintetic), 13.028 de eșantioane (597 cu probleme):
+  - modelul: 1,00 / 0,676 / 0,910; regula simplă: 0,52 / 0,20 / 0,70; regula VEE (pragurile alese pe calibrare): 0,61 / 0,27 / 0,80.
+- Doar problemele subtile (fără zero, blocat, negative, goluri): modelul 0,688 / 0,403; VEE 0,016 / 0,059; regula simplă 0,062 / 0,065.
+- **De ce precizia@K = 1,00 pe Londra:**
+  - K = 130 e doar 22% din cele 597 de probleme. Testul are 215 defecte evidente; primele 130 sunt 117 evidente (blocat 44, oprit 33, negative 29, goluri 11) și 13 furturi (h4, h6, h3). La VEE, 48 din primele 130 sunt contoare normale.
+  - La K mai mare, modelul scade: 0,93 (K = 200), 0,90 (300), 0,81 (400), 0,645 (597 = numărul de probleme), 0,37 (1.194). VEE la K = 597: 0,31.
+  - SGCC: 0,82 (K = 50) -> 0,43 (K = 723 = numărul de furturi).
+  - Scurgeri: nicio gospodărie sau client în două seturi; testul începe la 7.09.2013, după ultima zi de antrenare (24.08.2013). Cu etichete amestecate la întâmplare, PR-AUC cade la prevalență: 0,048 (prevalență 0,046) pe Londra, 0,098 (0,085) pe SGCC.
+- Robustețe la date lipsă (populația demo, adevărul cunoscut): PR-AUC 0,68 / 0,62 / 0,58 / 0,54 la 0 / 10 / 30 / 50% zile lipsă. La 70%, agentul se abține din lipsă de date la 83% din contoare.
+- SGCC pe timp (antrenare pe ferestrele din 2015, test pe clienți nevăzuți în 2016): ROC-AUC 0,71, regula 0,47.
+- Conformal pe testul Londra: acoperire 99,1% la normal (țintă 99%), 68,8% la probleme (țintă 70%). 2,2% din eșantioane sunt "nu sunt sigur".
+- Calibrarea pe populația demo (adevărul injectat): ECE 0,003; media scorurilor 0,053, față de prevalența 0,053.
+- Demo (`A_summary.json`): 15.850 de contoare evaluate; `demo-vara` dă 267 de lucrări (148 de vizite, 2 citiri la distanță, 40 de urmărit, 77 la om); `maine` dă 281. Precizia vizitelor față de adevăr e 0,99-1,00, din același motiv ca mai sus: primele 150 sunt mai ales defecte evidente cu pierderi mari.
 
 ## Decizii (cu ora)
 - 12:48 Faza 0 cu 4 subagenți de cercetare în paralel.
@@ -63,3 +69,6 @@ Comanda: `uv run python -m cyberpunks.a_contoare.evaluate --retrain`. K = 1% din
 - 13:20 Valoarea unui contor defect = energia lipsă + o vizită evitată (din config, nu din cod).
 - 13:25 Pachetul demo în git (2,7 MB, profile CC BY 4.0), ca `predict.run()` să meargă la planificator fără descărcări.
 - 13:25 Etică: furtul suspectat în chintila de jos a consumului merge la om, nu direct la vizită.
+- 13:45 Features noi alese pe setul de calibrare, nu pe test; testul a fost privit o singură dată pe versiune.
+- 13:50 Conformal: alpha_normal 1%, alpha_problem 30% (zona gri 0,12-0,30, cu 16-26% probleme reale), alese pe calibrare și verificate pe test și pe demo.
+- 14:00 Contoarele pe registrul comun C, cu 58,81% din clienți ca grad de integrare (sursă: memory/12).
