@@ -1,0 +1,66 @@
+{
+  "meta": {
+    "test": "setul de test livrat (gospodării nevăzute, sept. 2013 - feb. 2014)",
+    "n_test": 13028,
+    "etichete": "SINTETICE: probleme injectate peste consum real",
+    "note": "experiment pe ramura Eden"
+  },
+  "rows": [
+    {
+      "varianta": "baza",
+      "ce": "modelul livrat (45 de fișiere LCL)",
+      "subtle_precision_at_k": 0.625,
+      "subtle_recall_at_k": 0.2094,
+      "subtle_pr_auc": 0.4057,
+      "subtle_precision_at_5pct": 0.3261,
+      "pr_auc": 0.6778,
+      "n_train": 16328,
+      "households_train": 838
+    },
+    {
+      "varianta": "mai_multe_gospodarii",
+      "ce": "+ gospodăriile din celelalte 123 de fișiere LCL, doar la antrenare",
+      "subtle_precision_at_k": 0.8906,
+      "subtle_recall_at_k": 0.2984,
+      "subtle_pr_auc": 0.5175,
+      "subtle_precision_at_5pct": 0.3541,
+      "pr_auc": 0.7344,
+      "n_train": 93051,
+      "households_train": 4914,
+      "delta_subtle_pr_auc_ci90": [
+        0.0516,
+        0.1569
+      ]
+    },
+    {
+      "varianta": "vreme",
+      "ce": "+ grade-zile la Londra, sensibilitatea la frig, raportul corectat cu vremea",
+      "subtle_precision_at_k": 0.6719,
+      "subtle_recall_at_k": 0.2251,
+      "subtle_pr_auc": 0.4258,
+      "subtle_precision_at_5pct": 0.3245,
+      "pr_auc": 0.6858,
+      "n_train": 16328,
+      "households_train": 838,
+      "delta_subtle_pr_auc_ci90": [
+        -0.008,
+        0.0385
+      ]
+    },
+    {
+      "varianta": "mai_multe_gospodarii_si_vreme",
+      "ce": "ambele",
+      "subtle_precision_at_k": 0.8984,
+      "subtle_recall_at_k": 0.301,
+      "subtle_pr_auc": 0.5111,
+      "subtle_precision_at_5pct": 0.3432,
+      "pr_auc": 0.7311,
+      "n_train": 93051,
+      "households_train": 4914,
+      "delta_subtle_pr_auc_ci90": [
+        0.0408,
+        0.1562
+      ]
+    }
+  ]
+}
