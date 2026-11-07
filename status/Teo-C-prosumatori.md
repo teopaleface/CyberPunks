@@ -1,7 +1,7 @@
 # Status: Teo-C-prosumatori
 Actualizat: 2026-11-07 16:05
 Milestone curent: M3 în lucru (M2 terminat la 14:11; M3 aproape gata: analiza erorilor, investiții, racordări, teste)
-Gata de merge: da (commit d716b16; `make check` trece)
+Gata de merge: da (commit c652453; `make check` trece; reproductibilitate verificată dintr-o clonă curată)
 
 ## Făcut
 - M0 (13:10): calcul de rețea vectorizat verificat față de pandapower, prima rețea simulată, `docs/research/C.md`.
