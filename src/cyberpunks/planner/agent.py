@@ -340,7 +340,10 @@ def _decide_and_act(
     ]
     from cyberpunks.planner.context import day_context
 
-    context_lines = day_context(ctx, outcome.final, meta.get("sources") or {})
+    try:
+        context_lines = day_context(ctx, outcome.final, meta.get("sources") or {})
+    except Exception as exc:  # noqa: BLE001 - contextul e doar informativ; nu are voie să oprească planul
+        context_lines = [f"Contextul zilei nu s-a putut calcula ({type(exc).__name__}); planul nu e afectat."]
     if context_lines:
         plan.alerts.append(Alert(alert_id=f"AL-{len(plan.alerts) + 1}", severity="info", title_ro="Contextul zilei",
                                  body_ro=" ".join(context_lines), channel="dispecerat", created_at=generated_at))
