@@ -6,9 +6,11 @@ Două niveluri:
 - `check_window(hh)`: verificări pe fereastra unui contor (zile × 48) înainte de scorare. Întoarce fereastra
   curățată, lista problemelor găsite (cu ce am făcut) și, dacă e cazul, motivul pentru "nu sunt sigur".
 
-Regula: ce se poate repara sigur se repară și se notează (Wh -> kWh, duplicate); ce poate fi chiar defectul
-căutat (negative, salturi) se păstrează pentru model și se notează; ce lasă modelul fără date (istoric scurt)
-duce la `abstain=True`, cu motivul scris, iar cazul ajunge la un om.
+Regula: ce se poate repara sigur se repară și se notează (duplicate, valori nenumerice); ce poate fi chiar
+defectul căutat (negative, salturi) se păstrează pentru model și se notează; ce e ambiguu (valori de 1.000 de
+ori prea mari: Wh sau multiplicator greșit?) și ce lasă modelul fără date (istoric scurt) duce la `abstain=True`,
+cu motivul scris, iar cazul ajunge la un om. Limită: unitatea se ghicește din mărime; în producție vine din
+metadatele contorului.
 """
 
 from __future__ import annotations
@@ -44,9 +46,13 @@ def check_window(hh: np.ndarray, recent: int = 28) -> WindowCheck:
     day_valid = np.isfinite(hh).sum(axis=1) >= 40
     daily = np.where(day_valid, np.nansum(hh, axis=1), np.nan)
     pos = daily[np.isfinite(daily) & (daily > 0)]
-    if pos.size and np.median(pos) > WH_SUSPECT_DAILY_KWH:
+    unit_suspect = bool(pos.size and np.median(pos) > WH_SUSPECT_DAILY_KWH)
+    if unit_suspect:
+        # Nu reparăm în tăcere: poate fi o unitate greșită (Wh) sau chiar un defect (multiplicator greșit).
+        # Scorăm pe valorile împărțite la 1.000, ca omul să vadă și ce ar spune modelul, dar decide un om.
         hh = hh / 1000.0
-        issues.append(f"valorile par în Wh (mediana {np.median(pos):.0f} pe zi), convertite în kWh")
+        issues.append(f"valorile par de 1.000 de ori prea mari (mediana {np.median(pos):.0f} pe zi): unitate greșită "
+                      "(Wh) sau multiplicator greșit; scorat după împărțire la 1.000, decide un om")
     n_neg = int((hh < 0).sum())
     if n_neg:
         issues.append(f"{n_neg} citiri negative, păstrate ca semn de defect (polaritate inversată?)")
@@ -56,7 +62,9 @@ def check_window(hh: np.ndarray, recent: int = 28) -> WindowCheck:
     valid_days = int(day_valid.sum())
     recent_days = int(day_valid[-recent:].sum())
     reason = None
-    if valid_days < MIN_VALID_DAYS:
+    if unit_suspect:
+        reason = "unitate de măsură suspectă (valori de ~1.000 de ori prea mari): de verificat de un om"
+    elif valid_days < MIN_VALID_DAYS:
         reason = f"istoric prea scurt: doar {valid_days} zile cu date (minimum {MIN_VALID_DAYS})"
     elif recent_days < MIN_RECENT_DAYS:
         reason = f"prea puține date recente: {recent_days} zile cu date în ultimele 4 săptămâni"
@@ -101,7 +109,13 @@ def readings_to_halfhours(df: pd.DataFrame, start: str, end: str) -> tuple[np.nd
     day_idx = np.array([(t.date() - day0).days for t in begin])
     slot = (begin.dt.hour * 2 + begin.dt.minute // 30).to_numpy()
     keep = (day_idx >= 0) & (day_idx < n_days)
+    # la trecerea la ora de iarnă, ora 03:00-04:00 apare de două ori (două intervale reale cu fus orar diferit):
+    # le adunăm în același loc din grilă, ca energia zilei (25 de ore) să rămână corectă
+    cells = pd.DataFrame({"d": day_idx[keep], "s": slot[keep], "kwh": d["kwh"].to_numpy()[keep]})
+    agg = cells.groupby(["d", "s"], as_index=False).agg(kwh=("kwh", lambda v: v.sum(min_count=1)), n=("kwh", "size"))
+    if (agg["n"] > 1).any():
+        issues.append(f"{int((agg['n'] > 1).sum())} intervale repetate la schimbarea orei (ora de iarnă), adunate")
     out = np.full((n_days, 48), np.nan)
-    out[day_idx[keep], slot[keep]] = d["kwh"].to_numpy()[keep]
+    out[agg["d"].to_numpy(), agg["s"].to_numpy()] = agg["kwh"].to_numpy()
     check = check_window(out)
     return check.hh, issues + check.issues

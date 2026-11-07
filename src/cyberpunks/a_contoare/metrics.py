@@ -56,12 +56,21 @@ def brier(y: np.ndarray, p: np.ndarray) -> float:
     return float(np.mean((np.asarray(p, dtype=float) - np.asarray(y, dtype=float)) ** 2))
 
 
+def _bins(p: np.ndarray, n_bins: int, extra_edges: tuple[float, ...] = ()) -> tuple[np.ndarray, np.ndarray]:
+    """Marginile bin-urilor (cuantile + praguri fixe) și bin-ul fiecărui scor. Un singur scor unic = un bin."""
+    edges = np.unique(np.concatenate([np.quantile(p, np.linspace(0, 1, n_bins + 1)),
+                                      [e for e in extra_edges if p.min() < e < p.max()]]))
+    if len(edges) < 2:
+        return np.array([p.min(), p.max()]), np.zeros(len(p), dtype=int)
+    idx = np.clip(np.searchsorted(edges, p, side="right") - 1, 0, len(edges) - 2)
+    return edges, idx
+
+
 def ece(y: np.ndarray, p: np.ndarray, n_bins: int = 10) -> float:
     """Eroarea de calibrare așteptată, pe bin-uri pe cuantile (scorurile se adună lângă 0)."""
     y = np.asarray(y, dtype=float)
     p = np.asarray(p, dtype=float)
-    edges = np.unique(np.quantile(p, np.linspace(0, 1, n_bins + 1)))
-    idx = np.clip(np.searchsorted(edges, p, side="right") - 1, 0, len(edges) - 2)
+    edges, idx = _bins(p, n_bins)
     total = 0.0
     for b in range(len(edges) - 1):
         m = idx == b
@@ -70,12 +79,13 @@ def ece(y: np.ndarray, p: np.ndarray, n_bins: int = 10) -> float:
     return float(total)
 
 
-def reliability_table(y: np.ndarray, p: np.ndarray, n_bins: int = 10) -> list[dict[str, float]]:
-    """Pentru diagrama de calibrare: scorul mediu și frecvența reală pe bin-uri pe cuantile."""
+def reliability_table(y: np.ndarray, p: np.ndarray, n_bins: int = 10,
+                      extra_edges: tuple[float, ...] = (0.1, 0.2, 0.4, 0.6, 0.8)) -> list[dict[str, float]]:
+    """Pentru diagrama de calibrare: scorul mediu și frecvența reală pe bin-uri (cuantile + praguri fixe, ca
+    scorurile mari, rare la prevalență mică, să nu fie înghesuite într-un singur punct)."""
     y = np.asarray(y, dtype=float)
     p = np.asarray(p, dtype=float)
-    edges = np.unique(np.quantile(p, np.linspace(0, 1, n_bins + 1)))
-    idx = np.clip(np.searchsorted(edges, p, side="right") - 1, 0, len(edges) - 2)
+    edges, idx = _bins(p, n_bins, extra_edges)
     rows = []
     for b in range(len(edges) - 1):
         m = idx == b
@@ -122,13 +132,23 @@ def paired_bootstrap_win(
     score_b: np.ndarray,
     n: int = 300,
     seed: int = 0,
+    groups: np.ndarray | None = None,
 ) -> float:
-    """Ce parte din re-eșantionări dau metrica lui A strict peste a lui B (pe aceleași contoare)."""
+    """Ce parte din re-eșantionări dau metrica lui A strict peste a lui B (pe aceleași contoare).
+
+    Cu `groups` (de exemplu gospodăria), re-eșantionăm grupuri întregi, la fel ca intervalele de încredere.
+    """
     rng = np.random.default_rng(seed)
     y, a, b = np.asarray(y), np.asarray(score_a), np.asarray(score_b)
+    if groups is not None:
+        _, inv = np.unique(np.asarray(groups), return_inverse=True)
+        members = [np.flatnonzero(inv == g) for g in range(inv.max() + 1)]
     wins = total = 0
     for _ in range(n):
-        i = rng.integers(0, len(y), len(y))
+        if groups is None:
+            i = rng.integers(0, len(y), len(y))
+        else:
+            i = np.concatenate([members[g] for g in rng.integers(0, len(members), len(members))])
         if y[i].min() == y[i].max():
             continue
         total += 1

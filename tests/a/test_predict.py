@@ -22,7 +22,7 @@ def demo_items() -> tuple[list[WorkItem], str]:
 
 def test_items_exist_and_valid(demo_items) -> None:
     items, _ = demo_items
-    assert 50 <= len(items) <= 300
+    assert 50 <= len(items) <= 500  # 250 cu acțiune + 40 de urmărit + 40 la om (zona gri) + date insuficiente
     assert all(w.source.value == "A" and w.kind.value == "meter_inspection" for w in items)
 
 

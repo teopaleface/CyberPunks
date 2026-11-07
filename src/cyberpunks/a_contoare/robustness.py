@@ -93,7 +93,7 @@ def sgcc_time_split(window: int = 365) -> dict:
         j = days.get_loc(end)
         xw = x[:, j - window + 1 : j + 1]
         with np.errstate(all="ignore"):
-            peer = np.nanmedian(xw, axis=0)
+            peer = np.nanmedian(xw[split == "train"], axis=0)  # referința: doar clienții de antrenare
         f = daily_features(xw, peer)
         f["label"], f["split"] = flag, split
         feats[name] = f

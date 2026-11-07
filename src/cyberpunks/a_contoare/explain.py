@@ -16,6 +16,9 @@ import shap
 from sklearn.neighbors import NearestNeighbors
 
 from cyberpunks.a_contoare.features import label_ro
+
+COUNT_FEATURES = {"longest_zero_run", "zero_run_recent", "longest_flat_run", "longest_gap", "spike_count",
+                  "negative_count", "gap_count", "spike_slot_count"}
 from cyberpunks.a_contoare.inject import KIND_LABEL_RO, KIND_OUTCOME
 from cyberpunks.a_contoare.model import MeterModel
 
@@ -49,6 +52,8 @@ def top_factors(model: MeterModel, x: pd.DataFrame, labels: list[str], k: int = 
             v = None if pd.isna(v) else float(v)
             if v is None and j != order[-1]:
                 continue  # un feature fără valoare nu se poate explica unui tehnician
+            if f in COUNT_FEATURES and v == 0 and j != order[-1]:
+                continue  # "0 zile cu ..." nu e un motiv pe care să-l înțeleagă cineva
             rows.append({"feature": f, "label_ro": label_ro(f, v), "value": None if v is None else round(v, 4),
                          "contribution": round(float(contrib[j]), 4)})
         out.append(rows)
@@ -93,7 +98,7 @@ class SimilarCases:
                     {
                         "case_id": str(r["sample_id"]),
                         "outcome": KIND_OUTCOME.get(kind, "normal"),
-                        "similarity": round(float(np.exp(-dist / (2 * self.typical_dist))), 3),
+                        "similarity": round(float(1.0 / (1.0 + dist / (2 * self.typical_dist))), 3),
                         "note_ro": f"{KIND_LABEL_RO.get(kind, 'fără problemă')} (caz din istoric, date sintetice)",
                     }
                 )

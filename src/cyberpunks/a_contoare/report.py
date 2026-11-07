@@ -47,6 +47,31 @@ def table(header: list[str], rows: list[list[str]]) -> str:
     return "\n".join(out)
 
 
+def demo_operations() -> list[list[str]]:
+    """Ce ajunge efectiv la echipă și la om, pe demo (lucrările emise față de adevărul injectat)."""
+    rows = []
+    for s in ("demo-vara", "maine"):
+        gp = OUTPUTS / "work_items" / s / "A_ground_truth.csv"
+        wp = OUTPUTS / "work_items" / s / "A.jsonl"
+        if not (gp.exists() and wp.exists()):
+            continue
+        g = pd.read_csv(gp).set_index("meter_id")
+        items = [json.loads(line) for line in wp.read_text(encoding="utf-8").splitlines() if line.strip()]
+        crew = [w["asset_id"] for w in items if w["recommended_action"] in ("inspect_on_site", "remote_reading")]
+        human = [w["asset_id"] for w in items if w["recommended_action"] == "human_review"]
+        n_normal = int((g["true_problem"] == 0).sum())
+        rows.append([
+            s,
+            str(len(crew)),
+            pct(g.loc[crew, "true_problem"].mean()) if crew else "-",
+            str(len(human)),
+            pct(g.loc[human, "true_problem"].mean()) if human else "-",
+            pct(float((g.loc[crew, "true_problem"] == 0).sum()) / max(n_normal, 1)),
+            pct(float((g.loc[human, "true_problem"] == 0).sum()) / max(n_normal, 1)),
+        ])
+    return rows
+
+
 def demo_calibration() -> list[list[str]]:
     rows = []
     for s in ("demo-vara", "maine"):
@@ -84,7 +109,8 @@ def build() -> str:
         f"{nde(k_s, 'contoare')}, față de {pct(S['rule']['precision_at_k'])} la regula simplă și "
         f"{pct(S['vee']['precision_at_k'])} la regula VEE completă. ROC-AUC {f2(S['model']['roc_auc'])} e în "
         "intervalul cinstit din literatură (0,78-0,92).\n"
-        f"- Pe Londra, precizia@K = {f2(L['model']['precision_at_k'])} NU vine dintr-o scurgere (secțiunea 1). Vine din "
+        f"- Pe Londra, precizia@K = {f2(L['model']['precision_at_k'])} nu vine dintr-o scurgere găsită de noi "
+        "(secțiunea 1, cu verificările și limitele lor). Vine din "
         f"cele {nde(comp['obvious_problems_in_test'], 'defecte evidente')} din test, care umplu primele "
         f"{nde(k_l, 'locuri')} "
         "(secțiunea 2). Cifra care arată ce adaugă modelul peste reguli e cea de pe problemele subtile: "
@@ -114,12 +140,21 @@ def build() -> str:
         + "\n"
     )
     parts.append(
-        "Cu etichetele amestecate la întâmplare, modelul nu mai găsește nimic: PR-AUC cade la prevalență. Deci "
-        "rezultatele vin din tiparul de consum, nu dintr-o informație strecurată în features. O nuanță: ferestrele "
-        "de test (180 de zile înapoi de la ziua de evaluare) acoperă și luni din perioada de antrenare, dar pe alte "
-        "gospodării. Așa lucrează și agentul în producție: se uită în trecutul contorului.\n"
-        "Am găsit și am reparat o scurgere din construcția datelor (secțiunea 8): injecțiile prin înmulțire lăsau "
-        "valori nerotunjite, pe care modelul le învățase.\n"
+        "Testul cu etichete amestecate e o verificare de bun-simț, nu o dovadă. Arată că pipeline-ul nu strecoară "
+        "eticheta direct, dar nu poate prinde un artefact al datelor sintetice sau o statistică calculată și din "
+        "test. De aceea am verificat de unde vine fiecare informație:\n"
+        "- ferestrele Londra se termină în ziua de evaluare, deci features-urile nu văd viitorul. Vecinii sunt "
+        "gospodării din același set (antrenare, calibrare sau test), iar mediana lor se calculează din consumul "
+        "fără injecții;\n"
+        "- SGCC: referința \"vecinilor\" (mediana zilnică) se calculează DOAR din clienții de antrenare, aceeași "
+        "pentru toate seturile. Corectat după review-ul independent: înainte includea și clienții de test;\n"
+        "- calibrarea, pragurile conformal, alegerea features și pragurile regulii VEE folosesc doar setul de "
+        "calibrare. Testul e privit o singură dată pe versiune;\n"
+        "- oprirea timpurie la antrenare validează pe gospodării întregi, nu pe ferestre amestecate (corectat după "
+        "review);\n"
+        "- limite rămase: ferestrele de test (180 de zile înapoi) acoperă și luni din perioada de antrenare, pe alte "
+        "gospodării, cum lucrează și agentul în producție. Etichetele Londra sunt sintetice, deci un artefact al "
+        "injecției poate fi învățat; unul l-am găsit și reparat (secțiunea 8).\n"
     )
 
     parts.append("## 2. Clasamentul la mai multe K (de ce 1,00)\n")
@@ -243,23 +278,46 @@ def build() -> str:
             [
                 ["Brier", f2(L["calibration"]["brier"], 3), f2(S["calibration"]["brier"], 3)],
                 ["ECE", f2(L["calibration"]["ece"], 3), f2(S["calibration"]["ece"], 3)],
-                ["Acoperire conformal, normale (țintă 99%)", pct(conf_l["coverage_normal"]), pct(conf_s["coverage_normal"])],
-                ["Acoperire conformal, probleme (țintă 70%)", pct(conf_l["coverage_problem"]),
-                 pct(conf_s["coverage_problem"])],
-                ["Cazuri 'nu sunt sigur'", pct(conf_l["unsure_share"]), pct(conf_s["unsure_share"])],
+                ["Acoperirea mulțimii, normale (garanție: >= 99%)", pct(conf_l["set_coverage_normal"]),
+                 pct(conf_s["set_coverage_normal"])],
+                ["Acoperirea mulțimii, probleme (garanție: >= 70%)", pct(conf_l["set_coverage_problem"]),
+                 pct(conf_s["set_coverage_problem"])],
+                ["Probleme recunoscute SIGUR (mulțimea = {problemă})", pct(conf_l["problem_recall_sure"]),
+                 pct(conf_s["problem_recall_sure"])],
+                ["Precizia deciziilor \"problemă\"", pct(conf_l["problem_precision_sure"]),
+                 pct(conf_s["problem_precision_sure"])],
+                ["Probleme trimise la om (zona gri)", pct(conf_l["problem_to_unsure"]), pct(conf_s["problem_to_unsure"])],
+                ["Probleme ratate (declarate normale)", pct(conf_l["problem_missed"]), pct(conf_s["problem_missed"])],
+                ["Contoare normale declarate \"problemă\"", pct(conf_l["normal_to_problem"]),
+                 pct(conf_s["normal_to_problem"])],
+                ["Contoare normale trimise la om (zona gri)", pct(conf_l["normal_to_unsure"]),
+                 pct(conf_s["normal_to_unsure"])],
+                ["Toate cazurile \"nu sunt sigur\"", pct(conf_l["unsure_share"]), pct(conf_s["unsure_share"])],
             ],
         )
         + "\n"
     )
+    ops = demo_operations()
+    if ops:
+        parts.append("**Ce ajunge efectiv la echipă și la om, pe demo** (lucrările emise față de adevărul injectat; "
+                     "ultimele două coloane: ce parte din TOATE contoarele normale):\n")
+        parts.append(table(["Scenariu", "Lucrări pentru echipă", "Din ele, probleme reale", "Lucrări la om",
+                            "Din ele, probleme reale", "Contoare normale la echipă", "Contoare normale la om"], ops)
+                     + "\n")
     dc = demo_calibration()
     if dc:
         parts.append("**Pe populațiile demo** (adevărul injectat, nevăzut de model):\n")
         parts.append(table(["Scenariu", "Contoare", "Prevalență reală", "Scor mediu", "Brier", "ECE", "PR-AUC"], dc) + "\n")
     parts.append(
-        "Scorul e o probabilitate calibrată. Scorul mediu e aproape egal cu prevalența reală, deci planificatorul "
-        "poate înmulți scorul cu valoarea în lei. Pragurile conformal (1% pentru normal, 30% pentru problemă) "
-        "sunt alese pe calibrare. Între ele e zona gri (scoruri de aproximativ 0,12-0,30), unde modelul spune "
-        "\"nu sunt sigur\" și decide un om. Pe SGCC, zona gri e mai mare: etichetele reale sunt mai zgomotoase.\n"
+        "Scorul e o probabilitate calibrată (Venn-ABERS pe o grilă de cuantile; abaterea față de calculul exact, pe "
+        f"200 de scoruri de test: maximum {f2(L.get('venn_abers_grid_vs_exact', {}).get('max_abs_p'), 4)}). Scorul mediu "
+        "e aproape egal cu prevalența reală, deci planificatorul poate înmulți scorul cu valoarea în lei.\n\n"
+        "Conformal lucrează pe scorul brut al modelului, cu pragurile alese pe calibrare (alpha 1% pentru normal, "
+        "30% pentru problemă). Garanția privește acoperirea MULȚIMII: \"conține clasa reală\". Nu e același lucru cu "
+        "\"recunoscut sigur\". O problemă din zona gri e acoperită (mulțimea are ambele clase), dar merge la om, nu la "
+        f"echipă. În probabilitate calibrată, zona gri e între {pct(conf_l.get('p_threshold_problem'))} și "
+        f"{pct(conf_l.get('p_threshold_normal'))} pe Londra. Pe SGCC e mai largă, pentru că etichetele reale sunt mai "
+        "zgomotoase.\n"
     )
 
     sel = json.loads((REP / "feature_selection.json").read_text(encoding="utf-8")) if (REP / "feature_selection.json").exists() else None
@@ -351,7 +409,8 @@ def build_model_card() -> str:
         "",
         f"- Versiuni: `{full['models']['a-lgbm']}` (agentul) și `{full['models']['a-lgbm-sgcc']}` (reperul pe etichete reale).",
         ("- Tip: LightGBM (arbori de decizie cu gradient), 3 clase (normal / defect / manipulare), ponderi pe clase, "
-        "oprire timpurie; calibrare Venn-ABERS; \"nu sunt sigur\" prin conformal Mondrian (alpha 1% normal, 30% problemă)."),
+        "oprire timpurie pe gospodării separate; calibrare Venn-ABERS (pe grilă, abatere măsurată față de calculul exact); "
+        "\"nu sunt sigur\" prin conformal Mondrian pe scorul brut (alpha 1% normal, 30% problemă)."),
         ("- Intrare: consumul unui contor pe 180 de zile (citiri la 30 de minute) și mediana vecinilor de pe același "
         "post; 40 de features, fiecare cu motivul scris (`features.py`, `FEATURE_INFO`)."),
         "- Rulează local, pe 4 nuclee, fără niciun API extern. Scorarea a 15.850 de contoare durează ~10 secunde.",
@@ -413,12 +472,17 @@ def build_model_card() -> str:
         ),
         "",
         (f"- Calibrare (Londra, test): Brier {f2(L['calibration']['brier'], 3)}, ECE {f2(L['calibration']['ece'], 3)}. "
-        f"Conformal: {pct(L['conformal']['coverage_normal'])} din contoarele normale recunoscute ca normale, "
-        f"{pct(L['conformal']['coverage_problem'])} din probleme recunoscute sigur, "
-        f"{pct(L['conformal']['unsure_share'])} \"nu sunt sigur\"."),
-        (f"- Fără scurgeri: nicio gospodărie sau client în două seturi; cu etichete amestecate, PR-AUC pe test cade la "
-        f"prevalență ({f2(leak.get('lcl_permutation', {}).get('pr_auc_shuffled'), 3)} pe Londra, "
-        f"{f2(leak.get('sgcc_permutation', {}).get('pr_auc_shuffled'), 3)} pe SGCC)."),
+         f"Conformal (acoperirea mulțimii, garanția): {pct(L['conformal']['set_coverage_normal'])} la normale "
+         f"(țintă 99%), {pct(L['conformal']['set_coverage_problem'])} la probleme (țintă 70%). Ca decizii: "
+         f"{pct(L['conformal']['problem_recall_sure'])} din probleme recunoscute sigur, precizia deciziilor "
+         f"\"problemă\" {pct(L['conformal']['problem_precision_sure'])}, "
+         f"{pct(L['conformal']['normal_to_problem'])} din contoarele normale declarate \"problemă\", "
+         f"{pct(L['conformal']['unsure_share'])} \"nu sunt sigur\"."),
+        (f"- Scurgeri: nicio gospodărie sau client în două seturi; referința vecinilor SGCC doar din antrenare; cu "
+         f"etichete amestecate, PR-AUC pe test cade la prevalență "
+         f"({f2(leak.get('lcl_permutation', {}).get('pr_auc_shuffled'), 3)} pe Londra, "
+         f"{f2(leak.get('sgcc_permutation', {}).get('pr_auc_shuffled'), 3)} pe SGCC). Testul cu etichete amestecate e "
+         "o verificare de bun-simț, nu o dovadă (error_analysis.md, secțiunea 1)."),
         ("- Precizia@K = 1,00 pe Londra vine din defectele evidente care umplu vârful listei. La K = numărul de "
         f"probleme, precizia e {f2(next(r['model_precision'] for r in L['ranking_at_ks'] if r['k'] == L['positives']))}. "
         "Detalii în `error_analysis.md`, secțiunea 2."),

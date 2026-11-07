@@ -3,60 +3,60 @@
     {
       "missing_days_share": 0.0,
       "precision_at_k": 1.0,
-      "pr_auc": 0.6788,
-      "roc_auc": 0.9071,
-      "brier": 0.0245,
-      "data_abstain_share": 0.0039,
-      "problem_decisions": 383,
-      "unsure_decisions": 335
+      "pr_auc": 0.6793,
+      "roc_auc": 0.9119,
+      "brier": 0.0236,
+      "data_abstain_share": 0.0048,
+      "problem_decisions": 547,
+      "unsure_decisions": 535
     },
     {
       "missing_days_share": 0.1,
       "precision_at_k": 1.0,
-      "pr_auc": 0.6164,
-      "roc_auc": 0.8711,
-      "brier": 0.0285,
-      "data_abstain_share": 0.004,
-      "problem_decisions": 460,
-      "unsure_decisions": 533
+      "pr_auc": 0.6132,
+      "roc_auc": 0.8843,
+      "brier": 0.0282,
+      "data_abstain_share": 0.0048,
+      "problem_decisions": 696,
+      "unsure_decisions": 849
     },
     {
       "missing_days_share": 0.3,
       "precision_at_k": 1.0,
-      "pr_auc": 0.5779,
-      "roc_auc": 0.839,
-      "brier": 0.033,
-      "data_abstain_share": 0.0039,
-      "problem_decisions": 488,
-      "unsure_decisions": 1965
+      "pr_auc": 0.5845,
+      "roc_auc": 0.8479,
+      "brier": 0.0339,
+      "data_abstain_share": 0.0049,
+      "problem_decisions": 904,
+      "unsure_decisions": 2162
     },
     {
       "missing_days_share": 0.5,
       "precision_at_k": 1.0,
-      "pr_auc": 0.5368,
-      "roc_auc": 0.7948,
-      "brier": 0.0411,
-      "data_abstain_share": 0.0064,
-      "problem_decisions": 636,
-      "unsure_decisions": 4179
+      "pr_auc": 0.5548,
+      "roc_auc": 0.8164,
+      "brier": 0.0384,
+      "data_abstain_share": 0.0073,
+      "problem_decisions": 988,
+      "unsure_decisions": 3757
     },
     {
       "missing_days_share": 0.7,
-      "precision_at_k": 1.0,
-      "pr_auc": 0.4824,
-      "roc_auc": 0.7687,
-      "brier": 0.0369,
-      "data_abstain_share": 0.83,
-      "problem_decisions": 477,
-      "unsure_decisions": 1815
+      "precision_at_k": 0.9494,
+      "pr_auc": 0.3389,
+      "roc_auc": 0.7564,
+      "brier": 0.1011,
+      "data_abstain_share": 0.8355,
+      "problem_decisions": 3195,
+      "unsure_decisions": 2038
     }
   ],
   "sgcc_time_split": {
     "model": {
-      "pr_auc": 0.2006,
-      "roc_auc": 0.7104,
-      "precision_at_k": 0.3765,
-      "recall_at_k": 0.0443
+      "pr_auc": 0.1915,
+      "roc_auc": 0.7039,
+      "precision_at_k": 0.3294,
+      "recall_at_k": 0.0387
     },
     "rule": {
       "pr_auc": 0.075,

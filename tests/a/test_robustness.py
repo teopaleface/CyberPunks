@@ -70,6 +70,7 @@ def test_negative_readings_are_flagged(scored) -> None:
 def test_wh_input_is_converted_and_scores_like_kwh(scored) -> None:
     assert any("Wh" in i for i in scored.loc[3, "issues"])
     assert abs(scored.loc[3, "score"] - scored.loc[0, "score"]) < 1e-6
+    assert "unitate" in scored.loc[3, "abstain_reason"]  # merge la om, nu e reparat în tăcere
 
 
 def test_short_history_abstains_with_reason(scored) -> None:

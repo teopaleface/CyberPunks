@@ -50,7 +50,7 @@ Curățarea Londra (`lcl.py`): spațiile și textul "Null" din valori, rânduril
 
 ## Împărțirea (fără scurgeri)
 
-- **SGCC:** pe clienți, stratificat: 60% antrenare (din care 15% pentru oprirea timpurie), 20% calibrare, 20% test.
+- **SGCC:** pe clienți, stratificat: 60% antrenare (din care 15% pentru oprirea timpurie), 20% calibrare, 20% test. Referința "vecinilor" (mediana zilnică) vine doar din clienții de antrenare.
 - **Londra:** gospodăriile se împart 60/20/20 (838 / 280 / 265), deci nicio gospodărie nu apare în două seturi. Antrenarea și calibrarea folosesc zile de evaluare din dec. 2012 - aug. 2013, testul din sept. 2013 - feb. 2014 (perioadă ulterioară). Un eșantion e o fereastră de 180 de zile; problema contează dacă e activă în ultimele 28.
 - Calibrarea (Venn-ABERS) și pragurile conformal se potrivesc doar pe setul de calibrare.
 
@@ -62,8 +62,8 @@ Curățarea Londra (`lcl.py`): spațiile și textul "Null" din valori, rânduril
 
 ## Modelul și deciziile
 
-- **`a-lgbm`** (folosit de agent): LightGBM cu 3 clase (normal / defect / manipulare), ponderi pe clase, oprire timpurie. Scorul de problemă e calibrat Venn-ABERS și are interval (`interval_low`, `interval_high`).
-- **"Nu sunt sigur":** conformal Mondrian pe calibrare (α = 1% pentru "normal", 30% pentru "problemă"). Cel mult ~1% din contoarele normale ajung la echipă sau la om. Între cele două praguri (scoruri de aproximativ 0,12-0,30), mulțimea de predicție conține ambele clase: lucrarea are `abstain=True`, cu motivul scris, și merge la `human_review`. La fel și istoricul prea scurt sau prea puținele date recente (`validate.py`).
+- **`a-lgbm`** (folosit de agent): LightGBM cu 3 clase (normal / defect / manipulare), ponderi pe clase, oprire timpurie validată pe gospodării separate. Scorul de problemă e calibrat Venn-ABERS (pe o grilă de cuantile, cu abaterea față de calculul exact măsurată) și are interval (`interval_low`, `interval_high`).
+- **"Nu sunt sigur":** conformal Mondrian pe scorul brut al modelului, cu pragurile alese pe calibrare (α = 1% pentru "normal", 30% pentru "problemă"). Garanția privește acoperirea mulțimii de predicție: conține "normal" pentru cel puțin ~99% din contoarele normale și "problemă" pentru cel puțin ~70% din problemele reale. Asta nu înseamnă că 70% din probleme sunt recunoscute sigur: o parte cad în zona gri (ambele clase în mulțime). Acolo lucrarea are `abstain=True`, cu motivul scris, și merge la `human_review`. La om ajung și contoarele cu istoric prea scurt, cu prea puține date recente sau cu unitate de măsură suspectă (`validate.py`). Câte contoare normale ajung efectiv la echipă sau la om se măsoară pe demo și e raportat în `reports/A/error_analysis.md`, secțiunea 7.
 - **Consum mic** (etică): un furt suspectat la un contor din chintila de jos a consumului merge întâi la un om. Poate fi o locuință goală sau sărăcie energetică, nu furt.
 - **Valoarea** (`config/economics.yaml`, cheia `meters`): kWh lipsă pe zi față de normal (propriul istoric, mutat după sezonul vecinilor) × 90 de zile × 0,70 lei/kWh. La un contor defect se adaugă o vizită evitată (citire manuală sau reclamație), egală cu costul vizitei. `expected_value_lei = score × value_if_true_lei`.
 - **Recomandarea** (decizia finală o ia planificatorul): furt sigur → verificare la fața locului (cu `safety_flag`); defect sigur → verificare sau, dacă golurile sunt recente și scorul mai mic, citire la distanță întâi; contor fără comunicație → verificare (`extra.smart_meter=false`); următoarele 40 → urmărire.
