@@ -1,7 +1,7 @@
 # Status: Teo-C-prosumatori
-Actualizat: 2026-11-07 15:37
+Actualizat: 2026-11-07 15:23
 Milestone curent: M3 în lucru (M2 terminat la 14:11; M3 aproape gata: analiza erorilor, investiții, racordări, teste)
-Gata de merge: da (commit 972344e; `make check` trece, 184 de teste)
+Gata de merge: da (commit 972344e; `make check` trece, 249 de teste în tot repo-ul, 31 în `tests/c`)
 
 ## Făcut
 - M0 (13:10): calcul de rețea vectorizat verificat față de pandapower, prima rețea simulată, `docs/research/C.md`.
@@ -56,6 +56,7 @@ Gata de merge: da (commit 972344e; `make check` trece, 184 de teste)
 - 14:55 Rezervă pentru lipsa prognozei: ultima copie salvată, apoi clima medie a perioadei (incertitudine mare, cazurile de lângă prag la om); testat cu rețeaua tăiată.
 
 ## Urmează
+- 15:25 Rulez `make c-all` într-o clonă curată (circa 25 de minute) și compar cifrele cu cele din git.
 - Notă pentru orchestrator: modelul C are 4 versiuni în istoricul git (8,7 MB fiecare); nu mai adaug altele decât dacă modelul se schimbă.
 - M4: comenzi reproductibile verificate dintr-o clonă curată, curățenie.
 
