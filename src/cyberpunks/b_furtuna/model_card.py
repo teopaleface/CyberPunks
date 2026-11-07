@@ -169,6 +169,9 @@ def run() -> str:
         ("- **Evenimentele fără semnal meteo** (defecte de echipament) sunt circa jumătate din evenimentele de 1% și nu pot fi "
         "prezise din vreme. De aici vine plafonul de PR-AUC."),
         "- **Clienții pe zonă** sunt o aproximare din populație. Clienții pe județ sunt oficiali (RER, 31.12.2024).",
+        ("- **Testul folosește vremea reconstituită** (arhiva Open-Meteo), nu prognoza făcută cu o zi înainte. În exploatare, "
+         "cu prognoza, performanța va fi ceva mai mică, deci cifrele de test sunt mai degrabă o limită de sus. Incertitudinea "
+         "prognozei e tratată separat: ensemble (40 de membri ICON-EPS) pentru mâine, trei modele pentru zilele trecute."),
         "",
         "## „Nu sunt sigur”: când trimite la om",
         "",
