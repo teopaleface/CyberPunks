@@ -1,5 +1,5 @@
 import "server-only";
-import { readFile } from "node:fs/promises";
+import { readText } from "./read-file";
 import path from "node:path";
 import { cache } from "react";
 import { RE_BOUNDS } from "@/lib/plan-screen";
@@ -23,7 +23,7 @@ type Geometry = { type: "Polygon"; coordinates: Ring[] } | { type: "MultiPolygon
 export const loadLocatorGeo = cache(async (): Promise<LocatorGeo | null> => {
   try {
     const file = path.join(process.cwd(), "public", "geo", "ro-judete.json");
-    const json = JSON.parse(await readFile(file, "utf8")) as {
+    const json = JSON.parse(await readText(file)) as {
       features: { properties: { name: string; re_region: string | null }; geometry: Geometry }[];
     };
     const [w, s, e, n] = RE_BOUNDS;

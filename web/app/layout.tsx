@@ -1,15 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo } from "next/font/google";
+import { Geist, Unbounded } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
-// Archivo, variabil pe lățime (62–125) și grosime: cifre late pentru panou, ore înguste pentru linia de timp.
-// `latin-ext` aduce ș, ț, ă, â, î (verificat: ș/ț cu virgulă, U+0219/U+021B).
-const archivo = Archivo({
+// Aceleași fonturi ca site-ul de prezentare (web/site): Geist pentru text, Unbounded pentru numele produsului.
+// `latin-ext` aduce ș, ț, ă, â, î cu virgulă.
+const geist = Geist({
   variable: "--font-sans",
   subsets: ["latin", "latin-ext"],
-  axes: ["wdth"],
+  display: "swap",
+});
+const unbounded = Unbounded({
+  variable: "--font-display",
+  subsets: ["latin", "latin-ext"],
+  weight: ["600", "700"],
   display: "swap",
 });
 
@@ -24,12 +29,12 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f2f3f1",
+  themeColor: "#000c1e",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ro" className={`${archivo.variable} h-full antialiased`}>
+    <html lang="ro" className={`${geist.variable} ${unbounded.variable} dark h-full antialiased`}>
       <body className="min-h-full bg-canvas text-ink">
         <TooltipProvider delayDuration={250}>{children}</TooltipProvider>
         <Toaster position="bottom-right" />

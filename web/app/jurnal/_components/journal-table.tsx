@@ -2,71 +2,99 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Fragment, memo, useCallback, useDeferredValue, useMemo, useState, type ReactNode } from "react";
-import { ChevronDownIcon, SearchIcon } from "lucide-react";
+import { Fragment, memo, useCallback, useDeferredValue, useMemo, useState, type ComponentType, type ReactNode, type SVGProps } from "react";
+import {
+  BotIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  ClockIcon,
+  CpuIcon,
+  DownloadIcon,
+  FileTextIcon,
+  GavelIcon,
+  LayersIcon,
+  RotateCcwIcon,
+  SearchIcon,
+  TargetIcon,
+  TrendingUpIcon,
+  UserRoundIcon,
+} from "lucide-react";
 import { cn } from "cn";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { btn, Card } from "@/components/ds";
+import { CopyChip } from "@/components/misc/copy-chip";
+import { SolidPill, type SolidTone } from "@/components/misc/solid-pill";
 import type { Source } from "@/lib/contracts";
 import { fmtInt, plural } from "@/lib/format";
-import { markerSvg } from "@/lib/marker-svg";
+import { roundPct } from "@/lib/human";
 import { SOURCES, SOURCE_ORDER } from "@/lib/sources";
-import { AgentGlyph, HumanGlyph } from "./glyphs";
 import type { ActionOption, JournalRow } from "./types";
 
 type ActorFilter = "all" | "agent" | "human";
 type SourceFilter = "all" | Source;
 
-const MAX_THRESHOLDS = 3;
 const COLS = 9;
 /** Câte rânduri se arată deodată: jurnalul unei zile are sute de decizii. */
 const PAGE = 60;
-const HUMAN_TINT = "bg-[color-mix(in_oklab,var(--ink)_4%,var(--panel))]";
+const SRC_TONE: Record<Source, SolidTone> = { A: "blue", B: "violet", C: "amber" };
 
-/** Butoane lipite, ca alegerea zonei de pe hartă: unul singur apăsat. */
-function Segmented<T extends string>({
-  label,
-  value,
-  onChange,
-  items,
-}: {
-  label: string;
-  value: T;
-  onChange: (v: T) => void;
-  items: { id: T; label: ReactNode; count: number }[];
-}) {
+/** Tonul și textul pastilei „Decizia”. */
+const DECISION: Record<string, { tone: SolidTone; label: string; icon?: ComponentType<SVGProps<SVGSVGElement> & { size?: number | string }> }> = {
+  assigned: { tone: "green", label: "În traseu", icon: CheckIcon },
+  remote_action: { tone: "blue", label: "La distanță" },
+  notify: { tone: "violet", label: "Doar anunț" },
+  fusion: { tone: "violet", label: "Bilanț" },
+  deferred: { tone: "grey", label: "Amânată" },
+  human_review: { tone: "orange", label: "Decide un om", icon: ClockIcon },
+  rejected_invalid: { tone: "red", label: "Date greșite" },
+  review_approve: { tone: "green", label: "Aprobat", icon: CheckIcon },
+  review_reject: { tone: "red", label: "Respins" },
+  review_defer: { tone: "grey", label: "Amânat" },
+};
+
+function DecisionPill({ r }: { r: JournalRow }) {
+  const d = DECISION[r.action];
   return (
-    <div role="group" aria-label={label} className="flex h-10 overflow-hidden rounded-[4px] border border-input bg-panel text-[15px]">
-      {items.map((it) => {
-        const on = it.id === value;
-        return (
-          <button
-            key={it.id}
-            type="button"
-            aria-pressed={on}
-            onClick={() => onChange(it.id)}
-            className={cn(
-              "flex items-center gap-2 border-l border-rule px-3.5 whitespace-nowrap transition-colors duration-150 first:border-l-0 focus-visible:outline-offset-[-3px]",
-              on ? "bg-ink font-[600] text-panel" : "font-[500] text-ink hover:bg-muted",
-            )}
-          >
-            {it.label}
-            <span className={cn("tabular-nums", on ? "text-panel/75" : "text-muted-foreground")}>{fmtInt(it.count)}</span>
-          </button>
-        );
-      })}
+    <SolidPill tone={d?.tone ?? "grey"} icon={d?.icon}>
+      {d?.label ?? r.actionLabel}
+    </SolidPill>
+  );
+}
+
+function Dash() {
+  return (
+    <span className="text-muted-foreground">
+      <span aria-hidden="true">—</span>
+      <span className="sr-only">fără valoare</span>
+    </span>
+  );
+}
+
+function Field({ label, icon: Icon, children }: { label: string; icon: ComponentType<SVGProps<SVGSVGElement> & { size?: number | string }>; children: ReactNode }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-2">
+      <span className="flex items-center gap-2.5 text-[15px] font-[600]">
+        <Icon size={20} aria-hidden="true" className="text-ink-soft" />
+        {label}
+      </span>
+      {children}
     </div>
   );
 }
 
-function SourceDot({ source }: { source: Source }) {
-  const meta = SOURCES[source];
+const TRIGGER =
+  "h-11 w-full rounded-[10px] border-[#2a3a52] bg-surface-2 px-4 text-[15.5px] text-ink hover:bg-[#101d30] dark:bg-surface-2 dark:hover:bg-[#101d30]";
+
+const th = "border-b border-rule px-2.5 py-3.5 text-left align-middle text-[15px] font-[600] text-ink";
+
+function TH({ icon: Icon, children, className }: { icon: ComponentType<SVGProps<SVGSVGElement> & { size?: number | string }>; children: ReactNode; className?: string }) {
   return (
-    <span
-      className="size-2.5 shrink-0 rounded-full"
-      style={{ background: meta.color, boxShadow: meta.outline ? "inset 0 0 0 1px var(--ink)" : undefined }}
-      aria-hidden="true"
-    />
+    <th scope="col" className={cn(th, className)}>
+      <span className="flex items-center gap-2.5">
+        <Icon size={19} aria-hidden="true" className="shrink-0 text-ink-soft" />
+        {children}
+      </span>
+    </th>
   );
 }
 
@@ -170,204 +198,183 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
     [],
   );
 
-  const actionLabel = options.find((o) => o.action === action)?.label;
-  const th = "sticky top-0 z-[1] border-b border-rule bg-panel px-3 py-2.5 text-left align-bottom text-[14px] font-[560] text-muted-foreground";
-
   return (
-    <section aria-label="Deciziile din jurnal" className="bg-panel">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-rule px-7 py-3.5">
-        <Segmented<ActorFilter>
-          label="Cine a decis"
-          value={actor}
-          onChange={setActor}
-          items={[
-            { id: "all", label: "Toți", count: decisions.length },
-            {
-              id: "agent",
-              label: (
-                <>
-                  <AgentGlyph /> Agentul
-                </>
-              ),
-              count: decisions.filter((r) => r.actor === "agent").length,
-            },
-            {
-              id: "human",
-              label: (
-                <>
-                  <HumanGlyph /> Omul
-                </>
-              ),
-              count: decisions.filter((r) => r.actor === "human").length,
-            },
-          ]}
-        />
-        <Segmented<SourceFilter>
-          label="Sursa lucrării"
-          value={source}
-          onChange={setSource}
-          items={[
-            { id: "all", label: "Toate", count: decisions.length },
-            ...SOURCE_ORDER.map((s) => ({
-              id: s,
-              label: (
-                <>
-                  <SourceDot source={s} />
-                  {s} {SOURCES[s].name}
-                </>
-              ),
-              count: decisions.filter((r) => r.source === s).length,
-            })),
-          ]}
-        />
-        <Select value={action} onValueChange={setAction}>
-          <SelectTrigger
-            aria-label="Decizia: tipul deciziei"
-            className="h-10 min-w-[232px] gap-2 rounded-[4px] border-input bg-panel px-3 text-[15px] font-[520]"
-          >
-            <span className="text-muted-foreground">Decizia</span>
-            <SelectValue className="flex-1 text-left">{action === "all" ? "Toate" : (actionLabel ?? action)}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all" className="text-[15px]">
-              Toate
-            </SelectItem>
-            {options.map((o) => (
-              <SelectItem key={o.action} value={o.action} className="text-[15px]">
-                {o.label}
-                <span className="ml-1 text-muted-foreground tabular-nums">{fmtInt(o.count)}</span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <label className="relative flex items-center">
-          <span className="sr-only">Caută după ID-ul lucrării</span>
-          <SearchIcon className="pointer-events-none absolute left-3 size-[18px] text-muted-foreground" aria-hidden="true" />
-          <input
-            type="search"
-            name="cauta"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="ID-ul lucrării, de exemplu PT-1269…"
-            spellCheck={false}
-            autoComplete="off"
-            className="h-10 w-[320px] rounded-[4px] border border-input bg-panel pr-3 pl-10 text-[15px] placeholder:text-muted-foreground"
-          />
-        </label>
-        <span className="flex-1" />
-        <span className="text-[15px] text-muted-foreground tabular-nums" aria-live="polite" aria-atomic="true">
-          {active ? `${fmtInt(shown)} din ${plural(decisions.length, "decizie", "decizii")}` : plural(decisions.length, "decizie", "decizii")}
-        </span>
-        {active ? (
-          <Button variant="ghost" size="panel" className="-mr-3 rounded-[4px] px-3 underline decoration-rule underline-offset-4" onClick={reset}>
-            Șterge filtrele
-          </Button>
-        ) : null}
-      </div>
-
-      <table className="w-full table-fixed border-separate border-spacing-0 text-[15px]">
-        <caption className="sr-only">Jurnalul deciziilor, cele mai noi primele</caption>
-        <colgroup>
-          <col className="w-[100px]" />
-          <col className="w-[104px]" />
-          <col className="w-[184px]" />
-          <col className="w-[312px]" />
-          <col className="w-[244px]" />
-          <col className="w-[292px]" />
-          <col className="w-[224px]" />
-          <col />
-          <col className="w-[76px]" />
-        </colgroup>
-        <thead>
-          <tr>
-            <th scope="col" className={cn(th, "pl-7")}>
-              Ora
-            </th>
-            <th scope="col" className={th}>
-              Cine
-            </th>
-            <th scope="col" className={th}>
-              Decizia
-            </th>
-            <th scope="col" className={th}>
-              Lucrarea
-            </th>
-            <th scope="col" className={th}>
-              Regula
-            </th>
-            <th scope="col" className={th}>
-              Pragurile
-            </th>
-            <th scope="col" className={th}>
-              Urmărirea până la model
-            </th>
-            <th scope="col" className={th}>
-              Motivul sau nota
-            </th>
-            <th scope="col" className={cn(th, "pr-7")}>
-              <span className="sr-only">Tot rândul</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {filtered.length === 0 ? (
-            <tr>
-              <td colSpan={COLS} className="px-7 py-14 text-center">
-                <p className="text-[17px] font-[600]">Niciun rând nu se potrivește cu filtrele alese.</p>
-                <p className="mt-1 text-[15px] text-muted-foreground">Schimbă un filtru sau arată din nou tot jurnalul.</p>
-                <Button variant="outline" size="panel" className="mt-4" onClick={reset}>
-                  Arată tot jurnalul
-                </Button>
-              </td>
-            </tr>
-          ) : (
-            visible.map((r) =>
-              r.kind === "run" ? (
-                <RunRow key={r.id} r={r} />
-              ) : (
-                <DecisionRow key={r.id} r={r} scenario={scenario} expanded={open.has(r.id)} onToggle={toggle} />
-              ),
-            )
-          )}
-        </tbody>
-      </table>
-      {hidden > 0 ? (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-rule px-7 py-4">
-          <span className="text-[15px] text-muted-foreground">
-            Se văd primele {plural(visible.length, "rând", "rânduri")} din {fmtInt(filtered.length)}, cele mai noi.
-          </span>
-          <Button variant="outline" size="panel" className="rounded-[4px] border-input bg-panel" onClick={() => setLimit((n) => n + PAGE)}>
-            Arată încă {fmtInt(Math.min(PAGE, hidden))}
-          </Button>
-          <Button variant="ghost" size="panel" className="rounded-[4px]" onClick={() => setLimit(filtered.length)}>
-            Arată toate cele {fmtInt(filtered.length)}
-          </Button>
+    <div className="flex min-w-0 max-w-full flex-col gap-5">
+      <Card as="section" className="rounded-[18px]" bodyClassName="p-5">
+        <div className="flex flex-wrap items-end gap-x-5 gap-y-4" role="search" aria-label="Filtrele jurnalului">
+          <div className="grid min-w-0 flex-1 basis-[560px] grid-cols-2 gap-x-4 gap-y-4 md:grid-cols-4">
+            <Field label="Sursa" icon={LayersIcon}>
+              <Select value={source} onValueChange={(v) => setSource(v as SourceFilter)}>
+                <SelectTrigger aria-label="Sursa lucrării" className={TRIGGER}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toate sursele</SelectItem>
+                  {SOURCE_ORDER.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s} {SOURCES[s].name}
+                      <span className="ml-1 text-muted-foreground tabular-nums">{fmtInt(decisions.filter((r) => r.source === s).length)}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="Actor" icon={UserRoundIcon}>
+              <Select value={actor} onValueChange={(v) => setActor(v as ActorFilter)}>
+                <SelectTrigger aria-label="Cine a decis" className={TRIGGER}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toți actorii</SelectItem>
+                  <SelectItem value="agent">
+                    Agentul
+                    <span className="ml-1 text-muted-foreground tabular-nums">{fmtInt(decisions.filter((r) => r.actor === "agent").length)}</span>
+                  </SelectItem>
+                  <SelectItem value="human">
+                    Omul
+                    <span className="ml-1 text-muted-foreground tabular-nums">{fmtInt(decisions.filter((r) => r.actor === "human").length)}</span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="Decizia" icon={GavelIcon}>
+              <Select value={action} onValueChange={setAction}>
+                <SelectTrigger aria-label="Decizia: tipul deciziei" className={TRIGGER}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toate deciziile</SelectItem>
+                  {options.map((o) => (
+                    <SelectItem key={o.action} value={o.action}>
+                      {o.label}
+                      <span className="ml-1 text-muted-foreground tabular-nums">{fmtInt(o.count)}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="Lucrarea" icon={SearchIcon}>
+              <input
+                type="search"
+                name="cauta"
+                aria-label="Caută după ID-ul lucrării"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="PT-1269…"
+                spellCheck={false}
+                autoComplete="off"
+                className="h-11 w-full rounded-[10px] border border-[#2a3a52] bg-surface-2 px-4 text-[15.5px] placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring"
+              />
+            </Field>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <button type="button" onClick={reset} disabled={!active} className={btn("outline")}>
+              <RotateCcwIcon size={18} aria-hidden="true" />
+              Resetează filtrele
+            </button>
+            <a href={`/jurnal/descarca?scenariu=${encodeURIComponent(scenario)}`} download={`jurnal-${scenario}.jsonl`} className={btn("primary")}>
+              <DownloadIcon size={18} aria-hidden="true" />
+              Descarcă JSONL
+            </a>
+          </div>
         </div>
-      ) : null}
-    </section>
+      </Card>
+
+      <Card as="section" className="min-w-0 max-w-full overflow-hidden rounded-[18px]" bodyClassName="min-w-0 p-0">
+        <div className="relative overflow-x-auto">
+          <table className="w-full min-w-[1010px] table-fixed border-separate border-spacing-0 text-[15.5px]">
+            <caption className="sr-only">
+              Jurnalul deciziilor, cele mai noi primele ({active ? `${fmtInt(shown)} din ${plural(decisions.length, "decizie", "decizii")}` : plural(decisions.length, "decizie", "decizii")})
+            </caption>
+            <colgroup>
+              <col className="w-[70px]" />
+              <col className="w-[104px]" />
+              <col className="w-[132px]" />
+              <col className="w-[150px]" />
+              <col className="w-[160px]" />
+              <col className="w-[140px]" />
+              <col className="w-[108px]" />
+              <col />
+              <col className="w-[40px]" />
+            </colgroup>
+            <thead>
+              <tr>
+                <TH icon={ClockIcon} className="pl-4">
+                  Ora
+                </TH>
+                <TH icon={UserRoundIcon}>Cine</TH>
+                <TH icon={GavelIcon}>Decizia</TH>
+                <TH icon={LayersIcon}>Lucrarea</TH>
+                <TH icon={FileTextIcon}>Regula</TH>
+                <TH icon={TargetIcon}>Pragul</TH>
+                <TH icon={TrendingUpIcon}>Predicția</TH>
+                <TH icon={CpuIcon}>Versiunea modelului</TH>
+                <th scope="col" className={cn(th, "pr-4")}>
+                  <span className="sr-only">Tot rândul</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={COLS} className="px-7 py-14 text-center">
+                    <p className="text-[17px] font-[600]">Niciun rând nu se potrivește cu filtrele alese.</p>
+                    <p className="mt-1 text-[15px] text-ink-soft">Schimbă un filtru sau arată din nou tot jurnalul.</p>
+                    <button type="button" className={cn(btn("outline"), "mt-4")} onClick={reset}>
+                      Arată tot jurnalul
+                    </button>
+                  </td>
+                </tr>
+              ) : (
+                visible.map((r) =>
+                  r.kind === "run" ? (
+                    <RunRow key={r.id} r={r} />
+                  ) : (
+                    <DecisionRow key={r.id} r={r} scenario={scenario} expanded={open.has(r.id)} onToggle={toggle} />
+                  ),
+                )
+              )}
+            </tbody>
+          </table>
+        </div>
+        {hidden > 0 ? (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-rule px-5 py-4">
+            <span className="text-[15px] text-ink-soft">
+              Se văd primele {plural(visible.length, "rând", "rânduri")} din {fmtInt(filtered.length)}, cele mai noi.
+            </span>
+            <button type="button" className={btn("outline", "sm")} onClick={() => setLimit((n) => n + PAGE)}>
+              Arată încă {fmtInt(Math.min(PAGE, hidden))}
+            </button>
+            <button type="button" className={btn("ghost", "sm")} onClick={() => setLimit(filtered.length)}>
+              Arată toate cele {fmtInt(filtered.length)}
+            </button>
+          </div>
+        ) : null}
+      </Card>
+    </div>
   );
 }
 
 function RunRow({ r }: { r: JournalRow }) {
   return (
-    <tr>
-      <td colSpan={COLS} className="border-b border-rule bg-canvas px-7 py-2.5">
-        <div className="flex min-w-0 items-center gap-3 text-[15px]">
-          <AgentGlyph />
+    <tr style={{ contentVisibility: "auto", containIntrinsicSize: "auto 44px" }}>
+      <td colSpan={COLS} className="border-b border-rule bg-surface-2 px-5 py-2.5">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[15px]">
+          <BotIcon size={18} aria-hidden="true" className="shrink-0 text-violet" />
           <span className="shrink-0 font-[620]">
             {r.action === "replan" ? "Agentul a refăcut planul după decizia omului" : "Agentul a făcut planul"}
           </span>
-          <time dateTime={r.ts} className="shrink-0 text-muted-foreground">
+          <time dateTime={r.ts} className="shrink-0 text-ink-soft">
             {r.moment}
           </time>
           {r.decisions ? (
             <>
               <span className="h-4 w-px shrink-0 bg-rule" aria-hidden="true" />
-              <span className="shrink-0 text-muted-foreground">{plural(r.decisions, "decizie", "decizii")}</span>
+              <span className="shrink-0 text-ink-soft">{plural(r.decisions, "decizie", "decizii")}</span>
             </>
           ) : null}
           {r.note ? (
-            <span className="dense ml-auto min-w-0 truncate pl-6 text-[13.5px] text-muted-foreground" title={r.note}>
+            <span className="min-w-0 truncate text-[13.5px] text-muted-foreground md:ml-auto md:pl-6" title={r.note}>
               {r.note}
             </span>
           ) : null}
@@ -392,147 +399,94 @@ function DecisionRowImpl({
 }) {
   const human = r.actor === "human";
   const href = r.workItemId ? `/lucrari/${encodeURIComponent(r.workItemId)}?scenariu=${encodeURIComponent(scenario)}` : null;
-  // Cel mult trei rânduri în celulă: trei praguri, sau două și „+N praguri”.
-  const shown = r.thresholds.length > MAX_THRESHOLDS ? r.thresholds.slice(0, MAX_THRESHOLDS - 1) : r.thresholds;
-  const extra = r.thresholds.length - shown.length;
   const detailId = `jurnal-${r.id}`;
-  const td = cn("px-3 py-3 align-top", expanded ? "border-b-0" : "border-b border-rule");
+  const td = cn("px-2.5 py-2.5 align-middle", expanded ? "border-b-0" : "border-b border-rule");
   const what = r.workItemId ?? r.actionLabel;
 
   return (
     <>
-      <tr className={cn(human && HUMAN_TINT)}>
-        <td className={cn(td, "pl-7", human && "shadow-[inset_3px_0_0_var(--ink)]")}>
-          <time dateTime={r.ts} title={r.moment} className="num-tall text-[18px]">
+      <tr style={expanded ? undefined : { contentVisibility: "auto", containIntrinsicSize: "auto 56px" }}>
+        <td className={cn(td, "pl-4")}>
+          <time dateTime={r.ts} title={r.moment} className="text-[16px] tabular-nums">
             {r.time}
           </time>
         </td>
         <td className={td}>
-          <span className={cn("flex items-center gap-2", human ? "font-[640] text-ink" : "text-muted-foreground")}>
-            {human ? <HumanGlyph /> : <AgentGlyph />}
-            {human ? "Om" : "Agent"}
+          <span className="flex items-center gap-2.5">
+            {human ? <UserRoundIcon size={20} aria-hidden="true" className="text-ink-soft" /> : <BotIcon size={20} aria-hidden="true" className="text-ink-soft" />}
+            {human ? "Omul" : "Agentul"}
           </span>
         </td>
         <td className={td}>
-          <span className={cn("inline-flex items-center gap-2 font-[580]", r.attention && "text-att-ink")}>
-            {r.attention ? <span className="size-2 shrink-0 rounded-full bg-att" aria-hidden="true" /> : null}
-            {r.actionLabel}
-          </span>
+          <DecisionPill r={r} />
         </td>
         <td className={td}>
-          {r.workItemId && href ? (
-            <div className="flex items-start gap-2.5">
-              {r.source ? (
-                <span
-                  className="-mt-[5px] block size-8 shrink-0"
-                  dangerouslySetInnerHTML={{ __html: markerSvg({ source: r.source, kind: r.marker }, 32) }}
-                />
-              ) : null}
-              <div className="min-w-0">
-                <Link href={href} translate="no" className="code-id text-[15px] break-all underline decoration-rule underline-offset-4 hover:decoration-ink">
-                  {r.workItemId}
-                </Link>
-                {r.itemTitle ? (
-                  <p className="truncate text-[13.5px] leading-snug text-muted-foreground" title={r.itemTitle}>
-                    {r.itemTitle}
-                  </p>
-                ) : null}
-              </div>
-            </div>
+          {r.assetId && href ? (
+            <Link
+              href={href}
+              translate="no"
+              title={r.itemTitle ? `${r.workItemId}: ${r.itemTitle}` : r.workItemId ?? undefined}
+              className="inline-flex max-w-full items-center rounded-[8px] border border-[#2a3a52] bg-surface-2 px-2.5 py-1 text-[14px] tabular-nums transition-colors duration-150 hover:border-[#3d5170] hover:bg-[#101d30] focus-visible:outline-2 focus-visible:outline-ring"
+            >
+              <span className="truncate">{r.assetId}</span>
+            </Link>
           ) : (
-            <span className="text-muted-foreground">–</span>
+            <Dash />
           )}
         </td>
         <td className={td}>
           {r.ruleId ? (
-            <>
-              <span translate="no" className="code-id text-[15px] break-all">{r.ruleId}</span>
-              {r.ruleText ? <p className="text-[13.5px] leading-snug text-muted-foreground">{r.ruleText}</p> : null}
-            </>
+            <div className="min-w-0 leading-snug">
+              <span translate="no" className="block truncate text-[14.5px] font-[560]" title={r.ruleId}>
+                {r.ruleId}
+              </span>
+              {r.ruleText ? (
+                <span className="line-clamp-1 text-[13px] text-muted-foreground" title={r.ruleText}>
+                  {r.ruleText}
+                </span>
+              ) : null}
+            </div>
           ) : (
-            <span className="text-muted-foreground">–</span>
+            <Dash />
           )}
         </td>
-        <td className={td}>
-          {shown.length ? (
-            <dl className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-0.5 text-[14px] leading-snug">
-              {shown.map((t) => (
-                <Fragment key={t.key}>
-                  <dt className="truncate text-muted-foreground" title={`${t.label} (${t.key})`}>
-                    {t.label}
-                  </dt>
-                  <dd className="text-right font-[560] whitespace-nowrap tabular-nums">{t.value}</dd>
-                </Fragment>
-              ))}
-            </dl>
-          ) : (
-            <span className="text-[14px] text-muted-foreground">fără praguri</span>
-          )}
-          {extra > 0 ? (
-            <button
-              type="button"
-              onClick={() => onToggle(r.id)}
-              aria-expanded={expanded}
-              aria-controls={detailId}
-              className="mt-1 text-[14px] font-[560] text-muted-foreground underline decoration-rule underline-offset-4 hover:text-ink hover:decoration-ink"
-            >
-              {expanded ? "mai puține" : `+${plural(extra, "prag", "praguri")}`}
-            </button>
-          ) : null}
+        <td className={cn(td, "tabular-nums")}>
+          {r.mainThreshold ? <span className="text-[14.5px]">{r.mainThreshold}</span> : <Dash />}
         </td>
         <td className={td}>
-          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2.5 gap-y-0.5 text-[14px] leading-snug">
-            <dt className="text-muted-foreground">predicția</dt>
-            <dd className="dense truncate font-[560]" title={r.predictionId ?? undefined}>
-              {r.predictionId ? `${r.predictionId.slice(0, 8)}…` : "–"}
-            </dd>
-            <dt className="text-muted-foreground">modelul</dt>
-            <dd className="dense truncate font-[560]" title={r.modelVersion ?? undefined}>
-              {r.modelVersion ?? "–"}
-            </dd>
-            {r.inputsSha ? (
-              <>
-                <dt className="text-muted-foreground">intrările</dt>
-                <dd className="dense truncate font-[560]" title={`Amprenta SHA-256 a datelor de intrare: ${r.inputsSha}`}>
-                  {r.inputsSha.slice(0, 8)}…
-                </dd>
-              </>
-            ) : null}
-          </dl>
-        </td>
-        <td className={td}>
-          {human ? (
-            <p className="text-[15px] leading-snug">
-              <b className="font-[640]">{r.reviewer ?? "Dispecerul"}</b>
-              {r.note ? <>: „{r.note}”</> : <span className="text-muted-foreground">, fără notă</span>}
-            </p>
-          ) : r.note ? (
-            <p className="line-clamp-2 text-[14px] leading-snug text-muted-foreground">{r.note}</p>
+          {r.score !== null && r.source ? (
+            <SolidPill tone={SRC_TONE[r.source]} className="px-2.5 tabular-nums">
+              <span translate="no" className="font-[700]">
+                {r.source}
+              </span>
+              {roundPct(r.score)}
+            </SolidPill>
           ) : (
-            <span className="text-muted-foreground">–</span>
+            <Dash />
           )}
         </td>
-        <td className={cn(td, "pr-7 text-right")}>
+        <td className={td}>{r.modelVersion ? <CopyChip text={r.modelVersion} label={`Copiază versiunea modelului ${r.modelVersion}`} /> : <Dash />}</td>
+        <td className={cn(td, "pr-4 text-right")}>
           <button
             type="button"
             onClick={() => onToggle(r.id)}
             aria-expanded={expanded}
             aria-controls={detailId}
             aria-label={expanded ? `Ascunde detaliile pentru ${what}` : `Arată tot rândul pentru ${what}`}
-            className="-mt-1.5 inline-grid size-9 place-items-center rounded-[4px] border border-transparent text-muted-foreground transition-colors duration-150 hover:border-rule hover:text-ink"
+            className="inline-grid size-9 place-items-center rounded-[8px] text-ink-soft transition-colors duration-150 hover:bg-[#0f1a2b] hover:text-ink focus-visible:outline-2 focus-visible:outline-ring"
           >
             <ChevronDownIcon className={cn("size-5 transition-transform duration-150", expanded && "rotate-180")} aria-hidden="true" />
           </button>
         </td>
       </tr>
       {expanded ? (
-        <tr id={detailId} className={cn(human && HUMAN_TINT)}>
-          <td colSpan={COLS} className={cn("border-b border-rule px-7 pt-0 pb-5", human && "shadow-[inset_3px_0_0_var(--ink)]")}>
-            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.25fr)] gap-x-10 border-t border-dashed border-rule pt-3.5">
+        <tr id={detailId}>
+          <td colSpan={COLS} className="border-b border-rule bg-surface-2 px-5 pt-3 pb-5">
+            <div className="grid grid-cols-1 gap-x-10 gap-y-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.25fr)]">
               <section>
                 <h3 className="text-[15px] font-[620]">Toate pragurile</h3>
                 {r.thresholds.length ? (
-                  <dl className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 text-[14.5px] [&>dd]:border-t [&>dd]:border-rule [&>dd]:py-1 [&>dd]:text-right [&>dd]:font-[560] [&>dd]:tabular-nums [&>dt]:border-t [&>dt]:border-rule [&>dt]:py-1 [&>dt]:text-muted-foreground">
+                  <dl className="mt-1.5 grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 text-[14.5px] [&>dd]:border-t [&>dd]:border-rule [&>dd]:py-1 [&>dd]:text-right [&>dd]:font-[560] [&>dd]:tabular-nums [&>dt]:border-t [&>dt]:border-rule [&>dt]:py-1 [&>dt]:text-ink-soft">
                     {r.thresholds.map((t) => (
                       <Fragment key={t.key}>
                         <dt title={t.key}>{t.label}</dt>
@@ -541,20 +495,20 @@ function DecisionRowImpl({
                     ))}
                   </dl>
                 ) : (
-                  <p className="mt-1.5 text-[14.5px] text-muted-foreground">Regula n-a folosit praguri numerice.</p>
+                  <p className="mt-1.5 text-[14.5px] text-ink-soft">Regula n-a folosit praguri numerice.</p>
                 )}
               </section>
               <section>
                 <h3 className="text-[15px] font-[620]">Urmărirea completă</h3>
-                <dl className="mt-1.5 grid grid-cols-[132px_minmax(0,1fr)] gap-x-4 text-[14.5px] [&>dd]:border-t [&>dd]:border-rule [&>dd]:py-1 [&>dt]:border-t [&>dt]:border-rule [&>dt]:py-1 [&>dt]:text-muted-foreground">
+                <dl className="mt-1.5 grid grid-cols-[132px_minmax(0,1fr)] gap-x-4 text-[14.5px] [&>dd]:border-t [&>dd]:border-rule [&>dd]:py-1 [&>dt]:border-t [&>dt]:border-rule [&>dt]:py-1 [&>dt]:text-ink-soft">
                   <dt>ID decizie</dt>
-                  <dd className="dense font-[560] break-all">{r.id}</dd>
+                  <dd translate="no" className="font-[560] break-all">{r.id}</dd>
                   <dt>ID predicție</dt>
-                  <dd className="dense font-[560] break-all">{r.predictionId ?? "–"}</dd>
+                  <dd translate="no" className="font-[560] break-all">{r.predictionId ?? "–"}</dd>
                   <dt>Versiunea modelului</dt>
-                  <dd className="dense font-[560] break-all">{r.modelVersion ?? "–"}</dd>
+                  <dd translate="no" className="font-[560] break-all">{r.modelVersion ?? "–"}</dd>
                   <dt>Amprenta intrărilor</dt>
-                  <dd className="dense font-[560] break-all">{r.inputsSha ?? "–"}</dd>
+                  <dd translate="no" className="font-[560] break-all">{r.inputsSha ?? "–"}</dd>
                   <dt>Momentul</dt>
                   <dd>{r.moment}</dd>
                 </dl>
@@ -571,12 +525,10 @@ function DecisionRowImpl({
                     (r.note ?? "Agentul n-a scris un motiv pentru această decizie.")
                   )}
                 </p>
+                {r.itemTitle ? <p className="mt-1 text-[14px] text-ink-soft">{r.itemTitle}</p> : null}
                 {href ? (
-                  <Link
-                    href={href}
-                    className="mt-2.5 inline-block text-[15px] font-[600] underline decoration-rule underline-offset-4 hover:decoration-ink"
-                  >
-                    Deschide lucrarea {r.workItemId}
+                  <Link href={href} className="mt-2.5 inline-block text-[15px] font-[600] text-[#8db8ff] underline decoration-rule underline-offset-4 hover:decoration-current">
+                    Deschide lucrarea <span translate="no">{r.workItemId}</span>
                   </Link>
                 ) : null}
               </section>

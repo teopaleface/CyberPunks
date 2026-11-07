@@ -132,3 +132,30 @@ describe("zilele scurte", () => {
     expect(isWholeDay("2025-07-08T14:00:00+03:00")).toBe(false);
   });
 });
+
+describe("numerele omenești", () => {
+  test("lei aproximativi, „de” după numerele mari, încrederea în cuvinte", async () => {
+    const { approxLei, withDe, confidenceWord, scoreText, roundPct } = await import("@/lib/human");
+    expect(approxLei(5019.34)).toBe("circa 5.000 de lei");
+    expect(approxLei(71802.9)).toBe("circa 72.000 de lei");
+    expect(approxLei(12439)).toBe("circa 12.000 de lei");
+    expect(approxLei(12)).toBe("12 lei");
+    expect(approxLei(5000)).toBe("5.000 de lei");
+    expect(withDe(20, "lucrări")).toBe("20 de lucrări");
+    expect(withDe(19, "lucrări")).toBe("19 lucrări");
+    expect(withDe(101, "lucrări")).toBe("101 lucrări");
+    expect(confidenceWord("low", 0.58)).toBe("încredere mică");
+    expect(confidenceWord(undefined, 0.9)).toBe("încredere mare");
+    expect(scoreText(1)).toBe("peste 0,99");
+    expect(scoreText(0.58)).toBe("0,58");
+    expect(roundPct(0.2178)).toBe("22%");
+  });
+});
+
+describe("probabilitățile de 100%", () => {
+  test("devin „peste 99%” în texte", () => {
+    expect(clampPercentRo("probabilitatea depășirii 100%. Motive: soare")).toBe("probabilitatea depășirii peste 99%. Motive: soare");
+    expect(clampPercentRo("pierdere tehnică (probabilitate 100%)")).toBe("pierdere tehnică (probabilitate peste 99%)");
+    expect(clampPercentRo("Probabilitate de avarii 43%")).toBe("Probabilitate de avarii 43%");
+  });
+});

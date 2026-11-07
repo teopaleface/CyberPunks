@@ -27,6 +27,12 @@ export interface JournalRow {
   /** Agentul a dat lucrarea unui om („decide un om”). */
   attention: boolean;
   workItemId: string | null;
+  /** ID-ul scurt al activului: „MTR-011050”, „PT-1269”. */
+  assetId: string | null;
+  /** Scorul predicției, 0–1, din decizie sau din lucrare. */
+  score: number | null;
+  /** Pragul principal în cuvinte: „695 lei > 293 lei”. */
+  mainThreshold: string | null;
   source: Source | null;
   marker: MarkerKind;
   /** „Contor MTR-004217, București, sectorul 6”, dacă lucrarea e în planul curent. */

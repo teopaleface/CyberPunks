@@ -42,3 +42,11 @@ next-env.d.ts
 
 # worker-ul MapLibre, copiat din node_modules la dev/build (scripts/copy-maplibre-worker.ts)
 /public/maplibre/
+
+# site-ul de prezentare, construit din web/site la dev și build
+/public/landing/
+
+# Cloudflare: datele copiate la construire și ieșirea OpenNext
+/public/_data/
+/.open-next/
+/.wrangler/

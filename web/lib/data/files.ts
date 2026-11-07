@@ -1,5 +1,5 @@
 import "server-only";
-import { readFile } from "node:fs/promises";
+import { readText } from "@/lib/server/read-file";
 import path from "node:path";
 import YAML from "yaml";
 import type { AuditRecord, ModelReport, Plan, Series, WorkItem } from "@/lib/contracts";
@@ -167,7 +167,7 @@ function isMissingFileError(err: unknown): boolean {
 
 async function readTextIfExists(file: string): Promise<string | null> {
   try {
-    return await readFile(file, "utf8");
+    return await readText(file);
   } catch (err) {
     if (isMissingFileError(err)) return null;
     throw err;
@@ -414,7 +414,7 @@ export async function readDemoPosts(scenario: string): Promise<FileRead<unknown>
 /** Costul energiei pierdute (lei/kWh) din config/economics.yaml, cu comentariul de sursă. */
 export async function readLossCost(): Promise<{ value: number; note: string } | null> {
   try {
-    const text = await readFile(repoPath("config", "economics.yaml"), "utf8");
+    const text = await readText(repoPath("config", "economics.yaml"));
     const line = text.split("\n").find((l) => /^\s*loss_cost_lei_per_kwh\s*:/.test(l));
     if (!line) return null;
     const value = Number(line.split(":")[1].split("#")[0].trim());
@@ -431,7 +431,7 @@ export async function readLossCost(): Promise<{ value: number; note: string } | 
  */
 export async function readPostThresholds(): Promise<{ yellow: number; red: number } | null> {
   try {
-    const text = await readFile(repoPath("config", "planner.yaml"), "utf8");
+    const text = await readText(repoPath("config", "planner.yaml"));
     const value = (key: string) => {
       const m = new RegExp(`^\\s*${key}\\s*:\\s*([0-9.]+)`, "m").exec(text);
       return m ? Number(m[1]) : Number.NaN;

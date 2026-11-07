@@ -1,7 +1,7 @@
 # Status: Teo-ui
-Actualizat: 2026-11-07 17:25
-Milestone curent: M4 (M0 13:50, M1 13:55, M2 14:40, /demo 16:50, M3 17:00, M4 17:05); înghețarea interfeței la 20:00
-Gata de merge: da (commit 4b65254 și următoarele: M3 și M4 gata; Daybreak, graficul bilanțului, `/demo` pentru filmare, review-ul final reparat, capturile, rezerva fără API reverificată)
+Actualizat: 2026-11-07 20:15
+Milestone curent: designul „Noapte” aplicat; site-ul de prezentare îmbinat; consola publicată pe Cloudflare
+Gata de merge: da (ultimul commit pe origin/Teo-ui; include web/site de la Tudor, consola la /app)
 
 ## Făcut
 - 12:45 Citite instrucțiunile, memoria, planul, contractele; `uv sync` și `make check` trec.
@@ -46,6 +46,23 @@ Gata de merge: da (commit 4b65254 și următoarele: M3 și M4 gata; Daybreak, gr
 - 17:03 Capturi pentru slideuri în `web/design/captures/` (12, la 1920×1080, toate din planul `PLAN-demo-vara-20250708-170128-31d6`), cu README.
 
 - 17:25 Rezerva reverificată după schimbările de azi, pe build-ul de producție: API oprit → „Ultimul plan salvat”, 14/14 ecrane; doar fixture-uri → „Date de test”, 14/14. Scenariul „Mâine, cu prognoza reală” merge pe API (636 de lucrări, 23 în trasee), fără erori în consolă.
+- 18:10 Reparațiile din QA-ul cap-coadă (17:55): graficul B fără panoul gol de risc și cu pragurile de 45 și 75 km/h desenate; scara de soluții pornește din `extra.ladder_base_p90_pu` (1,177 la PT-1269); antetul lucrării C arată combinația aleasă; `/modele` urmează `primary_metric` din raport, cu explicația potrivită pentru contoare și rândul SGCC (0,80 față de 0,11); harta cu nume în română sau cu litere latine (fără БЕОГРАД); scorurile de 1,00 apar „peste 0,99”, iar „probabilitatea 100%” apare „peste 99%”; eticheta scenariului nu mai e tăiată.
+- 18:15 Teo a ales Varianta 1 a primului ecran („briefingul dimineții”), cu echipele într-o fereastră separată, ca să respire.
+- 18:35 Simplificarea, aplicată:
+  - primul ecran: fraza zilei („Mâine: 20 de lucrări pentru 8 echipe. 25 de cazuri așteaptă decizia ta.”), o singură acțiune, trei cifre, următorul caz de decis, echipele pe scurt (lista în fereastră), o hartă mică doar cu traseele; „Detaliile zilei” într-un panou lateral;
+  - ecranul vechi, întreg (harta mare, linia de timp, detaliile lucrării), la `/harta`; adresele vechi (`/?lucrare=`, `/?harta=posturi`) duc acolo;
+  - navigarea: Planul de mâine, De decis, Posturi, iar Alerte, Jurnal și Modele în „Mai mult”;
+  - De decis, lucrarea și postul: verdictul într-o frază, apoi graficul; tot ce e tehnic (factori, regula, pragurile, scara de soluții, ID-urile modelului) în secțiuni care se deschid la cerere;
+  - numere omenești („circa 5.000 de lei”, „încredere mică”), două greutăți de font, mai mult spațiu, o singură culoare de accent pentru acțiunea principală.
+- 18:40 `/demo`: scenele 1 și 2 pe noul prim ecran, în tema închisă; scenele 3–5 pe harta mare; subtitrarea scenei pe o bandă opacă a ei, nu peste hartă.
+- 18:50 Posturi, simplificat la fel: o frază („22 de posturi pierd mult: peste 600 de lei pe lună.”), lista cu cele mai mari pierderi, în lei rotunjiți, tabelul complet cu cifrele exacte la cerere.
+- 18:45 Review `web-design-guidelines` pe ecranele noi (0 grave, 8 medii, toate reparate), testul de fum 15/15 (cu `/harta`), 50 de teste, consola fără erori; capturile noi pentru slideuri (15) în `web/design/captures/`.
+- 18:55 Teo a trimis 14 imagini de design („Noapte”: fundal bleumarin închis, meniu în stânga, carduri, pastile, indicatori semicirculari) și a cerut consola „identic așa”. Decizie: aspectul din imagini, datele reale din API (imaginile au cifre inventate de generator, de ex. „1.284 posturi”, „PT-1223 Domnești”, rânduri de jurnal; nu le copiem).
+- 19:01 Fundația: tema închisă (culori luate cu pipeta din imagini), fontul Inter, meniul din stânga cu cele opt ecrane, filele Consola / Rezultate / Rulează / Vezi demo, căutarea (⌘K), pe telefon bara de jos; piesele comune în `web/components/ds/`. Șase subagenți refac în paralel ecranele (planul, Nu sunt sigur + Rulare agent, posturile, lucrările A/B/C, jurnal + alerte + modele, ordinul de lucru + prezentarea).
+- 19:20 Toate ecranele în designul „Noapte” (șase subagenți în paralel, apoi tur vizual la 1440×900, 1920×1080 și 390×844, review `web-design-guidelines`: 1 grav și 14 medii, toate reparate). Ecrane noi: Rulare agent (`/rulare`), Lucrări cu ordinul de lucru printabil (`/lucrari`).
+- 19:45 Teo a cerut îmbinarea cu site-ul de prezentare al lui Tudor (ramura `design`, `web/site`, Vite). Prima pagină (`/`) și paginile `/bilant`, `/diagnostic`, `/plan`, `/agent`, `/intra` sunt site-ul lui Tudor, neschimbat la vedere, construit în `web/public/landing/` la dev/build; consola începe la `/app`; legăturile site-ului spre `/app/...` duc la ecranele consolei. Din `design` am luat doar `web/site` și cele două fișiere de configurare (ramura șterge datele și modelele).
+- 20:00 Normalizare: consola folosește aceleași fonturi ca site-ul (Geist, Unbounded pentru numele Daybreak).
+- 20:10 Publicat pe Cloudflare Workers (confirmat de Teo): https://daybreak.ghiseateodor245.workers.dev (contul lui Teo, workerul `daybreak`, OpenNext). Pe Cloudflare nu rulează agentul Python: consola arată planul salvat din git (`DATA_SOURCE=demo`), datele sunt copiate ca fișiere statice (`scripts/cloudflare-data.ts`, `lib/server/read-file.ts`), fără Cache Components (blocau workerul). Comenzi: `cd web && bun run cf:build && bun run cf:deploy`.
 
 ## Urmează
 - Până la 20:00: captura paginii unui post cu graficul bilanțului, dacă seriile ajung în API sau în instantaneu; altfel nimic nou, doar ce găsește testarea.
@@ -55,6 +72,9 @@ Gata de merge: da (commit 4b65254 și următoarele: M3 și M4 gata; Daybreak, gr
 - niciunul
 
 ## Cereri către orchestrator
+- (20:15) Cloudflare: contul lui Teo e pe planul gratuit Workers (10 ms de procesor pe cerere). `/alerte` și `/rulare` depășesc limita (eroarea 1102), `/jurnal` trece doar uneori; restul ecranelor merg. Soluția: planul Workers Paid (5 $/lună) din dashboard; nu trebuie schimbat nimic în cod. Decizia (plata) e a lui Teo.
+- (18:45) Raportul nou al lui A (`primary_metric: subtle_precision_at_k`, 0,625 față de 0,07) e în `Teo`, dar API-ul de pe 8710 servește încă raportul vechi (precizia@K 1,00) și la fel instantaneul `outputs/demo/reports/`. Consola urmează automat `primary_metric`; trebuie doar ca API-ul (checkout-ul planificatorului) să ia `Teo` și `make demo-snapshot` să refacă instantaneul.
+- (18:45) Seriile bilanțului: lucrarea `A-20250708-PT-1269` are `extra.series_ref = outputs/series/demo-vara/A-20250708-PT-1269.json`; fișierul există doar în `/tmp/bilant_clean/outputs/series/demo-vara/` (78 de fișiere), nu și în checkout-ul principal sau în cel din care rulează API-ul. Consola le găsește singură dacă stau în `outputs/series/demo-vara/` al checkout-ului (verificat: graficul apare pe `/posturi/PT-1269`). Propunere: `make bilant-predict` în checkout-ul API-ului, apoi `make demo-snapshot`.
 - (17:05) Către planificator: în `alerts[].work_item_ids` aceeași lucrare apare de două ori (alerta „cazuri cu risc de siguranță”: 194 de intrări, 103 lucrări distincte), iar titlul și „și încă N” din text numără dublurile. Interfața le scoate și corectează numărul din titlu; textul („și încă 188”) rămâne cum vine. Tot acolo: „Întăriri necesare: 1 cazuri de siguranță” (plural).
 - (16:30) **Seriile bilanțului lipsesc în continuare** din API și din instantaneu. Lucrările `A-20250708-PT-*` au `extra.series_ref = outputs/series/demo-vara/A-20250708-PT-*.json`, dar `GET /api/series/A-20250708-PT-1269` dă 404 și `outputs/demo/series/demo-vara/` are doar seriile A (contoare), B și C. În worktree-ul Teo-bilant există acum doar `outputs/series/maine/A-20261108-PT-*.json` (98); cele pentru demo-vara nu mai sunt. Propunere: `make bilant-predict` în checkout-ul din care rulează API-ul, apoi `make demo-snapshot`. Graficul e gata și verificat pe formatul real; consola caută seria în API, în `outputs/demo/series/<s>/` și în `outputs/series/<s>/`.
 - (16:30) Către planificator, text fals în alerta principală: „193 cazuri cu risc de siguranță: Intră primele în trasee, oricare ar fi costul”, dar din cele 193 doar 11 sunt în trasee, 182 merg la verificare de la distanță (`R-SAFETY-OVER-CAP`). În listă, numele se repetă („PT-1293, Sector 3 (sintetic), PT-1293, Sector 3 (sintetic)”: postul și contorul de pe el). Interfața arată acum, lângă text, numărătoarea reală din decizii, dar textul ar trebui reparat la sursă (de exemplu „11 intră în trasee azi; 182 se verifică întâi de la distanță, echipele sunt pline”).
@@ -73,7 +93,7 @@ Gata de merge: da (commit 4b65254 și următoarele: M3 și M4 gata; Daybreak, gr
 - Rezolvate de orchestrator la 13:20: seriile de exemplu, planul complet, `depart_at`/`return_at`, `visit_cost_lei`, structura `outputs/demo/`, `scenario_id`, jurnalul.
 
 ## Pornirea consolei pentru testare
-1. Prima dată: `make web-install` (instalează pachetele consolei cu bun).
+1. Prima dată: `make web-install` (instalează pachetele consolei cu bun). Prima pagină e site-ul de prezentare; consola e la http://localhost:3710/app.
 2. Cu agentul în direct: `make api` într-un terminal și `make web-demo` în altul, apoi http://localhost:3710 (planul) și http://localhost:3710/demo (prezentarea, tema închisă).
 3. Fără modele și fără API: `make web`; consola citește singură planul salvat din `outputs/demo/` și scrie sus „Ultimul plan salvat”.
 4. Verificări: `make web-test` (38 de teste) și, cu consola pornită, `make web-smoke` (14 ecrane).
@@ -88,6 +108,8 @@ Gata de merge: da (commit 4b65254 și următoarele: M3 și M4 gata; Daybreak, gr
 - niciuna (interfața doar afișează cifrele firelor; culorile surselor validate cu `node validate_palette.js` din abilitatea dataviz)
 
 ## Decizii (cu ora)
+- 18:15 Primul ecran: Varianta 1 (alegerea lui Teo); echipele au doar un rezumat pe ecran, lista întreagă e într-o fereastră. Ecranul vechi rămâne întreg la `/harta`, ca nicio informație să nu se piardă.
+- 18:40 În `/demo`, poveștile cu hartă (de ce a decis, furtuna, ziua echipelor) rămân pe harta mare; primele două scene arată primul ecran simplu.
 - 17:00 Din review: Aprobă, Respinge și Amână rămân fără fereastră de confirmare. Decizia nu șterge nimic: intră în jurnal cu actorul „om”, iar planul următor o reevaluează; o confirmare la fiecare caz ar încetini dispecerul (și demo-ul).
 - 16:50 În `/demo`, scena își alege încadrarea: harta lasă loc subtitrării, iar linia de timp arată echipa lucrării din scenă.
 - 16:15 Daybreak (decizia lui Teo, 15:30): antetul are doar cuvântul, cu fontul interfeței, până la identitatea aleasă separat; culorile surselor A, B, C rămân. Logourile respinse ies din `public/`, ca nimeni să nu le folosească din greșeală în slideuri.

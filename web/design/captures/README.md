@@ -1,18 +1,21 @@
 # Capturi pentru slideuri
 
-Consola Daybreak la 1920×1080, pe planul real servit de API (`PLAN-demo-vara-20250708-170128-31d6`, generat pe 7 noiembrie 2026, la 17:01), scenariul „Zi de vară cu furtuni” (8 iulie 2025). Datele sunt sintetice, iar antetul fiecărei capturi o spune („Date sintetice în … din …”).
+Consola Daybreak după trecerea de simplificare (Varianta 1, aleasă de Teo), la 1920×1080, pe planul real servit de API (`PLAN-demo-vara-20250708-182006-043b`, generat pe 7 noiembrie 2026, la 18:20), scenariul „Zi de vară cu furtuni” (8 iulie 2025). Datele sunt sintetice, iar antetul fiecărei capturi o spune.
 
 | Fișier | Ce arată |
 |---|---|
-| `01-planul-de-maine.png` | Planul de mâine: cifrele zilei, harta cu traseele, coada „Nu sunt sigur”, alerta principală cu ce a decis agentul, linia de timp a echipelor |
-| `02-nu-sunt-sigur.png` | Lucrările pe care agentul le trimite la om, cu motivul și butoanele Aprobă, Respinge, Amână |
-| `03-harta-posturilor.png` | Posturile de transformare, verde, galben, roșu după lei pierduți pe lună (pragurile din `config/planner.yaml`) |
-| `04-lucrare-tensiune-C.png` | O lucrare C: tensiunea oră cu oră (P10–P90) față de limita de 1,10 pu și decizia agentului cu scara de soluții |
-| `05-lucrare-contor-A.png` | O lucrare A: consumul zilnic față de normal, factorii modelului, decizia cu regula și pragurile în cuvinte |
-| `06-jurnalul-deciziilor.png` | Jurnalul: fiecare decizie legată de predicție, versiunea modelului, regulă și praguri |
-| `07-modelele.png` | Modelele A, B, C față de baseline, cu cifrele din rapoarte |
-| `08-demo-scena-1.png` … `08-demo-scena-5.png` | Modul de prezentare `/demo`, tema închisă, cele cinci scene (scena 4: echipa E-RS-1 ajunge la Oravița la 14:00, înaintea furtunii de la 15:00) |
+| `01-planul-de-maine.png` | Primul ecran: fraza zilei, o singură acțiune, trei cifre, următorul caz de decis, echipele pe scurt, harta mică doar cu traseele |
+| `02-echipele-de-maine.png` | Fereastra „Echipele de mâine”: lista echipelor, cu plecarea și întoarcerea |
+| `03-detaliile-zilei.png` | Panoul „Detaliile zilei”: toate cifrele planului și alertele, la cerere |
+| `04-de-decis.png` | Cazurile pe care agentul nu le poate decide singur: o frază, trei butoane, detaliile tehnice închise |
+| `05-postul-PT-1269.png` | Pagina unui post: verdictul într-o frază, apoi graficul bilanțului (ieșit din post față de suma clienților) |
+| `06-lucrare-tensiune-C.png` | O lucrare C: verdictul, combinația aleasă, tensiunea oră cu oră |
+| `07-lucrare-contor-A.png` | O lucrare A: verdictul, consumul zilnic față de normal |
+| `08-harta-mare.png` | Harta mare cu linia de timp a echipelor (`/harta`), pentru cine vrea toate detaliile |
+| `09-jurnalul-deciziilor.png` | Jurnalul: fiecare decizie legată de predicție, model, regulă și praguri |
+| `10-modelele.png` | Modelele A, B, C față de baseline |
+| `11-demo-scena-1.png` … `11-demo-scena-5.png` | Prezentarea `/demo`, tema închisă, cele cinci scene, cu subtitrarea pe banda ei |
 
-Lipsește încă pagina unui post cu graficul bilanțului: seriile bilanțului nu sunt publicate în API și nici în instantaneu (cererea e în `status/Teo-ui.md`). Captura se face când apar.
+Graficul bilanțului din `05` folosește seriile firului de bilanț din `outputs/series/demo-vara/` (ieșirea modelului, în afara git); în API și în instantaneu nu sunt încă publicate (cererea e în `status/Teo-ui.md`).
 
-Cum se refac: `make api` și `make web-demo` (sau `make web`), apoi capturi la 1920×1080 ale adreselor `/`, `/coada`, `/?harta=posturi`, `/lucrari/C-20250708-PT-1269`, `/lucrari/A-20250708-MTR-011050`, `/jurnal`, `/modele`, `/demo?scena=1` … `5`.
+Cum se refac: `make api` și `make web-demo` (sau `make web`), apoi capturi la 1920×1080 ale adreselor `/` (plus fereastra „Vezi echipele” și panoul „Detaliile zilei”), `/coada`, `/posturi/PT-1269`, `/lucrari/C-20250708-PT-1269`, `/lucrari/A-20250708-MTR-011050`, `/harta`, `/jurnal`, `/modele`, `/demo?scena=1` … `5`.

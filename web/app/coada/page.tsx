@@ -1,332 +1,440 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ClipboardCheck,
+  CloudRain,
+  Database,
+  CalendarDays,
+  Gauge as GaugeIcon,
+  Layers,
+  Network,
+  Users,
+  Wind,
+  Zap,
+} from "lucide-react";
+import type { ComponentType } from "react";
+import { cn } from "cn";
+import { Card, Dot, Gauge, PageTitle, Pill, SOURCE_TONE, btn, type Tone } from "@/components/ds";
 import { ReviewActions } from "@/components/detail/review-actions";
-import { ScoreScale } from "@/components/plan/score-scale";
+import { CaseLink } from "@/components/queue/case-link";
+import { CaseChart, type CasePoint } from "@/components/queue/case-chart";
 import { AppShell } from "@/components/shell/app-shell";
-import type { AuditRecord, Decision, WorkItem } from "@/lib/contracts";
-import { getAudit } from "@/lib/data";
-import { factorLabelRo, CONFIDENCE_RO, DECISION_LABEL_RO, SOURCE_LABEL_RO, predictionLabelRo, ruleRo } from "@/lib/data/labels";
-import { fmtLei, fmtMoment, fmtScore, plural, sentence } from "@/lib/format";
-import { markerSvg } from "@/lib/marker-svg";
-import { itemPlace, itemTitle } from "@/lib/plan-screen";
+import type { Decision, Series, WorkItem } from "@/lib/contracts";
+import { getSeries } from "@/lib/data";
+import { fmtDayMonth, fmtInt, fmtLei, fmtTime, plural } from "@/lib/format";
+import { placeOf } from "@/lib/briefing";
+import { roundPct } from "@/lib/human";
+import { caseFacts, categoryOf, pageList, questionFor, whenText, type Category, type Fact } from "@/lib/queue-model";
 import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
-import { SOURCES, sourceOf } from "@/lib/sources";
+import { itemPlace } from "@/lib/plan-screen";
+
+export const metadata: Metadata = { title: "Nu sunt sigur" };
+
+const PER_PAGE = 10;
 
 export default function QueuePage({ searchParams }: PageProps<"/coada">) {
   return (
-    <Suspense fallback={<div role="status" className="min-h-dvh bg-canvas" aria-busy="true">
-        <span className="sr-only">Se încarcă lucrările care așteaptă un om…</span>
-      </div>}>
+    <Suspense
+      fallback={
+        <div role="status" className="min-h-dvh bg-canvas" aria-busy="true">
+          <span className="sr-only">Se încarcă lucrările care așteaptă un om…</span>
+        </div>
+      }
+    >
       <Queue searchParams={searchParams} />
     </Suspense>
   );
 }
 
-/** Ce a decis omul (AuditRecord.action pentru actor „human”). */
-const HUMAN_ACTION_RO: Record<string, string> = {
-  review_approve: "Aprobată",
-  review_reject: "Respinsă",
-  review_defer: "Amânată",
-};
-
-/** Nota din jurnal are forma „cine: ce a scris” (sau doar „cine”), așa cum o scrie API-ul. */
-function splitNote(note: string | null | undefined): { who: string | null; text: string | null } {
-  const n = note?.trim();
-  if (!n) return { who: null, text: null };
-  const m = /^([^:\n]{1,100}):\s([\s\S]*)$/.exec(n);
-  if (m) return { who: m[1].trim(), text: m[2].trim() || null };
-  return n.includes(" ") ? { who: null, text: n } : { who: n, text: null };
-}
-
-function linkTo(id: string, scenario: string) {
-  return `/lucrari/${encodeURIComponent(id)}?scenariu=${encodeURIComponent(scenario)}`;
-}
-
 interface Waiting {
   decision: Decision;
-  w: WorkItem | null;
+  w: WorkItem;
+  cat: Category;
 }
+
+const FACT_ICON: Record<Fact["icon"], ComponentType<{ size?: number; strokeWidth?: number; className?: string; "aria-hidden"?: boolean | "true" }>> = {
+  rain: CloudRain,
+  wind: Wind,
+  data: Database,
+  kwh: Zap,
+  volt: Zap,
+  limit: GaugeIcon,
+};
+const FACT_TONE: Record<Fact["icon"], string> = {
+  rain: "text-[#8db8ff]",
+  wind: "text-[#8db8ff]",
+  data: "text-[#d6a8f0]",
+  kwh: "text-[#f5c66b]",
+  volt: "text-[#f5c66b]",
+  limit: "text-[#ffa27c]",
+};
+const CAT_TONE: Record<Category["tone"], Tone> = { blue: "blue", violet: "violet", amber: "amber", orange: "orange", grey: "grey" };
+const SRC_VAR = { A: "var(--src-a)", B: "var(--src-b)", C: "var(--src-c)" } as const;
 
 async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["searchParams"] }) {
   await connection();
   const scenario = await resolveScenario(searchParams);
-  const { info, view } = await loadShellInfo(scenario);
+  const [{ info, view }, params] = await Promise.all([loadShellInfo(scenario), searchParams]);
   const plan = view.data;
-  const auditResult = plan ? null : await getAudit(scenario);
-  const audit: AuditRecord[] = plan ? plan.audit : (auditResult?.data ?? []);
+  const str = (k: string) => (typeof params[k] === "string" ? (params[k] as string) : undefined);
 
-  const waiting: Waiting[] = (plan?.plan.decisions ?? [])
-    .filter((d) => d.decision === "human_review")
-    .map((decision) => ({ decision, w: plan?.workItemsById[decision.work_item_id] ?? null }))
-    .sort(
-      (a, b) =>
-        Number(Boolean(b.w?.impact.safety_flag)) - Number(Boolean(a.w?.impact.safety_flag)) ||
-        (b.w?.impact.expected_value_lei ?? 0) - (a.w?.impact.expected_value_lei ?? 0),
-    );
-  const decided = audit.filter((a) => a.actor === "human").toSorted((a, b) => b.ts.localeCompare(a.ts));
+  const waiting: Waiting[] = [];
+  for (const decision of plan?.plan.decisions ?? []) {
+    if (decision.decision !== "human_review") continue;
+    const w = plan?.workItemsById[decision.work_item_id];
+    if (w) waiting.push({ decision, w, cat: categoryOf(decision.rule_id) });
+  }
+  waiting.sort(
+    (a, b) =>
+      Number(Boolean(b.w.impact.safety_flag)) - Number(Boolean(a.w.impact.safety_flag)) ||
+      b.w.impact.expected_value_lei - a.w.impact.expected_value_lei,
+  );
+
+  const cats = new Map<string, { cat: Category; count: number }>();
+  for (const x of waiting) {
+    const e = cats.get(x.cat.id);
+    if (e) e.count += 1;
+    else cats.set(x.cat.id, { cat: x.cat, count: 1 });
+  }
+  const catList = [...cats.values()].toSorted((a, b) => b.count - a.count);
+  const motiv = catList.some((c) => c.cat.id === str("motiv")) ? str("motiv")! : null;
+  const list = motiv ? waiting.filter((x) => x.cat.id === motiv) : waiting;
+  const pages = Math.max(1, Math.ceil(list.length / PER_PAGE));
+  const selected = list.find((x) => x.w.work_item_id === str("caz")) ?? list[0] ?? null;
+  const selIndex = selected ? list.indexOf(selected) : 0;
+  // pagina cerută; dacă lipsește, pagina cazului ales
+  const reqPage = Number(str("pagina"));
+  const page = Math.min(pages, Math.max(1, Number.isInteger(reqPage) && reqPage > 0 ? reqPage : Math.floor(selIndex / PER_PAGE) + 1));
+  const rows = list.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
+  const href = (o: { caz?: string | null; motiv?: string | null; pagina?: number | null }) => {
+    const q = new URLSearchParams();
+    q.set("scenariu", scenario);
+    const m = "motiv" in o ? o.motiv : motiv;
+    if (m) q.set("motiv", m);
+    const c = "caz" in o ? o.caz : selected?.w.work_item_id;
+    if (c) q.set("caz", c);
+    if (o.pagina && o.pagina > 1) q.set("pagina", String(o.pagina));
+    return `/coada?${q.toString()}`;
+  };
+
+  const seriesResult = selected ? await getSeries(selected.w.work_item_id, scenario) : null;
+  const series = seriesResult?.data ?? null;
 
   return (
     <AppShell info={info}>
-      <div className="mx-auto max-w-[1760px] px-7 pt-7 pb-16">
-        <div className="flex items-center gap-3">
-          <h1 className="text-[30px] leading-tight font-[650]">Nu sunt sigur</h1>
-          {waiting.length ? (
-            <span className="inline-grid h-8 min-w-8 place-items-center rounded-full bg-att px-2.5 text-[17px] font-[700] text-on-att tabular-nums">
-              {waiting.length}
-              <span className="sr-only"> {waiting.length === 1 ? "lucrare așteaptă" : "lucrări așteaptă"} un om</span>
-            </span>
-          ) : null}
-        </div>
-        <p className="mt-2 max-w-[96ch] text-[16.5px] leading-relaxed">
-          Aici trimite agentul ce nu poate decide singur: modelul s-a abținut, intervalul de încredere trece de pragul regulii, datele de intrare
-          au probleme, sau e un risc pentru oameni și nu e nicio echipă liberă. Decide un om. Decizia intră în jurnal cu actorul „om”, iar planul
-          se recalculează.
-        </p>
-
-        {waiting.length > 1 ? <Summary waiting={waiting} /> : null}
+      <div className="mx-auto w-full max-w-[1520px] px-8 pt-7 pb-14 max-md:px-4">
+        <PageTitle
+          title="Nu sunt sigur: decizii care cer o persoană."
+          subtitle="Cazuri în care agentul nu e sigur și așteaptă judecata unui om, înainte de planul de mâine."
+        />
 
         {!plan ? (
-          <div className="mt-8 border-y border-rule bg-panel px-5 py-6">
+          <Card className="mt-6" bodyClassName="py-6">
             <p className="text-[18px] font-[620]">Nu există încă un plan pentru „{scenario}”.</p>
-            <p className="mt-1.5 text-[15.5px] text-muted-foreground">
-              {view.degradedReason ?? "Agentul n-a rulat încă pentru acest scenariu."} Apasă „Rulează agentul” din antet ca să-l calculeze acum.
+            <p className="mt-1.5 text-[15.5px] text-ink-soft">
+              {view.degradedReason ?? "Agentul n-a rulat încă pentru acest scenariu."} Pornește-l din pagina{" "}
+              <Link href={`/rulare?scenariu=${encodeURIComponent(scenario)}`} className="underline underline-offset-4">
+                Rulare agent
+              </Link>
+              .
             </p>
-          </div>
-        ) : waiting.length ? (
-          <section aria-labelledby="wait-title" className="mt-7">
-            <h2 id="wait-title" className="sr-only">
-              Lucrări care așteaptă un om
-            </h2>
-            <ul className="border-y border-rule">
-              {waiting.map((x) => (
-                <WaitingRow key={x.decision.work_item_id} item={x} scenario={scenario} />
-              ))}
-            </ul>
-          </section>
-        ) : (
-          <div className="mt-8 border-y border-rule bg-panel px-5 py-7">
+          </Card>
+        ) : !waiting.length ? (
+          <Card className="mt-6" bodyClassName="py-7">
             <p className="text-[20px] font-[620]">Agentul a decis singur tot ce a primit. Nimic nu așteaptă un om acum.</p>
-            <Link
-              href={`/?scenariu=${encodeURIComponent(scenario)}`}
-              className="mt-3 inline-block text-[16px] font-[560] underline decoration-rule underline-offset-4 hover:decoration-ink"
-            >
+            <Link href={`/app?scenariu=${encodeURIComponent(scenario)}`} className={cn(btn("outline"), "mt-4")}>
               Înapoi la planul de mâine
             </Link>
-          </div>
-        )}
-
-        <section aria-labelledby="done-title" className="mt-12">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-            <h2 id="done-title" className="text-[22px] font-[650]">
-              Decise de oameni
-            </h2>
-            {decided.length ? <span className="text-[14.5px] text-muted-foreground">{plural(decided.length, "decizie", "decizii")}, cele mai noi primele</span> : null}
-          </div>
-          {decided.length ? (
-            <ol className="mt-3 border-y border-rule">
-              {decided.map((a) => (
-                <DecidedRow key={a.audit_id} a={a} scenario={scenario} />
+          </Card>
+        ) : (
+          <>
+            <nav aria-label="Filtrează după motiv" className="mt-5 flex flex-wrap gap-2.5">
+              <FilterChip href={href({ motiv: null, caz: null, pagina: null })} on={!motiv}>
+                Toate ({waiting.length})
+              </FilterChip>
+              {catList.map(({ cat, count }) => (
+                <FilterChip key={cat.id} href={href({ motiv: cat.id, caz: null, pagina: null })} on={motiv === cat.id} tone={CAT_TONE[cat.tone]}>
+                  {cat.label} ({count})
+                </FilterChip>
               ))}
-            </ol>
-          ) : (
-            <p className="mt-2 text-[15.5px] text-muted-foreground">
-              Niciun om n-a decis încă în planul curent. Când aprobi, respingi sau amâni o lucrare, decizia apare aici, cu ora și nota ta.
-            </p>
-          )}
-        </section>
+            </nav>
 
-        <p className="mt-10 text-[13.5px] text-muted-foreground">
-          Datele vin din: {SOURCE_LABEL_RO[view.source]}
-          {view.degradedReason ? `. ${view.degradedReason}` : ""}
-          {auditResult?.degradedReason ? `. Jurnal: ${auditResult.degradedReason}` : ""}.
-        </p>
+            <div className="mt-5 grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,1fr)]">
+              {selected ? <Approval key={selected.w.work_item_id} sel={selected} scenario={scenario} series={series} /> : null}
+
+              <Card
+                title={`Lista cazurilor (${list.length})`}
+                action={<span className="text-[14.5px] font-[450] text-ink-soft">Pagina {page} din {pages}</span>}
+                bodyClassName="pt-4"
+              >
+                {catList.length > 1 ? (
+                  <ul className="mb-4 grid grid-cols-3 gap-2.5 max-sm:grid-cols-1">
+                    {catList.slice(0, 3).map(({ cat, count }) => (
+                      <li key={cat.id}>
+                        <Link
+                          href={href({ motiv: cat.id, caz: null, pagina: null })}
+                          className={cn(
+                            "flex h-full items-center gap-3 rounded-[12px] border bg-surface-2 px-3.5 py-2.5 transition-colors hover:border-[#3d5170] focus-visible:outline-2 focus-visible:outline-ring",
+                            motiv === cat.id ? "border-[#3d5170]" : "border-rule",
+                          )}
+                        >
+                          <Dot tone={CAT_TONE[cat.tone]} className="size-3.5" />
+                          <span className="min-w-0">
+                            <span className="block text-[19px] leading-tight font-[650] tabular-nums">{fmtInt(count)}</span>
+                            <span className="block text-[13.5px] leading-tight text-ink-soft">{cat.label}</span>
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+
+                <table className="w-full border-collapse sm:table-fixed text-[15px]">
+                  <caption className="sr-only">Cazurile care așteaptă o decizie, cu motivul, încrederea și impactul</caption>
+                  <thead>
+                    <tr className="border-b border-rule text-left text-[14px] text-ink-soft">
+                      <th scope="col" className="w-9 py-2 pl-2 font-[450]">#</th>
+                      <th scope="col" className="py-2 font-[450]">Post/loc</th>
+                      <th scope="col" className="w-[22%] py-2 font-[450] max-sm:hidden">Motiv</th>
+                      <th scope="col" className="w-[18%] py-2 text-right font-[450]">Încredere</th>
+                      <th scope="col" className="w-[20%] py-2 pr-1 text-right font-[450]">Impact</th><th scope="col" className="w-8"><span className="sr-only">Deschide cazul</span></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((x, i) => {
+                      const on = x.w.work_item_id === selected?.w.work_item_id;
+                      return (
+                        <tr key={x.w.work_item_id} className={cn("relative border-b border-rule/60 last:border-b-0", on && "bg-[#0f2547] outline outline-2 -outline-offset-2 outline-[#3b82f6]")}>
+                          <td className="py-2.5 pl-2 tabular-nums">{(page - 1) * PER_PAGE + i + 1}</td>
+                          <td className="py-2.5 pr-2 font-[560]">
+                            <CaseLink
+                              href={href({ caz: x.w.work_item_id })}
+                              prefetch={false}
+                              aria-current={on ? "true" : undefined}
+                              className="flex items-center gap-2 after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-ring"
+                            >
+                              <Dot tone={CAT_TONE[x.cat.tone]} className="size-2 sm:hidden" />
+                              <span className="truncate max-sm:max-w-[110px]" translate="no" title={placeOf(x.w)}>{placeOf(x.w)}</span>
+                            </CaseLink>
+                          </td>
+                          <td className="py-2.5 pr-2 max-sm:hidden">
+                            <Pill tone={CAT_TONE[x.cat.tone]} size="sm" className="max-w-full border-transparent bg-transparent px-0 text-ink">
+                              <Dot tone={CAT_TONE[x.cat.tone]} className="size-2" />
+                              <span className="truncate">{x.cat.label}</span>
+                            </Pill>
+                          </td>
+                          <td className="py-2.5 pl-2 text-right font-[560] whitespace-nowrap tabular-nums">{roundPct(x.w.prediction.score)}</td>
+                          <td className="py-2.5 pr-2 text-right font-[560] whitespace-nowrap tabular-nums">
+                            {fmtLei(x.w.impact.expected_value_lei)}
+                          </td>
+                          <td className="w-6 pr-2 text-ink-soft">
+                            <ChevronRight aria-hidden="true" size={18} />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+
+                {pages > 1 ? (
+                  <nav aria-label="Paginile listei" className="mt-6 flex flex-wrap items-center justify-between gap-3">
+                    <PageNav href={page > 1 ? href({ pagina: page - 1, caz: null }) : null}>
+                      <ChevronLeft aria-hidden="true" size={16} />
+                      Înapoi
+                    </PageNav>
+                    <ul className="flex items-center gap-2">
+                      {pageList(pages, page).map((n, i) => (
+                        <li key={`${n}-${i}`}>
+                          {n === "…" ? (
+                            <span className="px-1 text-ink-soft">…</span>
+                          ) : (
+                            <Link
+                              href={href({ pagina: n, caz: null })}
+                              scroll={false}
+                              prefetch={false}
+                              aria-label={`Pagina ${n}`}
+                              aria-current={n === page ? "page" : undefined}
+                              className={cn(
+                                "grid size-10 place-items-center rounded-[10px] border text-[15px] font-[600] tabular-nums focus-visible:outline-2 focus-visible:outline-ring",
+                                n === page ? "border-action bg-action text-white" : "border-[#2a3a52] hover:border-[#3d5170] hover:bg-[#0f1a2b]",
+                              )}
+                            >
+                              {n}
+                            </Link>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                    <PageNav href={page < pages ? href({ pagina: page + 1, caz: null }) : null}>
+                      Înainte
+                      <ChevronRight aria-hidden="true" size={16} />
+                    </PageNav>
+                  </nav>
+                ) : null}
+                <p className="sr-only">{plural(list.length, "caz", "cazuri")} în listă</p>
+              </Card>
+            </div>
+          </>
+        )}
       </div>
     </AppShell>
   );
 }
 
-/** Pe scurt, pentru proiector: câte lucrări din fiecare sursă și din ce motive. */
-function Summary({ waiting }: { waiting: Waiting[] }) {
-  const bySource = new Map<string, number>();
-  const byRule = new Map<string, number>();
-  for (const { decision, w } of waiting) {
-    const s = w?.source ?? sourceOf(decision.work_item_id);
-    if (s) bySource.set(s, (bySource.get(s) ?? 0) + 1);
-    byRule.set(decision.rule_id, (byRule.get(decision.rule_id) ?? 0) + 1);
-  }
-  const sources = (["A", "B", "C"] as const).filter((s) => bySource.get(s));
-  const rules = [...byRule.entries()].sort((a, b) => b[1] - a[1]);
+function FilterChip({ href, on, tone, children }: { href: string; on: boolean; tone?: Tone; children: React.ReactNode }) {
   return (
-    <div className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-2 text-[15px]">
-      <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
-        {sources.map((s) => (
-          <span key={s} className="flex items-center gap-1.5">
-            <span className="size-6 shrink-0" dangerouslySetInnerHTML={{ __html: markerSvg({ source: s }, 24) }} />
-            {SOURCES[s].name} <b className="font-[650] tabular-nums">{bySource.get(s)}</b>
-          </span>
-        ))}
-      </span>
-      <span className="h-5 w-px bg-rule" aria-hidden="true" />
-      <span className="text-muted-foreground">
-        {rules.map(([rule, n], i) => (
-          <span key={rule}>
-            {i ? "; " : "Motive: "}
-            {ruleRo(rule) ?? rule} <b className="font-[650] text-ink tabular-nums">{n}</b>
-          </span>
-        ))}
-      </span>
-    </div>
+    <Link
+      href={href}
+      prefetch={false}
+      aria-current={on ? "true" : undefined}
+      className={cn(
+        "inline-flex h-9 items-center gap-2 rounded-full border px-4 text-[14.5px] font-[520] whitespace-nowrap transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+        on ? "border-[#e6e8eb] bg-[#e6e8eb] text-[#0b1322]" : "border-[#2a3a52] text-ink hover:border-[#3d5170] hover:bg-[#0f1a2b]",
+      )}
+    >
+      {tone && !on ? <Dot tone={tone} /> : null}
+      {children}
+    </Link>
   );
 }
 
-function WaitingRow({ item: { decision, w }, scenario }: { item: Waiting; scenario: string }) {
-  const id = decision.work_item_id;
-  const source = w?.source ?? sourceOf(id);
-  const p = w?.prediction;
-  const scoreMin = typeof decision.threshold?.score_min === "number" ? decision.threshold.score_min : null;
-  const reason = p?.abstain_reason ? sentence(p.abstain_reason) : sentence(decision.reason_ro);
-  const factors = w?.explanation.top_factors.slice(0, 2) ?? [];
-  const maxF = Math.max(0.0001, ...factors.map((f) => Math.abs(f.contribution)));
-  const rule = ruleRo(decision.rule_id);
+function PageNav({ href, children }: { href: string | null; children: React.ReactNode }) {
+  const cls = cn(btn("outline", "sm"), "h-10 gap-1.5 px-4");
+  return href ? (
+    <Link href={href} scroll={false} prefetch={false} className={cls}>
+      {children}
+    </Link>
+  ) : (
+    <span aria-disabled="true" className={cn(cls, "pointer-events-none opacity-45")}>
+      {children}
+    </span>
+  );
+}
 
+function chartData(series: Series | null): { data: CasePoint[]; limit: number | null } {
+  if (!series) return { data: [], limit: null };
+  const hourly = series.points.some((p) => /T\d\d:\d\d/.test(String(p.t)) && !/T00:00:00$/.test(String(p.t)));
+  const data: CasePoint[] = [];
+  for (const p of series.points) {
+    const v = p.value ?? p.expected;
+    if (typeof v !== "number" || !Number.isFinite(v)) continue;
+    data.push({ x: hourly ? fmtTime(String(p.t)) : fmtDayMonth(String(p.t)), v });
+  }
+  const th = series.thresholds ?? {};
+  const limit = typeof th.limita_tensiune_pu === "number" ? th.limita_tensiune_pu : null;
+  return { data, limit };
+}
+
+function Approval({ sel, scenario, series }: { sel: Waiting; scenario: string; series: Series | null }) {
+  const { w, cat } = sel;
+  const p = w.prediction;
+  const place = itemPlace(w);
+  const q = questionFor(w, place);
+  const { data, limit } = chartData(series);
+  const facts = caseFacts(w, limit);
+  const tone = CAT_TONE[cat.tone];
+  const srcTone = SOURCE_TONE[w.source];
+  const customers = w.impact.customers_affected;
   return (
-    <li className="grid grid-cols-1 gap-x-10 gap-y-5 border-t border-rule py-6 first:border-t-0 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(400px,0.95fr)]">
-      {/* ce e și de ce a ajuns aici */}
-      <div className="min-w-0">
-        <div className="flex items-center gap-3">
-          {source ? (
-            <span className="size-9 shrink-0" dangerouslySetInnerHTML={{ __html: markerSvg({ source, kind: "human" }) }} />
-          ) : null}
-          <div className="min-w-0">
-            <Link href={linkTo(id, scenario)} translate="no" className="code-id block truncate text-[19px] underline decoration-rule underline-offset-4 hover:decoration-ink">
-              {id}
-            </Link>
-            {w ? (
-              <p className="truncate text-[15px] text-muted-foreground">
-                {itemTitle(w)}, {itemPlace(w)}: {predictionLabelRo(w.prediction.label)}
-              </p>
-            ) : (
-              <p className="text-[15px] text-muted-foreground">Lucrarea nu e în lista primită; decizia se poate lua oricum.</p>
-            )}
+    <Card
+      title="Aprobare"
+      id="aprobare"
+      className="scroll-mt-20"
+      icon={ClipboardCheck}
+      action={
+        <Pill tone={tone} size="lg">
+          <Dot tone={tone} className="size-3" />
+          {cat.label}
+        </Pill>
+      }
+      bodyClassName="pt-4"
+    >
+      <h2 className="text-[27px] leading-[1.2] font-[720] tracking-[-0.02em] max-md:text-[22px]">
+        {q.before}
+        {q.id ? <span translate="no">{q.id}</span> : null}
+        {q.after}
+      </h2>
+      <p className="mt-1.5 text-[15px] text-ink-soft">{sel.decision.reason_ro}</p>
+
+      <div className="mt-4 grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)] items-center gap-x-4 gap-y-3 rounded-[12px] border border-rule bg-surface-2 px-4 py-4 max-md:grid-cols-1 max-md:justify-items-start">
+        <div className="shrink-0">
+          <Gauge value={p.score} label={roundPct(p.score)} sub="scorul modelului" tone={srcTone} size={150} />
+        </div>
+        <div className="flex min-w-0 flex-col gap-3.5 border-l border-rule pl-4 max-md:border-l-0 max-md:pl-0">
+          <div className="flex min-w-0 items-center gap-3">
+            <Network aria-hidden="true" size={26} strokeWidth={1.5} className="shrink-0 text-violet" />
+            <div className="min-w-0">
+              <p className="text-[13.5px] text-ink-soft">Model</p>
+              <p className="truncate text-[16px] font-[650]" translate="no">{p.model_version}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <CalendarDays aria-hidden="true" size={26} strokeWidth={1.5} className="shrink-0 text-violet" />
+            <div>
+              <p className="text-[13.5px] text-ink-soft">{w.time_window ? "Fereastră" : "Urgență"}</p>
+              <p className="text-[16px] font-[650] whitespace-nowrap tabular-nums">{whenText(w)}</p>
+            </div>
           </div>
         </div>
-        <p className="mt-3 text-[17.5px] leading-snug font-[580]">{reason}</p>
-        <p className="mt-1.5 text-[14.5px] text-muted-foreground">
-          <span translate="no" className="code-id text-ink">{decision.rule_id}</span>
-          {rule ? `: ${rule}` : ""}
-        </p>
-        {w?.impact.safety_flag ? (
-          <p className="mt-2 flex items-center gap-2 text-[15px] font-[600]">
-            <svg width="16" height="18" viewBox="0 0 16 18" aria-hidden="true">
-              <path d="M8 1 L15 3.5 V8.5 C15 12.8 12 15.8 8 17 C4 15.8 1 12.8 1 8.5 V3.5 Z" fill="none" style={{ stroke: "var(--ink)" }} strokeWidth="1.6" />
-              <path d="M8.8 4.5 L5.5 9.6 H8 L7.2 13.5 L10.5 8.4 H8 Z" style={{ fill: "var(--ink)" }} />
-            </svg>
-            Risc pentru oameni
-          </p>
-        ) : null}
-      </div>
-
-      {/* scorul, factorii, valoarea */}
-      <div className="min-w-0">
-        {p ? (
-          <>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-              <span className="num-wide text-[40px] leading-none">{fmtScore(p.score)}</span>
-              <ScoreScale score={p.score} low={p.interval_low} high={p.interval_high} threshold={scoreMin} width={190} tone="att" />
-              <span className="text-[14.5px] leading-snug text-muted-foreground">
-                {p.interval_low != null && p.interval_high != null ? `interval ${fmtScore(p.interval_low)}–${fmtScore(p.interval_high)}` : "fără interval"}
-                <br />
-                {CONFIDENCE_RO[p.confidence]}
-                {scoreMin != null ? `, pragul regulii ${fmtScore(scoreMin)}` : ""}
-              </span>
+        <div className="flex min-w-0 flex-col gap-3.5 border-l border-rule pl-4 max-md:border-l-0 max-md:pl-0">
+          <div className="flex items-center gap-3">
+            <Users aria-hidden="true" size={26} strokeWidth={1.5} className="shrink-0 text-violet" />
+            <div>
+              <p className="text-[13.5px] text-ink-soft">Clienți afectați</p>
+              <p className="text-[16px] font-[650] tabular-nums">{customers != null ? fmtInt(customers) : "–"}</p>
             </div>
-            {factors.length ? (
-              <div className="mt-4 space-y-2">
-                {factors.map((f) => (
-                  <div key={f.feature} className="grid grid-cols-[minmax(0,1fr)_120px_52px] items-center gap-x-3 text-[15px]">
-                    <span className="min-w-0">{factorLabelRo(f.label_ro)}</span>
-                    <span className="relative h-2.5 bg-muted" aria-hidden="true">
-                      <i
-                        className="absolute inset-y-0 left-0"
-                        style={{ width: `${((Math.abs(f.contribution) / maxF) * 100).toFixed(1)}%`, background: f.contribution >= 0 ? "var(--ink)" : "var(--idle)" }}
-                      />
-                    </span>
-                    <span className="text-right font-[620] tabular-nums">
-                      {f.contribution >= 0 ? "+" : "−"}
-                      {fmtScore(Math.abs(f.contribution))}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-            <Value w={w} abstained={Boolean(p.abstain)} />
-          </>
-        ) : (
-          <p className="text-[15px] text-muted-foreground">Fără predicție pentru această lucrare.</p>
-        )}
+          </div>
+          <div className="flex items-center gap-3">
+            <Layers aria-hidden="true" size={26} strokeWidth={1.5} className="shrink-0 text-violet" />
+            <div>
+              <p className="text-[13.5px] text-ink-soft">Valoare așteptată</p>
+              <p className="text-[16px] font-[650] tabular-nums">{fmtLei(w.impact.expected_value_lei)}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* decizia omului */}
-      <div className="min-w-0 border-l-[3px] border-att bg-att-surface px-5 py-4">
-        <p className="mb-2 text-[16px] font-[650] text-att-ink">Decide tu</p>
-        <ReviewActions workItemId={id} scenario={scenario} />
-      </div>
-    </li>
-  );
-}
+      {facts.length ? (
+        <ul className="mt-3 grid grid-cols-2 rounded-[12px] border border-rule bg-surface-2 max-sm:grid-cols-1">
+          {facts.map((f, i) => {
+            const Icon = FACT_ICON[f.icon];
+            return (
+              <li key={f.icon} className={cn("flex items-center justify-center gap-4 px-4 py-3.5", i > 0 && "border-l border-rule max-sm:border-t max-sm:border-l-0")}>
+                <Icon aria-hidden="true" size={34} strokeWidth={1.4} className={FACT_TONE[f.icon]} />
+                <div>
+                  <p className="text-[22px] leading-tight font-[650] tabular-nums">{f.value}</p>
+                  <p className="text-[14px] text-ink-soft">{f.label}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
 
-/** Valoarea în joc. Când modelul se abține, valoarea așteptată e 0: arătăm cât valorează dacă problema e reală. */
-function Value({ w, abstained }: { w: WorkItem | null; abstained: boolean }) {
-  if (!w) return null;
-  const ev = w.impact.expected_value_lei;
-  const ifTrue = w.impact.value_if_true_lei;
-  const lei = (n: number) => fmtLei(n);
-  if (ev > 0 || !abstained) {
-    return (
-      <p className="mt-4 text-[15.5px]">
-        Valoare așteptată <b className="font-[650] tabular-nums">{lei(ev)}</b>
-        {ifTrue > 0 ? <span className="text-muted-foreground">; {lei(ifTrue)} dacă problema e reală</span> : null}
-      </p>
-    );
-  }
-  return (
-    <p className="mt-4 text-[15.5px]">
-      {ifTrue > 0 ? (
-        <>
-          În joc <b className="font-[650] tabular-nums">{lei(ifTrue)}</b>
-          <span className="text-muted-foreground"> dacă problema e reală. Agentul nu calculează valoarea așteptată când modelul se abține.</span>
-        </>
+      {data.length > 1 ? (
+        <figure className="mt-3 rounded-[12px] border border-rule bg-surface-2 px-4 pt-3 pb-2">
+          <figcaption className="mb-1 text-[15px] font-[560]">{series?.title_ro}</figcaption>
+          <CaseChart data={data} unit={series?.unit ?? ""} color={SRC_VAR[w.source]} limit={limit} label={series?.title_ro ?? "Serie"} />
+        </figure>
       ) : (
-        <span className="text-muted-foreground">Agentul nu calculează valoarea așteptată când modelul se abține.</span>
+        <p className="mt-3 rounded-[12px] border border-rule bg-surface-2 px-4 py-4 text-[14.5px] text-ink-soft">Nu există o serie pentru acest caz.</p>
       )}
-    </p>
-  );
-}
 
-function DecidedRow({ a, scenario }: { a: AuditRecord; scenario: string }) {
-  const { who, text } = splitNote(a.note);
-  const label = HUMAN_ACTION_RO[a.action] ?? sentence((DECISION_LABEL_RO as Record<string, string>)[a.action] ?? a.action.replaceAll("_", " ")).replace(/\.$/, "");
-  const source = a.work_item_id ? sourceOf(a.work_item_id) : null;
-  return (
-    <li className="grid grid-cols-[220px_150px_minmax(0,1fr)] items-baseline gap-x-6 border-t border-rule py-3 text-[15.5px] first:border-t-0">
-      <span className="text-muted-foreground tabular-nums">{fmtMoment(a.ts)}</span>
-      <span className="font-[650]">
-        {label}
-        {who ? <span className="block text-[14px] font-[450] text-muted-foreground">de {who}</span> : null}
-      </span>
-      <span className="min-w-0">
-        {a.work_item_id ? (
-          <span className="flex items-center gap-2">
-            {source ? <span className="size-6 shrink-0" dangerouslySetInnerHTML={{ __html: markerSvg({ source }, 24) }} /> : null}
-            <Link href={linkTo(a.work_item_id, scenario)} translate="no" className="code-id truncate underline decoration-rule underline-offset-4 hover:decoration-ink">
-              {a.work_item_id}
-            </Link>
-            {a.rule_id ? <span className="dense text-[13.5px] text-muted-foreground">venită din {a.rule_id}</span> : null}
-          </span>
-        ) : null}
-        {text ? <span className="mt-0.5 block text-muted-foreground">„{text}”</span> : null}
-      </span>
-    </li>
+      <div className="mt-4">
+        <ReviewActions workItemId={w.work_item_id} scenario={scenario} layout="card" />
+      </div>
+      <p className="mt-3 text-[13.5px] text-ink-soft">
+        Lucrarea{" "}
+        <Link href={`/lucrari/${encodeURIComponent(w.work_item_id)}?scenariu=${encodeURIComponent(scenario)}`} translate="no" className="code-id underline underline-offset-4 hover:text-ink">
+          {w.work_item_id}
+        </Link>{" "}
+        {w.data_quality.synthetic ? "· date sintetice" : ""}
+      </p>
+    </Card>
   );
 }

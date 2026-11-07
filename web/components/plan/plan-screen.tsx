@@ -32,8 +32,8 @@ function shortDepot(label: string): string {
     .replace(/^Baza București /, "Baza ");
 }
 
-// în modul de prezentare, subtitrarea stă jos, peste hartă: încadrarea îi lasă loc
-const SCENE_MAP_PADDING = { top: 76, bottom: 160, left: 56, right: 330 };
+// în modul de prezentare, încadrarea lasă loc butoanelor de regiune și hărții mici (subtitrarea are banda ei)
+const SCENE_MAP_PADDING = { top: 76, bottom: 64, left: 56, right: 330 };
 
 export interface PostsInfo {
   posts: PostSummary[];
@@ -49,7 +49,7 @@ export function PlanScreen({
   initialSelected,
   postsInfo,
   approval,
-  theme = "light",
+  theme = "dark",
   scene,
   initialRegion,
   initialMode = "items",

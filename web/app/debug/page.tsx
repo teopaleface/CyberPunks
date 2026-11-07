@@ -24,7 +24,7 @@ export default function DebugPage() {
       <header>
         <h1 className="text-xl font-semibold">Diagnostic</h1>
         <p>
-          Configurarea, starea API-ului și sursa folosită de fiecare funcție. <Link href="/">Înapoi</Link>
+          Configurarea, starea API-ului și sursa folosită de fiecare funcție. <Link href="/app">Înapoi</Link>
         </p>
       </header>
       <Suspense fallback={<p>Verific sursele…</p>}>

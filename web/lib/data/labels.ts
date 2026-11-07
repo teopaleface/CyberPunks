@@ -251,7 +251,10 @@ function percentValue(n: string): number {
  * „a crescut de peste 10 ori”. Datele originale rămân neatinse; e doar o protecție la afișare.
  */
 export function clampPercentRo(text: string): string {
-  return text.replace(PERCENT, (m, n: string) => (percentValue(n) > 999 ? "de peste 10 ori" : m));
+  return text
+    .replace(PERCENT, (m, n: string) => (percentValue(n) > 999 ? "de peste 10 ori" : m))
+    // o probabilitate de 100% sună a certitudine: „peste 99%” (cererea din QA)
+    .replace(/(probabilit\p{L}*(?:\s+\p{L}+)?\s+(?:de\s+)?)100\s?%/giu, "$1peste 99%");
 }
 
 /**
