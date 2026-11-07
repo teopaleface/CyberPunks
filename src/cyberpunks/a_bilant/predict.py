@@ -33,6 +33,7 @@ from cyberpunks.a_bilant import inputs as I
 from cyberpunks.a_bilant import normal as N
 from cyberpunks.a_bilant import windows as W
 from cyberpunks.a_bilant.fuse import state_path
+from cyberpunks.a_bilant.martor import MARTOR_DIFF_LIMIT
 from cyberpunks.a_bilant.problems import CLASS_RO, CLASSES
 from cyberpunks.common.config import load as load_config
 from cyberpunks.common.contracts import Series, WorkItem
@@ -136,7 +137,7 @@ def post_states(pool: str, target_day: int) -> tuple[pd.DataFrame, pd.DataFrame,
     win = W.build_windows(d, pred, pool, days=[target_day])
     diag = G.load()
     proba = diag.proba(win)
-    dec = G.pair_consistency(win, G.decide(proba, win))
+    dec = G.apply_martor_rule(win, G.pair_consistency(win, G.decide(proba, win)))
     d = d.assign(p10=pred["p10"].to_numpy(), p50=pred["p50"].to_numpy(), p90=pred["p90"].to_numpy())
     return d, win.join(dec), proba
 
@@ -271,6 +272,7 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
             "abstain": bool(r["abstain"]),
             "prediction_id": pred_id,
             "has_balance": has_bal,
+            "martor_diff_pct": round(float(r["martor_diff"]) * 100, 3) if np.isfinite(float(r.get("martor_diff", float("nan")))) else None,
             "input_issues": post_issues,
         }
         if not has_bal:
@@ -280,6 +282,13 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
         if r["p_problem"] < MIN_P_PROBLEM or not material or (r["label"] == "normal" and not r["abstain"]):
             continue
         extra: dict = {"post_id": pid, "series_ref": f"outputs/series/{scenario}/A-{target:%Y%m%d}-{pid}.json", "diagnosis_proba": {c: round(float(proba.loc[_, c]), 4) for c in CLASSES}}
+        md = float(r.get("martor_diff", float("nan")))
+        extra["martor_check"] = {
+            "rule": "contor de balanță față de contorul martor (Codul de măsurare ANRE 2015)",
+            "diff_pct": round(md * 100, 3) if np.isfinite(md) else None,
+            "limit_pct": MARTOR_DIFF_LIMIT * 100,
+            "verdict": str(r.get("martor_rule", "fara_martor")),
+        }
         # clientul suspect (cel mai mare consum dispărut) și vecinul cu surplus
         cd = cust[pid].astype(float) if pid in cust.files else None
         sus = suspect_meter(cd, tday, float(r["r_mean_kwh"])) if cd is not None else None
@@ -358,7 +367,8 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
             other = f" Perechea probabilă: {mirror}." if mirror else ""
             summary = f"Postul {pid}: {side} de ~{abs(float(r['r_mean_kwh'])):.1f} kWh/zi (~{lei_month:.0f} lei pe lună contați la postul greșit). Cauza probabilă ({r['p_label']:.0%}): client trecut la postul greșit în bază; tensiunea contorului seamănă cu a altui post.{other} Recomand: {ACTION_RO[action]}."
         elif label == "contor_bilant_setat":
-            summary = f"Postul {pid}: contorul postului arată de {r['bal_db_ratio']:.2f} ori suma clienților ({r['p_label']:.0%} contor de post setat greșit). Lipsa de ~{r['r_mean_kwh']:.0f} kWh/zi e doar pe hârtie. Recomand: {ACTION_RO[action]} (raportul de transformare)."
+            mtxt = f" Contorul martor diferă cu {md * 100:.1f}% (peste clasa de exactitate de {MARTOR_DIFF_LIMIT * 100:.1f}%): regula confirmă." if np.isfinite(md) and md > MARTOR_DIFF_LIMIT else ""
+            summary = f"Postul {pid}: contorul de balanță arată de {r['bal_db_ratio']:.2f} ori suma clienților ({r['p_label']:.0%} contor de balanță defect sau setat greșit).{mtxt} Lipsa de ~{r['r_mean_kwh']:.0f} kWh/zi e doar pe hârtie. Recomand: {ACTION_RO[action]} (raportul de transformare)."
         else:
             summary = f"Postul {pid}: ~{lei_month:.0f} lei pe lună pierduți peste normal. Cauza probabilă ({r['p_label']:.0%}): {who}. Recomand: {ACTION_RO[action]}."
         wid = f"A-{target:%Y%m%d}-{pid}"

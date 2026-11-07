@@ -115,9 +115,11 @@ def eval_diagnosis(wtr: pd.DataFrame, wte: pd.DataFrame) -> tuple[dict, dict, G.
 
     diag = G.fit(wtr)
     proba = diag.proba(wte)
-    dec = G.pair_consistency(wte, G.decide(proba, wte))
+    dec0 = G.pair_consistency(wte, G.decide(proba, wte))
+    dec = G.apply_martor_rule(wte, dec0)
     y = wte["true_class"].to_numpy()
     lab = dec["label"].to_numpy()
+    lab0 = dec0["label"].to_numpy()
     rl = G.rules(wte).to_numpy()
     m = {
         "diagnoza_macro_f1": float(f1_score(y, lab, average="macro")),
@@ -133,6 +135,17 @@ def eval_diagnosis(wtr: pd.DataFrame, wte: pd.DataFrame) -> tuple[dict, dict, G.
     }
     for c, f in zip(CLASSES, f1_score(y, lab, average=None, labels=list(CLASSES)), strict=True):
         m[f"diagnoza_f1_{c}"] = float(f)
+    # regula contorului martor (doar posturile care au martor): cu regula față de doar modelul
+    hm = np.isfinite(wte["martor_diff"].to_numpy())
+    cfg = y == "contor_bilant_setat"
+    over = dec["martor_rule"].to_numpy() == "diferenta_peste_clasa"
+    m["martor_windows"] = float(hm.sum())
+    m["martor_rule_recall_contor_post"] = float((over & cfg & hm).sum() / max((cfg & hm).sum(), 1))
+    m["martor_rule_false_alarms"] = float((over & ~cfg).sum())
+    m["martor_model_only_f1_contor_post"] = float(f1_score(y[hm], lab0[hm], average=None, labels=["contor_bilant_setat"])[0])
+    m["martor_with_rule_f1_contor_post"] = float(f1_score(y[hm], lab[hm], average=None, labels=["contor_bilant_setat"])[0])
+    m["diagnoza_macro_f1_fara_martor"] = float(f1_score(y, lab0, average="macro"))
+    m["martor_normal_diff_median_pct"] = float(np.nanmedian(wte.loc[hm & (y == "normal"), "martor_diff"]) * 100) if (hm & (y == "normal")).any() else float("nan")
     for c, f in zip(CLASSES, f1_score(y, rl, average=None, labels=list(CLASSES)), strict=True):
         b[f"diagnoza_f1_{c}"] = float(f)
     cm = pd.DataFrame(confusion_matrix(y, lab, labels=list(CLASSES)), index=list(CLASSES), columns=list(CLASSES))
@@ -254,7 +267,7 @@ def main() -> None:
     wtr.to_parquet(DATA_PROCESSED / "bilant" / "windows_train.parquet")
     md, bd, diag, cm = eval_diagnosis(wtr, wte)
     proba = diag.proba(wte)
-    dec_te = G.pair_consistency(wte, G.decide(proba, wte))
+    dec_te = G.apply_martor_rule(wte, G.pair_consistency(wte, G.decide(proba, wte)))
     wdec = wte.join(dec_te).join(proba.add_prefix("p_")).assign(rule=G.rules(wte))
     wdec.to_parquet(DATA_PROCESSED / "bilant" / "windows_pop.parquet")
     tec.to_parquet(DATA_PROCESSED / "bilant" / "normal_test_pop.parquet")

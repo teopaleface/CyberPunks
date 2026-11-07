@@ -78,7 +78,7 @@ def _nearest_post(state: dict, lat: float, lon: float) -> str | None:
 def fuse(items: list[WorkItem], scenario: str, date: str | Date) -> list[WorkItem]:
     """Întoarce lucrările, cu cele A pe contoare confirmate sau infirmate de bilanțul postului.
 
-    Lucrările care nu sunt A pe contor, sau al căror post nu are contor de bilanț, rămân neschimbate. Fără starea bilanțului pentru scenariu și dată, funcția nu schimbă nimic.
+    Lucrările care nu sunt A pe contor, sau al căror post nu are contor de balanță, rămân neschimbate. Fără starea bilanțului pentru scenariu și dată, funcția nu schimbă nimic.
     """
     state = _load_state(scenario, date)
     if not state:

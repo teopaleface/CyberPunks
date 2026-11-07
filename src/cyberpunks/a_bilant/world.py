@@ -1,4 +1,4 @@
-"""Lumea simulată a bilanțului: un post de transformare, clienții lui, contorul de bilanț și problemele ascunse.
+"""Lumea simulată a bilanțului: un post de transformare, clienții lui, contorul de balanță și problemele ascunse.
 
 SIMULARE pe date publice, gândită pentru datele PPC. Pentru fiecare oră:
 - consumul caselor și al firmelor mici (profile SimBench, consum anual românesc), producția panourilor (meteo
@@ -8,7 +8,7 @@ SIMULARE pe date publice, gândită pentru datele PPC. Pentru fiecare oră:
 - corecția pentru faze (calculul lui C e echilibrat; casele sunt monofazate, iar fazele nu sunt perfect egale):
   factorul din `docs/research/bilant_faze.md`;
 - consumul propriu al contoarelor (nemăsurat, IPOTEZĂ 1,5 W pe contor);
-- contorul de bilanț al postului (pe joasă tensiune, clasa 0,5S, eroare mică fixă) și contoarele clienților
+- contorul de balanță al postului (pe joasă tensiune, clasa 0,5S, eroare mică fixă) și contoarele clienților
   (clasa 1, eroare mică fixă pe contor, goluri de comunicație);
 - problemele ascunse de noi, etichetate din construcție (vezi `problems.py`).
 
@@ -32,7 +32,12 @@ PERIOD = ("2024-07-01", "2025-07-08")  # zile locale, inclusiv; 2025-07-08 e ziu
 # Parametri de măsurare și pierderi mici. IPOTEZĂ, cu motivul în docs/data/bilant.md.
 METER_OWN_W = 1.5  # consumul propriu al unui contor electronic, nemăsurat (IEC 62053-21 permite până la 2 W)
 CUSTOMER_METER_SD = 0.004  # eroarea fixă a unui contor de client (clasa 1: ±1% la limită)
-BALANCE_METER_SD = 0.002  # eroarea fixă a contorului de bilanț (clasa 0,5S cu transformatoare de curent)
+# Contorul de balanță al postului și contorul martor (Codul de măsurare ANRE, Ord. 103/2015: martorul măsoară în paralel
+# cu contorul de decontare, pe aceleași circuite, cu cel puțin aceeași clasă de exactitate). Mentorul PPC: diferența
+# normală dintre ele e „poate 0,1%”. Cu o eroare fixă de 0,07% la fiecare, diferența are abaterea standard ~0,1%.
+BALANCE_METER_SD = 0.0007
+MARTOR_SD = 0.0007
+MARTOR_SHARE = 0.5  # IPOTEZĂ: ce parte din posturi au și contor martor
 VOLTAGE_NOISE_PU = 0.002  # zgomotul măsurării de tensiune în contor (±0,5%)
 GAP_METER_SHARE = 0.03  # ce parte din contoare au episoade de goluri de comunicație
 # Fazele: calculul lui C e echilibrat (secvență pozitivă). Corecția pentru case monofazate și faze inegale e formula
@@ -121,7 +126,8 @@ class PostWorld:
     n_customers: int
     customer_ids: list[str]
     # măsurători (ce vede distribuitorul)
-    balance_kwh: np.ndarray  # (T,) contorul de bilanț, energia ieșită din post spre clienți
+    balance_kwh: np.ndarray  # (T,) contorul de balanță, energia ieșită din post spre clienți
+    martor_kwh: np.ndarray  # (T,) contorul martor (NaN dacă postul nu are)
     cust_kwh: np.ndarray  # (n, T) contoarele clienților, net (consum − producție), NaN = lipsă
     cust_voltage: np.ndarray  # (n, T) tensiunea măsurată în contor, pu (float32)
     # adevărul din construcție (doar pentru etichete și evaluare)
@@ -218,9 +224,13 @@ def simulate(spec: grids.PostSpec, wx: Weather, plan: P.PostPlan, cluster_mv: np
     line_loss = loss_bal * INTRA_HOUR * age * ph * loss_mult
     own = n * METER_OWN_W / 1000.0
 
-    # --- contorul de bilanț ---
+    # --- contorul de balanță ---
     true_out = net_true.sum(axis=0) + theft + line_loss + own
     bal = true_out * (1 + rng.normal(0.0, BALANCE_METER_SD))
+    # contorul martor: aceeași energie, eroarea lui proprie; nu e atins de setarea greșită a contorului de balanță
+    mrng = np.random.default_rng(spec.seed + 31337)
+    has_martor = bool(mrng.random() < MARTOR_SHARE)
+    martor = true_out * (1 + mrng.normal(0.0, MARTOR_SD)) if has_martor else np.full(T, np.nan)
     for pr in plan.problems:
         if pr.kind == "balance_meter_config":
             bal = np.where(wx.local_day >= pr.onset_day, bal * pr.params["factor"], bal)
@@ -256,6 +266,7 @@ def simulate(spec: grids.PostSpec, wx: Weather, plan: P.PostPlan, cluster_mv: np
         topology=spec.topology,
         base_unbalance=unbalance_u(plan.phase_shares),
         prosumer_idx=[int(i) for i in post.pv_load],
+        has_martor=has_martor,
         loss_age_factor=age,
     )
     return PostWorld(
@@ -263,6 +274,7 @@ def simulate(spec: grids.PostSpec, wx: Weather, plan: P.PostPlan, cluster_mv: np
         n_customers=n,
         customer_ids=[f"{spec.post_id}-C{i:03d}" for i in range(n)],
         balance_kwh=bal.astype("float64"),
+        martor_kwh=martor.astype("float64"),
         cust_kwh=rec.astype("float32"),
         cust_voltage=volt.astype("float32"),
         true_line_loss_kwh=line_loss,
