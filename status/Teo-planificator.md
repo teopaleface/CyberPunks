@@ -1,7 +1,7 @@
 # Status: Teo-planificator
-Actualizat: 2026-11-07 14:42
+Actualizat: 2026-11-07 14:51
 Milestone curent: M2 gata pe ieșirile reale din `Teo`; M3 în lucru (robustețe, revizuiri, instantaneu, documentație)
-Gata de merge: da (commit dfbe35a, plus acest status)
+Gata de merge: da (commit 5423f97, plus instantaneul și acest status)
 
 ## Răspuns la cererile orchestratorului de la 14:20
 - `git merge Teo` făcut. Planul rulează pe ieșirile din `Teo` (A 391, bilanț 98, B 26, C 41): 40 de lucrări în traseele a 9 echipe, 430 km, 370 de verificări de la distanță și corecții în birou, **25 la om**, 18 mesaje, OR-Tools în 10 s.
@@ -40,6 +40,7 @@ Gata de merge: da (commit dfbe35a, plus acest status)
 - 14:05 Ordinul de lucru PDF are prima pagină cu pornirea turei. 14:12 Graficul evaluării (`reports/planner/agent_eval.png`). 14:14 Preavizul ANRE sare peste sărbătorile legale.
 - 14:15 A doua evaluare: ziua demo, cu lucrările reale A și adevărul injectat (`A_ground_truth.csv`), în `reports/planner/agent_eval.md`.
 - 14:33 Coada omului, aprobarea planului, harta cu bilanțul, instantaneul demo pe ultimul rulaj. 238 de teste trec.
+- 14:49 A treia revizuire independentă (Codex): 6 probleme reparate, 6 teste (combinațiile de trepte C păstrează toate treptele cu echipă în ordinul de lucru; fără citire la distanță pentru contoarele care nu se citesc de la distanță; un fișier stricat nu oprește pasul Estimate; ablațiile pornesc de la aceleași setări; graficul arată și valori negative). În total, 29 de probleme găsite de revizuiri și reparate. 245 de teste trec.
 
 ## Pentru README-ul principal (text propus, orchestratorul îl poate copia)
 > **Agentul (planificatorul).** `uv run cyberpunks run --scenario demo-vara` trece automat prin cei patru pași: *Perceive* (configurația, scenariul, ce date și modele există), *Estimate* (modelele A, bilanț, B, C), *Decide* (validare și carantină, reguli cu nume și praguri justificate de cost, trasee OR-Tools cu ferestre de timp, abilități și baze multiple, cu rezervă greedy) și *Act* (planul, jurnalul de decizii, alertele, mesajele demo, ordinele de lucru PDF pe echipă, raportul zilei). Fiecare decizie are o regulă (`rule_id`), pragurile folosite, motivul în română și o linie în jurnal cu ID-ul predicției, versiunea modelului și amprenta intrării. Ce nu e sigur merge la dispecer, într-o coadă de cel mult 25 de cazuri pe zi; dispecerul aprobă, respinge sau amână, iar planul se recalculează. Pragurile: `config/planner.yaml`; costurile, cu sursa fiecăruia: `config/economics.yaml`; cercetarea: `docs/research/planificator.md`.

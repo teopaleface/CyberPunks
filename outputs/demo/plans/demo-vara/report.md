@@ -1,6 +1,6 @@
 # Planul pentru marți 08.07.2025
 
-Scenariu: `demo-vara`. Plan `PLAN-demo-vara-20250708-143256-2059`, generat la 2026-11-07 14:32 de `planner@0.1.0+185cfe3`.
+Scenariu: `demo-vara`. Plan `PLAN-demo-vara-20250708-144945-5d00`, generat la 2026-11-07 14:49 de `planner@0.1.0+5423f97`.
 Activele și echipele din demo sunt sintetice, plasate pe hartă reală. Nimic nu a fost trimis în afară.
 
 ## Pe scurt
@@ -305,7 +305,7 @@ Fuziunea cu bilanțul pe post: ok, 0 contoare confirmate.
 
 ## Cum a lucrat agentul
 
-- Timpi (secunde): Perceive 0.01, Estimate 0.00, Decide 10.36, Act 0.00.
-- Optimizator: ortools (SUCCESS), 249 lucrări candidate, 11 echipe, 10.04 s.
+- Timpi (secunde): Perceive 0.01, Estimate 0.00, Decide 10.30, Act 0.00.
+- Optimizator: ortools (SUCCESS), 249 lucrări candidate, 11 echipe, 10.01 s.
 - Ipotezele de cost: `config/economics.yaml` (cu sursele); pragurile: `config/planner.yaml`.
 - Fiecare decizie are în jurnal (`audit.jsonl`) ID-ul predicției, versiunea modelului, regula și pragurile.
