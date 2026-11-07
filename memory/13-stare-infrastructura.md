@@ -14,3 +14,7 @@ La 15:32, pentru `48855cf`: **88/100** estimat, cu 23/25 relevanță, 22/25 cali
 - A: 81% precizie în primul 1% pe SGCC, față de 16% pentru cea mai bună referință. B: PR-AUC 0,278 față de 0,182 pentru regula pe rafală, pe SUA și pe vreme reconstituită. C: eroare medie a tensiunii maxime 0,0054 pu față de 0,0227 pu pe rețele simulate. Bilanțul îmbunătățește estimarea pierderilor, dar fuziunea cu A lasă precizia în primele 100 de contoare la 100% și o reduce de la 93,0% la 90,6% în primele 500 în testul demo.
 - Agentul arată +49% valoare netă față de cea mai bună strategie simplă pe 30 de zile sintetice. Pe testul separat al zilei demo, doar cu A și cu defecte injectate, regula de siguranță a dus la 29 din 50 cazuri de siguranță vizitate, față de 2 din 50 pentru ordinea de intrare, cu valoare netă mai mică.
 - Fișa modelului B conține o explicație rămasă în urmă: în secțiunea de limite afirmă că modelul folosește canicula, în timp ce tabelul de experimente și codul arată că temperatura și radiația au fost scoase din modelul livrat. Testul B prinde 54% din evenimentele extreme la pragul ales.
+
+## Capturile consolei
+
+La 15:42 am capturat planul, decizia pentru PT-1269, coada dispecerului și pagina Modele din `48855cf`, cu `DATA_SOURCE=demo`. Pagina Modele citește rapoartele din instantaneu în acest mod. Pentru B arată 19 comitate și PR-AUC 0,24, în timp ce raportul integrat din `reports/B/metrics.json` are 80 de comitate și 0,278. Sincronizarea instantaneului și a rapoartelor trebuie verificată înaintea demo-ului.
