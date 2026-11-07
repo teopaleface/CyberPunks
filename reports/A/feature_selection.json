@@ -1,0 +1,78 @@
+{
+  "note": "toate cifrele sunt pe setul de calibrare; K = 1%; 'în primele 5%' = ce parte ajunge în top 5%",
+  "sgcc": {
+    "vechi": {
+      "pr_auc": 0.4225,
+      "roc_auc": 0.83,
+      "precision_at_k": 0.7765,
+      "recall_at_k": 0.0913,
+      "n_features": 19
+    },
+    "nou": {
+      "pr_auc": 0.4615,
+      "roc_auc": 0.8466,
+      "precision_at_k": 0.8235,
+      "recall_at_k": 0.0968,
+      "n_features": 27
+    }
+  },
+  "lcl": {
+    "vechi": {
+      "pr_auc": 0.7141,
+      "roc_auc": 0.9136,
+      "precision_at_k": 1.0,
+      "recall_at_k": 0.1935,
+      "n_features": 30,
+      "top5_by_kind": {
+        "clock_drift": 0.0,
+        "drift": 0.1,
+        "bypass": 0.429,
+        "h1": 0.222,
+        "night": 0.455,
+        "h6": 0.615
+      },
+      "top5_benign": {
+        "vacation": 0.026,
+        "occupancy_change": 0.043
+      }
+    },
+    "nou": {
+      "pr_auc": 0.721,
+      "roc_auc": 0.916,
+      "precision_at_k": 1.0,
+      "recall_at_k": 0.1935,
+      "n_features": 40,
+      "top5_by_kind": {
+        "clock_drift": 0.118,
+        "drift": 0.2,
+        "bypass": 0.429,
+        "h1": 0.222,
+        "night": 0.545,
+        "h6": 0.615
+      },
+      "top5_benign": {
+        "vacation": 0.026,
+        "occupancy_change": 0.061
+      }
+    },
+    "nou_fara_sezoniere_brute": {
+      "pr_auc": 0.722,
+      "roc_auc": 0.9109,
+      "precision_at_k": 1.0,
+      "recall_at_k": 0.1935,
+      "n_features": 36,
+      "top5_by_kind": {
+        "clock_drift": 0.059,
+        "drift": 0.133,
+        "bypass": 0.429,
+        "h1": 0.222,
+        "night": 0.455,
+        "h6": 0.615
+      },
+      "top5_benign": {
+        "vacation": 0.018,
+        "occupancy_change": 0.061
+      }
+    }
+  }
+}
