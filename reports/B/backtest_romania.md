@@ -70,7 +70,7 @@ Generat de `uv run python -m cyberpunks.b_furtuna.backtest`. Pentru fiecare zi, 
 | 17.07 | 0.36 | 0.13-0.36 | preposition_crew | 33.1 | 26.9 | 20:00 | 0.20 |
 | 18.07 | 0.16 | 0.16-0.29 | no_action | 39.6 | 24.4 | 13:00 | 0.17 |
 
-Pe 17 iulie, Slobozia a fost pe locul 1 din 26 de zone după risc (P = 0.36). Nu avem cifre despre clienții fără curent, deci verificăm doar dacă zona lovită iese în față.
+Pe 17 iulie, Slobozia a fost pe locul 1 din 26 de zone după risc, la egalitate cu CS-ORAVITA (P = 0.36). Nu avem cifre despre clienții fără curent, deci verificăm doar dacă zona lovită iese în față.
 
 ## Al treilea caz, de iarnă: viscolul din Dobrogea, 26-27 noiembrie 2023
 

@@ -173,7 +173,7 @@ def main() -> None:
         f"- Energia: bilanțul găsește {M.get('cauze_post_energy_found_share', 0):.0%} din energia lipsă din aceste cauze, adică ~{_ro(M.get('cauze_post_lei_per_month_found', 0), 0)} lei pe lună pe cele 300 de posturi ale hărții (la 0,70 lei/kWh). Din posturile marcate, {M.get('cauze_post_false_alarm_share_of_found', 0):.0%} sunt de fapt normale.",
         f"- Pe ziua demo, {M.get('invizibil_share_invisible_to_meters', 0):.0%} din energia pierdută peste normal nu apare la niciun contor de client.",
         f"- Diagnosticul cauzei bate tabelul de reguli din concept: F1 macro {_ro(M['diagnoza_macro_f1'])} față de {_ro(B['diagnoza_macro_f1'])}. Clientul la postul greșit: {_ro(M['diagnoza_f1_client_post_gresit'])} (reguli {_ro(B['diagnoza_f1_client_post_gresit'])}), după trăsătura „oglindă” (lipsa la un post și surplusul la vecin, zi de zi) și legarea celor două capete ale perechii. Pierderea tehnică: {_ro(M['diagnoza_f1_pierdere_tehnica'])} (reguli {_ro(B['diagnoza_f1_pierdere_tehnica'])}).",
-        "- Planul B (unde montăm întâi contoarele de bilanț): `reports/bilant/plan_b.md`.",
+        "- Planul B (unde montăm întâi contoarele de balanță): `reports/bilant/plan_b.md`.",
         f"- Când modelul de contoare e mai slab (calitatea SGCC, AUC 0,80), confirmarea din bilanț ridică lei recuperați în primele 10 verificări pe zi de la {B['fuziune_sgcc_value_lei_per_day_at_10']:.0f} la {M['fuziune_sgcc_value_lei_per_day_at_10']:.0f}.",
         "",
         "### Unde nu ajută",

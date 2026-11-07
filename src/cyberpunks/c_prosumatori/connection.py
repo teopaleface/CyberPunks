@@ -131,11 +131,11 @@ def assess(post_id: str, kwp: float, battery_kwh: float = 0.0, load_index: int |
     if max(p90_before, v_before) >= LIMIT - MARGIN:
         out.update(decision="studiu", rule_id="C-RAC-3-POST-DEJA-PESTE",
                    explanation_ro=(f"Postul {post_id} trece deja de 1,10 pu în zilele însorite (P90 {fmt(p90_before, 3)} pu, calcul de rețea "
-                                   f"{fmt(v_before, 3)} pu). Un prosumator nou de {kwp:g} kWp ar urca tensiunea la {fmt(worst, 3)} pu. "
+                                   f"{fmt(v_before, 3)} pu). Un prosumator nou de {fmt(kwp, 1).removesuffix(',0')} kWp ar urca tensiunea la {fmt(worst, 3)} pu. "
                                    "Întâi soluțiile din scară (faze, priză), apoi racordarea."))
     elif worst < LIMIT - MARGIN and exp_after - exp_before <= 1.0:
         out.update(decision="aprobat", rule_id="C-RAC-1-APROBAT",
-                   explanation_ro=(f"Cu {kwp:g} kWp în plus, tensiunea maximă în cele mai însorite {REF_DAYS} zile din 2025 rămâne la "
+                   explanation_ro=(f"Cu {fmt(kwp, 1).removesuffix(',0')} kWp în plus, tensiunea maximă în cele mai însorite {REF_DAYS} zile din 2025 rămâne la "
                                    f"{fmt(worst, 3)} pu, sub 1,10. Zile așteptate cu depășire pe an: {fmt(exp_before, 1)} → {fmt(exp_after, 1)}."))
     else:
         limit = None
@@ -146,7 +146,7 @@ def assess(post_id: str, kwp: float, battery_kwh: float = 0.0, load_index: int |
         if limit is not None:
             out.update(decision="aprobat_cu_limita", export_limit_kw=round(limit * kwp, 1), rule_id="C-RAC-2-LIMITA",
                        explanation_ro=(f"Fără limită, tensiunea ar urca la {fmt(worst, 3)} pu în zilele însorite. Cu injecția limitată la "
-                                       f"{limit * kwp:.1f} kW ({limit:.0%} din {kwp:g} kWp), calculul de rețea rămâne sub 1,10 pu."
+                                       f"{fmt(limit * kwp, 1)} kW ({limit:.0%} din {fmt(kwp, 1).removesuffix(',0')} kWp), calculul de rețea rămâne sub 1,10 pu."
                                        + (" O baterie ar reduce energia pierdută prin limitare." if battery_kwh == 0 else "")))
         else:
             out.update(decision="studiu", rule_id="C-RAC-3-STUDIU",

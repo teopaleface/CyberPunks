@@ -51,17 +51,21 @@ a-test:           ## A: testele firului A
 a-all: a-data a-train a-evaluate a-robustness a-select a-predict a-figures a-fusion a-report  ## A: totul, de la zero (~9 minute)
 
 # ---- B: furtună (firul Teo-B-furtuna) ----
-.PHONY: b-data b-weather b-dataset b-evaluate b-predict b-reports b-test b-all
+.PHONY: b-data b-weather b-dataset b-repro b-evaluate b-predict b-reports b-test b-all
 
 b-data:           ## B: descarcă EAGLE-I 2023-2025 (md5 verificat) și construiește tabelele pe ore
 	uv run python -m cyberpunks.b_furtuna.download eaglei --years 2023-2025
 	uv run python -m cyberpunks.b_furtuna.eaglei hourly --years 2023-2025
 
-b-weather:        ## B: vremea istorică Open-Meteo pentru cele 80 de comitate (~6.300 de apeluri, în ritm lent)
+b-weather:        ## B (opțional, vremea e în git): reface vremea din Open-Meteo (~7.300 de apeluri, ~2 h)
 	uv run python -m cyberpunks.b_furtuna.openmeteo us-history
 
-b-dataset:        ## B: tabelul comitat × zi
+b-dataset:        ## B (opțional, tabelul e în git): reface tabelul comitat × zi (cere make b-data)
 	uv run python -m cyberpunks.b_furtuna.dataset
+
+b-repro:          ## B, calea scurtă pentru juriu: reface metricile din tabelul din git, fără descărcări (~3 min)
+	uv run python -m cyberpunks.b_furtuna.evaluate
+	uv run cyberpunks validate reports/B/metrics.json
 
 b-evaluate:       ## B: antrenare 2023-2024, test 2025 și state nevăzute -> reports/B/metrics.json
 	uv run python -m cyberpunks.b_furtuna.evaluate
@@ -114,14 +118,15 @@ bilant-eval:      ## Bilanț: modelele și metodele simple, reports/bilant/metri
 	uv run python -m cyberpunks.a_bilant.evaluate
 	uv run python -m cyberpunks.a_bilant.planb
 	uv run python -m cyberpunks.a_bilant.error_analysis
-	uv run python -m cyberpunks.a_bilant.headline
-bilant-predict:   ## Bilanț: lucrările A_bilant.jsonl, seriile și starea pentru fuziune, scenariul demo-vara
+bilant-predict:   ## Bilanț: lucrările A_bilant.jsonl, seriile, starea pentru fuziune, demo_posts.md și headline.md (demo-vara)
 	uv run python -m cyberpunks.a_bilant.predict --scenario demo-vara
+	uv run python -m cyberpunks.a_bilant.demo_story
+	uv run python -m cyberpunks.a_bilant.headline
 bilant-test:      ## Bilanț: testele firului
 	uv run pytest tests/bilant
 
 # ---- Planificator și API (firul Teo-planificator) ----
-.PHONY: api api-dev run-demo test-planner agent-eval solver-bench demo-snapshot api-demo demo demo-offline
+.PHONY: api api-dev run-demo test-planner agent-eval solver-bench demo-snapshot api-demo demo demo-offline demo-ports
 
 api:              ## API-ul agentului pe http://127.0.0.1:8710/api (documentație: /docs)
 	uv run uvicorn cyberpunks.api.app:app --host 127.0.0.1 --port 8710
@@ -147,12 +152,19 @@ demo-snapshot:    ## copiază planul demo-vara în outputs/demo/ (intră în git
 api-demo:         ## API-ul pe instantaneul din git (outputs/demo/), fără să ruleze modelele
 	CYBERPUNKS_API_SOURCE=demo uv run uvicorn cyberpunks.api.app:app --host 127.0.0.1 --port 8710
 
-demo:             ## DEMO: planul real pentru demo-vara, apoi API-ul (8710) și consola (3710), în paralel; Ctrl-C le oprește
-	uv run cyberpunks run --scenario demo-vara
-	$(MAKE) -j2 api web
+demo-ports:       ## verifică dacă porturile demo-ului (API 8710, consola 3710) sunt libere
+	@for p in 8710 3710; do \
+	  if lsof -nP -iTCP:$$p -sTCP:LISTEN >/dev/null 2>&1; then \
+	    echo "Portul $$p e ocupat (un API sau o consolă pornite deja). Oprește-le întâi: lsof -ti tcp:8710,3710 | xargs kill"; exit 1; \
+	  fi; \
+	done
 
-demo-offline:     ## DEMO fără modele: API-ul pe instantaneul din git și consola, în paralel (fără Rulează și fără aprobări)
-	$(MAKE) -j2 api-demo web
+demo: demo-ports  ## DEMO: planul real pentru demo-vara, apoi API-ul (8710) și consola de producție (3710), în paralel; Ctrl-C le oprește
+	uv run cyberpunks run --scenario demo-vara
+	$(MAKE) -j2 api web-demo
+
+demo-offline: demo-ports  ## DEMO fără modele: API-ul pe instantaneul din git și consola de producție (fără Rulează și fără aprobări)
+	$(MAKE) -j2 api-demo web-demo
 
 # ---- Interfață (firul Teo-ui) ----
 .PHONY: web web-install web-build web-demo web-test web-smoke

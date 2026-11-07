@@ -121,6 +121,27 @@ def archive(start: str = "2023-01-01", end: str = "2026-11-06") -> pd.DataFrame:
     return read_openmeteo(download_archive(start, end))
 
 
+SAMPLE_2025 = DATA_SAMPLES / "C" / "weather_2025_utc.parquet"
+
+
+def archive_sample() -> pd.DataFrame:
+    """Mostra din git: vremea orară Open-Meteo (ERA5) pe 2025, aceleași coloane ca `archive()`. O folosesc testele,
+    ca să ruleze fără rețea; lanțul complet folosește arhiva descărcată."""
+    df = pd.read_parquet(SAMPLE_2025).astype("float64")
+    df.index = pd.to_datetime(df.index, utc=True)
+    df.index.name = "time_utc"
+    return df
+
+
+def make_sample() -> Path:
+    """Scrie mostra pe 2025 din arhiva descărcată (circa 0,3 MB)."""
+    df = archive()
+    df = df[(df.index >= "2025-01-01") & (df.index < "2026-01-01")].astype("float32")
+    SAMPLE_2025.parent.mkdir(parents=True, exist_ok=True)
+    df.to_parquet(SAMPLE_2025)
+    return SAMPLE_2025
+
+
 def annual_yield_check(df: pd.DataFrame) -> dict[int, float]:
     """kWh/kWp pe an din modelul nostru (de comparat cu PVGIS, 1.282 kWh/kWp)."""
     p = pv_per_kwp(df["gti"].to_numpy(), df["temp"].to_numpy())
@@ -139,3 +160,5 @@ if __name__ == "__main__":
         print(p, read_openmeteo(p).tz_convert(TZ).between_time("09:00", "16:00"))
     elif cmd == "histfc":
         print(download_historical_forecast(*rest))
+    elif cmd == "sample":
+        print(make_sample())

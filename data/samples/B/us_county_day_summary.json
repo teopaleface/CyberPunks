@@ -1,0 +1,43 @@
+{
+  "counties": 80,
+  "rows_raw": 87680,
+  "weather_issues": [],
+  "dropped_low_coverage_county_years": 0,
+  "clipped_over_100pct": 2,
+  "dropped_stuck_days": 0,
+  "rows_missing_weather": 0,
+  "rows": 87680,
+  "by_year": {
+    "2023": {
+      "rows": 29200.0,
+      "events": 2620.0,
+      "severe": 619.0,
+      "extreme": 242.0,
+      "prevalence": 0.0897
+    },
+    "2024": {
+      "rows": 29280.0,
+      "events": 2975.0,
+      "severe": 703.0,
+      "extreme": 277.0,
+      "prevalence": 0.1016
+    },
+    "2025": {
+      "rows": 29200.0,
+      "events": 3014.0,
+      "severe": 649.0,
+      "extreme": 264.0,
+      "prevalence": 0.1032
+    }
+  },
+  "states": [
+    "IL",
+    "KY",
+    "MI",
+    "MO",
+    "NY",
+    "OH",
+    "PA",
+    "VA"
+  ]
+}

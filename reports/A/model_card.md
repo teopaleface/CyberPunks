@@ -1,6 +1,6 @@
 # Model card: `a-lgbm`, contoare defecte sau manipulate (firul A, Daybreak)
 
-Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metrics_full.json` (2026-11-07T16:13:05+02:00). Formatul urmează Mitchell et al. 2019, "Model Cards for Model Reporting".
+Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metrics_full.json` (2026-11-07T17:59:02+02:00). Formatul urmează Mitchell et al. 2019, "Model Cards for Model Reporting".
 
 ## Pe scurt
 
@@ -37,6 +37,8 @@ Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metric
 
 ## Rezultate (K = 1% din contoarele din test)
 
+**Metrica principală** (prima din `metrics.json`): precizia@K pe problemele subtile, adică testul Londra fără defectele evidente pe care le prinde orice regulă: **0,62**, față de 0,07 la regula simplă și 0,02 la regula VEE completă. A doua cifră, pe furt real (SGCC): **0,80**, față de 0,04 și 0,11. Precizia@K = 1,00 pe tot testul Londra NU e cifra principală: vârful listei e plin de defecte evidente.
+
 | Set de test | Model | Regula simplă | Regula VEE completă | IsolationForest |
 |---|---|---|---|---|
 | SGCC, furt real (8.475 de clienți): precizia@K | 0,80 | 0,04 | 0,11 | 0,16 |
@@ -64,6 +66,7 @@ Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metric
 - Fără date personale: ID-uri de contor sintetice, nicio adresă, niciun nume. Topologia e sintetică, pe poziții plauzibile din OpenStreetMap.
 - Om în buclă: cazurile nesigure (zona gri conformal, istoric scurt, date insuficiente) și furtul suspectat la consum mic merg la un om, cu motivul scris.
 - Alarmele false se verifică pe chintile de consum la fiecare evaluare (`error_analysis.md`, secțiunea 5).
+- Riscul de siguranță (`safety_flag`) se pune doar la ocolirea FIZICĂ a contorului, cu risc de incendiu: cel puțin 3 ore pe zi de zero exact la aceleași ore (punte sau comutator improvizat) sau o ocolire parțială sigură, la furt cu scor de cel puțin 0,8. Manipulările de date (profil aplatizat sau inversat) nu primesc steagul. Tiparul e în `extra.tamper_pattern`.
 - EU AI Act: tratăm sistemul ca pe unul cu impact (utilități, infrastructură critică). De aceea are supraveghere umană, jurnal automat al deciziilor (planificatorul), documentație (acest card, `docs/data/A.md`) și explicații pentru fiecare lucrare. Clasificarea juridică exactă nu am verificat-o.
 
 ## Reproducere

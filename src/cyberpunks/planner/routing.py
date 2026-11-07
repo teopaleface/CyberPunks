@@ -133,6 +133,51 @@ def build_problem(tasks: list[Task], vehicles: list[Vehicle], travel: TravelMode
     return Problem(tasks, vehicles, {d: i for i, d in enumerate(depot_ids)}, Matrix(points, travel), value_scale)
 
 
+# ------------------------------------------------------------------ obiectivul comun (OR-Tools, greedy, comparația lor)
+
+
+def arc_cost_bani(pb: Problem, v: int, a: int, b: int) -> int:
+    """Costul drumului de la nodul a la nodul b pentru echipa v, în bani, rotunjit pe fiecare arc exact ca în OR-Tools.
+    Din nodul unei furtuni (terminal) drumul înapoi la bază costă 0: echipa rămâne în zonă."""
+    nd = len(pb.depot_nodes)
+    if b < nd and a >= nd and pb.tasks[a - nd].terminal:
+        return 0
+    veh = pb.vehicles[v]
+    return round((pb.matrix.km[a][b] * veh.cost_per_km + pb.matrix.minutes_f[a][b] * veh.cost_per_min) * pb.value_scale)
+
+
+def mandatory_bonus(pb: Problem) -> int:
+    """Premiul în plus al unei lucrări obligatorii, în bani: mai mare decât toate premiile opționale la un loc plus orice drum
+    posibil (cel mult un arc spre fiecare lucrare și unul de întoarcere pe echipă). Așa, o obligatorie în plus e mereu mai bună,
+    la fel în OR-Tools și în solution_value, oricât de mari ar fi valorile de la intrare."""
+    optional = sum(max(0, t.penalty) for t in pb.tasks if not t.mandatory)
+    km = max((max(row) for row in pb.matrix.km), default=0.0)
+    minutes = max((max(row) for row in pb.matrix.minutes_f), default=0.0)
+    per_km = max((veh.cost_per_km for veh in pb.vehicles), default=0.0)
+    per_min = max((veh.cost_per_min for veh in pb.vehicles), default=0.0)
+    arc = round((km * per_km + minutes * per_min) * pb.value_scale) + 1
+    return max(MANDATORY_PENALTY, optional + arc * (len(pb.tasks) + len(pb.vehicles)) + 1)
+
+
+def solution_value(pb: Problem, res: RoutingResult) -> tuple[int, float]:
+    """Criteriul comun pentru două soluții: (lucrări obligatorii făcute, premiile lucrărilor făcute minus drumul, în lei).
+    Drumul se socotește în bani, rotunjit pe fiecare arc ca în OR-Tools; cu bonusul din mandatory_bonus, ordinea acestor
+    perechi e exact ordinea dată de obiectivul OR-Tools."""
+    idx = {t.id: k for k, t in enumerate(pb.tasks)}
+    vehicle = {veh.crew.crew_id: v for v, veh in enumerate(pb.vehicles)}
+    done = [pb.tasks[idx[tid]] for tid in res.assigned]
+    travel = 0
+    for r in res.routes:
+        v = vehicle[r.vehicle.crew.crew_id]
+        loc = pb.depot_node(v)
+        for st in r.stops:
+            node = pb.node_of_task(idx[st.task_id])
+            travel += arc_cost_bani(pb, v, loc, node)
+            loc = node
+        travel += arc_cost_bani(pb, v, loc, pb.depot_node(v))
+    return sum(t.mandatory for t in done), (sum(max(0, t.penalty) for t in done) - travel) / pb.value_scale
+
+
 # ------------------------------------------------------------------ verificarea unui traseu (folosită de greedy și la explicații)
 
 
@@ -245,7 +290,8 @@ def solve_ortools(pb: Problem, time_limit_s: float = 10.0, solution_limit: int |
     terminal_nodes = {pb.node_of_task(k) for k, t in enumerate(pb.tasks) if t.terminal}
     service = [0] * n_depots + [t.service_min for t in pb.tasks]
     scale = pb.value_scale
-    km, mins, mins_f = pb.matrix.km, pb.matrix.minutes, pb.matrix.minutes_f
+    mins = pb.matrix.minutes
+    bonus = mandatory_bonus(pb)
 
     # Matrice precalculate (mult mai rapide decât funcțiile Python apelate de solver).
     # Din nodul B (terminal) drumul înapoi la bază costă 0: echipa rămâne în zonă.
@@ -253,13 +299,7 @@ def solve_ortools(pb: Problem, time_limit_s: float = 10.0, solution_limit: int |
     for v, veh in enumerate(pb.vehicles):
         key = (veh.cost_per_km, veh.cost_per_min)
         if key not in cost_idx:
-            matrix = [
-                [
-                    0 if (a in terminal_nodes and b < n_depots) else round((km[a][b] * veh.cost_per_km + mins_f[a][b] * veh.cost_per_min) * scale)
-                    for b in range(n_nodes)
-                ]
-                for a in range(n_nodes)
-            ]
+            matrix = [[arc_cost_bani(pb, v, a, b) for b in range(n_nodes)] for a in range(n_nodes)]
             cost_idx[key] = routing.RegisterTransitMatrix(matrix)
         routing.SetArcCostEvaluatorOfVehicle(cost_idx[key], v)
     time_matrix = [[0 if a in terminal_nodes else mins[a][b] + service[a] for b in range(n_nodes)] for a in range(n_nodes)]
@@ -277,8 +317,9 @@ def solve_ortools(pb: Problem, time_limit_s: float = 10.0, solution_limit: int |
             routing.ActiveVar(index).SetValue(0)
             continue
         tdim.CumulVar(index).SetRange(task.earliest, task.latest)
-        # Obligatoriu: penalitate uriașă plus premiul real, ca între două lucrări obligatorii solverul s-o aleagă pe cea mai valoroasă.
-        routing.AddDisjunction([index], (MANDATORY_PENALTY if task.mandatory else 0) + max(0, task.penalty))
+        # Obligatoriu: bonusul care domină orice altă combinație plus premiul real, ca între două lucrări obligatorii
+        # solverul s-o aleagă pe cea mai valoroasă.
+        routing.AddDisjunction([index], (bonus if task.mandatory else 0) + max(0, task.penalty))
         routing.VehicleVar(index).SetValues([-1] + list(task.allowed))  # -1 = nefăcut; restul = echipele potrivite
         if task.terminal:
             routing.NextVar(index).SetValues([index] + [routing.End(v) for v in task.allowed])
@@ -310,7 +351,11 @@ def solve_ortools(pb: Problem, time_limit_s: float = 10.0, solution_limit: int |
             index = solution.Value(routing.NextVar(index))
         seqs[v] = seq
     status = {0: "NOT_SOLVED", 1: "SUCCESS", 2: "PARTIAL_TIMEOUT", 3: "FAIL", 4: "FAIL_TIMEOUT", 5: "INVALID", 6: "INFEASIBLE", 7: "OPTIMAL"}
-    result = _collect(pb, seqs, "ortools", status.get(routing.status(), str(routing.status())), elapsed)
+    label = status.get(routing.status(), str(routing.status()))
+    if elapsed >= 0.98 * time_limit_s:
+        # S-a oprit ceasul, nu limita de soluții: rezultatul depinde de viteza calculatorului.
+        label = f"{label}, TIME_LIMIT ({time_limit_s:g} s; la altă rulare planul poate diferi)"
+    result = _collect(pb, seqs, "ortools", label, elapsed)
     result.objective_lei = solution.ObjectiveValue() / scale
     return result
 
@@ -426,11 +471,3 @@ def solve(pb: Problem, solver: str = "ortools", time_limit_s: float = 10.0, solu
         return res
     return solve_greedy(pb)
 
-
-def solution_value(pb: Problem, res: RoutingResult) -> tuple[int, float]:
-    """Criteriul comun pentru două soluții: (lucrări obligatorii făcute, premiile lucrărilor făcute minus drumul, în lei)."""
-    idx = {t.id: k for k, t in enumerate(pb.tasks)}
-    vehicle = {veh.crew.crew_id: v for v, veh in enumerate(pb.vehicles)}
-    done = [pb.tasks[idx[tid]] for tid in res.assigned]
-    travel = sum(route_cost_lei(pb, vehicle[r.vehicle.crew.crew_id], [idx[s.task_id] for s in r.stops]) for r in res.routes)
-    return sum(t.mandatory for t in done), round(sum(max(0, t.penalty) for t in done) / pb.value_scale - travel, 2)

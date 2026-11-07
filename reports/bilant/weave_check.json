@@ -1,0 +1,12 @@
+{
+  "weave_posts": 41973,
+  "sim_posts": 300,
+  "factor_incarcare_weave_median": 0.5650077160493827,
+  "pondere_noapte_weave_median": 0.17000215192597376,
+  "seara_fata_de_zi_weave_median": 1.5517587939698492,
+  "factor_incarcare_sim_median": 0.513813978713914,
+  "pondere_noapte_sim_median": 0.16288851894058742,
+  "seara_fata_de_zi_sim_median": 3.666037937247709,
+  "peak_hour_mode_weave": 18,
+  "peak_hour_mode_sim": 19
+}

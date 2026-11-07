@@ -8,7 +8,7 @@
       "valid": 532,
       "invalid": 0,
       "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/demo-vara/A.jsonl",
-      "seconds": 9.714,
+      "seconds": 10.498,
       "optional": false
     },
     "A_bilant": {
@@ -28,35 +28,35 @@
       "valid": 26,
       "invalid": 0,
       "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/demo-vara/B.jsonl",
-      "seconds": 0.143,
+      "seconds": 0.156,
       "optional": false
     },
     "C": {
       "origin": "model",
       "status": "ok",
       "note": "rulat cyberpunks.c_prosumatori.predict.run",
-      "valid": 41,
+      "valid": 33,
       "invalid": 0,
       "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/demo-vara/C.jsonl",
-      "seconds": 4.825,
+      "seconds": 4.744,
       "optional": false
     }
   },
   "day_context": [
     "Contoare și posturi: 630 lucrări; 17 în trasee, 504 verificări de la distanță sau corecții în birou, 17 la dispecer.",
     "Furtună: 26 zone analizate, cel mai mare risc 58%; 3 echipe trimise din timp.",
-    "Tensiune: 41 posturi cu risc din 300 (soare pe panou până la 956 W/m² la prânz, 35 °C): 0 echipe, 18 mesaje către prosumatori, 23 posturi la urmărire."
+    "Tensiune: 33 posturi cu risc din 300 (soare pe panou până la 956 W/m² la prânz, 35 °C): 15 posturi rămân la urmărire (15 sub prag sau sub limită chiar și în scenariul pesimist), 18 primesc mesaje către prosumatori, 0 primesc echipă."
   ],
-  "plan_id": "PLAN-demo-vara-20250708-162906-54c5",
+  "plan_id": "PLAN-demo-vara-20250708-172556-fd43",
   "scenario": "demo-vara",
   "plan_date": "2025-07-08",
   "as_of": "2025-07-07T18:00:00+03:00",
-  "generated_at": "2026-11-07T16:29:06+02:00",
-  "planner_version": "planner@0.1.0+34ba7c5",
+  "generated_at": "2026-11-07T17:25:56+02:00",
+  "planner_version": "planner@0.1.0+a23ffdb",
   "solver": {
     "name": "ortools",
     "status": "SUCCESS",
-    "seconds": 7.64,
+    "seconds": 7.669,
     "objective_lei": 100167052.26,
     "tasks": 293,
     "crews": 11
@@ -80,7 +80,7 @@
       ],
       "cost_lei": 12439.34,
       "p90_before_pu": 1.1768,
-      "p90_after_pu": 1.0952,
+      "p90_after_pu": 1.0944,
       "why_not_cheaper": [
         "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,175 pu",
         "cu oferta de baterii singură (24 lei), tensiunea ajunge doar la 1,162 pu",
@@ -431,6 +431,37 @@
         "phase_rebalance",
         "adjust_tap"
       ]
+    },
+    {
+      "post_id": "PT-1082",
+      "work_item_id": "C-20250708-PT-1082",
+      "label": "PT-1082, 1 Decembrie (sintetic)",
+      "feasible": true,
+      "chosen": [
+        "phase_rebalance",
+        "adjust_tap",
+        "offer_battery"
+      ],
+      "cost_lei": 1966.0,
+      "p90_before_pu": 1.138,
+      "p90_after_pu": 1.0947,
+      "why_not_cheaper": [
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,136 pu",
+        "cu oferta de baterii singură (10 lei), tensiunea ajunge doar la 1,130 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (13 lei, la 10% participare), tensiunea ajunge doar la 1,128 pu"
+      ],
+      "invest": false,
+      "battery": {
+        "battery_kwh_total": 20.0,
+        "revenue_lei": 4500.0,
+        "payback_years": 5.15,
+        "customers_targeted": 5
+      },
+      "inverter_trips_avoided": 5.0,
+      "crew_steps": [
+        "phase_rebalance",
+        "adjust_tap"
+      ]
     }
   ],
   "work_orders": [
@@ -444,9 +475,9 @@
     "E-RS-1.pdf"
   ],
   "timings": {
-    "perceive": 0.009,
-    "estimate": 14.687,
-    "decide": 7.844,
-    "act": 0.991
+    "perceive": 0.008,
+    "estimate": 15.404,
+    "decide": 7.832,
+    "act": 0.959
   }
 }

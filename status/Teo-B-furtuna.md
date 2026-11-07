@@ -1,7 +1,7 @@
 # Status: Teo-B-furtuna
-Actualizat: 2026-11-07 16:50
-Milestone curent: M1 și M2 gata; testele de robustețe din M3 gata. **LIBER până la 02:00** (atunci adaug vremea 2021-2022)
-Gata de merge: da (commit 0d15900): `docs/QA-JURIU.md` și al treilea caz în backtest (viscolul din Dobrogea)
+Actualizat: 2026-11-07 18:10
+Milestone curent: **B FINAL** (17:35). Modelul nu se mai schimbă; repar doar bug-uri, dacă apar.
+Gata de merge: da (commit 4cee835), B FINAL (reparație de date, modelul neschimbat)
 
 ## Făcut
 - 12:44 Citit memoria, tema, planul, contractele, fixture-urile. `uv sync` și `make check` trec.
@@ -29,10 +29,20 @@ Gata de merge: da (commit 0d15900): `docs/QA-JURIU.md` și al treilea caz în ba
 - 16:45 **`docs/QA-JURIU.md` (sarcina de echipă de la 16:20):** 30 de întrebări probabile ale juriului, fiecare cu un răspuns de 2-3 propoziții, cu cifra și fișierul din care vine. Acoperă datele, train/test, metodele simple, precizia@K a lui A, transferul SUA-România, intervalele, agentul, bilanțul, etica, costurile și ce trebuie confirmat cu PPC. Fișierul se încheie cu „Puncte slabe”, 9 puncte de reparat: integrarea cu S3, Spark și NiFi nedescrisă; valoarea netă a agentului pe ziua demo; cifrele care nu se potrivesc între fișierele lui A; textul „False” din `reports/bilant/demo_posts.md` etc. Cifrele celorlalte fire au fost verificate direct în fișiere.
 - Planificatorul a preluat cererile 9 și 10: `storm.customers_helped_per_crew_shift: 500` și `storm.preposition_min_score: 0.15`. B folosește deja plafonul: la Timișoara, pe 8 iulie, valoarea dacă se produce avaria e 15.000 lei.
 
+- 17:15 **Cererile de reproducere de la 17:05, rezolvate:**
+  - (1) Lista comitatelor de la recensământ e în git: `data/samples/B/2024_Gaz_counties_national.zip`, 141 KB, domeniu public, md5 verificat. Nu se mai descarcă de mână.
+  - (2) Vremea procesată e în git (`data/samples/B/us_weather_daily.parquet`, 0,9 MB), la fel și tabelul comitat × zi (`data/samples/B/us_county_day.parquet`, 3,1 MB). Ambele sunt derivate din EAGLE-I și Open-Meteo, cu licențele CC BY 4.0 citate.
+  - **`make b-repro`** reface metricile fără descărcări și fără Open-Meteo, în circa 3 minute. Verificat: 28 din 28 de metrici identice cu `reports/B/metrics.json`. `make b-weather` și `make b-dataset` sunt acum opționale. `docs/data/B.md` are calea scurtă.
+  - Regula de la 17:15 (fișiere sub 5 MB; modelul în git doar la versiunea finală): toate fișierele B sunt sub 5 MB, iar `tests/test_repo_size.py` trece. Modelul nu l-am mai urcat; în git rămâne cel de la M1.
+
+- 17:35 **B FINAL** (decizia lui Teo de la 17:25): renunțăm la vremea pe 2021-2022. Procesul care aștepta ora 02:05 a fost oprit înainte să descarce ceva. În fișa modelului, 2021-2022 apare ca îmbunătățire viitoare, limitată de cota Open-Meteo, alături de calibrarea pe istoricul RER, evaluarea pe prognoza din ziua de dinainte și zăpadă. Fișa modelului, `docs/data/B.md` și `docs/QA-JURIU.md` au cifrele finale, verificate una câte una față de `reports/B/`. Experimentele finale includ și `zapada_uda_viscol` (0,275, nu ajută). Corectură: pe 17 iulie, Slobozia e pe locul 1 din 26, la egalitate cu Oravița (aceeași probabilitate, 0,357).
+- **Modelul din git e cel final:** `models/release/b_model.joblib`, ultima schimbare în 803c29c (15:05), `b-lgbm@c5c8344`.
+
+- 18:05 **Reparație de date (QA cap-coadă, 17:55):** seriile lucrărilor B au acum `expected`, adică riscul zilei estimat de model, cu vremea de până la acea oră (0-1, pe toate orele zilei țintă; curba nu scade). La ora 23:00, valoarea e exact scorul din lucrare: diferența e 0,0000 pe toate cele 26 de serii, în ambele scenarii. Exemplu, Timișoara pe 8 iulie: 0,11 noaptea, 0,19 la 14:00, apoi 0,36 la 15:00, când începe ploaia de furtună, și 0,43 de la 16:00. Fereastra seriei e acum ziua țintă, de la 00:00 până a doua zi la 06:00. Seriile pentru `demo-vara` și `maine` sunt regenerate și valide. Am adăugat un test. Modelul e neschimbat (ultima schimbare: 803c29c).
+- 18:05 **Orele sunt corecte: ora României (+03:00 vara)**, pentru că vremea e cerută de la Open-Meteo cu fusul Europe/Bucharest. În arhivă, la Timișoara, rafala maximă e de 50 km/h la 14:00 (47 km/h la 12:00), iar ploaia de furtună începe la 15:00. Explicația pentru juriu e în `docs/QA-JURIU.md`, întrebarea 31: arhiva netezește vijeliile; furtuna reală a avut 90-120 km/h; ICON dădea 68-72 km/h la Reșița, Caransebeș și Deva; ANM avea cod roșu pentru 15:00-21:00; riscul modelului urcă exact la 15:00.
+
 ## Urmează
-- **Liber până la 02:00** (Q&A gata). Dacă orchestratorul are altă sarcină, o iau. Descărcarea vremii pentru 2021-2022 pornește singură la 02:05 (proces în fundal, jurnal în `data/raw/B/logs/openmeteo_us_2021_2022.log`) și se oprește singură dacă cota nu s-a refăcut.
-- 02:00: vremea pentru 2021-2022 la aceleași 80 de comitate (circa 4.200 de apeluri, în ritm lent). Reantrenez pe 2021-2024 și testez pe același 2025. Modelul nou rămâne doar dacă e mai bun pe același test (PR-AUC și Brier, plus statele nevăzute); altfel rămâne cel de acum, iar rezultatul intră în „Ce am încercat”.
-- M4 (08:00): model card și `docs/data/B.md` refăcute din cifrele finale, curățenie.
+- Nimic planificat: **B FINAL**. Repar doar bug-uri, dacă le găsește cineva la testare. Sunt liber pentru alte sarcini ale echipei.
 
 ## Blocaje
 - Niciunul.
@@ -50,6 +60,7 @@ Gata de merge: da (commit 0d15900): `docs/QA-JURIU.md` și al treilea caz în ba
    - Compensații automate (Ord. ANRE 46/2021): 30 lei pe client JT, 200 lei MT, 300 lei 110 kV, la depășirea a 4 h (reședințe de județ), 6 h (urban), 12 h (rural) pe vreme normală și 48 h / 72 h pe vreme deosebită (vezi cererea 8). RER plătește circa 85% din compensațiile automate naționale (raportul ANRE pe 2024); folosim doar procentul, nu sumele absolute.
    - `cost_per_customer_hour_lei` rămâne IPOTEZĂ (compensația legală nu e pe oră).
 6. **Opțional pentru interfață și planificator**: harta publică de întreruperi Rețele Electrice are un serviciu ArcGIS fără autentificare, cu întreruperile active (clienți afectați, județ, coordonate, ora estimată de revenire), actualizat la 15 minute: `https://services-eu1.arcgis.com/ZugzWQbNk6XT3BMo/arcgis/rest/services/OutagesMapViewLayer/FeatureServer/0/query?where=1%3D1&outFields=*&f=json`. Bun pentru pasul "Perceive" la scenariul `maine`.
+12. **Pentru `docs/REPRODUCERE.md`** (orchestratorul): la B, calea scurtă e `make b-repro`, fără descărcări și fără Open-Meteo, circa 3 minute. Calea completă e `make b-data b-weather b-dataset b-reports b-predict`.
 7. **Cota Open-Meteo e comună pentru tot laptopul** (10.000 de apeluri pe zi, 5.000 pe oră, pe IP). B folosește circa 3.300 pe oră până la 14:55, apoi foarte puțin. Dacă alt fir are nevoie de mult, să-mi spună.
 8. **Răspuns la întrebarea de la 14:40, termenele de repunere: corecte sunt 4/6/12 h pe vreme normală și 48/72 h pe vreme deosebită. Cele 8/12/48 h din documentul de research sunt greșite pentru întreruperile neplanificate.** Am verificat sursa primară: Ordinul ANRE nr. 46/2021, Monitorul Oficial, Partea I, nr. 649 din 1 iulie 2021, art. 15 alin. (1) din standard (text: https://www.ppcenergy.ro/wp-content/uploads/ord-46-2021.pdf).
    - Întrerupere neplanificată, vreme normală: 4 h în municipiile reședință de județ (fără zonele rurale din componența lor), 6 h în restul mediului urban, 12 h în mediul rural.
