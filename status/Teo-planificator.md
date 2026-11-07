@@ -1,7 +1,7 @@
 # Status: Teo-planificator
-Actualizat: 2026-11-07 13:57
-Milestone curent: M2 aproape gata (lipsesc doar ieșirile reale A, B, C, care nu există încă în `Teo`); extinderea din 13:45 implementată
-Gata de merge: da (commit fc37b94 și următorul cu `in_registry`, plus acest status)
+Actualizat: 2026-11-07 14:09
+Milestone curent: M2 gata pe ieșirile reale din `Teo` (A, B provizoriu, C); lucrez la M3 (robustețe, instantaneu, documentație)
+Gata de merge: da (commit 732a035, plus acest status)
 
 ## Făcut
 - 12:53 API pe http://127.0.0.1:8710/api (`make api`, documentație la `/docs`).
@@ -12,7 +12,10 @@ Gata de merge: da (commit fc37b94 și următorul cu `in_registry`, plus acest st
 - 13:31 Evaluarea agentului (`reports/planner/agent_eval.json`) și măsurarea solverului (`reports/planner/solver_benchmark.json`); cifrele mai jos.
 - 13:31 Prag etic la contoare: echipa merge la ușa unui client doar dacă scorul e cel puțin 0,5; sub prag, citire la distanță.
 - 13:44 Extinderea (decizia lui Teo de la 13:45): `A_bilant.jsonl` citit lângă `A.jsonl`, fuziunea cu `R-FUSION-BILANT` în jurnal, reguli pentru acțiunile noi, lista pe echipe după lei pe oră, scara de soluții C (`R-REMEDY-LADDER`), cu completările de la 14:00 (mesaj țintit din `message_preview_ro`, oferta de baterii pentru PPC Energie).
-- 13:46 API pentru extindere (rutele de mai jos). 56 de teste trec, ruff curat. `git merge Teo` făcut după fiecare anunț (ultimul: documentul de research).
+- 13:46 API pentru extindere (rutele de mai jos).
+- 13:57 Revizuire independentă cu Codex (gpt-6.1-sol), într-o copie separată: 12 probleme reale, toate reparate, cu 11 teste de regresie (`tests/planner/test_review_fixes.py`). Cele mai importante: rezerva greedy nu mai pune echipa de furtună după tură; o predicție stricată intră în carantină în loc să oprească planul; aprobarea și verdictul țin același lacăt cu rularea (jurnalul nu mai pierde înregistrări); planul făcut din timp anunță întreruperea pentru priză; `series_ref` nu mai poate citi fișiere din afara `outputs/`; aprobarea păstrează acțiunea agentului.
+- 14:05 Ordinul de lucru PDF are pe prima pagină pornirea turei: plecarea și întoarcerea, alertele opririlor, mesajele către clienți, instructajul, luarea la cunoștință.
+- 14:06 Instantaneul `outputs/demo/` refăcut pe ieșirile reale (planul pentru 8 iulie 2025, 9 ordine de lucru, 316 serii). 180 de teste trec. 56 de teste trec, ruff curat. `git merge Teo` făcut după fiecare anunț (ultimul: documentul de research).
 
 ## Răspuns la cererile orchestratorului (13:55)
 - `git merge Teo` făcut (8005138). Am păstrat reparația ta din `agent.py` (bilanțul lipsă nu degradează A).
@@ -26,7 +29,7 @@ Gata de merge: da (commit fc37b94 și următorul cu `in_registry`, plus acest st
 ## Pentru firul Interfață (rute noi, toate cu `?scenario=`)
 - `GET /api/posts` → listă de posturi pentru hartă: `{post_id, lat, lon, zone_id, label, loss_lei_month, loss_kwh_day, color: verde|galben|rosu|necunoscut, diagnosis, bilant_score, bilant_work_item_id, bilant_decision, bilant_rule_id, voltage_p90_pu, c_work_item_id, c_decision, c_rule_id, meters_flagged, meter_work_item_ids, synthetic}`, ordonată după lei pierduți. Pragurile culorilor: `config/planner.yaml` (`posts`: galben de la 200 lei/lună, roșu de la 600).
 - `GET /api/posts/{post_id}` → același rezumat plus `work_items` (fiecare cu `decision`) și `series_ids` (pentru `GET /api/series/{id}`).
-- `POST /api/routes/{crew_id}/approve` `{reviewer, note}` → aprobarea listei unei echipe (jurnal `route_approve`, `actor: human`, pe fiecare oprire). `GET /api/approvals` → `[{crew_id, reviewer, ts, plan_id, work_item_ids, stale}]`.
+- `POST /api/routes/{crew_id}/approve` `{reviewer, note}` → aprobarea listei unei echipe (jurnal `route_approve`, `actor: human`, pe fiecare oprire). `GET /api/approvals` → `[{crew_id, reviewer, ts, plan_id, work_item_ids, route_signature, stale}]`; `stale: true` când traseul echipei s-a schimbat de la aprobare (opriri, ordine sau ore).
 - `POST /api/verdict/{id}` `{outcome: confirmed|not_found|other_problem|no_access, reviewer, note}` → `{audit, label}`; `GET /api/labels` → etichetele pentru reantrenare.
 - `GET /api/rules` → `{rules: {rule_id: explicație}, thresholds, economics}`.
 - `GET /api/remedies` → scara C pe fiecare post: `{post_id, work_item_id, label, chosen: [acțiuni], cost_lei, p90_before_pu, p90_after_pu, why_not_cheaper: [texte], invest, feasible, battery: {...} | null, inverter_trips_avoided}`.
@@ -46,8 +49,9 @@ Gata de merge: da (commit fc37b94 și următorul cu `in_registry`, plus acest st
 - `message_preview_ro` intră neschimbat în notificare (audiență `prosumatori`, `demo_only`). `battery_kwh_total`, `revenue_lei`, `payback_years`, `customers_targeted` intră în lista pentru PPC Energie din raportul zilei. `participation_rate` apare în explicație („la 20% participare”).
 
 ## Urmează
-- Instantaneul `outputs/demo/` și `reports/planner/README.md` (metoda evaluării), apoi trecerea pe ieșirile reale A, B, C și bilanț când apar în `Teo`.
-- Prima pagină a PDF-ului (acum rămâne pe jumătate goală când prima oprire nu încape).
+- Gata: `reports/planner/README.md` (metoda evaluării), `agent_eval.md` generat din raport, `make agent-eval`, `make solver-bench`, `make demo-snapshot`.
+- Instantaneul se reface când apar versiunile finale A, B, C și bilanț (`make demo-snapshot` după `uv run cyberpunks run --scenario demo-vara`).
+- M3: încă o rundă de revizuire înainte de înghețare, timpii pentru demo, scenariul `maine`.
 
 ## Blocaje
 - Niciunul. Ieșirile reale ale modelelor nu există încă în `Teo`; până atunci planul rulează pe exemple, marcat ca atare.
@@ -85,3 +89,6 @@ Gata de merge: da (commit fc37b94 și următorul cu `in_registry`, plus acest st
 - 13:40 La bilanț, pragul etic nu se aplică lucrărilor la nivel de post (nu e ușa unui client); se aplică contoarelor găsite de bilanț.
 - 13:42 Scara C: efectele treptelor combinate se adună; o treaptă singură folosește `p90_after_pu` calculat de C. Treptele cu echipă care cer întrerupere (`adjust_tap`, `phase_rebalance`) au nevoie de preaviz ANRE.
 - 13:44 Lista pe echipe se ordonează după lei pe oră de lucru (valoarea netă / (durata + drumul estimat)); OR-Tools alege tot după valoare, în limita turei.
+- 13:52 Pe datele reale: zonele de furtună peste costul turei, dar peste plafonul regional, merg la dispecer cu alerta „Întăriri necesare” (nu se amână în tăcere); alertele de același fel se grupează peste 3; echipa de furtună e în zonă la ora limită, cel târziu la sfârșitul turei.
+- 14:00 Aprobarea omului confirmă exact decizia agentului (cu acțiunea ei); doar la cazurile trimise la om aprobarea înseamnă recomandarea modelului.
+- 14:00 La contoare, `time_window` e fereastra de acces la client și se respectă în trasee; la C e intervalul cu risc, nu de lucru.
