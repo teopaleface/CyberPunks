@@ -4,7 +4,7 @@ Actualizat: 2026-11-07 13:39. Detalii pe fiecare fir: `status/<branch>.md`. Plan
 
 ## Produsul
 
-"Tura de mâine": agentul care decide unde merg mâine echipele de teren Rețele Electrice, pe baza modelelor noastre (A contoare, B furtună, C tensiune la posturi cu prosumatori, plus bilanțul pe post), cu decizii explicate și "nu sunt sigur" trimis la om. Ziua demo: 8 iulie 2025 (caniculă în București-Ilfov, vijelii cu cod roșu în Banat).
+"Daybreak": agentul care decide unde merg mâine echipele de teren Rețele Electrice, pe baza modelelor noastre (A contoare, B furtună, C tensiune la posturi cu prosumatori, plus bilanțul pe post), cu decizii explicate și "nu sunt sigur" trimis la om. Ziua demo: 8 iulie 2025 (caniculă în București-Ilfov, vijelii cu cod roșu în Banat).
 
 ## Integrat în `Teo` acum
 

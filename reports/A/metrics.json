@@ -65,6 +65,6 @@
     "sgcc_roc_auc": 0.4958
   },
   "synthetic_share": 0.6059,
-  "created_at": "2026-11-07T14:19:25+02:00",
+  "created_at": "2026-11-07T15:13:09+02:00",
   "reproduce_cmd": "uv run python -m cyberpunks.a_contoare.evaluate --retrain"
 }

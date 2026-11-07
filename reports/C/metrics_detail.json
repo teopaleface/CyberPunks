@@ -257,9 +257,9 @@
     "mae_vmax_pu": 0.004936817107451305,
     "mae_vmax_daylight_pu": 0.005193566580654301,
     "coverage_p10_p90_raw": 0.49759980427963546,
-    "coverage_p10_p90": 0.7974381602285734,
-    "coverage_p10_p90_daylight": 0.7830577689243028,
-    "cqr_margin_mean_pu": 0.003728833021422349
+    "coverage_p10_p90": 0.8042376953927076,
+    "coverage_p10_p90_daylight": 0.789945219123506,
+    "cqr_margin_mean_pu": 0.0038563111562001135
   },
   "speed": {
     "surrogate_seconds_300_posts_day": 0.04759520800143946,

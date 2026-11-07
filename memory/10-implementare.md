@@ -1,6 +1,6 @@
 # Implementarea: A, B și C în paralel, cu orchestrator
 
-Decizia lui Teo (7 nov. 2026, 12:30): facem în paralel A (contoare), B (furtună) și C (prosumatori), ca un singur produs, "Tura de mâine" (nume de lucru): agentul care decide unde merg mâine echipele de teren Rețele Electrice. Conversația laterală din T3 în care s-a făcut research-ul e orchestratorul: urmărește celelalte fire, rulează testele, face merge-urile.
+Decizia lui Teo (7 nov. 2026, 12:30): facem în paralel A (contoare), B (furtună) și C (prosumatori), ca un singur produs, "Daybreak" (numele ales de Teo la 15:30; inițial "Tura de mâine"): agentul care decide unde merg mâine echipele de teren Rețele Electrice. Conversația laterală din T3 în care s-a făcut research-ul e orchestratorul: urmărește celelalte fire, rulează testele, face merge-urile.
 
 - Planul complet: `docs/PLAN.md`. Contractele: `docs/CONTRACTS.md` și `src/cyberpunks/common/contracts.py`.
 - Instrucțiunile fiecărui fir: `prompts/` (`_comun.md` plus câte un fișier pe fir).

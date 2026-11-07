@@ -16,7 +16,7 @@ uv run python -m cyberpunks.c_prosumatori.evaluate --ablation fara_tensiune_porn
 - Eroarea medie (MAE) e 0,0054 pu față de 0,0227 la baseline, pe fiecare tip de rețea, lună și vreme. Nu există o felie în care baseline-ul să fie mai bun.
 - Modelul greșește cel mai mult pe **rețelele rurale lungi și slabe** (cablu torsadat TYIR 50, aluminiu vechi), pe **posturile cu baterii** și **lângă prag** (1,09-1,11 pu).
 - Ratările sunt depășiri la limită: mediana tensiunii reale la ratări e 1,104 pu, iar 97% sunt sub 1,115 pu. Alarmele false sunt aproape de prag: mediana e 1,095 pu, iar 84% sunt peste 1,09 pu.
-- Ce am schimbat după analiză: calibrarea izotonică (eroarea de calibrare ECE de la 0,012 la 0,003), lărgirea conformală a intervalelor, pe grupe de rețea (acoperirea P10-P90 de la 43% la 82% la modelul zilnic și de la 50% la 80% la cel orar (79,7%)) și repararea prizei în simulare (vezi mai jos).
+- Ce am schimbat după analiză: calibrarea izotonică (eroarea de calibrare ECE de la 0,012 la 0,003), lărgirea conformală a intervalelor, pe grupe de rețea (acoperirea P10-P90 de la 43% la 82% la modelul zilnic și de la 50% la 80% la cel orar (80,4%)) și repararea prizei în simulare (vezi mai jos).
 
 ## 1. Rețele rurale lungi
 
@@ -84,7 +84,7 @@ MAE rămâne între 0,0047 și 0,0057 pu în fiecare lună. Vara modelul subesti
 | Intervale P10-P90 brute | acoperire 42,8% (zilnic), 49,8% (orar) pe rețele nevăzute | prea înguste |
 | Lărgire conformală (CQR) din reziduuri pe topologii nevăzute, o margine globală | acoperire 80,9% (zilnic), pe topologii 73-88% | înlocuită |
 | Lărgire conformală pe grupe de rețea (patru grupe după cât ridică panourile tensiunea) | acoperire 82,1% (zilnic), pe topologii 76-87%; rural3 de la 73% la 80% | păstrată |
-| Model orar, lărgire conformală calibrată doar pe perioada de antrenare (după review-ul Codex: prima variantă folosea și reziduuri din perioada de test) | acoperire 79,7% (49,8% fără lărgire) | păstrată |
+| Model orar, lărgire conformală calibrată imbricat: doar perioada de antrenare, fără topologia testată (după două runde de review Codex: prima variantă folosea și reziduuri din perioada de test) | acoperire 80,4% (49,8% fără lărgire) | păstrată |
 | Constrângeri monotone (mai mult soare / kW / rețea mai slabă nu pot coborî tensiunea) | LightGBM le acceptă doar la clasificator, nu la cuantile | păstrate la clasificator |
 | Simularea cu priza ignorată (bug pandapower 3.x: `tap_changer_type` gol în SimBench) | modelul învăța priza ca pe un zgomot; estimarea „după priză” nu se mișca | reparat; simulări refăcute |
 | Fără trăsăturile fizice din topologie (sensibilitățile rețelei, estimarea liniară a tensiunii, rezistența) | MAE 0,0119 pu (de 2,2 ori mai mare); PR-AUC 0,384, sub baseline (0,428); pe rural2 MAE 0,0239 față de 0,0061 | trăsăturile rămân: fără ele modelul nu se transferă pe rețele noi |

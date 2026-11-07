@@ -1,6 +1,6 @@
 # Model card: `a-lgbm`, contoare defecte sau manipulate (firul A, Tura de mâine)
 
-Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metrics_full.json` (2026-11-07T14:19:25+02:00). Formatul urmează Mitchell et al. 2019, "Model Cards for Model Reporting".
+Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metrics_full.json` (2026-11-07T15:13:09+02:00). Formatul urmează Mitchell et al. 2019, "Model Cards for Model Reporting".
 
 ## Pe scurt
 
@@ -32,7 +32,7 @@ Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metric
 
 - **Antrenare și test, defecte și furt (sintetic):** consum real din Londra (Low Carbon London, UK Power Networks, CC BY 4.0), 1.414 gospodării, peste care injectăm 7 defecte, 8 tipuri de furt și 2 schimbări normale (concediu, schimbarea ocupanților). Etichetele vin din construcție. Rotunjim la rezoluția contorului după injecție.
 - **Reper pe furt real:** SGCC (State Grid Corporation of China, Zheng et al. 2018), 42.372 de clienți, 3.615 cu furt. Fără licență explicită: îl folosim doar pentru cercetare, fără să-l redistribuim.
-- **Împărțirea:** Londra pe gospodării (60/20/20) și pe timp (test după antrenare); SGCC pe clienți (60/20/20), stratificat. Calibrarea și pragurile, doar pe setul de calibrare.
+- **Împărțirea:** Londra pe gospodării (60/20/20) și pe timp (test după antrenare); SGCC pe clienți (60/20/20), stratificat. Features alese pe o validare din setul de antrenare (gospodării ținute deoparte); calibrarea și pragurile conformal, doar pe setul de calibrare; testul, privit o singură dată pe versiune.
 - **Demo:** 15.850 de contoare SINTETICE pe cele 300 de posturi din registrul comun (58,81% din clienți, gradul de integrare din Muntenia), cu profile reale ale gospodăriilor de test.
 
 ## Rezultate (K = 1% din contoarele din test)
@@ -48,7 +48,9 @@ Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metric
 - Calibrare (Londra, test): Brier 0,023, ECE 0,004. Conformal (acoperirea empirică a mulțimii, pe test): 99% la normale (țintă 99%), 70% la probleme (țintă 70%). Ca decizii: 60% din probleme recunoscute sigur, precizia deciziilor "problemă" 75%, 1% din contoarele normale declarate "problemă", 2% "nu sunt sigur".
 - Scurgeri: nicio gospodărie sau client în două seturi; referința vecinilor SGCC doar din antrenare; cu etichete amestecate, PR-AUC pe test cade la prevalență (0,046 pe Londra, 0,105 pe SGCC). Testul cu etichete amestecate e o verificare de bun-simț, nu o dovadă (error_analysis.md, secțiunea 1).
 - Precizia@K = 1,00 pe Londra vine din defectele evidente care umplu vârful listei. La K = numărul de probleme, precizia e 0,64. Detalii în `error_analysis.md`, secțiunea 2.
+- Figuri: `reports/A/figures/headline_precision.png`, `ranking_at_k.png`, `false_alarms_by_consumption.png`, `calibration.png`, `detection_by_kind.png`.
 - Date lipsă (populația demo): PR-AUC 0,68 -> 0,58 -> 0,55 la 0 / 30 / 50% zile lipsă. Peste 2/3 lipsă, agentul se abține și trimite la om.
+- Fuziunea cu bilanțul pe post (verificată pe testul A, bilanț cu sigma 2%): precizia@10 1,00 -> 1,00, PR-AUC 0,707 -> 0,715. Confirmă mai ales defectele cu pierdere mare de energie, rar furtul, niciodată tiparele fără pierdere de energie (`error_analysis.md`, secțiunea 9).
 
 ## Limite
 

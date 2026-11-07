@@ -1,4 +1,4 @@
-# CyberPunks: Tura de mâine
+# CyberPunks: Daybreak
 
 Proiectul echipei CyberPunks la SmartHack XI 2026 (7-8 noiembrie, București), pe tema PPC "24h to Power PPC": un agent AI care decide unde merg mâine echipele de teren Rețele Electrice, pe baza a trei modele ML antrenate de echipă (contoare defecte sau manipulate, risc de avarii la furtună, tensiune prea mare din cauza prosumatorilor), și explică fiecare decizie.
 
