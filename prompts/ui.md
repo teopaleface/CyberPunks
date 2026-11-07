@@ -14,7 +14,7 @@ O consolă pentru dispecerul Rețele Electrice care arată planul de mâine și 
 
 - Direcția vizuală, cu abilitatea `frontend-design`: 2-3 variante cu conținut real (din `contracts/fixtures/plan_example.json` și `work_items_*.jsonl`), arătate lui Teo cu `html_preview` și `html_render`. Alege una și notează de ce în status.
 - Paleta: o trimitere discretă la PPC (verifică culorile de pe ppcenergy.ro și ppcgroup.com), fără să pară produs oficial PPC. Cel mult 3 culori principale. Font cu diacritice românești (ș, ț), verificat.
-- Generează cu Codex (modelul de imagine "image 2.6") un logo pentru "Tura de mâine" și, dacă ajută, 1-2 ilustrații, prin `delegate_task` către `codex`, cu calea de salvare în `web/public/brand/`.
+- Generează cu Codex (modelul de imagine "image 2.6") un logo pentru "Daybreak" și, dacă ajută, 1-2 ilustrații, prin `delegate_task` către `codex`, cu calea de salvare în `web/public/brand/`.
 - Verifică că hărțile OpenFreeMap merg fără cheie (stilul și tile-urile) sau alege altă sursă de hărți fără cheie.
 
 ## Ce construiești
