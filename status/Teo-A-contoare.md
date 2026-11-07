@@ -1,5 +1,5 @@
 # Status: Teo-A-contoare
-Actualizat: 2026-11-07 14:55
+Actualizat: 2026-11-07 14:16
 Milestone curent: M2 gata (14:10), M3 în mare parte gata; M1 gata la 13:33
 Gata de merge: da (commit f77f935)
 
@@ -21,7 +21,7 @@ Gata de merge: da (commit f77f935)
 - 14:00 Precizia@K = 1,00 verificată (cerința orchestratorului de la 13:55): fără scurgeri, explicată mai jos la Cifre.
 
 - 14:10 `reports/A/error_analysis.md` și `reports/A/model_card.md`, generate de `make a-report` din cifrele scripturilor (nicio cifră scrisă de mână); `select_features.py` arată alegerea features pe calibrare.
-- 14:07-14:50 Review independent (Codex, gpt-6.1-sol): 12 probleme găsite, toate tratate (commit f77f935). Cele mai importante: referința vecinilor SGCC calcula și din clienții de test (acum doar antrenare); conformal se potrivea pe scorul deja calibrat (acum pe scorul brut, garanția e validă); cuantila conformal cu o poziție prea sus; acoperirea mulțimii era numită „recunoaștere sigură”; unitatea suspectă se repara în tăcere (acum merge la om); oprirea timpurie amesteca gospodăriile. Runda 2 (verificarea reparațiilor) rulează.
+- 14:00-14:14 Review independent (Codex, gpt-6.1-sol): 12 probleme găsite, toate tratate (commit f77f935). Cele mai importante: referința vecinilor SGCC calcula și din clienții de test (acum doar antrenare); conformal se potrivea pe scorul deja calibrat (acum pe scorul brut, garanția e validă); cuantila conformal cu o poziție prea sus; acoperirea mulțimii era numită „recunoaștere sigură”; unitatea suspectă se repara în tăcere (acum merge la om); oprirea timpurie amesteca gospodăriile. Runda 2 (verificarea reparațiilor) rulează.
 
 ## Urmează (M2-M3)
 - Runda 2 a review-ului: verific reparațiile.
@@ -78,6 +78,6 @@ Comenzile: `make a-evaluate` (sau `uv run python -m cyberpunks.a_contoare.evalua
 - 13:50 Conformal: alpha_normal 1%, alpha_problem 30% (zona gri 0,12-0,30, cu 16-26% probleme reale), alese pe calibrare și verificate pe test și pe demo.
 - 14:00 Contoarele pe registrul comun C, cu 58,81% din clienți ca grad de integrare (sursă: memory/12).
 - 14:12 Nu combin SGCC și Londra într-un singur model: povestea rămâne clară (modelul agentului pe Londra, aceleași features verificate pe furt real în SGCC), iar un model comun ar putea învăța „ce set de date e” în loc de tipar.
-- 14:45 Conformal pe scorul brut al modelului, nu pe cel calibrat (cerință din review: garanția split conformal). Pragurile, traduse în probabilități, apar doar în explicații.
-- 14:45 Unitate suspectă (valori de ~1.000 de ori prea mari): scorăm după împărțire, dar decide un om. Poate fi și un defect (multiplicator greșit).
-- 14:45 Lucrările sigure își păstrează acțiunea până la 250 pe zi, după valoare. Urmărirea rămâne doar pentru valoare sub 20% dintr-o vizită. Tăierea pe capacitate o face planificatorul.
+- 14:10 Conformal pe scorul brut al modelului, nu pe cel calibrat (cerință din review: garanția split conformal). Pragurile, traduse în probabilități, apar doar în explicații.
+- 14:10 Unitate suspectă (valori de ~1.000 de ori prea mari): scorăm după împărțire, dar decide un om. Poate fi și un defect (multiplicator greșit).
+- 14:10 Lucrările sigure își păstrează acțiunea până la 250 pe zi, după valoare. Urmărirea rămâne doar pentru valoare sub 20% dintr-o vizită. Tăierea pe capacitate o face planificatorul.
