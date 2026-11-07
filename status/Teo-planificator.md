@@ -1,7 +1,21 @@
 # Status: Teo-planificator
-Actualizat: 2026-11-07 16:48
+Actualizat: 2026-11-07 17:20
 Milestone curent: M4 (documentație, ultima revizuire independentă); M3 gata
-Gata de merge: da (commit 8363392, plus acest status); revizuirea Codex a schimbărilor de azi după-amiază rulează
+Gata de merge: da (commit 8bf4d68, plus acest status)
+
+## Răspuns la orchestrator, 17:05 și 17:15
+- **Textul cu „scorul peste 1004%”, reparat** (commit ab56d75). Când nici la scorul 100% valoarea nu acoperă vizita, motivul spune acum: „Chiar dacă problema ar fi sigură, valoarea (40 lei) nu acoperă vizita (283 lei): citire la distanță (2 lei).” Pragul `breakeven_score` apare în jurnal doar când e sub 100%. Test: `tests/planner/test_review_fixes_r4.py::test_remote_first_text_never_asks_for_a_score_above_100_percent`. Am verificat și restul textelor cu procente: doar acesta putea trece de 100%. În instantaneul regenerat local: 60 de motive cu textul nou, niciunul cu un scor peste 100%.
+- **Instantaneul `outputs/demo/`, după regula de la 17:15**: îl regenerez doar local, fără commit, până la înghețare sau până îmi ceri. Cel din git e de la 16:33 (commit 7f162fc) și are încă două defecte reparate după aceea: textul cu scorul peste 100% (77 de motive) și alerta „194 cazuri cu risc de siguranță” (erau 103 cazuri distincte). Varianta locală e corectă. Pentru prezentare și demo-ul offline trebuie salvată varianta finală; spune-mi când.
+- `git merge Teo` făcut; `make check`: 286 de teste trec, inclusiv `tests/test_repo_size.py` (cel mai mare fișier din instantaneu are sub 3 MB).
+- După merge, planul `demo-vara` are aceleași trasee (20 de lucrări, 8 echipe, 291,8 km, 71.803 lei); s-au schimbat doar 122 de amânate (erau 130) și 48 de mesaje (erau 46), din noile ieșiri ale firelor. Alerte: 10 (nouă: „Risc de avarii: Zona Ineu (Arad) (model nesigur, decide dispecerul)”).
+
+## A patra revizuire independentă (Codex, 16:55): 6 probleme, toate reparate, 8 teste (commit 16ffb82)
+- Furtuna: zonele aprobate de dispecer își păstrează echipa când agentul alege zonele peste plafon; toate regiunile intră în aceeași atribuire, pentru că echipele se împart între ele.
+- Contextul zilei: un `C_summary.json` stricat (listă, text în loc de număr, JSON greșit) nu mai oprește planul; textul de iarnă spune deciziile reale (câte posturi la urmărire și de ce, câte mesaje, câte echipe), nu „o echipă nu se mai plătește”, care era fals când agentul trimitea totuși o echipă.
+- Alertele: cazurile peste cota de siguranță apăreau de două ori în alerta grupată („194 cazuri” pentru 103). Acum fiecare caz apare o dată.
+- Solverul: OR-Tools și comparația cu greedy folosesc același obiectiv, în bani întregi, rotunjit pe fiecare drum; bonusul cazurilor obligatorii se calculează din problemă, deci o lucrare obligatorie bate orice premiu opțional, oricât de mare. Dacă solverul se oprește la limita de timp (nu la cea de soluții), statusul spune „TIME_LIMIT”; alegerea zonelor de furtună folosește o limită de lucru deterministă, nu de ceas.
+- Plus: zona de furtună cu risc mare și model nesigur are și ea alerta „Risc de avarii”.
+- În total, 35 de probleme găsite de cele patru revizuiri și reparate.
 
 ## Răspuns la orchestrator, 16:20: de ce s-a schimbat `demo-vara`
 Pe scurt: două schimbări intenționate explică scăderea, iar trei defecte găsite pe drum sunt reparate (commit b296ca7). Cifrele noi, din instantaneul `outputs/demo/` (commit 7f162fc), identice la fiecare rulare: **20 de lucrări în traseele a 8 echipe, 291,8 km, valoare așteptată 71.803 lei**; 25 de cazuri la dispecer, 504 verificări de la distanță, 46 de mesaje, 9 alerte.
@@ -21,11 +35,11 @@ Pe scurt: două schimbări intenționate explică scăderea, iar trei defecte g�
    - Zona cu cel mai mare risc de avarii (Ineu, 58%, încredere mică) cădea din coada plină a dispecerului. Acum furtunile de mâine peste pragul lui B sunt primele în coadă.
    - Solverul se oprea după 10 secunde, deci planul depindea de cât de ocupat era calculatorul: pe același cod, tu ai avut 22 de lucrări, 74.778 lei, 369 km, eu 21, 74.458 lei, 379 km. Acum se oprește după 200 de soluții (60 s rămân doar plasă de siguranță): două rulări la rând dau exact același plan, în 7,6 s. În plus, solverul pune întâi cazurile obligatorii (11 din 12 încap, față de 10), între două cazuri obligatorii îl alege pe cel mai valoros, iar dacă greedy găsește o soluție mai bună, planul o folosește.
 - **Pentru prezentare**: cifrele de mai sus vin din instantaneu și se refac cu `uv run cyberpunks run --scenario demo-vara`, cât timp ieșirile modelelor nu se schimbă. Ce merită spus: echipele de furtună pleacă în zonele de lângă baza lor, cu risc peste pragul lui B; cele 12 cazuri de siguranță cu scorul cel mai mare intră primele; restul se aleg după lei pe oră. Dacă A, B sau C își mai schimbă ieșirile, rulez din nou și refac instantaneul.
-- `make check`: 271 de teste trec.
+- `make check`: 271 de teste trec (286 după merge-ul de la 17:15).
 
 ## Pornirea demo-ului, dintr-un singur loc (checkout-ul principal)
 - **`make demo`**: rulează planul real pentru `demo-vara` (modelele A, B, C rulează efectiv, ieșirea bilanțului pentru aceeași zi se refolosește), apoi pornește în paralel API-ul pe http://127.0.0.1:8710/api și consola pe http://localhost:3710. Ctrl-C le oprește pe amândouă. Merg toate: butonul „Rulează agentul” (~24 s: Estimate 15 s, Decide 8 s, Act 1 s), aprobarea planului, coada „nu sunt sigur” cu replanificare (~9 s după fiecare decizie a dispecerului; fără decizii noi iese exact același plan), verdictele. Testul cap-coadă prin API (aprobare → planul se recalculează, respingere → lucrarea iese din traseu, aprobarea veche a planului expiră): `tests/planner/test_api_extension.py::test_review_through_the_api_replans`.
-- **`make demo-offline`**: fără modele, API-ul servește instantaneul din git (`outputs/demo/`, planul real de la 16:33 pe ieșirile de după merge-ul de la 16:20) și pornește consola. Doar citire: „Rulează agentul” și aprobările cer `make demo`.
+- **`make demo-offline`**: fără modele, API-ul servește instantaneul (`outputs/demo/`; în git e cel de la 16:33, local e cel nou, regenerat la 17:18) și pornește consola. Doar citire: „Rulează agentul” și aprobările cer `make demo`.
 - Separat: `make api` (ultima rulare locală, altfel instantaneul), `make api-demo` (doar instantaneul), `make web` (consola).
 - Gata și folosite de interfață: `POST /api/plan/approve` (`AuditRecord`, `actor: human`, `action: plan_approved`, 409 dacă planul s-a schimbat) și `GET /api/plan/approval`; `GET /api/posts` (300 de posturi, culoare după lei pierduți pe lună din bilanț) și `GET /api/posts/{post_id}`; `posts.json` e și în instantaneu.
 - Numele **Daybreak** (decizia lui Teo de la 15:30): în titlul API-ului (`/docs`) și în ordinele de lucru PDF (autorul documentului, „propus de agentul Daybreak, aprobat de dispecer”, subsolul). Instantaneul are PDF-urile noi.
@@ -95,9 +109,8 @@ Pe scurt: două schimbări intenționate explică scăderea, iar trei defecte g�
 - Ordinea deciziilor în plan: întâi verificările de la distanță și corecțiile din birou, apoi lista pe echipe (`rank` după `threshold.lei_per_work_hour`), apoi restul.
 
 ## Urmează (M4)
-- Măsurarea solverului cu setările noi (rulează acum), apoi cifrele în `docs/research/planificator.md`.
-- Ultima rundă de revizuire independentă (Codex) pe schimbările de azi după-amiază, înainte de înghețare.
-- Instantaneul refăcut dacă A, B, C sau bilanțul își mai schimbă ieșirile.
+- Instantaneul final salvat în git după înghețare sau la cererea ta (până atunci doar local).
+- Rulez din nou planul și evaluarea dacă A, B, C sau bilanțul își mai schimbă ieșirile.
 
 ## Blocaje
 - Niciunul.
