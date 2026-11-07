@@ -19,8 +19,8 @@ export function Hero({ map }: { map: HeroMapData }) {
   return (
     <section id="top" aria-labelledby="hero-title" className="relative isolate overflow-hidden">
       <Horizon />
-      <div className="mx-auto grid max-w-[1440px] gap-10 2xl:max-w-[1680px] px-5 pt-10 pb-24 sm:px-8 lg:min-h-[calc(100dvh-4rem)] lg:grid-cols-12 lg:items-center lg:gap-6 lg:pt-6 lg:pb-28 xl:px-12">
-        <div className="lg:col-span-5 lg:pb-16">
+      <div className="mx-auto grid max-w-[1440px] gap-x-6 gap-y-12 px-5 pt-10 pb-24 sm:px-8 lg:min-h-[calc(100dvh-4rem)] lg:grid-cols-12 lg:grid-rows-[1fr_auto_1fr] lg:pt-6 lg:pb-28 xl:px-12 2xl:max-w-[1680px]">
+        <div className="lg:col-span-5 lg:col-start-1 lg:row-start-2">
           <h1
             id="hero-title"
             className="hero-rise text-[clamp(2.9rem,4.9vw,5.3rem)] leading-[0.95] font-semibold tracking-[-0.045em] text-balance"
@@ -48,7 +48,13 @@ export function Hero({ map }: { map: HeroMapData }) {
               Codul pe GitHub
             </a>
           </div>
-          <ol className="hero-rise mt-14 grid max-w-[40rem] grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-4 lg:mt-16" aria-label="Pașii agentului" style={{ "--delay": "320ms" } as Vars}>
+        </div>
+
+        <ol
+          className="hero-rise grid max-w-[40rem] grid-cols-2 gap-x-6 gap-y-6 self-start sm:grid-cols-4 lg:col-span-5 lg:col-start-1 lg:row-start-3 lg:mt-4 max-lg:order-last"
+          aria-label="Pașii agentului"
+          style={{ "--delay": "320ms" } as Vars}
+        >
             {STEPS.map((s, i) => (
               <li key={s.name} className="min-w-0">
                 <div className="relative h-px bg-rule">
@@ -60,10 +66,9 @@ export function Hero({ map }: { map: HeroMapData }) {
                 <p className="mt-1 text-[0.86rem] leading-snug text-ink-3">{s.ro}</p>
               </li>
             ))}
-          </ol>
-        </div>
+        </ol>
 
-        <figure className="relative lg:col-span-7 lg:-mr-4 xl:-mr-8">
+        <figure className="relative lg:col-span-7 lg:col-start-6 lg:row-span-3 lg:row-start-1 lg:-mr-4 lg:self-center xl:-mr-8">
           <HeroMap map={map} />
           <figcaption className="mt-5">
             {p ? (
