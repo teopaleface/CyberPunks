@@ -265,7 +265,7 @@ export function PlanScreen({
           <div className={cn(spotlight === "queue" && "spot spot-att")}>
             <QueuePanel queue={queue} itemsById={itemsById} scenario={data.scenario} onSelect={select} recovered={data.recovered} />
           </div>
-          <AlertsPanel alerts={data.alerts} onSelect={select} />
+          <AlertsPanel alerts={data.alerts} decisions={data.decisions} onSelect={select} />
           <WorkItemPeek
             highlight={spotlight === "peek"}
             detailError={selected ? (detailErrors[selected] ?? null) : null}

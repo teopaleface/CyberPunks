@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { Alert, Decision, WorkItem } from "@/lib/contracts";
 import { submitReview } from "@/lib/data/actions";
-import { clampPercentRo, factorLabelRo, ACTION_RO, CONFIDENCE_RO, DECISION_LABEL_RO, outcomeRo, predictionLabelRo, ruleRo } from "@/lib/data/labels";
+import { alertOutcomeRo, clampPercentRo, factorLabelRo, ACTION_RO, CONFIDENCE_RO, DECISION_LABEL_RO, outcomeRo, predictionLabelRo, ruleRo } from "@/lib/data/labels";
 import type { ReviewDecision } from "@/lib/data/types";
 import { fmtDec, fmtInt, fmtLei, fmtScore, fmtTime, sentence } from "@/lib/format";
 import { markerKind, markerSvg } from "@/lib/marker-svg";
@@ -167,7 +167,15 @@ function SeverityIcon({ severity }: { severity: Alert["severity"] }) {
   );
 }
 
-export function AlertsPanel({ alerts, onSelect }: { alerts: Alert[]; onSelect: (id: string) => void }) {
+export function AlertsPanel({
+  alerts,
+  decisions,
+  onSelect,
+}: {
+  alerts: Alert[];
+  decisions: Record<string, Decision>;
+  onSelect: (id: string) => void;
+}) {
   if (!alerts.length) return null;
   const sorted = alerts.toSorted((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);
   const shown = sorted.slice(0, 1);
@@ -190,9 +198,17 @@ export function AlertsPanel({ alerts, onSelect }: { alerts: Alert[]; onSelect: (
                 </button>
               ) : null}
             </div>
-            <p className="mt-0.5 line-clamp-1 pl-[32px] text-[15px]" title={a.body_ro}>
-              {a.body_ro}
-            </p>
+            {alertOutcomeRo(a.work_item_ids, decisions) ? (
+              // numărătoarea din decizii stă în față: textul alertei poate promite mai mult decât face planul
+              <p className="mt-0.5 line-clamp-1 pl-[32px] text-[15px]" title={a.body_ro}>
+                <span className="text-muted-foreground">Ce a decis agentul: </span>
+                {alertOutcomeRo(a.work_item_ids, decisions)}
+              </p>
+            ) : (
+              <p className="mt-0.5 line-clamp-1 pl-[32px] text-[15px]" title={a.body_ro}>
+                {a.body_ro}
+              </p>
+            )}
           </li>
         ))}
       </ul>

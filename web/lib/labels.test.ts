@@ -94,3 +94,14 @@ describe("orele față de ziua planului", () => {
     expect(tl.back).toBe(24 * 60 + 15);
   });
 });
+
+describe("alertele, față de decizii", () => {
+  test("numără ce s-a decis de fapt pentru lucrările alertei", async () => {
+    const { alertOutcomeRo } = await import("@/lib/data/labels");
+    const d = (decision: string) => ({ decision });
+    const decisions = { a: d("assigned"), b: d("remote_action"), c: d("remote_action"), e: d("deferred") };
+    expect(alertOutcomeRo(["a", "b", "c", "e", "x"], decisions)).toBe("1 în traseu, 2 verificate de la distanță, 1 amânată, 1 fără decizie");
+    expect(alertOutcomeRo(["a"], decisions)).toBeNull();
+    expect(alertOutcomeRo(["x", "y"], decisions)).toBeNull();
+  });
+});

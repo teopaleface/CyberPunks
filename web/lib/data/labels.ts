@@ -240,6 +240,35 @@ export function factorLabelRo(label: string): string {
   return (out.charAt(0).toLocaleUpperCase("ro-RO") + out.slice(1)).replace(/\.$/, "");
 }
 
+/**
+ * Ce a decis agentul pentru lucrările unei alerte, numărat din decizii: „12 în trasee, 175 verificate de la
+ * distanță, 18 la om”. Textul alertei vine de la planificator; numărătoarea arată ce s-a întâmplat de fapt.
+ * Null dacă alerta are sub două lucrări sau nicio decizie cunoscută.
+ */
+export function alertOutcomeRo(ids: string[] | undefined, decisions: Record<string, { decision: string } | undefined>): string | null {
+  if (!ids || ids.length < 2) return null;
+  const counts = new Map<string, number>();
+  for (const id of ids) {
+    const d = decisions[id]?.decision;
+    if (d) counts.set(d, (counts.get(d) ?? 0) + 1);
+  }
+  if (!counts.size) return null;
+  const n = (v: number) => new Intl.NumberFormat("ro-RO").format(v);
+  const phrase: Record<string, (v: number) => string> = {
+    assigned: (v) => (v === 1 ? "1 în traseu" : `${n(v)} în trasee`),
+    remote_action: (v) => (v === 1 ? "1 verificată de la distanță" : `${n(v)} verificate de la distanță`),
+    human_review: (v) => `${n(v)} la om`,
+    notify: (v) => `${n(v)} cu mesaj către clienți`,
+    deferred: (v) => (v === 1 ? "1 amânată" : `${n(v)} amânate`),
+    rejected_invalid: (v) => (v === 1 ? "1 respinsă la intrare" : `${n(v)} respinse la intrare`),
+  };
+  const order = ["assigned", "human_review", "remote_action", "notify", "deferred", "rejected_invalid"];
+  const parts = order.filter((k) => counts.get(k)).map((k) => phrase[k](counts.get(k)!));
+  const known = [...counts.values()].reduce((a, b) => a + b, 0);
+  if (known < ids.length) parts.push(`${n(ids.length - known)} fără decizie`);
+  return parts.join(", ");
+}
+
 /** Acțiunile din jurnal (AuditRecord.action), în cuvinte. */
 const AUDIT_ACTION_RO: Record<string, string> = {
   run: "agentul a făcut planul",

@@ -1,5 +1,6 @@
 import { cn } from "cn";
 import type { Alert, Decision, WorkItem } from "@/lib/contracts";
+import { alertOutcomeRo } from "@/lib/data/labels";
 import { fmtInt, fmtMoment, fmtTime, plural } from "@/lib/format";
 import { CountPill, DemoStamp, SEVERITY_RO, SeverityIcon, WorkItemRef, type Severity } from "./parts";
 
@@ -98,6 +99,12 @@ function AlertItem({ a, ...lookups }: { a: Alert } & Lookups) {
       <div className="min-w-0">
         <h4 className="text-[18px] leading-snug font-[620]">{a.title_ro}</h4>
         <p className="mt-1 max-w-[82ch] text-[16px] leading-relaxed">{a.body_ro}</p>
+        {alertOutcomeRo(ids, lookups.decisionsByWorkItemId) ? (
+          <p className="mt-1 text-[15px]">
+            <span className="text-muted-foreground">Ce a decis agentul: </span>
+            {alertOutcomeRo(ids, lookups.decisionsByWorkItemId)}
+          </p>
+        ) : null}
         {ids.length ? <LinkedItems ids={ids} {...lookups} /> : null}
         {a.channel === "clienti" ? (
           <div className="mt-2.5">

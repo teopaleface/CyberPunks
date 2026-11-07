@@ -155,11 +155,13 @@ demo-offline:     ## DEMO fără modele: API-ul pe instantaneul din git și cons
 	$(MAKE) -j2 api-demo web
 
 # ---- Interfață (firul Teo-ui) ----
-.PHONY: web web-install web-build web-test web-smoke
+.PHONY: web web-install web-build web-demo web-test web-smoke
 web-install:      ## instalează dependențele consolei (bun; merge și npm install în web/)
 	cd web && bun install
 web: web-install  ## pornește consola dispecerului pe http://localhost:3710 (API-ul pe 8710 e opțional)
 	cd web && bun run dev
+web-demo: web-install  ## DEMO: consola în modul de producție pe http://localhost:3710 (build ~10 s, apoi pagini mai rapide, fără unelte de dezvoltare)
+	cd web && bun run build && bun run start
 web-build: web-install  ## build de producție al consolei
 	cd web && bun run build
 web-test:         ## testele consolei (stratul de date: API, instantaneu demo, fixture-uri)
