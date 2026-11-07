@@ -73,3 +73,13 @@ def test_feedback_needs_a_live_plan(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     client = TestClient(app_mod.app)
     assert client.post("/api/verdict/A-20261109-MTR-004217", json={"outcome": "confirmed"}).status_code == 409
     assert client.post("/api/routes/E-BV-1/approve", json={}).status_code == 409
+
+
+def test_run_info_and_health(live) -> None:
+    client, _ = live
+    info = client.get("/api/run-info", params={"scenario": SCENARIO}).json()
+    assert set(info["timings"]) >= {"perceive", "estimate", "decide", "act"} and info["solver"]["name"] in ("ortools", "greedy")
+    assert info["data_mode"] == "live"
+    health = client.get("/api/health", params={"scenario": SCENARIO}).json()
+    assert health["plan_id"] == info["plan_id"] and health["mode"] == "live"
+    assert client.get("/api/run-info", params={"scenario": "nimic"}).status_code == 404

@@ -98,6 +98,9 @@ def health(scenario: str = DEFAULT_SCENARIO) -> dict[str, Any]:
         "scenario": scenario,
         "mode": view.mode,
         "sources_status": plan.get("sources_status", {}),
+        "plan_id": plan.get("plan_id"),
+        "plan_date": plan.get("plan_date"),
+        "generated_at": plan.get("generated_at"),
     }
 
 
@@ -350,6 +353,19 @@ def rules() -> dict[str, Any]:
 
     s = Settings.load()
     return {"rules": RULE_CATALOG, "thresholds": s.planner, "economics": s.economics}
+
+
+@api.get("/run-info")
+def run_info(scenario: str = DEFAULT_SCENARIO) -> dict[str, Any]:
+    """Ultima rulare a agentului: timpii pe pași (Perceive, Estimate, Decide, Act), sursele, solverul, fuziunea."""
+    from cyberpunks.api.store import read_json
+
+    view = store.view(_scenario(scenario))
+    meta = read_json(view.plan_dir / "run.json") if view.mode != "fixtures" else None
+    if meta is None:
+        raise HTTPException(404, "nu există încă o rulare a agentului pentru acest scenariu")
+    keys = ("plan_id", "scenario", "plan_date", "as_of", "generated_at", "planner_version", "mode", "timings", "sources", "solver", "fusion", "overrides")
+    return {k: meta.get(k) for k in keys} | {"data_mode": view.mode}
 
 
 @api.get("/remedies")
