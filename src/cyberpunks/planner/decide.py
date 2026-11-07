@@ -181,13 +181,13 @@ def action_cost(ctx: Context, wi: WorkItem, action: str) -> float:
     if action == "grid_inspection":
         return s.econ("bilant", "grid_inspection_cost_lei", 486.0)
     if action == "phase_rebalance":
-        return s.econ("remedies", "phase_rebalance_cost_lei", 300.0)
+        return s.econ("voltage", "phase_rebalance_cost_lei", 350.0)
     if action == "offer_battery":
-        return s.econ("remedies", "battery_offer_cost_lei_per_customer", 2.0) * max(1, wi.impact.customers_affected)
+        return s.econ("voltage", "battery_offer_cost_lei_per_customer", 2.0) * max(1, wi.impact.customers_affected)
     if action == "export_limit":
-        return s.econ("remedies", "export_limit_cost_lei", 50.0)
+        return s.econ("voltage", "export_limit_cost_lei", 150.0)
     if action == "transformer_upgrade":
-        return s.econ("remedies", "transformer_upgrade_cost_lei", 80000.0)
+        return s.econ("voltage", "transformer_upgrade_cost_lei", 120000.0)
     return 0.0
 
 
@@ -354,6 +354,16 @@ def rule_human_override(ctx: Context, item: Item) -> Proposal | None:
     return p
 
 
+def _strip_unsure(reason: str | None) -> str:
+    """Motivul modelului fără un „nu sunt sigur” repetat la început (îl spune deja regula)."""
+    text = (reason or "").strip().rstrip(".")
+    for prefix in ("nu sunt sigur:", "nu sunt sigur -", "nu sunt sigur,", "nu sunt sigur"):
+        if text.lower().startswith(prefix):
+            text = text[len(prefix):].strip()
+            break
+    return text or "fără motiv dat"
+
+
 def rule_abstain(ctx: Context, item: Item) -> Proposal | None:
     wi = item.wi
     if not wi.prediction.abstain:
@@ -367,7 +377,7 @@ def rule_abstain(ctx: Context, item: Item) -> Proposal | None:
         item,
         DecisionType.human_review,
         "R-ABSTAIN",
-        f"Modelul nu e sigur: {wi.prediction.abstain_reason}. Decide un om.",
+        f"Modelul nu e sigur: {_strip_unsure(wi.prediction.abstain_reason)}. Decide un om.",
         "human_review",
         {"abstain": 1.0},
         alerts=alerts,
@@ -511,15 +521,14 @@ def rule_meters(ctx: Context, item: Item) -> Proposal:
     if not smart and net_visit > min_net and pr.confidence == Confidence.medium:
         reason = f"Contorul nu se poate citi de la distanță; valoarea netă a vizitei e {lei(net_visit)} (încredere medie)."
         return _route(ctx, item, "R-A-VISIT-NO-REMOTE", reason, "inspect_on_site", visit, th)
-    return _final(
-        item,
-        DecisionType.deferred,
-        "R-A-WATCH",
-        f"Scor {pct(pr.score)}: valoarea așteptată ({lei(ev)}) nu justifică acum nici vizita ({lei(visit.total)}), "
-        f"nici citirea la distanță (prag {pct(remote_min)}). Rămâne la urmărire.",
-        "watchlist",
-        {**th, "remote_min_score": remote_min},
-    )
+    if not smart:
+        why = (f"Scor {pct(pr.score)}: valoarea așteptată ({lei(ev)}) nu justifică acum vizita ({lei(visit.total)}), "
+               "iar contorul nu se poate citi de la distanță.")
+    else:
+        why = (f"Scor {pct(pr.score)}: valoarea așteptată ({lei(ev)}) nu justifică acum nici vizita ({lei(visit.total)}), "
+               f"nici citirea la distanță (prag {pct(remote_min)}).")
+    return _final(item, DecisionType.deferred, "R-A-WATCH", f"{why} Rămâne la urmărire.", "watchlist",
+                  {**th, "remote_min_score": remote_min, "smart_meter": 1.0 if smart else 0.0})
 
 
 def _fusion_note(wi: WorkItem) -> tuple[str, dict[str, float]]:
@@ -957,20 +966,25 @@ def cap_storm_per_region(ctx: Context, proposals: list[Proposal]) -> None:
     by_region: dict[str, list[int]] = {}
     for i, p in enumerate(proposals):
         if p.route and p.action == "preposition_crew" and not p.mandatory:
-            region = ctx.settings.region_of_county(p.wi.location.county) or "necunoscută"
+            rid = ctx.settings.region_of_county(p.wi.location.county) or ""
+            region = (ctx.settings.regions.get(rid) or {}).get("label_ro", "zona necunoscută")
             by_region.setdefault(region, []).append(i)
     for region, idxs in by_region.items():
         idxs.sort(key=lambda i: proposals[i].priority or 0.0, reverse=True)
         for i in idxs[cap:]:
             p = proposals[i]
+            # Valoare peste cost, dar plafonul regional e atins: agentul nu amână în tăcere, cere întăriri și lasă decizia
+            # dispecerului (aprobarea face lucrarea obligatorie și o trimite cu prima echipă liberă).
             proposals[i] = _final(
                 p.item,
-                DecisionType.deferred,
+                DecisionType.human_review,
                 "R-B-REGION-CAP",
-                f"{p.reason_ro} Dar în regiunea {region} sunt deja {cap} echipe trimise din timp (plafonul din config); rămâne în alertă.",
-                "watchlist",
+                f"{p.reason_ro} Dar în regiunea {region} sunt deja {cap} echipe trimise din timp (plafonul din config): "
+                "cer întăriri (echipe din alte regiuni sau contractori); decide dispecerul.",
+                "human_review",
                 {**p.threshold, "max_crews_per_region": float(cap)},
                 alerts=p.alerts,
+                priority=p.priority,
             )
 
 

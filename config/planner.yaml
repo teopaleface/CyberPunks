@@ -41,6 +41,9 @@ posts:                              # harta posturilor din interfață, după le
   yellow_lei_month: 200             # IPOTEZĂ: de aici postul e galben
   red_lei_month: 600                # exemplul din conceptul lui Teo ("aproximativ 600 lei pe lună"): de aici postul e roșu
 
+alerts:
+  max_per_kind: 3                   # peste atâtea alerte de același fel (de exemplu siguranță), se strâng într-una singură
+
 routing:
   solver: ortools                   # ortools | greedy
   time_limit_s: 10                  # după atât, se păstrează cea mai bună soluție găsită

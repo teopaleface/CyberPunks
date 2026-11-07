@@ -315,6 +315,10 @@ def _collect(pb: Problem, seqs: dict[int, list[int]], solver: str, status: str, 
         ok, arrivals, _ = schedule(pb, v, seq)
         if not ok:  # OR-Tools rotunjește la fel ca greedy, deci nu ar trebui să se întâmple; păstrăm ordinea, recalculăm fără verificare
             arrivals = _arrivals_unchecked(pb, v, seq)
+        if pb.tasks[seq[-1]].terminal:
+            # Furtuna: echipa trebuie să fie în zonă până la ora limită; dimineața rămâne pentru lucrul obișnuit de la bază.
+            # Fără să depășească tura: după ea echipa rămâne în zonă (ora suplimentară e în costul turei de furtună).
+            arrivals[-1] = max(arrivals[-1], min(pb.tasks[seq[-1]].latest, pb.vehicles[v].end_min))
         veh = pb.vehicles[v]
         loc = pb.depot_node(v)
         stops, total_km, total_min, work = [], 0.0, 0.0, 0
