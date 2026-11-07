@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   ClipboardCheck,
   CloudRain,
   Database,
@@ -172,36 +173,14 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
                 action={<span className="text-[14.5px] font-[450] text-ink-soft">Pagina {page} din {pages}</span>}
                 bodyClassName="pt-4"
               >
-                {catList.length > 1 ? (
-                  <ul className="mb-4 grid grid-cols-3 gap-2.5 max-sm:grid-cols-1">
-                    {catList.slice(0, 3).map(({ cat, count }) => (
-                      <li key={cat.id}>
-                        <Link
-                          href={href({ motiv: cat.id, caz: null, pagina: null })}
-                          className={cn(
-                            "flex h-full items-center gap-3 rounded-[12px] border bg-surface-2 px-3.5 py-2.5 transition-colors hover:border-ink-soft focus-visible:outline-2 focus-visible:outline-ring",
-                            motiv === cat.id ? "border-[#3d5170]" : "border-rule",
-                          )}
-                        >
-                          <Dot tone={CAT_TONE[cat.tone]} className="size-3.5" />
-                          <span className="min-w-0">
-                            <span className="block text-[19px] leading-tight font-[650] tabular-nums">{fmtInt(count)}</span>
-                            <span className="block text-[13.5px] leading-tight text-ink-soft">{cat.label}</span>
-                          </span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-
                 <table className="w-full border-collapse sm:table-fixed text-[15px]">
-                  <caption className="sr-only">Cazurile care așteaptă o decizie, cu motivul, încrederea și impactul</caption>
+                  <caption className="sr-only">Cazurile care așteaptă o decizie, cu motivul, scorul modelului și valoarea așteptată</caption>
                   <thead>
                     <tr className="border-b border-rule text-left text-[14px] text-ink-soft">
                       <th scope="col" className="w-9 py-2 pl-2 font-[450]">#</th>
                       <th scope="col" className="py-2 font-[450]">Post/loc</th>
                       <th scope="col" className="w-[22%] py-2 font-[450] max-sm:hidden">Motiv</th>
-                      <th scope="col" className="w-[18%] py-2 text-right font-[450]">Încredere</th>
+                      <th scope="col" className="w-[18%] py-2 text-right font-[450] max-[1600px]:hidden">Scor model</th>
                       <th scope="col" className="w-[20%] py-2 pr-1 text-right font-[450]">Impact</th><th scope="col" className="w-8"><span className="sr-only">Deschide cazul</span></th>
                     </tr>
                   </thead>
@@ -209,7 +188,7 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
                     {rows.map((x, i) => {
                       const on = x.w.work_item_id === selected?.w.work_item_id;
                       return (
-                        <tr key={x.w.work_item_id} className={cn("relative border-b border-rule/60 last:border-b-0", on && "bg-[#0f2547] outline outline-2 -outline-offset-2 outline-[#3b82f6]")}>
+                        <tr key={x.w.work_item_id} className={cn("relative border-b border-rule/60 last:border-b-0", on && "bg-surface-2 outline outline-1 -outline-offset-1 outline-ink-soft")}>
                           <td className="py-2.5 pl-2 tabular-nums">{(page - 1) * PER_PAGE + i + 1}</td>
                           <td className="py-2.5 pr-2 font-[560]">
                             <CaseLink
@@ -228,7 +207,7 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
                               <span className="truncate">{x.cat.label}</span>
                             </Pill>
                           </td>
-                          <td className="py-2.5 pl-2 text-right font-[560] whitespace-nowrap tabular-nums">{roundPct(x.w.prediction.score)}</td>
+                          <td className="py-2.5 pl-2 text-right font-[560] whitespace-nowrap tabular-nums max-[1600px]:hidden">{roundPct(x.w.prediction.score)}</td>
                           <td className="py-2.5 pr-2 text-right font-[560] whitespace-nowrap tabular-nums">
                             {fmtLei(x.w.impact.expected_value_lei)}
                           </td>
@@ -293,7 +272,7 @@ function FilterChip({ href, on, tone, children }: { href: string; on: boolean; t
       prefetch={false}
       aria-current={on ? "true" : undefined}
       className={cn(
-        "inline-flex h-9 items-center gap-2 rounded-full border px-4 text-[14.5px] font-[520] whitespace-nowrap transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+        "inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-[14.5px] font-[520] whitespace-nowrap transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
         on ? "border-[#e6e8eb] bg-[#e6e8eb] text-[#0b1322]" : "border-rule text-ink hover:border-ink-soft hover:bg-surface-2",
       )}
     >
@@ -359,8 +338,13 @@ function Approval({ sel, scenario, series }: { sel: Waiting; scenario: string; s
         {q.id ? <span translate="no">{q.id}</span> : null}
         {q.after}
       </h2>
-      <p className="mt-1.5 text-[15px] text-ink-soft">{sel.decision.reason_ro}</p>
+      <p className="mt-3 text-[16px] leading-relaxed text-ink-soft">{sel.decision.reason_ro}</p>
 
+      <details className="group/info mt-5 rounded-xl border border-rule bg-surface-2 p-4">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-medium [&::-webkit-details-marker]:hidden">
+          Datele cazului și explicația modelului
+          <ChevronDown aria-hidden="true" size={18} className="shrink-0 transition-transform group-open/info:rotate-180" />
+        </summary>
       <div className="mt-4 grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)] items-center gap-x-4 gap-y-3 rounded-[12px] border border-rule bg-surface-2 px-4 py-4 max-md:grid-cols-1 max-md:justify-items-start">
         <div className="shrink-0">
           <Gauge value={p.score} label={roundPct(p.score)} sub="scorul modelului" tone={srcTone} size={150} />
@@ -425,7 +409,9 @@ function Approval({ sel, scenario, series }: { sel: Waiting; scenario: string; s
         <p className="mt-3 rounded-[12px] border border-rule bg-surface-2 px-4 py-4 text-[14.5px] text-ink-soft">Nu există o serie pentru acest caz.</p>
       )}
 
-      <div className="mt-4">
+      </details>
+
+      <div className="mt-5">
         <ReviewActions workItemId={w.work_item_id} scenario={scenario} layout="card" />
       </div>
       <p className="mt-3 text-[13.5px] text-ink-soft">

@@ -8,7 +8,7 @@ import { ITEMS, type HomeFilter } from "./filters";
 
 /** Filtrele se aplică detaliilor; propunerea și decizia următoare rămân vizibile. */
 const SHOW: Record<HomeFilter, string[]> = {
-  toate: ["figures", "map", "crews", "gantt", "meter"],
+  toate: ["figures", "map", "crews", "gantt", "meter", "alerts"],
   lucrari: ["figures", "question", "meter"],
   echipe: ["crews", "gantt"],
   trasee: ["crews", "gantt"],
@@ -67,19 +67,19 @@ export function HomeBoard({
   };
 
   return (
-    <>
-      <div className="mt-7">{kpis}</div>
-
-      <div className="mt-5 grid items-start gap-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,1fr)]">
-        <section aria-label="Planul propus" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-6">
-          {plan}
-        </section>
-        <section aria-label="Următoarea decizie" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-6">
+    <div className="flex flex-col">
+      <div className="order-1 mt-6 grid items-start gap-6 md:order-2 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,1fr)]">
+        <section aria-label="Următoarea decizie" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-6 sm:p-7">
           {question.default}
+        </section>
+        <section aria-label="Planul propus" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-6 sm:p-7 xl:order-first">
+          {plan}
         </section>
       </div>
 
-      <details id="detalii-plan" open={initial !== "toate"} className="group mt-7 scroll-mt-24 rounded-2xl border border-rule bg-panel">
+      <div className="order-2 mt-7 md:order-1">{kpis}</div>
+
+      <details id="detalii-plan" open={initial !== "toate"} className="group order-3 mt-7 scroll-mt-24 rounded-2xl border border-rule bg-panel">
         <summary className="flex cursor-pointer list-none items-center gap-3 rounded-2xl p-5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring sm:p-6 [&::-webkit-details-marker]:hidden">
           <SlidersHorizontal aria-hidden="true" size={20} className="shrink-0 text-ink-soft" />
           <span className="min-w-0 flex-1">
@@ -124,6 +124,6 @@ export function HomeBoard({
           ) : null}
         </div>
       </details>
-    </>
+    </div>
   );
 }

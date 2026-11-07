@@ -16,6 +16,7 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 | `10-implementare.md` | **Implementarea**: A, B, C în paralel, cele 6 fire, orchestratorul, alegerile tehnice |
 | `11-bilant-pe-post.md` | **Bilanț pe post** (fir nou) și **scara de soluții pentru tensiune** (C), decizia lui Teo de la 13:45 |
 | `12-probleme-reale-ppc-2026.md` | Research primit de Teo (14:30), neverificat: probleme reale 2026 pe cele 4 companii, cifre pentru B, C, bilanț, A, prezentare |
+| `13-design-console.md` | Audit UI/UX cerut de Teo: consola aliniată cu landingul, lizibilitate, navigare și limitele verificării |
 | `journal.md` | Ce s-a întâmplat și ce s-a decis, cu ora |
 
 ## Reguli
