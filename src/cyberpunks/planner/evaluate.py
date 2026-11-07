@@ -314,6 +314,55 @@ def evaluate(
     }
 
 
+ABLATIONS: dict[str, tuple[str, list[tuple[tuple[str, ...], Any]]]] = {
+    "fara_prag_etic": ("Fără pragul etic (vizită și sub scorul 0,5, dacă merită)", [(("meters", "visit_min_score"), 0.0)]),
+    "greedy_in_loc_de_ortools": ("Aceleași reguli, trasee făcute greedy în loc de OR-Tools", [(("routing", "solver"), "greedy")]),
+}
+
+
+def _with(overrides: list[tuple[tuple[str, ...], Any]], economics: bool = False) -> Settings:
+    s = Settings.load()
+    for path, value in overrides:
+        node = s.economics if economics else s.planner
+        for key in path[:-1]:
+            node = node.setdefault(key, {})
+        node[path[-1]] = value
+    return s
+
+
+def _agent_only(days: int, seed: int, n_meters: int, settings: Settings) -> dict[str, Any]:
+    results = [run_agent(generate_day(d, settings, seed=seed, n_meters=n_meters), settings) for d in range(days)]
+    return _summary(results)
+
+
+def ablations(days: int, seed: int, n_meters: int) -> dict[str, Any]:
+    """Ce aduce fiecare piesă: agentul cu o regulă sau o componentă scoasă, pe aceleași zile."""
+    return {name: {"label_ro": label, **_agent_only(days, seed, n_meters, _with(ov))} for name, (label, ov) in ABLATIONS.items()}
+
+
+def sensitivity(days: int, seed: int, n_meters: int) -> list[dict[str, Any]]:
+    """Agentul față de top_k_scor când variem ipotezele fără sursă (intervalele din docs/research/planificator.md)."""
+    cases = [
+        ("cost_per_customer_hour_lei", ("storm", "cost_per_customer_hour_lei"), [5.5, 15.0]),
+        ("preposition_cost_lei_per_crew_shift", ("storm", "preposition_cost_lei_per_crew_shift"), [1500.0, 4100.0]),
+        ("inspection_visit_cost_lei", ("meters", "inspection_visit_cost_lei"), [180.0, 340.0]),
+    ]
+    out = []
+    for name, path, values in cases:
+        for value in values:
+            s = _with([(path, value)], economics=True)
+            agent_days, base_days = [], []
+            for d in range(days):
+                day = generate_day(d, s, seed=seed, n_meters=n_meters)
+                agent_days.append(run_agent(day, s))
+                base_days.append(run_baseline(day, s, "top_k_scor", seed * 1000 + d))
+            a, b = _summary(agent_days), _summary(base_days)
+            adv = round(100 * (a["net_value_lei_total"] - b["net_value_lei_total"]) / abs(b["net_value_lei_total"]), 1) if b["net_value_lei_total"] else None
+            out.append({"parameter": name, "value": value, "agent_net_lei_per_day": a["net_value_lei_per_day"],
+                        "top_k_scor_net_lei_per_day": b["net_value_lei_per_day"], "agent_advantage_pct": adv})
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Evaluarea agentului față de strategii simple (lume sintetică).")
     ap.add_argument("--days", type=int, default=30)
@@ -337,6 +386,8 @@ def main(argv: list[str] | None = None) -> int:
         report["robustness_overconfident_model"] = evaluate(
             max(10, args.days // 3), args.seed + 1, args.meters, 1.6, settings
         )
+        report["ablations"] = ablations(args.days, args.seed, args.meters)
+        report["sensitivity"] = sensitivity(args.days, args.seed, args.meters)
     report["runtime_s"] = round(time.perf_counter() - t0, 1)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

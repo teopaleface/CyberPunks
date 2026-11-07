@@ -424,6 +424,25 @@ def rule_meters(ctx: Context, item: Item) -> Proposal:
         )
     margin = float(ctx.settings.rule("meters", "medium_confidence_margin", default=0.25)) * visit.total
     th["medium_confidence_margin_lei"] = round(margin, 2)
+    visit_min = float(ctx.settings.rule("meters", "visit_min_score", default=0.0))
+    th["visit_min_score"] = visit_min
+    if pr.score < visit_min and smart and pr.score >= remote_min and ev - remote.total > 0:
+        return _final(
+            item,
+            DecisionType.remote_action,
+            "R-A-REMOTE-FIRST",
+            f"Scor {pct(pr.score)}: e mai probabil ca clientul să nu aibă nicio problemă (pragul pentru o vizită e {pct(visit_min)}), "
+            f"așa că nu trimitem echipa la ușa lui. Întâi citire la distanță ({lei(remote.total)}); vizita doar dacă se confirmă.",
+            "remote_reading",
+            {**th, "remote_min_score": remote_min},
+            costs=remote,
+        )
+    if pr.score < visit_min:
+        return _final(
+            item, DecisionType.deferred, "R-A-WATCH",
+            f"Scor {pct(pr.score)}, sub pragul pentru o vizită ({pct(visit_min)}), iar contorul nu se poate citi de la distanță: urmărire.",
+            "watchlist", {**th, "remote_min_score": remote_min},
+        )
     if pr.confidence == Confidence.high and net_visit > min_net:
         reason = (
             f"{_factors(wi)}. Scor {pct(pr.score)}, încredere mare. Valoarea așteptată {lei(ev)} depășește costul "

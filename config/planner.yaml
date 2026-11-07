@@ -14,6 +14,7 @@ global:
 meters:                             # A
   remote_min_score: 0.3             # sub 0,3, nici citirea la distanță nu merită: contorul intră la urmărire
   medium_confidence_margin: 0.25    # la încredere medie, vizita trebuie să aducă în plus 25% din costul ei (marjă de siguranță)
+  visit_min_score: 0.5              # prag etic: echipa merge la ușa unui client doar dacă problema e mai probabilă decât lipsa ei; sub prag, citire la distanță
   smart_meter_default: true         # dacă lucrarea nu spune altfel (extra.smart_meter), contorul e inteligent și se poate citi de la distanță
 
 storm:                              # B
