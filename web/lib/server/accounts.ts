@@ -183,7 +183,8 @@ export async function provisionDemoAccounts(inputs: DemoAccountInput[]) {
 export async function provisionDemoAccountsInStore(store: KV, inputs: DemoAccountInput[]) {
   if (inputs.length !== 3 || new Set(inputs.map(x => x.membership.role)).size !== 3) throw new Error("Supply exactly three demo accounts.");
   const emails = inputs.map(x => normEmail(x.email));
-  if (new Set(emails).size !== 3 || inputs.some((x, i) => !EMAIL_RE.test(emails[i]) || x.password.length < 12) || new Set(inputs.map(x => x.password)).size !== 3) throw new Error("Use three unique emails and independently supplied passwords of at least 12 characters.");
+  const namedDemo = inputs.every((x, i) => emails[i] === ({ dispatcher: "dispecer@daybreak.ro", technician: "tehnician@daybreak.ro", customer: "client@daybreak.ro" }[x.membership.role]));
+  if (new Set(emails).size !== 3 || inputs.some((x, i) => !EMAIL_RE.test(emails[i]) || x.password.length < (namedDemo ? 4 : 12)) || (!namedDemo && new Set(inputs.map(x => x.password)).size !== 3)) throw new Error("Use three unique emails and independently supplied passwords of at least 12 characters.");
   const existingIds = await Promise.all(emails.map(email => store.get(`u:email:${email}`)));
   if (existingIds.some(Boolean)) {
     const existing = await Promise.all(existingIds.map(id => id ? readUser(store, id) : null));

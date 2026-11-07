@@ -114,7 +114,8 @@ export default function SignInPage() {
   const setMode = (m: Mode) => setParams(signInModeParams(params, m))
 
   const emailErr = touched && !emailOk(email) ? "Enter a valid email, such as name@example.com." : null
-  const passErr = touched && password.length < 6 ? "Use at least 6 characters." : null
+  const passErr = touched && (view === "intra" ? !password.length : password.length < 6)
+    ? (view === "intra" ? "Enter your password." : "Use at least 6 characters.") : null
   const nameErr = touched && view === "cont-nou" && !name.trim() ? "Enter your name so the team can identify your approvals." : null
 
   async function submit(e: FormEvent) {
@@ -132,7 +133,7 @@ export default function SignInPage() {
     }
     if (view === "resetare") return
     if (!emailOk(email)) return
-    if (password.length < 6) return
+    if (view === "intra" ? !password.length : password.length < 6) return
     if (view === "cont-nou" && !name.trim()) return
     setBusy(true)
     if (view === "intra") {
@@ -226,7 +227,7 @@ export default function SignInPage() {
                 onChange={setPassword}
                 autoComplete={view === "intra" ? "current-password" : "new-password"}
                 error={passErr}
-                hint="At least 6 characters."
+                hint={view === "intra" ? undefined : "At least 6 characters."}
                 disabled={busy}
               />
             )}

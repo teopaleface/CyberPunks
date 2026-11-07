@@ -151,3 +151,16 @@ describe("credential-verified local synthetic capability upgrade", () => {
     expect([...f.records]).toEqual(before);
   });
 });
+
+test("explicit named demo accounts accept shared short credentials without broadening other accounts", async () => {
+  const f = fixture();
+  const names = { customer: "client", technician: "tehnician", dispatcher: "dispecer" };
+  for (const input of f.inputs) {
+    input.email = `${names[input.membership.role]}@daybreak.ro`;
+    input.password = "test";
+  }
+  expect((await provisionDemoAccountsInStore(f.store, f.inputs)).length).toBe(3);
+  const foreign = fixture();
+  for (const input of foreign.inputs) input.password = "test";
+  await expect(provisionDemoAccountsInStore(foreign.store, foreign.inputs)).rejects.toThrow();
+});
