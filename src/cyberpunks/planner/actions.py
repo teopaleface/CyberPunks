@@ -28,7 +28,7 @@ from cyberpunks.planner.decide import AlertSpec, Context, NotificationSpec, Prop
 from cyberpunks.planner.ingest import Quarantined, SourceLoad
 from cyberpunks.planner.routing import RoutingResult, at_minutes
 from cyberpunks.planner.settings import TZ
-from cyberpunks.planner.texts import SOURCE_RO, hhmm, lei
+from cyberpunks.planner.texts import hhmm, lei
 
 DROP_RULES = {
     "capacity": ("R-CAPACITY", "Nu a mai încăput în turele de mâine (prioritate {prio}); rămâne pentru planul următor."),
@@ -77,7 +77,8 @@ def finalize(
 ) -> Outcome:
     plan_date = ctx.plan_date
     by_id = {p.id: p for p in proposals}
-    route_ranked = sorted([p for p in proposals if p.route], key=lambda p: (not p.mandatory, -(p.priority or 0.0)))
+    # Lista pe echipe: ordonată după lei pe oră de lucru (valoarea netă / (durata + drumul estimat)); obligatoriile întâi.
+    route_ranked = sorted([p for p in proposals if p.route], key=lambda p: (not p.mandatory, -(p.lei_per_hour or 0.0), -(p.priority or 0.0)))
     rank_of = {p.id: i for i, p in enumerate(route_ranked, 1)}
 
     # ---- 1. decizia finală pentru fiecare propunere
@@ -140,7 +141,15 @@ def finalize(
                          message_ro=spec.message_ro, scheduled_for=spec.scheduled_for, work_item_id=wid, demo_only=True)
         )
 
-    order = sorted(final.values(), key=lambda p: (rank_of.get(p.id, 10**6), -(p.wi.impact.expected_value_lei)))
+    # Ordinea din plan: întâi verificările de la distanță (ieftine, se fac primele), apoi lista pe echipe, apoi restul.
+    def order_key(p: Proposal) -> tuple:
+        if p.decision == DecisionType.remote_action:
+            return (0, 0, -p.wi.impact.expected_value_lei)
+        if p.id in rank_of:
+            return (1, rank_of[p.id], 0.0)
+        return (2, 0, -p.wi.impact.expected_value_lei)
+
+    order = sorted(final.values(), key=order_key)
     for p in order:
         wi = p.wi
         aid = _uid()
@@ -208,14 +217,33 @@ def finalize(
     return Outcome(decisions, audit, alerts, notifications, routes, final)
 
 
+FILE_RO = {"A": "contoare", "A_bilant": "bilanț pe post", "B": "furtună", "C": "tensiune"}
+
+
+def combined_status(loads: dict[str, SourceLoad], source: str) -> str:
+    """Starea unei surse din plan: A acoperă A.jsonl și A_bilant.jsonl. Un fișier opțional care încă nu există nu contează."""
+    parts = [load for key, load in loads.items() if (key[0] == source) and not (load.optional and load.status == "missing")]
+    if not parts:
+        return "missing"
+    statuses = {load.status for load in parts}
+    if statuses == {"ok"}:
+        return "ok"
+    if statuses == {"missing"}:
+        return "missing"
+    return "degraded"
+
+
 def _global_alerts(ctx: Context, final: dict[str, Proposal], loads: dict[str, SourceLoad], routing: RoutingResult, add_alert) -> None:
     for src, load in loads.items():
+        if load.optional and load.status == "missing":
+            continue
+        name = f"{src.replace('_', ' ')} ({FILE_RO.get(src, src)})"
         if load.status == "missing":
-            add_alert(AlertSpec("warning", f"Sursa {src} ({SOURCE_RO[src]}) lipsește", f"Planul merge mai departe fără ea ({load.note or 'nicio lucrare'})."), [])
+            add_alert(AlertSpec("warning", f"Sursa {name} lipsește", f"Planul merge mai departe fără ea ({load.note or 'nicio lucrare'})."), [])
         elif load.status == "degraded":
             why = {"fixture": "date de test (fixture), nu ieșirea modelului", "stale": "o ieșire mai veche a modelului"}.get(load.origin, "")
             bad = f"{len(load.quarantined)} linii respinse din {len(load.items) + len(load.quarantined)}" if load.quarantined else ""
-            add_alert(AlertSpec("warning", f"Sursa {src} ({SOURCE_RO[src]}) e incompletă", ", ".join(x for x in (why, bad, load.note) if x) + "."), [])
+            add_alert(AlertSpec("warning", f"Sursa {name} e incompletă", ", ".join(x for x in (why, bad, load.note) if x) + "."), [])
     invalid = [q.work_item_id for load in loads.values() for q in load.quarantined]
     if invalid:
         add_alert(AlertSpec("warning", f"{len(invalid)} intrări greșite în carantină", "Nu intră în plan; motivele sunt în jurnal și în lista de carantină."), invalid)
@@ -250,7 +278,7 @@ def build_plan(
     return Plan(
         plan_id=plan_id, plan_date=ctx.plan_date, generated_at=generated_at, planner_version=planner_version, scenario=scenario,
         summary=summary, routes=outcome.routes, decisions=outcome.decisions, alerts=outcome.alerts,
-        notifications=outcome.notifications, sources_status={s: loads[s].status for s in "ABC"},
+        notifications=outcome.notifications, sources_status={s: combined_status(loads, s) for s in "ABC"},
     )
 
 
