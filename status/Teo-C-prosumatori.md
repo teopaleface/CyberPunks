@@ -1,7 +1,7 @@
 # Status: Teo-C-prosumatori
-Actualizat: 2026-11-07 13:46
-Milestone curent: M2 (M1 terminat la 13:45, înainte de 17:30)
-Gata de merge: da (commit 7fbe435: M1 complet, `git merge Teo` făcut, `make check` trece, 148 de teste)
+Actualizat: 2026-11-07 14:02
+Milestone curent: M2 în lucru (scara de soluții gata la 14:00; urmează calibrarea și modelul orar)
+Gata de merge: da (commit 41ddaa8: scara de soluții și ofertele de baterii; `git merge Teo` făcut, `make check` trece, 170 de teste)
 
 ## Făcut
 - M0 (13:10): calcul de rețea vectorizat verificat față de pandapower, prima rețea simulată, `docs/research/C.md`.
@@ -18,6 +18,16 @@ Gata de merge: da (commit 7fbe435: M1 complet, `git merge Teo` făcut, `make che
   - `predict.run()` merge dintr-o clonă curată: modelul în `models/release/C/` (9 MB, comprimat), registrul și mostra pentru cazuri similare în `data/samples/C/`.
   - Teste: `tests/c/` (calcul față de pandapower, priză, decizii, intrări greșite, rețele noi, prognoză nesigură).
 
+- 14:00 **Scara de soluții** (`remedies.py`), în `extra.remedy_options` (contractul `RemedyOption`) pentru posturile cu P90 peste 1,10 pu. Efectul fiecărei trepte vine din simularea fizică a postului în ziua țintă (24 de ore), nu e ghicit:
+  - `phase_rebalance`: dezechilibrul pe faze estimat analitic pe sensibilitatea rețelei (casele ≤ 5 kWp monofazate, IPOTEZĂ), plafonat la 0,02 pu (EN 50160: dezechilibru ≤ 2%); încredere mică, fazele reale le poate confirma bilanțul;
+  - `adjust_tap`: o treaptă (verificată față de rețeaua refăcută, diferență sub 5e-4 pu), cu verificarea tensiunii minime de iarnă;
+  - `notify_customers`: participare 10/20/30% simulată (consum mutat din seară în orele cu risc), opriri evitate, textul de grup; P90 după soluție la participarea minimă;
+  - `offer_battery`: 5/10/15 kWh pe profilul fiecărui prosumator, bateria încărcată în orele cu risc, recuperarea cu grantul Casa Verde Baterii 2026; `reports/C/oferte_baterii.md` (108 oferte pe 13 posturi pe 8 iulie 2025);
+  - `export_limit`: cea mai blândă limită care aduce P90 sub limită, costul include energia neinjectată în sezon;
+  - `transformer_upgrade`: post nou (transformator mai mare, rețea împărțită în două).
+  - Alegerea C: cea mai ieftină combinație (până la 3 trepte, măcar una cu încredere medie sau mare) care aduce P90 sub 1,098 pu; motivul spune și de ce nu treptele mai ieftine. `recommended_action` = acțiunea principală.
+  - Pe 8 iulie 2025: 7 × priză, 4 × rebalansare pe faze, 2 × limită de export, 20 de mesaje, 8 urmăriri. `predict.run` durează circa 6,5 s.
+
 ## Urmează (M2, 21:30)
 - Scara de soluții în `extra.remedy_options` (`RemedyOption`), cu efectul calculat cu simularea: `phase_rebalance`, `adjust_tap`, `notify_customers` (participare 10/20/30%), `offer_battery` (5/10/15 kWh pe profil), `export_limit`, `transformer_upgrade`.
 - `reports/C/oferte_baterii.md`, cifrele ANRE din 31 aug. 2026 în explicații și documentație.
@@ -27,6 +37,7 @@ Gata de merge: da (commit 7fbe435: M1 complet, `git merge Teo` făcut, `make che
 - niciunul
 
 ## Cereri către orchestrator
+0. Pentru planificator, despre scară: P90 de pornire al scării e `extra.ladder_base_p90_pu` = P90 al modelului (`prediction.point_interval[1]`, calcul echilibrat) + dezechilibrul estimat pe faze (cel mult 0,02 pu). `p90_after_pu` din fiecare opțiune pornește de la el; combinațiile se aproximează adunând `effect_pu`. Alegerea mea e în `extra.ladder_choice` și `extra.ladder_reason_ro`.
 1. Pentru planificator (`config/economics.yaml`), chei noi pentru scara de soluții, toate IPOTEZĂ până găsim surse:
    - `voltage.notify_participation_rates: [0.10, 0.20, 0.30]`
    - `voltage.phase_rebalance_cost_lei: 350` (o echipă de 2, o oră plus deplasarea)
