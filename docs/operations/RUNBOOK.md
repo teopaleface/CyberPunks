@@ -77,3 +77,11 @@ La cererea lui Teo, integrarea separată /workspace a fost înlocuită cu agentu
 Ask Daybreak deschide un panou în ecranul curent, cu text, voce, selecția cazului și propuneri confirmate explicit. Paginile de detaliu transmit lucrarea deschisă. Butoanele vechi de aprobare și revizuire deschid formularul în același panou, fără scriere sau succes local fictiv. Aprobarea nu se deduce din cookie-uri. Contextul, rolul și scenariul sunt reverificate; după confirmare se actualizează consola.
 
 Verificare locală: trei conturi, desktop 1440×1100 și mobil 390×844, fără alerte sau depășiri; Escape și schimbarea temei; revizuire din detaliul lucrării fără efect automat; o sesizare creată exact o dată prin Confirm; răspuns Codex real în panou; emiterea acreditărilor vocale pentru cele trei roluri. Microfonul și difuzorul fizic nu au fost retestate. Build Next izolat, typecheck și lint trec. Această corecție UI este verificată local.
+
+## Actualizare vocală pentru prezentare
+
+`python3 scripts/daybreak_channels.py tune-presentation` actualizează numai cei trei agenți existenți, verifică dependențele uneltelor, păstrează o copie privată a configurației anterioare și recitește rezultatul. Activează filtrarea vocilor din fundal, v4 Turbo, eager și confirmarea scurtă înaintea cererii. Limita este 10 minute și 30 sesiuni pe zi pentru fiecare rol. Nu pornește conversații și nu trimite mesaje. Notele vocale WhatsApp folosesc Scribe v2 și Eleven v4.
+
+Dacă Meta întoarce 190/463, tokenul temporar a expirat. Generează un token nou în aplicația Meta existentă, apoi rulează `python3 scripts/daybreak_whatsapp_setup.py refresh-token`. Introducerea este ascunsă, iar tokenul se salvează numai după verificarea aplicației, a dreptului de mesagerie și a numărului. Nu îl pune în chat sau în argumentele comenzii. Serviciul îl preia fără restart. Starea confirmată pe 8 noiembrie la 01:54: token expirat, callback activ și verificat, fără probă WhatsApp nouă.
+
+Răspunsul conversațional local măsurat după actualizare este circa 12 secunde; viteza și zgomotul din sala reală rămân de verificat. O notă vocală WhatsApp nu testează detectarea sfârșitului de vorbire din conversația live.

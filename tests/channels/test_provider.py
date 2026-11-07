@@ -19,6 +19,8 @@ def test_cli_command_disables_tools_and_never_uses_full_access(tmp_path):
         assert args[args.index(disabled) - 1] == "--disable"
     assert 'web_search="disabled"' in args and "mcp_servers={}" in args
     assert 'forced_login_method="chatgpt"' in args
+    assert 'service_tier="priority"' in args
+    assert 'model_verbosity="low"' in args
 
 
 @pytest.mark.parametrize("kind", ["command_execution", "file_change", "mcp_tool_call", "web_search"])

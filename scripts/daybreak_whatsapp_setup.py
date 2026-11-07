@@ -4,12 +4,14 @@
 from __future__ import annotations
 
 import argparse
+import getpass
 import json
 import os
 import re
 import secrets
 import signal
 import subprocess
+import sys
 import time
 from pathlib import Path
 from urllib.parse import urlparse
@@ -141,6 +143,36 @@ def connect(callback: str) -> None:
     print("Meta callback and account subscription verified. Replies are enabled only for verified inbound senders.")
 
 
+def refresh_token(token: str) -> None:
+    """Validate a human-generated token using read-only API calls before saving it privately."""
+    token = token.strip()
+    if not 20 <= len(token) <= 8192 or not token.isascii() or any(char.isspace() for char in token):
+        raise SystemExit("Token format is invalid. The existing private configuration was preserved.")
+    config = private_env(CONFIG)
+    ready(config)
+    app_token = APP_ID + "|" + config["DAYBREAK_META_APP_SECRET"]
+    base = "https://graph.facebook.com/" + config["DAYBREAK_META_GRAPH_VERSION"] + "/"
+    with httpx.Client(base_url=base, timeout=30, follow_redirects=False) as client:
+        info = graph(client, "GET", "debug_token", app_token, params={"input_token": token}).get("data", {})
+        expiry = info.get("expires_at", 0)
+        if (
+            not info.get("is_valid") or info.get("app_id") != APP_ID or (expiry and expiry <= time.time())
+            or "whatsapp_business_messaging" not in info.get("scopes", [])
+        ):
+            raise SystemExit("Meta did not verify a current token for this app. The existing token was preserved.")
+        phone = graph(client, "GET", PHONE_ID, token, params={"fields": "id"})
+        if phone.get("id") != PHONE_ID:
+            raise SystemExit("The token did not verify the existing test number. The existing token was preserved.")
+    config["DAYBREAK_META_ACCESS_TOKEN"] = token
+    save(config)
+    if private_env(CONFIG).get("DAYBREAK_META_ACCESS_TOKEN") != token:
+        raise SystemExit("Private token persistence verification failed.")
+    print(json.dumps({
+        "token_verified_and_saved": True, "expires_at_unix": expiry,
+        "worker_restart_required": False, "messages_sent": 0,
+    }))
+
+
 def serve() -> None:
     # Start before connect so Meta can perform its challenge. Sending remains gated in the private configuration.
     from daybreak_runtime import check_ports
@@ -199,11 +231,15 @@ def main() -> None:
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("check")
     sub.add_parser("serve")
+    sub.add_parser("refresh-token", help="Enter a new Meta token privately; verify it before saving.")
     connect_parser = sub.add_parser("connect")
     connect_parser.add_argument("--callback", required=True)
     args = parser.parse_args()
     if args.command == "serve":
         serve()
+    elif args.command == "refresh-token":
+        token = getpass.getpass("Noul token Meta, introducere ascunsă: ") if sys.stdin.isatty() else sys.stdin.read(8193)
+        refresh_token(token)
     elif args.command == "connect":
         connect(args.callback)
     else:
