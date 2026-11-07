@@ -1,0 +1,195 @@
+{
+  "main": {
+    "prevalence_test": 0.10612833453496756,
+    "test_rows": 6935,
+    "test_events": 736,
+    "model": {
+      "pr_auc": 0.23968021402173423,
+      "roc_auc": 0.6891305882084768,
+      "brier": 0.08893108316795854,
+      "log_loss": 0.31538569082040263,
+      "threshold": 0.16,
+      "precision_at_thr": 0.25252525252525254,
+      "recall_at_thr": 0.3736413043478261,
+      "recall_severe_at_thr": 0.453416149068323,
+      "recall_extreme_at_thr": 0.5373134328358209,
+      "alerts_per_100_zone_days": 15.702956020187456,
+      "f1_at_thr": 0.30136986301369867,
+      "pinball_q10": 0.07338588667384792,
+      "pinball_q50": 0.25273285663196826,
+      "pinball_q90": 0.15092443124742067,
+      "pinball_mean": 0.15901439151774563,
+      "coverage_p10_p90": 0.6154891304347826
+    },
+    "clim_month": {
+      "pr_auc": 0.12162756575944211,
+      "roc_auc": 0.5529942811603554,
+      "brier": 0.09475029745404628,
+      "log_loss": 0.33806729719536044,
+      "threshold": 0.1,
+      "precision_at_thr": 0.13175094599243206,
+      "recall_at_thr": 0.5203804347826086,
+      "recall_severe_at_thr": 0.5279503105590062,
+      "recall_extreme_at_thr": 0.5970149253731343,
+      "alerts_per_100_zone_days": 41.917808219178085,
+      "f1_at_thr": 0.21026626406807575,
+      "pinball_q10": 0.0672510941767799,
+      "pinball_q50": 0.24263295874273857,
+      "pinball_q90": 0.14361484080191503,
+      "pinball_mean": 0.1511662979071445,
+      "coverage_p10_p90": 0.782608695652174
+    },
+    "gust_rule": {
+      "pr_auc": 0.1912758717829577,
+      "roc_auc": 0.6112426311747335,
+      "brier": 0.0908795728403336,
+      "log_loss": 0.3245957181756793,
+      "threshold": 0.1,
+      "precision_at_thr": 0.18758526603001363,
+      "recall_at_thr": 0.3736413043478261,
+      "recall_severe_at_thr": 0.484472049689441,
+      "recall_extreme_at_thr": 0.5671641791044776,
+      "alerts_per_100_zone_days": 21.13914924297044,
+      "f1_at_thr": 0.2497729336966394
+    },
+    "gust_rule_70kmh": {
+      "pr_auc": 0.13344361197760807,
+      "roc_auc": 0.5453107136845353,
+      "brier": 0.11824080749819754,
+      "log_loss": 1.633558006132494,
+      "threshold": 0.5,
+      "precision_at_thr": 0.3372093023255814,
+      "recall_at_thr": 0.11820652173913043,
+      "recall_severe_at_thr": 0.13043478260869565,
+      "recall_extreme_at_thr": 0.208955223880597,
+      "alerts_per_100_zone_days": 3.720259552992069,
+      "f1_at_thr": 0.1750503018108652
+    },
+    "clim_county_month": {
+      "pr_auc": 0.1319063656332018,
+      "roc_auc": 0.5712065892465125,
+      "brier": 0.09515770616587899,
+      "log_loss": 0.3420749413687843,
+      "threshold": 0.12000000000000001,
+      "precision_at_thr": 0.1437371663244353,
+      "recall_at_thr": 0.3804347826086957,
+      "recall_severe_at_thr": 0.3167701863354037,
+      "recall_extreme_at_thr": 0.34328358208955223,
+      "alerts_per_100_zone_days": 28.089401586157177,
+      "f1_at_thr": 0.20864381520119224
+    }
+  },
+  "figures": [
+    "fig_pr_curves.png",
+    "fig_reliability.png",
+    "fig_shap_importance.png"
+  ],
+  "train_info": {
+    "rows": 13889,
+    "events": 1334,
+    "counties": 19,
+    "years": [
+      2023,
+      2024
+    ],
+    "states": [
+      "IL",
+      "KY",
+      "MI",
+      "MO",
+      "NY",
+      "OH",
+      "PA",
+      "VA"
+    ]
+  },
+  "loso": {
+    "IL": {
+      "prevalence": 0.08584474885844749,
+      "events": 94,
+      "model_pr_auc": 0.2016611137598308,
+      "model_brier": 0.07492567157197266,
+      "clim_month_pr_auc": 0.11874798631645297,
+      "clim_month_brier": 0.07799796967827857,
+      "gust_rule_pr_auc": 0.18006205536238912,
+      "model_recall_severe": 0.45161290322580644
+    },
+    "KY": {
+      "prevalence": 0.1141552511415525,
+      "events": 125,
+      "model_pr_auc": 0.20056141821005713,
+      "model_brier": 0.09954258517806516,
+      "clim_month_pr_auc": 0.1200893745650088,
+      "clim_month_brier": 0.10205602234170051,
+      "gust_rule_pr_auc": 0.14942786579978456,
+      "model_recall_severe": 0.4482758620689655
+    },
+    "MI": {
+      "prevalence": 0.07488584474885844,
+      "events": 82,
+      "model_pr_auc": 0.23894623205436716,
+      "model_brier": 0.06387493615137704,
+      "clim_month_pr_auc": 0.11028335573338098,
+      "clim_month_brier": 0.06905801250906667,
+      "gust_rule_pr_auc": 0.17320404023473593,
+      "model_recall_severe": 0.5
+    },
+    "MO": {
+      "prevalence": 0.11917808219178082,
+      "events": 87,
+      "model_pr_auc": 0.21085805347092132,
+      "model_brier": 0.10233206665937296,
+      "clim_month_pr_auc": 0.1381279838034169,
+      "clim_month_brier": 0.10519851860092047,
+      "gust_rule_pr_auc": 0.22440679023509297,
+      "model_recall_severe": 0.44
+    },
+    "NY": {
+      "prevalence": 0.10136986301369863,
+      "events": 74,
+      "model_pr_auc": 0.2542685413020429,
+      "model_brier": 0.08661041021695597,
+      "clim_month_pr_auc": 0.10211485940379582,
+      "clim_month_brier": 0.09235085505232075,
+      "gust_rule_pr_auc": 0.2781728654287107,
+      "model_recall_severe": 0.5833333333333334
+    },
+    "OH": {
+      "prevalence": 0.09452054794520548,
+      "events": 69,
+      "model_pr_auc": 0.2460578849012091,
+      "model_brier": 0.07922829281792963,
+      "clim_month_pr_auc": 0.11170693773305851,
+      "clim_month_brier": 0.08552964094309708,
+      "gust_rule_pr_auc": 0.20748624486563239,
+      "model_recall_severe": 0.5
+    },
+    "PA": {
+      "prevalence": 0.1136986301369863,
+      "events": 83,
+      "model_pr_auc": 0.23123908618200495,
+      "model_brier": 0.09697651210405595,
+      "clim_month_pr_auc": 0.11487204516946678,
+      "clim_month_brier": 0.1019977699864918,
+      "gust_rule_pr_auc": 0.24029826571773383,
+      "model_recall_severe": 0.07692307692307693
+    },
+    "VA": {
+      "prevalence": 0.16712328767123288,
+      "events": 122,
+      "model_pr_auc": 0.31738563894976257,
+      "model_brier": 0.13557572725939995,
+      "clim_month_pr_auc": 0.21666629473927362,
+      "clim_month_brier": 0.14282408798414897,
+      "gust_rule_pr_auc": 0.26290775959626234,
+      "model_recall_severe": 0.42857142857142855
+    }
+  },
+  "loso_summary": {
+    "model_pr_auc_mean": 0.2376222461037745,
+    "clim_month_pr_auc_mean": 0.1290761046829818,
+    "gust_rule_pr_auc_mean": 0.21449573590504273,
+    "states_model_beats_clim": 8,
+    "states": 8
+  }
+}

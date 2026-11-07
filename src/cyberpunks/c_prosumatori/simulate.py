@@ -154,7 +154,7 @@ def _init_worker(wx: pd.DataFrame, shapes: pd.DataFrame, sysload: np.ndarray, ou
 def _run_one(spec_dict: dict) -> dict:
     spec = grids.PostSpec(**spec_dict)
     t0 = time.perf_counter()
-    post = grids.build_post(spec)
+    post = grids.build_realistic(spec)
     h = simulate_post(post, _W["wx"], _W["shapes"], _W["sysload"])
     h.to_parquet(os.path.join(_W["out_dir"], "hourly", f"{spec.post_id}.parquet"))
     d = daily(h)
@@ -187,7 +187,9 @@ def run_pool(name: str, specs: list[grids.PostSpec], workers: int = 4) -> pd.Dat
             results.append(r)
             if i % 20 == 0:
                 print(f"  {i}/{len(specs)} posturi, {time.perf_counter() - t0:.0f} s", flush=True)
-    posts = pd.DataFrame([{**r["spec"], **r["features"], "sim_seconds": r["seconds"]} for r in results])
+    # spec_* = parametrii exacți ai simulării (după limitele de realism), ca rețeaua să se poată reconstrui identic
+    posts = pd.DataFrame([{**r["spec"], **r["features"], **{f"spec_{k}": v for k, v in r["spec"].items()}, "sim_seconds": r["seconds"]}
+                          for r in results])
     posts.to_parquet(out_dir / "posts.parquet")
     pd.concat([r["daily"] for r in results]).reset_index().to_parquet(out_dir / "daily.parquet")
     meta = {"posts": len(specs), "hours": len(wx), "start": str(wx.index[0]), "end": str(wx.index[-1]), "seconds": time.perf_counter() - t0}

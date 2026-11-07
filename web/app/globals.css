@@ -1,0 +1,331 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-panel: var(--panel);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-rule: var(--rule);
+  --color-grid: var(--grid);
+  --color-idle: var(--idle);
+  --color-travel: var(--travel);
+  --color-src-a: var(--src-a);
+  --color-src-b: var(--src-b);
+  --color-src-c: var(--src-c);
+  --color-src-c-ink: var(--src-c-ink);
+  --color-att: var(--att);
+  --color-att-ink: var(--att-ink);
+  --color-att-surface: var(--att-surface);
+  --color-ok: var(--ok);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/*
+ * Tema „Panou” (direcția aleasă pe 7 nov., 13:14): disciplina panourilor de dispecerat.
+ * Totul e gri în repaus; culoarea apare doar când înseamnă ceva: sursa unei lucrări (A, B, C)
+ * sau ceva ce cere un om (portocaliu). Culorile surselor sunt validate pentru daltonism
+ * (scriptul abilității dataviz, toate perechile): A #2C6FD9, B #A23C9E, C #D99100.
+ */
+:root {
+  --canvas: #e4e7e6;
+  --panel: #f2f3f1;
+  --ink: #13202a;
+  --ink-soft: #2a3742;
+  --rule: #c3c9c9;
+  --grid: #dce0df;
+  --idle: #9aa4a9;
+  --travel: #56616b;
+  --src-a: #2c6fd9;
+  --src-b: #a23c9e;
+  --src-c: #d99100;
+  --src-c-ink: #8a5c00;
+  --att: #d4430f;
+  --att-ink: #a8360b;
+  --att-surface: #f8e3da;
+  --ok: #2f7d4f;
+
+  --background: var(--canvas);
+  --foreground: var(--ink);
+  --card: var(--panel);
+  --card-foreground: var(--ink);
+  --popover: #fbfbfa;
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: #f2f3f1;
+  --secondary: #e9ecea;
+  --secondary-foreground: var(--ink);
+  --muted: #dde1e0;
+  --muted-foreground: #56616b;
+  --accent: #dde1e0;
+  --accent-foreground: var(--ink);
+  --destructive: #b42318;
+  --border: var(--rule);
+  --input: #8b959c;
+  --ring: var(--ink);
+  --chart-1: var(--src-a);
+  --chart-2: var(--src-b);
+  --chart-3: var(--src-c);
+  --chart-4: #56616b;
+  --chart-5: #9aa4a9;
+  --radius: 0.25rem;
+  --sidebar: var(--panel);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--ink);
+  --sidebar-primary-foreground: #f2f3f1;
+  --sidebar-accent: #dde1e0;
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--rule);
+  --sidebar-ring: var(--ink);
+}
+
+/* Varianta închisă (pentru video, opțională). Culorile surselor sunt pașii validați pe fundal închis. */
+.dark {
+  --canvas: #0a1521;
+  --panel: #0f1d2b;
+  --ink: #e9eef2;
+  --ink-soft: #c9d3dc;
+  --rule: #22344a;
+  --grid: #1a2a3b;
+  --idle: #5d6f81;
+  --travel: #93a3b3;
+  --src-a: #3b82f0;
+  --src-b: #b84fc0;
+  --src-c: #c4880a;
+  --src-c-ink: #e0a42a;
+  --att: #ff6a3d;
+  --att-ink: #ff8a63;
+  --att-surface: #3a1d14;
+  --ok: #4fb57a;
+
+  --background: var(--canvas);
+  --foreground: var(--ink);
+  --card: var(--panel);
+  --card-foreground: var(--ink);
+  --popover: #152637;
+  --popover-foreground: var(--ink);
+  --primary: #e9eef2;
+  --primary-foreground: #0a1521;
+  --secondary: #152637;
+  --secondary-foreground: var(--ink);
+  --muted: #152637;
+  --muted-foreground: #93a3b3;
+  --accent: #1a2e42;
+  --accent-foreground: var(--ink);
+  --destructive: #ff6b5e;
+  --border: var(--rule);
+  --input: #3a4f66;
+  --ring: #e9eef2;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* Cifre aliniate peste tot: consola e plină de ore, scoruri și lei. */
+@layer base {
+  html {
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--src-a) 22%, transparent);
+  }
+}
+
+/* Lățimile fontului Archivo (axa wdth 62–125): cifrele de panou sunt late, orele și ID-urile înguste. */
+@utility num-wide {
+  font-stretch: 122%;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+@utility num-tall {
+  font-stretch: 75%;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+  line-height: 1;
+}
+@utility dense {
+  font-stretch: 88%;
+}
+@utility code-id {
+  font-stretch: 88%;
+  font-weight: 600;
+  letter-spacing: 0.005em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Bara „rulează” din dialogul agentului: indeterminată, fără procente inventate. */
+@keyframes runbar {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(220%);
+  }
+}
+
+/* ---------- Harta planului: markeri DOM peste MapLibre ---------- */
+.plan-map .mk {
+  position: relative;
+  width: 0;
+  height: 0;
+  cursor: pointer;
+}
+.plan-map .mk > svg {
+  position: absolute;
+  left: -18px;
+  top: -18px;
+}
+.plan-map .mk .lab {
+  position: absolute;
+  left: 18px;
+  top: 0;
+  transform: translateY(-50%);
+  display: none;
+  white-space: nowrap;
+  padding: 2px 7px 3px;
+  line-height: 1.22;
+  font-size: 13.5px;
+  color: var(--ink);
+  background: color-mix(in oklab, var(--panel) 92%, transparent);
+  pointer-events: none;
+}
+.plan-map .mk .lab .t {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  font-stretch: 88%;
+}
+.plan-map .mk .lab .s {
+  display: block;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+.plan-map .mk .lab .s.att {
+  color: var(--att-ink);
+  font-weight: 560;
+}
+.plan-map .mk[data-pinned="1"] .lab,
+.plan-map .mk[data-selected="1"] .lab,
+.plan-map .mk:hover .lab,
+.plan-map .mk:focus-visible .lab {
+  display: block;
+}
+.plan-map[data-far] .mk[data-pinned="1"] .lab {
+  display: none;
+}
+.plan-map[data-far] .mk[data-selected="1"] .lab,
+.plan-map[data-far] .mk:hover .lab {
+  display: block;
+}
+.plan-map .mk:hover {
+  z-index: 6;
+}
+.plan-map .mk:focus-visible {
+  outline: none;
+}
+.plan-map .mk:focus-visible > svg {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+  border-radius: 50%;
+}
+.plan-map .mk.depot {
+  cursor: default;
+}
+.plan-map .mk.depot .lab {
+  display: block;
+  left: auto;
+  right: 4px;
+  top: auto;
+  bottom: 6px;
+  transform: none;
+}
+.plan-map[data-far] .mk.depot .lab {
+  display: none;
+}
+.plan-map .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib {
+  margin: 0;
+  padding: 2px 8px;
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--muted-foreground);
+  background: color-mix(in oklab, var(--panel) 92%, transparent);
+}
+.plan-map .maplibregl-ctrl-attrib a {
+  color: var(--muted-foreground);
+}
+.plan-map .maplibregl-ctrl-group {
+  border-radius: 4px;
+  box-shadow: none;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+}

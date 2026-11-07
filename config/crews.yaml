@@ -9,3 +9,7 @@ crews:
   - {crew_id: "E-CT-1", depot_id: "D-CTA", skills: [lv_grid, mv_grid], size: 3}
   - {crew_id: "E-CT-2", depot_id: "D-CTA", skills: [metering, lv_grid], size: 2}
   - {crew_id: "E-TM-1", depot_id: "D-TM", skills: [lv_grid, mv_grid], size: 3}
+  # Adăugate 13:25 la cererea firului B: furtuna din scenariul demo-vara (8 iulie 2025) e în Banat.
+  - {crew_id: "E-AR-1", depot_id: "D-ARD", skills: [lv_grid, mv_grid], size: 3}
+  - {crew_id: "E-RS-1", depot_id: "D-RES", skills: [lv_grid, mv_grid], size: 3}
+  - {crew_id: "E-DV-1", depot_id: "D-DEV", skills: [metering, lv_grid, mv_grid], size: 3}
