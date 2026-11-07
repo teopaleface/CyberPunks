@@ -49,6 +49,7 @@ Pentru prezentare și pentru interfață. Toate cifrele vin din scripturi (coman
 - `reliability.png`: probabilitatea prezisă față de frecvența reală (modelul calibrat stă pe diagonală).
 - `mae_by_topology.png`: eroarea pe fiecare rețea lăsată deoparte la antrenare.
 - `ladder_demo-vara_PT-1252.png`: scara de soluții pentru un post: ce aduce tensiunea sub 1,10 pu și cât costă (efecte simulate).
+- `ladder_demo-vara_PT-1082.png`: scara pentru postul cu dezechilibrul găsit de bilanț (faze + priză + baterii).
 
 ## Mai multe
 
