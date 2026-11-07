@@ -1,0 +1,4 @@
+# regenerable: node render/film3d.mjs frames ...
+assets/frames3d/*.jpg
+.hyperframes/
+node_modules/

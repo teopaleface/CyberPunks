@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Planet Daybreak - previs (Three.js)</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #000f1e; overflow: hidden; }
+    canvas { display: block; width: 100vw; height: 56.25vw; max-height: 100vh; max-width: 177.78vh; margin: auto; }
+  </style>
+  <script type="importmap">
+    { "imports": { "three": "./node_modules/three/build/three.module.js", "three/addons/": "./node_modules/three/examples/jsm/" } }
+  </script>
+</head>
+<body>
+  <canvas id="c" width="1920" height="1080"></canvas>
+  <script type="module" src="./src/planet/main.js"></script>
+</body>
+</html>

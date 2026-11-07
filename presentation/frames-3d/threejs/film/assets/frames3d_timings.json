@@ -1,0 +1,11 @@
+{
+  "spp": 128,
+  "mblur": false,
+  "frames": 6,
+  "seconds": 0.8,
+  "perFrame": 0.132,
+  "size": [
+    1920,
+    1080
+  ]
+}

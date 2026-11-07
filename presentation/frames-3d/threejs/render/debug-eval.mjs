@@ -1,0 +1,11 @@
+import { chromium } from 'playwright-core';
+import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path';
+const ROOT = process.argv[2];
+const server = http.createServer((req, res) => { const p = path.join(ROOT, decodeURIComponent(new URL(req.url,'http://x').pathname)); if (!fs.existsSync(p)||fs.statSync(p).isDirectory()){res.writeHead(404);res.end();return;} res.writeHead(200,{'Content-Type': p.endsWith('.js')?'text/javascript':'text/html'}); fs.createReadStream(p).pipe(res); });
+await new Promise(r=>server.listen(0,'127.0.0.1',r));
+const b = await chromium.launch({ executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless:true, args:['--use-angle=metal','--enable-gpu','--ignore-gpu-blocklist'] });
+const pg = await b.newPage(); pg.on('console', m=>console.log('[pg]', m.text()));
+await pg.goto(`http://127.0.0.1:${server.address().port}/index.html?beat=map&spp=1`);
+await pg.waitForFunction(()=>window.__daybreakReady===true);
+console.log(await pg.evaluate(process.argv[3]));
+await b.close(); server.close();

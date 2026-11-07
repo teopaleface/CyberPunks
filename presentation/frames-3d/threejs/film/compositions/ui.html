@@ -1,0 +1,118 @@
+<template>
+  <style>
+    @font-face { font-family: "Archivo"; src: url("assets/fonts/Archivo-wdth62_125-wght100_900-latin.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+    #root { position: absolute; inset: 0; font-family: "Archivo", sans-serif; color: #f5f7fa; }
+    #ui-map { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
+    #ui-panel { position: absolute; left: 56px; top: 116px; width: 1140px; height: 924px; border: 1px solid rgba(245, 247, 250, 0.12); border-radius: 10px; }
+    #ui-head { position: absolute; left: 0; top: 0; width: 1920px; height: 84px; background: #000f1e; border-bottom: 1px solid rgba(245, 247, 250, 0.1); }
+    #ui-brand { position: absolute; left: 56px; top: 22px; height: 40px; display: flex; align-items: center; gap: 12px; font-size: 34px; font-weight: 720; font-stretch: 110%; letter-spacing: -0.02em; }
+    .ui-sun { width: 14px; height: 14px; border-radius: 50%; background: #fa4616; }
+    #ui-tabs { position: absolute; left: 330px; top: 0; height: 84px; display: flex; gap: 40px; align-items: center; font-size: 20px; font-weight: 540; color: rgba(245, 247, 250, 0.58); }
+    #ui-tabs .on { color: #f5f7fa; position: relative; }
+    #ui-tabs .on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -30px; height: 3px; background: #00a3e0; border-radius: 2px; }
+    #ui-btn { position: absolute; left: 1610px; top: 17px; width: 254px; height: 50px; border-radius: 7px; background: #00a3e0; color: #000f1e; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; letter-spacing: -0.005em; }
+    #ui-rail { position: absolute; left: 1236px; top: 116px; width: 628px; height: 924px; }
+    #ui-rail-t { font-size: 16px; font-weight: 640; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(245, 247, 250, 0.55); height: 36px; }
+    .ui-card { position: relative; height: 200px; margin-bottom: 20px; border-radius: 10px; background: rgba(245, 247, 250, 0.045); border: 1px solid rgba(245, 247, 250, 0.11); overflow: hidden; }
+    .ui-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 7px; }
+    .ui-name { position: absolute; left: 40px; top: 38px; font-size: 38px; font-weight: 700; font-stretch: 106%; letter-spacing: -0.02em; }
+    .ui-stops { position: absolute; left: 40px; top: 96px; font-size: 24px; font-weight: 500; color: rgba(245, 247, 250, 0.72); }
+    .ui-pill { position: absolute; left: 40px; top: 142px; font-size: 15px; font-weight: 640; letter-spacing: 0.14em; text-transform: uppercase; padding: 5px 10px; border-radius: 4px; background: rgba(245, 247, 250, 0.08); color: rgba(245, 247, 250, 0.8); }
+    .ui-spark { position: absolute; right: 30px; top: 30px; width: 250px; height: 140px; overflow: visible; }
+    .ui-skel { position: absolute; left: 40px; height: 18px; border-radius: 4px; background: rgba(245, 247, 250, 0.08); }
+    #ui-word { position: absolute; left: 626px; top: 578px; font-size: 220px; font-weight: 760; font-stretch: 112%; letter-spacing: -0.04em; white-space: nowrap; line-height: 1; }
+    #ui-cursor { position: absolute; left: 0; top: 0; width: 134px; height: 134px; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3)); pointer-events: none; z-index: 20; }
+  </style>
+  <div id="root" data-composition-id="ui" data-width="1920" data-height="1080">
+    <svg id="ui-map" viewBox="0 0 1920 1080" data-layout-allow-overflow>
+      <defs><clipPath id="ui-clip"><circle id="ui-clipc" cx="614" cy="551" r="0" /></clipPath></defs>
+      <g id="ui-mapg" clip-path="url(#ui-clip)">
+        <circle id="ui-disc" cx="614" cy="551" r="380" fill="#03182d" />
+        <circle id="ui-disc-ring" cx="614" cy="551" r="380" fill="none" stroke="rgba(0,163,224,0.35)" stroke-width="2" />
+        <g id="ui-field"></g><g id="ui-roads"></g><g id="ui-houses"></g><g id="ui-depot"></g>
+      </g>
+    </svg>
+    <div id="ui-panel"></div>
+    <div id="ui-head">
+      <div id="ui-brand"><span class="ui-sun"></span><span id="ui-brand-t">Daybreak</span></div>
+      <div id="ui-tabs"><span class="on">Tomorrow's plan</span><span>Not sure</span><span>Alerts</span><span>Log</span></div>
+      <div id="ui-btn">Plan tomorrow</div>
+    </div>
+    <div id="ui-rail">
+      <div id="ui-rail-t">Crews tomorrow</div>
+      <div class="ui-card" id="ui-c1"><div class="ui-bar" style="background:#fa4616"></div><div class="ui-skel" style="top:46px;width:180px"></div><div class="ui-skel" style="top:96px;width:120px"></div>
+        <div class="ui-fill"><div class="ui-name">Crew 1</div><div class="ui-stops">4 stops</div><div class="ui-pill">Ready</div><svg class="ui-spark" viewBox="0 0 250 140"><path class="ui-route" pathLength="1" fill="none" stroke="#fa4616" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 1.2" stroke-dashoffset="1.1" /></svg></div></div>
+      <div class="ui-card" id="ui-c2"><div class="ui-bar" style="background:#00a3e0"></div><div class="ui-skel" style="top:46px;width:180px"></div><div class="ui-skel" style="top:96px;width:120px"></div>
+        <div class="ui-fill"><div class="ui-name">Crew 2</div><div class="ui-stops">3 stops</div><div class="ui-pill">Ready</div><svg class="ui-spark" viewBox="0 0 250 140"><path class="ui-route" pathLength="1" fill="none" stroke="#00a3e0" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 1.2" stroke-dashoffset="1.1" /></svg></div></div>
+      <div class="ui-card" id="ui-c3"><div class="ui-bar" style="background:#163fe8"></div><div class="ui-skel" style="top:46px;width:180px"></div><div class="ui-skel" style="top:96px;width:120px"></div>
+        <div class="ui-fill"><div class="ui-name">Crew 3</div><div class="ui-stops">3 stops</div><div class="ui-pill">Ready</div><svg class="ui-spark" viewBox="0 0 250 140"><path class="ui-route" pathLength="1" fill="none" stroke="#163fe8" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 1.2" stroke-dashoffset="1.1" /></svg></div></div>
+    </div>
+    <div id="ui-word">Daybreak</div>
+    <svg id="ui-cursor" viewBox="0 0 24 24"><path d="M3 2 L3 20 L7.6 15.9 L10.7 22.5 L13.7 21.1 L10.7 14.6 L16.8 14.4 Z" fill="#ffffff" stroke="#111111" stroke-width="1.3" stroke-linejoin="round" /></svg>
+  </div>
+  <script>
+    (function () {
+      const NS = "http://www.w3.org/2000/svg";
+      const M = DB.map;
+      const tl = gsap.timeline({ paused: true });
+      const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+      const poly = (pts) => pts.map((p) => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
+      // ---- the PPC map, registered to the flat 3D map (camera static 9.62 -> 10.309)
+      const [cx, cy] = M.center;
+      const R = M.radius;
+      for (const id of ["ui-clipc", "ui-disc", "ui-disc-ring"]) { const c = document.getElementById(id); c.setAttribute("cx", cx); c.setAttribute("cy", cy); if (id !== "ui-clipc") c.setAttribute("r", R); }
+      el("polygon", { points: poly(M.field), fill: "none", stroke: "rgba(232,179,42,0.7)", "stroke-width": 2, "stroke-dasharray": "3 7" }, document.getElementById("ui-field"));
+      const roadsG = document.getElementById("ui-roads");
+      M.roads.forEach((r) => {
+        el("polyline", { class: "ui-road", points: poly(r.pts), fill: "none", stroke: "#00a3e0", "stroke-width": (r.w * M.pxPerUnit * 0.62).toFixed(1), "stroke-linecap": "round", "stroke-linejoin": "round", pathLength: 1, "stroke-dasharray": "1 1.2", "stroke-dashoffset": 1.1, opacity: r.kind === "asphalt" ? 1 : 0.78 }, roadsG);
+      });
+      const hG = document.getElementById("ui-houses");
+      const houses = M.houses.map((h) => el("polygon", { class: "ui-house", points: poly(h.quad), fill: "#f5f7fa" }, hG));
+      el("polygon", { id: "ui-dep", points: poly(M.depot), fill: "rgba(250,70,22,0.18)", stroke: "#fa4616", "stroke-width": 3 }, document.getElementById("ui-depot"));
+      // crew spark lines from the real route shapes
+      M.routes.forEach((r, i) => {
+        const xs = r.pts.map((p) => p[0]), ys = r.pts.map((p) => p[1]);
+        const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+        const k = Math.min(230 / (x1 - x0 || 1), 120 / (y1 - y0 || 1));
+        const d = "M" + r.pts.map((p) => ((p[0] - x0) * k + 10).toFixed(1) + " " + ((p[1] - y0) * k + 10).toFixed(1)).join(" L");
+        document.querySelectorAll("#ui-c" + (i + 1) + " .ui-route")[0].setAttribute("d", d);
+      });
+
+      // ---- 9.474 (local 0): the console slams in, mid-motion at the cut
+      tl.fromTo("#ui-head", { y: -46 }, { y: 0, duration: 0.3, ease: "power4.out" }, 0);
+      tl.fromTo("#ui-rail", { x: 90, opacity: 0.4 }, { x: 0, opacity: 1, duration: 0.34, ease: "power4.out" }, 0);
+      tl.fromTo("#ui-panel", { scale: 1.04, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "power3.out" }, 0);
+      // big wordmark lands (arrival), then docks into the header
+      tl.fromTo("#ui-word", { xPercent: -50, yPercent: -50, scale: 1.4, opacity: 0, filter: "blur(14px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.24, ease: "power3.out" }, 0);
+      tl.to("#ui-word", { x: -626 + 56 + 26 + 72, y: -578 + 42, scale: 34 / 220, duration: 0.32, ease: "power3.inOut" }, 0.24);
+      tl.fromTo("#ui-brand-t", { opacity: 0 }, { opacity: 1, duration: 0.01 }, 0.56);
+      tl.to("#ui-word", { opacity: 0, duration: 0.01 }, 0.56);
+      // cursor already parked on the button; the click on 9.543 (local 0.069) ignites the plan
+      const tip = [1737, 42];
+      gsap.set("#ui-cursor", { x: tip[0] - 0.125 * 134 + 26, y: tip[1] - 0.083 * 134 + 46 });
+      tl.fromTo("#ui-cursor", { x: tip[0] - 16.8 + 60, y: tip[1] - 11.1 + 120 }, { x: tip[0] - 16.8, y: tip[1] - 11.1, duration: 0.069, ease: "power2.out" }, 0);
+      tl.to("#ui-cursor", { scale: 0.84, duration: 0.1, ease: "power2.in", transformOrigin: "12.5% 8.3%" }, 0.069);
+      tl.to("#ui-cursor", { scale: 1, duration: 0.22, ease: "power2.out", transformOrigin: "12.5% 8.3%" }, 0.169);
+      tl.to("#ui-btn", { scale: 0.94, backgroundColor: "#3cc0f0", duration: 0.1, ease: "power2.in" }, 0.069);
+      tl.to("#ui-btn", { scale: 1, backgroundColor: "#00a3e0", duration: 0.24, ease: "power2.out" }, 0.169);
+      // map: radial wipe, roads trim on, houses pop outward from the centre
+      tl.fromTo("#ui-clipc", { attr: { r: 0 } }, { attr: { r: R + 4 }, duration: 0.42, ease: "power3.out" }, 0.12);
+      tl.fromTo(".ui-road", { strokeDashoffset: 1.1 }, { strokeDashoffset: 0, duration: 0.42, ease: "power2.inOut", stagger: 0.04 }, 0.16);
+      const order = houses.map((h, i) => [i, Math.hypot(M.houses[i].roof[0] - cx, M.houses[i].roof[1] - cy)]).sort((a, b) => a[1] - b[1]).map((a) => houses[a[0]]);
+      tl.fromTo(order, { scale: 0, transformOrigin: "50% 50%", transformBox: "fill-box" }, { scale: 1, duration: 0.22, ease: "back.out(1.6)", stagger: 0.012 }, 0.26);
+      tl.fromTo("#ui-dep", { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "power2.out" }, 0.3);
+      // crew cards fill in (stagger), spark routes draw
+      tl.to(".ui-skel", { opacity: 0, duration: 0.12, ease: "power2.out" }, 0.1);
+      tl.fromTo(".ui-fill", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.32, ease: "power3.out", stagger: 0.07 }, 0.14);
+      tl.fromTo(".ui-route", { strokeDashoffset: 1.1 }, { strokeDashoffset: 0, duration: 0.5, ease: "power2.inOut", stagger: 0.07 }, 0.22);
+      // cursor leaves the frame (down), its job done
+      tl.to("#ui-cursor", { y: 1200, x: tip[0] - 16.8 + 140, duration: 0.5, ease: "power2.in" }, 0.52);
+      // 10.309 (local 0.835): the map rolls back into the planet, the console clears
+      tl.to("#ui-mapg", { opacity: 0, duration: 0.16, ease: "power2.in" }, 0.8);
+      tl.to("#ui-head", { y: -96, duration: 0.36, ease: "power4.in" }, 0.835);
+      tl.to("#ui-rail", { x: 720, duration: 0.42, ease: "power4.in" }, 0.835);
+      tl.to("#ui-panel", { opacity: 0, scale: 1.05, duration: 0.3, ease: "power3.in" }, 0.835);
+      window.__timelines["ui"] = tl;
+    })();
+  </script>
+</template>

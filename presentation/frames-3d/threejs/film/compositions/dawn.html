@@ -1,0 +1,58 @@
+<template>
+  <style>
+    @font-face { font-family: "Archivo"; src: url("assets/fonts/Archivo-wdth62_125-wght100_900-latin.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+    #root { position: absolute; inset: 0; font-family: "Archivo", sans-serif; color: #f5f7fa; }
+    #dw-svg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
+    #dw-num { position: absolute; left: 180px; top: 120px; font-size: 250px; line-height: 0.92; font-weight: 800; font-stretch: 112%; letter-spacing: -0.045em; color: #fa4616; white-space: nowrap; }
+    #dw-num .w, #dw-sub .w { display: inline-block; overflow: hidden; padding: 0 0.03em 0.1em; margin-bottom: -0.1em; vertical-align: top; }
+    #dw-num .wi, #dw-sub .wi { display: inline-block; }
+    #dw-sub { position: absolute; left: 192px; top: 392px; font-size: 56px; line-height: 1.05; font-weight: 680; font-stretch: 106%; letter-spacing: -0.022em; white-space: nowrap; }
+    #dw-note { position: absolute; left: 194px; top: 478px; font-size: 25px; font-weight: 560; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(245, 247, 250, 0.6); }
+  </style>
+  <div id="root" data-composition-id="dawn" data-width="1920" data-height="1080">
+    <svg id="dw-svg" viewBox="0 0 1920 1080" data-layout-allow-overflow>
+      <defs>
+        <mask id="dw-mask" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="0" y="0" width="1920" height="1080">
+          <rect x="0" y="0" width="1920" height="1080" fill="#fff" />
+          <circle id="dw-planet" cx="960" cy="950" r="380" fill="#000" />
+        </mask>
+      </defs>
+      <circle id="dw-sun" cx="1700" cy="600" r="64" fill="#fa4616" mask="url(#dw-mask)" />
+    </svg>
+    <div id="dw-num">+49%</div>
+    <div id="dw-sub">Same crews. More value.</div>
+    <div id="dw-note">30-day simulation</div>
+  </div>
+  <script>
+    (function () {
+      const S0 = 20.457, D = 5.433;
+      const tl = gsap.timeline({ paused: true });
+      DB.drive(tl, S0, D, (t) => {
+        // the sun rises from behind the planet's curved horizon (upper right of the limb),
+        // on the side the 3D sun light comes from
+        const p = DB.planet(t);
+        const k = Math.max(0, Math.min(1, (t - 20.7) / (23.6 - 20.7)));
+        const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+        const ang = (-38 + 10 * e) * Math.PI / 180; // from vertical, clockwise
+        const sr = 74, d = p.r - sr * 1.1 + e * (sr * 2.6);
+        const sun = document.getElementById("dw-sun");
+        sun.setAttribute("r", sr);
+        sun.setAttribute("cx", (p.x + Math.sin(-ang) * d).toFixed(1)); sun.setAttribute("cy", (p.y - Math.cos(ang) * d).toFixed(1));
+        const pl = document.getElementById("dw-planet");
+        pl.setAttribute("cx", p.x.toFixed(1)); pl.setAttribute("cy", p.y.toFixed(1)); pl.setAttribute("r", (p.r * 0.995).toFixed(1));
+      });
+      // +49% on the big hit 22.012 (local 1.555)
+      const n = DB.words(document.getElementById("dw-num"));
+      const s = DB.words(document.getElementById("dw-sub"));
+      tl.fromTo(n, { yPercent: 105 }, { yPercent: 0, duration: 0.6, ease: "power4.out" }, 1.555);
+      tl.fromTo("#dw-num", { scale: 1.08, transformOrigin: "0% 100%" }, { scale: 1, duration: 0.9, ease: "power3.out" }, 1.555);
+      tl.fromTo(s, { yPercent: 110 }, { yPercent: 0, duration: 0.5, ease: "power4.out", stagger: 0.06 }, 1.555 + 0.28);
+      tl.fromTo("#dw-note", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 2.322);
+      // lift away as the camera pulls back (25.89)
+      tl.to([...n, ...s], { yPercent: -110, duration: 0.32, ease: "power3.in", stagger: 0.03 }, D - 0.42);
+      tl.to("#dw-note", { opacity: 0, duration: 0.2, ease: "power2.in" }, D - 0.3);
+      tl.to("#dw-sun", { opacity: 0, duration: 0.3, ease: "power2.in" }, D - 0.3);
+      window.__timelines["dawn"] = tl;
+    })();
+  </script>
+</template>

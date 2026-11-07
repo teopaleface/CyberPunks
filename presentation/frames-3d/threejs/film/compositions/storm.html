@@ -1,0 +1,81 @@
+<template>
+  <style>
+    @font-face { font-family: "Archivo"; src: url("assets/fonts/Archivo-wdth62_125-wght100_900-latin.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+    #root { position: absolute; inset: 0; font-family: "Archivo", sans-serif; color: #f5f7fa; }
+    #st-svg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
+    #st-svg text { font-family: "Archivo", sans-serif; font-weight: 700; font-stretch: 116%; fill: #f5f7fa; letter-spacing: 0.04em; }
+    #st-head { position: absolute; left: 192px; top: 176px; font-size: 104px; line-height: 1; font-weight: 720; font-stretch: 108%; letter-spacing: -0.028em; white-space: nowrap; }
+    #st-head .w { display: inline-block; overflow: hidden; padding: 0 0.02em 0.12em; margin-bottom: -0.12em; vertical-align: top; }
+    #st-head .wi { display: inline-block; }
+  </style>
+  <div id="root" data-composition-id="storm" data-width="1920" data-height="1080">
+    <svg id="st-svg" viewBox="0 0 1920 1080" data-layout-allow-overflow data-layout-allow-overlap>
+      <defs>
+        <path id="st-path" d="M0 0" />
+        <mask id="st-mfront" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="-2000" y="-2000" width="6000" height="6000">
+          <rect id="st-mf-rect" x="-2000" y="540" width="6000" height="4000" fill="#fff" />
+        </mask>
+        <mask id="st-mback" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="-2000" y="-2000" width="6000" height="6000">
+          <rect id="st-mb-rect" x="-2000" y="-3460" width="6000" height="4000" fill="#fff" />
+          <circle id="st-mb-planet" cx="960" cy="540" r="200" fill="#000" />
+        </mask>
+      </defs>
+      <g id="st-ring">
+        <g id="st-ringtilt">
+          <text id="st-back" mask="url(#st-mback)" opacity="0.32" data-layout-allow-overlap><textPath id="st-tp-back" href="#st-path" lengthAdjust="spacing"><tspan class="st-w1">STORM</tspan><tspan class="st-w2"> HITS</tspan><tspan class="st-w3"> BANAT.</tspan><tspan class="st-w4"> ·  STORM HITS BANAT.  ·</tspan></textPath></text>
+          <text id="st-front" mask="url(#st-mfront)" data-layout-allow-overlap><textPath id="st-tp-front" href="#st-path" lengthAdjust="spacing"><tspan class="st-w1">STORM</tspan><tspan class="st-w2"> HITS</tspan><tspan class="st-w3"> BANAT.</tspan><tspan class="st-w4"> ·  STORM HITS BANAT.  ·</tspan></textPath></text>
+        </g>
+      </g>
+    </svg>
+    <div id="st-head">Homes go dark.</div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const path = document.getElementById("st-path");
+      const tps = [document.getElementById("st-tp-front"), document.getElementById("st-tp-back")];
+      const texts = [document.getElementById("st-front"), document.getElementById("st-back")];
+      const tilt = document.getElementById("st-ringtilt");
+      const mf = document.getElementById("st-mf-rect"), mb = document.getElementById("st-mb-rect"), mp = document.getElementById("st-mb-planet");
+      const ringScale = { k: 1 };
+      // the ring follows the planet (tracked) and slides around it (orbit)
+      DB.drive(tl, 0, 6.432, (t) => {
+        const p = DB.planet(t);
+        const k = ringScale.k;
+        const rx = p.r * 1.62 * k, ry = p.r * 0.4 * k;
+        const th0 = 0.9 - 0.16 * t; // text slides leftwards on the front half
+        const pts = [];
+        const n = 96;
+        for (let i = 0; i <= n; i++) {
+          const th = th0 + (i / n) * Math.PI * 2;
+          pts.push((p.x - rx * Math.cos(th)).toFixed(1) + " " + (p.y + ry * Math.sin(th)).toFixed(1));
+        }
+        path.setAttribute("d", "M" + pts.join(" L"));
+        const per = Math.PI * (3 * (rx + ry) - Math.sqrt((3 * rx + ry) * (rx + 3 * ry)));
+        const fs = Math.max(18, per / 33);
+        for (const tp of tps) tp.setAttribute("textLength", (per * 0.995).toFixed(1));
+        for (const tx of texts) tx.setAttribute("font-size", fs.toFixed(1));
+        tilt.setAttribute("transform", `rotate(-8 ${p.x.toFixed(1)} ${p.y.toFixed(1)})`);
+        mf.setAttribute("y", p.y.toFixed(1));
+        mb.setAttribute("y", (p.y - 4000).toFixed(1));
+        mp.setAttribute("cx", p.x.toFixed(1)); mp.setAttribute("cy", p.y.toFixed(1)); mp.setAttribute("r", (p.r * 0.985).toFixed(1));
+      });
+      // typed on the beats: one word per beat, the rest of the ring on the 4th
+      const beatsW = [0.186, 0.975, 1.741, 2.531];
+      ["st-w1", "st-w2", "st-w3", "st-w4"].forEach((c, i) => {
+        tl.fromTo(`.${c}`, { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "power2.out" }, beatsW[i]);
+      });
+      // ring exits: widens and dissolves into the storm (2.95 -> 3.297)
+      tl.fromTo(ringScale, { k: 1 }, { k: 1.35, duration: 0.42, ease: "power3.in" }, 2.88);
+      tl.fromTo("#st-ring", { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power2.in" }, 3.0);
+      // "Homes go dark." one word per beat, then the line dims with the houses
+      const ws = DB.words(document.getElementById("st-head"));
+      [3.297, 4.087, 4.876].forEach((b, i) => {
+        tl.fromTo(ws[i], { yPercent: 115 }, { yPercent: 0, duration: 0.5, ease: "power4.out" }, b);
+      });
+      tl.fromTo("#st-head", { color: "#f5f7fa" }, { color: "rgba(245,247,250,0.34)", duration: 0.22, ease: "power2.out" }, 5.642);
+      tl.to(ws, { yPercent: -115, duration: 0.3, ease: "power3.in", stagger: 0.035 }, 6.06);
+      window.__timelines["storm"] = tl;
+    })();
+  </script>
+</template>

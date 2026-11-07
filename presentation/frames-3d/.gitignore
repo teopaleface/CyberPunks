@@ -3,3 +3,11 @@ threejs/node_modules/
 **/frames_tmp/
 **/tmp/
 *.blend1
+# Blender: fișierele .blend și texturile descărcate sunt mari și se refac din scripts/ (build_planet.py, fetch_assets.py)
+blender/*.blend
+blender/assets/
+blender/qa/
+blender/stills/*.png
+# Three.js: cadrele 3D și randările se refac cu render/film3d.mjs; randările cu muzica rămân locale
+threejs/film/renders/
+threejs/film/assets/frames3d/
