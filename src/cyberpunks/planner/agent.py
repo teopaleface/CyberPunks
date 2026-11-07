@@ -4,7 +4,8 @@
 
 - Perceive: configurația (echipe, baze, praguri, ipoteze), scenariul și data, ce date și modele există.
 - Estimate: modelele noastre A, B, C (`cyberpunks.<fir>.predict.run(scenario, date)`). Dacă un model lipsește
-  sau dă eroare, se folosește ultima lui ieșire, apoi exemplele din contracts/fixtures/; sursa e marcată.
+  sau dă eroare, se folosește ultima lui ieșire pentru aceeași zi; altfel sursa e „lipsă”, cu motivul (exemplele din
+  contracts/fixtures/ se folosesc doar în modul fixtures, cerut explicit).
 - Decide: validarea (carantina), regulile cu prag (decide.py), traseele (routing.py).
 - Act: planul, jurnalul, alertele, notificările, raportul și ordinele de lucru, în outputs/plans/<scenariu>/.
 """
@@ -126,11 +127,19 @@ def estimate(scenario: str, plan_date: Date | None, mode: Mode, out_root: Path, 
                 except (Exception, SystemExit) as exc:  # noqa: BLE001 - un model căzut (chiar cu SystemExit) nu oprește planul
                     note = f"modelul {src} a dat eroare: {type(exc).__name__}: {str(exc)[:200]}"
         if mode != "fixtures" and existing.exists():
+            existing_date = infer_plan_date([existing])
+            if mode == "auto" and plan_date is not None and existing_date is not None and existing_date != plan_date:
+                # Ieșirea veche (rezerva unui model căzut) e pentru altă zi: lucrările ei ar ajunge toate în carantină.
+                # Sursa e lipsă, cu motivul. În modul `existing`, fișierul dat se citește oricum (verificarea datelor greșite).
+                why = f"ieșirea existentă a modelului e pentru {existing_date.isoformat()}, nu pentru {plan_date.isoformat()}"
+                picks[src] = SourcePick(None, "missing", (note + "; " if note else "") + why, time.perf_counter() - t0)
+                continue
             origin: Origin = "stale" if note and "eroare" in note else "model"
             picks[src] = SourcePick(existing, origin, note or "ieșirea existentă a modelului", time.perf_counter() - t0)
             continue
-        if mode != "existing" and FIXTURES[src].exists() and (plan_date is None or plan_date == fixture_date):
-            picks[src] = SourcePick(FIXTURES[src], "fixture", (note + "; " if note else "") + "exemple din contracts/fixtures/", time.perf_counter() - t0)
+        if mode == "fixtures" and FIXTURES[src].exists() and (plan_date is None or plan_date == fixture_date):
+            # Doar în modul fixtures, cerut explicit (teste, dezvoltarea interfeței): exemplele nu țin locul unui model căzut.
+            picks[src] = SourcePick(FIXTURES[src], "fixture", "exemple din contracts/fixtures/ (mod fixtures, cerut explicit)", time.perf_counter() - t0)
             continue
         picks[src] = SourcePick(None, "missing", note or "nicio ieșire pentru data planului", time.perf_counter() - t0)
     return picks
@@ -381,6 +390,8 @@ def _decide_and_act(
         for wid, p in outcome.final.items()
     }
     write_json(plan_dir / "actions.json", actions)
+    # Titlul deciziei, acolo unde tipul ei singur ar înșela (scara C: „mesaj către clienți” pentru o soluție în trei pași).
+    write_json(plan_dir / "titles.json", {wid: p.ladder["title_ro"] for wid, p in outcome.final.items() if p.ladder and p.ladder.get("title_ro")})
     try:
         from cyberpunks.planner.workorders import write_work_orders
 
@@ -441,14 +452,7 @@ def run(
 
     t1 = time.perf_counter()
     picks = estimate(scenario, plan_date, mode, out_root, settings)
-    fixture_date = _fixture_date()
-    if mode == "auto" and date is None and fixture_date and fixture_date != plan_date and all(picks[k].origin == "missing" for k in "ABC"):
-        # Niciun model nu are încă ieșiri pentru data scenariului: planul rulează pe exemple, marcat clar (surse "degraded").
-        note = f"nicio ieșire de model pentru {plan_date.isoformat()}; plan pe exemplele din contracts/fixtures/ ({fixture_date.isoformat()})"
-        plan_date = fixture_date
-        picks = estimate(scenario, plan_date, "fixtures", out_root)
-        for pick in picks.values():
-            pick.note = f"{note}; {pick.note}"
+    # Un model care nu poate da rezultate pentru ziua planului rămâne „lipsă”, cu motivul; exemplele de test nu îi iau locul.
     timings["estimate"] = round(time.perf_counter() - t1, 3)
 
     plan_dir = out_root / "plans" / scenario

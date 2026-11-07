@@ -144,3 +144,23 @@ def test_remote_first_text_never_asks_for_a_score_above_100_percent(out_root: Pa
     mid = d[near["work_item_id"]]  # valoarea sigură (400 lei) acoperă vizita, cea așteptată nu: pragul are sens și se scrie
     assert mid.rule_id == "R-A-REMOTE-FIRST" and "scorul ar trebui să fie peste" in mid.reason_ro
     assert 0 < mid.threshold["breakeven_score"] <= 1
+
+
+def test_failing_models_are_missing_never_fixtures(out_root: Path, monkeypatch) -> None:
+    """QA-ul orchestratorului (17:55): când niciun model nu poate da mâine, sursele apar „lipsă”, cu motivul, iar planul
+    rămâne pe data scenariului; exemplele din contracts/fixtures/ nu țin locul modelelor."""
+    monkeypatch.setattr(agent, "PREDICTORS", {k: f"cyberpunks.nu_exista_{k.lower()}" for k in agent.PREDICTORS})
+    res = agent.run(SCENARIO, date=DATE, mode="auto", out_root=out_root)
+    assert str(res.plan.plan_date) == DATE and res.plan.decisions == []
+    assert set(res.plan.sources_status.values()) == {"missing"}
+    sources = res.meta["sources"]
+    assert all(info["origin"] == "missing" and "nu e încă disponibil" in info["note"] for info in sources.values())
+
+
+def test_an_output_for_another_day_is_missing_not_quarantined(out_root: Path, monkeypatch) -> None:
+    monkeypatch.setattr(agent, "PREDICTORS", {k: f"cyberpunks.nu_exista_{k.lower()}" for k in agent.PREDICTORS})
+    write_items(out_root, "A", fixture_items("A"))  # exemplele sunt pentru 9 noiembrie
+    res = agent.run(SCENARIO, date="2026-11-10", mode="auto", out_root=out_root)
+    info = res.meta["sources"]["A"]
+    assert info["origin"] == "missing" and "e pentru 2026-11-09, nu pentru 2026-11-10" in info["note"]
+    assert res.plan.summary.items_invalid == 0
