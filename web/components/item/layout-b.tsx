@@ -130,7 +130,7 @@ function CustomersCard({ ctx }: { ctx: ItemCtx }) {
   const n = p.point_estimate ?? ctx.w.impact.customers_affected;
   return (
     <Card title="Clienți" icon={Users} iconTone="blue" className="w-full">
-      <Headline className="text-[30px]">{n != null ? `${fmtInt(n)} clienți` : "–"}</Headline>
+      <Headline className="text-[30px]">{n != null ? plural(n, "client", "clienți") : "–"}</Headline>
       <p className="mt-1 text-[14.5px] text-ink-soft">Impact estimat (P50).</p>
       {p.point_interval ? <p className="mt-2 text-[14.5px] text-ink-soft">Interval P10–P90: {fmtInt(p.point_interval[0])}–{fmtInt(p.point_interval[1])}</p> : null}
     </Card>

@@ -222,7 +222,7 @@ export function QuestionBody({ item, scenario }: { item: WorkItem | null; scenar
   if (Number.isFinite(item.impact.expected_value_lei)) rows.push({ icon: Coins, text: fmtLei(item.impact.expected_value_lei), label: "Valoare așteptată" });
   if (win?.start && win?.end) rows.push({ icon: CalendarDays, text: `${fmtTime(win.start)}–${fmtTime(win.end)}`, label: "Fereastra de timp" });
   else if (Number.isFinite(item.impact.urgency_hours)) rows.push({ icon: CalendarDays, text: `în ${fmtInt(item.impact.urgency_hours)} h`, label: "Urgență" });
-  if (typeof item.impact.customers_affected === "number") rows.push({ icon: Users, text: `${fmtInt(item.impact.customers_affected)} clienți`, label: "Clienți afectați" });
+  if (typeof item.impact.customers_affected === "number") rows.push({ icon: Users, text: plural(item.impact.customers_affected, "client", "clienți"), label: "Clienți afectați" });
   const tone: Tone = SOURCE_TONE_OF[item.source];
   return (
     <>
