@@ -1,6 +1,6 @@
 # Status: Teo-A-contoare
-Actualizat: 2026-11-07 15:27
-Milestone curent: M4 gata (15:26). LIBER: pot ajuta la alt fir (de exemplu B)
+Actualizat: 2026-11-07 15:24
+Milestone curent: M4 gata (15:24). LIBER: pot ajuta la alt fir (de exemplu B)
 Gata de merge: da (commit f01a8f2)
 
 ## Făcut
@@ -100,4 +100,4 @@ Comenzile: `make a-evaluate` (sau `uv run python -m cyberpunks.a_contoare.evalua
 - 14:10 Lucrările sigure își păstrează acțiunea până la 250 pe zi, după valoare. Urmărirea rămâne doar pentru valoare sub 20% dintr-o vizită. Tăierea pe capacitate o face planificatorul.
 - 14:20 Alegerea features pe validare din antrenare (gospodării ținute deoparte), ca funcția de scor să nu vadă etichetele de calibrare (runda 2 a review-ului).
 - 14:22 Toate furturile sigure intră în listă, chiar peste plafonul de 250 (siguranța înaintea plafonului).
-- 15:26 M4 închis după verificarea din clona curată (cifre identice). Liber pentru alt fir.
+- 15:24 M4 închis după verificarea din clona curată (cifre identice). Liber pentru alt fir.
