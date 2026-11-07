@@ -60,7 +60,20 @@ Lumea sintetică arată cât valorează stratul de decizie dacă modelele sunt c
 
 Reproducere: întâi ieșirea lui A (`uv run python -m cyberpunks.a_contoare.predict --scenario demo-vara --date 2025-07-08`, care scrie `A.jsonl` și `A_ground_truth.csv`), apoi `make agent-eval`. Fără ieșirea lui A, raportul nu are secțiunea zilei demo.
 
-Ce arată: agentul trimite întâi cazurile cu risc pentru oameni (regula `R-SAFETY`, obligatorie de la scorul 0,7), chiar dacă valorează puțin în lei. De aceea vizitează mult mai multe cazuri reale de siguranță decât ordinea pe valoare a modelului A, dar capturează mai puțini lei. Ablația „fără siguranța obligatorie” arată cât costă regula. E o alegere de politică (`global.safety_mandatory` în `config/planner.yaml`), lăsată vizibilă.
+Ce arată: agentul trimite întâi cazurile cu risc pentru oameni (regula `R-SAFETY`, obligatorie de la scorul 0,7, cel mult 12 pe zi: cele cu scorul cel mai mare), chiar dacă valorează puțin în lei. De aceea vizitează mult mai multe cazuri reale de siguranță decât ordinea pe valoare a modelului A, dar capturează mai puțini lei. Ablația „fără siguranța obligatorie” arată cât costă regula. E o alegere de politică (`global.safety_mandatory` și `global.safety_max_mandatory_per_day` în `config/planner.yaml`), lăsată vizibilă.
+
+## Planul real din ziua demo (8 iulie 2025)
+
+`uv run cyberpunks run --scenario demo-vara` rulează modelele A, bilanț, B și C pe ziua demo și scrie planul în `outputs/plans/demo-vara/` (instantaneul din git: `outputs/demo/plans/demo-vara/`). Același plan iese la fiecare rulare: solverul se oprește după un număr fix de soluții (200), nu după un timp, iar alegerile mai mici (zonele de furtună) folosesc o limită de lucru deterministă. Dacă solverul ar atinge totuși plasa de 60 s, statusul din `run.json` spune „TIME_LIMIT”.
+
+Cum citești planul:
+
+- `plan.json`: traseele pe echipe și o decizie pentru fiecare lucrare (regula, pragurile, motivul în română);
+- `audit.jsonl`: jurnalul, cu ID-ul predicției, versiunea modelului și amprenta intrării pentru fiecare decizie, plus deciziile dispecerului;
+- `work_orders/<echipă>.pdf`: ordinele de lucru; `alerts.json`, `notifications.json`, `report.md`: alertele, mesajele (demo) și raportul zilei;
+- `run.json`: timpii pe pași, sursele folosite și solverul.
+
+Ce se vede în plan: echipele de furtună pleacă doar în zonele cu risc peste pragul modelului B, fiecare din baza cea mai apropiată, cel mult 3 pe regiune; restul zonelor merg la dispecer cu cerere de întăriri. Cele 12 cazuri de siguranță cu scorul cel mai mare intră primele în trasee, iar celelalte lucrări se aleg după valoarea netă. Valoarea furtunii socotește cel mult 500 de clienți ajutați de o echipă pe tură (`config/economics.yaml`, `storm.customers_helped_per_crew_shift`).
 
 ## Limite (spuse cinstit)
 

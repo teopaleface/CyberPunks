@@ -1,7 +1,19 @@
 # Status: Teo-planificator
-Actualizat: 2026-11-07 17:20
+Actualizat: 2026-11-07 17:40
 Milestone curent: M4 (documentație, ultima revizuire independentă); M3 gata
 Gata de merge: da (commit 8bf4d68, plus acest status)
+
+## Pornirea demo-ului: o singură comandă (pentru Teo)
+Din checkout-ul principal (`/Users/teo/projects/CyberPunks`, ramura `Teo`, după merge-ul planificatorului):
+
+```
+make demo
+```
+
+- Ce face: rulează planul real pentru 8 iulie 2025 (~25 s), apoi pornește împreună API-ul (http://127.0.0.1:8710/api) și consola dispecerului în modul de producție (construită în ~10 s). Apoi deschizi **http://localhost:3710**. Ctrl-C le oprește pe amândouă.
+- Dacă porturile 8710 sau 3710 sunt deja ocupate (de exemplu de un fir care testează), comanda se oprește înainte de orice și spune cum le eliberezi: `lsof -ti tcp:8710,3710 | xargs kill`.
+- Fără să ruleze modelele (planul salvat în git, fără butonul „Rulează agentul” și fără aprobări): `make demo-offline`.
+- Verificat la 17:35: construcția consolei trece (8 s); cu API-ul meu, paginile principale (planul și echipele, jurnalul, posturile, modelele, ordinul de lucru E-AR-1) răspund în 0,1-0,2 s, fără erori. În acest moment pe 8710 rulează API-ul din worktree-ul meu, iar pe 3710 consola firului Interfață (mod dezvoltare), deci se poate testa și direct pe http://localhost:3710; pentru `make demo`, ele trebuie oprite întâi.
 
 ## Răspuns la orchestrator, 17:05 și 17:15
 - **Textul cu „scorul peste 1004%”, reparat** (commit ab56d75). Când nici la scorul 100% valoarea nu acoperă vizita, motivul spune acum: „Chiar dacă problema ar fi sigură, valoarea (40 lei) nu acoperă vizita (283 lei): citire la distanță (2 lei).” Pragul `breakeven_score` apare în jurnal doar când e sub 100%. Test: `tests/planner/test_review_fixes_r4.py::test_remote_first_text_never_asks_for_a_score_above_100_percent`. Am verificat și restul textelor cu procente: doar acesta putea trece de 100%. În instantaneul regenerat local: 60 de motive cu textul nou, niciunul cu un scor peste 100%.
@@ -100,6 +112,8 @@ Pe scurt: două schimbări intenționate explică scăderea, iar trei defecte g�
 > **Agentul (planificatorul).** `uv run cyberpunks run --scenario demo-vara` trece automat prin cei patru pași: *Perceive* (configurația, scenariul, ce date și modele există), *Estimate* (modelele A, bilanț, B, C), *Decide* (validare și carantină, reguli cu nume și praguri justificate de cost, trasee OR-Tools cu ferestre de timp, abilități și baze multiple, întâi cazurile obligatorii de siguranță, cu rezervă greedy; același plan la fiecare rulare) și *Act* (planul, jurnalul de decizii, alertele, mesajele demo, ordinele de lucru PDF pe echipă, raportul zilei). Fiecare decizie are o regulă (`rule_id`), pragurile folosite, motivul în română și o linie în jurnal cu ID-ul predicției, versiunea modelului și amprenta intrării. Ce nu e sigur merge la dispecer, într-o coadă de cel mult 25 de cazuri pe zi; dispecerul aprobă, respinge sau amână, iar planul se recalculează. Pragurile: `config/planner.yaml`; costurile, cu sursa fiecăruia: `config/economics.yaml`; cercetarea: `docs/research/planificator.md`.
 >
 > **Evaluarea agentului.** `make agent-eval` (~1 min) compară agentul cu strategii simple (top-K după scor, primul venit, aleator, o singură sursă) pe aceleași echipe și restricții: pe 30 de zile sintetice, +49% valoare netă față de cea mai bună strategie simplă, cu mai puțini km și mai puține urgențe ratate; pe ziua demo, cu lucrările reale A și adevărul injectat, toate cele 24 de vizite ale agentului sunt probleme reale, iar 17 sunt cazuri reale de siguranță, față de 1 la ordinea pe valoare și 2 la top-K după scor. Metoda și limitele: `reports/planner/README.md`; tabelele: `reports/planner/agent_eval.md`.
+>
+> **Demo.** `make demo` rulează planul real pentru ziua demo (8 iulie 2025), apoi pornește API-ul și consola dispecerului: http://localhost:3710. `make demo-offline` pornește aceleași două servere pe planul salvat în git, fără să ruleze modelele.
 >
 > **API.** `make api` pornește API-ul pe http://127.0.0.1:8710/api (documentație la `/docs`); `CYBERPUNKS_API_SOURCE=demo make api` servește instantaneul din git (`outputs/demo/`), fără să ruleze modelele.
 
