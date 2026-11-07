@@ -10,31 +10,37 @@
       "kind": "final",
       "name": "planet_routes",
       "time_seconds": 14.0,
+      "source_frame": 420,
       "factor": 1.0,
-      "seconds": 13.276,
+      "seconds": 23.111,
+      "render_seconds": 21.044,
+      "prepare_seconds": 2.067,
       "width": 1920,
       "height": 1080,
       "samples": 512,
       "file": "stills/planet_routes.png",
+      "camera_source": "camera_path.json",
+      "scene_sha256": "01a80f64e2f3d621bd32f600cbbcbe6553bdfa0c09e180d3485256dac665144c",
+      "measured_at": "2026-11-07T16:49:57.690632+00:00",
       "camera": {
         "matrix_world": [
           [
-            0.9862660765647888,
-            0.045688480138778687,
-            -0.15871916711330414,
-            -0.3499999940395355
+            -0.9966427087783813,
+            -0.0794416144490242,
+            0.019807009026408195,
+            0.03251520171761513
           ],
           [
-            -0.16516418755054474,
-            0.27282553911209106,
-            -0.9477800130844116,
-            -2.0999999046325684
+            0.08187361061573029,
+            -0.9670382142066956,
+            0.24110954999923706,
+            0.39580559730529785
           ],
           [
-            1.521800285786412e-08,
-            0.9609780311584473,
-            0.2766246795654297,
-            0.6499999761581421
+            1.2838246021829036e-09,
+            0.24192175269126892,
+            0.970295786857605,
+            1.5928380489349365
           ],
           [
             0.0,
@@ -43,120 +49,124 @@
             1.0
           ]
         ],
-        "lens_mm": 52.0,
-        "type": "PERSP",
-        "ortho_scale_m": 1.159999966621399,
-        "fstop": 1.399999976158142,
-        "focus_world_m": [
-          -0.05999999865889549,
-          -0.25,
-          0.12999999523162842
+        "lens_mm": 85.0,
+        "sensor_width_mm": 80.9802017211914,
+        "shift": [
+          -0.2084999978542328,
+          0.1223437488079071
         ],
-        "coordinate_system": "right-handed Blender Z-up, metres"
+        "type": "PERSP",
+        "fstop": 5.902777671813965,
+        "focus_world_m": [
+          0.0,
+          0.0,
+          0.375
+        ],
+        "coordinate_system": "Blender Z-up metres; Three.js (x,y,z) becomes (x,-z,y) times planet radius"
       },
       "anchors": {
         "fallen_pole": {
-          "x": 1131.646,
-          "y": 652.221,
-          "depth_m": 1.884526,
+          "x": 1265.649,
+          "y": 611.395,
+          "depth_m": 1.256599,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            0.0606606,
-            -0.3539523,
-            0.0554133
+            0.0583587,
+            -0.0105949,
+            0.3982291
           ]
         },
         "meter": {
-          "x": 690.975,
-          "y": 655.978,
-          "depth_m": 1.93038,
+          "x": 1702.807,
+          "y": 589.742,
+          "depth_m": 1.349454,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.2319828,
-            -0.2615205,
-            0.0384326
+            -0.2326231,
+            -0.0306805,
+            0.3134623
           ]
         },
         "hot_roof": {
-          "x": 717.885,
-          "y": 878.115,
-          "depth_m": 1.935531,
+          "x": 1667.582,
+          "y": 394.998,
+          "depth_m": 1.367421,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.2202284,
-            -0.3020128,
-            -0.1121809
+            -0.2228297,
+            -0.1660967,
+            0.3283958
           ]
         },
         "depot": {
-          "x": 741.663,
-          "y": 379.438,
-          "depth_m": 1.933842,
+          "x": 1737.371,
+          "y": 874.472,
+          "depth_m": 1.33632,
           "in_frame": true,
           "occluded": true,
           "visible": false,
           "world_m": [
-            -0.1881021,
-            -0.2114521,
-            0.2226423
+            -0.2378855,
+            0.1579246,
+            0.2802398
           ]
         },
         "unsure_house": {
-          "x": 1385.752,
-          "y": 543.361,
-          "depth_m": 1.991219,
+          "x": 941.03,
+          "y": 719.875,
+          "depth_m": 1.314301,
           "in_frame": true,
           "occluded": true,
           "visible": false,
           "world_m": [
-            0.2674209,
-            -0.2639092,
-            0.0968607
+            0.2761577,
+            0.021825,
+            0.3262585
           ]
         },
         "truck_1": {
-          "x": 1083.635,
-          "y": 640.285,
-          "depth_m": 1.849854,
+          "x": 1327.646,
+          "y": 616.79,
+          "depth_m": 1.229823,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            0.0218847,
-            -0.3786152,
-            0.0740036
+            0.020363,
+            0.0043465,
+            0.4228877
           ]
         },
         "truck_2": {
-          "x": 1147.885,
-          "y": 437.171,
-          "depth_m": 1.876949,
+          "x": 1250.162,
+          "y": 834.267,
+          "depth_m": 1.22509,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            0.0764986,
-            -0.3230801,
-            0.1976669
+            0.0778559,
+            0.1298412,
+            0.3954077
           ]
         },
         "truck_3": {
-          "x": 852.386,
-          "y": 709.159,
-          "depth_m": 1.853698,
+          "x": 1556.799,
+          "y": 546.727,
+          "depth_m": 1.262545,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            -0.1318898,
-            -0.362069,
-            0.0285672
+            -0.1265239,
+            -0.0367615,
+            0.4023778
           ]
         }
       }
@@ -166,31 +176,37 @@
       "kind": "final",
       "name": "planet_storm",
       "time_seconds": 1.5,
+      "source_frame": 45,
       "factor": 1.0,
-      "seconds": 12.368,
+      "seconds": 20.192,
+      "render_seconds": 18.438,
+      "prepare_seconds": 1.754,
       "width": 1920,
       "height": 1080,
       "samples": 512,
       "file": "stills/planet_storm.png",
+      "camera_source": "camera_path.json",
+      "scene_sha256": "01a80f64e2f3d621bd32f600cbbcbe6553bdfa0c09e180d3485256dac665144c",
+      "measured_at": "2026-11-07T16:49:05.780792+00:00",
       "camera": {
         "matrix_world": [
           [
-            0.9757369756698608,
-            0.05919496715068817,
-            -0.21079197525978088,
-            -0.47999998927116394
+            0.606891930103302,
+            0.5809020400047302,
+            -0.5424342751502991,
+            -0.9512315988540649
           ],
           [
-            -0.21894589066505432,
-            0.263803631067276,
-            -0.9393989443778992,
-            -2.0799999237060547
+            -0.7947843670845032,
+            0.44357284903526306,
+            -0.41419917345046997,
+            -0.7263540029525757
           ],
           [
-            9.799983047287242e-11,
-            0.9627583026885986,
-            0.270363450050354,
-            0.6499999761581421
+            -2.706521584627808e-08,
+            0.6824924349784851,
+            0.7308926582336426,
+            1.2817188501358032
           ],
           [
             0.0,
@@ -199,120 +215,124 @@
             1.0
           ]
         ],
-        "lens_mm": 50.0,
-        "type": "PERSP",
-        "ortho_scale_m": 1.5,
-        "fstop": 1.399999976158142,
-        "focus_world_m": [
-          -0.05999999865889549,
-          -0.25,
-          0.14000000059604645
+        "lens_mm": 85.0,
+        "sensor_width_mm": 80.9802017211914,
+        "shift": [
+          -0.2290000021457672,
+          0.01040625013411045
         ],
-        "coordinate_system": "right-handed Blender Z-up, metres"
+        "type": "PERSP",
+        "fstop": 5.088601589202881,
+        "focus_world_m": [
+          0.0,
+          0.0,
+          0.375
+        ],
+        "coordinate_system": "Blender Z-up metres; Three.js (x,y,z) becomes (x,-z,y) times planet radius"
       },
       "anchors": {
         "fallen_pole": {
-          "x": 1170.434,
-          "y": 659.682,
-          "depth_m": 1.896169,
+          "x": 1458.98,
+          "y": 152.831,
+          "depth_m": 1.489839,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            0.0606606,
-            -0.3539523,
-            0.0554133
+            0.0583587,
+            -0.0105949,
+            0.3982291
           ]
         },
         "meter": {
-          "x": 743.791,
-          "y": 670.694,
-          "depth_m": 1.925903,
+          "x": 1229.814,
+          "y": 465.158,
+          "depth_m": 1.385637,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.2319828,
-            -0.2615205,
-            0.0384326
+            -0.2326231,
+            -0.0306805,
+            0.3134623
           ]
         },
         "hot_roof": {
-          "x": 772.45,
-          "y": 884.376,
-          "depth_m": 1.931063,
+          "x": 1394.775,
+          "y": 528.0,
+          "depth_m": 1.323945,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.2202284,
-            -0.3020128,
-            -0.1121809
+            -0.2228297,
+            -0.1660967,
+            0.3283958
           ]
         },
         "depot": {
-          "x": 788.474,
-          "y": 403.703,
-          "depth_m": 1.932384,
+          "x": 1033.46,
+          "y": 392.908,
+          "depth_m": 1.485184,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.1881021,
-            -0.2114521,
-            0.2226423
+            -0.2378855,
+            0.1579246,
+            0.2802398
           ]
         },
         "unsure_house": {
-          "x": 1399.329,
-          "y": 552.193,
-          "depth_m": 2.013133,
+          "x": 1580.565,
+          "y": 87.132,
+          "depth_m": 1.674012,
           "in_frame": true,
           "occluded": true,
           "visible": false,
           "world_m": [
-            0.2674209,
-            -0.2639092,
-            0.0968607
+            0.2761577,
+            0.021825,
+            0.3262585
           ]
         },
         "truck_1": {
-          "x": 1217.663,
-          "y": 751.632,
-          "depth_m": 1.901551,
+          "x": 1559.524,
+          "y": 154.776,
+          "depth_m": 1.47221,
           "in_frame": true,
           "occluded": true,
           "visible": false,
           "world_m": [
-            0.0911752,
-            -0.3737242,
-            -0.0094005
+            0.0901626,
+            -0.078071,
+            0.4077139
           ]
         },
         "truck_2": {
-          "x": 777.939,
-          "y": 493.357,
-          "depth_m": 1.900926,
+          "x": 1089.368,
+          "y": 378.78,
+          "depth_m": 1.436723,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            -0.2039648,
-            -0.2570862,
-            0.1680705
+            -0.231122,
+            0.1018607,
+            0.3197913
           ]
         },
         "truck_3": {
-          "x": 836.755,
-          "y": 491.884,
-          "depth_m": 1.885781,
+          "x": 1118.063,
+          "y": 319.258,
+          "depth_m": 1.444538,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            -0.1655188,
-            -0.2804415,
-            0.1729126
+            -0.1899388,
+            0.1089429,
+            0.3436775
           ]
         }
       }
@@ -322,31 +342,37 @@
       "kind": "final",
       "name": "planet_problems",
       "time_seconds": 7.5,
+      "source_frame": 225,
       "factor": 1.0,
-      "seconds": 14.308,
+      "seconds": 16.778,
+      "render_seconds": 13.641,
+      "prepare_seconds": 3.137,
       "width": 1920,
       "height": 1080,
       "samples": 512,
       "file": "stills/planet_problems.png",
+      "camera_source": "camera_path.json",
+      "scene_sha256": "01a80f64e2f3d621bd32f600cbbcbe6553bdfa0c09e180d3485256dac665144c",
+      "measured_at": "2026-11-07T16:49:22.869251+00:00",
       "camera": {
         "matrix_world": [
           [
-            0.9248723983764648,
-            0.053036149591207504,
-            -0.3765609860420227,
-            -0.8500000238418579
+            0.8864759802818298,
+            -0.36739304661750793,
+            0.28139424324035645,
+            0.4668804109096527
           ],
           [
-            -0.380277544260025,
-            0.1289891004562378,
-            -0.9158334136009216,
-            -2.0199999809265137
+            0.4627746641635895,
+            0.7037661075592041,
+            -0.539029598236084,
+            -0.8943408131599426
           ],
           [
-            -1.375414981907852e-08,
-            0.9902267456054688,
-            0.13946692645549774,
-            0.3799999952316284
+            3.912237644954075e-09,
+            0.6080589294433594,
+            0.7938919067382812,
+            1.3172004222869873
           ],
           [
             0.0,
@@ -355,120 +381,124 @@
             1.0
           ]
         ],
-        "lens_mm": 52.0,
-        "type": "PERSP",
-        "ortho_scale_m": 1.5,
-        "fstop": 1.399999976158142,
-        "focus_world_m": [
-          -0.15000000596046448,
-          -0.2199999988079071,
-          0.10000000149011612
+        "lens_mm": 85.0,
+        "sensor_width_mm": 80.9802017211914,
+        "shift": [
+          -0.2290000021457672,
+          0.01040625013411045
         ],
-        "coordinate_system": "right-handed Blender Z-up, metres"
+        "type": "PERSP",
+        "fstop": 4.722222328186035,
+        "focus_world_m": [
+          0.0,
+          0.0,
+          0.375
+        ],
+        "coordinate_system": "Blender Z-up metres; Three.js (x,y,z) becomes (x,-z,y) times planet radius"
       },
       "anchors": {
         "fallen_pole": {
-          "x": 1262.376,
-          "y": 624.351,
-          "depth_m": 1.914011,
+          "x": 1471.13,
+          "y": 234.619,
+          "depth_m": 1.320885,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            0.0606606,
-            -0.3539523,
-            0.0554133
+            0.0583587,
+            -0.0105949,
+            0.3982291
           ]
         },
         "meter": {
-          "x": 817.547,
-          "y": 655.324,
-          "depth_m": 1.890833,
+          "x": 1095.274,
+          "y": 208.531,
+          "depth_m": 1.459234,
           "in_frame": true,
           "occluded": true,
           "visible": false,
           "world_m": [
-            -0.2319828,
-            -0.2615205,
-            0.0384326
+            -0.2326231,
+            -0.0306805,
+            0.3134623
           ]
         },
         "hot_roof": {
-          "x": 855.433,
-          "y": 882.934,
-          "depth_m": 1.87918,
+          "x": 996.512,
+          "y": 318.053,
+          "depth_m": 1.37163,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.2202284,
-            -0.3020128,
-            -0.1121809
+            -0.2228297,
+            -0.1660967,
+            0.3283958
           ]
         },
         "depot": {
-          "x": 851.256,
-          "y": 378.036,
-          "depth_m": 1.92752,
+          "x": 1224.888,
+          "y": 91.984,
+          "depth_m": 1.588754,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.1881021,
-            -0.2114521,
-            0.2226423
+            -0.2378855,
+            0.1579246,
+            0.2802398
           ]
         },
         "unsure_house": {
-          "x": 1450.258,
-          "y": 532.749,
-          "depth_m": 2.068552,
+          "x": 1784.714,
+          "y": 390.374,
+          "depth_m": 1.33421,
           "in_frame": true,
           "occluded": true,
           "visible": false,
           "world_m": [
-            0.2674209,
-            -0.2639092,
-            0.0968607
+            0.2761577,
+            0.021825,
+            0.3262585
           ]
         },
         "truck_1": {
-          "x": 788.438,
-          "y": 467.737,
-          "depth_m": 1.901973,
+          "x": 1147.469,
+          "y": 116.035,
+          "depth_m": 1.555007,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            -0.2399817,
-            -0.2269737,
-            0.163812
+            -0.269052,
+            0.0948682,
+            0.290982
           ]
         },
         "truck_2": {
-          "x": 852.885,
-          "y": 463.881,
-          "depth_m": 1.887364,
+          "x": 1191.249,
+          "y": 96.132,
+          "depth_m": 1.525231,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            -0.2039648,
-            -0.2570862,
-            0.1680705
+            -0.231122,
+            0.1018607,
+            0.3197913
           ]
         },
         "truck_3": {
-          "x": 918.016,
-          "y": 457.937,
-          "depth_m": 1.879777,
+          "x": 1241.037,
+          "y": 81.969,
+          "depth_m": 1.498497,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            -0.1655188,
-            -0.2804415,
-            0.1729126
+            -0.1899388,
+            0.1089429,
+            0.3436775
           ]
         }
       }
@@ -478,31 +508,37 @@
       "kind": "final",
       "name": "planet_map",
       "time_seconds": 9.8,
+      "source_frame": 294,
       "factor": 0.0,
-      "seconds": 6.908,
+      "seconds": 11.46,
+      "render_seconds": 9.281,
+      "prepare_seconds": 2.179,
       "width": 1920,
       "height": 1080,
       "samples": 512,
       "file": "stills/planet_map.png",
+      "camera_source": "camera_path.json",
+      "scene_sha256": "01a80f64e2f3d621bd32f600cbbcbe6553bdfa0c09e180d3485256dac665144c",
+      "measured_at": "2026-11-07T16:49:34.479917+00:00",
       "camera": {
         "matrix_world": [
           [
+            -1.6292068494294654e-07,
+            -0.9999619126319885,
+            0.00872631836682558,
+            0.023875199258327484
+          ],
+          [
             1.0,
-            0.0,
-            0.0,
+            -1.62914474799436e-07,
+            1.4216977595182811e-09,
             0.0
           ],
           [
             0.0,
-            1.0,
-            0.0,
-            0.0
-          ],
-          [
-            0.0,
-            0.0,
-            1.0,
-            3.5
+            0.00872631836682558,
+            0.9999619126319885,
+            3.095895528793335
           ],
           [
             0.0,
@@ -511,120 +547,124 @@
             1.0
           ]
         ],
-        "lens_mm": 42.0,
-        "type": "ORTHO",
-        "ortho_scale_m": 1.159999966621399,
-        "fstop": 32.0,
-        "focus_world_m": [
-          0.0,
+        "lens_mm": 85.0,
+        "sensor_width_mm": 80.9802017211914,
+        "shift": [
           0.0,
           0.0
         ],
-        "coordinate_system": "right-handed Blender Z-up, metres"
+        "type": "PERSP",
+        "fstop": 4.722222328186035,
+        "focus_world_m": [
+          0.0,
+          0.0,
+          0.375
+        ],
+        "coordinate_system": "Blender Z-up metres; Three.js (x,y,z) becomes (x,-z,y) times planet radius"
       },
       "anchors": {
         "fallen_pole": {
-          "x": 1060.404,
-          "y": 1125.852,
-          "depth_m": 3.444587,
-          "in_frame": false,
-          "occluded": false,
-          "visible": false,
-          "world_m": [
-            0.0606606,
-            -0.3539523,
-            0.0554133
-          ]
-        },
-        "meter": {
-          "x": 576.028,
-          "y": 972.862,
-          "depth_m": 3.461567,
+          "x": 950.193,
+          "y": 575.182,
+          "depth_m": 2.697587,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            -0.2319828,
-            -0.2615205,
-            0.0384326
+            0.047426,
+            -0.0131266,
+            0.398
+          ]
+        },
+        "meter": {
+          "x": 937.619,
+          "y": 370.844,
+          "depth_m": 2.707582,
+          "in_frame": true,
+          "occluded": false,
+          "visible": true,
+          "world_m": [
+            -0.2270053,
+            -0.0300694,
+            0.3904
           ]
         },
         "hot_roof": {
-          "x": 595.484,
-          "y": 1039.883,
-          "depth_m": 3.612181,
+          "x": 844.888,
+          "y": 386.61,
+          "depth_m": 2.667769,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.2202284,
-            -0.3020128,
-            -0.1121809
+            -0.2024474,
+            -0.1523793,
+            0.43
           ]
         },
         "depot": {
-          "x": 648.659,
-          "y": 889.99,
-          "depth_m": 3.277358,
+          "x": 1078.023,
+          "y": 361.97,
+          "depth_m": 2.698078,
           "in_frame": true,
           "occluded": true,
           "visible": false,
           "world_m": [
-            -0.1881021,
-            -0.2114521,
-            0.2226423
+            -0.2380048,
+            0.1580079,
+            0.4
           ]
         },
         "unsure_house": {
-          "x": 1402.628,
-          "y": 976.815,
-          "depth_m": 3.403139,
+          "x": 975.094,
+          "y": 730.535,
+          "depth_m": 2.665798,
           "in_frame": true,
           "occluded": true,
           "visible": false,
           "world_m": [
-            0.2674209,
-            -0.2639092,
-            0.0968607
+            0.2526373,
+            0.0199661,
+            0.428
           ]
         },
         "truck_1": {
-          "x": 529.259,
-          "y": 391.494,
-          "depth_m": 3.451296,
+          "x": 1029.533,
+          "y": 342.497,
+          "depth_m": 2.690795,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.2602393,
-            0.0897226,
-            0.048704
+            -0.2632978,
+            0.0928393,
+            0.407504
           ]
         },
         "truck_2": {
-          "x": 604.768,
-          "y": 384.643,
-          "depth_m": 3.451296,
+          "x": 1032.701,
+          "y": 374.737,
+          "depth_m": 2.690419,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.2146195,
-            0.0938615,
-            0.048704
+            -0.2202188,
+            0.0970555,
+            0.407504
           ]
         },
         "truck_3": {
-          "x": 677.594,
-          "y": 376.798,
-          "depth_m": 3.451296,
+          "x": 1036.12,
+          "y": 406.981,
+          "depth_m": 2.690043,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.1706202,
-            0.0986012,
-            0.048704
+            -0.1771461,
+            0.1016054,
+            0.407504
           ]
         }
       }
@@ -634,31 +674,37 @@
       "kind": "final",
       "name": "planet_dawn",
       "time_seconds": 23.0,
+      "source_frame": 690,
       "factor": 1.0,
-      "seconds": 17.635,
+      "seconds": 20.249,
+      "render_seconds": 15.751,
+      "prepare_seconds": 4.498,
       "width": 1920,
       "height": 1080,
       "samples": 512,
       "file": "stills/planet_dawn.png",
+      "camera_source": "camera_path.json",
+      "scene_sha256": "01a80f64e2f3d621bd32f600cbbcbe6553bdfa0c09e180d3485256dac665144c",
+      "measured_at": "2026-11-07T16:50:18.262276+00:00",
       "camera": {
         "matrix_world": [
           [
-            0.9973658323287964,
-            0.016035160049796104,
-            -0.07074110209941864,
-            -0.07999999821186066
+            0.5588090419769287,
+            0.203781858086586,
+            -0.8038690090179443,
+            -0.6541848182678223
           ],
           [
-            -0.07253571599721909,
-            0.22048331797122955,
-            -0.9726899266242981,
-            -1.100000023841858
+            -0.829296350479126,
+            0.13731539249420166,
+            -0.5416752099990845,
+            -0.4408127963542938
           ],
           [
-            -5.108431011535686e-09,
-            0.9752589464187622,
-            0.22106565535068512,
-            0.3400000035762787
+            9.07635211433444e-09,
+            0.9693386554718018,
+            0.24572862684726715,
+            0.19997279345989227
           ],
           [
             0.0,
@@ -667,120 +713,124 @@
             1.0
           ]
         ],
-        "lens_mm": 56.0,
-        "type": "PERSP",
-        "ortho_scale_m": 1.159999966621399,
-        "fstop": 2.799999952316284,
-        "focus_world_m": [
-          -0.07000000029802322,
-          -0.25,
-          0.15000000596046448
+        "lens_mm": 85.0,
+        "sensor_width_mm": 80.9802017211914,
+        "shift": [
+          0.03125,
+          0.5793750286102295
         ],
-        "coordinate_system": "right-handed Blender Z-up, metres"
+        "type": "PERSP",
+        "fstop": 9.0,
+        "focus_world_m": [
+          -0.222829669713974,
+          -0.16609667241573334,
+          0.328395813703537
+        ],
+        "coordinate_system": "Blender Z-up metres; Three.js (x,y,z) becomes (x,-z,y) times planet radius"
       },
       "anchors": {
         "fallen_pole": {
-          "x": 1282.31,
-          "y": 954.408,
-          "depth_m": 0.798536,
+          "x": 1010.194,
+          "y": 597.099,
+          "depth_m": 0.757113,
           "in_frame": true,
-          "occluded": false,
-          "visible": true,
+          "occluded": true,
+          "visible": false,
           "world_m": [
-            0.0606606,
-            -0.3539523,
-            0.0554133
+            0.0583587,
+            -0.0105949,
+            0.3982291
           ]
         },
         "meter": {
-          "x": 232.085,
-          "y": 922.709,
-          "depth_m": 0.871495,
+          "x": 504.807,
+          "y": 698.958,
+          "depth_m": 0.533151,
           "in_frame": true,
           "occluded": true,
           "visible": false,
           "world_m": [
-            -0.2319828,
-            -0.2615205,
-            0.0384326
+            -0.2326231,
+            -0.0306805,
+            0.3134623
           ]
         },
         "hot_roof": {
-          "x": 278.213,
-          "y": 1461.612,
-          "depth_m": 0.866236,
-          "in_frame": false,
-          "occluded": true,
-          "visible": false,
+          "x": 957.436,
+          "y": 566.093,
+          "depth_m": 0.464003,
+          "in_frame": true,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.2202284,
-            -0.3020128,
-            -0.1121809
+            -0.2228297,
+            -0.1660967,
+            0.3283958
           ]
         },
         "depot": {
-          "x": 377.038,
-          "y": 270.217,
-          "depth_m": 0.882578,
+          "x": 68.026,
+          "y": 880.461,
+          "depth_m": 0.639247,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.1881021,
-            -0.2114521,
-            0.2226423
+            -0.2378855,
+            0.1579246,
+            0.2802398
           ]
         },
         "unsure_house": {
-          "x": 1917.584,
-          "y": 698.142,
-          "depth_m": 0.891584,
+          "x": 1183.764,
+          "y": 870.126,
+          "depth_m": 0.967441,
           "in_frame": true,
           "occluded": true,
           "visible": false,
           "world_m": [
-            0.2674209,
-            -0.2639092,
-            0.0968607
+            0.2761577,
+            0.021825,
+            0.3262585
           ]
         },
         "truck_1": {
-          "x": 954.613,
-          "y": 552.95,
-          "depth_m": 0.773718,
+          "x": 630.507,
+          "y": 551.143,
+          "depth_m": 0.741593,
           "in_frame": true,
-          "occluded": false,
-          "visible": true,
+          "occluded": true,
+          "visible": false,
           "world_m": [
-            -0.026712,
-            -0.3480512,
-            0.1656858
+            -0.0308763,
+            0.0987752,
+            0.4105577
           ]
         },
         "truck_2": {
-          "x": 1135.227,
-          "y": 841.657,
-          "depth_m": 0.767149,
+          "x": 867.07,
+          "y": 513.774,
+          "depth_m": 0.736491,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            0.0179165,
-            -0.3741505,
-            0.0948437
+            0.0159284,
+            0.0252443,
+            0.4223465
           ]
         },
         "truck_3": {
-          "x": 1220.312,
-          "y": 1173.671,
-          "depth_m": 0.778332,
-          "in_frame": false,
-          "occluded": false,
+          "x": 1107.921,
+          "y": 505.746,
+          "depth_m": 0.709762,
+          "in_frame": true,
+          "occluded": true,
           "visible": false,
           "world_m": [
-            0.0400713,
-            -0.3842549,
-            0.0068872
+            0.0395848,
+            -0.0616263,
+            0.4170165
           ]
         }
       }
@@ -790,31 +840,37 @@
       "kind": "final",
       "name": "planet_outro",
       "time_seconds": 28.5,
+      "source_frame": 855,
       "factor": 1.0,
-      "seconds": 9.615,
+      "seconds": 25.195,
+      "render_seconds": 22.783,
+      "prepare_seconds": 2.412,
       "width": 1920,
       "height": 1080,
       "samples": 512,
       "file": "stills/planet_outro.png",
+      "camera_source": "camera_path.json",
+      "scene_sha256": "01a80f64e2f3d621bd32f600cbbcbe6553bdfa0c09e180d3485256dac665144c",
+      "measured_at": "2026-11-07T16:50:43.578455+00:00",
       "camera": {
         "matrix_world": [
           [
-            0.8630144596099854,
-            0.21228215098381042,
-            -0.4584128260612488,
-            -4.800000190734863
+            0.8735942840576172,
+            0.19794045388698578,
+            -0.44458135962486267,
+            -14.707396507263184
           ],
           [
-            -0.505179226398468,
-            0.36264878511428833,
-            -0.7831218242645264,
-            -8.199999809265137
+            -0.48665493726730347,
+            0.3553229868412018,
+            -0.7980680465698242,
+            -26.4012451171875
           ],
           [
-            5.3698993696116304e-08,
-            0.907426118850708,
-            0.42021167278289795,
-            4.400000095367432
+            2.9127988909749547e-08,
+            0.9135453701019287,
+            0.406736820936203,
+            13.455435752868652
           ],
           [
             0.0,
@@ -823,120 +879,124 @@
             1.0
           ]
         ],
-        "lens_mm": 50.0,
+        "lens_mm": 85.0,
+        "sensor_width_mm": 80.9802017211914,
+        "shift": [
+          0.0,
+          -0.07199999690055847
+        ],
         "type": "PERSP",
-        "ortho_scale_m": 1.159999966621399,
-        "fstop": 5.599999904632568,
+        "fstop": 9.0,
         "focus_world_m": [
           0.0,
-          -0.25,
-          0.20000000298023224
+          0.0,
+          0.375
         ],
-        "coordinate_system": "right-handed Blender Z-up, metres"
+        "coordinate_system": "Blender Z-up metres; Three.js (x,y,z) becomes (x,-z,y) times planet radius"
       },
       "anchors": {
         "fallen_pole": {
-          "x": 1020.444,
-          "y": 557.049,
-          "depth_m": 10.198246,
+          "x": 963.435,
+          "y": 379.023,
+          "depth_m": 32.936958,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            0.0606606,
-            -0.3539523,
-            0.0554133
+            0.0583587,
+            -0.0105949,
+            0.3982291
           ]
         },
         "meter": {
-          "x": 942.1,
-          "y": 568.711,
-          "depth_m": 10.143616,
+          "x": 948.44,
+          "y": 387.675,
+          "depth_m": 32.826042,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.2319828,
-            -0.2615205,
-            0.0384326
+            -0.2326231,
+            -0.0306805,
+            0.3134623
           ]
         },
         "hot_roof": {
-          "x": 950.18,
-          "y": 607.598,
-          "depth_m": 10.180583,
+          "x": 952.988,
+          "y": 389.632,
+          "depth_m": 32.716251,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.2202284,
-            -0.3020128,
-            -0.1121809
+            -0.2228297,
+            -0.1660967,
+            0.3283958
           ]
         },
         "depot": {
-          "x": 945.38,
-          "y": 517.504,
-          "depth_m": 10.125534,
+          "x": 942.609,
+          "y": 385.568,
+          "depth_m": 32.987736,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.1881021,
-            -0.2114521,
-            0.2226423
+            -0.2378855,
+            0.1579246,
+            0.2802398
           ]
         },
         "unsure_house": {
-          "x": 1053.848,
-          "y": 527.382,
-          "depth_m": 10.346127,
+          "x": 974.047,
+          "y": 379.805,
+          "depth_m": 33.088936,
           "in_frame": true,
           "occluded": true,
           "visible": false,
           "world_m": [
-            0.2674209,
-            -0.2639092,
-            0.0968607
+            0.2761577,
+            0.021825,
+            0.3262585
           ]
         },
         "truck_1": {
-          "x": 1015.195,
-          "y": 557.205,
-          "depth_m": 10.153345,
+          "x": 960.96,
+          "y": 377.769,
+          "depth_m": 32.921963,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            0.0218847,
-            -0.3786152,
-            0.0740036
+            0.020363,
+            0.0043465,
+            0.4228877
           ]
         },
         "truck_2": {
-          "x": 1020.107,
-          "y": 519.432,
-          "depth_m": 10.169907,
+          "x": 960.294,
+          "y": 375.987,
+          "depth_m": 33.058853,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            0.0764986,
-            -0.3230801,
-            0.1976669
+            0.0778559,
+            0.1298412,
+            0.3954077
           ]
         },
         "truck_3": {
-          "x": 978.214,
-          "y": 575.164,
-          "depth_m": 10.114903,
+          "x": 954.314,
+          "y": 381.535,
+          "depth_m": 32.832195,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            -0.1318898,
-            -0.362069,
-            0.0285672
+            -0.1265239,
+            -0.0367615,
+            0.4023778
           ]
         }
       }
@@ -946,12 +1006,18 @@
       "kind": "morph",
       "name": "morph_1",
       "time_seconds": null,
+      "source_frame": 420,
       "factor": 1.0,
-      "seconds": 8.164,
+      "seconds": 11.207,
+      "render_seconds": 9.425,
+      "prepare_seconds": 1.782,
       "width": 1920,
       "height": 1080,
-      "samples": 512,
+      "samples": 256,
       "file": "stills/morph_1.png",
+      "camera_source": "fixed morph proof",
+      "scene_sha256": "01a80f64e2f3d621bd32f600cbbcbe6553bdfa0c09e180d3485256dac665144c",
+      "measured_at": "2026-11-07T16:50:59.471166+00:00",
       "camera": {
         "matrix_world": [
           [
@@ -962,15 +1028,15 @@
           ],
           [
             0.0,
-            0.7259527444839478,
-            -0.6877445578575134,
-            -2.700000047683716
+            0.777379035949707,
+            -0.6290324926376343,
+            -2.4000000953674316
           ],
           [
             0.0,
-            0.6877445578575134,
-            0.7259527444839478,
-            2.9000000953674316
+            0.6290324926376343,
+            0.777379035949707,
+            3.200000047683716
           ],
           [
             0.0,
@@ -979,120 +1045,124 @@
             1.0
           ]
         ],
-        "lens_mm": 50.0,
-        "type": "ORTHO",
-        "ortho_scale_m": 3.5199999809265137,
-        "fstop": 32.0,
-        "focus_world_m": [
+        "lens_mm": 65.0,
+        "sensor_width_mm": 36.0,
+        "shift": [
           0.0,
-          0.0,
-          0.05000000074505806
+          0.0
         ],
-        "coordinate_system": "right-handed Blender Z-up, metres"
+        "type": "ORTHO",
+        "fstop": 4.0,
+        "focus_world_m": [
+          -0.10000000149011612,
+          -0.1599999964237213,
+          0.18000000715255737
+        ],
+        "coordinate_system": "Blender Z-up metres; Three.js (x,y,z) becomes (x,-z,y) times planet radius"
       },
       "anchors": {
         "fallen_pole": {
-          "x": 993.088,
-          "y": 678.125,
-          "depth_m": 3.678517,
+          "x": 995.571,
+          "y": 482.053,
+          "depth_m": 3.681051,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            0.0606606,
-            -0.3539523,
-            0.0554133
+            0.0583587,
+            -0.0105949,
+            0.3982291
           ]
         },
         "meter": {
-          "x": 833.464,
-          "y": 647.894,
-          "depth_m": 3.754414,
+          "x": 818.211,
+          "y": 524.071,
+          "depth_m": 3.734313,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.2319828,
-            -0.2615205,
-            0.0384326
+            -0.2326231,
+            -0.0306805,
+            0.3134623
           ]
         },
         "hot_roof": {
-          "x": 839.875,
-          "y": 720.429,
-          "depth_m": 3.835904,
+          "x": 824.18,
+          "y": 582.51,
+          "depth_m": 3.637523,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.2202284,
-            -0.3020128,
-            -0.1121809
+            -0.2228297,
+            -0.1660967,
+            0.3283958
           ]
         },
         "depot": {
-          "x": 857.399,
-          "y": 558.965,
-          "depth_m": 3.655121,
+          "x": 815.003,
+          "y": 447.442,
+          "depth_m": 3.878778,
+          "in_frame": true,
+          "occluded": false,
+          "visible": true,
+          "world_m": [
+            -0.2378855,
+            0.1579246,
+            0.2802398
+          ]
+        },
+        "unsure_house": {
+          "x": 1128.325,
+          "y": 494.286,
+          "depth_m": 3.757393,
           "in_frame": true,
           "occluded": true,
           "visible": false,
           "world_m": [
-            -0.1881021,
-            -0.2114521,
-            0.2226423
-          ]
-        },
-        "unsure_house": {
-          "x": 1105.866,
-          "y": 626.922,
-          "depth_m": 3.710355,
-          "in_frame": true,
-          "occluded": false,
-          "visible": true,
-          "world_m": [
-            0.2674209,
-            -0.2639092,
-            0.0968607
+            0.2761577,
+            0.021825,
+            0.3262585
           ]
         },
         "truck_1": {
-          "x": 971.937,
-          "y": 680.917,
-          "depth_m": 3.64806,
+          "x": 972.412,
+          "y": 465.519,
+          "depth_m": 3.671281,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            0.0218847,
-            -0.3786152,
-            0.0740036
+            0.020363,
+            0.0043465,
+            0.4228877
           ]
         },
         "truck_2": {
-          "x": 1001.727,
-          "y": 612.536,
-          "depth_m": 3.59648,
+          "x": 1007.455,
+          "y": 416.592,
+          "depth_m": 3.771584,
           "in_frame": true,
-          "occluded": false,
-          "visible": true,
+          "occluded": true,
+          "visible": false,
           "world_m": [
-            0.0764986,
-            -0.3230801,
-            0.1976669
+            0.0778559,
+            0.1298412,
+            0.3954077
           ]
         },
         "truck_3": {
-          "x": 888.06,
-          "y": 691.41,
-          "depth_m": 3.692424,
+          "x": 882.881,
+          "y": 492.861,
+          "depth_m": 3.661367,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            -0.1318898,
-            -0.362069,
-            0.0285672
+            -0.1265239,
+            -0.0367615,
+            0.4023778
           ]
         }
       }
@@ -1102,12 +1172,18 @@
       "kind": "morph",
       "name": "morph_05",
       "time_seconds": null,
+      "source_frame": 420,
       "factor": 0.5,
-      "seconds": 10.536,
+      "seconds": 10.024,
+      "render_seconds": 8.17,
+      "prepare_seconds": 1.854,
       "width": 1920,
       "height": 1080,
-      "samples": 512,
+      "samples": 256,
       "file": "stills/morph_05.png",
+      "camera_source": "fixed morph proof",
+      "scene_sha256": "fa338d70e4764028ab0b9a3b6fe0381b28de35bc1008054308999a1c59e9d1fa",
+      "measured_at": "2026-11-07T16:37:53.268846+00:00",
       "camera": {
         "matrix_world": [
           [
@@ -1118,15 +1194,15 @@
           ],
           [
             0.0,
-            0.7259527444839478,
-            -0.6877445578575134,
-            -2.700000047683716
+            0.777379035949707,
+            -0.6290324926376343,
+            -2.4000000953674316
           ],
           [
             0.0,
-            0.6877445578575134,
-            0.7259527444839478,
-            2.9000000953674316
+            0.6290324926376343,
+            0.777379035949707,
+            3.200000047683716
           ],
           [
             0.0,
@@ -1135,120 +1211,124 @@
             1.0
           ]
         ],
-        "lens_mm": 50.0,
-        "type": "ORTHO",
-        "ortho_scale_m": 3.5199999809265137,
-        "fstop": 32.0,
-        "focus_world_m": [
+        "lens_mm": 65.0,
+        "sensor_width_mm": 36.0,
+        "shift": [
           0.0,
-          0.0,
-          0.05000000074505806
+          0.0
         ],
-        "coordinate_system": "right-handed Blender Z-up, metres"
+        "type": "ORTHO",
+        "fstop": 4.0,
+        "focus_world_m": [
+          -0.10000000149011612,
+          -0.1599999964237213,
+          0.18000000715255737
+        ],
+        "coordinate_system": "Blender Z-up metres; Three.js (x,y,z) becomes (x,-z,y) times planet radius"
       },
       "anchors": {
         "fallen_pole": {
-          "x": 993.088,
-          "y": 678.125,
-          "depth_m": 3.678517,
+          "x": 992.141,
+          "y": 482.562,
+          "depth_m": 3.680011,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            0.0606606,
-            -0.3539523,
-            0.0554133
+            0.0527311,
+            -0.0118981,
+            0.3985132
           ]
         },
         "meter": {
-          "x": 833.464,
-          "y": 647.894,
-          "depth_m": 3.754414,
-          "in_frame": true,
-          "occluded": true,
-          "visible": false,
-          "world_m": [
-            -0.2319828,
-            -0.2615205,
-            0.0384326
-          ]
-        },
-        "hot_roof": {
-          "x": 839.875,
-          "y": 720.429,
-          "depth_m": 3.835904,
-          "in_frame": true,
-          "occluded": true,
-          "visible": false,
-          "world_m": [
-            -0.2202284,
-            -0.3020128,
-            -0.1121809
-          ]
-        },
-        "depot": {
-          "x": 857.399,
-          "y": 558.965,
-          "depth_m": 3.655121,
-          "in_frame": true,
-          "occluded": true,
-          "visible": false,
-          "world_m": [
-            -0.1881021,
-            -0.2114521,
-            0.2226423
-          ]
-        },
-        "unsure_house": {
-          "x": 1105.866,
-          "y": 626.922,
-          "depth_m": 3.710355,
+          "x": 817.364,
+          "y": 509.005,
+          "depth_m": 3.703526,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            0.2674209,
-            -0.2639092,
-            0.0968607
+            -0.2340115,
+            -0.0308315,
+            0.3529442
+          ]
+        },
+        "hot_roof": {
+          "x": 827.147,
+          "y": 560.482,
+          "depth_m": 3.598068,
+          "in_frame": true,
+          "occluded": false,
+          "visible": true,
+          "world_m": [
+            -0.217962,
+            -0.1628207,
+            0.3817998
+          ]
+        },
+        "depot": {
+          "x": 810.799,
+          "y": 421.904,
+          "depth_m": 3.834647,
+          "in_frame": true,
+          "occluded": false,
+          "visible": true,
+          "world_m": [
+            -0.2447831,
+            0.1627351,
+            0.3409012
+          ]
+        },
+        "unsure_house": {
+          "x": 1125.073,
+          "y": 474.0,
+          "depth_m": 3.715592,
+          "in_frame": true,
+          "occluded": true,
+          "visible": false,
+          "world_m": [
+            0.2708235,
+            0.0214034,
+            0.3796895
           ]
         },
         "truck_1": {
-          "x": 971.007,
-          "y": 606.577,
-          "depth_m": 3.782414,
+          "x": 971.486,
+          "y": 465.567,
+          "depth_m": 3.670863,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            0.0201804,
-            -0.1872738,
-            0.0702018
+            0.0188441,
+            0.0040223,
+            0.423163
           ]
         },
         "truck_2": {
-          "x": 1001.154,
-          "y": 550.574,
-          "depth_m": 3.794509,
+          "x": 1004.646,
+          "y": 414.507,
+          "depth_m": 3.755139,
           "in_frame": true,
           "occluded": true,
           "visible": false,
           "world_m": [
-            0.0754489,
-            -0.1044201,
-            0.1320334
+            0.0732477,
+            0.122156,
+            0.4103429
           ]
         },
         "truck_3": {
-          "x": 893.543,
-          "y": 619.345,
-          "depth_m": 3.791533,
+          "x": 887.752,
+          "y": 487.453,
+          "depth_m": 3.654092,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.1218374,
-            -0.1979946,
-            0.0474836
+            -0.1185316,
+            -0.0344394,
+            0.4136147
           ]
         }
       }
@@ -1258,12 +1338,18 @@
       "kind": "morph",
       "name": "morph_0",
       "time_seconds": null,
+      "source_frame": 420,
       "factor": 0.0,
-      "seconds": 7.374,
+      "seconds": 9.182,
+      "render_seconds": 6.704,
+      "prepare_seconds": 2.478,
       "width": 1920,
       "height": 1080,
-      "samples": 512,
+      "samples": 256,
       "file": "stills/morph_0.png",
+      "camera_source": "fixed morph proof",
+      "scene_sha256": "fa338d70e4764028ab0b9a3b6fe0381b28de35bc1008054308999a1c59e9d1fa",
+      "measured_at": "2026-11-07T16:38:02.569858+00:00",
       "camera": {
         "matrix_world": [
           [
@@ -1274,15 +1360,15 @@
           ],
           [
             0.0,
-            0.7259527444839478,
-            -0.6877445578575134,
-            -2.700000047683716
+            0.777379035949707,
+            -0.6290324926376343,
+            -2.4000000953674316
           ],
           [
             0.0,
-            0.6877445578575134,
-            0.7259527444839478,
-            2.9000000953674316
+            0.6290324926376343,
+            0.777379035949707,
+            3.200000047683716
           ],
           [
             0.0,
@@ -1291,120 +1377,124 @@
             1.0
           ]
         ],
-        "lens_mm": 50.0,
-        "type": "ORTHO",
-        "ortho_scale_m": 3.5199999809265137,
-        "fstop": 32.0,
-        "focus_world_m": [
+        "lens_mm": 65.0,
+        "sensor_width_mm": 36.0,
+        "shift": [
           0.0,
-          0.0,
-          0.05000000074505806
+          0.0
         ],
-        "coordinate_system": "right-handed Blender Z-up, metres"
+        "type": "ORTHO",
+        "fstop": 4.0,
+        "focus_world_m": [
+          -0.10000000149011612,
+          -0.1599999964237213,
+          0.18000000715255737
+        ],
+        "coordinate_system": "Blender Z-up metres; Three.js (x,y,z) becomes (x,-z,y) times planet radius"
       },
       "anchors": {
         "fallen_pole": {
-          "x": 993.088,
-          "y": 678.125,
-          "depth_m": 3.678517,
+          "x": 988.907,
+          "y": 483.341,
+          "depth_m": 3.679637,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            0.0606606,
-            -0.3539523,
-            0.0554133
+            0.047426,
+            -0.0131266,
+            0.398
           ]
         },
         "meter": {
-          "x": 833.464,
-          "y": 647.894,
-          "depth_m": 3.754414,
-          "in_frame": true,
-          "occluded": true,
-          "visible": false,
-          "world_m": [
-            -0.2319828,
-            -0.2615205,
-            0.0384326
-          ]
-        },
-        "hot_roof": {
-          "x": 839.875,
-          "y": 720.429,
-          "depth_m": 3.835904,
-          "in_frame": true,
-          "occluded": true,
-          "visible": false,
-          "world_m": [
-            -0.2202284,
-            -0.3020128,
-            -0.1121809
-          ]
-        },
-        "depot": {
-          "x": 857.399,
-          "y": 558.965,
-          "depth_m": 3.655121,
-          "in_frame": true,
-          "occluded": true,
-          "visible": false,
-          "world_m": [
-            -0.1881021,
-            -0.2114521,
-            0.2226423
-          ]
-        },
-        "unsure_house": {
-          "x": 1105.866,
-          "y": 626.922,
-          "depth_m": 3.710355,
+          "x": 821.635,
+          "y": 494.283,
+          "depth_m": 3.674888,
           "in_frame": true,
           "occluded": false,
           "visible": true,
           "world_m": [
-            0.2674209,
-            -0.2639092,
-            0.0968607
+            -0.2270053,
+            -0.0300694,
+            0.3904
+          ]
+        },
+        "hot_roof": {
+          "x": 836.604,
+          "y": 537.054,
+          "depth_m": 3.567167,
+          "in_frame": true,
+          "occluded": false,
+          "visible": true,
+          "world_m": [
+            -0.2024474,
+            -0.1523793,
+            0.43
+          ]
+        },
+        "depot": {
+          "x": 814.93,
+          "y": 401.485,
+          "depth_m": 3.785732,
+          "in_frame": true,
+          "occluded": true,
+          "visible": false,
+          "world_m": [
+            -0.2380048,
+            0.1580079,
+            0.4
+          ]
+        },
+        "unsure_house": {
+          "x": 1113.988,
+          "y": 456.158,
+          "depth_m": 3.677132,
+          "in_frame": true,
+          "occluded": true,
+          "visible": false,
+          "world_m": [
+            0.2526373,
+            0.0199661,
+            0.428
           ]
         },
         "truck_1": {
-          "x": 970.078,
-          "y": 532.237,
-          "depth_m": 3.916768,
+          "x": 970.558,
+          "y": 465.631,
+          "depth_m": 3.670475,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            0.0184761,
-            0.0040676,
-            0.0664
+            0.0173208,
+            0.0036971,
+            0.4234
           ]
         },
         "truck_2": {
-          "x": 1000.581,
-          "y": 488.612,
-          "depth_m": 3.992538,
+          "x": 1001.262,
+          "y": 413.888,
+          "depth_m": 3.739165,
           "in_frame": true,
           "occluded": true,
           "visible": false,
           "world_m": [
-            0.0743991,
-            0.1142399,
-            0.0664
+            0.0676963,
+            0.1128979,
+            0.4234
           ]
         },
         "truck_3": {
-          "x": 899.026,
-          "y": 547.279,
-          "depth_m": 3.890642,
+          "x": 893.321,
+          "y": 482.443,
+          "depth_m": 3.648155,
           "in_frame": true,
-          "occluded": true,
-          "visible": false,
+          "occluded": false,
+          "visible": true,
           "world_m": [
-            -0.111785,
-            -0.0339202,
-            0.0664
+            -0.1093948,
+            -0.0317847,
+            0.4234
           ]
         }
       }

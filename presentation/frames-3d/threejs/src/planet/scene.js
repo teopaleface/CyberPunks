@@ -316,7 +316,11 @@ export function buildScene(scene) {
     const { n } = planetFrame(a.x, a.z, 1, 0, 0);
     return [n.x, n.y, n.z];
   };
-  const camTrack = makeCameraTrack(resolveTarget, resolveNormal);
+  const solveHouseAz = (k) => {
+    const n = resolveNormal(k.rel);
+    return { az: (Math.atan2(n[0], n[2]) * 180) / Math.PI + (k.az || 0) + 4, el: Math.min(78, (Math.asin(n[1]) * 180) / Math.PI + (k.el || 0) + 2) };
+  };
+  const camTrack = makeCameraTrack(resolveTarget, resolveNormal, solveHouseAz);
 
   // window light groups: order houses by azimuth for the storm and the dawn sweep
   const order = W.houses.map((h) => h.id).sort((a, b) => {
@@ -353,7 +357,7 @@ export function applyAt(SC, t) {
   // window lights
   const offAt = (id) => {
     const r = SC.rank.get(id) ?? 0;
-    return T.lightsOff[Math.min(3, Math.floor(r * 4))];
+    return T.lightsOff[Math.min(T.lightsOff.length - 1, Math.floor(r * T.lightsOff.length))];
   };
   const onAt = (id) => T.windowsOn[0] + (SC.rank.get(id) ?? 0) * (T.windowsOn[1] - T.windowsOn[0]);
   const L = SC.lit, H = SC.houseAttr;
@@ -395,8 +399,8 @@ export function applyAt(SC, t) {
     SC.cloud.visible = kIn > 0 && kOut < 1;
     const { p, q, n } = planetFrame(fp.x - 0.5, fp.z + 0.6, f, 0, 0);
     const side = new THREE.Vector3(1, 0, -0.4).normalize();
-    SC.cloud.position.copy(p).addScaledVector(n, 0.62).add(new THREE.Vector3(0, 0.42, 0)).addScaledVector(side, (1 - kIn) * 2.2 + kOut * 2.4);
-    SC.cloud.quaternion.identity().slerp(q, 0.3);
+    SC.cloud.position.copy(p).addScaledVector(n, 0.62).add(new THREE.Vector3(0, 0.42, 0)).addScaledVector(side, (1 - kIn) * 2.2 - kOut * 2.6); // passes over and leaves on the far side (no ping-pong)
+    SC.cloud.quaternion.identity(); // hangs plumb: the wire stays vertical, rain falls straight down
     SC.cloud.scale.setScalar(0.5);
   }
 
@@ -433,17 +437,20 @@ export function applyAt(SC, t) {
     void head;
     for (const pin of r.pins) {
       const tk2 = T.pins[pin.k];
-      const k = seg(t, tk2 - 0.04, tk2 + 0.32);
+      const k = seg(t, tk2 - 0.28, tk2 + 0.1);
       pin.pin.visible = k > 0;
       const h = pin.house;
-      place(pin.pin, h.x, h.z, f, 0, h.ridge * 0.92 + (1 - ease.outCubic(k)) * 2.6);
+      // falls, hits the roof on the beat, small bounce (back.out 1.5 feel)
+      const fall = k < 0.72 ? 1 - ease.inCubic(k / 0.72) : -Math.sin(((k - 0.72) / 0.28) * Math.PI) * 0.06;
+      place(pin.pin, h.x, h.z, f, 0, h.ridge * 0.92 + fall * 2.6);
     }
   }
   // ask pin
   {
-    const k = seg(t, T.askPin[0], T.askPin[1]);
-    SC.askPin.visible = k > 0 && !!SC.unsure;
-    if (SC.unsure) place(SC.askPin, SC.unsure.x, SC.unsure.z, f, 0, SC.unsure.ridge * 0.92 + (1 - ease.outCubic(k)) * 2.6);
+    // the 2D card collapses into the cyan pin; the 3D pin takes over when it hits the house (19.25)
+    SC.askPin.visible = t >= T.askPin[1] && !!SC.unsure;
+    const kb = seg(t, T.askPin[1], T.askPin[1] + 0.2);
+    if (SC.unsure) place(SC.askPin, SC.unsure.x, SC.unsure.z, f, 0, SC.unsure.ridge * 0.92 - Math.sin(kb * Math.PI) * 0.12);
   }
 
   // workers: by the trucks in the depot, and at the fallen pole after it falls
@@ -452,7 +459,7 @@ export function applyAt(SC, t) {
     place(w, pk.x + Math.cos(pk.yaw) * 0.42 * (i - 1) + 0.3, pk.z - Math.sin(pk.yaw) * 0.42 + 0.35, f, pk.yaw + Math.PI + i * 0.8, 0.045);
   });
   SC.poleWorkers.forEach((w, i) => {
-    w.visible = t > T.poleFall + 0.8 && t < 20.5;
+    w.visible = t > T.poleFall + 0.5 && t < 20.5;
     const a = [0.2, 0.9, -0.5][i];
     place(w, fp.x + 0.9 + Math.cos(a) * 0.4, fp.z + 0.55 + Math.sin(a) * 0.4, f, -2.2 + i * 0.7, 0.035);
   });
@@ -494,6 +501,7 @@ export function anchorWorld(SC, t, f) {
     out[`truck_${i + 1}`] = { p: tk.position.clone().addScaledVector(n, 0.75 * S), n };
   });
   out.planet = { p: new THREE.Vector3(0, 0, 0), n: new THREE.Vector3(0, 1, 0) };
+  (SC.darkPick || []).forEach((id, k) => { const h = SC.W.houses[id]; const { p, n } = planetFrame(h.x, h.z, f, 0, h.ridge * 0.6); out[`dark_${k}`] = { p, n }; });
   out.sun = { p: SC.sun.position.clone(), n: SC.sun.position.clone().normalize(), always: true };
   SC.routes.forEach((r) => r.pins.forEach((pin, k) => {
     const h = pin.house;

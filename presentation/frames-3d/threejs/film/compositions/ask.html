@@ -1,75 +1,102 @@
 <template>
   <style>
-    @font-face { font-family: "Archivo"; src: url("assets/fonts/Archivo-wdth62_125-wght100_900-latin.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-    #root { position: absolute; inset: 0; font-family: "Archivo", sans-serif; color: #f5f7fa; }
+    #root { position: absolute; inset: 0; }
+    #ak-shade { position: absolute; inset: 0; background: linear-gradient(90deg, var(--db-navy) 0%, var(--db-navy) 36%, rgba(0, 15, 30, 0) 56%); }
     #ak-svg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
-    #ak-wrap { position: absolute; left: 0; top: 0; }
-    #ak-card { position: absolute; left: 0; top: 0; width: 520px; padding: 30px 34px 32px; border-radius: 12px; transform-origin: 0% 100%;
-      background: #06192c; border: 1px solid rgba(245, 247, 250, 0.16); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45); }
-    #ak-tag { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 660; letter-spacing: 0.18em; text-transform: uppercase; color: #00a3e0; }
-    #ak-tag i { width: 10px; height: 10px; border-radius: 50%; background: #00a3e0; display: inline-block; }
-    #ak-title { margin-top: 18px; font-size: 50px; line-height: 1.04; font-weight: 730; font-stretch: 106%; letter-spacing: -0.028em; }
-    #ak-btns { margin-top: 28px; display: flex; gap: 14px; }
-    .ak-b { height: 58px; padding: 0 30px; border-radius: 8px; display: flex; align-items: center; font-size: 23px; font-weight: 680; }
-    #ak-yes { background: #00a3e0; color: #000f1e; }
-    #ak-no { border: 1.5px solid rgba(245, 247, 250, 0.32); color: rgba(245, 247, 250, 0.85); }
-    #ak-cursor { position: absolute; left: 0; top: 0; width: 134px; height: 134px; pointer-events: none; z-index: 20; }
-    #ak-cur-in { width: 134px; height: 134px; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3)); }
+    .ak-h { position: absolute; left: 120px; font-size: 170px; }
+    #ak-card { position: absolute; left: 0; top: 0; width: 600px; padding: 38px 42px; }
+    #ak-tag { font-size: 30px; color: var(--db-cyan); display: flex; align-items: center; gap: 14px; }
+    #ak-tag i { width: 16px; height: 16px; border-radius: 50%; background: var(--db-cyan); display: inline-block; }
+    #ak-title { font-size: 50px; margin: 16px 0 30px; }
+    #ak-btns { display: flex; gap: 18px; }
+    .ak-b { font-size: 32px; }
+    #ak-cursor { position: absolute; left: 0; top: 0; width: 100px; height: 127px; z-index: 20; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3)); }
   </style>
+  <!-- Style frame 05: close on the unsure house; solid navy left third; solid card, cyan Approve. -->
   <div id="root" data-composition-id="ask" data-width="1920" data-height="1080">
-    <svg id="ak-svg" viewBox="0 0 1920 1080" data-layout-allow-overflow>
-      <path id="ak-line" pathLength="1" fill="none" stroke="#00a3e0" stroke-width="2.5" stroke-dasharray="1" stroke-dashoffset="1" />
-      <circle id="ak-anchor" r="7" fill="#00a3e0" />
-    </svg>
-    <div id="ak-wrap"><div id="ak-card">
-      <div id="ak-tag"><i></i>Needs a dispatcher</div>
-      <div id="ak-title">Not sure?<br />It asks you.</div>
-      <div id="ak-btns"><div class="ak-b" id="ak-yes">Approve</div><div class="ak-b" id="ak-no">Skip</div></div>
-    </div></div>
-    <div id="ak-cursor"><svg id="ak-cur-in" viewBox="0 0 24 24"><path d="M3 2 L3 20 L7.6 15.9 L10.7 22.5 L13.7 21.1 L10.7 14.6 L16.8 14.4 Z" fill="#ffffff" stroke="#111111" stroke-width="1.3" stroke-linejoin="round" /></svg></div>
+    <div id="ak-shade"></div>
+    <svg id="ak-svg" viewBox="0 0 1920 1080" data-layout-allow-overflow><g id="ak-lines"></g><g id="ak-pings"></g><circle id="ak-house" r="18" fill="none" stroke-width="3" /><g id="ak-fx"></g></svg>
+    <div class="ak-h display" id="ak-l1" style="top:300px">Not sure?</div>
+    <div class="ak-h display" id="ak-l2" style="top:453px">It asks</div>
+    <div class="ak-h display" id="ak-l3" style="top:606px">you.</div>
+    <div id="ak-card" class="db-card">
+      <div id="ak-tag" class="body"><i></i>Not sure</div>
+      <div id="ak-title" class="head">Send a crew to<br />check this meter?</div>
+      <div id="ak-btns"><div class="ak-b head db-btn-cyan" id="ak-yes">Approve</div><div class="ak-b head db-btn-ghost" id="ak-no">Skip</div></div>
+    </div>
+    <div id="ak-cursor"></div>
   </div>
   <script>
     (function () {
       const S0 = 16.556, D = 3.901;
       const tl = gsap.timeline({ paused: true });
+      const cyan = DB.css("--db-cyan"), ink = DB.css("--db-ink");
+      const L = DB.leader(document.getElementById("ak-lines"), cyan); L.el.id = "ak-ld";
+      const P = DB.ping(document.getElementById("ak-pings"), cyan, true); P.g.id = "ak-pg"; P.g.setAttribute("opacity", 0);
+      const F = DB.el("circle", { r: 14, fill: "none", stroke: cyan, "stroke-width": 3, opacity: 0, id: "ak-hit" }, document.getElementById("ak-pings"));
+      const house = document.getElementById("ak-house"); house.setAttribute("stroke", cyan);
+      const card = document.getElementById("ak-card"), yes = document.getElementById("ak-yes"), svgEl = document.getElementById("ak-svg");
+      document.getElementById("ak-cursor").innerHTML = DB.CURSOR_SVG;
+      const CW = 100, CH = 127;
+      const rings = DB.clickRings(document.getElementById("ak-fx"), ink); rings.g.id = "ak-rings";
       const clamp = (x) => Math.max(0, Math.min(1, x));
       const seg = (t, a, b) => clamp((t - a) / (b - a));
-      const p3o = (x) => 1 - Math.pow(1 - x, 3), p3i = (x) => x * x * x, p2i = (x) => x * x;
-      const CARD = { dx: 150, dy: -330 }; // card top-left relative to the house anchor
-      const H = 262; // approx card height
+      const io2 = (x) => (x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2);
+      const in4 = (x) => x * x * x * x;
+      const COLLAPSE = [18.95, 19.25];
       DB.drive(tl, S0, D, (t) => {
-        const a = DB.at("unsure_house", t);
-        const k = p3i(seg(t, 18.95, 19.32)); // collapse into the pin
-        const cx = a.x + CARD.dx, cy = a.y + CARD.dy;
-        gsap.set("#ak-wrap", { x: cx + (a.x - cx) * k, y: cy + H * k + (a.y - cy - H) * k * 1.0 });
-        const lx0 = cx + 26, ly0 = cy + H - 8;
-        document.getElementById("ak-line").setAttribute("d", `M${a.x.toFixed(1)} ${a.y.toFixed(1)} L${(lx0 + (a.x - lx0) * k).toFixed(1)} ${(ly0 + (a.y - ly0) * k).toFixed(1)}`);
-        const an = document.getElementById("ak-anchor");
-        an.setAttribute("cx", a.x.toFixed(1)); an.setAttribute("cy", a.y.toFixed(1));
-        // cursor: enters from below on 18.111, glides to Approve, clicks on 18.901, leaves right
-        const btn = [cx + 34 + 70, cy + 30 + 16 + 18 + 104 + 28 + 29];
-        const start = [btn[0] + 120, 1220];
-        const kin = p3o(seg(t, 18.111, 18.78));
-        const kout = p2i(seg(t, 19.15, 19.75));
-        const x = start[0] + (btn[0] - start[0]) * kin + 900 * kout;
-        const y = start[1] + (btn[1] - start[1]) * kin + 260 * kout;
-        gsap.set("#ak-cursor", { x: x - 16.8, y: y - 11.1 });
+        const h = DB.at("unsure_house", t);
+        const cx = h.x - 50, cy = h.y - 560;
+        // the card collapses into the cyan pin along a path to the house (power4.in)
+        const k = in4(seg(t, COLLAPSE[0], COLLAPSE[1]));
+        const tx = h.x - 300, ty = h.y - 160; // card centre offset at the end
+        gsap.set(card, { x: cx + (tx - cx) * k * 0 + (h.x - (cx + 300)) * k, y: cy + (h.y - (cy + 159)) * k });
+        L.update([[h.x, h.y], [h.x, cy + 318]]);
+        P.update(h.x, h.y);
+        house.setAttribute("cx", h.x.toFixed(1)); house.setAttribute("cy", h.y.toFixed(1));
+        F.setAttribute("cx", h.x.toFixed(1)); F.setAttribute("cy", h.y.toFixed(1));
+        // cursor: enters from off-screen right, arcs to Approve (0.6 s power2.inOut), holds 0.4 s, clicks 18.901
+        // Approve centre from its real on-screen box (normalised to the 1920x1080 stage)
+        const R = svgEl.getBoundingClientRect(), Y = yes.getBoundingClientRect(), K = 1920 / (R.width || 1920);
+        const cr = card.getBoundingClientRect();
+        const ox = (Y.left + Y.width / 2 - cr.left) * K, oy = (Y.top + Y.height / 2 - cr.top) * K;
+        const bx = cx + (isFinite(ox) && ox > 0 ? ox : 137), by = cy + (isFinite(oy) && oy > 0 ? oy : 245);
+        const kin = io2(seg(t, 17.9, 18.5));
+        const kout = seg(t, 19.2, 19.75);
+        const sx = 2060, sy = by + 260;
+        const x = sx + (bx - sx) * kin + 900 * kout * kout;
+        const y = sy + (by - sy) * kin - Math.sin(kin * Math.PI) * 120 + 140 * kout * kout;
+        gsap.set("#ak-cursor", { x: x - DB.CURSOR_TIP[0] * CW, y: y - DB.CURSOR_TIP[1] * CH });
+        rings.update(bx, by);
       });
-      // card pops on 17.345 (local 0.789), anchor dot and connector first
-      tl.fromTo("#ak-anchor", { scale: 0, transformOrigin: "50% 50%", transformBox: "fill-box" }, { scale: 1, duration: 0.3, ease: "back.out(2)" }, 0.6);
-      tl.fromTo("#ak-line", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.24, ease: "power2.inOut" }, 0.66);
-      tl.fromTo("#ak-card", { opacity: 0, scale: 0.9, y: 24 }, { opacity: 1, scale: 1, y: 0, duration: 0.46, ease: "power3.out" }, 0.789);
-      tl.fromTo("#ak-tag, #ak-title, #ak-btns", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.36, ease: "power3.out", stagger: 0.06 }, 0.86);
-      // click on Approve: 18.901 (local 2.345)
-      tl.to("#ak-cur-in", { scale: 0.84, duration: 0.1, ease: "power2.in", transformOrigin: "12.5% 8.3%" }, 2.345);
-      tl.to("#ak-cur-in", { scale: 1, duration: 0.22, ease: "power2.out", transformOrigin: "12.5% 8.3%" }, 2.445);
-      tl.to("#ak-yes", { scale: 0.94, backgroundColor: "#3cc0f0", duration: 0.1, ease: "power2.in" }, 2.345);
-      tl.to("#ak-yes", { scale: 1, backgroundColor: "#00a3e0", duration: 0.2, ease: "power2.out" }, 2.445);
-      // the card collapses into the cyan pin that drops on the house (3D pin lands 19.45)
-      tl.to("#ak-card", { scale: 0.03, borderRadius: 400, duration: 0.37, ease: "power3.in" }, 2.394);
-      tl.to("#ak-card > *", { opacity: 0, duration: 0.14, ease: "power2.in" }, 2.394);
-      tl.to("#ak-card", { opacity: 0, duration: 0.06 }, 2.76);
-      tl.to("#ak-anchor", { scale: 2.4, opacity: 0, duration: 0.4, ease: "power2.out" }, 2.8);
+      // headline: waterfall entry on 16.9 (binary opacity, power4.out)
+      gsap.set(["#ak-l1", "#ak-l2", "#ak-l3", "#ak-card"], { opacity: 0 });
+      [["#ak-l1", 16.9, 70, 0.2], ["#ak-l2", 16.95, 50, 0.17], ["#ak-l3", 16.992, 46, 0.15]].forEach(([s, t, y, d]) => {
+        tl.set(s, { opacity: 1 }, t - S0);
+        tl.fromTo(s, { y }, { y: 0, duration: d, ease: "power4.out", immediateRender: false }, t - S0);
+      });
+      // 17.345: the card arrives from below (binary opacity, power4.out 0.18 s); leader draws; ping on the house
+      tl.set("#ak-card", { opacity: 1 }, 17.345 - S0);
+      tl.fromTo("#ak-card > *", { y: 60 }, { y: 0, duration: 0.18, ease: "power4.out", immediateRender: false }, 17.345 - S0);
+      tl.fromTo("#ak-ld", { strokeDashoffset: 1.1 }, { strokeDashoffset: 0, duration: 0.25, ease: "power3.out" }, 17.345 - S0);
+      tl.set("#ak-pg", { opacity: 1 }, 17.345 - S0);
+      tl.set("#ak-house", { opacity: 0 }, 17.345 - S0);
+      // click 18.901: squash -> spring; Approve presses; click rings
+      const C = 18.901 - S0;
+      tl.to("#ak-cursor", { scale: 0.86, duration: 0.06, ease: "power2.in", transformOrigin: "8% 6%" }, C - 0.03);
+      tl.to("#ak-cursor", { scale: 1, duration: 0.24, ease: "back.out(1.6)", transformOrigin: "8% 6%" }, C + 0.03);
+      tl.to("#ak-yes", { scale: 0.94, duration: 0.06, ease: "power2.in" }, C);
+      tl.to("#ak-yes", { scale: 1, duration: 0.2, ease: "back.out(1.6)" }, C + 0.06);
+      tl.set("#ak-rings", { opacity: 1 }, C);
+      tl.fromTo("#ak-rings", { scale: 0.5, transformOrigin: "50% 50%", transformBox: "fill-box" }, { scale: 1.5, opacity: 0, duration: 0.5, ease: "expo.out", immediateRender: false }, C);
+      // collapse (shared-element morph): the card becomes a cyan dot on its way to the house
+      tl.to("#ak-card > *", { opacity: 0, duration: 0.1, ease: "none" }, COLLAPSE[0] - S0);
+      tl.to("#ak-card", { scale: 0.06, borderRadius: 300, backgroundColor: cyan, duration: 0.3, ease: "power4.in" }, COLLAPSE[0] - S0);
+      tl.to("#ak-ld", { strokeDashoffset: 1.1, duration: 0.3, ease: "power4.in" }, COLLAPSE[0] - S0);
+      tl.set("#ak-card", { opacity: 0 }, COLLAPSE[1] - S0);
+      // the pin hits the house: one ping
+      tl.set("#ak-hit", { opacity: 1 }, COLLAPSE[1] - S0);
+      tl.fromTo("#ak-hit", { attr: { r: 14 } }, { attr: { r: 80 }, opacity: 0, duration: 0.5, ease: "expo.out", immediateRender: false }, COLLAPSE[1] - S0);
       window.__timelines["ask"] = tl;
     })();
   </script>

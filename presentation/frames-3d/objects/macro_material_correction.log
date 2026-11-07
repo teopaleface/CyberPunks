@@ -1,0 +1,18 @@
+00:00.667  blend            | Read blend: "/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/truck/scene.blend"
+/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/scale_first_materials.py:10: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if m.use_nodes:
+00:09.552  render           | Saved: '/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/truck/hero.png'
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+Info: Saved as "scene.blend"
+OBJECTS_HERO_DONE truck 8.818719125003554
+00:09.569  blend            | Read blend: "/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/meter/scene.blend"
+00:12.006  render           | Saved: '/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/meter/hero.png'
+Info: Saved as "scene.blend"
+OBJECTS_HERO_DONE meter 2.3924466249882244
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

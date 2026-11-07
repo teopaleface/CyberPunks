@@ -9,6 +9,53 @@ Blender Cycles (the other team), rendered from `camera_path.json`. The film keep
 clean seam: the 3D layer is a swappable full-frame image sequence, and the 2D layer
 reads only `film/assets/tracks.js`.
 
+## Milestone 2 v2: style frames v2 + MOTION_SCRIPT + 3D objects (19:30)
+
+- **Animatic:** `film/renders/local/daybreak_animatic_v2.mp4`. It is 1920×1080, 30 fps, H.264 yuv420p, AAC with POWER, and git-ignored. The render took 12.7 s (`npx hyperframes render --quality draft`).
+- **Strip at the style-frame moments:** `film/stills/m2_styleframe_moments_strip.jpg`. The frames were decoded from the MP4.
+- **2D layer.**
+  - The look follows `../styleframes/build.py`. The tokens are in `film/assets/theme.css`. The components (bezel, ping, leader, cursor, click rings, sprite) are in `film/assets/db2d.js`.
+  - The product window geometry is in `film/assets/layout.js`, shared with the objects layer.
+  - The scenes are `night`, `ui`, `routes`, `ask`, `dawn`, `endcard`, `hud` (the clock bezel) and `objects`.
+- **3D objects.** `python3 render/sync_objects.py` copies the heroes from `../objects/` and builds atlases for the `spin`/`tumble` sequences. Until those sequences exist, the sprites use the hero image with 2D rotation, and they swap automatically once the sequences are delivered.
+- **Seams.**
+  - `film/ledger.json` has 7 rows from MOTION_SCRIPT.md. Rows 3, 4 and 6 are stamped from `film/ledger.stamp.json` with `seam-stamp.mjs`. The rest are hand-authored.
+  - The 3D camera has real cuts at 16.556 (rack focus, with the house on the same pixel on both sides) and at 20.457 (rising image).
+  - Verified with `node render/seam-gate-synced.mjs verify --ledger ledger.json --project .` (inside `film/`): **7/7 PASS, 0 warnings.**
+  - `seam-gate-synced.mjs` is the skill's `seam-gate.mjs` with one fix. `__player.seek()` only takes effect on a later animation frame, and the original read immediately after it. For example, `seek(11.132)` left the master timeline at 11.033. The fix waits until the seek has landed. The original gate reports row 4 as failing because of this race.
+
+## Milestone 2 status (animatic prep, 18:30)
+
+Paused before the final animatic render, by request: the 2D style will change to the style frames in
+`../styleframes/`.
+
+- **Retimed on the POWER beats.**
+  - Homes go dark on 3.297 / 4.087 / 4.876.
+  - Problem labels on 5.642 / 6.432 / 7.221.
+  - The question lands on 7.987, about 1.5 s before the drop at 9.474.
+  - The end card starts at 25.124. The orange disc covers the planet on 25.89, "Daybreak" lands on
+    26.68, and the last lines land on 27.446, so they hold 2.55 s.
+- **Mechanical fixes.**
+  - The cloud passes over the village and leaves on the far side by 5.75 s, so it no longer hides
+    the fallen pole.
+  - The stray thin line came from a zero-length dash. It is gone (dash `1 1.2`), and the cloud wire
+    now hangs plumb.
+  - Crew chips stay hidden until 12.655.
+- **The void is exact PPC navy #000F1E.** The renderer composites the 3D onto the brand colour by
+  real coverage (alpha through the accumulation). Before, tone mapping made the navy drift by a
+  few values per frame. It also gives a clean matte for any Blender swap.
+- **The flat map** has rounded house footprints, muted roads, the three routes in orange / cyan /
+  electric blue, and pins. The type is projector-sized (crew card text ≥ 28 px, labels ≥ 30 px).
+- **Restyle-ready.** `film/assets/theme.css` holds every visual token and component: palette, type
+  scale, label, chip, button, cursor, card and map colours. Scene files keep only layout and motion,
+  and JS reads colours through `DB.css('--db-…')`.
+- **Motion doctrine.**
+  - The film's current is **UP** (rising towards daybreak). Z-backward is reserved for the
+    arrivals: the wordmark and the end dot.
+  - `film/ledger.json` lists the seams. `seam-gate.mjs verify` **PASSES** on all three DOM seams
+    (5.642, 9.474, 11.099). The other seams are carried by the continuous 3D camera.
+- **Transition strip (timing review):** `film/stills/m2_transitions_strip.jpg`.
+
 ## Folder map
 
 | Path | What |

@@ -1,0 +1,79 @@
+/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/build_objects.py:14: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(name);m.use_nodes=True
+/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/build_objects.py:328: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  scene.world.use_nodes=True;scene.world.node_tree.nodes.get('Background').inputs['Color'].default_value=(.12,.15,.19,1);scene.world.node_tree.nodes.get('Background').inputs['Strength'].default_value=.23
+00:07.963  render           | Saved: '/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/pole/hero.png'
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Info: Saved as "scene.blend"
+OBJECTS_HERO_DONE pole 7.34217712499958
+00:14.681  render           | Saved: '/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/solar/hero.png'
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Info: Saved as "scene.blend"
+OBJECTS_HERO_DONE solar 6.202048207996995
+00:19.895  render           | Saved: '/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/hardhat/hero.png'
+Warning: No mesh data to join
+Info: Saved as "scene.blend"
+OBJECTS_HERO_DONE hardhat 5.167760875003296
+00:25.012  render           | Saved: '/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/pin_orange/hero.png'
+Warning: No mesh data to join
+Info: Saved as "scene.blend"
+OBJECTS_HERO_DONE pin_orange 5.085933166992618
+00:28.820  render           | Saved: '/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/pin_cyan/hero.png'
+Warning: No mesh data to join
+Info: Saved as "scene.blend"
+OBJECTS_HERO_DONE pin_cyan 3.7785980829939945
+00:32.624  render           | Saved: '/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/pin_blue/hero.png'
+Warning: No mesh data to join
+Info: Saved as "scene.blend"
+OBJECTS_HERO_DONE pin_blue 3.77390858400031
+00:42.415  render           | Saved: '/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/cloud/hero.png'
+Warning: No mesh data to join
+Info: Saved as "scene.blend"
+OBJECTS_HERO_DONE cloud 9.62557391700102
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

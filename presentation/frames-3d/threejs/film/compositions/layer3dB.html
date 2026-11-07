@@ -1,0 +1,37 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; }
+    #l3dB-img { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; }
+  </style>
+  <!-- The 3D layer: a full-frame image sequence (assets/frames3d/fNNNN.jpg,
+       frame = round(t * 30)). Missing frames fall back to the nearest one,
+       so a partial render (stills only) still previews. -->
+  <div id="root" data-composition-id="layer3dB" data-width="1920" data-height="1080">
+    <img id="l3dB-img" src="assets/frames3d/f0045.jpg" alt="" />
+  </div>
+  <script>
+    (function () {
+      const img = document.getElementById("l3dB-img");
+      const frames = (window.DAYBREAK_FRAMES || [45]).slice().sort((a, b) => a - b);
+      function nearest(fr) {
+        let lo = 0, hi = frames.length - 1;
+        while (lo < hi) { const m = (lo + hi) >> 1; if (frames[m] < fr) lo = m + 1; else hi = m; }
+        if (lo > 0 && Math.abs(frames[lo - 1] - fr) <= Math.abs(frames[lo] - fr)) lo--;
+        return frames[lo];
+      }
+      function show(t) {
+        const n = nearest(Math.round(t * 30));
+        const src = "assets/frames3d/f" + String(n).padStart(4, "0") + ".jpg";
+        if (img.getAttribute("src") !== src) img.setAttribute("src", src);
+        return img.decode ? img.decode().catch(() => {}) : Promise.resolve();
+      }
+      const tl = gsap.timeline({ paused: true });
+      DB.drive(tl, 0, 30, (t) => { show(t); });
+      window.addEventListener("hf-seek", (e) => {
+        const p = show(e.detail.time);
+        if (e.detail.waitUntil) e.detail.waitUntil(p);
+      });
+      window.__timelines["layer3dB"] = tl;
+    })();
+  </script>
+</template>

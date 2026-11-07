@@ -74,27 +74,31 @@ export class Studio {
       vertexShader: FS_VERT,
       fragmentShader: /* glsl */`
         uniform sampler2D tSrc; uniform float weight; varying vec2 vUv;
-        void main(){ vec3 c = texture2D(tSrc, vUv).rgb; c = min(c, vec3(64.0)); gl_FragColor = vec4(c * weight, 1.0); }`,
+        void main(){ vec4 s = texture2D(tSrc, vUv); vec3 c = min(s.rgb, vec3(64.0)); gl_FragColor = vec4(c * weight, s.a * weight); }`,
       blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor,
       depthTest: false, depthWrite: false,
     });
     this.outMat = new THREE.RawShaderMaterial({
-      uniforms: { tDiffuse: { value: null }, toneMappingExposure: { value: 1 }, uRes: { value: new THREE.Vector2(width, height) }, uFade: { value: 1 }, uFadeCol: { value: new THREE.Color(0x000f1e) } },
+      uniforms: { tDiffuse: { value: null }, toneMappingExposure: { value: 1 }, uRes: { value: new THREE.Vector2(width, height) }, uFade: { value: 1 }, uFadeCol: { value: new THREE.Vector3(0, 15 / 255, 30 / 255) }, uAlphaBg: { value: 0 } },
       defines: { AGX_TONE_MAPPING: '', SRGB_TRANSFER: '' },
       vertexShader: /* glsl */`
         precision highp float; attribute vec3 position; attribute vec2 uv; varying vec2 vUv;
         void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
       fragmentShader: /* glsl */`
         precision highp float;
-        uniform sampler2D tDiffuse; uniform vec2 uRes; uniform float uFade; uniform vec3 uFadeCol;
+        uniform sampler2D tDiffuse; uniform vec2 uRes; uniform float uFade; uniform vec3 uFadeCol; uniform float uAlphaBg;
         #include <tonemapping_pars_fragment>
         #include <colorspace_pars_fragment>
         varying vec2 vUv;
         float ign(vec2 p){ return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))); }
         void main(){
-          vec4 c = vec4(texture2D(tDiffuse, vUv).rgb, 1.0);
-          c.rgb = AgXToneMapping(c.rgb);
+          vec4 acc = texture2D(tDiffuse, vUv);
+          float cov = uAlphaBg > 0.5 ? clamp(acc.a, 0.0, 1.0) : 1.0;
+          vec3 rgb = uAlphaBg > 0.5 ? (cov > 1e-4 ? acc.rgb / cov : vec3(0.0)) : acc.rgb;
+          vec4 c = vec4(AgXToneMapping(rgb), 1.0);
           c = sRGBTransferOETF(c);
+          // background = exact brand colour (sRGB), composited by real coverage (AA + DOF)
+          c.rgb = mix(uFadeCol, c.rgb, cov);
           c.rgb = mix(uFadeCol, c.rgb, uFade);
           c.rgb += (ign(gl_FragCoord.xy) - 0.5) / 255.0; // deterministic dither against banding
           gl_FragColor = vec4(c.rgb, 1.0);
@@ -153,6 +157,7 @@ export class Studio {
     renderer.toneMappingExposure = 1;
     this.outMat.uniforms.toneMappingExposure.value = S.exposure;
     this.outMat.uniforms.uFade.value = S.fade ?? 1;
+    this.outMat.uniforms.uAlphaBg.value = scene.userData.alphaBg ? 1 : 0;
     camera.near = this.near; camera.far = this.far;
 
     // camera base frame
@@ -245,7 +250,8 @@ export class Studio {
       camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
 
       renderer.setRenderTarget(this.rtSample);
-      renderer.setClearColor(scene.userData.bg ?? 0xe7e3dc, 1);
+      if (scene.userData.alphaBg) renderer.setClearColor(0x000000, 0);
+      else renderer.setClearColor(scene.userData.bg ?? 0xe7e3dc, 1);
       renderer.clear(true, true, false);
       renderer.render(scene, camera);
 

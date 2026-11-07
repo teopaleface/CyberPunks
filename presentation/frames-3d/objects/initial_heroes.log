@@ -1,0 +1,26 @@
+/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/build_objects.py:14: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(name);m.use_nodes=True
+/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/build_objects.py:321: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  scene.world.use_nodes=True;scene.world.node_tree.nodes.get('Background').inputs['Color'].default_value=(.12,.15,.19,1);scene.world.node_tree.nodes.get('Background').inputs['Strength'].default_value=.23
+00:42.793  render           | Saved: '/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/truck/hero.png'
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+Info: Applied modifier was not first, result may not be as expected
+Info: Applied modifier was not first, result may not be as expected
+Warning: No mesh data to join
+Warning: No mesh data to join
+Info: Saved as "scene.blend"
+OBJECTS_HERO_DONE truck 8.346250667003915
+00:52.012  render           | Saved: '/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/meter/hero.png'
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Info: Saved as "scene.blend"
+OBJECTS_HERO_DONE meter 8.74127183300152
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

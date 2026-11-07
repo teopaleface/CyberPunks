@@ -1,0 +1,119 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: visible; }
+    #ob-stage { position: absolute; inset: 0; }
+  </style>
+  <!-- 3D hero objects (presentation/frames-3d/objects, synced by render/sync_objects.py).
+       Every position is a pure function of t; spin/tumble atlases drop in when delivered. -->
+  <div id="root" data-composition-id="objects" data-width="1920" data-height="1080" data-layout-allow-overflow>
+    <div id="ob-stage"></div>
+  </div>
+  <script>
+    (function () {
+      const S0 = 5.0, D = 20.124;
+      const tl = gsap.timeline({ paused: true });
+      const stage = document.getElementById("ob-stage");
+      const clamp = (x) => Math.max(0, Math.min(1, x));
+      const seg = (t, a, b) => clamp((t - a) / (b - a));
+      const o3 = (x) => 1 - Math.pow(1 - x, 3), i4 = (x) => x * x * x * x, io3 = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+      const backOut = (x, c1 = 1.4) => { const c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+      const bez = (a, c, b, u) => [(1 - u) * (1 - u) * a[0] + 2 * (1 - u) * u * c[0] + u * u * b[0], (1 - u) * (1 - u) * a[1] + 2 * (1 - u) * u * c[1] + u * u * b[1]];
+      // motion blur only at peak velocity: px of blur from the screen speed (px/s), on the wrapper
+      const blurFrom = (speed) => Math.max(0, Math.min(10, (speed - 1800) / 380));
+      const speedOf = (fn, t) => { const a = fn(t - 1 / 120), b = fn(t + 1 / 120); return Math.hypot(b[0] - a[0], b[1] - a[1]) * 60; };
+
+      // ---------------- problems -> map pins ----------------
+      const PROB = [
+        { name: "pole", a: "fallen_pole", beat: 5.642, land: [880, 300], size: 300, spin: -1, rot: -6 },
+        { name: "meter", a: "meter", beat: 6.432, land: [930, 470], size: 210, spin: 1, rot: 4 },
+        { name: "solar", a: "hot_roof", beat: 7.221, land: [1400, 1010], size: 600, spin: 1, rot: -10 }, // big, close, half out of frame
+      ];
+      PROB.forEach((o) => { o.S = DB.sprite(stage, o.name); o.S.el.id = "ob-" + o.name; o.L = DBL.LAND[o.name]; });
+      const UI0 = 9.474;
+      const uiScale = (t) => (t < UI0 ? 0.78 : 0.78 + 0.22 * (1 - Math.pow(2, -10 * clamp((t - UI0) / 0.5))));
+      const stopScreen = (o, t) => { const [x, y] = DBL.mapToScreen(o.L.map); const s = uiScale(t); return [960 + (x - 960) * s, 540 + (y - 540) * s]; };
+      function probPos(o, t) {
+        const t0 = o.beat - 0.5;
+        if (t < 9.264) {
+          const a = DB.at(o.a, t0);
+          const u = o3(seg(t, t0, o.beat));
+          const c = [(a.x + o.land[0]) / 2 - 140, Math.min(a.y, o.land[1]) - 220];
+          return bez([a.x, a.y], c, o.land, u);
+        }
+        const u = io3(seg(t, 9.264, 9.75));
+        const b = stopScreen(o, t);
+        return [o.land[0] + (b[0] - o.land[0]) * u, o.land[1] + (b[1] - o.land[1]) * u];
+      }
+      // ---------------- trucks -> crew pills ----------------
+      const TR = [
+        { n: 1, beat: 12.655, from: [2120, 820] },
+        { n: 2, beat: 13.444, from: [2050, -140] },
+        { n: 3, beat: 14.21, from: [2120, 1220] },
+      ];
+      TR.forEach((o) => { o.S = DB.sprite(stage, "truck"); o.S.el.id = "ob-truck" + o.n; });
+      function truckPos(o, t) {
+        const c = DBL.chip(o.n, t);
+        const u = o3(seg(t, o.beat - 0.5, o.beat));
+        const mid = [(o.from[0] + c.ix) / 2, Math.min(o.from[1], c.iy) - 160];
+        return bez(o.from, mid, [c.ix, c.iy], u);
+      }
+      // ---------------- ask: meter spins in the card, flips to the cyan pin ----------------
+      const AM = DB.sprite(stage, "meter"); AM.el.id = "ob-askmeter";
+      const AP = DB.sprite(stage, "pin_cyan"); AP.el.id = "ob-askpin";
+      const cardSpot = (t) => { const h = DB.at("unsure_house", t); return [h.x - 50 + 600 - 96, h.y - 560 + 96]; };
+      // ---------------- dawn: three orange hard hats ----------------
+      const HATS = [
+        { beat: 22.779, at: [230, 770], size: 210, rot: -8 },
+        { beat: 23.568, at: [455, 748], size: 160, rot: 6 },
+        { beat: 24.334, at: [628, 728], size: 120, rot: -4 },
+      ];
+      HATS.forEach((o, i) => { o.S = DB.sprite(stage, "hardhat"); o.S.el.id = "ob-hat" + i; });
+
+      DB.drive(tl, S0, D, (t) => {
+        // problems
+        for (const o of PROB) {
+          const t0 = o.beat - 0.5;
+          if (t < t0 || t >= 9.75) { o.S.hide(); continue; }
+          const p = probPos(o, t);
+          const fly = t < o.beat ? seg(t, t0, o.beat) : 1;
+          let size = 40 + (o.size - 40) * o3(fly);
+          if (t >= 9.264) size = o.size + (46 - o.size) * io3(seg(t, 9.264, 9.75));
+          const sp = speedOf((tt) => probPos(o, tt), t);
+          o.S.update({ x: p[0], y: p[1], size, mode: t < o.beat ? "tumble" : "hero", u: fly, rot: o.rot, spinDir: o.spin, blur: blurFrom(sp) });
+        }
+        // trucks
+        for (const o of TR) {
+          const c = DBL.chip(o.n, t);
+          if (t < o.beat - 0.5 || !(t < o.beat || (c.v && t < 16.556))) { o.S.hide(); continue; }
+          const p = truckPos(o, t);
+          const u = seg(t, o.beat - 0.5, o.beat);
+          const size = 260 + (58 - 260) * o3(u);
+          o.S.update({ x: p[0], y: p[1], size, mode: u < 1 ? "tumble" : "hero", u, rot: 0, spinDir: -1, blur: blurFrom(speedOf((tt) => truckPos(o, tt), t)) });
+        }
+        // ask meter + pin
+        if (t >= 17.345 && t < 19.0) {
+          const [x, y] = cardSpot(t);
+          const yy = y + 60 * (1 - o3(seg(t, 17.345, 17.525)));
+          const flip = seg(t, 18.901, 19.0);
+          AM.update({ x, y: yy, size: 130, mode: "spin", u: (t - 17.345) / 3.0, flipY: 90 * flip * flip });
+        } else AM.hide();
+        if (t >= 19.0 && t < 19.25) {
+          const [x0, y0] = cardSpot(t);
+          const h = DB.at("unsure_house", t);
+          const k = i4(seg(t, 19.05, 19.25));
+          const unflip = 1 - o3(seg(t, 19.0, 19.1));
+          AP.update({ x: x0 + (h.x - x0) * k, y: y0 + (h.y - 40 - y0) * k, size: 130 + (60 - 130) * k, mode: "hero", u: 1, flipY: -90 * unflip, blur: k > 0.4 ? 6 * k : 0 });
+        } else AP.hide();
+        // hard hats
+        for (const o of HATS) {
+          if (t < o.beat || t >= 25.124) { o.S.hide(); continue; }
+          const k = clamp((t - o.beat) / 0.2);
+          const out = seg(t, 24.784, 25.124);
+          const size = o.size * backOut(k);
+          o.S.update({ x: o.at[0], y: o.at[1] + 40 * (1 - o3(k)) - 230 * Math.pow(out, 4), size: Math.max(1, size), mode: k < 1 ? "tumble" : "hero", u: 0.66 + 0.34 * k, rot: o.rot, opacity: 1 - clamp((t - 24.944) / 0.18) });
+        }
+      });
+      window.__timelines["objects"] = tl;
+    })();
+  </script>
+</template>

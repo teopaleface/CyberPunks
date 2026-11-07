@@ -1,39 +1,26 @@
 <template>
   <style>
-    @font-face { font-family: "Archivo"; src: url("assets/fonts/Archivo-wdth62_125-wght100_900-latin.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-    #root { position: absolute; inset: 0; font-family: "Archivo", sans-serif; color: #f5f7fa; }
-    #hd-clock { position: absolute; left: 192px; top: 96px; display: flex; align-items: center; gap: 16px; height: 40px; }
-    #hd-ico { position: relative; width: 22px; height: 22px; }
-    #hd-moon, #hd-sun { position: absolute; inset: 0; border-radius: 50%; }
-    #hd-moon { box-shadow: inset -6px -2px 0 0 #f5f7fa; }
-    #hd-sun { background: #fa4616; }
-    #hd-time { position: relative; height: 40px; width: 112px; overflow: hidden; font-size: 36px; line-height: 40px; font-weight: 640; font-stretch: 104%; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
-    #hd-time span { position: absolute; left: 0; top: 0; }
-    #hd-lbl { position: relative; height: 20px; width: 200px; overflow: hidden; font-size: 15px; line-height: 20px; font-weight: 640; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(245, 247, 250, 0.55); }
-    #hd-lbl span { position: absolute; left: 0; top: 0; white-space: nowrap; }
+    #root { position: absolute; inset: 0; }
+    #hd-svg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
   </style>
+  <!-- The night-shift clock as a bezel around the planet (style frames 01, 02, 04):
+       22:00 -> 06:00 track on a 12 h dial, a cyan progress arc that grows with time,
+       the moon marker and the live time next to it. Tracked to the planet every frame. -->
   <div id="root" data-composition-id="hud" data-width="1920" data-height="1080">
-    <div id="hd-clock">
-      <div id="hd-ico"><div id="hd-moon"></div><div id="hd-sun"></div></div>
-      <div id="hd-time"><span id="hd-t1">22:00</span><span id="hd-t2">06:00</span></div>
-      <div id="hd-lbl"><span id="hd-l1">Night shift</span><span id="hd-l2">Morning</span></div>
-    </div>
+    <svg id="hd-svg" viewBox="0 0 1920 1080" data-layout-allow-overflow><g id="hd-g"></g></svg>
   </div>
   <script>
     (function () {
       const tl = gsap.timeline({ paused: true });
-      tl.fromTo("#hd-clock", { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 0.186);
-      tl.fromTo("#hd-t2, #hd-l2", { yPercent: 100 }, { yPercent: 100, duration: 0.01 }, 0);
-      tl.fromTo("#hd-sun", { scale: 0 }, { scale: 0, duration: 0.01 }, 0);
-      // hidden under the console during the UI beat
-      tl.to("#hd-clock", { opacity: 0, duration: 0.12, ease: "power2.in" }, 9.36);
-      tl.to("#hd-clock", { opacity: 1, duration: 0.3, ease: "power2.out" }, 11.099);
-      // 22:00 -> 06:00 on 20.457: the digits roll, the moon becomes the sun
-      tl.to("#hd-t1, #hd-l1", { yPercent: -100, duration: 0.42, ease: "power3.inOut" }, 20.457);
-      tl.to("#hd-t2, #hd-l2", { yPercent: 0, duration: 0.42, ease: "power3.inOut" }, 20.457);
-      tl.to("#hd-moon", { scale: 0, duration: 0.3, ease: "power2.in" }, 20.457);
-      tl.to("#hd-sun", { scale: 1, duration: 0.4, ease: "back.out(1.8)" }, 20.6);
-      tl.to("#hd-clock", { opacity: 0, x: -16, duration: 0.3, ease: "power2.in" }, 25.55);
+      const B = DB.bezel(document.getElementById("hd-g"));
+      const ease3 = (x) => 1 - Math.pow(1 - Math.max(0, Math.min(1, x)), 3);
+      DB.drive(tl, 0, 20.457, (t) => {
+        const p = DB.planet(t);
+        const c = DB.clockTick(t);
+        // 0 -> 0.975: the bezel draws itself clockwise from 22 (0.8 s power3.out), ticks pop in sequence
+        B.update(p.x, p.y, p.r * 1.074, c.h, 0, { draw: ease3((t - 0.1) / 0.8), roll: c.roll, prevLabel: c.prev });
+      });
+      // the bezel pushes out with the planet at the drop and returns with it (index.html seams 3/4/5)
       window.__timelines["hud"] = tl;
     })();
   </script>

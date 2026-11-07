@@ -1,9 +1,9 @@
 {
-  "spp": 128,
-  "mblur": false,
-  "frames": 6,
-  "seconds": 0.8,
-  "perFrame": 0.132,
+  "spp": 48,
+  "mblur": true,
+  "frames": 900,
+  "seconds": 45.2,
+  "perFrame": 0.05,
   "size": [
     1920,
     1080

@@ -1,0 +1,58 @@
+/* Daybreak film, 2D layer theme: style frames v2 (presentation/frames-3d/styleframes).
+   ONE place for the look of every 2D element: tokens first, then components.
+   Scene files keep only layout (position of each element) and motion.
+   JS reads colours via DB.css('--token'); geometry of bezel/ping/leader/cursor
+   comes from build.py and lives in assets/db2d.js. */
+
+@font-face { font-family: "Archivo"; src: url("fonts/Archivo-wdth62_125-wght100_900-latin.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Archivo"; src: url("fonts/Archivo-wdth62_125-wght100_900-latin-ext.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+
+:root {
+  /* palette (PPC) */
+  --db-navy: #000f1e;
+  --db-orange: #fa4616;
+  --db-cyan: #00a3e0;
+  --db-blue: #163fe8;
+  --db-ink: #f5f7fa;
+  --db-muted: rgba(245, 247, 250, 0.56);
+  --db-sun: var(--db-orange);
+
+  /* surfaces (solid, no glass) */
+  --db-window: #0b1c31;     /* product window */
+  --db-card: #0e2238;       /* ask card */
+  --db-crew: #10263f;       /* crew card in the window */
+  --db-map-bg: #061426;
+  --db-map-road: #17324f;
+  --db-map-house: #1f3d60;
+  --db-map-depot: #2a4e78;
+  --db-shadow: 0 50px 120px rgba(0, 0, 0, 0.55);
+  --db-shadow-card: 0 40px 100px rgba(0, 0, 0, 0.55);
+
+  /* type: Archivo */
+  --db-font: "Archivo", sans-serif;
+}
+
+/* ---------- type system (build.py) ---------- */
+#root .display, .display { font-family: var(--db-font); font-weight: 800; font-stretch: 112%; letter-spacing: -0.035em; line-height: 0.9; color: var(--db-ink); white-space: nowrap; }
+#root .head, .head { font-family: var(--db-font); font-weight: 760; font-stretch: 108%; letter-spacing: -0.03em; line-height: 0.95; color: var(--db-ink); white-space: nowrap; }
+#root .body, .body { font-family: var(--db-font); font-weight: 520; font-stretch: 100%; letter-spacing: -0.01em; color: var(--db-ink); }
+#root .mono, .mono { font-family: var(--db-font); font-variant-numeric: tabular-nums; font-weight: 640; font-stretch: 100%; letter-spacing: 0.01em; color: var(--db-ink); }
+.muted { color: var(--db-muted) !important; }
+.ln { display: block; overflow: hidden; padding: 0.02em 0.04em 0.16em 0; margin-bottom: -0.16em; }
+.li { display: inline-block; }
+
+/* ---------- components ---------- */
+.db-sq { display: inline-block; width: 22px; height: 22px; border-radius: 6px; margin-right: 24px; vertical-align: 8px; }
+.db-pill { font-family: var(--db-font); font-weight: 760; font-stretch: 108%; letter-spacing: -0.02em; font-size: 30px; color: #fff; border-radius: 999px; padding: 12px 24px; white-space: nowrap; line-height: 1.1; }
+.db-btn-orange { background: var(--db-orange); color: #fff; border-radius: 16px; padding: 16px 30px; }
+.db-btn-cyan { background: var(--db-cyan); color: #001b2e; border-radius: 18px; padding: 20px 40px; }
+.db-btn-ghost { border: 2px solid rgba(245, 247, 250, 0.3); border-radius: 18px; padding: 18px 40px; }
+.db-win { border-radius: 30px; background: var(--db-window); box-shadow: var(--db-shadow); overflow: hidden; }
+.db-card { border-radius: 30px; background: var(--db-card); box-shadow: var(--db-shadow-card); }
+.db-crew { display: flex; align-items: center; gap: 22px; background: var(--db-crew); border-radius: 18px; padding: 22px 26px; margin-bottom: 18px; }
+.db-dot { display: inline-block; border-radius: 50%; }
+.db-cursor-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+/* bezel text */
+.db-bezel-num { font-family: var(--db-font); font-weight: 640; font-size: 26px; font-variant-numeric: tabular-nums; }
+.db-bezel-time { font-family: var(--db-font); font-weight: 700; font-size: 42px; font-variant-numeric: tabular-nums; }

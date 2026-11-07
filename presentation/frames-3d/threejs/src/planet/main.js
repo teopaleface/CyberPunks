@@ -17,8 +17,27 @@ const studio = new Studio(canvas, W, H, { skyLights: 2, keyMap: 4096, skyMap: 20
 studio.near = 0.03; studio.far = 400;
 const scene = studio.scene;
 scene.userData.bg = 0x000f1e;
+scene.userData.alphaBg = true; // void = exact PPC navy #000F1E, composited by coverage
 
 const SC = buildScene(scene);
+// one visible house per lights-off group: the 2D collapse ring lands on it on the beat
+{
+  const groups = [[], [], []];
+  for (const h of SC.W.houses) groups[Math.min(2, Math.floor((SC.rank.get(h.id) ?? 0) * 3))].push(h);
+  SC.darkPick = groups.map((g, k) => {
+    const t = T.lightsOff[k];
+    const c = SC.camTrack(t);
+    const cam = new THREE.Vector3(...c.pos);
+    let best = g[0], bd = -2;
+    for (const h of g) {
+      const a = Math.hypot(h.x, h.z) * (1 / 9), th = Math.atan2(h.z, h.x);
+      const n = new THREE.Vector3(Math.sin(a) * Math.cos(th), Math.cos(a), Math.sin(a) * Math.sin(th));
+      const d = n.dot(cam.clone().sub(n).normalize());
+      if (d > bd) { bd = d; best = h; }
+    }
+    return best.id;
+  });
+}
 // cool rim light from behind the planet (relative to the camera): separates it from the void
 const rim = new THREE.DirectionalLight(0xa9c8ff, 1.6);
 rim.castShadow = false;
@@ -28,7 +47,7 @@ function camAt(t) {
   const c = SC.camTrack(t);
   return {
     position: new THREE.Vector3(...c.pos), target: new THREE.Vector3(...c.target), fov: c.fov,
-    aperture: c.aperture, shift: c.shift, pos: c.pos, dist: c.dist,
+    aperture: c.aperture, shift: c.shift, pos: c.pos, dist: c.dist, focus: c.dist * (c.focusMul ?? 1),
   };
 }
 
@@ -101,14 +120,15 @@ function mapLayout(t) {
     return [+(((v.x + 1) / 2) * W).toFixed(1), +(((1 - v.y) / 2) * H).toFixed(1)];
   };
   const quad = (x, z, yaw, hw, d0, d1) => [[-hw, d0], [hw, d0], [hw, d1], [-hw, d1]].map(([lx, lz]) => pr(x + lx * Math.cos(yaw) + lz * Math.sin(yaw), z - lx * Math.sin(yaw) + lz * Math.cos(yaw)));
-  const c = pr(0, 0), e = pr(VILLAGE_R + 2.2, 0);
+  const c = pr(0, 0), e = pr(VILLAGE_R + 2.2, 0), c0 = c;
   return {
     t, center: c, radius: +Math.hypot(e[0] - c[0], e[1] - c[1]).toFixed(1),
     roads: ROADS.map((r) => ({ id: r.id, kind: r.kind, w: r.w, pts: SMOOTH[r.id].filter((_, i) => i % 2 === 0).map(([x, z]) => pr(x, z)) })),
     houses: SC.W.houses.map((h) => ({ id: h.id, quad: quad(h.x, h.z, h.yaw, h.W / 2 + 0.03, 0.05, -h.D - 0.03), roof: pr(h.x, h.z) })),
     depot: quad(DEPOT.x, DEPOT.z, DEPOT.yaw, DEPOT.w / 2, DEPOT.d / 2, -DEPOT.d / 2),
     field: quad(FIELD.x, FIELD.z, FIELD.yaw, FIELD.w / 2, FIELD.d / 2, -FIELD.d / 2),
-    routes: SC.routes.map((r) => ({ key: r.key, pts: r.path.filter((_, i) => i % 4 === 0).map((p) => pr(p.x, p.z)) })),
+    routes: SC.routes.map((r) => ({ key: r.key, pts: r.path.filter((_, i) => i % 3 === 0).map((p) => pr(p.x, p.z)), pins: r.pins.map((p) => pr(p.house.x, p.house.z)) })),
+    houseRects: SC.W.houses.map((h) => { const c = pr(h.x + Math.sin(h.yaw) * -h.D / 2, h.z + Math.cos(h.yaw) * -h.D / 2); const a = pr(h.x, h.z); return { c, w: (h.W + 0.1) * (+Math.hypot(e[0] - c0[0], e[1] - c0[1]) / (VILLAGE_R + 2.2)), d: (h.D + 0.1) * (+Math.hypot(e[0] - c0[0], e[1] - c0[1]) / (VILLAGE_R + 2.2)), rot: Math.atan2(a[1] - c[1], a[0] - c[0]) * 180 / Math.PI }; }),
     pxPerUnit: +Math.hypot(e[0] - c[0], e[1] - c[1]).toFixed(2) / (VILLAGE_R + 2.2),
   };
 }

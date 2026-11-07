@@ -10,50 +10,104 @@
          assets/frames3d/ + assets/frames3d/manifest.js + assets/tracks.js. -->
     <script src="assets/tracks.js"></script>
     <script src="assets/frames3d/manifest.js"></script>
+    <script src="assets/objects/manifest.js"></script>
     <script src="assets/db2d.js"></script>
+    <script src="assets/layout.js"></script>
+    <link rel="stylesheet" href="assets/theme.css" />
     <style>
-      @font-face { font-family: "Archivo"; src: url("assets/fonts/Archivo-wdth62_125-wght100_900-latin.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-      @font-face { font-family: "Archivo"; src: url("assets/fonts/Archivo-wdth62_125-wght100_900-latin-ext.woff2") format("woff2"); font-weight: 100 900; font-stretch: 62% 125%; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-      :root { --navy: #000f1e; --orange: #fa4616; --cyan: #00a3e0; --blue: #163fe8; --ink: #f5f7fa; }
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--navy); font-family: "Archivo", sans-serif; }
-      #db-bg { position: absolute; inset: 0; background: var(--navy); }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000f1e; }
+      #root { background: #000f1e; } /* opaque stage ground: no white flash at any seam */
+      #db-bg { position: absolute; inset: 0; background: #000f1e; }
     </style>
   </head>
   <body>
     <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1920" data-height="1080">
       <div id="db-bg" class="clip" data-start="0" data-duration="30" data-track-index="0"></div>
 
-      <!-- 3D layer (full-frame image sequence, swappable) -->
+      <!-- 3D layer (full-frame image sequence, swappable), split at the drop for the Z seams -->
       <div id="layer3d" data-composition-id="layer3d" data-composition-src="compositions/layer3d.html"
-        data-start="0" data-duration="30" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 1"></div>
+        data-start="0" data-duration="9.474" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 1"></div>
+      <div id="l3dB-in" style="position: absolute; inset: 0; z-index: 1">
+      <div id="layer3dB" data-composition-id="layer3dB" data-composition-src="compositions/layer3dB.html"
+        data-start="11.099" data-duration="18.901" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 1"></div>
+      </div>
 
-      <!-- 2D layer, one scene per story beat, cut on the POWER beats -->
-      <div id="storm" data-composition-id="storm" data-composition-src="compositions/storm.html"
-        data-start="0" data-duration="6.432" data-track-index="2" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 3"></div>
-      <div id="probs" data-composition-id="probs" data-composition-src="compositions/probs.html"
-        data-start="6.432" data-duration="3.042" data-track-index="2" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 3"></div>
+      <!-- 2D layer, one host per chapter; seams per MOTION_SCRIPT.md / ledger.json -->
+      <div id="night" data-composition-id="night" data-composition-src="compositions/night.html"
+        data-start="0" data-duration="9.474" data-track-index="2" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 3"></div>
+      <div id="ui-out" style="position: absolute; inset: 0; z-index: 3">
       <div id="ui" data-composition-id="ui" data-composition-src="compositions/ui.html"
         data-start="9.474" data-duration="1.625" data-track-index="2" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 3"></div>
+      </div>
       <div id="routes" data-composition-id="routes" data-composition-src="compositions/routes.html"
         data-start="11.099" data-duration="5.457" data-track-index="2" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 3"></div>
       <div id="ask" data-composition-id="ask" data-composition-src="compositions/ask.html"
         data-start="16.556" data-duration="3.901" data-track-index="2" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 3"></div>
       <div id="dawn" data-composition-id="dawn" data-composition-src="compositions/dawn.html"
-        data-start="20.457" data-duration="5.433" data-track-index="2" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 3"></div>
+        data-start="20.457" data-duration="4.667" data-track-index="2" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 3"></div>
       <div id="endcard" data-composition-id="endcard" data-composition-src="compositions/endcard.html"
-        data-start="25.89" data-duration="4.11" data-track-index="2" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 3"></div>
+        data-start="25.124" data-duration="4.876" data-track-index="2" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 3"></div>
 
-      <!-- night-shift clock (22:00 -> 06:00) -->
+      <!-- night-shift clock bezel around the planet -->
       <div id="hud" data-composition-id="hud" data-composition-src="compositions/hud.html"
-        data-start="0" data-duration="25.89" data-track-index="3" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 4"></div>
+        data-start="0" data-duration="20.457" data-track-index="3" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 4"></div>
+      <!-- 3D hero objects (tumble out, land on the map, ride the pills, spin by the card, hard hats) -->
+      <div id="objects" data-composition-id="objects" data-composition-src="compositions/objects.html"
+        data-start="5.0" data-duration="20.124" data-track-index="4" data-track-kind="graphics" data-width="1920" data-height="1080" style="z-index: 5"></div>
 
       <!-- music: local copy only, git-ignored (commercial track) -->
       <audio id="music" class="clip" data-start="0" data-duration="30" data-track-index="5" data-volume="1" src="assets/audio/local/power_30s.wav"></audio>
     </div>
     <script>
       window.__timelines = window.__timelines || {};
-      window.__timelines["main"] = gsap.timeline({ paused: true });
+      const tl = gsap.timeline({ paused: true });
+      window.__timelines["main"] = tl;
+
+      // <seams:auto> — generated by seam-stamp.mjs from ledger.json; do not hand-edit.
+      // Regenerate: node <motion-doctrine>/scripts/seam-stamp.mjs --ledger ledger.json --write index.html
+      gsap.set("#layer3d", { autoAlpha: 1, xPercent: 0, yPercent: 0, scale: 1, filter: "blur(0px)", transformOrigin: "50% 50%" });
+      gsap.set(["#ui-out","#ask","#dawn"], { autoAlpha: 0, xPercent: 0, yPercent: 0, scale: 1, filter: "blur(0px)", transformOrigin: "50% 50%" });
+      gsap.set("#ui", { autoAlpha: 0, scale: 0.78, filter: "blur(18px)", xPercent: 0, yPercent: 0, transformOrigin: "50% 50%" });
+      gsap.set("#l3dB-in", { autoAlpha: 0, scale: 1.25, filter: "blur(18px)", xPercent: 0, yPercent: 0, transformOrigin: "50% 50%" });
+      
+      // SEAM — 3 planet -> product UI (the drop) : zoom-through (push) + objects land as map pins (cut @9.474)
+      tl.to("#layer3d", { scale: 1.18, filter: "blur(18px)", duration: 0.21, ease: "power3.in" }, 9.264);
+      tl.to("#layer3d", { autoAlpha: 0, duration: 0.21, ease: "none" }, 9.264);
+      tl.set("#layer3d", { autoAlpha: 0 }, 9.474);
+      tl.fromTo("#ui", { autoAlpha: 0.15, scale: 0.78, filter: "blur(18px)" }, { autoAlpha: 1, scale: 1.0, filter: "blur(0px)", duration: 0.5, ease: "expo.out", immediateRender: false }, 9.474);
+      
+      // SEAM — 4 UI -> planet (map rolls back) : inverse zoom-through (pull) (cut @11.099)
+      tl.to("#ui-out", { scale: 0.8, filter: "blur(18px)", duration: 0.24, ease: "power3.in" }, 10.859);
+      tl.to("#ui-out", { autoAlpha: 0, duration: 0.24, ease: "none" }, 10.859);
+      tl.set("#ui-out", { autoAlpha: 0 }, 11.099);
+      tl.fromTo("#l3dB-in", { autoAlpha: 0.15, scale: 1.25, filter: "blur(18px)" }, { autoAlpha: 1, scale: 1.0, filter: "blur(0px)", duration: 0.75, ease: "expo.out", immediateRender: false }, 11.099);
+      
+      // SEAM — 6 ask -> dawn : cut-the-curve UP (sun enters rising) (cut @20.457)
+      tl.to("#ask", { yPercent: -12, autoAlpha: 0, duration: 0.34, ease: "power3.in" }, 20.117);
+      tl.set("#ask", { autoAlpha: 0 }, 20.457);
+      tl.fromTo("#dawn", { yPercent: 10, autoAlpha: 0.35 }, { yPercent: 0, autoAlpha: 1, duration: 0.42, ease: "power4.out", immediateRender: false }, 20.457);
+      
+      // </seams:auto>
+
+      // ---- hand-authored seams (Tier-A morphs; rows kept in ledger.json) ----
+      // the stamper hides every seam selector that never 'enters'; the UI's exit wrapper is visible from the drop
+      tl.set("#ui-out", { autoAlpha: 1 }, 9.474);
+      // #3 the drop: the night chapter pushes with the planet (same zoom-through numbers)
+      tl.to("#night", { scale: 1.18, filter: "blur(18px)", duration: 0.21, ease: "power3.in" }, 9.264);
+      tl.to("#night", { autoAlpha: 0, duration: 0.21, ease: "none" }, 9.264);
+      // #5 rack-focus blur-cut 16.556: outgoing stays opaque, blur spike, cut at the peak, lens breathing
+      tl.fromTo("#routes", { filter: "blur(0px)", scale: 1 }, { filter: "blur(10px)", scale: 1.06, duration: 0.3, ease: "power2.in", immediateRender: false }, 16.256);
+      tl.set("#routes", { autoAlpha: 0 }, 16.556);
+      tl.fromTo("#ask", { autoAlpha: 1, filter: "blur(10px)", scale: 1.06 }, { autoAlpha: 1, filter: "blur(0px)", scale: 1, duration: 0.42, ease: "power2.out", immediateRender: false }, 16.556);
+      // the clock bezel travels with the planet: push at the drop, pull back at 11.099, blur at the rack focus
+      tl.to("#hud", { scale: 1.18, filter: "blur(18px)", duration: 0.21, ease: "power3.in" }, 9.264);
+      tl.to("#hud", { autoAlpha: 0, duration: 0.21, ease: "none" }, 9.264);
+      tl.fromTo("#hud", { autoAlpha: 0.15, scale: 1.25, filter: "blur(18px)" }, { autoAlpha: 1, scale: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out", immediateRender: false }, 11.099);
+      tl.to("#hud", { filter: "blur(10px)", duration: 0.3, ease: "power2.in" }, 16.256);
+      tl.set("#hud", { autoAlpha: 0 }, 16.556);
+      // #7 dawn -> end: the planet shrinks into the orange dot (carrier tracked in both scenes)
+      tl.set("#dawn", { autoAlpha: 0 }, 25.124);
     </script>
   </body>
 </html>

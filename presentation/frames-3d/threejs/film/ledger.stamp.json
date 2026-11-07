@@ -1,0 +1,56 @@
+{
+ "fps": 30,
+ "seams": [
+  {
+   "id": "3 planet -> product UI (the drop)",
+   "cut": 9.474,
+   "technique": "zoom-through (push) + objects land as map pins",
+   "exit": {
+    "selector": "#layer3d",
+    "axis": "z",
+    "dir": 1
+   },
+   "entry": {
+    "selector": "#ui",
+    "axis": "z",
+    "dir": 1,
+    "scanRoot": "#ui"
+   },
+   "blur": 18
+  },
+  {
+   "id": "4 UI -> planet (map rolls back)",
+   "cut": 11.099,
+   "technique": "inverse zoom-through (pull)",
+   "exit": {
+    "selector": "#ui-out",
+    "axis": "z",
+    "dir": -1,
+    "dur": 0.24
+   },
+   "entry": {
+    "selector": "#l3dB-in",
+    "axis": "z",
+    "dir": -1,
+    "scanRoot": "#routes",
+    "dur": 0.75
+   },
+   "blur": 18
+  },
+  {
+   "id": "6 ask -> dawn",
+   "cut": 20.457,
+   "technique": "cut-the-curve UP (sun enters rising)",
+   "exit": {
+    "selector": "#ask",
+    "axis": "y",
+    "dir": -1
+   },
+   "entry": {
+    "selector": "#dawn",
+    "axis": "y",
+    "dir": -1
+   }
+  }
+ ]
+}

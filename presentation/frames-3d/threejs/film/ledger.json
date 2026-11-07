@@ -1,0 +1,118 @@
+{
+ "fps": 30,
+ "source": "presentation/frames-3d/MOTION_SCRIPT.md (binding, 18:45). Current = UP. Z push once (drop), Z pull for arrivals, one rack-focus.",
+ "stamped": "rows 3, 4, 6 are stamped into index.html from ledger.stamp.json (seam-stamp.mjs); rows 1, 2 are word-level waterfall cuts inside compositions/night.html; rows 5, 7 are hand-authored morphs in index.html. Carriers of rows 5 and 7 live in 3D (the house, the planet); #rt-house/#ak-house and #dw-pc/#ec-pc are their tracked 2D proxies.",
+ "seams": [
+  {
+   "id": "1 storm -> homes go dark",
+   "cut": 3.297,
+   "technique": "waterfall cut UP (per word)",
+   "exit": {
+    "selector": "#st-a4",
+    "axis": "y",
+    "dir": -1
+   },
+   "entry": {
+    "selector": "#st-b1",
+    "axis": "y",
+    "dir": -1
+   }
+  },
+  {
+   "id": "2 problem labels -> question",
+   "cut": 7.987,
+   "technique": "waterfall cut UP",
+   "exit": {
+    "selector": "#pb-l3",
+    "axis": "y",
+    "dir": -1
+   },
+   "entry": {
+    "selector": "#pb-q1",
+    "axis": "y",
+    "dir": -1
+   }
+  },
+  {
+   "id": "3 planet -> product UI (the drop)",
+   "cut": 9.474,
+   "technique": "zoom-through (push) + objects land as map pins",
+   "exit": {
+    "selector": "#layer3d",
+    "axis": "z",
+    "dir": 1
+   },
+   "entry": {
+    "selector": "#ui",
+    "axis": "z",
+    "dir": 1,
+    "scanRoot": "#ui"
+   }
+  },
+  {
+   "id": "4 UI -> planet (map rolls back)",
+   "cut": 11.099,
+   "technique": "inverse zoom-through (pull)",
+   "exit": {
+    "selector": "#ui-out",
+    "axis": "z",
+    "dir": -1,
+    "dur": 0.24
+   },
+   "entry": {
+    "selector": "#l3dB-in",
+    "axis": "z",
+    "dir": -1,
+    "scanRoot": "#routes",
+    "dur": 0.75
+   }
+  },
+  {
+   "id": "5 wide -> close on the unsure house",
+   "cut": 16.556,
+   "type": "morph",
+   "technique": "rack-focus blur-cut",
+   "exit": {
+    "selector": "#routes"
+   },
+   "entry": {
+    "selector": "#ask"
+   },
+   "carrier": {
+    "out": "#rt-house",
+    "in": "#ak-house"
+   }
+  },
+  {
+   "id": "6 ask -> dawn",
+   "cut": 20.457,
+   "technique": "cut-the-curve UP (sun enters rising)",
+   "exit": {
+    "selector": "#ask",
+    "axis": "y",
+    "dir": -1
+   },
+   "entry": {
+    "selector": "#dawn",
+    "axis": "y",
+    "dir": -1
+   }
+  },
+  {
+   "id": "7 dawn -> end (planet into the orange dot)",
+   "cut": 25.124,
+   "type": "morph",
+   "technique": "Z pull morph",
+   "exit": {
+    "selector": "#dawn"
+   },
+   "entry": {
+    "selector": "#endcard"
+   },
+   "carrier": {
+    "out": "#dw-pc",
+    "in": "#ec-pc"
+   }
+  }
+ ]
+}

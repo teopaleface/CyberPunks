@@ -1,0 +1,118 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; }
+    #nt-svg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
+    .nt-w { position: absolute; display: block; }
+    .st { font-size: 232px; }
+    #st-date { position: absolute; left: 126px; top: 910px; font-size: 30px; }
+    .pb-row { position: absolute; left: 150px; font-size: 66px; }
+    .pq { font-size: 104px; }
+    #pq-qm { position: relative; display: inline-block; }
+    #pq-qm-g { display: inline-block; clip-path: inset(0 0 24% 0); }
+    #pq-dot { position: absolute; left: 0.155em; bottom: 0.02em; width: 0.17em; height: 0.17em; border-radius: 50%; background: var(--db-orange); transform-origin: 50% 100%; }
+  </style>
+  <!-- Chapter "night" (0 -> 9.474): style frames 01 + 02, motion per MOTION_SCRIPT.md. -->
+  <div id="root" data-composition-id="night" data-width="1920" data-height="1080">
+    <svg id="nt-svg" viewBox="0 0 1920 1080" data-layout-allow-overflow><g id="nt-rings"></g><g id="nt-lines"></g><g id="nt-pings"></g></svg>
+    <!-- Storm hits Banat. (left column, x = 120, 232 px, lh 0.9) -->
+    <div class="nt-w display st" id="st-a1" style="left:120px;top:250px">Storm</div>
+    <div class="nt-w display st" id="st-a2" style="left:120px;top:459px">hits</div>
+    <div class="nt-w display st" id="st-a3" style="left:120px;top:668px">Ban</div>
+    <div class="nt-w display st" id="st-a4" style="left:120px;top:668px"><span style="visibility:hidden">Ban</span>at.</div>
+    <div id="st-date" class="body muted">8 July 2025 · red-code storm warning</div>
+    <!-- Homes go dark. -->
+    <div class="nt-w display st" id="st-b1" style="left:120px;top:250px">Homes</div>
+    <div class="nt-w display st" id="st-b2" style="left:120px;top:459px">go</div>
+    <div class="nt-w display st" id="st-b3" style="left:120px;top:668px">dark.</div>
+    <!-- problems (style frame 02) -->
+    <div class="pb-row head" id="pb-l1" style="top:250px"><span class="db-sq" style="background:var(--db-orange)"></span>Fallen poles.</div>
+    <div class="pb-row head" id="pb-l2" style="top:362px"><span class="db-sq" style="background:var(--db-cyan)"></span>Stolen power.</div>
+    <div class="pb-row head" id="pb-l3" style="top:474px"><span class="db-sq" style="background:var(--db-blue)"></span>Too much sun.</div>
+    <!-- the question; the dot of the "?" is a solid orange circle -->
+    <div class="nt-w display pq" id="pb-q1" style="left:120px;top:700px">Where do crews</div>
+    <div class="nt-w display pq" id="pb-q2" style="left:120px;top:794px">go first<span id="pq-qm"><span id="pq-qm-g">?</span><span id="pq-dot"></span></span></div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const SET = (sel, t) => tl.set(sel, { opacity: 1 }, t);
+      // ---------- cold open: waterfall entry from below (binary opacity, power4.out) ----------
+      gsap.set(["#st-a1", "#st-a2", "#st-a3", "#st-a4", "#st-date", "#st-b1", "#st-b2", "#st-b3", "#pb-l1", "#pb-l2", "#pb-l3", "#pb-q1", "#pb-q2"], { opacity: 0 });
+      const arrive = (sel, t, y, d) => { SET(sel, t); tl.fromTo(sel, { y }, { y: 0, duration: d, ease: "power4.out", immediateRender: false }, t); };
+      arrive("#st-a1", 0.975, 70, 0.2);   // anchor word: heavier
+      arrive("#st-a2", 1.741, 46, 0.16);
+      arrive("#st-a3", 2.531, 60, 0.18);  // "Banat." split for the climax
+      arrive("#st-a4", 2.531 + 0.07, 80, 0.2);
+      arrive("#st-date", 2.531 + 0.16, 36, 0.14);
+      // ---------- seam 1 @3.297: waterfall cut UP ----------
+      const cutOut = (sels, cut) => {
+        sels.forEach((s, i) => {
+          const start = cut - 0.34 - 0.022 * (sels.length - 1 - i);
+          tl.to(s, { y: "-=230", duration: 0.34, ease: "power4.in" }, start);
+          tl.to(s, { opacity: 0, duration: 0.18, ease: "none" }, start + 0.16);
+        });
+      };
+      const cutIn = (sels, cut) => {
+        let gap = 0.05, t = cut;
+        sels.forEach((s) => {
+          tl.fromTo(s, { y: 230, opacity: 0.35 }, { y: 0, opacity: 1, duration: 0.3, ease: "power4.out", immediateRender: false }, t);
+          t += gap; gap *= 0.84;
+        });
+      };
+      cutOut(["#st-date", "#st-a1", "#st-a2", "#st-a3", "#st-a4"], 3.297);
+      cutIn(["#st-b1", "#st-b2", "#st-b3"], 3.297);
+      // one house goes dark per beat: a ring collapses onto it (same frame as the 3D windows switch off)
+      const ringsG = document.getElementById("nt-rings");
+      const darkRings = [0, 1, 2].map((k) => DB.el("circle", { r: 40, fill: "none", stroke: DB.css("--db-ink"), "stroke-width": 3, opacity: 0, id: "nt-dark" + k }, ringsG));
+      [3.297, 4.087, 4.876].forEach((b, k) => {
+        tl.set(darkRings[k], { opacity: 0.9 }, b);
+        tl.fromTo(darkRings[k], { attr: { r: 40 } }, { attr: { r: 0 }, duration: 0.25, ease: "power3.in", immediateRender: false }, b);
+        tl.set(darkRings[k], { opacity: 0 }, b + 0.25);
+      });
+      // "Homes go dark." leaves before the problems arrive (current UP)
+      cutOut(["#st-b1", "#st-b2", "#st-b3"], 5.6);
+      // ---------- problems: object lands (objects layer) -> leader draws -> label snaps -> one ping ----------
+      const col = { orange: DB.css("--db-orange"), cyan: DB.css("--db-cyan"), blue: DB.css("--db-blue") };
+      const rows = [
+        { a: "fallen_pole", c: col.orange, y: 250, b: 5.642, sel: "#pb-l1" },
+        { a: "meter", c: col.cyan, y: 362, b: 6.432, sel: "#pb-l2" },
+        { a: "hot_roof", c: col.blue, y: 474, b: 7.221, sel: "#pb-l3" },
+      ];
+      const linesG = document.getElementById("nt-lines"), pingsG = document.getElementById("nt-pings");
+      rows.forEach((r, i) => {
+        r.L = DB.leader(linesG, r.c); r.L.el.id = "pb-ld" + (i + 1);
+        r.P = DB.ping(pingsG, r.c, true); r.P.g.id = "pb-p" + (i + 1); r.P.g.setAttribute("opacity", 0);
+        r.F = DB.el("circle", { r: 14, fill: "none", stroke: r.c, "stroke-width": 3, opacity: 0, id: "pb-f" + (i + 1) }, pingsG);
+      });
+      DB.drive(tl, 0, 9.474, (t) => {
+        for (let k = 0; k < 3; k++) { const p = DB.at("dark_" + k, t); darkRings[k].setAttribute("cx", p.x.toFixed(1)); darkRings[k].setAttribute("cy", p.y.toFixed(1)); }
+        for (const r of rows) {
+          const p = DB.at(r.a, t);
+          r.L.update([[p.x, p.y], [760, r.y + 34], [640, r.y + 34]]); // drawn from the anchor to the label
+          r.P.update(p.x, p.y);
+          r.F.setAttribute("cx", p.x.toFixed(1)); r.F.setAttribute("cy", p.y.toFixed(1));
+        }
+      });
+      rows.forEach((r, i) => {
+        const n = i + 1;
+        tl.fromTo(`#pb-ld${n}`, { strokeDashoffset: 1.1 }, { strokeDashoffset: 0, duration: 0.25, ease: "power3.out" }, r.b);
+        tl.set(`#pb-p${n}`, { opacity: 1 }, r.b + 0.22);
+        SET(r.sel, r.b + 0.22);
+        tl.fromTo(r.sel, { y: 50 }, { y: 0, duration: 0.16, ease: "power4.out", immediateRender: false }, r.b + 0.22);
+        // one ping, once
+        tl.set(`#pb-f${n}`, { opacity: 1 }, r.b + 0.25);
+        tl.fromTo(`#pb-f${n}`, { attr: { r: 14 }, opacity: 1 }, { attr: { r: 70 }, opacity: 0, duration: 0.5, ease: "expo.out", immediateRender: false }, r.b + 0.25);
+      });
+      // ---------- seam 2 @7.987: waterfall cut UP into the question ----------
+      cutOut(["#pb-l1", "#pb-l2", "#pb-l3"], 7.987);
+      tl.to(["#pb-ld1", "#pb-ld2", "#pb-ld3"], { strokeDashoffset: 1.1, duration: 0.3, ease: "power4.in" }, 7.987 - 0.3);
+      tl.to(["#pb-p1", "#pb-p2", "#pb-p3"], { opacity: 0, duration: 0.2, ease: "none" }, 7.987 - 0.2);
+      cutIn(["#pb-q1", "#pb-q2"], 7.987);
+      // the dot of the "?" drops in on 8.777 with a small squash
+      tl.fromTo("#pq-dot", { y: -90, scaleY: 1, opacity: 0 }, { y: 0, opacity: 1, duration: 0.16, ease: "power3.in", immediateRender: true }, 8.777 - 0.16);
+      tl.fromTo("#pq-dot", { scaleY: 0.85 }, { scaleY: 1, duration: 0.12, ease: "power2.out", immediateRender: false }, 8.777);
+      // 8.9 -> 9.474: stillness before the climax (nothing moves); the drop push is in index.html
+      window.__timelines["night"] = tl;
+    })();
+  </script>
+</template>
