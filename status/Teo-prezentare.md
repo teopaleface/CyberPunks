@@ -1,5 +1,5 @@
 # Status: Teo-prezentare
-Actualizat: 2026-11-07 15:58
+Actualizat: 2026-11-07 16:14
 Milestone curent: filmul e OPRIT (decizia lui Teo): doar cadre statice, până le aprobă. Produsul se numește Daybreak, textele din film sunt în engleză. Aspectul (logo, culori, imagini) se reface în firul lateral; eu țin structura filmului.
 Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul comun)
 
@@ -34,6 +34,8 @@ Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul co
 - 15:55 Structura filmului Daybreak pe cele 10 cadre din `presentation/frames-codex/v1/FRAMES.md`: `presentation/video/STORYBOARD.md` (textul de pe ecran, ce află privitorul, sursa fiecărei afirmații, ritmul propus pe "POWER" pentru când repornim). Acolo sunt și 5 observații pentru textele din FRAMES.md.
 - Abilități folosite la cadrele variantei 3: `hyperframes`, `hyperframes-cli` (check, snapshot), `motion-doctrine`, `apple-design`, `apple-launch-film`, `launch-video`, `oversized-cursor`, `reference-to-motion`. La schițele variantei 4: `apple-design`, `apple-launch-film`, `frontend-design`, `hyperframes-cli`.
 
+- 16:14 Merge din `Teo` (numele Daybreak în README și plan, cifrele finale pentru M2). Cifra din film rămâne +49%: agentul 1.051.842 lei față de 706.556 lei la „primul venit, primul servit” (30 de zile, sămânța 7), din `reports/planner/agent_eval.json`, finală pentru M2.
+
 ## Urmează
 - Aștept alegerea lui Teo din firul lateral (logoul nou, paleta, cadrele Codex). După "da": scenele HyperFrames după cadrele aprobate, apoi filmul, în două exporturi: local cu "POWER" și versionat cu muzică fără drepturi de autor.
 - Slideurile, cu numele Daybreak.
@@ -44,14 +46,14 @@ Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul co
 - Niciunul.
 
 ## Cereri către orchestrator
-- NUME NOU (15:30): Teo a schimbat numele produsului în **Daybreak** (în locul lui "Tura de mâine"). De schimbat: interfața (titlul paginii, antetul, `web/public/brand/`), README-ul și slideurile (pe ale mele le schimb eu); decizia intră în `memory/journal.md`. Atenție: logoul cu soarele peste traseu e respins, cu toate variantele lui. Logoul nou îl alege Teo dintre conceptele din `presentation/brand-lab/r2/logos/` (firul lateral), așa că în `web/public/brand/` deocamdată se schimbă doar numele.
-- Pentru jurnal (n-am voie în `memory/`): la 14:46 agentul de muzică a compus varianta de 120 BPM (`presentation/music/compose_kinetic.py`, CC0, 30,000 s, -16,0 LUFS); de la 15:10 filmul folosește "POWER" local, iar varianta de 120 BPM rămâne de rezervă.
-- ISTORIE: commitul 2625d9e de pe `Teo-prezentare` conține din greșeală `presentation/assets/3d-astra/` și `presentation/assets/3d-sol/` (154 MB, inclusiv `3d-sol.zip` de 47 MB). Le-am scos din urmărire în 9d973f2, dar sunt în istorie. Înainte de repo-ul public (decizia lui Teo de la 11:00): `git filter-repo --path presentation/assets/3d-astra --path presentation/assets/3d-sol --invert-paths` pe ramurile care conțin commitul, apoi force-push (eu n-am voie). Dacă faceți merge din `Teo-prezentare` în `Teo` înainte de curățare, istoria crește cu 154 MB.
-- Bug vizibil pentru juriu, în consola reală (coada "Nu sunt sigur", `/coada`): factori de tipul "Consumul de noapte a crescut cu 18273047% față de istoric" (și 25359262%, 19488814%). Probabil împărțire la un istoric aproape zero în textul factorului (firul A sau șablonul de text). Ar trebui plafonat sau formulat altfel ("de la aproape zero").
-- Pagina postului (`/posturi/PT-0267`) spune "Bilanțul pe acest post nu e calculat încă": filmul folosește deocamdată curbe ilustrative pentru bilanț; când intră bilanțul în consolă, capturez pagina reală.
+- (rezolvat 16:10) NUME NOU (15:30): Teo a schimbat numele produsului în **Daybreak** (în locul lui "Tura de mâine"). De schimbat: interfața (titlul paginii, antetul, `web/public/brand/`), README-ul și slideurile (pe ale mele le schimb eu); decizia intră în `memory/journal.md`. Atenție: logoul cu soarele peste traseu e respins, cu toate variantele lui. Logoul nou îl alege Teo dintre conceptele din `presentation/brand-lab/r2/logos/` (firul lateral), așa că în `web/public/brand/` deocamdată se schimbă doar numele.
+- (rezolvat 16:10) Pentru jurnal (n-am voie în `memory/`): la 14:46 agentul de muzică a compus varianta de 120 BPM (`presentation/music/compose_kinetic.py`, CC0, 30,000 s, -16,0 LUFS); de la 15:10 filmul folosește "POWER" local, iar varianta de 120 BPM rămâne de rezervă.
+- ISTORIE (16:10: orchestratorul a notat-o pentru Teo; nu face merge din `Teo-prezentare` în `Teo` până nu decide Teo curățarea): commitul 2625d9e de pe `Teo-prezentare` conține din greșeală `presentation/assets/3d-astra/` și `presentation/assets/3d-sol/` (154 MB, inclusiv `3d-sol.zip` de 47 MB). Le-am scos din urmărire în 9d973f2, dar sunt în istorie. Înainte de repo-ul public (decizia lui Teo de la 11:00): `git filter-repo --path presentation/assets/3d-astra --path presentation/assets/3d-sol --invert-paths` pe ramurile care conțin commitul, apoi force-push (eu n-am voie). Dacă faceți merge din `Teo-prezentare` în `Teo` înainte de curățare, istoria crește cu 154 MB.
+- (trimis la A, cu plasă de siguranță în interfață, 16:10) Bug vizibil pentru juriu, în consola reală (coada "Nu sunt sigur", `/coada`): factori de tipul "Consumul de noapte a crescut cu 18273047% față de istoric" (și 25359262%, 19488814%). Probabil împărțire la un istoric aproape zero în textul factorului (firul A sau șablonul de text). Ar trebui plafonat sau formulat altfel ("de la aproape zero").
+- (la interfață, 16:10; datele bilanțului sunt în `Teo`) Pagina postului (`/posturi/PT-0267`) spune "Bilanțul pe acest post nu e calculat încă": filmul folosește deocamdată curbe ilustrative pentru bilanț; când intră bilanțul în consolă, capturez pagina reală.
 - (rezolvat 13:20) Harta întunecată și cardul "Nu sunt sigur" în `/demo`: cerute interfeței de orchestrator. Mulțumesc.
 - (rezolvat 13:20) Cifra principală: valoarea capturată din `reports/planner/agent_eval.json` față de cea mai bună strategie simplă; în slideuri și metrica principală a fiecărui model din `reports/<X>/metrics.json`.
-- Nou: când există `reports/planner/agent_eval.json` și `reports/<A|B|C>/metrics.json` în `Teo`, vă rog spuneți-mi (sau le iau eu la verificarea de la 21:30).
+- (rezolvat 16:10: finale pentru M2, aduse prin merge) Nou: când există `reports/planner/agent_eval.json` și `reports/<A|B|C>/metrics.json` în `Teo`, vă rog spuneți-mi (sau le iau eu la verificarea de la 21:30).
 
 ## Cum se rulează (comenzile exacte)
 - `make presentation-assets` (harta NASA, granițele, schița scenei 5)
@@ -81,3 +83,4 @@ Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul co
 - 15:30 Respinse: logoul cu soarele peste traseu (cu variantele lui) și planșa `presentation/brand-lab/daybreak-directions.*`. Identitatea se reface în firul lateral; până alege Teo, nu fixăm culori, logo sau 3D în scene. Pe cadre apare doar cuvântul "Daybreak".
 - 15:35 Cadrele se generează cu Codex image (stil Apple, colorate), în firul lateral: `presentation/frames-codex/v1/` (nu scriu acolo).
 - 15:45 "Homes go dark" (fostul "Zeci de mii de case fără curent"): sursa e prefectul Timișului, circa 40.000 de consumatori afectați, cumulat 7-9 iulie 2025 (`docs/research/B.md`). Pe ecran rămâne fără cifră.
+- 16:10 Regulă nouă (orchestratorul): niciun fișier peste 5 MB în git, în afară de exportul final (sub 50 MB). Verificat: de la mine nu e niciunul (cel mai mare e de 1,3 MB).
