@@ -1,78 +1,83 @@
 # Status: Teo-planificator
-Actualizat: 2026-11-07 13:25
-Milestone curent: M2 în lucru (ordine de lucru PDF gata, evaluarea agentului în lucru)
-Gata de merge: da (commit bb493e4, plus acest status)
+Actualizat: 2026-11-07 14:42
+Milestone curent: M2 gata pe ieșirile reale din `Teo`; M3 în lucru (robustețe, revizuiri, instantaneu, documentație)
+Gata de merge: da (commit dfbe35a, plus acest status)
 
-## Făcut
-- 12:45 Citit instrucțiunile, memoria, planul, contractele, fixture-urile. `uv sync` și `make check` trec.
-- 12:53 **API-ul pe http://127.0.0.1:8710/api** (commit 274daed). `make api` sau `make api-dev`. Documentație: http://127.0.0.1:8710/docs.
-- 12:58 **M0**: `docs/research/planificator.md` (3 subagenți), `config/economics.yaml` cu etichete SURSĂ / PROXY / CALCUL / IPOTEZĂ, `config/planner.yaml` cu pragurile.
-- 13:11 **M1**: `uv run cyberpunks run --scenario demo-vara` merge cap-coadă (commit 272aa87): validare și carantină, reguli cu `rule_id` și praguri, trasee OR-Tools (cu rezerva greedy), jurnal, alerte, notificări (demo), raportul zilei, om în buclă (`POST /api/review/{id}` și `cyberpunks review`). 35 de teste trec, ruff curat. `git merge Teo` făcut (7da2ee6).
+## Răspuns la cererile orchestratorului de la 14:20
+- `git merge Teo` făcut. Planul rulează pe ieșirile din `Teo` (A 391, bilanț 98, B 26, C 41): 40 de lucrări în traseele a 9 echipe, 430 km, 370 de verificări de la distanță și corecții în birou, **25 la om**, 18 mesaje, OR-Tools în 10 s.
+- **1. Interfața**
+  - `POST /api/plan/approve` `{scenario, plan_id, approver, note}` → `AuditRecord` cu `actor: human`, `action: plan_approved`; 409 dacă `plan_id` nu mai e planul curent (s-a replanificat între timp). `GET /api/plan/approval?scenario=` → `{approved, plan_id, approver, ts, stale}`.
+  - `GET /api/posts` există (de la 13:46); acum citește și `extra.lei_per_month` al bilanțului: pe 8 iulie, 22 de posturi roșii, 41 galbene, 237 verzi, toate în registrul C. `posts.json` se scrie la fiecare rulare în `outputs/plans/<s>/` și e în instantaneu (`outputs/demo/plans/demo-vara/posts.json`).
+  - **Pornirea pentru demo** (planul real, nu exemplele):
+    - Recomandat, din checkout-ul principal (are datele și modelele): `uv run cyberpunks run --scenario demo-vara` apoi `make api`. API-ul servește ultima rulare (`GET /api/health` → `mode: live`).
+    - Fără să ruleze modelele: `CYBERPUNKS_API_SOURCE=demo make api`. API-ul servește instantaneul din git, `outputs/demo/` (planul real din 8 iulie 2025, refăcut la 14:33), chiar dacă există o rulare locală mai veche (`mode: demo`). Butonul „Rulează agentul” cere modul live.
+    - API-ul din worktree-ul meu servește acum planul real (rulat la 14:33); exemplele cu 7 lucrări erau de la un test mai vechi.
+- **2. C**: scara pornește de la `extra.ladder_base_p90_pu` (P90-ul modelului plus dezechilibrul pe faze), dacă există; altfel de la `prediction.point_interval[1]`. Test: `test_ladder_starts_from_phase_adjusted_p90`. De la P90-ul cu dezechilibru, unele combinații care păreau suficiente nu mai ajung, iar cazul merge la om.
+- **3. Bilanț**: `grid_inspection` → echipa de rețea (`R-BILANT-GRID`, 486 lei, tariful RER ca PROXY); `office_correction` → coada biroului de date (`R-BILANT-OFFICE`, 15 lei). `phase_rebalance_input` e folosit de C la treapta `phase_rebalance`; planificatorul citește direct treptele lui C.
+- **4. Coada „nu sunt sigur”: de la 179 la 25.** Ce era în cele 179: 117 abțineri A, 37 de cazuri de siguranță care nu încăpeau în echipe, 12 abțineri de bilanț, 11 zone de furtună peste plafon, 2 B. Doar 8 posturi apăreau și din A, și din bilanț, deci dublarea nu era cauza. Cauza: orice abținere mergea la om, oricât de mică era valoarea. Ce am schimbat:
+  - abținerile din cauza datelor (unitate sau multiplicator greșit, `extra.selection = "data"`) merg la biroul de date (`R-ABSTAIN-DATA`, 31 de cazuri);
+  - abținerile cu valoare sub 150 lei rămân la urmărire (`R-ABSTAIN-WATCH`, 28);
+  - cazurile de siguranță care nu încap primesc o citire la distanță acum și o singură alertă critică de întăriri (`R-SAFETY-NO-CREW`, 24), nu câte o decizie fiecare;
+  - coada are o capacitate de 25 de cazuri pe zi (IPOTEZĂ: ~10 minute de dispecer pe caz), în ordinea: siguranță cu semnal puternic, întăriri pentru furtună, valoare; restul revine în planul următor (`R-HUMAN-QUEUE-FULL`, 58).
+  - Rezultat, 25 de cazuri care cer un om: 12 cazuri de siguranță cu semnal puternic, de decis azi; 11 zone de furtună cu cod roșu pentru care trebuie aprobate întăriri; 2 cazuri nesigure de furtună.
 
-## Răspuns la cererile orchestratorului (13:20)
-- `git merge Teo` făcut (57aa6de). Data `demo-vara` = 2025-07-08 e folosită.
-- Interfața: test nou `test_plan_totals_are_consistent`: `summary.total_km` = suma traseelor, `expected_value_lei` = suma lucrărilor alocate, numărătorile = decizii, fiecare alocare e exact într-un traseu. Costul folosit la decizie e acum uniform în `Decision.threshold`: `cost_lei` (total), `action_cost_lei`, `travel_cost_lei`, `travel_km_est`, `outage_cost_lei` (unde există), pe lângă cheile vechi (`visit_cost_lei`, `preposition_cost_lei`, `tap_cost_lei`).
-- `Route.depart_at` și `Route.return_at` sunt completate; la furtună `return_at` e `null` (echipa rămâne în zonă).
-- B: 3 echipe simulate noi în Banat (`E-AR-1` Arad, `E-RS-1` Reșița, `E-DV-1` Deva; `lv_grid`+`mv_grid`, 3 oameni) cu baze simulate (`D-ARD`, `D-RES`, `D-DEV`). Plafonul de echipe trimise din timp pe regiune: 3. Clienții RER pe județ (31.12.2024) sunt în `config/area.yaml` (`customers_by_county`), totalul și compensațiile MT/IT în `config/economics.yaml` (`storm`).
-- B, două schimbări de logică după ce am citit `status/Teo-B-furtuna.md`: (1) echipa trebuie să ajungă cu 60 de minute înainte de `extra.storm_onset` (dacă lipsește, înainte de `time_window.start`); (2) la B, `safety_flag` (rafale ≥ 75 km/h) nu mai face lucrarea obligatorie: devine avertisment pentru echipă („nu lucrează la înălțime până scade vântul”). Pentru A și C, `safety_flag` rămâne prioritate maximă și alertă critică. Lucrările `no_action` trec tot prin pragul de cost; dacă agentul trimite totuși echipă, motivul spune că modelul a recomandat altceva.
-- C: cheile `complaint_compensation_lei` (70), `complaint_compensation_lei_legal` (130), `quality_limit_95pct_pu` (1,05), `ore_smart_midday` sunt în `config/economics.yaml` (`voltage`).
-- Bug reparat: o rulare nouă prelua decizia omului din rularea veche. Acum deciziile omului se reaplică doar la replanificare și rămân în `history/`.
-- Modul `auto` (implicit în `POST /api/run`): dacă niciun model nu are încă ieșiri pentru data scenariului, planul rulează pe exemple (`contracts/fixtures/`), cu sursele marcate `degraded` și nota în alerte. Când apar ieșirile A, B, C pentru 2025-07-08, ele au prioritate.
+## Timpii pentru demo (butonul „Rulează agentul”)
+- Rularea completă din checkout-ul principal (`run.json` de la 14:20): Estimate 240 s, din care bilanțul 228 s (A 9 s, B 0,3 s, C 3 s); Decide 10 s; Act 2 s. Peste limita de 120 s a interfeței.
+- De la 14:41, în modul `auto`, ieșirea bilanțului pentru aceeași zi, din ultimele 12 ore, se refolosește (`config/planner.yaml`, `estimate.reuse_fresh_output: [A_bilant]`); nota apare în plan și în `GET /api/run-info`. Rularea completă ar trebui să scadă la ~25 s (A, B, C rulează efectiv).
+- Pentru demo: rulați o dată `uv run cyberpunks run --scenario demo-vara` înainte (ca bilanțul să aibă ieșirea zilei), apoi butonul din interfață merge repede.
+- Un model care se oprește cu `SystemExit` (B face asta la un scenariu necunoscut) nu mai oprește planul.
 
-## Pentru firul Interfață
-- API-ul servește acum planul real al agentului (calculat din fixture-uri până apar ieșirile A, B, C); `GET /api/health` → `mode: live`.
-- `POST /api/run` `{scenario, date?, mode?}` → `{plan_id, timings: {perceive, estimate, decide, act}, summary, sources_status, solver}`. `mode`: `auto` (implicit, rulează modelele A, B, C), `existing`, `fixtures`.
-- `POST /api/review/{id}?scenario=demo-vara` `{decision: approve|reject|defer, note, reviewer}` → `AuditRecord` cu `actor: human`; planul se recalculează pe loc. `GET /api/audit?work_item_id=` arată urma completă: agent → om → agent.
-- `GET /api/work-items/{id}` → `WorkItem` + cheia `decision` (`Decision` sau `null`).
-- `GET /api/series/{id}`: serii ilustrative doar în modul `fixtures`; în modul `live` vin din ieșirile A, B, C (404 până apar).
-- `GET /api/metrics` → `{A, B, C, planner}`, fiecare `ModelReport` sau `null`. Fără cifre inventate.
-- În plus față de contract: `GET /api/quarantine`, `/api/alerts`, `/api/notifications`, `/api/report` (markdown).
-- Regulile (`rule_id`) și ce înseamnă fiecare: `RULE_CATALOG` din `src/cyberpunks/planner/decide.py` (le pot expune și prin `GET /api/rules`, dacă vreți).
-- Structura `outputs/demo/` (rezerva fără API) va fi identică cu `outputs/`: `plans/<s>/{plan.json, audit.jsonl, work_items.jsonl, quarantine.jsonl, alerts.json, notifications.json, report.md, run.json, work_orders/<crew>.pdf}`, `series/<s>/<id>.json`, `reports/{A,B,C,planner}/...`.
+## Cereri către orchestrator (te rog transmite)
+- **Bilanț**: `cyberpunks.a_bilant.predict.run` durează 228 s; o ieșire în cache pe (scenariu, dată) sau un calcul mai rapid ar face rularea completă reproductibilă în timpul demo-ului.
+- **A, `safety_flag` prea larg**: 89 din 391 de lucrări (23%), toate cu eticheta `tamper`, de la scorul 0,52; doar 50 sunt probleme reale (56%), după `A_ground_truth.csv`. Propunere: `safety_flag` doar pentru dovezi puternice de șuntare (de exemplu `tamper` cu scor ≥ 0,8 și semnătura de bypass). Între timp, planificatorul face siguranța obligatorie doar de la scorul 0,7 (`config/planner.yaml`, `global.safety_min_score`); sub prag, prioritatea e doar triplată.
+- **A, textul de abținere**: „pragul pentru normal (0.30) și cel pentru problemă (0.12)” are pragurile inversate.
+- **Contracte (orchestrator)**: `TimeWindow` aruncă `TypeError` (nu `ValidationError`) când o oră are fus orar și cealaltă nu; numerele infinite (`1e309`) trec de contract. Planificatorul le prinde și le pune în carantină, dar ar fi bine ca validatorul să le respingă direct (de exemplu `allow_inf_nan=False` și ore obligatoriu cu fus orar).
 
-## Pentru firele A, B, C (orchestratorul, te rog transmite)
-- Valori noi în `config/economics.yaml` (cu surse): vizita la contor 250 lei (nu 180), energia pierdută 0,70 lei/kWh (nu 0,55), tura de furtună 2.700 lei (nu 1.500). Cheile au rămas aceleași.
-- Planificatorul importă `cyberpunks.<a_contoare|b_furtuna|c_prosumatori>.predict.run(scenario, date) -> Path`. Dacă funcția lipsește sau dă eroare, folosește ultima ieșire din `outputs/work_items/<s>/`.
-- Respinse în carantină (în plus față de contract): `target_date` diferit de data planului, data din ID diferită de `target_date`, ID care nu se termină cu `asset_id`, punct în afara zonei Rețele Electrice, `expected_value_lei` diferit de `score × value_if_true_lei` (toleranță 2%), ID duplicat.
-- Câmpuri opționale citite din `extra`: A: `smart_meter: false` dacă contorul nu se poate citi de la distanță (implicit se poate). C: `planned_outage_notified: true` dacă întreruperea pentru priză a fost deja anunțată.
-- C: schimbarea prizei cere preaviz de 2 zile lucrătoare (Ord. ANRE 46/2021, art. 12), așa că pentru mâine agentul o programează mai târziu și trimite mesaj către prosumatori. Costul ei include întreruperea (clienți × 1 h × 12 lei). `value_if_true_lei` ar trebui să acopere sezonul, nu doar o zi.
-- B: echipa trebuie să ajungă cu 60 de minute înainte de `time_window.start`; tura începe la 08:30 (după instructaj). O fereastră care începe dimineața devreme nu poate fi acoperită.
+## Făcut (pe scurt, cu ora)
+- 12:53 API-ul; 12:58 M0 (cercetarea, `config/economics.yaml` cu surse); 13:11 M1 (agentul cap-coadă).
+- 13:31 Evaluarea agentului și măsurarea solverului; 13:44 extinderea (bilanț, fuziune, scara C, lista după lei pe oră); 13:46 API pentru extindere.
+- 13:57 Prima revizuire independentă (Codex): 12 probleme reparate, 11 teste. 14:22 A doua revizuire: 11 probleme reparate, 10 teste (ordinul de lucru arată acțiunea aleasă de agent, orele din anunțul de întrerupere vin din traseu, scenariile de participare nu se adună, replanificarea refolosește fuziunea, intrările cu fus orar amestecat sau infinite intră în carantină).
+- 14:05 Ordinul de lucru PDF are prima pagină cu pornirea turei. 14:12 Graficul evaluării (`reports/planner/agent_eval.png`). 14:14 Preavizul ANRE sare peste sărbătorile legale.
+- 14:15 A doua evaluare: ziua demo, cu lucrările reale A și adevărul injectat (`A_ground_truth.csv`), în `reports/planner/agent_eval.md`.
+- 14:33 Coada omului, aprobarea planului, harta cu bilanțul, instantaneul demo pe ultimul rulaj. 238 de teste trec.
 
-## Urmează (M2, apoi M3)
-- Gata: ordinele de lucru PDF (`outputs/plans/<s>/work_orders/<echipă>.pdf`, `GET /api/work-orders/{crew_id}.pdf`), Noto Sans (OFL) cu diacritice, câte un bloc pe oprire cu motive, pași, siguranță (AL/DV), câmpuri de completat și urmărirea până la predicție.
-- În lucru: evaluarea agentului pe 30 de zile sintetice (`reports/planner/agent_eval.json`), măsurarea solverului pe 100-300 de lucrări, `outputs/demo/`.
-- Evaluarea agentului pe mai multe zile față de strategii simple (`reports/planner/agent_eval.json`).
-- Trecerea pe ieșirile reale A, B, C când apar în `Teo`.
+## Pentru README-ul principal (text propus, orchestratorul îl poate copia)
+> **Agentul (planificatorul).** `uv run cyberpunks run --scenario demo-vara` trece automat prin cei patru pași: *Perceive* (configurația, scenariul, ce date și modele există), *Estimate* (modelele A, bilanț, B, C), *Decide* (validare și carantină, reguli cu nume și praguri justificate de cost, trasee OR-Tools cu ferestre de timp, abilități și baze multiple, cu rezervă greedy) și *Act* (planul, jurnalul de decizii, alertele, mesajele demo, ordinele de lucru PDF pe echipă, raportul zilei). Fiecare decizie are o regulă (`rule_id`), pragurile folosite, motivul în română și o linie în jurnal cu ID-ul predicției, versiunea modelului și amprenta intrării. Ce nu e sigur merge la dispecer, într-o coadă de cel mult 25 de cazuri pe zi; dispecerul aprobă, respinge sau amână, iar planul se recalculează. Pragurile: `config/planner.yaml`; costurile, cu sursa fiecăruia: `config/economics.yaml`; cercetarea: `docs/research/planificator.md`.
+>
+> **Evaluarea agentului.** `make agent-eval` (~2 min) compară agentul cu strategii simple (top-K după scor, primul venit, aleator, o singură sursă) pe aceleași echipe și restricții: pe 30 de zile sintetice, +49% valoare netă față de cea mai bună strategie simplă, cu mai puțini km și mai puține urgențe ratate; pe ziua demo, cu lucrările reale A și adevărul injectat, agentul vizitează 29 din 50 de cazuri reale de siguranță, față de 2 la ordinea pe valoare. Metoda și limitele: `reports/planner/README.md`; tabelele: `reports/planner/agent_eval.md`.
+>
+> **API.** `make api` pornește API-ul pe http://127.0.0.1:8710/api (documentație la `/docs`); `CYBERPUNKS_API_SOURCE=demo make api` servește instantaneul din git (`outputs/demo/`), fără să ruleze modelele.
+
+## Pentru firul Interfață (toate rutele, cu `?scenario=`)
+- Din contract: `/health` (cu `plan_id`, `mode`), `/scenarios`, `POST /run`, `/plan`, `/work-items`, `/work-items/{id}` (cu `decision` și `action`), `/series/{id}`, `/audit`, `POST /review/{id}`, `/metrics`, `/work-orders/{crew}.pdf`.
+- În plus: `/quarantine`, `/alerts`, `/notifications`, `/report`, `/run-info` (timpii pe pași, sursele, solverul), `/rules`, `/remedies` (scara C), `/posts`, `/posts/{post_id}`, `POST /routes/{crew}/approve`, `/approvals` (cu `stale`), `POST /verdict/{id}`, `/labels`, `POST /plan/approve`, `/plan/approval`.
+- Ordinea deciziilor în plan: întâi verificările de la distanță și corecțiile din birou, apoi lista pe echipe (`rank` după `threshold.lei_per_work_hour`), apoi restul.
+
+## Urmează (M3)
+- Instantaneul final când A, B, C și bilanțul își fixează versiunile.
+- O a treia rundă scurtă de revizuire înainte de înghețare, timpii pentru demo, scenariul `maine`.
 
 ## Blocaje
 - Niciunul.
 
-## Cereri către orchestrator
-- Transmite firelor A, B, C secțiunea de mai sus.
-
 ## Cum se rulează (comenzile exacte)
 - `uv sync && make check`
-- `uv run cyberpunks run --scenario demo-vara` (sau `--mode fixtures`, `--date YYYY-MM-DD`)
-- `uv run cyberpunks review A-20261109-MTR-027710 approve --note "verificat"`
-- `make api` → http://127.0.0.1:8710/api/health
-- `make test-planner`
+- `uv run cyberpunks run --scenario demo-vara` (sau `--mode existing`, `--mode fixtures`, `--date YYYY-MM-DD`)
+- `make api` (sau `CYBERPUNKS_API_SOURCE=demo make api`) → http://127.0.0.1:8710/api/health, documentația la `/docs`
+- `make agent-eval` (~2 min), `make solver-bench` (~6 min), `make demo-snapshot`
 
 ## Cifre (doar din scripturi, cu comanda)
-- Pe fixture-uri (`uv run cyberpunks run --scenario demo-vara --mode fixtures`): 7 lucrări, 3 în trasee (3 echipe, 84,2 km), 1 citire la distanță, 1 la om, OR-Tools în 0,1 s. Cifre ilustrative: fixture-urile nu sunt ieșiri de model.
+- `make agent-eval`, 30 de zile SINTETICE: valoare netă pe zi, agentul 35.061 lei, cea mai bună strategie simplă 23.552 (+49%); km pe zi 352 față de 511 la top-K; urgențe ratate 19,6% față de 26,8%. Robust la un model supra-încrezător și la ipotezele fără sursă (+48% … +77%). Tabelele: `reports/planner/agent_eval.md`, graficul: `reports/planner/agent_eval.png`.
+- `make solver-bench`: OR-Tools aduce cu 3-19% mai multă valoare netă decât greedy pe 100-300 de lucrări, în 1,4-9 s.
+- Ziua demo, 8 iulie 2025, doar contoarele (lucrările reale A, 391, din care 274 probleme reale după `A_ground_truth.csv`; valoarea capturată e valoarea reală): agentul face 33 de vizite, toate pe probleme reale, și vizitează 29 din cele 50 de cazuri reale de siguranță, dar câștigă doar 2.529 lei net, pentru că siguranța e obligatorie și valorează puțin în lei. Fără siguranța obligatorie: 25.394 lei și 14 cazuri de siguranță. Ordinea pe valoare a lui A („primul venit”): 28.825 lei și 2 cazuri. Top-K după scor: 6.179 lei și 2 cazuri. E un compromis de politică (`global.safety_mandatory` în `config/planner.yaml`); pentru prezentare, cifra cinstită e „29 din 50 de cazuri de siguranță față de 2”, nu valoarea netă.
 
 ## Decizii (cu ora)
-- 12:50 Faza 0 cu 3 subagenți de cercetare în paralel; partea OR-Tools o măsor cu solverul real.
-- 12:53 API-ul citește, în ordine: ultima rulare (`outputs/`), instantaneul `outputs/demo/`, apoi `contracts/fixtures/`.
-- 12:53 `GET /work-items/{id}` întoarce `WorkItem` cu cheia `decision` adăugată, ca tipul din interfață să fie `WorkItem & {decision}`.
-- 12:53 Parametrii din URL (scenariu, ID, echipă) se validează cu expresii regulate, ca să nu se poată citi fișiere din afara `outputs/`.
-- 12:58 Vizita la contor: tariful reglementat Rețele Electrice 2026 (246,89 lei) ca PROXY, rotunjit la 250. Energia pierdută: PZU 2026 (0,70). Tura de furtună: calcul din salariu × spor de ore suplimentare (2.700).
-- 13:05 Prioritatea în trasee = valoarea netă × factorul de urgență (24 h / urgency_hours, minim 0,25) × 3 la siguranță. Penalitatea OR-Tools pentru o lucrare nefăcută = prioritatea, în bani.
-- 13:05 Echipa de furtună rămâne în zonă: nodul B e ultimul din traseu, drumul înapoi costă 0. Tura suplimentară e în costul de 2.700 lei.
-- 13:08 Analizorul de tensiune nu are fereastră strictă (înregistrează mai multe zile), doar priza și furtuna au.
-- 13:09 O lucrare lăsată afară are motivul ei: echipe pline (`R-CAPACITY`), nimeni nu ajunge la timp (`R-TIME-WINDOW` / `R-B-TOO-LATE`), drumul dus-întors costă mai mult decât valoarea (`R-NOT-WORTH-TRIP`), fără echipă potrivită (`R-NO-CREW`). Unde există, se aplică rezerva: citire la distanță (A) sau mesaj către prosumatori (C).
-- 13:10 Pentru scenariile istorice, momentul deciziei e seara dinainte, la 18:00 (contează la preavizul ANRE).
-- 13:10 Modul `existing` nu cade pe fixture-uri: o sursă fără ieșire e `missing`. Doar `auto` folosește fixture-urile, cât timp modelele nu există.
-- 13:18 Prioritatea din trasee = valoarea așteptată − costul acțiunii (fără factorul de urgență). Factorul de urgență micșora premiul sub costul drumului și solverul lăsa echipele goale (văzut în simulare).
-- 13:18 Contoare cu încredere medie: echipă doar dacă valoarea netă trece de o marjă de 25% din costul vizitei (`R-A-VISIT-MEDIUM`); altfel citire la distanță. Când echipele sunt pline, rezerva e tot citirea la distanță.
-- 13:23 La B, `safety_flag` (rafale) e avertisment pentru echipă, nu lucrare obligatorie; altfel 10 zone cu rafale ar fi golit toate echipele.
-- 13:23 Plafonul de echipe de furtună pe regiune: 3 (Banat are acum 4 echipe de medie tensiune).
+- 12:53 API-ul citește: ultima rulare (`outputs/`), instantaneul `outputs/demo/`, apoi `contracts/fixtures/`; `CYBERPUNKS_API_SOURCE` poate fixa sursa (14:30).
+- 12:58 Costuri: vizita 250 lei (tarif RER 2026, PROXY), energia pierdută 0,70 lei/kWh (PZU 2026), tura de furtună 2.700 lei (CALCUL).
+- 13:05 Echipa de furtună rămâne în zonă (nodul B e ultimul din traseu); ajunge la ora limită, cel târziu la sfârșitul turei (13:52).
+- 13:18 Premiul din trasee = valoarea așteptată − costul acțiunii; încrederea medie cere o marjă de 25%.
+- 13:23 La B, `safety_flag` (rafale) e avertisment pentru echipă. 13:31 Pragul etic la contoare: scor ≥ 0,5 pentru o vizită la ușa unui client.
+- 13:52 Zonele de furtună peste plafonul regional merg la dispecer, cu alerta „Întăriri necesare”.
+- 14:00 Aprobarea omului confirmă decizia agentului, cu acțiunea ei.
+- 14:15 Pe ziua demo, agentul trimite întâi cazurile cu risc pentru oameni, chiar dacă valorează puțin în lei; ablația din raport arată cât costă regula.
+- 14:28 Coada omului: capacitate de 25 pe zi; abținerile din cauza datelor merg la biroul de date, cele cu valoare mică la urmărire; siguranța obligatorie doar de la scorul 0,7.

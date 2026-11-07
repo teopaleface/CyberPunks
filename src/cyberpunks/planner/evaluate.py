@@ -31,7 +31,7 @@ from cyberpunks.common.paths import REPORTS
 from cyberpunks.planner import planner_version
 from cyberpunks.planner.actions import finalize
 from cyberpunks.planner.agent import build_routing
-from cyberpunks.planner.decide import Context, action_cost, decide
+from cyberpunks.planner.decide import Context, action_cost, decide, storm_onset
 from cyberpunks.planner.ingest import Item
 from cyberpunks.planner.routing import Task, Vehicle, build_problem, minutes_of, solve, solve_greedy
 from cyberpunks.planner.settings import TZ, Settings
@@ -86,7 +86,7 @@ def _travel_cost(settings: Settings, routes: list, crews_size: dict[str, int]) -
     return km, cost
 
 
-def _visit_outcome(res: DayResult, ctx: Context, it: Item, action: str, truth: bool) -> None:
+def _visit_outcome(res: DayResult, ctx: Context, it: Item, action: str, truth: bool, true_value: float | None = None) -> None:
     wi = it.wi
     res.visits += 1
     res.by_source_visits[wi.source.value] += 1
@@ -101,8 +101,9 @@ def _visit_outcome(res: DayResult, ctx: Context, it: Item, action: str, truth: b
     if truth:
         res.useful_visits += 1
         if captures:
-            res.value_captured_lei += wi.impact.value_if_true_lei
-            res.by_source_value[wi.source.value] += wi.impact.value_if_true_lei
+            value = wi.impact.value_if_true_lei if true_value is None else true_value  # valoarea reală, dacă o știm
+            res.value_captured_lei += value
+            res.by_source_value[wi.source.value] += value
     else:
         res.useless_visits += 1
         res.by_source_useless[wi.source.value] += 1
@@ -135,7 +136,7 @@ def run_agent(day: SimDay, settings: Settings) -> DayResult:
         if it.wi.source.value == "B" and truth:
             res.storms_true += 1
         if p.decision == DecisionType.assigned:
-            _visit_outcome(res, ctx, it, p.action, truth)
+            _visit_outcome(res, ctx, it, p.action, truth, (day.meta.get("true_value_lei") or {}).get(wid))
             if it.wi.source.value == "B" and truth:
                 res.storms_covered += 1
         else:
@@ -203,8 +204,13 @@ def run_baseline(day: SimDay, settings: Settings, strategy: str, seed: int) -> D
         wi = it.wi
         terminal = action == "preposition_crew"
         latest = end - timedelta(minutes=wi.effort.duration_min)
-        if terminal and wi.time_window is not None:
-            latest = wi.time_window.start.astimezone(TZ) - timedelta(minutes=before)
+        onset = storm_onset(wi) if terminal else None
+        earliest = start
+        if onset is not None:
+            latest = onset.astimezone(TZ) - timedelta(minutes=before)
+        elif wi.source.value == "A" and wi.time_window is not None:  # aceeași fereastră de acces ca la agent
+            earliest = max(start, wi.time_window.start.astimezone(TZ))
+            latest = min(end, wi.time_window.end.astimezone(TZ)) - timedelta(minutes=wi.effort.duration_min)
         allowed = [
             v
             for v, veh in enumerate(vehicles)
@@ -219,7 +225,7 @@ def run_baseline(day: SimDay, settings: Settings, strategy: str, seed: int) -> D
                 wi.effort.duration_min,
                 wi.effort.crew_skill.value,
                 wi.effort.crew_size,
-                minutes_of(start, ctx.plan_date),
+                minutes_of(earliest, ctx.plan_date),
                 minutes_of(latest, ctx.plan_date),
                 terminal,
                 n - rank,
@@ -240,7 +246,7 @@ def run_baseline(day: SimDay, settings: Settings, strategy: str, seed: int) -> D
         if it.wi.source.value == "B" and truth:
             res.storms_true += 1
         if it.id in rr.assigned:
-            _visit_outcome(res, ctx, it, action_of[it.id], truth)
+            _visit_outcome(res, ctx, it, action_of[it.id], truth, (day.meta.get("true_value_lei") or {}).get(it.id))
             if it.wi.source.value == "B" and truth:
                 res.storms_covered += 1
         else:
@@ -314,6 +320,48 @@ def evaluate(
     }
 
 
+def evaluate_demo_day(scenario: str = "demo-vara", out_root: Path | None = None, settings: Settings | None = None) -> dict[str, Any] | None:
+    """A doua evaluare: pe ziua demo, cu lucrările reale ale modelului A și adevărul injectat de firul A
+    (outputs/work_items/<s>/A_ground_truth.csv). Valoarea capturată e valoarea REALĂ a problemei (true_value_lei),
+    nu estimarea modelului. Doar sursa A (pentru B și C nu avem adevărul zilei)."""
+    import csv
+
+    from cyberpunks.common.paths import OUTPUTS
+    from cyberpunks.planner.ingest import infer_plan_date, load_source
+
+    settings = settings or Settings.load()
+    root = out_root or OUTPUTS
+    items_path = root / "work_items" / scenario / "A.jsonl"
+    truth_path = root / "work_items" / scenario / "A_ground_truth.csv"
+    if not items_path.exists() or not truth_path.exists():
+        return None
+    plan_date = infer_plan_date([items_path])
+    load = load_source("A", items_path, "model", plan_date, set())
+    with open(truth_path, encoding="utf-8") as fh:
+        truth_rows = {row["meter_id"]: row for row in csv.DictReader(fh)}
+    raws, truth, values = [], {}, {}
+    for it in load.items:
+        row = truth_rows.get(it.wi.asset_id)
+        if row is None:
+            continue
+        raws.append(it.wi.model_dump(mode="json"))
+        truth[it.id] = row.get("true_problem") in ("1", "True", "true")
+        values[it.id] = float(row.get("true_value_lei") or 0.0)
+    day = SimDay(plan_date, raws, truth, {"true_value_lei": values, "source": "A, ziua demo"})
+    out = {"agent": _summary([run_agent(day, settings)])}
+    for name in ("top_k_scor", "primul_venit", "aleator"):
+        out[name] = _summary([run_baseline(day, settings, name, 7)])
+    relaxed = Settings.load()
+    relaxed.planner.setdefault("global", {})["safety_mandatory"] = False
+    out["agent_fara_siguranta_obligatorie"] = _summary([run_agent(day, relaxed)])
+    return {
+        "scenario": scenario, "plan_date": plan_date.isoformat() if plan_date else None, "work_items": len(raws),
+        "true_problems": sum(truth.values()), "true_value_lei_total": round(sum(v for k, v in values.items() if truth[k]), 2),
+        "truth_source": str(truth_path.relative_to(root.parent)) if truth_path.is_relative_to(root.parent) else str(truth_path),
+        "strategies": out,
+    }
+
+
 ABLATIONS: dict[str, tuple[str, list[tuple[tuple[str, ...], Any]]]] = {
     "fara_prag_etic": ("Fără pragul etic (vizită și sub scorul 0,5, dacă merită)", [(("meters", "visit_min_score"), 0.0)]),
     "greedy_in_loc_de_ortools": ("Aceleași reguli, trasee făcute greedy în loc de OR-Tools", [(("routing", "solver"), "greedy")]),
@@ -363,6 +411,161 @@ def sensitivity(days: int, seed: int, n_meters: int) -> list[dict[str, Any]]:
     return out
 
 
+NAMES_RO = {
+    "agent": "Agentul (reguli + OR-Tools)",
+    "top_k_scor": "Top-K după scor",
+    "primul_venit": "Primul venit",
+    "aleator": "Aleator",
+    "doar_contoare": "Doar contoare (o singură sursă)",
+}
+
+
+def _fmt(x: float, d: int = 0) -> str:
+    s = f"{x:,.{d}f}"
+    return s.replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def render_markdown(report: dict[str, Any]) -> str:
+    """Tabelele din agent_eval.json, în markdown (reports/planner/agent_eval.md). Toate cifrele vin din raport."""
+    m = report["main"]
+    s = m["strategies"]
+    lines = [
+        "# Evaluarea agentului: cifrele (generat de script)",
+        "",
+        (
+            f"Generat automat de `{report['reproduce_cmd']}` la {report['created_at']} (`{report['planner_version']}`). "
+            f"Lume SINTETICĂ, {m['days']} de zile, {m['n_meters_per_day']} de lucrări A pe zi. Metoda: `reports/planner/README.md`."
+        ),
+        "",
+        "| Strategie | Valoare netă pe zi (lei) | Km pe zi | Vizite fără problemă reală | Urgențe ratate | Furtuni reale acoperite |",
+        "|---|---|---|---|---|---|",
+    ]
+    for name in STRATEGIES:
+        r = s[name]
+        lines.append(
+            f"| {NAMES_RO[name]} | {_fmt(r['net_value_lei_per_day'])} | {_fmt(r['km_per_day'])} | {_fmt(100 * r['useless_visit_rate'], 1)}% "
+            f"| {_fmt(100 * r['urgent_missed_rate'], 1)}% | {r['storms_covered_total']} din {r['storms_true_total']} |"
+        )
+    a = s["agent"]
+    best = max((n for n in STRATEGIES[1:]), key=lambda n: s[n]["net_value_lei_total"])
+    gain = 100 * (a["net_value_lei_total"] - s[best]["net_value_lei_total"]) / abs(s[best]["net_value_lei_total"])
+    lines += [
+        "",
+        f"Agentul aduce cu {_fmt(gain, 0)}% mai multă valoare netă decât cea mai bună strategie simplă ({NAMES_RO[best].lower()}).",
+        "",
+        "## Pe surse (vizite fără problemă reală / vizite)",
+        "",
+        "| Strategie | Contoare (A) | Furtună (B) | Tensiune (C) |",
+        "|---|---|---|---|",
+    ]
+    for name in STRATEGIES:
+        r = s[name]
+        cells = [f"{r['useless_visits_by_source'][x]} / {r['visits_by_source'][x]}" for x in "ABC"]
+        lines.append(f"| {NAMES_RO[name]} | " + " | ".join(cells) + " |")
+    lines += [
+        "",
+        (
+            f"Agentul a mai trimis {a['remote_readings_total']} citiri la distanță (din care {a['remote_readings_true']} pe probleme reale) "
+            f"și {a['human_review_total']} cazuri la om (din care {a['human_review_true']} reale). "
+            "În evaluare ele nu primesc valoare în ziua respectivă, doar costul."
+        ),
+    ]
+    if "robustness_overconfident_model" in report:
+        r = report["robustness_overconfident_model"]
+        rs = r["strategies"]
+        lines += ["", f"## Robustețe: model supra-încrezător ({r['days']} zile, adevărul ~ Bernoulli(scor^{r['miscalibration']}))", "",
+                  "| Strategie | Valoare netă pe zi (lei) | Urgențe ratate |", "|---|---|---|"]
+        for name in STRATEGIES:
+            lines.append(f"| {NAMES_RO[name]} | {_fmt(rs[name]['net_value_lei_per_day'])} | {_fmt(100 * rs[name]['urgent_missed_rate'], 1)}% |")
+    if "ablations" in report:
+        lines += ["", "## Ablații: ce aduce fiecare piesă (aceleași zile)", "", "| Varianta | Valoare netă pe zi (lei) | Km pe zi | Vizite fără problemă reală |", "|---|---|---|---|",
+                  f"| Agentul complet | {_fmt(a['net_value_lei_per_day'])} | {_fmt(a['km_per_day'])} | {_fmt(100 * a['useless_visit_rate'], 1)}% |"]
+        for v in report["ablations"].values():
+            lines.append(f"| {v['label_ro']} | {_fmt(v['net_value_lei_per_day'])} | {_fmt(v['km_per_day'])} | {_fmt(100 * v['useless_visit_rate'], 1)}% |")
+    if report.get("demo_day"):
+        dd = report["demo_day"]
+        ds = dd["strategies"]
+        lines += ["", f"## Ziua demo ({dd['plan_date']}): lucrările reale ale modelului A, cu adevărul injectat", "",
+                  (f"{dd['work_items']} lucrări A, din care {dd['true_problems']} probleme reale (valoare reală {_fmt(dd['true_value_lei_total'])} lei). "
+                   "Valoarea capturată e valoarea reală a problemei, nu estimarea modelului. Adevărul vine de la firul A (`A_ground_truth.csv`)."), "",
+                  "| Strategie | Valoare netă (lei) | Vizite | Probleme reale găsite | Vizite fără problemă | Cazuri reale de siguranță vizitate | Km |",
+                  "|---|---|---|---|---|---|---|"]
+        names = {**NAMES_RO, "agent_fara_siguranta_obligatorie": "Agentul fără siguranța obligatorie (ablație)"}
+        for name in ("agent", "agent_fara_siguranta_obligatorie", "top_k_scor", "primul_venit", "aleator"):
+            r = ds[name]
+            safety = f"{r['urgent_total'] - r['urgent_missed_total']} din {r['urgent_total']}"
+            lines.append(f"| {names[name]} | {_fmt(r['net_value_lei_total'])} | {r['visits_total']} | {r['visits_total'] - r['useless_visits_total']} "
+                         f"| {r['useless_visits_total']} | {safety} | {_fmt(r['km_total'])} |")
+        a = ds["agent"]
+        lines.append(f"\nAgentul a trimis în plus {a['remote_readings_total']} citiri la distanță (din care {a['remote_readings_true']} pe probleme reale) "
+                     f"și {a['human_review_total']} cazuri la om (din care {a['human_review_true']} reale). "
+                     "„Primul venit” urmează aici ordinea din fișierul modelului A, care e deja clasamentul lui după valoare. "
+                     "Agentul trimite întâi toate cazurile cu risc pentru oameni (regula R-SAFETY), chiar dacă valorează puțin în lei; "
+                     "ablația arată cât costă regula și câte cazuri de siguranță ar rămâne nevizitate fără ea.")
+    if "sensitivity" in report:
+        lines += ["", "## Sensibilitate la ipotezele fără sursă", "", "| Parametru | Valoare | Agentul (lei/zi) | Top-K (lei/zi) | Avantajul agentului |", "|---|---|---|---|---|"]
+        for row in report["sensitivity"]:
+            lines.append(f"| `{row['parameter']}` | {_fmt(row['value'], 1)} | {_fmt(row['agent_net_lei_per_day'])} | {_fmt(row['top_k_scor_net_lei_per_day'])} | +{_fmt(row['agent_advantage_pct'], 1)}% |")
+    return "\n".join(lines) + "\n"
+
+
+def render_chart(report: dict[str, Any], path: Path) -> Path:
+    """Graficul evaluării (PNG): valoarea netă pe zi și urgențele ratate, pe strategii; agentul evidențiat.
+    Două panouri cu aceeași ordine (nu o axă dublă); valorile scrise direct pe bare; tabelul complet e în agent_eval.md."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib import font_manager
+
+    fonts = Path(__file__).parent / "assets" / "fonts"
+    for f in ("NotoSans-Regular.ttf", "NotoSans-Bold.ttf"):
+        font_manager.fontManager.addfont(str(fonts / f))
+    plt.rcParams.update({"font.family": "Noto Sans", "font.size": 10})
+    surface, ink, ink2, grid = "#fcfcfb", "#0b0b0b", "#52514e", "#e6e5e1"
+    accent, muted = "#2a78d6", "#a9a79f"
+    s = report["main"]["strategies"]
+    order = list(STRATEGIES)
+    labels = [NAMES_RO[n].replace(" (reguli + OR-Tools)", "").replace(" (o singură sursă)", "") for n in order]
+    panels = [
+        ("Valoare netă pe zi (lei)", [s[n]["net_value_lei_per_day"] for n in order], lambda v: _fmt(v)),
+        ("Urgențe ratate (mai puțin e mai bine)", [100 * s[n]["urgent_missed_rate"] for n in order], lambda v: f"{_fmt(v, 0)}%"),
+    ]
+    fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.6), dpi=160, gridspec_kw={"wspace": 0.55})
+    fig.patch.set_facecolor(surface)
+    for ax, (title, values, fmt) in zip(axes, panels, strict=True):
+        ax.set_facecolor(surface)
+        ys = list(range(len(order)))[::-1]
+        colors = [accent if n == "agent" else muted for n in order]
+        ax.barh(ys, values, height=0.56, color=colors, edgecolor=surface, linewidth=2)
+        top = max(values) or 1.0
+        for y, v, n in zip(ys, values, order, strict=True):
+            ax.text(v + top * 0.02, y, fmt(v), va="center", ha="left", color=ink if n == "agent" else ink2,
+                    fontweight="bold" if n == "agent" else "normal", fontsize=9.5)
+        ax.set_yticks(ys, labels, color=ink)
+        ax.set_xlim(0, top * 1.25)
+        ax.set_title(title, loc="left", color=ink, fontsize=11, fontweight="bold", pad=8)
+        ax.grid(axis="x", color=grid, linewidth=0.8)
+        ax.set_axisbelow(True)
+        ax.tick_params(axis="x", colors=ink2, labelsize=8.5, length=0)
+        ax.tick_params(axis="y", length=0)
+        ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(nbins=4))
+        ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _pos: _fmt(v)))
+        for side in ("top", "right", "left"):
+            ax.spines[side].set_visible(False)
+        ax.spines["bottom"].set_color(grid)
+    m = report["main"]
+    fig.text(0.01, 0.995, f"Agentul față de strategii simple: {m['days']} de zile SINTETICE, aceleași 11 echipe și restricții",
+             ha="left", va="top", color=ink2, fontsize=9)
+    fig.text(0.01, 0.01, f"Refacere: {report['reproduce_cmd']}. Tabelul complet: reports/planner/agent_eval.md",
+             ha="left", va="bottom", color=ink2, fontsize=7.5)
+    fig.subplots_adjust(left=0.13, right=0.97, top=0.82, bottom=0.17)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, facecolor=surface)
+    plt.close(fig)
+    return path
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Evaluarea agentului față de strategii simple (lume sintetică).")
     ap.add_argument("--days", type=int, default=30)
@@ -388,9 +591,14 @@ def main(argv: list[str] | None = None) -> int:
         )
         report["ablations"] = ablations(args.days, args.seed, args.meters)
         report["sensitivity"] = sensitivity(args.days, args.seed, args.meters)
+    demo_day = evaluate_demo_day("demo-vara", settings=settings)
+    if demo_day is not None:
+        report["demo_day"] = demo_day
     report["runtime_s"] = round(time.perf_counter() - t0, 1)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    args.out.with_suffix(".md").write_text(render_markdown(report), encoding="utf-8")
+    render_chart(report, args.out.with_suffix(".png"))
     s = main_run["strategies"]
     print(f"Scris {args.out} ({report['runtime_s']} s)")
     print(f"{'strategie':<15}{'valoare netă/zi':>17}{'km/zi':>9}{'vizite inutile':>16}{'urgențe ratate':>16}")

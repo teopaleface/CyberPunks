@@ -6,9 +6,12 @@ version: 1
 global:
   min_net_value_lei: 0              # o echipă merge doar dacă valoarea așteptată depășește costul (vizită + deplasare): pragul de rentabilitate
   human_review_min_ev_lei: 150      # sub atât, un caz nesigur nu merită timpul unui om (≈ 15 min de dispecer și o vizită posibilă); intră la urmărire
+  human_review_max_per_day: 25      # IPOTEZĂ: un dispecer analizează ~25 de cazuri pe zi (~10 min fiecare); în coadă intră întâi siguranța, apoi întăririle, apoi valoarea
   max_interval_width: 0.5           # interval de încredere mai larg de 0,5 = modelul nu e sigur, chiar dacă nu s-a abținut
   max_missing_ratio: 0.4            # peste 40% date lipsă la intrare, scorul nu e de încredere
   safety_priority_multiplier: 3.0   # riscul pentru oameni triplează prioritatea și intră primul în traseu
+  safety_mandatory: true            # un caz cu risc pentru oameni intră în traseu oricare ar fi valoarea (siguranța înainte de bani); costul regulii e în evaluare
+  safety_min_score: 0.7             # sub acest scor, semnalul de siguranță e prea slab ca să treacă peste cost: prioritate triplă, fără obligativitate
   degraded_invalid_share: 0.2       # peste 20% linii respinse, sursa e "degraded"
 
 meters:                             # A
@@ -40,6 +43,13 @@ remedy:                             # scara de soluții pentru tensiune (C)
 posts:                              # harta posturilor din interfață, după lei pierduți pe lună (bilanț)
   yellow_lei_month: 200             # IPOTEZĂ: de aici postul e galben
   red_lei_month: 600                # exemplul din conceptul lui Teo ("aproximativ 600 lei pe lună"): de aici postul e roșu
+
+estimate:                           # pasul Estimate în modul auto
+  reuse_fresh_output: [A_bilant]    # modele lente (bilanțul rulează ~4 minute): ieșirea lor pentru aceeași zi se refolosește
+  max_age_hours: 12                 # cât de veche poate fi ieșirea refolosită
+
+alerts:
+  max_per_kind: 3                   # peste atâtea alerte de același fel (de exemplu siguranță), se strâng într-una singură
 
 routing:
   solver: ortools                   # ortools | greedy

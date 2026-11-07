@@ -43,8 +43,9 @@ from cyberpunks.common.contracts import Series, WorkItem
 from cyberpunks.common.paths import OUTPUTS, work_items_path
 
 TZ = ZoneInfo("Europe/Bucharest")
-MAX_ACTION = 150  # lucrări sigure trimise planificatorului (cele mai valoroase)
-MAX_WATCHLIST = 40  # următoarele, de urmărit fără vizită
+MAX_ACTION = 250  # lucrări sigure cu acțiune (cele mai valoroase); capacitatea zilei o aplică planificatorul
+MAX_WATCHLIST = 40  # lucrări sigure, dar cu valoare prea mică pentru o deplasare acum: urmărire
+WATCH_EV_SHARE = 0.2  # valoare așteptată sub 20% din costul unei vizite: nu merită deplasarea acum
 MAX_REVIEW = 40  # cazuri "nu sunt sigur" trimise la om
 MIN_REVIEW_SCORE = 0.10  # sub acest scor, un caz nesigur nu merită timpul unui om
 MIN_REVIEW_VALUE_LEI = 10.0  # și nici dacă valoarea așteptată e de câțiva lei
@@ -235,8 +236,12 @@ def run(scenario: str, date: str | None = None) -> Path:
     unsure = tab[(tab["conformal"] == "unsure") & tab["data_abstain"].isna() & (tab["score"] >= MIN_REVIEW_SCORE)]
     unsure = unsure[unsure["expected_value"] >= MIN_REVIEW_VALUE_LEI]
     unsure = unsure.sort_values("expected_value", ascending=False).head(MAX_REVIEW)
-    action_idx = list(sure.index[:MAX_ACTION])
-    watch_idx = list(sure.index[MAX_ACTION : MAX_ACTION + MAX_WATCHLIST])
+    # furtul sigur se verifică oricum (risc de siguranță: bypass, conexiuni improvizate), chiar la valoare mică
+    worth = (sure["expected_value"] >= WATCH_EV_SHARE * econ["visit_cost_lei"]) | (sure["label"] == "tamper")
+    action_idx = list(sure.index[worth.to_numpy()][:MAX_ACTION])
+    # siguranța înaintea plafonului: niciun furt sigur nu cade din listă (se adaugă după cele mai valoroase 250)
+    action_idx += [i for i in sure.index[(sure["label"] == "tamper").to_numpy()] if i not in set(action_idx)]
+    watch_idx = list(sure.index[~worth.to_numpy()][:MAX_WATCHLIST])
     chosen = [(i, "action") for i in action_idx] + [(i, "watch") for i in watch_idx]
     chosen += [(i, "unsure") for i in unsure.index] + [(i, "data") for i in data_ab]
 
@@ -245,6 +250,10 @@ def run(scenario: str, date: str | None = None) -> Path:
     factors = top_factors(model, feats.loc[rows.index], labels, k=5)
     ref = pd.read_parquet(SIMILAR_REF) if SIMILAR_REF.exists() else build_samples().query("split == 'cal'")
     sim = SimilarCases.fit(ref, model.features).query(feats.loc[rows.index], k=3)
+    # fără date suficiente, "cazurile similare" ar compara golul cu golul: nu le arătăm
+    sim = [[] if why == "data" else cases for (_, why), cases in zip(chosen, sim, strict=True)]
+    p_lo = min(model.meta.get("p_threshold_problem", 0.0), model.meta.get("p_threshold_normal", 1.0))
+    p_hi = max(model.meta.get("p_threshold_problem", 0.0), model.meta.get("p_threshold_normal", 1.0))
 
     items, series = [], {}
     ymd = target.strftime("%Y%m%d")
@@ -262,9 +271,8 @@ def run(scenario: str, date: str | None = None) -> Path:
             abstain, reason = True, str(r["data_abstain"])
         elif why == "unsure":
             abstain = True
-            reason = (f"nu sunt sigur: probabilitatea de problemă e {score:.0%}, în zona gri dintre pragul pentru "
-                      f"normal ({model.conformal.q_normal:.2f}) și cel pentru problemă "
-                      f"({1 - model.conformal.q_problem:.2f}); pe datele de calibrare, aici modelul greșește des")
+            reason = (f"probabilitatea de problemă e {score:.0%}: sub {p_lo:.0%} contorul ar fi sigur normal, peste "
+                      f"{p_hi:.0%} sigur o problemă; între ele, pe datele de calibrare se amestecă cele două")
         guard = False
         if label == "tamper" and not abstain and feats.loc[i, "level_kwh"] <= low_level_cut:
             guard, abstain = True, True
@@ -277,7 +285,7 @@ def run(scenario: str, date: str | None = None) -> Path:
         elif why == "watch":
             action = "watchlist"
         elif label == "tamper":
-            action = "inspect_on_site" if r["expected_value"] >= 0.25 * econ["visit_cost_lei"] or score >= 0.5 else "watchlist"
+            action = "inspect_on_site"  # posibilă intervenție: risc de siguranță, se verifică la fața locului
         elif r["comm_down"]:
             action = "inspect_on_site"
         elif feats.loc[i, "missing_recent"] >= 0.15 or score < 0.5:
@@ -297,11 +305,11 @@ def run(scenario: str, date: str | None = None) -> Path:
         value = float(r["value_if_true"])
         top_txt = "; ".join(f["label_ro"] for f in fac[:2])
         if abstain:
-            summary = f"Nu sunt sigur ({reason}). Scor {score:.0%}. {top_txt}."
+            summary = f"Nu sunt sigur: {reason}. Semne: {top_txt}. Decide un om."
         else:
             summary = f"{LABEL_RO[label].capitalize()} ({score:.0%}): {top_txt}. Recomand: {ACTION_RO[action]}."
         if deficit > 0:
-            summary += f" Lipsesc ~{deficit:.1f} kWh pe zi față de normal."
+            summary += f" Lipsesc ~{f'{deficit:.1f}'.replace('.', ',')} kWh pe zi față de normal."
         conf = "low" if abstain else _confidence(score, str(r["conformal"]))
         item = {
             "contract_version": "1.0",
