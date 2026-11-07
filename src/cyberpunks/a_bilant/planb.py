@@ -100,7 +100,7 @@ def main() -> None:
     }
     eco = load_config("economics")
     price = float(eco["energy"]["loss_cost_lei_per_kwh"])
-    ks = [int(round(n * f)) for f in (0.1, 0.2, 0.33, 0.44)]
+    ks = [round(n * f) for f in (0.1, 0.2, 0.33, 0.44)]
     rows = []
     for name, c in curves.items():
         rows.append({"metoda": name, **{f"primele {k} posturi ({k / n:.0%})": f"{c[k - 1] * 100:.1f}%" for k in ks}})
