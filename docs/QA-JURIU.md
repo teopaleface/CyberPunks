@@ -140,6 +140,11 @@ Tema cere ca deciziile să vină din modelele noastre și din reguli scrise în 
 - O echipă ajută cel mult 500 de clienți într-o tură, calculat din furtuna din Timiș: circa 40.000 de consumatori și 80 de echipe.
 Sursa: `reports/B/metrics.json` (`decision_threshold`), `config/planner.yaml`, `config/economics.yaml` (`customers_helped_per_crew_shift`).
 
+## Întrebări despre demo
+
+**31. În fereastra furtunii (15:00-21:00), vântul din grafic scade. De ce trimiteți echipa?**
+Graficul arată arhiva Open-Meteo, care netezește vijeliile: la Timișoara dă cel mult 50 km/h la 14:00 și 37 km/h la 15:00. Furtuna reală a avut rafale măsurate de 90-120 km/h (Transelectrica), iar ANM a dat cod roșu de vijelii exact pentru 15:00-21:00. Cu o seară înainte, prognoza ICON dădea 68-72 km/h la Reșița, Caransebeș și Deva, iar ECMWF arăta aer foarte instabil la Timișoara (CAPE de 1.960 J/kg). Riscul modelului din grafic urcă exact la 15:00, odată cu ploaia de furtună: de la 0,19 la 0,36, apoi la 0,43. Orele sunt ora României (+03:00): vremea e cerută cu fusul Europe/Bucharest. Sursa: seria `B-20250708-TM-TIMISOARA` (`expected` = riscul zilei, cu vremea de până la acea oră), `reports/B/backtest_romania.md`, `docs/research/B.md` (secțiunea 3).
+
 ## Puncte slabe (de reparat sau de pregătit răspunsul)
 
 1. **Platforma PPC (S3, Spark, NiFi):** niciun fișier nu descrie cum ar rula modelele pe ea, cât ar costa în cloud sau cât ar dura pe peste 2 mil. de contoare.

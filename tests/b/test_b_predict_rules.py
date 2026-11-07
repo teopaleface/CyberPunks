@@ -4,6 +4,7 @@ Datele de antrenare de aici sunt SINTETICE (generate în test), doar ca să veri
 """
 
 from datetime import date, datetime, time
+from itertools import pairwise
 
 import numpy as np
 import pandas as pd
@@ -174,3 +175,15 @@ def test_run_without_weather_still_writes_valid_items(tmp_path, monkeypatch):
     items = [WorkItem.model_validate_json(x) for x in lines]
     assert all(it.recommended_action == "human_review" for it in items)
     assert all(any("vremea indisponibilă" in s for s in it.data_quality.input_issues) for it in items)
+
+
+def test_series_carry_the_hourly_model_risk(tiny_model):
+    """`expected` = riscul zilei estimat de model cu vremea de până la acea oră: 0-1, pe toate orele zilei, nu scade."""
+    zones = [z for z in romania.load_zones() if z.zone_id == "TM-TIMISOARA"]
+    _, series = _build(tiny_model, zones, _feats(zones, gust=70.0, precip=8.0))
+    day = [pt for pt in series[0].points if pt.t.date() == TARGET]
+    assert len(day) == 24
+    risk = [pt.expected for pt in day]
+    assert all(r is not None and 0.0 <= r <= 1.0 for r in risk)
+    assert all(b >= a for a, b in pairwise(risk))  # curba nu scade
+    assert risk[-1] > risk[0]  # furtuna de la 15:00 urcă riscul
