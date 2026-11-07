@@ -121,6 +121,18 @@ class Post:
     features: dict = field(default_factory=dict)
 
 
+def spec_from_row(row) -> PostSpec:
+    """Reconstruiește PostSpec dintr-un rând de registru (coloanele spec_* dacă există, altfel cele simple)."""
+    vals = {}
+    for k in PostSpec.__dataclass_fields__:
+        vals[k] = row[f"spec_{k}"] if f"spec_{k}" in row else row[k]
+    for k in ("seed", "kva", "tap_pos"):
+        vals[k] = int(vals[k])
+    for k in ("line_scale", "vm_mv", "vm_mv_est", "prosumer_share", "battery_share", "mean_annual_kwh", "mv_pv_coef", "mv_load_coef"):
+        vals[k] = float(vals[k])
+    return PostSpec(**vals)
+
+
 @cache
 def _base_net(topology: str):
     import simbench as sb
@@ -182,6 +194,27 @@ def sample_spec(topology: str, rng: np.random.Generator, post_id: str, mode: str
     )
 
 
+# Limite de realism (IPOTEZĂ): un distribuitor n-ar ține în funcțiune o rețea în care panourile ridică tensiunea
+# cu peste 25% la soare plin sau în care consumul mediu o coboară cu peste 4% (la vârf ar fi sub 0,85 pu).
+MAX_SENS_PV = 0.25
+MAX_SENS_LOAD = 0.04
+
+
+def build_realistic(spec: PostSpec, max_tries: int = 12) -> Post:
+    """Ca build_post, dar reduce prosumatorii sau lungimea liniilor până când rețeaua e plauzibilă."""
+    post = build_post(spec)
+    for _ in range(max_tries):
+        f = post.features
+        if f["sens_pv_pu"] <= MAX_SENS_PV and f["sens_load_pu"] <= MAX_SENS_LOAD:
+            break
+        if f["sens_load_pu"] > MAX_SENS_LOAD:
+            spec.line_scale = round(spec.line_scale * 0.85, 4)
+        if f["sens_pv_pu"] > MAX_SENS_PV:
+            spec.prosumer_share = round(spec.prosumer_share * 0.8, 4)
+        post = build_post(spec)
+    return post
+
+
 def build_post(spec: PostSpec) -> Post:
     """Construiește rețeaua pandapower a postului, prosumatorii și trăsăturile statice."""
     import pandapower as pp
@@ -201,6 +234,8 @@ def build_post(spec: PostSpec) -> Post:
     vk, vkr, pfe, i0 = TRAFO_TYPES[spec.kva]
     t = net.trafo.index[0]
     net.trafo.loc[t, ["sn_mva", "vk_percent", "vkr_percent", "pfe_kw", "i0_percent"]] = [spec.kva / 1000, vk, vkr, pfe, i0]
+    # pandapower 3.x ignoră priza dacă tipul comutatorului nu e declarat (SimBench îl lasă gol): îl declarăm explicit
+    net.trafo["tap_changer_type"] = "Ratio"
     net.trafo.loc[t, "tap_pos"] = spec.tap_pos
     net.ext_grid["vm_pu"] = spec.vm_mv
 
