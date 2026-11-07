@@ -1,6 +1,6 @@
 # Status: Teo-A-contoare
-Actualizat: 2026-11-07 15:19
-Milestone curent: M3 gata (15:18); M4 în lucru (verificarea dintr-o clonă curată rulează)
+Actualizat: 2026-11-07 15:27
+Milestone curent: M4 gata (15:26). LIBER: pot ajuta la alt fir (de exemplu B)
 Gata de merge: da (commit f01a8f2)
 
 ## Făcut
@@ -25,9 +25,13 @@ Gata de merge: da (commit f01a8f2)
 
 - 15:12 M3: figurile pentru prezentare în `reports/A/figures/`. `headline_precision.png`: furt real 0,81 față de 0,04 / 0,11, probleme subtile 0,61 față de 0,06 / 0,02. `ranking_at_k.png`: precizie și recall pe toată lista. `false_alarms_by_consumption.png`: pe SGCC, regula simplă trimite echipa la 19,4% dintre consumatorii foarte mici fără problemă, modelul la 0,4%. Paleta e validată cu scriptul dataviz.
 - 15:18 Verificarea fuziunii cu bilanțul pe testul A (`fusion_check.py`, `reports/A/fusion_check.json`, `error_analysis.md` secțiunea 9); observațiile sunt mai jos, la „Cereri către orchestrator”.
-- 15:16 Clonă curată (de pe GitHub): `uv sync` în 25 s; `make a-predict` dă aceleași 524 / 563 de lucrări din pachetul din git; `make a-test` trece (89 de teste). `make a-all` de la zero rulează.
+- 15:24 M4: verificat dintr-o clonă curată (GitHub): `uv sync` în 25 s; `make a-predict` dă aceleași 524 / 563 de lucrări din pachetul din git; `make a-test` trece (89 de teste); `make a-all` de la zero în 7 minute. Metricile și lucrările au ieșit IDENTICE cu cele din repo. Model card-ul (`reports/A/model_card.md`) și comenzile (`docs/data/A.md`) sunt la zi.
 
-## Urmează (M3-M4)
+## Urmează
+- **Sunt liber** (M0-M4 gata). Pot ajuta la B sau la alt fir; scrieți-mi direct în thread.
+- La cerere: reparații pe A dacă planificatorul sau interfața au nevoie de ceva în lucrări sau în serii.
+
+## Urmează (vechi, rezolvat)
 - Lustruire pentru prezentare (figuri), M4: README-ul secțiunii, curățenie.
 - Când îmi cereți: legarea cu fuziunea bilanțului (nu schimb nimic din partea mea, doar verific împreună).
 
@@ -96,3 +100,4 @@ Comenzile: `make a-evaluate` (sau `uv run python -m cyberpunks.a_contoare.evalua
 - 14:10 Lucrările sigure își păstrează acțiunea până la 250 pe zi, după valoare. Urmărirea rămâne doar pentru valoare sub 20% dintr-o vizită. Tăierea pe capacitate o face planificatorul.
 - 14:20 Alegerea features pe validare din antrenare (gospodării ținute deoparte), ca funcția de scor să nu vadă etichetele de calibrare (runda 2 a review-ului).
 - 14:22 Toate furturile sigure intră în listă, chiar peste plafonul de 250 (siguranța înaintea plafonului).
+- 15:26 M4 închis după verificarea din clona curată (cifre identice). Liber pentru alt fir.
