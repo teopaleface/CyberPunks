@@ -1,0 +1,74 @@
+{
+ "n_train": 13200,
+ "n_test": 13200,
+ "models": {
+  "lgbm": {
+   "macro_f1": 0.7052992592059949,
+   "accuracy": 0.8262121212121212,
+   "abstain_rate": 0.1253030303030303,
+   "macro_f1_fara_abtineri": 0.753159824278495,
+   "macro_f1_argmax_brut": 0.7034264823451347,
+   "f1_normal": 0.9130910797143006,
+   "f1_contor_client": 0.39484055893944825,
+   "f1_furt_inainte_contor": 0.7028885832187071,
+   "f1_pierdere_tehnica": 0.4794701986754967,
+   "f1_client_post_gresit": 0.7550644567219152,
+   "f1_contor_bilant_setat": 0.9864406779661017
+  },
+  "reguli": {
+   "macro_f1": 0.48183425239138095,
+   "accuracy": 0.7820454545454546
+  },
+  "lr_std": {
+   "macro_f1": 0.5529349130265079,
+   "accuracy": 0.6781060606060606,
+   "abstain_rate": 0.5107575757575757,
+   "macro_f1_fara_abtineri": 0.7059113902251708,
+   "macro_f1_argmax_brut": 0.5528883824224166,
+   "f1_normal": 0.8073811048373014,
+   "f1_contor_client": 0.3037008775276612,
+   "f1_furt_inainte_contor": 0.4138486312399356,
+   "f1_pierdere_tehnica": 0.16799509503372165,
+   "f1_client_post_gresit": 0.7465535524920467,
+   "f1_contor_bilant_setat": 0.8781302170283807,
+   "C": 0.1
+  },
+  "lr_quantile": {
+   "macro_f1": 0.48210796504638154,
+   "accuracy": 0.6177272727272727,
+   "abstain_rate": 0.4706060606060606,
+   "macro_f1_fara_abtineri": 0.6503004040596558,
+   "macro_f1_argmax_brut": 0.48258580600240136,
+   "f1_normal": 0.7633049817739975,
+   "f1_contor_client": 0.26452020202020204,
+   "f1_furt_inainte_contor": 0.41242450388265744,
+   "f1_pierdere_tehnica": 0.14216996258685194,
+   "f1_client_post_gresit": 0.6485070717653222,
+   "f1_contor_bilant_setat": 0.6617210682492581,
+   "C": 10.0
+  }
+ },
+ "train_macro_f1": {
+  "lgbm": 1.0,
+  "lr_std": 0.5981915396553816,
+  "lr_quantile": 0.5813787100973101
+ },
+ "paired_bootstrap_lr_minus_lgbm": {
+  "lr_std": {
+   "mean_diff": -0.15232443574864288,
+   "ci95": [
+    -0.1915894743655803,
+    -0.11553139234780174
+   ],
+   "p_lr_better": 0.0
+  },
+  "lr_quantile": {
+   "mean_diff": -0.2235707596856699,
+   "ci95": [
+    -0.2719916574797683,
+    -0.17886920776103898
+   ],
+   "p_lr_better": 0.0
+  }
+ }
+}

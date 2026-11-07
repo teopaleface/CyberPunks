@@ -14,6 +14,7 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 | `08-ppc-workshop-ai.md` | Workshopul PPC: cifre, platforma de date a contoarelor, cele 9 proiecte AI ale lor, guvernanță și EU AI Act |
 | `09-rsystems-workshop.md` | Workshopul R Systems: codul decide, modelul formulează; verificări în cod |
 | `10-raspunsuri-mentor.md` | Răspunsurile mentorului PPC: contoare la 5 minute, echipele așteaptă sfârșitul săptămânii dacă nu e urgent |
+| `13-regresie-logistica-vs-lightgbm.md` | Regresia logistică în loc de LightGBM nu ajută: cifre, metrica de decizie, ce spunem la prezentare |
 | `journal.md` | Ce s-a întâmplat și ce s-a decis, cu ora |
 
 ## Reguli
