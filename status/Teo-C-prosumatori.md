@@ -1,49 +1,69 @@
 # Status: Teo-C-prosumatori
-Actualizat: 2026-11-07 13:12
-Milestone curent: M1 (M0 terminat la 13:10)
-Gata de merge: da (commit cb66431, M0: cod de simulare, cercetare, teste; nu atinge fișiere comune în afară de secțiunea C din Makefile)
+Actualizat: 2026-11-07 13:46
+Milestone curent: M2 (M1 terminat la 13:45, înainte de 17:30)
+Gata de merge: da (commit 7fbe435: M1 complet, `git merge Teo` făcut, `make check` trece, 148 de teste)
 
 ## Făcut
-- 12:45 Citit instrucțiunile, memoria, planul, contractele. `uv sync` și `make check` trec.
-- 12:50-13:00 Faza 0 cu 3 subagenți în paralel: date publice (Open-Meteo, PVGIS, OSM), norme și cifre românești (ANRE, Ord. 46/2021, Ore Smart+), literatura despre modele surogat. Totul în `docs/research/C.md`.
-- 13:00 Calcul de rețea vectorizat (Z-bus pe matricea de admitanțe din pandapower): aceleași tensiuni ca `pandapower.runpp` (diferență sub 1e-7 pu) pe toate cele 6 topologii SimBench, un an de ore în 0,002-0,06 s față de 71-95 s cu pandapower.
-- 13:02 Prima rețea simulată pe un an (rural3, 52 de prosumatori, 346 kWp): 1.107 ore peste 1,10 pu, 2,7% din energia PV pierdută prin oprirea invertoarelor.
-- 13:03 Lotul de antrenare simulat: 480 de posturi sintetice × 33.744 de ore (2023-01-01 → 2026-11-06) în 77 s pe 4 procese. 8,9% din zilele-post depășesc 1,10 pu.
-- Teste noi în `tests/c/` (calculul vectorizat față de pandapower, trăsăturile posturilor).
+- M0 (13:10): calcul de rețea vectorizat verificat față de pandapower, prima rețea simulată, `docs/research/C.md`.
+- M1 (13:45):
+  - **Bug găsit și reparat:** pandapower 3.x ignoră priza transformatorului dacă `tap_changer_type` lipsește (SimBench îl lasă gol). Acum e `Ratio`, cu test. Toate simulările refăcute.
+  - Populația demo: 300 de posturi (191 pe poziții reale OSM, 109 sintetice în Ilfov), 150 în București, 150 în Ilfov, simulate orar 2023-01 → 2026-11.
+  - Lotul de antrenare: 480 de posturi sintetice × 33.744 de ore, 80 s pe 4 procese.
+  - Model: LightGBM cuantile P10/P50/P90 ale tensiunii maxime zilnice, clasificator calibrat izotonic pentru P(> 1,10 pu), intervale lărgite conformal, model pentru kWh pierduți, model orar pentru serie. Baseline: regresie liniară pe soare × kW/kVA.
+  - Evaluare pe **rețele nevăzute** (leave-one-topology-out) **și luni nevăzute** (antrenare < 2025, test 2025-2026): `reports/C/metrics.json` valid, `metrics_detail.json` pe topologii, 4 figuri în `reports/C/figures/`.
+  - Lucrări valide: `demo-vara` (2025-07-08): 41 de lucrări, 18 posturi cu risc peste 50%; `maine` (2026-11-08): 33 de lucrări (duminică senină și rece: panourile reci produc aproape cât vara), doar mesaje și urmărire, motivul scris în `C_summary.json`.
+  - **Backtest pe ziua demo:** simularea fizică dă 15 posturi peste 1,10 pu pe 8 iulie 2025; modelul le-a dat probabilitate peste 50% exact acestora (înainte de reparația prizei; după reparație: 18 semnalate, verific la M2).
+  - Registrul posturilor pentru A și bilanț: `cyberpunks.c_prosumatori.posts.load_posts()`, `posts.build_post(post_id)` (rețeaua identică cu simularea C), mostra în git la `data/samples/C/posts.csv`.
+  - Regulile de decizie: costul prizei include întreruperea (clienți × 1 h × 12 lei), preaviz de 2 zile lucrătoare (`extra.earliest_tap_date`, `planned_outage_notified: false`, `outage_notice_ro`), măsurători doar dacă valoarea în sezon acoperă 300 lei, `expected_value_lei` = exact `score × value_if_true_lei`.
+  - `predict.run()` merge dintr-o clonă curată: modelul în `models/release/C/` (9 MB, comprimat), registrul și mostra pentru cazuri similare în `data/samples/C/`.
+  - Teste: `tests/c/` (calcul față de pandapower, priză, decizii, intrări greșite, rețele noi, prognoză nesigură).
 
-## Urmează (M1, 17:30)
-- Realism: scot variantele absurde (creștere liniară de tensiune peste 25% la soare plin).
-- Populația de circa 300 de posturi pe hartă (194 de poziții reale din OSM plus poziții sintetice în Ilfov).
-- Trăsături, baseline (regresie liniară pe radiație × kW pe kVA), primul LightGBM, test pe topologii nevăzute și luni nevăzute, `reports/C/metrics.json`.
-- `predict.py`: `C.jsonl` și serii valide pentru `demo-vara` și `maine`.
+## Urmează (M2, 21:30)
+- Scara de soluții în `extra.remedy_options` (`RemedyOption`), cu efectul calculat cu simularea: `phase_rebalance`, `adjust_tap`, `notify_customers` (participare 10/20/30%), `offer_battery` (5/10/15 kWh pe profil), `export_limit`, `transformer_upgrade`.
+- `reports/C/oferte_baterii.md`, cifrele ANRE din 31 aug. 2026 în explicații și documentație.
+- Calibrarea probabilității (curba arată supraestimare între 0,1 și 0,4), SHAP verificat pe cazuri, evaluarea modelului orar.
 
 ## Blocaje
-- niciunul. Am nevoie de data pentru `demo-vara` de la firul B până la 15:00 (până atunci folosesc o zi senină din iulie 2025 ca rezervă).
+- niciunul
 
 ## Cereri către orchestrator
-1. `memory/` și prezentarea: cifrele ANRE mai noi sunt **4.019 MW** (nu circa 3.800) și **127.084 de prosumatori cu baterii** (nu peste 101.000), la 30 iun. 2026. Sursa: ANRE prin News.ro, https://startupcafe.ro/romani-panouri-solare-cati-prosumatori-racordare-retelele-electrice-romania-105065. Detalii în `docs/research/C.md`.
-2. `config/economics.yaml`, secțiunea `voltage` (o deține planificatorul), chei noi cu sursă:
-   - `complaint_compensation_lei: 70` (persoană fizică; 130 lei persoană juridică), Ord. ANRE 46/2021, anexa 4.
-   - `quality_limit_95pct_pu: 1.05` (România, de la 1.01.2022: 95% din mediile pe 10 min sub +5%), Ord. ANRE 46/2021, art. 25(2).
-   - `ore_smart_midday: "11:00-14:59, 1 martie - 31 octombrie"` (PPC Ore Smart+).
-   Până atunci codul C folosește aceleași valori ca implicite, cu sursa în comentariu.
-3. Firul B: data pentru `demo-vara`, cât mai devreme.
+1. Pentru planificator (`config/economics.yaml`), chei noi pentru scara de soluții, toate IPOTEZĂ până găsim surse:
+   - `voltage.notify_participation_rates: [0.10, 0.20, 0.30]`
+   - `voltage.phase_rebalance_cost_lei: 350` (o echipă de 2, o oră plus deplasarea)
+   - `voltage.export_limit_cost_lei: 150` (setare de la distanță sau vizită scurtă la invertor)
+   - `voltage.transformer_upgrade_cost_lei: 120000` (post nou sau transformator mai mare)
+   - `battery.price_lei_per_kwh_installed: 2500`, `battery.ppc_margin_share: 0.15`, `battery.cycle_value_lei_per_kwh: 0.6` (energia mutată de la prânz în seara cu deficit)
+   Până atunci codul C folosește aceleași valori ca implicite, cu eticheta IPOTEZĂ.
+2. Firul `Teo-bilant`: `grids.py` s-a schimbat azi (priza declarată `Ratio`, `build_realistic`, `spec_from_row`). Rețeaua unui post se obține cu `posts.build_post(post_id)`; nu reconstruiți din coloanele simple, folosiți `spec_*`.
+3. Modelul C din git (`models/release/C/bundle.joblib`, 9 MB) se actualizează doar la milestone-uri, ca istoricul să nu crească.
 
 ## Cum se rulează (comenzile exacte)
-- `make c-weather` (descarcă meteo; sumele de control în `data/samples/C/checksums.sha256`)
-- `make c-bench` (verificare față de pandapower și timpi, scrie `reports/C/powerflow_bench.json`)
-- `uv run python -m cyberpunks.c_prosumatori.simulate one` (prima rețea, un an)
-- `make c-sim` (lotul de antrenare, cel mult 4 procese, circa 80 s)
-- `make c-test`
+- `make c-all` (tot lanțul, circa 15 minute, 4 nuclee) sau pas cu pas:
+- `make c-weather`, `make c-bench`, `make c-sim`, `make c-population`, `make c-train`, `make c-predict`, `make c-eval`, `make c-test`
+- `uv run python -m cyberpunks.c_prosumatori.predict --scenario demo-vara` (sau `--scenario maine --date 2026-11-09`)
+- Funcția: `cyberpunks.c_prosumatori.predict.run(scenario, date) -> Path`
+- Detalii: `docs/data/C.md`
 
 ## Cifre (doar din scripturi, cu comanda)
-- Diferența maximă față de pandapower: 5,2e-08 pu; pandapower 8-11 ms pe oră simulată; vectorizat 0,001-0,006 ms (`make c-bench`).
-- Lot de antrenare: 675.360 de zile-post, 8,85% peste 1,10 pu, 49,6% peste 1,05 pu (`make c-sim`, apoi analiza din `daily.parquet`).
+- Rețele nevăzute × luni nevăzute, 324.000 de zile-post (`make c-eval`):
+  - MAE tensiune maximă: **0,0054 pu** (model) față de **0,0227 pu** (baseline); RMSE 0,0070 față de 0,0277.
+  - Depășiri peste 1,10 pu: PR-AUC **0,951** față de **0,428**; recall 86,5% față de 25,6%; precizie 86,9% față de 60,5%; Brier 0,015 față de 0,058.
+  - Acoperirea intervalului P10-P90: **80,9%** (ținta 80%), lățime medie 0,017 pu.
+  - Pe topologii, MAE model 0,0044-0,0064 pu, baseline 0,0200-0,0269.
+  - Reper din literatură: BOOST-RPF (arXiv:2603.21977), aceleași 6 rețele, leave-one-grid-out, RMSE 0,0134 pu pe noduri (altă sarcină, același ordin de mărime).
+- Viteza (`uv run python -m cyberpunks.c_prosumatori.evaluate --speed-only`): 300 de posturi pe o zi în 0,07-0,09 s față de 62-87 s cu pandapower (fără să ceară modelul detaliat al rețelei).
+- Calcul vectorizat față de pandapower: diferență maximă 5,2e-08 pu (`make c-bench`).
 
 ## Decizii (cu ora)
 - 12:47 Simulările rulează cu cel mult 4 procese.
-- 12:58 Rezoluție orară (meteo Open-Meteo e orară). Normele cer medii pe 10 minute: aproximare scrisă în model card.
-- 13:00 Etichetele vin din calculul vectorizat pe matricea pandapower, verificat față de `pandapower.runpp`; fără el, 480 de posturi × 4 ani ar fi luat circa 10 ore.
-- 13:00 Producția PV din meteo românesc (Open-Meteo, panou spre sud la 30°, calibrat pe PVGIS 1.282 kWh/kWp), nu din profilele germane SimBench (circa 650 kWh/kWp).
-- 13:05 Pragul de risc 1,10 pu (deconectarea invertoarelor, limita de 100%); orele peste 1,05 pu se raportează separat (limita românească de 95%).
-- 13:08 Priza și tensiunea pe MT sunt legate: tensiunea fără sarcină pe JT rămâne între 0,99 și 1,075 pu (IPOTEZĂ).
+- 12:58 Rezoluție orară; normele cer medii pe 10 minute (aproximare scrisă în model card).
+- 13:00 Etichetele vin din calculul vectorizat pe matricea pandapower, verificat față de `runpp`.
+- 13:00 Producția PV din meteo românesc (Open-Meteo, calibrat pe PVGIS), nu din profilele germane SimBench.
+- 13:05 Pragul de risc 1,10 pu; orele peste 1,05 pu se raportează separat.
+- 13:08 Priza și tensiunea pe MT sunt legate (tensiunea fără sarcină pe JT 0,99-1,075 pu, IPOTEZĂ).
+- 13:14 Limite de realism: rețelele cu creștere liniară de peste 25% la soare plin se îmblânzesc.
+- 13:16 `demo-vara` = 2025-07-08 (firul B); ziua și ±3 zile sunt scoase din antrenarea modelului final.
+- 13:20 LightGBM nu acceptă constrângeri monotone la cuantile: le păstrez doar la clasificator.
+- 13:27 Reparat bug-ul prizei (pandapower 3.x), refăcut tot lanțul.
+- 13:35 În afara sezonului PV (martie-septembrie, IPOTEZĂ) o vizită pentru priză nu se justifică: în noiembrie agentul trimite mesaje și urmărește.
+- 13:42 Modelul C intră în git (`models/release/C`) doar la milestone-uri.

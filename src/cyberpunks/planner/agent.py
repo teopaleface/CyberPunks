@@ -383,7 +383,8 @@ def run(
         load = load_source(SOURCE_OF[key], snap if pick.path else None, pick.origin, plan_date, seen)
         load.note = pick.note if not load.note else f"{pick.note}; {load.note}"
         finalize_status(load, settings)
-        load.optional = key in OPTIONAL and load.origin == "missing" and not _module_available(PREDICTORS[key].rsplit(".", 1)[0])
+        # Bilanțul e o completare: dacă lipsește ieșirea lui (modul absent sau încă nerulat), starea sursei A nu se strică.
+        load.optional = key in OPTIONAL and load.origin == "missing"
         loads[key] = load
     ingest_s = time.perf_counter() - t2
     meta = {

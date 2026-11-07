@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<title>Tura de mâine, direcția „Noaptea dinaintea turei”</title>
+<meta name="viewport" content="width=1920">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wdth,wght@75..100,400..700&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>
+<script src="./data.js"></script>
+<style>
+:root{
+  --night:#0A1521; --panel:#0F1D2B; --raised:#152637; --text:#E9EEF2; --muted:#93A3B3; --rule:#22344A;
+  --a:#4C93FF; --b:#B84FC0; --c:#FFB21E; --hum:#FF6A3D; --ink:#0A1521;
+  --gut:236px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:var(--night);color:var(--text)}
+body{font-family:"Instrument Sans",system-ui,sans-serif;font-size:15px;line-height:1.4;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;font-stretch:100%}
+.cond{font-stretch:78%}
+b,strong{font-weight:600}
+.muted{color:var(--muted)}
+.app{display:grid;grid-template-rows:60px 222px 798px;width:1920px;height:1080px}
+
+/* antet */
+header{display:flex;align-items:center;gap:20px;padding:0 24px 0 28px;border-bottom:1px solid var(--rule);background:var(--night)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .name{font-size:19px;font-weight:650;letter-spacing:-.01em}
+.vr{width:1px;height:28px;background:var(--rule)}
+.when{display:flex;align-items:baseline;gap:14px}
+.when strong{font-size:17px}
+.when span{color:var(--muted);font-size:15px}
+.spacer{flex:1}
+.prov{display:flex;align-items:center;gap:8px;height:32px;padding:0 12px;border:1px solid #34506E;border-radius:6px;background:var(--raised);font-size:14px;font-weight:550}
+.lastrun{color:var(--muted);font-size:14px}
+.btn{font:inherit;font-size:15px;font-weight:600;height:36px;padding:0 16px;border-radius:6px;border:1px solid #3A5573;background:var(--raised);color:var(--text);cursor:pointer}
+.btn:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.btn.primary{background:var(--text);color:var(--ink);border-color:var(--text);height:38px;padding:0 20px}
+.btn.primary:focus-visible{outline-color:var(--c)}
+
+/* panglica zilei de mâine */
+.ribbon{position:relative;background:var(--panel);border-bottom:1px solid var(--rule)}
+.gutter{position:absolute;left:28px;top:0;width:calc(var(--gut) - 40px);height:100%}
+.gutter .title{position:absolute;top:12px;font-size:17px;font-weight:650}
+.gutter .sub{position:absolute;top:36px;font-size:13px;color:var(--muted)}
+.lane-l{position:absolute;left:0;right:0;height:26px;display:flex;align-items:center;gap:8px;font-size:15px;white-space:nowrap}
+.lane-l b{font-weight:650}
+.lane-l .muted{font-size:13px}
+.chip{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;font-size:12px;font-weight:700;color:var(--ink);flex:none}
+.chip.a{background:var(--a)} .chip.b{background:var(--b)} .chip.c{background:var(--c)}
+.crewglyph{width:20px;height:20px;flex:none;display:grid;place-items:center}
+.track{position:absolute;left:var(--gut);right:28px;top:0;height:100%}
+.hr{position:absolute;top:13px;transform:translateX(-50%);font-size:13px;font-stretch:75%;color:var(--muted);line-height:16px}
+.hr.edge0{transform:none} .hr.edge24{transform:translateX(-100%)}
+.hr.key{color:var(--text);font-weight:650}
+.sky{position:absolute;left:0;right:0;top:34px;bottom:8px;border-radius:6px;overflow:hidden;
+  background:linear-gradient(90deg,#0A1521 0%,#0A1521 20.8%,#1E3A5C 25%,#E89A45 29.5%,#2A4A6B 36.5%,#2A4A6B 65.6%,#A86A3C 70.1%,#1E3A5C 73.9%,#0A1521 77.1%,#0A1521 100%)}
+.scrim{position:absolute;left:0;right:0;top:60px;bottom:8px;background:rgba(15,29,43,.80);border-radius:0 0 6px 6px}
+.offshift{position:absolute;top:60px;bottom:8px;background:rgba(8,16,26,.55)}
+.grid{position:absolute;top:60px;bottom:8px;width:1px;background:rgba(147,163,179,.10)}
+.shiftline{position:absolute;top:66px;bottom:8px;width:0;border-left:1px dashed rgba(233,238,242,.55)}
+.bracket{position:absolute;top:66px;height:9px;border:1.5px solid var(--text);border-bottom:0;border-radius:2px 2px 0 0}
+.bracket span{position:absolute;left:50%;top:-10px;transform:translateX(-50%);background:#132435;padding:0 10px;font-size:13px;font-weight:650;line-height:18px;white-space:nowrap}
+.lane{position:absolute;left:0;right:0;height:26px}
+.lane-rule{position:absolute;left:0;right:0;height:1px;background:rgba(147,163,179,.22)}
+.seg{position:absolute;top:12px;height:2px;border-radius:1px}
+.seg.dash{background:none!important;border-top:2px dashed}
+.blk{position:absolute;top:3px;height:20px;border-radius:4px;color:var(--ink);font-size:13px;font-weight:650;font-stretch:78%;display:flex;align-items:center;padding:0 6px;white-space:nowrap;overflow:hidden}
+.blk.a{background:var(--a)} .blk.c{background:var(--c)}
+.tick{position:absolute;top:6px;width:2px;height:14px;border-radius:1px}
+.dot{position:absolute;top:8px;width:10px;height:10px;border-radius:50%;transform:translateX(-50%);border:2px solid}
+.ann{position:absolute;top:3px;line-height:20px;font-size:13px;color:var(--muted);white-space:nowrap}
+.ann b{color:var(--text);font-weight:600}
+.band{position:absolute;top:2px;height:22px;border-radius:4px;display:flex;align-items:center;padding:0 8px;font-size:13px;font-weight:600;white-space:nowrap}
+.band.sun{background:rgba(255,178,30,.16);border:1px solid rgba(255,178,30,.85);color:var(--c)}
+.band.storm{border:1px solid var(--b);background-color:rgba(184,79,192,.14);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10'%3E%3Cpath d='M-3 3l6-6M0 10L10 0M7 13l6-6' stroke='%239A7BFF' stroke-opacity='.5' stroke-width='1.5'/%3E%3C/svg%3E")}
+.band.storm span{background:var(--panel);color:var(--text);padding:0 8px;border-radius:3px;line-height:18px}
+.gap{position:absolute;top:3px;height:20px;border:1.5px dashed var(--hum);border-radius:4px}
+.gaptxt{position:absolute;top:3px;line-height:20px;font-size:13px;font-weight:650;color:var(--hum);white-space:nowrap;transform:translateX(-100%)}
+
+/* zona de jos */
+.main{display:grid;grid-template-columns:1236px 684px;min-height:0}
+.mapwrap{position:relative;overflow:hidden;border-right:1px solid var(--rule);background:#0B1825}
+#map{position:absolute;inset:0}
+.legend{position:absolute;left:16px;top:16px;background:rgba(15,29,43,.94);border:1px solid var(--rule);border-radius:6px;padding:12px 14px;display:grid;grid-template-columns:auto auto;gap:7px 18px;font-size:13px;z-index:3}
+.legend .li{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.legend .full{grid-column:1 / -1;color:var(--muted);padding-top:4px;border-top:1px solid var(--rule)}
+.inset{position:absolute;left:16px;bottom:16px;width:420px;height:240px;border:1px solid #2C435C;border-radius:6px;overflow:hidden;z-index:3;background:#0B1825}
+#inset{position:absolute;inset:0}
+.inset .cap{position:absolute;left:0;top:0;right:0;padding:7px 12px;font-size:13px;font-weight:600;background:rgba(15,29,43,.92);border-bottom:1px solid var(--rule);z-index:2}
+.inset .cap span{color:var(--muted);font-weight:400}
+.attrib{position:absolute;right:10px;bottom:8px;font-size:12px;color:#A9B7C5;background:rgba(10,21,33,.85);padding:2px 8px;border-radius:4px;z-index:3}
+.attrib a{color:inherit;text-decoration:none}
+
+/* markeri */
+.mk{position:relative;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;color:var(--ink);font-family:"Instrument Sans",sans-serif}
+.mk.a{background:var(--a)} .mk.b{background:var(--b)} .mk.c{background:var(--c)}
+.mk.sel{box-shadow:0 0 0 3px #0A1521,0 0 0 5px var(--text)}
+.mk.hum{background:#0A1521;border:2.5px solid var(--hum);color:var(--hum)}
+.mk.hum::after{content:"?";position:absolute;right:-9px;top:-9px;width:16px;height:16px;border-radius:50%;background:var(--hum);color:var(--ink);font-size:11px;font-weight:700;display:grid;place-items:center}
+.mk.un{background:rgba(10,21,33,.85);border:2px dashed}
+.mk.un.b{color:var(--b);border-color:var(--b)} .mk.un.c{color:var(--c);border-color:var(--c)}
+.mk.sm{width:18px;height:18px;font-size:11px}
+.maplibregl-marker.mk,.maplibregl-marker.dep,.maplibregl-marker.rlbl{position:absolute}
+.dep{position:relative;width:14px;height:14px;border:2px solid var(--text);background:#0A1521;border-radius:2px}
+.lbl{position:absolute;white-space:nowrap;font-size:13px;line-height:17px;color:var(--text);font-weight:600;text-shadow:0 0 3px #0A1521,0 0 6px #0A1521,0 0 10px #0A1521;pointer-events:none}
+.lbl .muted{font-weight:500}
+.lbl.r{left:32px;top:50%;transform:translateY(-50%)}
+.lbl.l{right:32px;top:50%;transform:translateY(-50%);text-align:right}
+.lbl.b{top:30px;left:50%;transform:translateX(-50%);text-align:center}
+.lbl.t{bottom:30px;left:50%;transform:translateX(-50%);text-align:center}
+.lbl.br{left:22px;top:24px}
+.lbl.bl{right:22px;top:24px;text-align:right}
+.lbl.tl{right:20px;bottom:18px;text-align:right}
+.lbl.hum{color:var(--hum)}
+.dep .lbl.tl{right:16px;bottom:12px}
+.lbl.mtl{right:-36px;bottom:22px;text-align:right;line-height:16px}
+.dep .lbl.bl{right:-6px;top:18px}
+.rlbl{font-size:13px;color:var(--muted);font-weight:500;white-space:nowrap;text-shadow:0 0 4px #0A1521,0 0 8px #0A1521}
+
+/* coloana din dreapta */
+.rail{background:var(--panel);display:flex;flex-direction:column;min-height:0}
+.rail section{padding:14px 24px;border-bottom:1px solid var(--rule)}
+.rail section:last-child{border-bottom:0}
+h2{font-size:17px;font-weight:650;line-height:1.3}
+.kpis{display:grid;grid-template-columns:0.8fr 0.7fr 1.25fr 1.05fr;gap:0 16px}
+.kpi b{display:block;font-size:40px;line-height:1;font-weight:600;font-stretch:75%;letter-spacing:-.01em}
+.kpi b small{font-size:22px;font-weight:550;margin-left:3px}
+.kpi span{display:block;margin-top:5px;font-size:13px;color:var(--muted)}
+.kpi.hum b{color:var(--hum)}
+.figline{margin-top:8px;font-size:15px;color:var(--text)}
+.figline + .figline{margin-top:4px}
+.figline .muted{font-size:14px}
+.sec-h{display:flex;align-items:center;gap:10px}
+.sec-h .mk{flex:none}
+.flag{border-left:3px solid;padding-left:14px}
+.unsure.flag{border-color:var(--hum)}
+.alert.flag{border-color:var(--b)}
+.unsure p,.alert p{margin-top:6px}
+.unsure .row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:16px}
+.scoreline{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--muted);white-space:nowrap}
+.scoreline .big{font-size:30px;line-height:1;font-weight:600;font-stretch:75%;color:var(--text)}
+.ibar{position:relative;width:110px;height:8px;border-radius:4px;background:#22344A;flex:none}
+.ibar i{position:absolute;top:0;bottom:0;border-radius:4px}
+.ibar em{position:absolute;top:-4px;width:3px;height:16px;border-radius:2px;background:var(--text)}
+.ibar .thr{position:absolute;top:-3px;width:1px;height:14px;background:var(--muted)}
+.actions{display:flex;gap:8px}
+.actions .btn.approve{border-color:var(--text)}
+.note-hum{color:var(--hum);font-weight:600}
+.detail h2{font-size:18px}
+.detail .id{font-size:13px;color:var(--muted);margin-top:1px}
+.statusrow{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px;border-radius:6px;font-size:13px;font-weight:600;border:1px solid}
+.pill.assigned{border-color:var(--a);color:var(--text)}
+.pill.safety{border-color:var(--hum);color:var(--hum)}
+.pill.kind{border-color:#3A5573;color:var(--text)}
+.scorebox{display:flex;align-items:center;gap:16px;margin-top:10px}
+.scorebox .big{font-size:44px;line-height:1;font-weight:600;font-stretch:75%}
+.scorebox .ibar{width:260px}
+.scorebox .meta{font-size:14px;color:var(--muted);line-height:1.35}
+.scorebox .meta b{color:var(--text)}
+.factors{margin-top:10px;display:grid;grid-template-columns:1fr 150px 46px;gap:7px 12px;align-items:center;font-size:15px}
+.factors .bar{height:10px;border-radius:2px;background:#1B2E43;position:relative}
+.factors .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:2px;background:var(--a)}
+.factors .v{text-align:right;font-weight:650}
+.facts{margin-top:10px;display:grid;gap:4px;font-size:14px;color:var(--muted)}
+.facts b{color:var(--text);font-weight:600}
+.quar{display:flex;gap:12px;align-items:flex-start}
+.quar .qi{flex:none;width:20px;height:20px;margin-top:1px}
+.quar p{font-size:14px;color:var(--muted);margin-top:2px}
+.quar h3{font-size:15px;font-weight:650}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16.5a7 7 0 0 1 14 0z" fill="#E9EEF2"/><rect x="1.5" y="18" width="21" height="2.2" rx="1.1" fill="#E9EEF2"/></svg>
+      <span class="name">Tura de mâine</span>
+    </div>
+    <div class="vr"></div>
+    <div class="when"><strong>Planul pentru mâine</strong><span id="hdr-date"></span></div>
+    <div class="spacer"></div>
+    <div class="prov"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#E9EEF2" stroke-width="1.5"/><path d="M8 1.5a6.5 6.5 0 0 1 0 13z" fill="#E9EEF2"/></svg>Date sintetice (exemple de test)</div>
+    <span class="lastrun" id="hdr-run"></span>
+    <button class="btn primary" type="button">Rulează agentul</button>
+  </header>
+
+  <div class="ribbon" id="ribbon">
+    <div class="gutter" id="gutter">
+      <div class="title">Ziua de mâine</div>
+      <div class="sub">luni, oră cu oră</div>
+    </div>
+    <div class="track" id="track"></div>
+  </div>
+
+  <div class="main">
+    <div class="mapwrap">
+      <div id="map"></div>
+      <div class="legend" id="legend">
+        <div class="li"><span class="mk sm a">A</span>Contoare</div>
+        <div class="li"><span class="mk sm hum" style="width:18px;height:18px;font-size:11px;border-width:2px">A</span>Decide un om</div>
+        <div class="li"><span class="mk sm b">B</span>Furtună</div>
+        <div class="li"><span class="mk sm un c" style="border-width:1.5px">C</span>Neplanificată</div>
+        <div class="li"><span class="mk sm c">C</span>Tensiune</div>
+        <div class="li"><span class="dep" style="width:12px;height:12px;margin:0 3px"></span>Bază operativă</div>
+        <div class="full">Arcele arată ordinea opririlor, nu drumul exact.</div>
+      </div>
+      <div class="inset">
+        <div class="cap">Zona Rețele Electrice <span>Muntenia Sud, Dobrogea, Banat</span></div>
+        <div id="inset"></div>
+      </div>
+      <div class="attrib"><a href="https://openfreemap.org">OpenFreeMap</a> © <a href="https://www.openmaptiles.org/">OpenMapTiles</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a></div>
+    </div>
+    <aside class="rail" id="rail"></aside>
+  </div>
+</div>
+
+<script>
+(function(){
+const T = window.TURA, P = T.plan, S = P.summary;
+const byId = Object.fromEntries(T.work_items.map(w => [w.work_item_id, w]));
+const nf = (v, d=0) => { const s = Number(v).toFixed(d).split('.'); s[0] = s[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.'); return s.join(','); };
+const hhmm = iso => iso.slice(11, 16);
+const toH = s => { const [a, b] = s.split(':').map(Number); return a + b / 60; };
+const fromH = h => { const m = Math.round(h * 60); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
+const pct = h => (h / 24 * 100) + '%';
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const sectorOf = z => { const m = /^B-S(\d)$/.exec(z); return m ? `sectorul ${m[1]}` : z; };
+
+/* ---------- antet ---------- */
+document.getElementById('hdr-date').textContent = `Luni, 9 noiembrie 2026, tura ${T.shift.start}–${T.shift.end}`;
+document.getElementById('hdr-run').textContent = `Plan generat duminică la ${hhmm(P.generated_at)}`;
+
+/* ---------- panglica ---------- */
+const track = document.getElementById('track');
+const gutter = document.getElementById('gutter');
+const add = (parent, cls, h0, h1, html, extra) => { const e = el('div', cls, html); e.style.left = pct(h0); if (h1 != null) e.style.width = `calc(${pct(h1 - h0)})`; if (extra) Object.assign(e.style, extra); parent.appendChild(e); return e; };
+track.appendChild(el('div', 'sky'));
+track.appendChild(el('div', 'scrim'));
+const sh0 = toH(T.shift.start), sh1 = toH(T.shift.end);
+add(track, 'offshift', 0, sh0, null, { borderBottomLeftRadius: '6px' });
+add(track, 'offshift', sh1, 24, null, { borderBottomRightRadius: '6px' });
+for (let h = 1; h < 24; h++) add(track, 'grid', h);
+for (let h = 0; h <= 24; h++) {
+  const lab = add(track, 'hr' + (h === 0 ? ' edge0' : h === 24 ? ' edge24' : '') + ((h === sh0 || h === sh1) ? ' key' : ''), h, null, String(h).padStart(2, '0'));
+}
+add(track, 'shiftline', sh0); add(track, 'shiftline', sh1);
+add(track, 'bracket', sh0, sh1, `<span>Tura ${T.shift.start}–${T.shift.end}</span>`);
+
+const LANES = [86, 116, 154, 184];
+const laneEl = i => { const l = el('div', 'lane'); l.style.top = LANES[i] + 'px'; track.appendChild(l); return l; };
+const laneLabel = (i, html) => { const l = el('div', 'lane-l', html); l.style.top = LANES[i] + 'px'; gutter.appendChild(l); };
+const rule = el('div', 'lane-rule'); rule.style.top = '148px'; track.appendChild(rule);
+
+const crewIcon = '<span class="crewglyph"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5" r="3" fill="none" stroke="#93A3B3" stroke-width="1.6"/><path d="M2.5 14.5a5.5 5.5 0 0 1 11 0" fill="none" stroke="#93A3B3" stroke-width="1.6"/></svg></span>';
+
+// echipele, din plan.routes
+P.routes.forEach((r, i) => {
+  const lane = laneEl(i);
+  const first = byId[r.stops[0].work_item_id];
+  const col = first.source === 'A' ? 'var(--a)' : first.source === 'B' ? 'var(--b)' : 'var(--c)';
+  const cls = first.source.toLowerCase();
+  const kinds = r.stops.map(s => byId[s.work_item_id]);
+  const what = kinds.every(k => k.asset_type === 'meter') ? `${kinds.length} contoare` : `${kinds.length} post`;
+  laneLabel(i, `${crewIcon}<b>${r.crew_id}</b><span class="muted">${what}</span>`);
+  // plecare: E-BV-2 la începutul turei; altfel oprirea 1 minus drumul (km proporțional din timpul total de drum)
+  const minPerKm = r.total_travel_min / r.total_km;
+  let t = i === 0 ? sh0 : toH(hhmm(r.stops[0].eta)) - r.stops[0].travel_km * minPerKm / 60;
+  let usedMin = 0, cursor = t;
+  r.stops.forEach(s => { const a = toH(hhmm(s.eta)); usedMin += (a - cursor) * 60; cursor = a + s.duration_min / 60; });
+  const retMin = r.total_travel_min - usedMin;
+  add(lane, 'dot', t, null, null, { borderColor: col, background: 'var(--panel)' });
+  let prevEnd = t;
+  r.stops.forEach((s, k) => {
+    const a = toH(hhmm(s.eta)), b = a + s.duration_min / 60;
+    add(lane, 'seg' + (k > 0 ? ' dash' : ''), prevEnd, a, null, { background: col, borderColor: col, opacity: .85 });
+    const w = byId[s.work_item_id];
+    const label = (b - a) > 1 ? `${fromH(a)}–${fromH(b)} ${w.asset_id}` : fromH(a);
+    add(lane, 'blk ' + cls, a, b, label);
+    prevEnd = b;
+  });
+  const back = prevEnd + retMin / 60;
+  add(lane, 'seg', prevEnd, back, null, { background: col, opacity: .85 });
+  add(lane, 'tick', back, null, null, { background: col, transform: 'translateX(-1px)' });
+  const extra = kinds.some(k => k.effort.requires_planned_outage) ? 'cere întrerupere planificată, ' : '';
+  add(lane, 'ann', back + .25, null, `${extra}<b>${nf(r.total_km, 1)} km</b>, revine la bază pe la ${fromH(back)}`);
+});
+
+// soare la PT-1432 (sursa C)
+const pt = byId['C-20261109-PT-1432'];
+{
+  const lane = laneEl(2);
+  laneLabel(2, `<span class="chip c">C</span><b>Soare</b><span class="muted">la ${pt.asset_id}</span>`);
+  const a = toH(hhmm(pt.time_window.start)), b = toH(hhmm(pt.time_window.end));
+  add(lane, 'band sun', a, b, `Soare puternic ${fromH(a)}–${fromH(b)}`);
+  add(lane, 'ann', b + .2, null, `tensiunea poate urca la <b>${nf(pt.prediction.point_estimate, 2)}</b> (limita 1,10); prosumatorii primesc un anunț duminică la ${hhmm(P.notifications[0].scheduled_for)}`);
+}
+// furtună la Medgidia (sursa B)
+const med = byId['B-20261109-CT-MEDGIDIA'];
+{
+  const lane = laneEl(3);
+  laneLabel(3, `<span class="chip b">B</span><b>Furtună</b><span class="muted">la Medgidia</span>`);
+  const a = toH(hhmm(med.time_window.start)), b = toH(hhmm(med.time_window.end));
+  const rec = 11; // din alertă: „Recomand o echipă în zonă de la 11:00”
+  add(lane, 'gap', rec, a);
+  add(lane, 'gaptxt', rec - .12, null, 'Nicio echipă alocată, recomandată de la 11:00');
+  add(lane, 'band storm', a, b, `<span>Rafale de ${med.explanation.top_factors[0].value} km/h, ${fromH(a)}–${fromH(b)}</span>`);
+}
+
+/* ---------- coloana din dreapta ---------- */
+const rail = document.getElementById('rail');
+const usedCrews = new Set(P.routes.map(r => r.crew_id));
+const freeCrews = T.crews.filter(c => !usedCrews.has(c.crew_id)).map(c => c.crew_id);
+const hr = byId['A-20261109-MTR-027710'];
+const sel = byId['A-20261109-MTR-004217'];
+const selDec = P.decisions.find(d => d.work_item_id === sel.work_item_id);
+const selRoute = P.routes.find(r => r.stops.some(s => s.work_item_id === sel.work_item_id));
+const selStop = selRoute.stops.find(s => s.work_item_id === sel.work_item_id);
+const bad = T.invalid_items[0];
+const notif = P.notifications[0];
+const alert = P.alerts[0];
+const ibar = (lo, hi, pt, col, thr) => `<div class="ibar"><i style="left:${lo*100}%;width:${(hi-lo)*100}%;background:${col}"></i>${thr != null ? `<span class="thr" style="left:${thr*100}%"></span>` : ''}<em style="left:calc(${pt*100}% - 1.5px)"></em></div>`;
+const kindRo = { tamper: 'Suspect de manipulare', faulty: 'Posibil defect' };
+const confRo = { high: 'încredere mare', medium: 'încredere medie', low: 'încredere scăzută' };
+const outRo = { furt_confirmat: 'furt confirmat' };
+const maxC = 0.35;
+
+rail.innerHTML = `
+<section class="figs">
+  <div class="kpis">
+    <div class="kpi"><b>${S.assigned}</b><span>lucrări alocate</span></div>
+    <div class="kpi hum"><b>${S.human_review}</b><span>la om</span></div>
+    <div class="kpi"><b>${nf(S.expected_value_lei, 0)}<small>lei</small></b><span>valoare așteptată</span></div>
+    <div class="kpi"><b>${nf(S.total_km, 1)}<small>km</small></b><span>de parcurs</span></div>
+  </div>
+  <p class="figline">${S.items_in} lucrări intrate: ${S.items_valid} valide, ${S.items_invalid} în carantină. ${S.crews_used} echipe folosite din ${T.crews.length}. ${S.notifications} notificare către prosumatori.</p>
+  <p class="figline"><b>${freeCrews.length} echipe libere:</b> <span class="muted">${freeCrews.join(', ')}</span></p>
+</section>
+
+<section class="unsure flag">
+  <div class="sec-h"><span class="mk hum" style="width:22px;height:22px;font-size:12px">A</span><h2>Nu sunt sigur. Decide un om.</h2></div>
+  <p><b>Contor ${hr.asset_id}</b>, ${hr.location.county}, ${sectorOf(hr.location.zone_id)}: ${hr.prediction.abstain_reason}, ${confRo[hr.prediction.confidence]}.</p>
+  <div class="row">
+    <div class="scoreline"><span class="big">${nf(hr.prediction.score, 2)}</span>${ibar(hr.prediction.interval_low, hr.prediction.interval_high, hr.prediction.score, 'rgba(255,106,61,.5)')}<span>interval ${nf(hr.prediction.interval_low, 2)}–${nf(hr.prediction.interval_high, 2)}</span></div>
+    <div class="actions"><button class="btn approve" type="button">Aprobă</button><button class="btn" type="button">Respinge</button><button class="btn" type="button">Amână</button></div>
+  </div>
+</section>
+
+<section class="alert flag">
+  <div class="sec-h"><span class="mk b" style="width:22px;height:22px;font-size:12px">B</span><h2>${alert.title_ro}</h2></div>
+  <p>${alert.body_ro}</p>
+  <p class="note-hum">Nicio echipă alocată în zonă. Libere la baza Constanța: ${freeCrews.filter(c => c.startsWith('E-CT')).join(', ')}.</p>
+</section>
+
+<section class="detail">
+  <div class="sec-h"><span class="mk a sel" style="width:22px;height:22px;font-size:12px">A</span><div><h2>Contor ${sel.asset_id}, ${sel.location.county}, ${sectorOf(sel.location.zone_id)}</h2><div class="id">${sel.work_item_id}</div></div></div>
+  <div class="statusrow">
+    <span class="pill kind">${kindRo[sel.prediction.label]}</span>
+    ${sel.impact.safety_flag ? '<span class="pill safety">Semnal de siguranță</span>' : ''}
+    <span class="pill assigned">Alocat la ${selRoute.crew_id}, ${hhmm(selStop.eta)}</span>
+  </div>
+  <div class="scorebox">
+    <span class="big">${nf(sel.prediction.score, 2)}</span>
+    ${ibar(sel.prediction.interval_low, sel.prediction.interval_high, sel.prediction.score, 'rgba(76,147,255,.55)', selDec.threshold.score_min)}
+    <div class="meta">interval <b>${nf(sel.prediction.interval_low, 2)}–${nf(sel.prediction.interval_high, 2)}</b>, ${confRo[sel.prediction.confidence]}<br>pragul de decizie e ${nf(selDec.threshold.score_min, 2)}</div>
+  </div>
+  <div class="factors">
+    ${sel.explanation.top_factors.map(f => `<span>${f.label_ro.charAt(0).toUpperCase() + f.label_ro.slice(1)}</span><div class="bar"><i style="width:${f.contribution / maxC * 100}%"></i></div><span class="v">+${nf(f.contribution, 2)}</span>`).join('')}
+  </div>
+  <div class="facts">
+    <div>Caz asemănător: <b>${sel.explanation.similar_cases[0].case_id}</b>, ${outRo[sel.explanation.similar_cases[0].outcome]}, similaritate ${nf(sel.explanation.similar_cases[0].similarity, 2)}.</div>
+    <div>Regula <b>${selDec.rule_id}</b>: valoarea așteptată, <b>${nf(sel.impact.expected_value_lei, 2)} lei</b>, depășește costul vizitei, 180 lei (ipoteză din config/economics.yaml).</div>
+    <div>Urmărire: predicția ${sel.prediction.prediction_id.slice(0, 8)}…, modelul ${sel.prediction.model_version}.</div>
+  </div>
+</section>
+
+<section class="quar">
+  <svg class="qi" viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="2" width="16" height="16" rx="3" fill="none" stroke="#93A3B3" stroke-width="1.6" stroke-dasharray="3 2.4"/><path d="M7 7l6 6M13 7l-6 6" stroke="#E9EEF2" stroke-width="1.6" stroke-linecap="round"/></svg>
+  <div><h3>Carantină: ${S.items_invalid} lucrare respinsă la intrare</h3>
+  <p>${bad.work_item_id}: latitudine ${nf(bad.location.lat, 1)} (în afara României) și scor ${nf(bad.prediction.score, 1)} (imposibil).</p></div>
+</section>`;
+
+/* ---------- hărțile ---------- */
+let pending = 3;
+const done = () => { if (--pending === 0) requestAnimationFrame(() => requestAnimationFrame(() => { window.__ready = true; })); };
+document.fonts.ready.then(() => document.fonts.load('600 15px "Instrument Sans"')).then(done, done);
+setTimeout(() => { window.__ready = true; }, 25000);
+
+function tone(map, opts) {
+  for (const l of map.getStyle().layers) {
+    const id = l.id;
+    try {
+      if (l.type === 'background') map.setPaintProperty(id, 'background-color', '#0C1A28');
+      else if (l.type === 'fill') {
+        if (/water|ocean|lake|river/.test(id)) map.setPaintProperty(id, 'fill-color', '#060F18');
+        else if (/building/.test(id)) { map.setPaintProperty(id, 'fill-color', '#112232'); map.setPaintProperty(id, 'fill-opacity', .6); }
+        else map.setPaintProperty(id, 'fill-color', '#0E1D2C');
+      } else if (l.type === 'line') {
+        if (/water|river|stream|canal/.test(id)) map.setPaintProperty(id, 'line-color', '#0A1724');
+        else if (/boundary|admin/.test(id)) { map.setPaintProperty(id, 'line-color', opts.inset ? '#4A6480' : '#2D4258'); }
+        else { map.setPaintProperty(id, 'line-color', opts.inset ? '#13263A' : '#1B3046'); if (opts.inset) map.setLayoutProperty(id, 'visibility', 'none'); }
+      } else if (l.type === 'symbol') {
+        if (l.layout && l.layout['text-field'] !== undefined) { map.setLayoutProperty(id, 'text-field', ['get', 'name']); map.setLayoutProperty(id, 'text-transform', 'none'); }
+        if (opts.inset || /poi|road|highway|transportation|housenumber|aeroway|motorway|shield|oneway|water_name_line|mountain|peak|village|hamlet|isolated|neighbourhood|quarter|other|country|state/.test(id)) map.setLayoutProperty(id, 'visibility', 'none');
+        else { map.setPaintProperty(id, 'text-color', '#8A9BAD'); map.setPaintProperty(id, 'text-halo-color', '#0A1521'); map.setPaintProperty(id, 'text-halo-width', 1.2); }
+      } else if (l.type === 'fill-extrusion' || l.type === 'hillshade') map.setLayoutProperty(id, 'visibility', 'none');
+    } catch (e) {}
+  }
+}
+function arc(a, b, bend = .2, n = 48) {
+  const k = Math.cos(44.45 * Math.PI / 180);
+  const ax = a[0] * k, ay = a[1], bx = b[0] * k, by = b[1];
+  const mx = (ax + bx) / 2, my = (ay + by) / 2, dx = bx - ax, dy = by - ay;
+  const cx = mx + dy * bend, cy = my - dx * bend;
+  const pts = [];
+  for (let i = 0; i <= n; i++) { const t = i / n, u = 1 - t; pts.push([(u*u*ax + 2*u*t*cx + t*t*bx) / k, u*u*ay + 2*u*t*cy + t*t*by]); }
+  return pts;
+}
+function mk(map, lnglat, cls, text, lbl, lblCls) {
+  const e = el('div', cls, text || '');
+  if (lbl) e.appendChild(el('span', 'lbl ' + (lblCls || 'r'), lbl));
+  new maplibregl.Marker({ element: e, anchor: 'center' }).setLngLat(lnglat).addTo(map);
+  return e;
+}
+const depot = id => T.depots.find(d => d.depot_id === id);
+const ll = w => [w.location.lon, w.location.lat];
+
+const map = new maplibregl.Map({
+  container: 'map', style: 'https://tiles.openfreemap.org/styles/dark',
+  bounds: [[25.9905, 44.408], [26.172, 44.704]],
+  fitBoundsOptions: { padding: { top: 46, bottom: 50, left: 360, right: 120 } },
+  attributionControl: false, interactive: false, fadeDuration: 0, pixelRatio: 2
+});
+map.on('load', () => {
+  tone(map, {});
+  const feats = [];
+  const colOf = s => s === 'A' ? '#4C93FF' : s === 'B' ? '#B84FC0' : '#FFB21E';
+  P.routes.forEach(r => {
+    const d = depot(r.depot_id), pts = [[d.lon, d.lat], ...r.stops.sort((x, y) => x.seq - y.seq).map(s => ll(byId[s.work_item_id])), [d.lon, d.lat]];
+    const col = colOf(byId[r.stops[0].work_item_id].source);
+    for (let i = 0; i < pts.length - 1; i++) feats.push({ type: 'Feature', properties: { color: col }, geometry: { type: 'LineString', coordinates: arc(pts[i], pts[i + 1], .22) } });
+  });
+  map.addSource('routes', { type: 'geojson', data: { type: 'FeatureCollection', features: feats } });
+  map.addLayer({ id: 'routes-glow', type: 'line', source: 'routes', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': 12, 'line-blur': 9, 'line-opacity': .45 } });
+  map.addLayer({ id: 'routes-line', type: 'line', source: 'routes', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': 3.6, 'line-opacity': .95 } });
+
+  // baze
+  mk(map, [depot('D-BUC-V').lon, depot('D-BUC-V').lat], 'dep', '', 'Bază București Vest', 'tl');
+  mk(map, [depot('D-BUC-E').lon, depot('D-BUC-E').lat], 'dep', '', 'Bază București Est', 'r');
+  // lucrările
+  const stopTime = {}; P.routes.forEach(r => r.stops.forEach(s => { stopTime[s.work_item_id] = { t: hhmm(s.eta), d: s.duration_min, crew: r.crew_id }; }));
+  const placed = { 'A-20261109-MTR-004217': 'br', 'A-20261109-MTR-019833': 'r', 'C-20261109-PT-1432': 'bl', 'A-20261109-MTR-027710': 'r', 'B-20261109-IF-SNAGOV': 'r', 'C-20261109-PT-0877': 'r' };
+  T.work_items.forEach(w => {
+    if (w.location.county === 'Constanța') return;
+    const s = w.source.toLowerCase(), dec = P.decisions.find(d => d.work_item_id === w.work_item_id);
+    let cls = 'mk ' + s, lbl;
+    if (stopTime[w.work_item_id]) {
+      const st = stopTime[w.work_item_id];
+      lbl = `${w.asset_id} <span class="muted">${st.crew}, ${st.t}</span>`;
+      if (w.work_item_id === 'A-20261109-MTR-004217') cls += ' sel';
+    } else if (dec && dec.decision === 'human_review') {
+      cls = 'mk hum'; lbl = `${w.asset_id}, decide un om`;
+    } else {
+      cls = 'mk un ' + s; lbl = `${w.asset_type === 'zone' ? 'Snagov' : w.asset_id} <span class="muted">neplanificată</span>`;
+    }
+    const e = mk(map, ll(w), cls, w.source, lbl, placed[w.work_item_id]);
+    if (cls === 'mk hum') e.querySelector('.lbl').classList.add('hum');
+  });
+  map.once('idle', done);
+  buildInset();
+});
+
+function buildInset() {
+  const ins = new maplibregl.Map({
+    container: 'inset', style: 'https://tiles.openfreemap.org/styles/dark',
+    bounds: [[20.75, 43.55], [29.35, 46.35]], fitBoundsOptions: { padding: { top: 40, bottom: 8, left: 8, right: 8 } },
+    attributionControl: false, interactive: false, fadeDuration: 0, pixelRatio: 2
+  });
+  ins.on('load', () => {
+    tone(ins, { inset: true });
+    const b = map.getBounds();
+    ins.addSource('frame', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'Polygon', coordinates: [[[b.getWest(), b.getSouth()], [b.getEast(), b.getSouth()], [b.getEast(), b.getNorth()], [b.getWest(), b.getNorth()], [b.getWest(), b.getSouth()]]] } } });
+    ins.addLayer({ id: 'frame-fill', type: 'fill', source: 'frame', paint: { 'fill-color': '#E9EEF2', 'fill-opacity': .12 } });
+    ins.addLayer({ id: 'frame-line', type: 'line', source: 'frame', paint: { 'line-color': '#E9EEF2', 'line-width': 1.5 } });
+    const cta = depot('D-CTA'), tm = depot('D-TM');
+    const freeAt = id => freeCrews.filter(c => T.crews.find(x => x.crew_id === c).depot_id === id);
+    mk(ins, [cta.lon, cta.lat], 'dep', '', `Constanța <span class="muted">${freeAt('D-CTA').join(', ')} libere</span>`, 'bl');
+    mk(ins, [tm.lon, tm.lat], 'dep', '', `Timișoara <span class="muted">${freeAt('D-TM').join(', ')} liberă</span>`, 'r');
+    mk(ins, ll(med), 'mk b sm', 'B', `Medgidia<br><span class="muted">furtună ${hhmm(med.time_window.start)}–${hhmm(med.time_window.end)}</span>`, 'mtl');
+    const ctr = b.getCenter();
+    const lbB = el('div', 'rlbl', 'București'); new maplibregl.Marker({ element: lbB, anchor: 'bottom' }).setLngLat([ctr.lng, b.getNorth() + .06]).addTo(ins);
+    ins.once('idle', done);
+  });
+}
+})();
+</script>
+</body>
+</html>

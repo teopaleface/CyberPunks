@@ -1,0 +1,3 @@
+[test]
+# Pregătește mediul pentru testele stratului de date (vezi test/preload.ts).
+preload = ["./test/preload.ts"]
