@@ -7,8 +7,12 @@ Actualizat: 2026-11-07 12:43
 - 12:46: programarea de 30 de minute (prima rulare 13:15) și caffeinate pentru 26 de ore.
 ## Urmează
 - Verificare la fiecare 30 de minute: stări, cereri, merge-uri, teste de integrare.
-- 15:00: data reală pentru demo-vara de la B, pusă în config/scenarios.yaml.
+- Data demo-vara pusă: 2025-07-08.
 ## Riscuri
 - Mac-ul era pe baterie la 12:46 (85%). Teo trebuie să-l pună la încărcat și să lase capacul deschis, altfel firele se opresc.
 ## Merge-uri făcute
+- 13:20: Teo-planificator (M1) și Teo-C-prosumatori (M0) în Teo; make check: 38 de teste trec; `cyberpunks run --scenario demo-vara` merge (fără lucrări reale încă: A, B, C nu au ieșiri pe 2025-07-08 în Teo).
 ## Probleme de integrare
+- 13:20: data reală în scenarios.yaml a făcut ca modul fixtures să respingă exemplele (dată diferită). Reparat în agent.py: în modul fixtures, data vine din exemple.
+## Contracte
+- 13:20: Route.depart_at/return_at (opționale), exemple de serii pentru A, B, C, plan de exemplu cu decizie pentru fiecare lucrare și totaluri consistente (cererile interfeței).

@@ -23,9 +23,11 @@ Validare: `uv run cyberpunks validate <fișier>` (sau `--as work_item|plan|audit
 | `outputs/plans/<scenariu>/report.md` | planificatorul | raport zilnic |
 | `reports/<A|B|C>/metrics.json` | firele A, B, C | `ModelReport` |
 | `reports/planner/agent_eval.json` | planificatorul | liber, documentat în `reports/planner/README.md` |
-| `outputs/demo/` | planificatorul | instantaneu complet al scenariului demo, în git |
+| `outputs/demo/` | planificatorul | instantaneu complet al scenariului demo, în git, cu aceeași structură ca `outputs/`: `plans/<s>/{plan.json, audit.jsonl, work_items.jsonl, quarantine.jsonl, alerts.json, notifications.json, report.md, run.json, work_orders/<crew>.pdf}`, `series/<s>/<id>.json`, `reports/{A,B,C,planner}/` |
 
-Scenariile sunt în `config/scenarios.yaml`: `demo-vara` (zi reală de vară cu furtuni, data o alege firul B) și `maine` (prognoza reală).
+Scenariile sunt în `config/scenarios.yaml`: `demo-vara` = **2025-07-08** (caniculă și soare puternic în București-Ilfov, vijelii cu cod roșu ANM în Banat; aleasă de firul B) și `maine` (prognoza reală).
+
+Exemple de serii pentru grafice: `contracts/fixtures/series_<work_item_id>.json` (câte una pentru A, B, C). `Route` are acum și `depart_at`, `return_at` (opționale). Costul folosit la decizie apare în `Decision.threshold` (de exemplu `visit_cost_lei`).
 
 ## WorkItem (ce trimite fiecare model planificatorului)
 
@@ -55,7 +57,7 @@ Reguli verificate automat: litera din ID = sursa; `kind` potrivit sursei; `absta
 | Metodă și cale | Răspuns |
 |---|---|
 | `GET /health` | `{status, version, sources_status}` |
-| `GET /scenarios` | lista din `config/scenarios.yaml` |
+| `GET /scenarios` | lista din `config/scenarios.yaml`; fiecare element are `scenario_id`, `label_ro`, `date`, `weather` |
 | `POST /run` `{scenario, date?}` | rulează agentul cap-coadă; `{plan_id, timings: {perceive, estimate, decide, act}}` în secunde |
 | `GET /plan?scenario=` | `Plan` |
 | `GET /work-items?scenario=&source=` | listă de `WorkItem` |

@@ -1,0 +1,782 @@
+{
+  "contract_version": "1.0",
+  "work_item_id": "C-20261109-PT-1432",
+  "source": "C",
+  "title_ro": "Tensiunea maximă la post, la 15 minute",
+  "unit": "pu",
+  "points": [
+    {
+      "t": "2026-11-09T00:00:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T00:15:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T00:30:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T00:45:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T01:00:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T01:15:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T01:30:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T01:45:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T02:00:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T02:15:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T02:30:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T02:45:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T03:00:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T03:15:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T03:30:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T03:45:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T04:00:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T04:15:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T04:30:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T04:45:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T05:00:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T05:15:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T05:30:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T05:45:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T06:00:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T06:15:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T06:30:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T06:45:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T07:00:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T07:15:00+02:00",
+      "value": null,
+      "expected": 1.026,
+      "low": 1.02,
+      "high": 1.032,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T07:30:00+02:00",
+      "value": null,
+      "expected": 1.031,
+      "low": 1.024,
+      "high": 1.038,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T07:45:00+02:00",
+      "value": null,
+      "expected": 1.037,
+      "low": 1.029,
+      "high": 1.045,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T08:00:00+02:00",
+      "value": null,
+      "expected": 1.042,
+      "low": 1.033,
+      "high": 1.05,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T08:15:00+02:00",
+      "value": null,
+      "expected": 1.048,
+      "low": 1.037,
+      "high": 1.057,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T08:30:00+02:00",
+      "value": null,
+      "expected": 1.053,
+      "low": 1.041,
+      "high": 1.063,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T08:45:00+02:00",
+      "value": null,
+      "expected": 1.058,
+      "low": 1.045,
+      "high": 1.069,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T09:00:00+02:00",
+      "value": null,
+      "expected": 1.063,
+      "low": 1.049,
+      "high": 1.075,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T09:15:00+02:00",
+      "value": null,
+      "expected": 1.068,
+      "low": 1.053,
+      "high": 1.08,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T09:30:00+02:00",
+      "value": null,
+      "expected": 1.073,
+      "low": 1.057,
+      "high": 1.086,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T09:45:00+02:00",
+      "value": null,
+      "expected": 1.078,
+      "low": 1.061,
+      "high": 1.092,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T10:00:00+02:00",
+      "value": null,
+      "expected": 1.082,
+      "low": 1.065,
+      "high": 1.096,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T10:15:00+02:00",
+      "value": null,
+      "expected": 1.087,
+      "low": 1.069,
+      "high": 1.102,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T10:30:00+02:00",
+      "value": null,
+      "expected": 1.091,
+      "low": 1.072,
+      "high": 1.107,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T10:45:00+02:00",
+      "value": null,
+      "expected": 1.095,
+      "low": 1.075,
+      "high": 1.111,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T11:00:00+02:00",
+      "value": null,
+      "expected": 1.098,
+      "low": 1.077,
+      "high": 1.115,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T11:15:00+02:00",
+      "value": null,
+      "expected": 1.102,
+      "low": 1.081,
+      "high": 1.119,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T11:30:00+02:00",
+      "value": null,
+      "expected": 1.105,
+      "low": 1.083,
+      "high": 1.123,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T11:45:00+02:00",
+      "value": null,
+      "expected": 1.108,
+      "low": 1.085,
+      "high": 1.126,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T12:00:00+02:00",
+      "value": null,
+      "expected": 1.11,
+      "low": 1.087,
+      "high": 1.129,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T12:15:00+02:00",
+      "value": null,
+      "expected": 1.112,
+      "low": 1.089,
+      "high": 1.131,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T12:30:00+02:00",
+      "value": null,
+      "expected": 1.114,
+      "low": 1.09,
+      "high": 1.133,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T12:45:00+02:00",
+      "value": null,
+      "expected": 1.116,
+      "low": 1.092,
+      "high": 1.135,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T13:00:00+02:00",
+      "value": null,
+      "expected": 1.117,
+      "low": 1.093,
+      "high": 1.137,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T13:15:00+02:00",
+      "value": null,
+      "expected": 1.119,
+      "low": 1.094,
+      "high": 1.139,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T13:30:00+02:00",
+      "value": null,
+      "expected": 1.119,
+      "low": 1.094,
+      "high": 1.139,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T13:45:00+02:00",
+      "value": null,
+      "expected": 1.12,
+      "low": 1.095,
+      "high": 1.14,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T14:00:00+02:00",
+      "value": null,
+      "expected": 1.12,
+      "low": 1.095,
+      "high": 1.14,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T14:15:00+02:00",
+      "value": null,
+      "expected": 1.12,
+      "low": 1.095,
+      "high": 1.14,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T14:30:00+02:00",
+      "value": null,
+      "expected": 1.119,
+      "low": 1.094,
+      "high": 1.139,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T14:45:00+02:00",
+      "value": null,
+      "expected": 1.119,
+      "low": 1.094,
+      "high": 1.139,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T15:00:00+02:00",
+      "value": null,
+      "expected": 1.117,
+      "low": 1.093,
+      "high": 1.137,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T15:15:00+02:00",
+      "value": null,
+      "expected": 1.116,
+      "low": 1.092,
+      "high": 1.135,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T15:30:00+02:00",
+      "value": null,
+      "expected": 1.114,
+      "low": 1.09,
+      "high": 1.133,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T15:45:00+02:00",
+      "value": null,
+      "expected": 1.112,
+      "low": 1.089,
+      "high": 1.131,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T16:00:00+02:00",
+      "value": null,
+      "expected": 1.11,
+      "low": 1.087,
+      "high": 1.129,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T16:15:00+02:00",
+      "value": null,
+      "expected": 1.108,
+      "low": 1.085,
+      "high": 1.126,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T16:30:00+02:00",
+      "value": null,
+      "expected": 1.105,
+      "low": 1.083,
+      "high": 1.123,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T16:45:00+02:00",
+      "value": null,
+      "expected": 1.102,
+      "low": 1.081,
+      "high": 1.119,
+      "flag": "peste_limita"
+    },
+    {
+      "t": "2026-11-09T17:00:00+02:00",
+      "value": null,
+      "expected": 1.098,
+      "low": 1.077,
+      "high": 1.115,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T17:15:00+02:00",
+      "value": null,
+      "expected": 1.095,
+      "low": 1.075,
+      "high": 1.111,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T17:30:00+02:00",
+      "value": null,
+      "expected": 1.091,
+      "low": 1.072,
+      "high": 1.107,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T17:45:00+02:00",
+      "value": null,
+      "expected": 1.087,
+      "low": 1.069,
+      "high": 1.102,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T18:00:00+02:00",
+      "value": null,
+      "expected": 1.082,
+      "low": 1.065,
+      "high": 1.096,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T18:15:00+02:00",
+      "value": null,
+      "expected": 1.078,
+      "low": 1.061,
+      "high": 1.092,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T18:30:00+02:00",
+      "value": null,
+      "expected": 1.073,
+      "low": 1.057,
+      "high": 1.086,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T18:45:00+02:00",
+      "value": null,
+      "expected": 1.068,
+      "low": 1.053,
+      "high": 1.08,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T19:00:00+02:00",
+      "value": null,
+      "expected": 1.063,
+      "low": 1.049,
+      "high": 1.075,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T19:15:00+02:00",
+      "value": null,
+      "expected": 1.058,
+      "low": 1.045,
+      "high": 1.069,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T19:30:00+02:00",
+      "value": null,
+      "expected": 1.053,
+      "low": 1.041,
+      "high": 1.063,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T19:45:00+02:00",
+      "value": null,
+      "expected": 1.048,
+      "low": 1.037,
+      "high": 1.057,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T20:00:00+02:00",
+      "value": null,
+      "expected": 1.042,
+      "low": 1.033,
+      "high": 1.05,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T20:15:00+02:00",
+      "value": null,
+      "expected": 1.037,
+      "low": 1.029,
+      "high": 1.045,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T20:30:00+02:00",
+      "value": null,
+      "expected": 1.031,
+      "low": 1.024,
+      "high": 1.038,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T20:45:00+02:00",
+      "value": null,
+      "expected": 1.026,
+      "low": 1.02,
+      "high": 1.032,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T21:00:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T21:15:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T21:30:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T21:45:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T22:00:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T22:15:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T22:30:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T22:45:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T23:00:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T23:15:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T23:30:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T23:45:00+02:00",
+      "value": null,
+      "expected": 1.02,
+      "low": 1.015,
+      "high": 1.025,
+      "flag": null
+    }
+  ],
+  "thresholds": {
+    "limita_tensiune_pu": 1.1
+  },
+  "annotations": [],
+  "synthetic": true
+}

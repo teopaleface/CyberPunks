@@ -26,6 +26,15 @@ validate-fixtures:
 # ---- B: furtună (firul Teo-B-furtuna) ----
 
 # ---- C: prosumatori (firul Teo-C-prosumatori) ----
+.PHONY: c-weather c-bench c-sim c-test
+c-weather:        ## C: descarcă meteo Open-Meteo 2023-2026 (data/raw/C, sume de control în data/samples/C)
+	uv run python -m cyberpunks.c_prosumatori.weather archive 2023-01-01 2026-11-06
+c-bench:          ## C: calculul vectorizat față de pandapower, timpi (reports/C/powerflow_bench.json)
+	uv run python -m cyberpunks.c_prosumatori.powerflow
+c-sim:            ## C: simularea fizică a posturilor de antrenare (data/processed/C/train), cel mult 4 procese
+	uv run python -m cyberpunks.c_prosumatori.simulate pool train --n 80 --workers 4
+c-test:           ## C: testele firului C
+	uv run pytest tests/c
 
 # ---- Planificator și API (firul Teo-planificator) ----
 .PHONY: api api-dev run-demo test-planner

@@ -292,6 +292,34 @@
           "title": "Depot Id",
           "type": "string"
         },
+        "depart_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Plecarea din bază",
+          "title": "Depart At"
+        },
+        "return_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Întoarcerea în bază",
+          "title": "Return At"
+        },
         "stops": {
           "items": {
             "$ref": "#/$defs/Stop"
