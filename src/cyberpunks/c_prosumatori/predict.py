@@ -269,7 +269,7 @@ def run(scenario: str, date_str: str | None = None) -> Path:
         h0, h1 = _window(ser)
         wid = f"C-{d:%Y%m%d}-{st['post_id']}"
         if sim is None:
-            sim = explain.SimilarCases(T.load_daily("train"))
+            sim = explain.SimilarCases(explain.similar_reference())
         factors = explain.top_factors(contrib.iloc[i], r, d)
         p = float(np.clip(r["p_exceed"], 0.0, 1.0))
         p_lo, p_hi = (float(r["p_low"]), float(r["p_high"])) if forecast else (None, None)
