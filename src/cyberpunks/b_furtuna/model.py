@@ -75,6 +75,7 @@ class BModel:
     decision_threshold: float  # pragul de la care B recomandă echipă trimisă din timp
     version: str
     train_info: dict = field(default_factory=dict)
+    cqr_offset: float = 0.0  # lărgirea conformală a intervalului P10-P90 (scara log), pentru acoperire de 80%
     cases: pd.DataFrame | None = None  # biblioteca de zile istorice (SUA) pentru „cazuri asemănătoare”
     case_scale: dict[str, tuple[float, float]] = field(default_factory=dict)  # media și abaterea pe feature
 
@@ -85,11 +86,16 @@ class BModel:
     def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
         return np.clip(self.calibrator.predict(self.raw_score(X)), 0.0, 1.0)
 
+    def quantiles_log(self, X: pd.DataFrame) -> np.ndarray:
+        """Cuantilele pe scara log(1 + procent), ordonate, cu lărgirea conformală aplicată la P10 și P90."""
+        qs = np.sort(np.column_stack([self.quantile_models[q].predict(X[self.features]) for q in QUANTILES]), axis=1)
+        qs[:, 0] -= self.cqr_offset
+        qs[:, 2] += self.cqr_offset
+        return np.clip(qs, 0, None)
+
     def predict_quantiles(self, X: pd.DataFrame) -> np.ndarray:
         """Vârful procentual (0-1) dacă are loc evenimentul: coloane P10, P50, P90, ordonate."""
-        qs = np.column_stack([self.quantile_models[q].predict(X[self.features]) for q in QUANTILES])
-        qs = np.sort(qs, axis=1)
-        pct = np.expm1(np.clip(qs, 0, None)) / 100.0
+        pct = np.expm1(self.quantiles_log(X)) / 100.0
         return np.clip(pct, 0.01, 1.0)  # condiționat pe eveniment: cel puțin 1%
 
     def out_of_range(self, X: pd.DataFrame, margin: float = 0.10) -> pd.Series:
@@ -168,6 +174,7 @@ def train(df: pd.DataFrame, version: str | None = None) -> tuple[BModel, np.ndar
     clf = fit_classifier(X, y)
     ev = df["event"] == 1
     qmodels = fit_quantiles(df.loc[ev, FEATURES], df.loc[ev, "y_log_pct"].to_numpy())
+    cqr = conformal_offset(df[ev].reset_index(drop=True))
     ranges = {f: (float(df[f].min()), float(df[f].max())) for f in FEATURES}
     cases, case_scale = case_library(df)
     model = BModel(
@@ -187,8 +194,25 @@ def train(df: pd.DataFrame, version: str | None = None) -> tuple[BModel, np.ndar
         },
         cases=cases,
         case_scale=case_scale,
+        cqr_offset=cqr,
     )
     return model, oof_cal
+
+
+def conformal_offset(ev_df: pd.DataFrame, coverage: float = 0.8, n_splits: int = 5) -> float:
+    """Calibrare conformală a cuantilelor (CQR, Romano et al. 2019): cât lărgim [P10, P90] ca să acopere `coverage`.
+
+    Scorul de neconformitate pe cazurile out-of-fold: max(P10 − y, y − P90). Fold-uri pe săptămâni.
+    """
+    X, y = ev_df[FEATURES], ev_df["y_log_pct"].to_numpy()
+    oof = np.zeros((len(ev_df), len(QUANTILES)))
+    for tr, va in GroupKFold(n_splits=n_splits).split(X, y, week_groups(ev_df["date"])):
+        ms = fit_quantiles(X.iloc[tr], y[tr])
+        oof[va] = np.column_stack([ms[q].predict(X.iloc[va]) for q in QUANTILES])
+    oof = np.sort(oof, axis=1)
+    scores = np.maximum(oof[:, 0] - y, y - oof[:, 2])
+    level = min(1.0, coverage * (1 + 1 / len(scores)))
+    return float(max(np.quantile(scores, level), 0.0))
 
 
 CASE_FEATURES = ["gust_max", "gust_prev", "precip_48h", "precip_7d", "snow_3d", "ice_proxy", "tmax", "srad",

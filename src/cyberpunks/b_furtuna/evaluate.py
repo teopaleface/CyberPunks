@@ -28,6 +28,7 @@ from sklearn.metrics import average_precision_score, brier_score_loss, log_loss,
 
 from cyberpunks.b_furtuna import dataset
 from cyberpunks.b_furtuna.model import MODEL_ID, QUANTILES, BModel, best_f1_threshold, shap_values, train
+from cyberpunks.common import config
 from cyberpunks.common.contracts import ModelReport
 from cyberpunks.common.paths import REPORTS
 
@@ -122,9 +123,60 @@ def quantile_metrics(y_log: np.ndarray, q_log: np.ndarray, prefix: str = "") -> 
     return out
 
 
-def model_quantiles_log(model: BModel, X: pd.DataFrame) -> np.ndarray:
+def model_quantiles_log(model: BModel, X: pd.DataFrame, conformal: bool = True) -> np.ndarray:
+    if conformal:
+        return model.quantiles_log(X)
     qs = np.column_stack([model.quantile_models[q].predict(X[model.features]) for q in QUANTILES])
     return np.sort(np.clip(qs, 0, None), axis=1)
+
+
+def decision_value(te: pd.DataFrame, alerts: dict[str, np.ndarray], econ: dict) -> dict:
+    """Valoarea în lei a deciziilor pe anul de test, cu ipotezele din config/economics.yaml (cheia `storm`).
+
+    O echipă trimisă din timp într-o zi cu eveniment scurtează întreruperea cu `restoration_speedup_hours` pentru
+    clienții afectați (vârful zilei). Fiecare alertă costă o tură (`preposition_cost_lei_per_crew_shift`).
+    Ipotezele sunt marcate IPOTEZĂ în config; aici comparăm strategiile între ele, nu dăm o cifră absolută sigură.
+    """
+    gain = te["out_max"].to_numpy() * econ["restoration_speedup_hours"] * econ["cost_per_customer_hour_lei"]
+    ev = te["event"].to_numpy() == 1
+    cost = econ["preposition_cost_lei_per_crew_shift"]
+    out = {}
+    for name, a in alerts.items():
+        a = a.astype(bool)
+        net = float(gain[a & ev].sum() - cost * a.sum())
+        out[name] = {"alerts": int(a.sum()), "events_caught": int((a & ev).sum()),
+                     "net_lei": round(net, 0), "net_lei_per_1000_zone_days": round(1000 * net / len(te), 0)}
+    return out
+
+
+def capacity_eval(te: pd.DataFrame, scores: dict[str, np.ndarray], k: int, seed: int = 42) -> dict:
+    """Echipe puține: în fiecare zi de test trimitem K echipe în cele K comitate cu scorul cel mai mare.
+
+    Măsurăm ce parte din clienții afectați (vârful zilelor cu eveniment) și din evenimente ajung în comitatele alese.
+    Fără bani și fără ipoteze în plus: întrebarea e doar dacă modelul pune echipele unde vor fi avariile.
+    """
+    rng = np.random.default_rng(seed)
+    te = te.reset_index(drop=True)
+    ev = te["event"].to_numpy() == 1
+    affected = np.where(ev, te["out_max"].to_numpy(), 0.0)
+    out = {}
+    for name, sc in {**scores, "aleator": rng.uniform(size=len(te))}.items():
+        chosen = np.zeros(len(te), bool)
+        for idx in te.groupby("date").indices.values():
+            top = idx[np.argsort(-sc[idx], kind="stable")[:k]]
+            chosen[top] = True
+        out[name] = {
+            "customers_covered_share": round(float(affected[chosen].sum() / max(affected.sum(), 1)), 4),
+            "events_caught_share": round(float((chosen & ev).sum() / max(ev.sum(), 1)), 4),
+            "alert_precision": round(float((chosen & ev).sum() / max(chosen.sum(), 1)), 4),
+        }
+    oracle = np.zeros(len(te), bool)
+    for idx in te.groupby("date").indices.values():
+        oracle[idx[np.argsort(-affected[idx], kind="stable")[:k]]] = True
+    out["oracol"] = {"customers_covered_share": round(float(affected[oracle].sum() / max(affected.sum(), 1)), 4),
+                     "events_caught_share": round(float((oracle & ev).sum() / max(ev.sum(), 1)), 4),
+                     "alert_precision": round(float((oracle & ev).sum() / max(oracle.sum(), 1)), 4)}
+    return out
 
 
 # ---------------------------------------------------------------------------------------------
@@ -163,6 +215,9 @@ def evaluate_split(train_df: pd.DataFrame, test_df: pd.DataFrame, with_county_cl
     if ev.sum() > 0:
         y_log = te.loc[ev, "y_log_pct"].to_numpy()
         res["model"].update(quantile_metrics(y_log, model_quantiles_log(model, te.loc[ev])))
+        res["model"]["coverage_p10_p90_without_conformal"] = quantile_metrics(
+            y_log, model_quantiles_log(model, te.loc[ev], conformal=False))["coverage_p10_p90"]
+        res["model"]["conformal_offset_log"] = model.cqr_offset
         cq = clim_quantiles(tr)
         months = te.loc[ev, "date"].dt.month
         cq_pred = np.column_stack([months.map(cq[q]).fillna(cq[q].mean()).to_numpy() for q in QUANTILES])
@@ -267,7 +322,29 @@ def run(do_loso: bool = True) -> dict:
         "gust_rule": predict_gust_rule(gust_rule_table(tr), te),
     }
     files = figures(te, p, model)
-    detail = {"main": res, "figures": files, "train_info": model.train_info}
+    econ = config.load("economics")["storm"]
+    ev = te["event"].to_numpy() == 1
+    alerts = {
+        "model_la_prag": p["model"] >= model.decision_threshold,
+        "regula_rafala_70kmh": (te["gust_max"] >= GUST_RULE_KMH).to_numpy(),
+        "climatologie_la_prag": p["clim_county_month"] >= res["clim_county_month"]["threshold"],
+        "mereu": np.ones(len(te), bool),
+        "niciodata": np.zeros(len(te), bool),
+        "oracol_doar_evenimente": ev,
+    }
+    n_cty = te["fips"].nunique()
+    k = max(1, round(0.1 * n_cty))  # echipe pentru 10% din zone pe zi
+    cap_scores = {"model": p["model"], "regula_rafala": te["gust_max"].to_numpy(),
+                  "climatologie_comitat_luna": p["clim_county_month"]}
+    detail = {"main": res, "figures": files, "train_info": model.train_info,
+              "capacity": {"k_crews_per_day": k, "zones": int(n_cty), "results": capacity_eval(te, cap_scores, k)},
+              "decision_value_note": "Valoarea în lei presupune că o echipă scurtează întreruperea pentru toți clienții "
+                                     "afectați, oricât de mare e avaria; cu ipotezele din config, „mereu” iese cel mai "
+                                     "bine. Ipoteza e prea generoasă: folosiți rezultatele „capacity” (echipe puține).",
+              "decision_value": decision_value(te, alerts, econ),
+              "decision_value_assumptions": {k: econ[k] for k in ("preposition_cost_lei_per_crew_shift",
+                                                                   "cost_per_customer_hour_lei",
+                                                                   "restoration_speedup_hours")}}
     if do_loso:
         print("generalizare pe state nevăzute (leave-one-state-out):")
         detail["loso"] = loso(train_df, test_df)
@@ -287,6 +364,13 @@ def run(do_loso: bool = True) -> dict:
     metrics = {k: round(m[k], 4) for k in keys}
     metrics.update({k: round(v, 4) for k, v in m.items() if k.startswith(("pinball", "coverage"))})
     metrics["prevalence"] = round(res["prevalence_test"], 4)
+    cap = detail["capacity"]["results"]
+    metrics["capacity_k"] = detail["capacity"]["k_crews_per_day"]
+    metrics["capacity_customers_covered"] = cap["model"]["customers_covered_share"]
+    metrics["capacity_customers_covered_gust_rule"] = cap["regula_rafala"]["customers_covered_share"]
+    metrics["capacity_customers_covered_clim"] = cap["climatologie_comitat_luna"]["customers_covered_share"]
+    metrics["capacity_customers_covered_random"] = cap["aleator"]["customers_covered_share"]
+    metrics["capacity_customers_covered_oracle"] = cap["oracol"]["customers_covered_share"]
     metrics["decision_threshold"] = round(model.decision_threshold, 3)
     metrics["pr_auc_gust_rule"] = round(res["gust_rule"]["pr_auc"], 4)
     metrics["pr_auc_clim_month"] = round(res["clim_month"]["pr_auc"], 4)

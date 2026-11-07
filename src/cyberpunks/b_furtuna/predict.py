@@ -267,7 +267,9 @@ def build_items(model: BModel, zones: list[romania.Zone], feats: pd.DataFrame, h
             action = "no_action"
 
         cust = np.round(q[i] * z.customers).astype(int)
-        value_if_true = round(float(cust[1] * econ["restoration_speedup_hours"] * econ["cost_per_customer_hour_lei"]), 2)
+        # câți clienți poate ajuta o echipă într-o tură: dacă planificatorul pune cheia în economics.yaml, o folosim
+        helped = min(int(cust[1]), int(econ.get("customers_helped_per_crew_shift") or cust[1]))
+        value_if_true = round(float(helped * econ["restoration_speedup_hours"] * econ["cost_per_customer_hour_lei"]), 2)
         score = round(float(p[i]), 4)
         wid = f"B-{target:%Y%m%d}-{z.zone_id}"
         tw_start = onset  # planificatorul cere echipa pe poziție cu 60 de minute înainte de start
