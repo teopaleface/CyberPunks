@@ -8,9 +8,19 @@ dacă există, posturile fără lucrări apar și ele pe hartă (verzi).
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 from cyberpunks.planner.settings import Settings
+
+
+def post_loss_lei_month(extra: dict[str, Any]) -> float | None:
+    """Lei pierduți pe lună peste normal, la un post (bilanț): `post_excess_loss_lei_month` sau `lei_per_month`."""
+    for key in ("post_excess_loss_lei_month", "lei_per_month"):
+        value = extra.get(key)
+        if isinstance(value, (int, float)) and math.isfinite(float(value)):
+            return float(value)
+    return None
 
 
 def _post_of(wi: dict[str, Any]) -> str | None:
@@ -68,7 +78,7 @@ def overview(plan: dict[str, Any] | None, items: list[dict[str, Any]], settings:
         if wi.get("asset_type") == "transformer_post" and e["lat"] is None:
             e.update(lat=loc.get("lat"), lon=loc.get("lon"), zone_id=loc.get("zone_id"), label=loc.get("label") or pid)
         if wi["source"] == "A" and wi.get("asset_type") == "transformer_post":
-            loss = extra.get("post_excess_loss_lei_month")
+            loss = post_loss_lei_month(extra)
             e.update(
                 loss_lei_month=float(loss) if isinstance(loss, (int, float)) else e["loss_lei_month"],
                 loss_kwh_day=extra.get("post_excess_loss_kwh_day", e["loss_kwh_day"]), diagnosis=wi["prediction"].get("label"),

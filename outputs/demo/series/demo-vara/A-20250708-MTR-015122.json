@@ -1,0 +1,497 @@
+{
+ "contract_version": "1.0",
+ "work_item_id": "A-20250708-MTR-015122",
+ "source": "A",
+ "title_ro": "Consum zilnic, contor MTR-015122, ultimele 60 de zile (date sintetice)",
+ "unit": "kWh",
+ "points": [
+  {
+   "t": "2025-05-10T00:00:00",
+   "value": 14.976,
+   "expected": 16.487,
+   "low": 11.356,
+   "high": 22.121,
+   "flag": null
+  },
+  {
+   "t": "2025-05-11T00:00:00",
+   "value": 16.278,
+   "expected": 16.023,
+   "low": 11.037,
+   "high": 21.498,
+   "flag": null
+  },
+  {
+   "t": "2025-05-12T00:00:00",
+   "value": 12.153,
+   "expected": 16.19,
+   "low": 11.151,
+   "high": 21.722,
+   "flag": null
+  },
+  {
+   "t": "2025-05-13T00:00:00",
+   "value": 18.17,
+   "expected": 15.525,
+   "low": 10.694,
+   "high": 20.83,
+   "flag": null
+  },
+  {
+   "t": "2025-05-14T00:00:00",
+   "value": 23.671,
+   "expected": 18.046,
+   "low": 12.43,
+   "high": 24.212,
+   "flag": null
+  },
+  {
+   "t": "2025-05-15T00:00:00",
+   "value": 17.982,
+   "expected": 16.383,
+   "low": 11.285,
+   "high": 21.981,
+   "flag": null
+  },
+  {
+   "t": "2025-05-16T00:00:00",
+   "value": 16.635,
+   "expected": 15.686,
+   "low": 10.805,
+   "high": 21.047,
+   "flag": null
+  },
+  {
+   "t": "2025-05-17T00:00:00",
+   "value": 12.977,
+   "expected": 17.525,
+   "low": 12.071,
+   "high": 23.514,
+   "flag": null
+  },
+  {
+   "t": "2025-05-18T00:00:00",
+   "value": 27.268,
+   "expected": 19.572,
+   "low": 13.481,
+   "high": 26.261,
+   "flag": null
+  },
+  {
+   "t": "2025-05-19T00:00:00",
+   "value": 20.996,
+   "expected": 16.623,
+   "low": 11.45,
+   "high": 22.303,
+   "flag": null
+  },
+  {
+   "t": "2025-05-20T00:00:00",
+   "value": 22.124,
+   "expected": 16.487,
+   "low": 11.356,
+   "high": 22.121,
+   "flag": null
+  },
+  {
+   "t": "2025-05-21T00:00:00",
+   "value": 12.189,
+   "expected": 17.757,
+   "low": 12.231,
+   "high": 23.825,
+   "flag": null
+  },
+  {
+   "t": "2025-05-22T00:00:00",
+   "value": 16.69,
+   "expected": 15.867,
+   "low": 10.929,
+   "high": 21.289,
+   "flag": null
+  },
+  {
+   "t": "2025-05-23T00:00:00",
+   "value": 12.34,
+   "expected": 17.309,
+   "low": 11.922,
+   "high": 23.224,
+   "flag": null
+  },
+  {
+   "t": "2025-05-24T00:00:00",
+   "value": 11.685,
+   "expected": 16.311,
+   "low": 11.235,
+   "high": 21.884,
+   "flag": null
+  },
+  {
+   "t": "2025-05-25T00:00:00",
+   "value": 22.897,
+   "expected": 17.382,
+   "low": 11.973,
+   "high": 23.322,
+   "flag": null
+  },
+  {
+   "t": "2025-05-26T00:00:00",
+   "value": 11.413,
+   "expected": 17.375,
+   "low": 11.968,
+   "high": 23.312,
+   "flag": null
+  },
+  {
+   "t": "2025-05-27T00:00:00",
+   "value": 18.842,
+   "expected": 17.273,
+   "low": 11.897,
+   "high": 23.175,
+   "flag": null
+  },
+  {
+   "t": "2025-05-28T00:00:00",
+   "value": 14.917,
+   "expected": 18.704,
+   "low": 12.883,
+   "high": 25.095,
+   "flag": null
+  },
+  {
+   "t": "2025-05-29T00:00:00",
+   "value": 16.889,
+   "expected": 17.685,
+   "low": 12.181,
+   "high": 23.728,
+   "flag": null
+  },
+  {
+   "t": "2025-05-30T00:00:00",
+   "value": 22.915,
+   "expected": 17.462,
+   "low": 12.028,
+   "high": 23.429,
+   "flag": null
+  },
+  {
+   "t": "2025-05-31T00:00:00",
+   "value": 16.681,
+   "expected": 19.447,
+   "low": 13.395,
+   "high": 26.093,
+   "flag": null
+  },
+  {
+   "t": "2025-06-01T00:00:00",
+   "value": null,
+   "expected": 18.692,
+   "low": 12.875,
+   "high": 25.08,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-02T00:00:00",
+   "value": null,
+   "expected": 15.797,
+   "low": 10.881,
+   "high": 21.195,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-03T00:00:00",
+   "value": null,
+   "expected": 17.286,
+   "low": 11.907,
+   "high": 23.194,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-04T00:00:00",
+   "value": null,
+   "expected": 16.423,
+   "low": 11.312,
+   "high": 22.035,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-05T00:00:00",
+   "value": null,
+   "expected": 16.596,
+   "low": 11.432,
+   "high": 22.268,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-06T00:00:00",
+   "value": null,
+   "expected": 17.739,
+   "low": 12.218,
+   "high": 23.801,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-07T00:00:00",
+   "value": null,
+   "expected": 16.306,
+   "low": 11.232,
+   "high": 21.879,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-08T00:00:00",
+   "value": null,
+   "expected": 15.083,
+   "low": 10.389,
+   "high": 20.238,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-09T00:00:00",
+   "value": 21.641,
+   "expected": 15.918,
+   "low": 10.964,
+   "high": 21.357,
+   "flag": null
+  },
+  {
+   "t": "2025-06-10T00:00:00",
+   "value": 21.645,
+   "expected": 15.504,
+   "low": 10.679,
+   "high": 20.802,
+   "flag": null
+  },
+  {
+   "t": "2025-06-11T00:00:00",
+   "value": null,
+   "expected": 15.237,
+   "low": 10.495,
+   "high": 20.444,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-12T00:00:00",
+   "value": null,
+   "expected": 15.783,
+   "low": 10.871,
+   "high": 21.176,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-13T00:00:00",
+   "value": null,
+   "expected": 14.682,
+   "low": 10.113,
+   "high": 19.699,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-14T00:00:00",
+   "value": null,
+   "expected": 13.891,
+   "low": 9.568,
+   "high": 18.638,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-15T00:00:00",
+   "value": null,
+   "expected": 14.223,
+   "low": 9.797,
+   "high": 19.084,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-16T00:00:00",
+   "value": null,
+   "expected": 14.372,
+   "low": 9.899,
+   "high": 19.283,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-17T00:00:00",
+   "value": null,
+   "expected": 12.917,
+   "low": 8.897,
+   "high": 17.331,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-18T00:00:00",
+   "value": null,
+   "expected": 12.646,
+   "low": 8.71,
+   "high": 16.967,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-19T00:00:00",
+   "value": 20.293,
+   "expected": 15.924,
+   "low": 10.969,
+   "high": 21.366,
+   "flag": null
+  },
+  {
+   "t": "2025-06-20T00:00:00",
+   "value": 10.528,
+   "expected": 13.786,
+   "low": 9.496,
+   "high": 18.497,
+   "flag": null
+  },
+  {
+   "t": "2025-06-21T00:00:00",
+   "value": 11.8,
+   "expected": 13.712,
+   "low": 9.444,
+   "high": 18.397,
+   "flag": null
+  },
+  {
+   "t": "2025-06-22T00:00:00",
+   "value": 15.833,
+   "expected": 16.436,
+   "low": 11.321,
+   "high": 22.053,
+   "flag": null
+  },
+  {
+   "t": "2025-06-23T00:00:00",
+   "value": null,
+   "expected": 13.043,
+   "low": 8.984,
+   "high": 17.5,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-24T00:00:00",
+   "value": null,
+   "expected": 13.774,
+   "low": 9.488,
+   "high": 18.481,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-25T00:00:00",
+   "value": null,
+   "expected": 14.578,
+   "low": 10.041,
+   "high": 19.56,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-26T00:00:00",
+   "value": null,
+   "expected": 12.755,
+   "low": 8.786,
+   "high": 17.114,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-27T00:00:00",
+   "value": null,
+   "expected": 14.981,
+   "low": 10.319,
+   "high": 20.101,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-28T00:00:00",
+   "value": null,
+   "expected": 13.445,
+   "low": 9.261,
+   "high": 18.039,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-29T00:00:00",
+   "value": null,
+   "expected": 17.593,
+   "low": 12.118,
+   "high": 23.605,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-06-30T00:00:00",
+   "value": 11.411,
+   "expected": 14.516,
+   "low": 9.999,
+   "high": 19.477,
+   "flag": null
+  },
+  {
+   "t": "2025-07-01T00:00:00",
+   "value": 16.175,
+   "expected": 12.911,
+   "low": 8.893,
+   "high": 17.323,
+   "flag": null
+  },
+  {
+   "t": "2025-07-02T00:00:00",
+   "value": 12.815,
+   "expected": 14.858,
+   "low": 10.234,
+   "high": 19.936,
+   "flag": null
+  },
+  {
+   "t": "2025-07-03T00:00:00",
+   "value": 16.587,
+   "expected": 14.238,
+   "low": 9.807,
+   "high": 19.104,
+   "flag": null
+  },
+  {
+   "t": "2025-07-04T00:00:00",
+   "value": 10.875,
+   "expected": 14.493,
+   "low": 9.983,
+   "high": 19.446,
+   "flag": null
+  },
+  {
+   "t": "2025-07-05T00:00:00",
+   "value": 13.884,
+   "expected": 14.334,
+   "low": 9.873,
+   "high": 19.232,
+   "flag": null
+  },
+  {
+   "t": "2025-07-06T00:00:00",
+   "value": null,
+   "expected": 14.098,
+   "low": 9.711,
+   "high": 18.916,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-07-07T00:00:00",
+   "value": null,
+   "expected": 14.712,
+   "low": 10.133,
+   "high": 19.739,
+   "flag": "gol"
+  },
+  {
+   "t": "2025-07-08T00:00:00",
+   "value": null,
+   "expected": 14.393,
+   "low": 9.914,
+   "high": 19.312,
+   "flag": "gol"
+  }
+ ],
+ "thresholds": {},
+ "annotations": [
+  {
+   "t": "2025-06-01T00:00:00",
+   "label_ro": "încep lipsurile de date"
+  }
+ ],
+ "synthetic": true
+}

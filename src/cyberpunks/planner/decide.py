@@ -629,10 +629,15 @@ def rule_meters_fused(ctx: Context, item: Item) -> Proposal:
 
 DIAG_RO = {
     "contor_defect": "contor defect sub post",
+    "contor_client": "contor defect sau manipulat la un client de sub post",
     "furt_inainte_de_contor": "furt înainte de contor",
+    "furt_inainte_contor": "furt înainte de contor",
     "pierdere_tehnica": "pierdere tehnică (cabluri, faze dezechilibrate)",
     "post_gresit": "client trecut la postul greșit în bază",
+    "client_post_gresit": "client trecut la postul greșit în bază",
     "contor_post_x2": "contorul de bilanț al postului setat greșit",
+    "contor_bilant_setat": "contorul de bilanț al postului setat greșit",
+    "normal": "pierdere în limite normale",
 }
 
 
@@ -647,7 +652,9 @@ def rule_bilant(ctx: Context, item: Item) -> Proposal:
     pr = wi.prediction
     min_net = float(ctx.g("min_net_value_lei", 0))
     ev = wi.impact.expected_value_lei
-    loss = wi.extra.get("post_excess_loss_lei_month")
+    from cyberpunks.planner.posts import post_loss_lei_month
+
+    loss = post_loss_lei_month(wi.extra)
     diag = DIAG_RO.get(pr.label, pr.label.replace("_", " "))
     head = f"Bilanțul postului {wi.asset_id}: {diag} (probabilitate {pct(pr.score)})"
     if isinstance(loss, (int, float)):

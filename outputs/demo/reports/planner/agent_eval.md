@@ -1,6 +1,6 @@
 # Evaluarea agentului: cifrele (generat de script)
 
-Generat automat de `uv run python -m cyberpunks.planner.evaluate --days 30 --seed 7 --meters 120` la 2026-11-07T14:04:47+02:00 (`planner@0.1.0+1f31e1e`). Lume SINTETICĂ, 30 de zile, 120 de lucrări A pe zi. Metoda: `reports/planner/README.md`.
+Generat automat de `uv run python -m cyberpunks.planner.evaluate --days 30 --seed 7 --meters 120` la 2026-11-07T14:17:14+02:00 (`planner@0.1.0+6861cce`). Lume SINTETICĂ, 30 de zile, 120 de lucrări A pe zi. Metoda: `reports/planner/README.md`.
 
 | Strategie | Valoare netă pe zi (lei) | Km pe zi | Vizite fără problemă reală | Urgențe ratate | Furtuni reale acoperite |
 |---|---|---|---|---|---|
@@ -41,6 +41,20 @@ Agentul a mai trimis 1406 citiri la distanță (din care 746 pe probleme reale) 
 | Agentul complet | 35.061 | 352 | 37,3% |
 | Fără pragul etic (vizită și sub scorul 0,5, dacă merită) | 40.806 | 381 | 44,6% |
 | Aceleași reguli, trasee făcute greedy în loc de OR-Tools | 34.384 | 391 | 37,1% |
+
+## Ziua demo (2025-07-08): lucrările reale ale modelului A, cu adevărul injectat
+
+249 lucrări A, din care 183 probleme reale (valoare reală 120.207 lei). Valoarea capturată e valoarea reală a problemei, nu estimarea modelului. Adevărul vine de la firul A (`A_ground_truth.csv`).
+
+| Strategie | Valoare netă (lei) | Vizite | Probleme reale găsite | Vizite fără problemă | Cazuri reale de siguranță vizitate | Km |
+|---|---|---|---|---|---|---|
+| Agentul (reguli + OR-Tools) | 10.407 | 30 | 26 | 4 | 16 din 16 | 122 |
+| Agentul fără siguranța obligatorie (ablație) | 14.800 | 30 | 27 | 3 | 12 din 16 | 109 |
+| Top-K după scor | 5.213 | 24 | 24 | 0 | 0 din 16 | 237 |
+| Primul venit | 22.081 | 26 | 26 | 0 | 1 din 16 | 163 |
+| Aleator | 4.776 | 28 | 21 | 7 | 1 din 16 | 246 |
+
+Agentul a trimis în plus 152 citiri la distanță (din care 144 pe probleme reale) și 59 cazuri la om (din care 5 reale). „Primul venit” urmează aici ordinea din fișierul modelului A, care e deja clasamentul lui după valoare. Agentul trimite întâi toate cazurile cu risc pentru oameni (regula R-SAFETY), chiar dacă valorează puțin în lei; ablația arată cât costă regula și câte cazuri de siguranță ar rămâne nevizitate fără ea.
 
 ## Sensibilitate la ipotezele fără sursă
 
