@@ -1,7 +1,7 @@
 # Status: Teo-B-furtuna
-Actualizat: 2026-11-07 13:51
+Actualizat: 2026-11-07 13:54
 Milestone curent: M1 provizoriu (model pe 19 din 80 de comitate); M1 final pe la 15:15
-Gata de merge: da (commit cbf4007), versiune PROVIZORIE: interfața și formatele sunt finale, cifrele modelului se schimbă la 15:15
+Gata de merge: da (commit a402296), versiune PROVIZORIE: formatele și `run()` sunt finale; modelul și cifrele se schimbă la M1 final (~15:30)
 
 ## Făcut
 - 12:44 Citit memoria, tema, planul, contractele, fixture-urile. `uv sync` și `make check` trec.
@@ -16,6 +16,9 @@ Gata de merge: da (commit cbf4007), versiune PROVIZORIE: interfața și formatel
 - 13:25 Teste B (17, fără rețea): vreme lipsă, valori imposibile, zonă în afara antrenării, rafale extreme, surse meteo în dezacord, lipsa vremii orare, cache și rețea picată. Secțiunea B din `Makefile`. `docs/data/B.md`.
 - 13:28 Analiza erorilor (`reports/B/error_analysis.md`), experimente (`reports/B/experiments.json`), backtest pe 6-10 iulie 2025 (`reports/B/backtest_romania.md`). Începutul furtunii se estimează după prima oră cu ploaie sau rafală foarte puternică: 15:00 la Timișoara și Reșița, 17:00 la Deva (codul roșu ANM: 15-21).
 - 13:30 **Modelul e livrat în git** (`models/release/b_model.joblib`, 1,1 MB), ca planificatorul să poată apela `run()` fără să refacă datele.
+
+- 13:35-13:54 Calibrare conformală a cuantilelor (acoperirea P10-P90 pe 2025: 82%, față de 62% fără). Evaluare cu echipe puține și în lei. Verificare pe evenimente reale cunoscute din SUA: gheața din Michigan (feb. 2023), tornadele din 31 martie 2023, Helene (sept. 2024). Al doilea caz în backtest: Slobozia, 17 iulie 2025. Figuri cu paletă validată pentru daltonism. Model card generat din metrici. Termenele ANRE verificate în sursa primară (cererea 8). Test cap-coadă cu planificatorul (cererea 11).
+- 13:54 **Temperaturile și radiația au fost scoase din model.** Pe 36 de comitate, PR-AUC pe 2025 scade de la 0,258 la 0,250 (−3%). În schimb, pe 8 iulie 2025 riscul mediu e 0,31 în Banat față de 0,07 în Dobrogea și 0,04 în Muntenia (înainte: 0,34 față de 0,11), iar nicio zonă cu caniculă nu mai trece de prag. Cifra finală vine din `reports/B/experiments.json`, varianta `cu_temperaturi`.
 
 ## Urmează
 - 14:55 Se termină vremea pentru toate cele 80 de comitate. Reantrenez, rulez experimentele, actualizez metricile, lucrările și modelul, apoi „Gata de merge” final pentru M1.
