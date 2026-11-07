@@ -9,19 +9,21 @@
     "items_in": 8,
     "items_valid": 7,
     "items_invalid": 1,
-    "assigned": 3,
+    "assigned": 4,
     "deferred": 1,
     "human_review": 1,
     "remote_actions": 0,
     "notifications": 1,
-    "crews_used": 2,
-    "expected_value_lei": 2741.2,
-    "total_km": 31.4
+    "crews_used": 3,
+    "expected_value_lei": 32381.95,
+    "total_km": 106.2
   },
   "routes": [
     {
       "crew_id": "E-BV-2",
       "depot_id": "D-BUC-V",
+      "depart_at": "2026-11-09T08:00:00+02:00",
+      "return_at": "2026-11-09T10:55:00+02:00",
       "stops": [
         {
           "seq": 1,
@@ -45,6 +47,8 @@
     {
       "crew_id": "E-BV-3",
       "depot_id": "D-BUC-V",
+      "depart_at": "2026-11-09T10:53:00+02:00",
+      "return_at": "2026-11-09T13:07:00+02:00",
       "stops": [
         {
           "seq": 1,
@@ -57,6 +61,24 @@
       "total_km": 4.8,
       "total_work_min": 120,
       "total_travel_min": 14
+    },
+    {
+      "crew_id": "E-CT-1",
+      "depot_id": "D-CTA",
+      "depart_at": "2026-11-09T10:15:00+02:00",
+      "return_at": "2026-11-09T20:45:00+02:00",
+      "stops": [
+        {
+          "seq": 1,
+          "work_item_id": "B-20261109-CT-MEDGIDIA",
+          "eta": "2026-11-09T11:00:00+02:00",
+          "duration_min": 480,
+          "travel_km": 36.2
+        }
+      ],
+      "total_km": 72.4,
+      "total_work_min": 480,
+      "total_travel_min": 90
     }
   ],
   "decisions": [
@@ -67,12 +89,13 @@
       "rule_id": "R-VALUE-OVER-COST",
       "threshold": {
         "min_net_value_lei": 0.0,
-        "score_min": 0.5
+        "score_min": 0.5,
+        "visit_cost_lei": 250.0
       },
       "priority_score": 1239.75,
       "rank": 1,
       "crew_id": "E-BV-2",
-      "audit_id": "e8d43cf9-6bf3-4b30-8e5e-dd4a7cb6eb3f"
+      "audit_id": "cb3a7d6f-31d8-4875-b7ba-73afeba9e864"
     },
     {
       "work_item_id": "C-20261109-PT-1432",
@@ -81,12 +104,13 @@
       "rule_id": "R-VALUE-OVER-COST",
       "threshold": {
         "min_net_value_lei": 0.0,
-        "score_min": 0.5
+        "score_min": 0.5,
+        "visit_cost_lei": 250.0
       },
       "priority_score": 746.2,
       "rank": 2,
       "crew_id": "E-BV-3",
-      "audit_id": "2c90a4cf-0626-4bae-a6ae-0ad3121b8e44"
+      "audit_id": "d458bb4e-b72b-4a18-b8bd-d464a7c04e77"
     },
     {
       "work_item_id": "A-20261109-MTR-019833",
@@ -95,12 +119,13 @@
       "rule_id": "R-VALUE-OVER-COST",
       "threshold": {
         "min_net_value_lei": 0.0,
-        "score_min": 0.5
+        "score_min": 0.5,
+        "visit_cost_lei": 250.0
       },
       "priority_score": 912.0,
       "rank": 3,
       "crew_id": "E-BV-2",
-      "audit_id": "73600e48-4c2a-4ab6-bc8c-2eb0e283083a"
+      "audit_id": "b6e54e99-44bc-4b40-acb9-aa1f2c8ae2ff"
     },
     {
       "work_item_id": "A-20261109-MTR-027710",
@@ -111,7 +136,59 @@
       "priority_score": null,
       "rank": null,
       "crew_id": null,
-      "audit_id": "4285add9-20f9-4885-89d6-00d945b024e8"
+      "audit_id": "27a3d018-67ff-4118-b2ad-f040c1155ff1"
+    },
+    {
+      "work_item_id": "B-20261109-CT-MEDGIDIA",
+      "decision": "assigned",
+      "reason_ro": "Risc mare de avarii între 12:00 și 20:00; echipa ajunge în zonă la 11:00.",
+      "rule_id": "R-STORM-PREPOSITION",
+      "threshold": {
+        "score_min": 0.6,
+        "preposition_cost_lei": 2700.0
+      },
+      "priority_score": 29484.0,
+      "rank": 4,
+      "crew_id": "E-CT-1",
+      "audit_id": "c3fc0e57-6ee5-4452-ad9f-f557da768836"
+    },
+    {
+      "work_item_id": "B-20261109-IF-SNAGOV",
+      "decision": "deferred",
+      "reason_ro": "Riscul e sub prag; zona rămâne urmărită.",
+      "rule_id": "R-BELOW-THRESHOLD",
+      "threshold": {
+        "score_min": 0.6
+      },
+      "priority_score": null,
+      "rank": null,
+      "crew_id": null,
+      "audit_id": "3e205841-20cf-4a6b-83b9-75b3d51e8e35"
+    },
+    {
+      "work_item_id": "C-20261109-PT-0877",
+      "decision": "notify",
+      "reason_ro": "Depășire probabilă, dar sub costul unei intervenții: mesaj către prosumatori.",
+      "rule_id": "R-CHEAP-ACTION",
+      "threshold": {
+        "score_min": 0.8,
+        "tap_change_visit_cost_lei": 450.0
+      },
+      "priority_score": null,
+      "rank": null,
+      "crew_id": null,
+      "audit_id": "a6203621-ac57-40fb-9e38-ca618049772f"
+    },
+    {
+      "work_item_id": "A-20261109-MTR-BAD",
+      "decision": "rejected_invalid",
+      "reason_ro": "Intrare greșită: coordonate în afara României, scor peste 1.",
+      "rule_id": "R-QUARANTINE",
+      "threshold": {},
+      "priority_score": null,
+      "rank": null,
+      "crew_id": null,
+      "audit_id": "925833b5-a161-4200-95d8-1bc3b7146fc8"
     }
   ],
   "alerts": [

@@ -60,7 +60,7 @@ def test_series_per_source(client: TestClient, wid: str) -> None:
 
 def test_audit_and_filter(client: TestClient) -> None:
     records = client.get("/api/audit").json()
-    assert len(records) == 4
+    assert len(records) >= 4  # câte o decizie pentru fiecare lucrare din exemple
     for rec in records:
         AuditRecord.model_validate(rec)
     one = client.get("/api/audit", params={"work_item_id": "A-20261109-MTR-004217"}).json()

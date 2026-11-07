@@ -242,7 +242,8 @@ def run(
     t0 = time.perf_counter()
     settings = settings or Settings.load()
     sc = settings.scenarios.get(scenario) or Scenario(scenario, scenario, None, None)
-    plan_date = sc.resolve_date(date)
+    # În modul fixtures, data vine din exemple (nu din scenariu), ca exemplele să nu fie respinse pe dată.
+    plan_date = _fixture_date() if (mode == "fixtures" and date is None) else sc.resolve_date(date)
     if plan_date is None:  # data scenariului nu e încă aleasă: o luăm din ieșirile existente sau din fixture-uri
         existing = [_work_items_file(out_root, scenario, s) for s in "ABC"] if mode != "fixtures" else []
         plan_date = infer_plan_date(existing) or _fixture_date()
