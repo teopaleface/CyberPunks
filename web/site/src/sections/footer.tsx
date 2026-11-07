@@ -25,7 +25,7 @@ function BackToTop() {
   return (
     <button
       type="button"
-      onClick={() => window.scrollTo({ top: 0, behavior: "auto" })}
+      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
       className="group inline-flex cursor-pointer items-center gap-2 text-foreground/85 transition-colors duration-150 hover:text-foreground"
     >
       Back to top
@@ -80,7 +80,7 @@ export function Footer({ screen = false }: { screen?: boolean }) {
               <GlassLink
                 href={href}
                 size="lg"
-                variant="signal"
+                variant="blue"
                 onClick={(e) => {
                   e.preventDefault()
                   navigate(href)

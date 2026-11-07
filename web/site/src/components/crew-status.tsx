@@ -15,7 +15,7 @@ const PHASE_ICON: Record<CrewPhase, typeof Truck> = {
 }
 
 const PHASE_TONE: Record<CrewPhase, string> = {
-  programata: "text-white/60",
+  programata: "text-foreground/60",
   tranzit: "text-[#6b8cff]",
   diagnosticare: "text-amber",
   lucru: "text-amber",
@@ -43,13 +43,13 @@ export function PhaseIcon({ phase, className }: { phase: CrewPhase; className?: 
 /** One table cell: icon, phase and crew. */
 export function CrewStatusCell({ id }: { id: string }) {
   const s = useCrewStatus(id)
-  if (!s) return <span className="text-white/35">Fără echipaj</span>
+  if (!s) return <span className="text-foreground/35">Fără echipaj</span>
   return (
     <span className="flex items-center gap-2.5" title={s.note}>
       <PhaseIcon phase={s.phase} />
       <span>
         <span className={cn("block font-medium", PHASE_TONE[s.phase])}>{PHASE_RO[s.phase]}</span>
-        <span className="block text-sm text-white/55">{s.crew}</span>
+        <span className="block text-sm text-foreground/55">{s.crew}</span>
       </span>
     </span>
   )
@@ -68,17 +68,17 @@ export function CrewStatusPanel({ id }: { id: string }) {
     <section aria-label="Statusul echipajului" className="rounded-2xl bg-surface p-5 md:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-4">
-          <span className="grid size-12 place-items-center rounded-2xl bg-white/[0.06]">
+          <span className="grid size-12 place-items-center rounded-2xl bg-foreground/[0.06]">
             <PhaseIcon phase={s.phase} className="size-6" />
           </span>
           <div>
             <div className="text-xl font-semibold">
               <span className={PHASE_TONE[s.phase]}>{PHASE_RO[s.phase]}</span>, echipa {s.crew}
             </div>
-            <div className="text-white/75">{s.note}</div>
+            <div className="text-foreground/75">{s.note}</div>
           </div>
         </div>
-        <div className="tabular text-right text-sm text-white/60">
+        <div className="tabular text-right text-sm text-foreground/60">
           <div>Ora {label}, simulare pe tura de mâine</div>
           {s.seq > 0 && (
             <div>
@@ -94,8 +94,8 @@ export function CrewStatusPanel({ id }: { id: string }) {
           const on = i === at
           return (
             <li key={p} aria-current={on ? "step" : undefined}>
-              <span className={cn("block h-1.5 rounded-full", done ? "bg-white/45" : on ? "bg-amber" : "bg-white/10")} />
-              <span className={cn("mt-2 flex items-center gap-1.5 text-sm", on ? "font-medium text-white" : done ? "text-white/60" : "text-white/40")}>
+              <span className={cn("block h-1.5 rounded-full", done ? "bg-foreground/45" : on ? "bg-amber" : "bg-foreground/10")} />
+              <span className={cn("mt-2 flex items-center gap-1.5 text-sm", on ? "font-medium text-foreground" : done ? "text-foreground/60" : "text-foreground/40")}>
                 <PhaseIcon phase={p} className={cn("size-4", !on && "text-current [animation:none]")} />
                 {PHASE_RO[p]}
               </span>

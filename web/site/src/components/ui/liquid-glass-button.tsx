@@ -22,7 +22,7 @@ const glass = cva(
     "before:[mask:linear-gradient(#000_0_0)_content-box_exclude,linear-gradient(#000_0_0)]",
     // light sweep
     "after:pointer-events-none after:absolute after:inset-y-0 after:-left-1/2 after:w-1/3 after:-skew-x-12",
-    "after:bg-white/25 after:blur-md after:opacity-0 after:transition-[transform,opacity] after:duration-700",
+    "after:bg-foreground/25 after:blur-md after:opacity-0 after:transition-[transform,opacity] after:duration-700",
     "hover:after:translate-x-[420%] hover:after:opacity-100",
   ],
   {
@@ -39,7 +39,7 @@ const glass = cva(
         ],
         // the account actions: solid blue glass (24,65,232)
         blue: [
-          "text-white bg-[linear-gradient(180deg,rgba(24,65,232,0.85),rgba(24,65,232,0.62))]",
+          "text-foreground bg-[linear-gradient(180deg,rgba(24,65,232,0.85),rgba(24,65,232,0.62))]",
           "shadow-[inset_0_1px_0_rgba(255,255,255,.5),inset_0_-10px_24px_rgba(24,65,232,.45),0_8px_30px_-8px_rgba(24,65,232,.75)]",
           "hover:bg-[linear-gradient(180deg,rgba(40,82,245,0.95),rgba(24,65,232,0.75))] hover:shadow-[inset_0_1px_0_rgba(255,255,255,.65),inset_0_-12px_28px_rgba(60,100,255,.5),0_12px_40px_-6px_rgba(24,65,232,.9)]",
         ],

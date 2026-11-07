@@ -43,13 +43,13 @@ export function Panel({ title, children, className }: { title?: string; children
 export function ScoreScale({ score, low, high }: { score: number; low: number | null; high: number | null }) {
   return (
     <div>
-      <div className="relative h-3 rounded-full bg-white/10">
+      <div className="relative h-3 rounded-full bg-foreground/10">
         {low !== null && high !== null && (
-          <span className="absolute inset-y-0 rounded-full bg-white/25" style={{ left: `${low * 100}%`, width: `${Math.max(1, (high - low) * 100)}%` }} />
+          <span className="absolute inset-y-0 rounded-full bg-foreground/25" style={{ left: `${low * 100}%`, width: `${Math.max(1, (high - low) * 100)}%` }} />
         )}
         <span className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ember ring-4 ring-black" style={{ left: `${score * 100}%` }} />
       </div>
-      <div className="tabular mt-2 flex justify-between text-sm text-white/60">
+      <div className="tabular mt-2 flex justify-between text-sm text-foreground/60">
         <span>0</span>
         <span>
           {fmt(score, 2)}
@@ -128,12 +128,12 @@ export function ItemDetail({ item }: { item: Item }) {
             <ShieldAlert className="size-4" aria-hidden /> Risc de siguranță
           </span>
         )}
-        {item.quality.synthetic && <span className="text-sm text-white/60">Date sintetice</span>}
+        {item.quality.synthetic && <span className="text-sm text-foreground/60">Date sintetice</span>}
       </div>
 
       <CrewStatusPanel id={item.id} />
 
-      {item.summary && <p className="max-w-[72ch] text-lg text-white/90">{item.summary}</p>}
+      {item.summary && <p className="max-w-[72ch] text-lg text-foreground/90">{item.summary}</p>}
 
       <div className="grid gap-6 xl:grid-cols-12">
         <Panel title="Ce prezice modelul" className="xl:col-span-5">
@@ -141,13 +141,13 @@ export function ItemDetail({ item }: { item: Item }) {
           <dl className="mt-5 space-y-3">
             {p.point !== null && (
               <div>
-                <dt className="text-sm text-white/60">Estimare</dt>
+                <dt className="text-sm text-foreground/60">Estimare</dt>
                 <dd className="tabular text-xl font-semibold">
                   {fmt(p.point, p.point < 10 ? 3 : 0)}{" "}
-                  <span className="text-base font-normal text-white/75">{p.pointUnit}</span>
+                  <span className="text-base font-normal text-foreground/75">{p.pointUnit}</span>
                 </dd>
                 {p.pointInterval && (
-                  <dd className="tabular text-sm text-white/60">
+                  <dd className="tabular text-sm text-foreground/60">
                     interval {fmt(p.pointInterval[0], p.pointInterval[0] < 10 ? 3 : 0)}–{fmt(p.pointInterval[1], p.pointInterval[1] < 10 ? 3 : 0)}
                   </dd>
                 )}
@@ -155,7 +155,7 @@ export function ItemDetail({ item }: { item: Item }) {
             )}
             {p.confidence && (
               <div>
-                <dt className="text-sm text-white/60">Încredere</dt>
+                <dt className="text-sm text-foreground/60">Încredere</dt>
                 <dd>{CONFIDENCE_RO[p.confidence] ?? p.confidence}</dd>
               </div>
             )}
@@ -164,7 +164,7 @@ export function ItemDetail({ item }: { item: Item }) {
                 <AlertTriangle className="mt-0.5 size-4 shrink-0 text-ember" aria-hidden />
                 <div>
                   <dt className="font-medium">Modelul nu e sigur</dt>
-                  <dd className="text-white/85">{p.abstainReason}</dd>
+                  <dd className="text-foreground/85">{p.abstainReason}</dd>
                 </div>
               </div>
             )}
@@ -178,15 +178,15 @@ export function ItemDetail({ item }: { item: Item }) {
                 const max = Math.max(...item.factors.map((x) => Math.abs(x.contribution)), 0.01)
                 return (
                   <li key={f.label} className="grid grid-cols-[minmax(0,1fr)_minmax(80px,30%)_3.5rem] items-center gap-3">
-                    <span className="text-[15px] text-white/90">{f.label}</span>
-                    <span className="relative h-2 rounded-full bg-white/[0.06]">
-                      <span className="absolute inset-y-0 left-1/2 w-px bg-white/25" />
+                    <span className="text-[15px] text-foreground/90">{f.label}</span>
+                    <span className="relative h-2 rounded-full bg-foreground/[0.06]">
+                      <span className="absolute inset-y-0 left-1/2 w-px bg-foreground/25" />
                       <span
-                        className={cn("absolute inset-y-0 rounded-full", f.contribution >= 0 ? "left-1/2 bg-ember" : "right-1/2 bg-white/50")}
+                        className={cn("absolute inset-y-0 rounded-full", f.contribution >= 0 ? "left-1/2 bg-ember" : "right-1/2 bg-foreground/50")}
                         style={{ width: `${(Math.abs(f.contribution) / max) * 50}%` }}
                       />
                     </span>
-                    <span className={cn("tabular text-right text-sm", f.contribution >= 0 ? "text-ember-soft" : "text-white/65")}>
+                    <span className={cn("tabular text-right text-sm", f.contribution >= 0 ? "text-ember-soft" : "text-foreground/65")}>
                       {f.contribution >= 0 ? "+" : "−"}
                       {fmt(Math.abs(f.contribution), 2)}
                     </span>
@@ -195,9 +195,9 @@ export function ItemDetail({ item }: { item: Item }) {
               })}
             </ul>
           ) : (
-            <p className="text-white/75">Modelul nu a dat factori pentru această lucrare.</p>
+            <p className="text-foreground/75">Modelul nu a dat factori pentru această lucrare.</p>
           )}
-          <p className="mt-4 text-sm text-white/55">Spre dreapta împinge spre problemă, spre stânga o face mai puțin probabilă.</p>
+          <p className="mt-4 text-sm text-foreground/55">Spre dreapta împinge spre problemă, spre stânga o face mai puțin probabilă.</p>
         </Panel>
       </div>
 
@@ -209,21 +209,21 @@ export function ItemDetail({ item }: { item: Item }) {
 
       <div className="grid gap-6 xl:grid-cols-12">
         <Panel title="Decizia agentului" className="xl:col-span-7">
-          {item.reason && <p className="text-white/90">{item.reason}</p>}
+          {item.reason && <p className="text-foreground/90">{item.reason}</p>}
           <dl className="tabular mt-5 grid gap-x-8 gap-y-3 sm:grid-cols-2">
             <div>
-              <dt className="text-sm text-white/60">Regula</dt>
+              <dt className="text-sm text-foreground/60">Regula</dt>
               <dd className="font-medium">{item.rule ?? "fără regulă"}</dd>
             </div>
             {item.action && (
               <div>
-                <dt className="text-sm text-white/60">Acțiunea recomandată</dt>
+                <dt className="text-sm text-foreground/60">Acțiunea recomandată</dt>
                 <dd>{ACTION_RO[item.action] ?? item.action.replaceAll("_", " ")}</dd>
               </div>
             )}
             {thresholdRows(item.threshold).map((r) => (
               <div key={r.k}>
-                <dt className="text-sm text-white/60">{r.k}</dt>
+                <dt className="text-sm text-foreground/60">{r.k}</dt>
                 <dd>{r.v}</dd>
               </div>
             ))}
@@ -232,20 +232,20 @@ export function ItemDetail({ item }: { item: Item }) {
         <Panel title="Ce e în joc" className="xl:col-span-5">
           <dl className="tabular space-y-3">
             <div>
-              <dt className="text-sm text-white/60">Valoarea așteptată</dt>
+              <dt className="text-sm text-foreground/60">Valoarea așteptată</dt>
               <dd className="text-2xl font-semibold">{lei(item.impact.expectedValueLei)}</dd>
             </div>
             <div>
-              <dt className="text-sm text-white/60">Dacă problema e reală</dt>
+              <dt className="text-sm text-foreground/60">Dacă problema e reală</dt>
               <dd>{lei(item.impact.valueIfTrueLei)}</dd>
             </div>
             <div>
-              <dt className="text-sm text-white/60">Clienți afectați</dt>
+              <dt className="text-sm text-foreground/60">Clienți afectați</dt>
               <dd>{fmt(item.impact.customers)}</dd>
             </div>
             {item.effort && (
               <div>
-                <dt className="text-sm text-white/60">Efort</dt>
+                <dt className="text-sm text-foreground/60">Efort</dt>
                 <dd>
                   {item.effort.duration_min} min, {item.effort.crew_size} oameni
                   {item.effort.requires_planned_outage ? ", cere întrerupere planificată" : ""}
@@ -263,9 +263,9 @@ export function ItemDetail({ item }: { item: Item }) {
               <li key={c.id} className="grid gap-1 sm:grid-cols-[1fr_auto] sm:gap-6">
                 <div>
                   <div className="font-medium">{OUTCOME_RO[c.outcome] ?? c.outcome}</div>
-                  <div className="text-white/75">{c.note}</div>
+                  <div className="text-foreground/75">{c.note}</div>
                 </div>
-                <div className="tabular text-sm text-white/65 sm:text-right">asemănare {fmt(c.similarity, 2)}</div>
+                <div className="tabular text-sm text-foreground/65 sm:text-right">asemănare {fmt(c.similarity, 2)}</div>
               </li>
             ))}
           </ul>
@@ -275,20 +275,20 @@ export function ItemDetail({ item }: { item: Item }) {
         <Panel title="Urmărire">
           <dl className="space-y-2.5 text-[15px]">
             <div className="flex flex-wrap justify-between gap-x-4">
-              <dt className="text-white/60">Lucrarea</dt>
+              <dt className="text-foreground/60">Lucrarea</dt>
               <dd className="break-all">{item.id}</dd>
             </div>
             <div className="flex flex-wrap justify-between gap-x-4">
-              <dt className="text-white/60">Predicția</dt>
+              <dt className="text-foreground/60">Predicția</dt>
               <dd className="break-all">{p.id}</dd>
             </div>
             <div className="flex flex-wrap justify-between gap-x-4">
-              <dt className="text-white/60">Modelul</dt>
+              <dt className="text-foreground/60">Modelul</dt>
               <dd>{p.model}</dd>
             </div>
             {item.auditId && (
               <div className="flex flex-wrap justify-between gap-x-4">
-                <dt className="text-white/60">Rândul din jurnal</dt>
+                <dt className="text-foreground/60">Rândul din jurnal</dt>
                 <dd className="break-all">{item.auditId}</dd>
               </div>
             )}
@@ -314,7 +314,7 @@ function HumanDecision({ item }: { item: Item }) {
       <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-4">
         <VerdictButtons id={item.id} label={item.label} size="lg" />
         {v && (
-          <p role="status" className="text-white/80">
+          <p role="status" className="text-foreground/80">
             {v === "approved"
               ? crew
                 ? `Aprobat: merge echipajul ${crew}.`

@@ -5,6 +5,7 @@ import { GlassLink } from "@/components/ui/liquid-glass-button"
 import { LiquidNavbar } from "@/components/ui/liquid-glass-navbar"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { displayName, useAuth } from "@/lib/auth"
+import { useReduced } from "@/lib/motion"
 import { NAV_ITEMS, ROUTES, SITE } from "@/lib/site"
 
 /**
@@ -43,6 +44,7 @@ function AccountCorner() {
 }
 
 export function SiteNav() {
+  const reduce = useReduced()
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const active = NAV_ITEMS.find((i) => pathname === i.href || pathname.startsWith(`${i.href}/`))?.id ?? null
@@ -50,7 +52,7 @@ export function SiteNav() {
   return (
     <>
       <motion.header
-        initial={{ opacity: 0, y: -16 }}
+        initial={reduce ? false : { opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
         className="pointer-events-none fixed inset-x-0 top-4 z-50 flex justify-center px-2 sm:px-4"
@@ -79,7 +81,7 @@ export function SiteNav() {
         </div>
       </motion.header>
       <motion.div
-        initial={{ opacity: 0, y: -16 }}
+        initial={reduce ? false : { opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
         className="fixed top-[84px] right-4 z-50 flex items-center gap-2 min-[1280px]:top-[22px] lg:right-6"

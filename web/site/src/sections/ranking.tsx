@@ -6,16 +6,16 @@ import { fmt } from "@/lib/utils"
 
 export function Ranking() {
   return (
-    <Screen id="om" label="Decide un om">
+    <Screen id="om" label="Human review">
       <div className="container-page grid gap-10 lg:grid-cols-12 lg:items-center">
         <div className="lg:col-span-5">
           <Reveal>
-            <h2 className="h-section">Când nu e sigur, decide un om</h2>
+            <h2 className="h-section">Uncertain cases go to a dispatcher</h2>
           </Reveal>
           <Reveal delay={0.06}>
-            <p className="mt-5 max-w-[46ch] text-white/90 lg:text-lg">
-              {fmt(DB.summary.human_review)} cazuri din plan au rămas la dispecer: modelul nu e sigur, zona iese din ce a
-              văzut la antrenare, sau echipele din regiune sunt deja ocupate. Agentul spune de ce.
+            <p className="mt-5 max-w-[46ch] text-foreground/90 lg:text-lg">
+              {fmt(DB.summary.human_review)} cases require dispatcher review because of model uncertainty, unfamiliar
+              conditions or limited crew capacity. Each case includes a reason.
             </p>
           </Reveal>
           <Reveal delay={0.12} className="mt-[clamp(20px,4vh,40px)]">

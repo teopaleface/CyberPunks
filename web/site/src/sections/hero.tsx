@@ -1,9 +1,10 @@
 import { motion } from "motion/react"
+import { useSnap } from "@/components/section-snap"
 import EnergyBeam from "@/components/ui/energy-beam"
 import { EnergyBeamShader } from "@/components/ui/energy-beam-shader"
 import { GlassLink } from "@/components/ui/liquid-glass-button"
 import { useReduced } from "@/lib/motion"
-import { ROUTES, SITE } from "@/lib/site"
+import { SITE } from "@/lib/site"
 
 const ease = [0.22, 1, 0.36, 1] as const
 
@@ -15,21 +16,28 @@ const ease = [0.22, 1, 0.36, 1] as const
 const USE_UNICORN_SCENE = false
 
 export function Hero() {
+  const snap = useSnap()
   const reduce = useReduced()
 
+  const go = (id: string) => (e: React.MouseEvent) => {
+    if (!snap) return
+    e.preventDefault()
+    snap.goTo(id)
+  }
+
   const drop = (delay: number) => ({
-    initial: reduce ? false as const : { opacity: 0, y: -16 },
+    initial: { opacity: 0, y: reduce ? 0 : -16 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: reduce ? 0 : 0.5, delay: reduce ? 0 : delay, ease },
+    transition: { duration: 0.5, delay, ease },
   })
 
   return (
-    <section id="top" className="relative h-[100svh] min-h-[760px] overflow-hidden bg-background sm:min-h-[600px]">
+    <section id="top" data-snap className="relative h-[100svh] min-h-[760px] overflow-hidden bg-background sm:min-h-[600px]">
       <div className="absolute inset-0" aria-hidden>
         {USE_UNICORN_SCENE ? <EnergyBeam className="!h-full" /> : <EnergyBeamShader />}
       </div>
 
-      {/* Fade the decorative scene into the page background. */}
+      {/* Fade to black, short and steep, so the next screen starts on pure black. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 bottom-0 h-[16vh] bg-[linear-gradient(to_bottom,transparent_0%,var(--bg-dark)_90%)]"
@@ -46,12 +54,17 @@ export function Hero() {
           {SITE.name} uses meter, weather and grid data to plan field work for Rețele Electrice.
           Every decision has a reason. Uncertain cases go to a dispatcher.
         </motion.p>
-        <motion.div {...drop(0.26)} data-beam-anchor className="mt-10 flex flex-col items-center gap-3 sm:grid sm:w-full sm:grid-cols-2 sm:gap-4">
-          <GlassLink href={ROUTES.app} size="lg" className="sm:justify-self-end">
-            Open demo
+        {/* Two equal columns: the gap between the buttons is the page centre, where the beam runs. */}
+        <motion.div
+          {...drop(0.26)}
+          data-beam-anchor
+          className="mt-10 flex flex-col items-center gap-3 sm:grid sm:w-full sm:grid-cols-2 sm:gap-4"
+        >
+          <GlassLink href="#plan" size="lg" onClick={go("plan")} className="sm:justify-self-end">
+            See tomorrow's plan
           </GlassLink>
-          <GlassLink href="#plan" size="lg" variant="frost" className="sm:justify-self-start">
-            See the plan
+          <GlassLink href="#cum" size="lg" variant="frost" onClick={go("cum")} className="sm:justify-self-start">
+            How it works
           </GlassLink>
         </motion.div>
       </div>

@@ -1,5 +1,6 @@
 import { animate, motion, useMotionValue, useSpring, useTransform } from "motion/react"
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useReduced } from "@/lib/motion"
 import { cn } from "@/lib/utils"
 import type { NavItem } from "@/lib/site"
 
@@ -22,6 +23,7 @@ interface LiquidNavbarProps {
  * The options never change from page to page; only the marker moves.
  */
 export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className }: LiquidNavbarProps) {
+  const reduce = useReduced()
   const trackRef = useRef<HTMLDivElement>(null)
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([])
   const [hover, setHover] = useState<number | null>(null)
@@ -74,7 +76,7 @@ export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className
       return
     }
     const first = lastIndex.current === -1
-    if (first) {
+    if (first || reduce) {
       // Appear in place, no travel.
       tx.jump(r.x)
       tw.jump(r.w)
@@ -86,8 +88,9 @@ export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className
       tx.set(r.x)
       tw.set(r.w)
     }
-    visible.set(1)
-    if (lastIndex.current !== activeIndex) {
+    if (reduce) visible.jump(1)
+    else visible.set(1)
+    if (!reduce && lastIndex.current !== activeIndex) {
       const t = setTimeout(() => {
         ripple.set(0)
         animate(ripple, 1, { duration: 0.9, ease: [0.22, 1, 0.36, 1] })
@@ -95,7 +98,7 @@ export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className
       lastIndex.current = activeIndex
       return () => clearTimeout(t)
     }
-  }, [activeIndex, rects, tx, tw, headX, headW, tailX, tailW, visible, ripple])
+  }, [reduce, activeIndex, rects, tx, tw, headX, headW, tailX, tailW, visible, ripple])
 
   const hoverRect = hover !== null ? rects[hover] : null
 
@@ -137,7 +140,7 @@ export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className
             width: hoverRect?.w ?? 0,
             opacity: hoverRect && hover !== activeIndex ? 1 : 0,
           }}
-          transition={{ type: "spring", stiffness: 400, damping: 32 }}
+          transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 400, damping: 32 }}
         />
 
         {/* the drop */}

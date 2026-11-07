@@ -1,80 +1,45 @@
-import { motion } from "motion/react"
-import { useState, type ReactNode } from "react"
-import { CountUp } from "@/components/count-up"
-import { DecideFlow } from "@/components/decide-flow"
-import { SHIFT, crewDay, hhmm } from "@/lib/crew-status"
+import { AnimatePresence, motion, useMotionValueEvent, useScroll, useTransform } from "motion/react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { Reveal } from "@/components/reveal"
 import { SourceIcon } from "@/components/ui/animated-icons"
-import { DB, SOURCES, type SourceKey } from "@/data/daybreak"
+import { useSnap } from "@/components/section-snap"
+import { CountUp } from "@/components/count-up"
+import { DecideFlow } from "@/components/decide-flow"
+import { DB, DECISION_RO, SOURCES, type Decision, type SourceKey } from "@/data/daybreak"
+import { SHIFT, crewDay, hhmm } from "@/lib/crew-status"
 import { cn, fmt } from "@/lib/utils"
+import { useReduced } from "@/lib/motion"
 
 const ease = [0.22, 1, 0.36, 1] as const
 const S = DB.summary
 
 /* ---------- visuals, one per step (also used on the feature pages) ---------- */
 
-const INPUTS = [
-  { t: "Meter readings", d: "PPC's workshop described over 2 million smart meters reporting every 15 minutes. Demo readings are synthetic." },
-  { t: "Weather", d: "Public Open-Meteo forecasts for wind, rain and solar radiation. The storm model uses historical Open-Meteo weather and EAGLE-I outages." },
-  { t: "Grid", d: "Transformers, connected customers, crews and depots are synthetic, on a real map." },
-]
-
-export function PerceiveVisual({ compact = false }: { compact?: boolean }) {
-  if (compact) return (
-    <div className="flex flex-col items-center py-5 text-center">
-      <CountUp value={S.items_valid} className="text-[clamp(4rem,9vw,8rem)] leading-none font-semibold tracking-[-0.04em]" />
-      <p className="mt-4 text-lg text-foreground/80">validated jobs</p>
-      <details className="mt-6 w-full text-left">
-        <summary className="cursor-pointer py-2 text-sm text-foreground/75">Data inputs and validation</summary>
-        <p className="mt-3 text-sm text-foreground/70">{fmt(S.items_in)} incoming jobs; {fmt(S.items_invalid)} quarantined.</p>
-        <dl className="mt-4 space-y-4">{INPUTS.map((x) => <div key={x.t}><dt className="font-medium">{x.t}</dt><dd className="text-sm text-foreground/75">{x.d}</dd></div>)}</dl>
-      </details>
-    </div>
-  )
+export function PerceiveVisual() {
   return (
-    <div className="flex h-full flex-col justify-center gap-7">
-      <dl className="tabular grid grid-cols-3 gap-4">
-        <div>
-          <dd className="text-[clamp(1.8rem,3vw,2.8rem)] leading-none font-semibold">{fmt(S.items_in)}</dd>
-          <dt className="mt-2 text-sm text-foreground/70">incoming jobs</dt>
-        </div>
-        <div>
-          <dd className="text-[clamp(1.8rem,3vw,2.8rem)] leading-none font-semibold">{fmt(S.items_valid)}</dd>
-          <dt className="mt-2 text-sm text-foreground/70">valid</dt>
-        </div>
-        <div>
-          <dd className="text-[clamp(1.8rem,3vw,2.8rem)] leading-none font-semibold">{fmt(S.items_invalid)}</dd>
-          <dt className="mt-2 text-sm text-foreground/70">quarantined</dt>
-        </div>
-      </dl>
-      <ul className="space-y-4">
-        {INPUTS.map((x) => (
-          <li key={x.t}>
-            <div className="font-medium">{x.t}</div>
-            <div className="text-foreground/75">{x.d}</div>
-          </li>
-        ))}
-      </ul>
+    <div className="flex h-full flex-col items-center justify-center text-center">
+      <CountUp value={S.items_valid} once className="text-[clamp(4rem,9vw,8rem)] leading-none font-semibold tracking-[-0.04em]" />
+      <p className="mt-4 text-[clamp(1.1rem,1.6vw,1.4rem)] text-foreground/80">validated jobs</p>
     </div>
   )
 }
 
 export const MODEL_LINES: Record<SourceKey | "bilant", { what: string; metric: string }> = {
   A: {
-    what: "Probability that a meter is faulty or tampered with.",
+    what: "Probability of a faulty or tampered meter.",
     metric: `ROC AUC ${fmt(DB.models.A.rocAuc, 2)} on unseen households, versus ${fmt(DB.models.A.iforestRocAuc, 2)} for a simple anomaly detector`,
   },
   B: {
-    what: "Probability of outages tomorrow and estimated customers affected.",
-    metric: `ROC AUC ${fmt(DB.models.B.roc_auc, 2)}, tested on periods after the training data`,
+    what: "Tomorrow's outage risk and the number of customers affected.",
+    metric: `ROC AUC ${fmt(DB.models.B.roc_auc, 2)}, tested on periods after training`,
   },
   C: {
-    what: "Hourly peak voltage at each transformer, with a P10–P90 interval.",
+    what: "Hourly maximum voltage at each transformer, with a P10–P90 interval.",
     metric: `Mean error ${fmt(DB.models.C.mae_vmax_pu, 4)} pu, tested on unseen grids`,
   },
   bilant: {
-    what: "Normal loss at each transformer and the likely cause of any excess.",
-    metric: `Correct cause in ${fmt(DB.models.bilant.diagnosisAccuracy * 100)}% of cases across ${fmt(DB.models.bilant.testPosts)} transformers`,
+    what: "Normal loss at each transformer and the cause of any excess loss.",
+    metric: `Cause predicted in ${fmt(DB.models.bilant.diagnosisAccuracy * 100)}% of cases, across ${fmt(DB.models.bilant.testPosts)} transformers`,
   },
 }
 
@@ -85,8 +50,8 @@ export function EstimateVisual() {
       <ul className="space-y-5">
         {(["A", "B", "C"] as SourceKey[]).map((s) => (
           <li key={s} className="grid grid-cols-[auto_1fr_auto] items-start gap-x-5">
-            <span className="grid size-14 place-items-center rounded-2xl bg-foreground/[0.05]">
-              <SourceIcon s={s} size={36} accent={`var(--source-${s.toLowerCase()})`} className="text-foreground/85" />
+            <span className="grid size-14 place-items-center rounded-2xl bg-foreground/[0.05]" style={{ color: SOURCES[s].color }}>
+              <SourceIcon s={s} size={36} accent={SOURCES[s].color} className="text-foreground/85" />
             </span>
             <div>
               <div className="font-medium">{SOURCES[s].name}</div>
@@ -104,45 +69,124 @@ export function EstimateVisual() {
   )
 }
 
-export function DecideVisual() {
-  return <DecideFlow />
-}
+const DECISION_ORDER: Decision[] = ["remote_action", "deferred", "assigned", "human_review", "notify"]
 
-export function ActVisual({ compact = false }: { compact?: boolean }) {
-  const routes = compact ? DB.routes.slice(0, 4) : DB.routes
-  const hours = Array.from({ length: Math.floor((SHIFT.end - SHIFT.start) / 120) + 1 }, (_, i) => SHIFT.start + i * 120)
-  const x = (m: number) => `${((Math.min(Math.max(m, SHIFT.start), SHIFT.end) - SHIFT.start) / (SHIFT.end - SHIFT.start)) * 100}%`
-  const width = (a: number, b: number) => `${Math.max(0, (Math.min(b, SHIFT.end) - Math.max(a, SHIFT.start)) / (SHIFT.end - SHIFT.start)) * 100}%`
+export function DecideVisual() {
+  const max = Math.max(...DECISION_ORDER.map((d) => DB.decisionCounts[d] ?? 0))
   return (
-    <div className="flex flex-col gap-5">
-      <div className="grid grid-cols-[5rem_1fr] gap-3 sm:grid-cols-[7rem_1fr] sm:gap-5">
-        <span />
-        <div className="tabular relative h-5 text-xs text-foreground/60">
-          {hours.map((m, i) => <span key={m} className={`absolute ${i === 0 ? "" : i === hours.length - 1 ? "-translate-x-full" : "-translate-x-1/2"}`} style={{ left: x(m) }}>{hhmm(m)}</span>)}
-        </div>
-      </div>
-      <ul className="grid gap-5" aria-label="Planned crew day, with estimated work windows">
-        {routes.map((r, i) => {
-          const day = crewDay(r.crew)
-          if (!day) return null
+    <div className="flex h-full flex-col justify-center gap-6">
+      <ul className="space-y-3" aria-label="Agent decisions">
+        {DECISION_ORDER.map((d, i) => {
+          const n = DB.decisionCounts[d] ?? 0
           return (
-            <li key={r.crew} className="grid grid-cols-[5rem_1fr] items-center gap-3 sm:grid-cols-[7rem_1fr] sm:gap-5">
-              <span className="text-sm font-medium">{r.crew}<span className="block text-xs font-normal text-foreground/60">{r.stops} {r.stops === 1 ? "stop" : "stops"}</span></span>
-              <div>
-                <span className="relative block h-7">
-                  {hours.map((m) => <span key={m} aria-hidden className="absolute inset-y-0 w-px bg-foreground/10" style={{ left: x(m) }} />)}
-                  <motion.span aria-hidden className="absolute top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-amber/45" style={{ left: x(day.depart), width: width(day.depart, day.back), transformOrigin: "left" }} initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: i * 0.04, duration: 0.4, ease }} />
-                  {day.stops.map((stop, j) => (
-                    <span key={j} title={`Planned arrival ${hhmm(stop.arrive)}; estimated departure ${hhmm(stop.leave)}`} className="absolute inset-y-0 rounded-sm bg-amber" style={{ left: x(stop.arrive), width: `max(3px, ${width(stop.arrive, stop.leave)})` }} />
-                  ))}
-                </span>
-                <p className="tabular mt-1 text-xs text-foreground/70">{day.open ? `From ${hhmm(day.depart)}, on call` : `${hhmm(day.depart)}–${hhmm(day.back)}`} · {fmt(r.km, 1)} km</p>
-              </div>
+            <li key={d} className="grid grid-cols-[11rem_1fr_3.5rem] items-center gap-4">
+              <span className={cn("text-[15px]", d === "human_review" ? "font-medium text-ember" : "text-foreground/85")}>{DECISION_RO[d]}</span>
+              <span className="h-2 overflow-hidden rounded-full bg-foreground/10">
+                <motion.span
+                  className={cn("block h-full rounded-full", d === "human_review" ? "bg-ember" : "bg-foreground/70")}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(n / max) * 100}%` }}
+                  transition={{ delay: i * 0.05, duration: 0.4, ease }}
+                />
+              </span>
+              <span className="tabular text-right font-medium">{fmt(n)}</span>
             </li>
           )
         })}
       </ul>
-      <p className="text-xs leading-relaxed text-foreground/65">Lines show the route window; blocks show estimated on-site time from planned arrivals.{compact && DB.routes.length > routes.length ? ` ${routes.length} of ${DB.routes.length} crews shown; all routes are on the plan page.` : ""}</p>
+    </div>
+  )
+}
+
+/** On the landing page: one crew per kind of day (a full city round, a short one, a storm). */
+const LANDING_CREWS = ["E-BV-1", "E-BE-1", "E-BV-3", "E-TM-1"]
+
+const HOURS = (() => {
+  const out: number[] = []
+  for (let h = Math.ceil(SHIFT.start / 60); h * 60 <= SHIFT.end; h += 2) out.push(h * 60)
+  return out
+})()
+
+/**
+ * The crews' day on one time axis: the thin line is the crew on the road,
+ * each solid block is a stop where it works.
+ */
+export function ActVisual({ compact = false }: { compact?: boolean }) {
+  const routes = compact ? DB.routes.filter((r) => LANDING_CREWS.includes(r.crew)) : DB.routes
+  const x = (m: number) => `${((Math.min(Math.max(m, SHIFT.start), SHIFT.end) - SHIFT.start) / (SHIFT.end - SHIFT.start)) * 100}%`
+  const w = (a: number, b: number) => `${((Math.min(b, SHIFT.end) - Math.max(a, SHIFT.start)) / (SHIFT.end - SHIFT.start)) * 100}%`
+  return (
+    <div className="flex h-full flex-col justify-center gap-5">
+      <div className="grid grid-cols-[7.5rem_1fr_7.5rem] gap-x-4">
+        <span />
+        <div className="tabular relative h-5 text-sm text-foreground/55">
+          {HOURS.map((m) => (
+            <span key={m} className="absolute -translate-x-1/2" style={{ left: x(m) }}>
+              {hhmm(m)}
+            </span>
+          ))}
+        </div>
+        <span />
+      </div>
+      <ul className={cn("grid", compact ? "gap-5" : "gap-3")} aria-label="Crew day by hour">
+        {routes.map((r, i) => {
+          const day = crewDay(r.crew)
+          const crew = DB.crews.find((c) => c.id === r.crew)
+          return (
+            <li key={r.crew} className="grid grid-cols-[7.5rem_1fr_7.5rem] items-center gap-x-4">
+              <span>
+                <span className="block font-medium">{r.crew}</span>
+                <span className="block truncate text-sm text-foreground/55">{crew?.depotRo}</span>
+              </span>
+              <span className={cn("relative block", compact ? "h-8" : "h-6")}>
+                {HOURS.map((m) => (
+                  <span key={m} aria-hidden className="absolute inset-y-0 w-px bg-foreground/[0.07]" style={{ left: x(m) }} />
+                ))}
+                <motion.span
+                  aria-hidden
+                  className="absolute top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-amber/45"
+                  style={{ left: x(day.depart), width: w(day.depart, day.back), transformOrigin: "left" }}
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ delay: i * 0.06, duration: 0.5, ease }}
+                />
+                {day.stops.map((st, j) => (
+                  <motion.span
+                    key={j}
+                    title={`${hhmm(st.arrive)}–${hhmm(st.leave)}`}
+                    className="absolute inset-y-0 rounded-[4px] bg-amber"
+                    style={{ left: x(st.arrive), width: `max(3px, ${w(st.arrive, st.leave)})` }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.25 + i * 0.06 + j * 0.03, duration: 0.25 }}
+                  />
+                ))}
+              </span>
+              <span className="tabular text-right text-sm">
+                <span className="block text-foreground/85">
+                  {day.open ? `${hhmm(day.depart)}, in the area` : `${hhmm(day.depart)}–${hhmm(day.back)}`}
+                </span>
+                <span className="block text-foreground/55">
+                  {r.stops === 1 ? "1 stop" : `${r.stops} stops`}, {fmt(r.km, 1)} km
+                </span>
+              </span>
+            </li>
+          )
+        })}
+      </ul>
+      <p className="flex flex-wrap items-center gap-x-6 gap-y-2 pl-[calc(7.5rem+1rem)] text-sm text-foreground/60">
+        <span className="flex items-center gap-2">
+          <span aria-hidden className="h-0.5 w-6 rounded-full bg-amber/45" /> travelling
+        </span>
+        <span className="flex items-center gap-2">
+          <span aria-hidden className="h-3 w-3 rounded-[3px] bg-amber" /> on site
+        </span>
+        {compact && (
+          <span>
+            {DB.routes.length - routes.length} more crews in the console
+          </span>
+        )}
+      </p>
     </div>
   )
 }
@@ -158,58 +202,130 @@ export interface Step {
 export const STEPS: Step[] = [
   {
     title: "Perceive",
-    body: "Reads meter, weather and grid data. Invalid coordinates and impossible scores are quarantined before planning.",
-    visual: <PerceiveVisual compact />,
+    body: "Reads meters, weather and grid data. Invalid coordinates or impossible scores are quarantined before planning.",
+    visual: <PerceiveVisual />,
   },
   {
     title: "Estimate",
-    body: "Our trained models estimate meter faults, storm outages and voltage. Transformer energy balance adds evidence to meter alerts.",
+    body: "Three models trained by our team estimate probabilities for meters, storms and voltage. Transformer energy balance adds another check.",
     visual: <EstimateVisual />,
   },
   {
     title: "Decide",
-    body: "Code applies the rules. Expected value must exceed cost; uncertain cases go to a person. Each decision records its rule and reason.",
-    visual: <DecideVisual />,
+    body: "Rules in code require expected value to exceed cost and send uncertain cases to a dispatcher. Every decision records its rule and reason.",
+    visual: <DecideFlow />,
   },
   {
     title: "Act",
-    body: "Assigns work within crew capacity, plans routes, creates work orders and notifications, and records each action in the audit log.",
+    body: "Assigns jobs within crew capacity, creates routes, work orders, alerts and notifications, and records every action in the audit log.",
     visual: <ActVisual compact />,
   },
 ]
 
-/** Read all four steps at once; select one to inspect its output. */
+/**
+ * One pinned screen per stage: the section is as tall as its stages, the
+ * content stays in place, and each scroll step (the landing page snaps one
+ * stage at a time) moves to the next stage.
+ */
 export function HowItWorks() {
+  const ref = useRef<HTMLElement>(null)
+  const snap = useSnap()
+  const reduce = useReduced()
+  const [wide, setWide] = useState(() => window.innerWidth >= 1024 && window.innerHeight >= 700)
+  const pinned = wide && !reduce
+  useEffect(() => {
+    const resize = () => setWide(window.innerWidth >= 1024 && window.innerHeight >= 700)
+    window.addEventListener("resize", resize)
+    return () => window.removeEventListener("resize", resize)
+  }, [])
   const [active, setActive] = useState(0)
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] })
+  const fill = useTransform(scrollYProgress, [0, 1], ["0%", "100%"])
+  useMotionValueEvent(scrollYProgress, "change", (p) => {
+    if (pinned) setActive(Math.max(0, Math.min(STEPS.length - 1, Math.round(p * (STEPS.length - 1)))))
+  })
+
+  const go = (i: number) => {
+    if (!pinned) return setActive(i)
+    if (snap) snap.goToStep("cum", i)
+    else if (ref.current) window.scrollTo({ top: ref.current.offsetTop + i * window.innerHeight, behavior: "smooth" })
+  }
+
   return (
-    <section id="cum" aria-label="How it works" className="relative py-[clamp(84px,11vh,120px)]">
-      <div className="container-page grid items-start gap-10 lg:grid-cols-12">
-        <div className="lg:col-span-5">
-          <Reveal><h2 className="h-section">How it works</h2></Reveal>
-          <p className="mt-5 text-foreground/70">Select a step to inspect its output.</p>
-          <ol className="mt-6 space-y-2">
-            {STEPS.map((step, i) => (
-              <li key={step.title}>
-                <button
-                  type="button"
-                  onClick={() => setActive(i)}
-                  aria-pressed={i === active}
-                  aria-controls="agent-step-output"
-                  className={cn("w-full cursor-pointer rounded-2xl p-4 text-left transition-colors", i === active ? "bg-surface-2" : "hover:bg-surface")}
-                >
-                  <span className={cn("block font-display text-lg font-semibold", i === active ? "text-accent-ink" : "text-foreground")}>{step.title}</span>
-                  <span className="mt-2 block text-foreground/85">{step.body}</span>
-                </button>
-              </li>
-            ))}
-          </ol>
-        </div>
-        <Reveal delay={0.1} className="lg:col-span-7">
-          <div id="agent-step-output" data-ui className="rounded-2xl bg-surface p-[clamp(20px,3vw,40px)]" aria-label={`${STEPS[active].title} output`}>
-            <h3 className="mb-6 font-sans text-lg font-semibold">{STEPS[active].title}</h3>
-            {STEPS[active].visual}
+    <section
+      ref={ref}
+      id="cum"
+      data-snap
+      data-snap-steps={pinned ? STEPS.length : undefined}
+      aria-label="How it works"
+      className="relative"
+      style={pinned ? { height: `${STEPS.length * 100}svh` } : undefined}
+    >
+      <div className={cn("flex flex-col justify-center py-[clamp(84px,11vh,120px)]", pinned ? "sticky top-0 h-[100svh]" : "min-h-[100svh]")}>
+        <div className="container-page grid gap-10 lg:grid-cols-12">
+          <div className="lg:col-span-5">
+            <Reveal>
+              <h2 className="h-section">How it works</h2>
+            </Reveal>
+            <div className="mt-[clamp(20px,4vh,40px)] flex">
+              <div aria-hidden className="relative mr-6 w-0.5 shrink-0 rounded-full bg-foreground/10">
+                <motion.div className="absolute top-0 left-0 w-0.5 rounded-full bg-ember" style={{ height: fill }} />
+              </div>
+              <ol className="flex flex-1 flex-col">
+                {STEPS.map((st, i) => {
+                  const on = i === active
+                  return (
+                    <li key={st.title}>
+                      <button type="button" onClick={() => go(i)} aria-current={on ? "step" : undefined} className="group w-full cursor-pointer py-2.5 text-left">
+                        <span
+                          className={cn(
+                            "block font-display text-[clamp(1.15rem,1.7vw,1.5rem)] font-semibold tracking-[-0.015em] transition-opacity duration-200",
+                            on ? "opacity-100" : "opacity-40 group-hover:opacity-75"
+                          )}
+                        >
+                          {st.title}
+                        </span>
+                        <AnimatePresence initial={false}>
+                          {on && (
+                            <motion.span
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.25, ease }}
+                              className="block max-w-[46ch] overflow-hidden pt-1.5 text-foreground/85"
+                            >
+                              {st.body}
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ol>
+            </div>
           </div>
-        </Reveal>
+          <Reveal delay={0.1} className="lg:col-span-7">
+            <div
+              data-ui
+              className="relative h-[clamp(400px,58vh,540px)] overflow-hidden rounded-2xl p-[clamp(20px,3vw,40px)]"
+              style={{ background: "radial-gradient(120% 80% at 85% 0%, rgba(255,197,2,0.12), transparent 60%), var(--surface)" }}
+            >
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={active}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  transition={{ duration: 0.25, ease }}
+                  className="relative h-full"
+                >
+                  {STEPS[active].visual}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </Reveal>
+        </div>
       </div>
     </section>
   )

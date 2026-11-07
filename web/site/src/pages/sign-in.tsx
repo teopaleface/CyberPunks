@@ -25,6 +25,7 @@ function Field({
   autoComplete,
   error,
   hint,
+  reserveHint = false,
   disabled,
 }: {
   label: string
@@ -34,6 +35,7 @@ function Field({
   autoComplete?: string
   error?: string | null
   hint?: string
+  reserveHint?: boolean
   disabled?: boolean
 }) {
   const id = useId()
@@ -61,8 +63,8 @@ function Field({
         <p id={`${id}-err`} className="mt-1.5 text-sm text-bad">
           {error}
         </p>
-      ) : hint ? (
-        <p id={`${id}-hint`} className="mt-1.5 text-sm text-foreground/65">
+      ) : hint || reserveHint ? (
+        <p id={`${id}-hint`} aria-hidden={!hint || undefined} className="mt-1.5 min-h-5 text-sm text-foreground/65">
           {hint}
         </p>
       ) : null}
@@ -228,6 +230,7 @@ export default function SignInPage() {
                 autoComplete={view === "intra" ? "current-password" : "new-password"}
                 error={passErr}
                 hint={view === "intra" ? undefined : "At least 6 characters."}
+                reserveHint
                 disabled={busy}
               />
             )}

@@ -4,6 +4,7 @@
 @theme inline {
   --color-background: var(--bg-dark);
   --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted);
   --color-accent-ink: var(--accent-ink);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
@@ -175,7 +176,7 @@ html.lenis body {
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
   background: var(--surface-2);
-  color: #fff;
+  color: var(--foreground);
   box-shadow: 0 12px 40px -8px rgba(0, 0, 0, 0.9);
 }
 .leaflet-popup-content-wrapper {
@@ -187,7 +188,7 @@ html.lenis body {
   line-height: 1.5;
 }
 .leaflet-popup-content a {
-  color: var(--ember-soft);
+  color: var(--accent-ink);
 }
 .leaflet-container a.leaflet-popup-close-button {
   color: rgba(255, 255, 255, 0.7);
@@ -201,7 +202,7 @@ html.lenis body {
 }
 .leaflet-bar a {
   background: var(--surface-2) !important;
-  color: #fff !important;
+  color: var(--foreground) !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
@@ -307,3 +308,8 @@ html.lenis body {
   background: var(--nav-glass);
   box-shadow: var(--glass-shadow);
 }
+
+:root.light .leaflet-tile-pane .map-dark { filter: none; }
+:root.light .leaflet-container a.leaflet-popup-close-button { color: var(--muted); }
+:root.light .leaflet-control-attribution { background: rgb(255 255 255 / 90%) !important; color: #57575f !important; }
+:root.light .leaflet-control-attribution a { color: #205fc5 !important; }
