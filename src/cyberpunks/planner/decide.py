@@ -930,6 +930,7 @@ def rule_remedy_ladder(ctx: Context, item: Item, th: dict[str, float]) -> Propos
         "battery": None if battery is None else {"battery_kwh_total": battery.battery_kwh_total, "revenue_lei": battery.revenue_lei,
                                                   "payback_years": battery.payback_years, "customers_targeted": battery.customers_targeted},
         "inverter_trips_avoided": sum(o.inverter_trips_avoided or 0.0 for o in combo),
+        "crew_steps": [o.action.value for o in combo if o.needs_crew],
     }
     notes = _ladder_notifications(ctx, wi, combo)
     notify_costs = Costs(action="notify_customers", action_cost=sum(o.cost_lei for o in combo if not o.needs_crew))

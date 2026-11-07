@@ -193,7 +193,11 @@ def infer_plan_date(paths: list[Path]) -> date | None:
     for p in paths:
         if not p or not p.exists():
             continue
-        for line in p.read_text(encoding="utf-8").splitlines():
+        try:
+            text = p.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue  # fișier stricat: îl tratează loaderul (sursă lipsă)
+        for line in text.splitlines():
             try:
                 d = json.loads(line).get("target_date")
             except (json.JSONDecodeError, AttributeError):
