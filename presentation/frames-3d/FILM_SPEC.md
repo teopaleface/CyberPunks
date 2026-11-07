@@ -100,3 +100,23 @@ rolls out.
 3. **Final:** 1920×1080, 30 fps, H.264 yuv420p, AAC, −14 LUFS-ish, to
    `presentation/frames-3d/threejs/film/renders/local/daybreak_30s.mp4` (git-ignored,
    because it contains the commercial track). Also a music-free export for the repo.
+
+## 7. Quality bar (Teo, 17:40: "no slop, as high quality as possible, premium")
+
+- **The bar is `../frames-codex/v7/concepts/concept_sheet.jpg`** (planet_storm, planet_routes,
+  popup_map, planet_dawn). The film must look at least that good in every frame. A render
+  that looks like a game engine, a toy or a default CGI scene is a fail.
+- **Pipeline for premium quality:** the Three.js scene is the previs/animatic (it locks
+  timing, camera path and the 2D layer fast). The final 3D layer is rendered in **Blender
+  Cycles** from the same camera path: Three.js exports per-frame camera + anchor data as
+  `camera_path.json`; Blender imports it and renders the frames; HyperFrames puts the 2D
+  layer on top. Swap to Three.js finals only if its renders truly match the bar.
+- **Realism levers (Blender):** CC0 PBR textures and HDRIs from Poly Haven (terracotta
+  roof tiles, limewash plaster, gravel, asphalt, bark, walnut wood, grass), real hair-
+  particle flock grass and moss, foliage with translucency, slightly irregular hand-made
+  geometry (no perfect grids, every house a little different, tiles not perfectly aligned),
+  real depth of field with a short focus distance, AgX, denoise, enough samples for clean
+  shadows. Light like the concept images: warm key, cool fill, navy void.
+- **Every still gets a hard review before it is shown:** would a photo editor believe it is
+  a photograph of a real handmade model? Any CGI tell (plastic shine, repeated identical
+  objects, flat lighting, aliasing, noise) means it is not done.
