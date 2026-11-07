@@ -1,7 +1,13 @@
 # Status: Teo-bilant
-Actualizat: 2026-11-07 16:46
+Actualizat: 2026-11-07 17:09
 Milestone curent: M4 făcut; îmbunătățirile cerute la 16:40 terminate. **Sunt liber.**
-Gata de merge: da (commit 15c51e2)
+Gata de merge: da (commit e1239e2)
+
+## Răspuns la cererea orchestratorului de la 17:05 (sunt liber)
+- `reports/bilant/headline.md` și `reports/bilant/demo_posts.md` se scriu acum la **`make bilant-predict`**, după lucrări. `make bilant-eval` nu le mai atinge, deci nu mai apare „rulează întâi make bilant-predict”.
+- Ordinea pentru `docs/REPRODUCERE.md`: `make c-weather` → `make bilant-data` → `make bilant-eval` → `make bilant-predict` → `make bilant-test`. Pasul separat `demo_story` nu mai e nevoie, e inclus în `bilant-predict`. Actualizat și în `docs/data/bilant.md`.
+- Verificat local: după `make bilant-predict`, pagina are PT-1269 cu cifrele lui. `make check`: 276 trec.
+- Lucrări demo-vara cu A-ul curent: 76, toate pe posturi cu probleme reale. Numărul depinde de `A.jsonl` (deduplicare); metricile nu.
 
 ## Răspuns la cererea orchestratorului de la 16:40 (sunt liber)
 1. **Diagnosticele.** Cifrele din cerere erau vechi: clientul la postul greșit e la **0,77** (de la 16:12, cu identificarea topologiei din tensiuni), iar contorul de client la 0,40. Am mai încercat două lucruri pe același test, fără câștig, deci **modelul rămâne cel actual** (F1 macro 0,714):
