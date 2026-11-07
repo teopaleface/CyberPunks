@@ -1,7 +1,11 @@
 # Status: Teo-bilant
-Actualizat: 2026-11-07 17:09
+Actualizat: 2026-11-07 17:13
 Milestone curent: M4 făcut; îmbunătățirile cerute la 16:40 terminate. **Sunt liber.**
-Gata de merge: da (commit e1239e2)
+Gata de merge: da (commit afda77c)
+
+## Regula de la 17:15 (fără fișiere grele): verificat, sunt liber
+- Bilanțul nu are în git nici modele, nici mostre de date. `models/bilant/` (~22 MB) și `data/processed/bilant/` sunt ignorate și se refac cu `make bilant-eval` / `make bilant-data`, iar `predict.run` le reface singur dacă lipsesc. Cel mai mare fișier al firului în git e o figură de 206 KB (`reports/bilant/normal_loss.png`).
+- `tests/test_repo_size.py` trece; `make check`: 277 trec.
 
 ## Răspuns la cererea orchestratorului de la 17:05 (sunt liber)
 - `reports/bilant/headline.md` și `reports/bilant/demo_posts.md` se scriu acum la **`make bilant-predict`**, după lucrări. `make bilant-eval` nu le mai atinge, deci nu mai apare „rulează întâi make bilant-predict”.
@@ -105,6 +109,7 @@ SIMULARE pe date publice. Test: cele 300 de posturi ale registrului C (rețele n
 - 14:30: fuziunea doar confirmă; testul pe mai multe zile trece pe lotul train (lotul hărții are acum defectele lui A, apărute doar în ultimele 60 de zile).
 - 14:35: rezolvarea automată a lui „nu sunt sigur” e oprită (0 din 5 corecte pe demo).
 - 14:35: bilanțul lasă lui A posturile unde A are deja lucrare la om sau pe contor.
+- 17:15: fără fișiere grele în git: modelele și datele bilanțului rămân în afara git, refăcute din comenzi.
 - 16:55: lotul train2 și ponderile claselor încercate pe același test, fără câștig: modelul rămâne neschimbat.
 - 16:20: identificarea topologiei din tensiuni pentru clientul la postul greșit; extinderea regulii de pereche testată și lăsată deoparte (0,567 → 0,574, zgomot).
 - 15:00: trăsătura „oglindă” și legarea perechii pentru clientul la postul greșit; forma orară a lipsei pentru pierderea tehnică; comparația cu normalul fără istoric, scoasă (F1 macro mai mic).
