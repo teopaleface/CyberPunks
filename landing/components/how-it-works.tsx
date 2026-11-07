@@ -17,7 +17,7 @@ export function HowItWorks({ city }: { city: CityMapData | null }) {
     {
       name: "Perceive.",
       lead: "It reads the grid every evening.",
-      body: "Smart-meter readings every 15 minutes, each substation’s own meter, tomorrow’s weather forecast, and the crews and depots available.",
+      body: "Smart-meter readings, each substation’s own meter, tomorrow’s weather forecast, and the crews and depots available.",
       chip: c ? `${nf(c.items)} work items across three regions` : null,
     },
     {

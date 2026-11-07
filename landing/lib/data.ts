@@ -324,3 +324,428 @@ export function loadCityMap(): CityMapData | null {
     counts: { items: s.items_in, route: s.assigned, human: s.human_review, remote: s.remote_actions, crews: s.crews_used, km: s.total_km },
   };
 }
+
+/* ------------------------------------------------------------------ cifrele modelelor (doar din reports/) */
+
+interface ModelReport {
+  model_id: string;
+  model_version: string;
+  created_at: string;
+  test_size: number;
+  synthetic_share: number;
+  reproduce_cmd: string;
+  metrics: Record<string, number>;
+  baseline_metrics: Record<string, number>;
+}
+
+export interface ModelResult {
+  key: "A" | "bilant" | "B" | "C";
+  version: string;
+  file: string;
+  createdAt: string;
+  reproduce: string;
+  syntheticShare: number;
+  /** cifra principală afișată mare și reperul simplu cel mai puternic, cu numele lui */
+  ours: number;
+  baseline: number;
+  baselineName: string;
+  /** câte ori mai bine (raport sau inversul lui, după direcția metricii) */
+  factor: number;
+  extra: Record<string, number>;
+}
+
+function readReport(key: string): ModelReport | null {
+  return readJson<ModelReport>(path.join(ROOT, "reports", key, "metrics.json"));
+}
+
+/** cel mai puternic reper simplu dintr-o listă [valoare, nume], pentru metrici unde mai mare = mai bine */
+function bestOf(cands: [number | undefined, string][]): [number, string] {
+  const ok = cands.filter((c): c is [number, string] => typeof c[0] === "number");
+  return ok.reduce((a, b) => (b[0] > a[0] ? b : a), ok[0] ?? [Number.NaN, ""]);
+}
+
+export function loadModelResults(): Partial<Record<ModelResult["key"], ModelResult>> {
+  const out: Partial<Record<ModelResult["key"], ModelResult>> = {};
+  const base = (key: string, r: ModelReport) => ({
+    version: r.model_version,
+    file: `reports/${key}/metrics.json`,
+    createdAt: r.created_at,
+    reproduce: r.reproduce_cmd,
+    syntheticShare: r.synthetic_share,
+  });
+
+  const a = readReport("A");
+  if (a) {
+    // problemele subtile (Londra): precizia@K; reperul: cea mai bună dintre regula simplă și regula VEE completă
+    const [bS, nS] = bestOf([
+      [a.baseline_metrics.subtle_precision_at_k, "simple rule"],
+      [a.metrics.subtle_vee_precision_at_k, "full VEE rule"],
+    ]);
+    const [bG, nG] = bestOf([
+      [a.baseline_metrics.sgcc_precision_at_k, "simple rule"],
+      [a.metrics.sgcc_vee_precision_at_k, "full VEE rule"],
+      [a.metrics.sgcc_iforest_precision_at_k, "Isolation Forest"],
+    ]);
+    out.A = {
+      key: "A",
+      ...base("A", a),
+      ours: a.metrics.subtle_precision_at_k,
+      baseline: bS,
+      baselineName: nS,
+      factor: a.metrics.subtle_precision_at_k / bS,
+      extra: { sgcc: a.metrics.sgcc_precision_at_k, sgccBaseline: bG, sgccFactor: a.metrics.sgcc_precision_at_k / bG, sgccIsIforest: nG === "Isolation Forest" ? 1 : 0 },
+    };
+  }
+
+  const bil = readReport("bilant");
+  if (bil) {
+    const ours = bil.metrics.normal_mae_kwh_day;
+    const baseline = bil.baseline_metrics.normal_mae_kwh_day;
+    out.bilant = {
+      key: "bilant",
+      ...base("bilant", bil),
+      ours,
+      baseline,
+      baselineName: "physics formula (I²R)",
+      factor: baseline / ours,
+      extra: {
+        f1: bil.metrics.diagnoza_macro_f1,
+        f1Baseline: bil.baseline_metrics.diagnoza_macro_f1,
+        fusionP10: bil.metrics.fuziune_precision_at_10,
+        fusionP10Baseline: bil.baseline_metrics.fuziune_precision_at_10,
+        invisibleShare: bil.metrics.invizibil_share_invisible_to_meters,
+      },
+    };
+  }
+
+  const b = readReport("B");
+  if (b) {
+    const [bb, nb] = bestOf([
+      [b.baseline_metrics.pr_auc, "county climatology"],
+      [b.metrics.pr_auc_gust_rule, "wind-gust rule"],
+    ]);
+    out.B = {
+      key: "B",
+      ...base("B", b),
+      ours: b.metrics.pr_auc,
+      baseline: bb,
+      baselineName: nb,
+      factor: b.metrics.pr_auc / bb,
+      extra: { coverage: b.metrics.coverage_p10_p90, recallSevere: b.metrics.recall_severe_at_thr },
+    };
+  }
+
+  const c = readReport("C");
+  if (c) {
+    const ours = c.metrics.mae_vmax_pu;
+    const baseline = c.baseline_metrics.mae_vmax_pu;
+    out.C = {
+      key: "C",
+      ...base("C", c),
+      ours,
+      baseline,
+      baselineName: "linear regression on sunlight",
+      factor: baseline / ours,
+      extra: {
+        prAuc: c.metrics.pr_auc_exceed,
+        prAucBaseline: c.baseline_metrics.pr_auc_exceed,
+        surrogateSeconds: c.metrics.surrogate_seconds_300_posts_day,
+        powerflowSeconds: c.metrics.powerflow_seconds_300_posts_day_pandapower,
+      },
+    };
+  }
+  return out;
+}
+
+/* ------------------------------------------------------------------ evaluarea agentului (reports/planner/agent_eval.json) */
+
+export interface AgentEval {
+  file: string;
+  reproduce: string;
+  days: number;
+  synthetic: boolean;
+  strategies: { key: string; label: string; perDay: number; kmPerDay: number; urgentMissed: number; useless: number }[];
+  uplift: number;
+  bestSimple: string;
+}
+
+const STRATEGY_LABELS: Record<string, string> = {
+  agent: "Daybreak",
+  top_k_scor: "Highest score first",
+  primul_venit: "First come, first served",
+  aleator: "Random",
+  doar_contoare: "Meters only",
+};
+
+export function loadAgentEval(): AgentEval | null {
+  const e = readJson<{
+    reproduce_cmd: string;
+    synthetic: boolean;
+    main: {
+      days: number;
+      strategies: Record<
+        string,
+        { net_value_lei_per_day: number; km_per_day: number; urgent_missed_rate: number; useless_visit_rate: number }
+      >;
+    };
+  }>(path.join(ROOT, "reports", "planner", "agent_eval.json"));
+  if (!e?.main?.strategies?.agent) return null;
+  const strategies = Object.entries(e.main.strategies)
+    .map(([key, v]) => ({
+      key,
+      label: STRATEGY_LABELS[key] ?? key,
+      perDay: v.net_value_lei_per_day,
+      kmPerDay: v.km_per_day,
+      urgentMissed: v.urgent_missed_rate,
+      useless: v.useless_visit_rate,
+    }))
+    .sort((x, y) => y.perDay - x.perDay);
+  const agent = strategies.find((s) => s.key === "agent")!;
+  const best = strategies.filter((s) => s.key !== "agent").sort((x, y) => y.perDay - x.perDay)[0];
+  return {
+    file: "reports/planner/agent_eval.json",
+    reproduce: e.reproduce_cmd,
+    days: e.main.days,
+    synthetic: e.synthetic,
+    strategies,
+    uplift: agent.perDay / best.perDay - 1,
+    bestSimple: best.label,
+  };
+}
+
+/* ------------------------------------------------------------------ cazurile reale din planul demo, pentru secțiuni */
+
+interface FullItem extends WorkItem {
+  kind: string;
+  prediction: {
+    model_id: string;
+    model_version: string;
+    prediction_id: string;
+    label: string;
+    score: number;
+    interval_low: number | null;
+    interval_high: number | null;
+    confidence: string;
+    point_estimate: number | null;
+  };
+  impact: { expected_value_lei: number; customers_affected: number | null; safety_flag: boolean };
+  time_window: { start: string; end: string } | null;
+  explanation: {
+    top_factors: { feature: string; value: number; contribution: number }[];
+    similar_cases: { outcome: string; similarity: number }[];
+  };
+  extra?: { remedy_options?: RemedyOption[] };
+}
+interface RemedyOption {
+  action: string;
+  cost_lei: number;
+  p90_after_pu: number;
+  needs_crew: boolean;
+  participation_rate?: number;
+}
+interface FullDecision extends Decision {
+  rule_id: string;
+  threshold: Record<string, number>;
+  audit_id: string;
+}
+interface ArrivalStop {
+  work_item_id: string;
+  seq: number;
+  eta: string;
+}
+
+/** etichetele în engleză ale factorilor (din valorile structurate, nu din textul românesc) */
+function factorLabel(feature: string, v: number): string | null {
+  const pct = (x: number) => `${Math.round(x * 100)}%`;
+  switch (feature) {
+    case "missing_recent":
+      return `${pct(v)} of the last four weeks without data`;
+    case "longest_gap":
+      return `${Math.round(v)} days in a row without data`;
+    case "missing_ratio":
+      return `${pct(v)} of all readings missing`;
+    case "max_over_median":
+      return `Peak reading ${v.toFixed(1)}× the median`;
+    case "spike_slot_count":
+      return `${Math.round(v)} half-hour reading${Math.round(v) === 1 ? "" : "s"} with an impossible jump`;
+    case "zero_slot_run_recent":
+      return `${v.toFixed(1)} hours a day at exactly zero`;
+    case "negative_slot_share":
+      return `${pct(v)} of readings negative`;
+    case "flat_slot_share_recent":
+      return `${pct(v)} of readings perfectly flat`;
+    case "night_share_recent":
+      return `${pct(v)} of consumption at night`;
+    case "peer_ratio_slope":
+      return `${pct(Math.abs(v))} a month ${v < 0 ? "below" : "above"} the neighbors`;
+    case "precip_48h":
+      return `${Math.round(v)} mm of rain in 48 hours`;
+    case "gust_prev":
+      return `${Math.round(v)} km/h gusts the day before`;
+    case "gust_max":
+      return `${Math.round(v)} km/h gusts forecast`;
+    case "precip_hours":
+      return `${Math.round(v)} hours of rain`;
+    case "log_density":
+      return `${Math.round(v)} customers per km² of grid`;
+    default:
+      return null;
+  }
+}
+
+const ACTION_LABELS: Record<string, string> = {
+  notify_customers: "Ask neighbors to use power at noon",
+  offer_battery: "Offer home batteries, sized per home",
+  phase_rebalance: "Move three homes to another phase",
+  adjust_tap: "Lower the transformer tap for summer",
+  export_limit: "Cap solar export at peak hours",
+  transformer_upgrade: "Install a bigger transformer",
+};
+
+export interface Stories {
+  ladder: {
+    label: string;
+    before: number;
+    after: number;
+    cost: number;
+    steps: { action: string; label: string; cost: number; aloneAfter: number; chosen: boolean; needsCrew: boolean }[];
+    battery: { kwh: number; customers: number; revenue: number; payback: number } | null;
+    tripsAvoided: number | null;
+  } | null;
+  human: {
+    title: string;
+    place: string;
+    window: string | null;
+    score: number;
+    customers: number | null;
+    value: number;
+    factors: string[];
+    model: string;
+    queue: { total: number; abstain: number; cap: number; low: number };
+  } | null;
+  explain: {
+    meter: string;
+    place: string;
+    label: string;
+    score: number;
+    low: number | null;
+    high: number | null;
+    model: string;
+    predictionId: string;
+    factors: { label: string; contribution: number }[];
+    similar: { outcome: string; n: number } | null;
+    value: number;
+    cost: number;
+    actionCost: number | null;
+    travelCost: number | null;
+    km: number | null;
+    crew: string | null;
+    stop: number | null;
+    eta: string | null;
+    rule: string;
+    auditId: string;
+  } | null;
+}
+
+export function loadStories(): Stories {
+  const demo = loadDemoPlan();
+  if (!demo) return { ladder: null, human: null, explain: null };
+  const items = demo.items as Map<string, FullItem>;
+  const decisions = demo.plan.decisions as FullDecision[];
+
+  // scara de soluții: postul cu tensiunea cea mai mare care se rezolvă fără investiție
+  const remedies =
+    readJson<{ work_item_id: string; label: string; feasible: boolean; invest: boolean; chosen: string[]; cost_lei: number; p90_before_pu: number; p90_after_pu: number; battery?: { battery_kwh_total: number; customers_targeted: number; revenue_lei: number; payback_years: number }; inverter_trips_avoided?: number }[]>(
+      path.join(DEMO, "remedies.json"),
+    ) ?? [];
+  const pick = remedies.filter((r) => r.feasible && !r.invest).sort((x, y) => y.p90_before_pu - x.p90_before_pu)[0];
+  let ladder: Stories["ladder"] = null;
+  if (pick) {
+    const opts = items.get(pick.work_item_id)?.extra?.remedy_options ?? [];
+    ladder = {
+      label: pick.label.replace(" (sintetic)", ""),
+      before: pick.p90_before_pu,
+      after: pick.p90_after_pu,
+      cost: pick.cost_lei,
+      steps: [...opts]
+        .sort((x, y) => x.cost_lei - y.cost_lei)
+        .map((o) => ({
+          action: o.action,
+          label: ACTION_LABELS[o.action] ?? o.action,
+          cost: o.cost_lei,
+          aloneAfter: o.p90_after_pu,
+          chosen: pick.chosen.includes(o.action),
+          needsCrew: o.needs_crew,
+        })),
+      battery: pick.battery
+        ? { kwh: pick.battery.battery_kwh_total, customers: pick.battery.customers_targeted, revenue: pick.battery.revenue_lei, payback: pick.battery.payback_years }
+        : null,
+      tripsAvoided: pick.inverter_trips_avoided ?? null,
+    };
+  }
+
+  // omul în buclă: cazul cu încredere mică (sau primul caz trimis la om)
+  const humans = decisions.filter((d) => d.decision === "human_review");
+  const hd = humans.find((d) => d.rule_id === "R-LOW-CONFIDENCE") ?? humans.find((d) => items.get(d.work_item_id)?.source === "B") ?? humans[0];
+  let human: Stories["human"] = null;
+  if (hd) {
+    const it = items.get(hd.work_item_id)!;
+    const place = (it.location.label ?? "").replace(/^Zona /, "").replace(" (sintetic)", "");
+    const hhmm = (iso: string) => iso.slice(11, 16);
+    human = {
+      title: it.source === "B" ? `Send a crew to ${place.split(" (")[0]} before the storm?` : `Check ${it.location.label?.split(",")[0] ?? "this asset"}?`,
+      place,
+      window: it.time_window ? `${hhmm(it.time_window.start)}–${hhmm(it.time_window.end)}` : null,
+      score: it.prediction.score,
+      customers: it.impact.customers_affected,
+      value: it.impact.expected_value_lei,
+      factors: it.explanation.top_factors.map((f) => factorLabel(f.feature, f.value)).filter((x): x is string => !!x).slice(0, 3),
+      model: it.prediction.model_version,
+      queue: {
+        total: humans.length,
+        abstain: humans.filter((d) => d.rule_id === "R-ABSTAIN").length,
+        cap: humans.filter((d) => d.rule_id === "R-B-REGION-CAP").length,
+        low: humans.filter((d) => d.rule_id === "R-LOW-CONFIDENCE").length,
+      },
+    };
+  }
+
+  // explicabilitatea: o vizită la un contor, decisă pe valoare față de cost
+  const visits = decisions.filter((d) => d.decision === "assigned" && d.rule_id === "R-A-VISIT");
+  const ed = visits.find((d) => d.work_item_id === "A-20250708-MTR-011921") ?? visits[0];
+  let explain: Stories["explain"] = null;
+  if (ed) {
+    const it = items.get(ed.work_item_id)!;
+    const route = demo.plan.routes.find((r) => r.stops.some((s) => s.work_item_id === ed.work_item_id));
+    const stop = route?.stops.find((s) => s.work_item_id === ed.work_item_id) as ArrivalStop | undefined;
+    const [meter, post, place] = (it.location.label ?? "").replace(" (sintetic)", "").split(", ");
+    const similar = it.explanation.similar_cases;
+    const t = ed.threshold;
+    explain = {
+      meter: meter?.replace("Contor ", "Meter ") ?? it.work_item_id,
+      place: [post, place].filter(Boolean).join(", "),
+      label: it.prediction.label,
+      score: it.prediction.score,
+      low: it.prediction.interval_low,
+      high: it.prediction.interval_high,
+      model: it.prediction.model_version,
+      predictionId: it.prediction.prediction_id,
+      factors: it.explanation.top_factors
+        .filter((f) => f.contribution > 0)
+        .map((f) => ({ label: factorLabel(f.feature, f.value) ?? f.feature, contribution: f.contribution }))
+        .slice(0, 5),
+      similar: similar.length ? { outcome: similar[0].outcome, n: similar.filter((s) => s.outcome === similar[0].outcome).length } : null,
+      value: t.expected_value_lei,
+      cost: t.visit_cost_lei,
+      actionCost: t.action_cost_lei ?? null,
+      travelCost: t.travel_cost_lei ?? null,
+      km: t.travel_km_est ?? null,
+      crew: ed.crew_id,
+      stop: stop?.seq ?? null,
+      eta: stop?.eta ? stop.eta.slice(11, 16) : null,
+      rule: ed.rule_id,
+      auditId: ed.audit_id,
+    };
+  }
+  return { ladder, human, explain };
+}

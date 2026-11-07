@@ -59,6 +59,9 @@ export function Hero({ map }: { map: HeroMapData }) {
           The agent’s actual plan for {formatDate(p.date)}, the demo day: {nf(p.itemsIn)} work items in, {nf(p.assigned)} on the routes of{" "}
           {nf(p.crews)} crews, {nf(p.remote)} checked remotely first, {nf(p.human)} sent to a person. Meters, substations, crews and depots are
           synthetic, placed on the real map; the weather is real.
+          <a href="#note-6" className="ml-0.5 align-super text-[0.75em] hover:text-ink" aria-label="Source 6">
+            6
+          </a>
         </p>
       )}
     </section>

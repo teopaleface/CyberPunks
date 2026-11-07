@@ -22,6 +22,16 @@ const NOTES: { id: number; text: React.ReactNode }[] = [
   { id: 4, text: <>ANRE, report on distribution service quality in 2024: Rețele Electrice paid about 85% of the automatic compensation for outages paid nationally.</> },
   { id: 5, text: <>PPC, “24h to Power PPC”, the SmartHack XI 2026 theme document (November 7, 2026), translated from Romanian.</> },
   {
+    id: 7,
+    text: (
+      <>
+        Agent evaluation: 30 simulated days in a synthetic world where the true problems are known, against four simple strategies on the same
+        crews (<code className="text-ink-2">reports/planner/agent_eval.json</code>, <code className="text-ink-2">uv run python -m cyberpunks.planner.evaluate --days 30 --seed 7 --meters 120</code>).
+        Model figures come from <code className="text-ink-2">reports/&lt;model&gt;/metrics.json</code>, each on its own held-out test set.
+      </>
+    ),
+  },
+  {
     id: 6,
     text: (
       <>
@@ -37,7 +47,7 @@ export function Footer() {
     <footer className="border-t border-hairline px-5 pt-14 pb-16 sm:px-8">
       <div className="mx-auto max-w-[1180px]">
         <ol className="grid max-w-[60rem] gap-3 text-[0.8rem] leading-relaxed text-ink-3">
-          {NOTES.map((n) => (
+          {[...NOTES].sort((x, y) => x.id - y.id).map((n) => (
             <li key={n.id} id={`note-${n.id}`} className="scroll-mt-24">
               <span className="num mr-2">{n.id}.</span>
               {n.text}
