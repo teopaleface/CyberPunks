@@ -7,6 +7,7 @@ import { fmtDec, hhmm, parseHHMM } from "@/lib/format";
 import { markerSvg } from "@/lib/marker-svg";
 import { crewTimeline, timelineRange, workItemWindow, type CrewTimeline } from "@/lib/plan-derive";
 import type { QuarantineEntry } from "@/lib/plan-screen";
+import { ApproveList } from "./approve-list";
 
 /**
  * Linia de timp a echipelor, desenată ca o schemă monofilară: fiecare bază e o bară groasă, fiecare echipă
@@ -37,7 +38,13 @@ export function Feeders({
   quarantine,
   selectedId,
   onSelect,
+  scenario,
+  planId,
+  approval,
 }: {
+  scenario: string;
+  planId: string;
+  approval: { at: string; local: boolean } | null;
   routes: ResolvedRoute[];
   itemsById: Record<string, WorkItem>;
   decisions: Record<string, Decision>;
@@ -139,6 +146,7 @@ export function Feeders({
                 <rect x={LEFT - 56} y={busTop} width={7} height={Math.max(20, busBottom - busTop)} style={{ fill: "var(--ink)" }} />
                 {groupRows.map(({ route, tl, cy }) => (
                   <CrewRow
+                    scenario={scenario}
                     key={route.crew_id}
                     route={route}
                     tl={tl}
@@ -189,12 +197,15 @@ export function Feeders({
             </span>
           </>
         ) : null}
+        <span className="flex-1" />
+        <ApproveList scenario={scenario} planId={planId} approvedAt={approval?.at ?? null} approvedLocal={approval?.local ?? false} />
       </div>
     </section>
   );
 }
 
 function CrewRow({
+  scenario,
   route,
   tl,
   cy,
@@ -205,6 +216,7 @@ function CrewRow({
   selectedId,
   onSelect,
 }: {
+  scenario: string;
   route: ResolvedRoute;
   tl: CrewTimeline;
   cy: number;
@@ -243,10 +255,15 @@ function CrewRow({
         );
       })}
 
-      {/* eticheta echipei */}
-      <text x={28} y={cy - 4} fontSize={18} fontWeight={650} style={{ fill: "var(--ink)" }}>
-        {route.crew_id}
-      </text>
+      {/* eticheta echipei: deschide ordinul de lucru (PDF) */}
+      <a href={`/ordine/${encodeURIComponent(route.crew_id)}?scenariu=${encodeURIComponent(scenario)}`} target="_blank" rel="noreferrer" aria-label={`Ordinul de lucru al echipei ${route.crew_id}, PDF`}>
+        <text x={28} y={cy - 4} fontSize={18} fontWeight={650} style={{ fill: "var(--ink)", textDecoration: "underline", textDecorationColor: "var(--rule)" }}>
+          {route.crew_id}
+        </text>
+        <text x={28 + route.crew_id.length * 11.2 + 8} y={cy - 5} fontSize={12.5} style={{ fill: "var(--muted-foreground)" }}>
+          ordin PDF
+        </text>
+      </a>
       <text x={28} y={cy + 15} fontSize={13.5} style={{ fill: "var(--muted-foreground)" }}>
         {stops === 1 ? "1 oprire" : `${stops} opriri`}, {fmtDec(tl.totalKm, 1)} km, {tl.totalWorkMin} min lucru
       </text>

@@ -11,7 +11,7 @@ import type { ReviewDecision } from "@/lib/data/types";
 const DONE: Record<ReviewDecision, string> = { approve: "Ai aprobat", reject: "Ai respins", defer: "Ai amânat" };
 
 /** Decizia omului: aprobă, respinge sau amână, cu o notă. Se scrie în jurnal cu actor „om”. */
-export function ReviewActions({ workItemId }: { workItemId: string }) {
+export function ReviewActions({ workItemId, scenario }: { workItemId: string; scenario?: string }) {
   const router = useRouter();
   const [note, setNote] = useState("");
   const [pending, startTransition] = useTransition();
@@ -19,7 +19,7 @@ export function ReviewActions({ workItemId }: { workItemId: string }) {
   const act = (d: ReviewDecision) => {
     setActing(d);
     startTransition(async () => {
-      const r = await submitReview(workItemId, d, note);
+      const r = await submitReview(workItemId, d, note, scenario);
       setActing(null);
       if (r.ok) {
         toast.success(`${DONE[d]} ${workItemId}`, { description: "Decizia ta a intrat în jurnal, iar planul se recalculează." });

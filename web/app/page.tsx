@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { LogoMark } from "@/components/brand/logo";
@@ -42,6 +43,15 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/">["searchPara
   }
 
   const data = toPlanScreenData(view.data);
+  // aprobarea listei: din jurnal (API) sau, dacă API-ul n-o are încă, din cookie-ul acestui browser
+  const fromAudit = view.data.audit.find((a) => a.actor === "human" && /plan/i.test(a.action) && /aprob|approv/i.test(a.action));
+  const cookie = (await cookies()).get(`aprobat_${scenario}`)?.value;
+  const [cookiePlan, cookieAt] = cookie ? cookie.split("|") : [];
+  const approval = fromAudit
+    ? { at: fromAudit.ts, local: false }
+    : cookiePlan === data.planId && cookieAt
+      ? { at: cookieAt, local: true }
+      : null;
   const requested = typeof params.lucrare === "string" ? params.lucrare : null;
   const initialSelected = requested && data.items.some((w) => w.work_item_id === requested) ? requested : data.defaultSelected;
 
@@ -59,6 +69,7 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/">["searchPara
         geo={geo}
         initialSelected={initialSelected}
         postsInfo={posts ? { posts: posts.data, derived: posts.derived, lossCostNote: posts.lossCost?.note ?? null } : undefined}
+        approval={approval}
       />
     </AppShell>
   );

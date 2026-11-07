@@ -41,12 +41,14 @@ export function PlanScreen({
   geo,
   initialSelected,
   postsInfo,
+  approval,
   theme = "light",
 }: {
   data: PlanScreenData;
   geo: LocatorGeo | null;
   initialSelected: string | null;
   postsInfo?: PostsInfo;
+  approval?: { at: string; local: boolean } | null;
   theme?: "light" | "dark";
 }) {
   const router = useRouter();
@@ -179,7 +181,7 @@ export function PlanScreen({
           ) : null}
         </div>
         <aside className="flex min-h-0 flex-col bg-panel" aria-label="Decizii care cer atenție">
-          <QueuePanel queue={queue} itemsById={itemsById} scenario={data.scenario} onSelect={select} />
+          <QueuePanel queue={queue} itemsById={itemsById} scenario={data.scenario} onSelect={select} recovered={data.recovered} />
           <AlertsPanel alerts={data.alerts} onSelect={select} />
           <WorkItemPeek
             w={selItem}
@@ -199,6 +201,9 @@ export function PlanScreen({
         quarantine={data.quarantine}
         selectedId={selected}
         onSelect={select}
+        scenario={data.scenario}
+        planId={data.planId}
+        approval={approval ?? null}
       />
     </>
   );

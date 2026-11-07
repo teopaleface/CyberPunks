@@ -37,11 +37,13 @@ export function QueuePanel({
   itemsById,
   scenario,
   onSelect,
+  recovered,
 }: {
   queue: Decision[];
   itemsById: Record<string, WorkItem>;
   scenario: string;
   onSelect: (id: string) => void;
+  recovered?: { count: number; lei: number };
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -53,7 +55,7 @@ export function QueuePanel({
     if (!first) return;
     setActing(decision);
     startTransition(async () => {
-      const result = await submitReview(first.work_item_id, decision, "");
+      const result = await submitReview(first.work_item_id, decision, "", scenario);
       setActing(null);
       if (result.ok) {
         toast.success(`${REVIEW_DONE[decision]} ${first.work_item_id}`, {
@@ -77,7 +79,16 @@ export function QueuePanel({
             {queue.length}
           </span>
         ) : null}
-        {first ? <span className="ml-auto truncate text-[14px] text-muted-foreground">regula {first.rule_id}</span> : null}
+        <span className="ml-auto truncate text-[14px] text-muted-foreground">
+          {recovered && recovered.count > 0 ? (
+            <>
+              confirmate de om: <b className="font-[620] text-ink tabular-nums">{recovered.count}</b>, cca{" "}
+              <b className="font-[620] text-ink tabular-nums">{fmtLei(recovered.lei)}</b> recuperați
+            </>
+          ) : first ? (
+            `regula ${first.rule_id}`
+          ) : null}
+        </span>
       </div>
       {!first || !w ? (
         <p className="mt-2 text-[15px] text-muted-foreground">

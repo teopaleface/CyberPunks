@@ -206,7 +206,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
             <section className="border-l-[3px] border-att bg-att-surface px-5 py-4">
               <h2 className="text-[20px] font-[650] text-att-ink">Nu sunt sigur: decide tu</h2>
               <p className="mt-1 mb-3 text-[15.5px]">{bilantDecision.reason_ro}</p>
-              <ReviewActions workItemId={bilant!.work_item_id} />
+              <ReviewActions workItemId={bilant!.work_item_id} scenario={scenario} />
             </section>
           ) : null}
 

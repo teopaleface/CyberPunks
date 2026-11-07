@@ -234,7 +234,7 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
                 Nu sunt sigur: decide tu
               </h2>
               <p className="mt-1 mb-3 text-[15.5px]">{p.abstain_reason ? sentence(p.abstain_reason) : decision.reason_ro}</p>
-              <ReviewActions workItemId={w.work_item_id} />
+              <ReviewActions workItemId={w.work_item_id} scenario={scenario} />
             </section>
           ) : null}
 

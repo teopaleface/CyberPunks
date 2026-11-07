@@ -39,6 +39,8 @@ export interface PlanScreenData {
   regionOf: Record<string, string | null>;
   defaultRegion: string;
   defaultSelected: string | null;
+  /** Lucrări confirmate de om (aprobate) și valoarea lor așteptată: „lei recuperați”, estimat. */
+  recovered: { count: number; lei: number };
 }
 
 /** Zona Rețele Electrice: Banat (vest) până la Dobrogea (est). */
@@ -148,7 +150,19 @@ export function toPlanScreenData(view: PlanView): PlanScreenData {
     }
   }
 
+  // lei recuperați (estimat): valoarea așteptată a lucrărilor aprobate de om, câte o dată
+  const approved = new Set<string>();
+  for (const a of view.audit ?? []) {
+    const act = (a.action ?? "").toLowerCase();
+    if (a.actor === "human" && a.work_item_id && (act.includes("approve") || act === "aprob" || a.rule_id === "R-HUMAN-APPROVE")) approved.add(a.work_item_id);
+  }
+  const recovered = {
+    count: approved.size,
+    lei: [...approved].reduce((sum, id) => sum + (view.workItemsById[id]?.impact.expected_value_lei ?? 0), 0),
+  };
+
   return {
+    recovered,
     scenario: view.scenario,
     planId: plan.plan_id,
     planDate: plan.plan_date,
