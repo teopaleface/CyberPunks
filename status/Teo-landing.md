@@ -1,7 +1,7 @@
 # Status: Teo-landing
 Actualizat: 2026-11-07 18:25
 Milestone curent: M1 (22:00) gata devreme: toate secțiunile pe date reale, în engleză, stil Apple (cererea lui Teo, 17:55), animațiile de bază. Urmează M2 (03:00): review web-design-guidelines, contrast, reduced motion.
-Gata de merge: da (commitul cu acest status, după `git merge Teo` și `make check`)
+Gata de merge: da (commit f3771f1)
 
 ## Făcut
 - 17:16 Citite instrucțiunile, memoria, statusurile, rapoartele, cadrele filmului.
