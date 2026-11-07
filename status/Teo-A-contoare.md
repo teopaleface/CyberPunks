@@ -1,7 +1,7 @@
 # Status: Teo-A-contoare
-Actualizat: 2026-11-07 14:16
+Actualizat: 2026-11-07 14:24
 Milestone curent: M2 gata (14:10), M3 în mare parte gata; M1 gata la 13:33
-Gata de merge: da (commit f77f935)
+Gata de merge: da (commit f4aee2e)
 
 ## Făcut
 - 13:30 M0: `docs/research/A.md`, date descărcate cu sume de control (SGCC, 45 de fișiere Low Carbon London).
@@ -21,16 +21,17 @@ Gata de merge: da (commit f77f935)
 - 14:00 Precizia@K = 1,00 verificată (cerința orchestratorului de la 13:55): fără scurgeri, explicată mai jos la Cifre.
 
 - 14:10 `reports/A/error_analysis.md` și `reports/A/model_card.md`, generate de `make a-report` din cifrele scripturilor (nicio cifră scrisă de mână); `select_features.py` arată alegerea features pe calibrare.
-- 14:00-14:14 Review independent (Codex, gpt-6.1-sol): 12 probleme găsite, toate tratate (commit f77f935). Cele mai importante: referința vecinilor SGCC calcula și din clienții de test (acum doar antrenare); conformal se potrivea pe scorul deja calibrat (acum pe scorul brut, garanția e validă); cuantila conformal cu o poziție prea sus; acoperirea mulțimii era numită „recunoaștere sigură”; unitatea suspectă se repara în tăcere (acum merge la om); oprirea timpurie amesteca gospodăriile. Runda 2 (verificarea reparațiilor) rulează.
+- 14:00-14:14 Review independent (Codex, gpt-6.1-sol): 12 probleme găsite, toate tratate (commit f77f935). Cele mai importante: referința vecinilor SGCC calcula și din clienții de test (acum doar antrenare); conformal se potrivea pe scorul deja calibrat (acum pe scorul brut, garanția e validă); cuantila conformal cu o poziție prea sus; acoperirea mulțimii era numită „recunoaștere sigură”; unitatea suspectă se repara în tăcere (acum merge la om); oprirea timpurie amesteca gospodăriile. Runda 2 (14:16-14:22): 9 din 12 confirmate, 3 completate (commit f4aee2e). Features se aleg acum pe o validare din antrenare, nu pe calibrare. Acoperirea conformal e descrisă ca empirică, pentru că ferestrele de calibrare repetă gospodăriile. Împărțirile sunt doar pe gospodării. Furtul sigur nu mai cade din listă.
 
 ## Urmează (M2-M3)
-- Runda 2 a review-ului: verific reparațiile.
 - Lustruire pentru prezentare (figuri), M4: README-ul secțiunii, curățenie.
+- Când îmi cereți: legarea cu fuziunea bilanțului (nu schimb nimic din partea mea, doar verific împreună).
 
 ## Blocaje
 - Niciunul.
 
 ## Cereri către orchestrator
+- Informare pentru planificator și interfață: A trimite acum ~520-560 de lucrări pe zi (înainte ~250-280). Sunt cele mai valoroase 250, plus toate furturile sigure, plus zona gri și datele insuficiente (la om). Planificatorul alege după capacitate; `extra.selection` spune de ce a intrat fiecare (`action`, `watch`, `unsure`, `data`).
 - Făcut: contoarele A folosesc `post_id` din registrul C (`data/samples/C/posts.csv`); citesc CSV-ul direct, ca să nu import pandapower prin `posts.py`. Dacă C schimbă registrul, regenerez cu `uv run python -m cyberpunks.a_contoare.topology`.
 - Pentru firul bilanț: API-ul public pe care îl importă rămâne la fel. `inject.py`: `inject`, `sample_kind`, `sample_and_inject`, `Injection`, `KIND_*`, `PARAMS`. `lcl.py`: `load_lcl`, `daily_from_halfhours`, `build_samples`, `kind_probs`, `value_lei`. Am adăugat `lcl.quantize(hh)` și `lcl.economics()`. **Sfat:** după orice injecție, rotunjiți cu `quantize()`, altfel modelul învață valorile nerotunjite în loc de tipar (ni s-a întâmplat).
 - Opțional, pentru planificator: componenta fixă a valorii unui contor defect e azi o vizită evitată (`meters.inspection_visit_cost_lei`, CALCUL). Dacă vreți altă cifră, adăugați `meters.faulty_meter_fixed_value_lei` în `config/economics.yaml`; o citesc automat.
@@ -58,8 +59,8 @@ Comenzile: `make a-evaluate` (sau `uv run python -m cyberpunks.a_contoare.evalua
   - ca decizii: 60% din probleme recunoscute sigur, cu precizie de 75%;
   - 1% din contoarele normale sunt declarate „problemă”, 2% trimise la om.
 - Demo (adevărul injectat): 15.850 de contoare.
-  - `demo-vara`: 391 de lucrări (235 de vizite, 15 citiri la distanță, 24 de urmărit, 117 la om); `maine`: 408.
-  - Lucrările pentru echipă sunt 97-99% probleme reale; cele la om, 11-23%.
+  - `demo-vara`: 524 de lucrări (371 de vizite, 15 citiri la distanță, 138 la om); `maine`: 563 (356 de vizite, 8 citiri, 199 la om).
+  - Lucrările pentru echipă sunt 91-94% probleme reale. Toate furturile sigure apar acum în listă (241-269 pe zi), chiar și cele cu valoare mică, pentru siguranță; capacitatea zilei o aplică planificatorul.
   - Din contoarele normale, 0% ajung la echipă și 1% la om.
 - Robustețe la zile lipsă: PR-AUC 0,68 / 0,61 / 0,58 / 0,55 la 0 / 10 / 30 / 50%. SGCC pe timp: ROC-AUC 0,70 (regula: 0,47).
 - Calibrare: ECE 0,004 pe testul Londra, 0,004-0,005 pe demo. Venn-ABERS pe grilă față de calculul exact: abatere medie 0,0002, maximă 0,017.
@@ -81,3 +82,5 @@ Comenzile: `make a-evaluate` (sau `uv run python -m cyberpunks.a_contoare.evalua
 - 14:10 Conformal pe scorul brut al modelului, nu pe cel calibrat (cerință din review: garanția split conformal). Pragurile, traduse în probabilități, apar doar în explicații.
 - 14:10 Unitate suspectă (valori de ~1.000 de ori prea mari): scorăm după împărțire, dar decide un om. Poate fi și un defect (multiplicator greșit).
 - 14:10 Lucrările sigure își păstrează acțiunea până la 250 pe zi, după valoare. Urmărirea rămâne doar pentru valoare sub 20% dintr-o vizită. Tăierea pe capacitate o face planificatorul.
+- 14:20 Alegerea features pe validare din antrenare (gospodării ținute deoparte), ca funcția de scor să nu vadă etichetele de calibrare (runda 2 a review-ului).
+- 14:22 Toate furturile sigure intră în listă, chiar peste plafonul de 250 (siguranța înaintea plafonului).

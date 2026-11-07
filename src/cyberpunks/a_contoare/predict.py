@@ -236,8 +236,11 @@ def run(scenario: str, date: str | None = None) -> Path:
     unsure = tab[(tab["conformal"] == "unsure") & tab["data_abstain"].isna() & (tab["score"] >= MIN_REVIEW_SCORE)]
     unsure = unsure[unsure["expected_value"] >= MIN_REVIEW_VALUE_LEI]
     unsure = unsure.sort_values("expected_value", ascending=False).head(MAX_REVIEW)
-    worth = sure["expected_value"] >= WATCH_EV_SHARE * econ["visit_cost_lei"]
+    # furtul sigur se verifică oricum (risc de siguranță: bypass, conexiuni improvizate), chiar la valoare mică
+    worth = (sure["expected_value"] >= WATCH_EV_SHARE * econ["visit_cost_lei"]) | (sure["label"] == "tamper")
     action_idx = list(sure.index[worth.to_numpy()][:MAX_ACTION])
+    # siguranța înaintea plafonului: niciun furt sigur nu cade din listă (se adaugă după cele mai valoroase 250)
+    action_idx += [i for i in sure.index[(sure["label"] == "tamper").to_numpy()] if i not in set(action_idx)]
     watch_idx = list(sure.index[~worth.to_numpy()][:MAX_WATCHLIST])
     chosen = [(i, "action") for i in action_idx] + [(i, "watch") for i in watch_idx]
     chosen += [(i, "unsure") for i in unsure.index] + [(i, "data") for i in data_ab]

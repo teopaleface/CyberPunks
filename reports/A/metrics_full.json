@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-11-07T14:11:18+02:00",
+  "created_at": "2026-11-07T14:19:25+02:00",
   "budget_share": 0.01,
   "vee_thresholds_from_calibration": {
     "sgcc": {
@@ -12,8 +12,8 @@
     }
   },
   "models": {
-    "a-lgbm": "a-lgbm@e60cbaf",
-    "a-lgbm-sgcc": "a-lgbm-sgcc@e60cbaf"
+    "a-lgbm": "a-lgbm@c670b95",
+    "a-lgbm-sgcc": "a-lgbm-sgcc@c670b95"
   },
   "leakage_checks": {
     "lcl_households_train_test_overlap": 0,
