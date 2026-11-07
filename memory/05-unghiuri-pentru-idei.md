@@ -8,13 +8,15 @@ Filtrul: model ML propriu cu test separat și baseline, agent care face acțiuni
 
 | Direcție | Firma PPC | Relevanță PPC (25) | Calitate ML (25) | Agent (25) | Robustețe (10) | Date publice |
 |---|---|---|---|---|---|---|
-| A. Contoare defecte sau manipulate, plus echipele de verificare | Rețele Electrice | Foarte bună: PPC a spus că e următorul pas | Bună: etichete reale și sintetice | Foarte bună: capacitate de echipe, cost pe vizită | Foarte bună: datele lipsă sunt chiar semnalul | Da |
+| A. Contoare defecte sau manipulate, plus echipele de verificare | Rețele Electrice | Foarte bună: PPC a spus că e următorul pas | Bună: etichete reale și sintetice | Foarte bună: capacitate de echipe, cost pe vizită | Foarte bună: datele lipsă sunt chiar semnalul | Da (licența SGCC neclară) |
 | B. Furtună în 24 de ore: risc de avarii și echipe trimise din timp | Rețele Electrice | Bună: reziliență, SAIDI/SAIFI | Bună | Foarte bună | Foarte bună: evenimente rare | Da, dar din SUA |
-| C. Parc eolian: prognoză și decizie | PPC Renewables | Medie: PPC are deja proiectul în dezvoltare | Foarte bună | Medie | Bună | Da |
-| D. Stații de încărcare: cerere și defecte | PPC Blue | Medie | Bună | Bună | Medie | Da, din SUA și UK |
-| E. Risc de neplată sau programarea consumului în orele ieftine | PPC Energy | Medie: suprapunere cu AI Claims Agent și myEnergy Coach | Slabă spre medie: doar date sintetice sau din altă țară | Bună | Medie | Parțial |
+| C. Prosumatorii ridică tensiunea: posturi de transformare în pericol mâine | Rețele Electrice, plus PPC Energy | Foarte bună: 359.378 de prosumatori, invertoare care se opresc, reguli de racordare înăsprite | Foarte bună: etichete din simulare fizică, test pe o rețea nevăzută | Foarte bună: acțiuni pe mai multe firme PPC | Foarte bună: incertitudinea prognozei meteo | Da (SimBench, licență ODbL) |
+| D. Baterie și parc solar la prețuri negative | PPC Renewables | Bună: au baterii în România și JV de 1,5 GW | Bună: prețuri reale românești | Foarte bună: plan orar cu constrângeri de baterie | Foarte bună: vârfuri și prețuri negative rare | Da (Energy-Charts, doar uz necomercial) |
+| E. Parc eolian: prognoză și decizie | PPC Renewables | Medie: PPC are deja proiectul în dezvoltare | Foarte bună | Medie | Bună | Da |
+| F. Stații de încărcare: cerere și defecte | PPC Blue | Medie | Bună | Bună | Medie | Da, din SUA și UK |
+| G. Risc de neplată sau programarea consumului în orele ieftine | PPC Energy | Medie: suprapunere cu AI Claims Agent și myEnergy Coach | Slabă spre medie: doar date sintetice sau din altă țară | Bună | Medie | Parțial |
 
-## A. Contoare defecte sau manipulate, plus echipele de verificare (recomandată)
+## A. Contoare defecte sau manipulate, plus echipele de verificare (recomandată, la egalitate cu C)
 
 - Problema PPC: au peste 2 milioane de contoare care trimit 96 de citiri pe zi. În prezentare au scris că urmează "anomaly detection on meter behaviour, predictive monitoring of faulty meters". În Grecia au avut loturi întregi de contoare defecte (până la 250.000 de puncte). Detectarea fraudei există deja (Energy Anomaly Detection, în producție), deci accentul nostru e pe contoare defecte, pe manipulare și pe decizia de după: pe cine trimiți să verifice, azi.
 - Perceive: consumul pe fiecare contor (la 15 sau 30 de minute, sau zilnic), golurile din date, comparația cu vecinii de pe același post de transformare.
@@ -37,19 +39,52 @@ Filtrul: model ML propriu cu test separat și baseline, agent care face acțiuni
 - Agent: mută echipele în zonele cu risc înainte de furtună, în limita capacității, trimite alerte, face raport.
 - Date: EAGLE-I (întreruperi în SUA pe comitat, la 15 minute, 2014-2024) și vremea istorică de la Open-Meteo. Slăbiciunea: datele sunt din SUA. Pentru demo am mapa rezultatele pe județele din Muntenia, Banat și Dobrogea, cu date sintetice etichetate ca atare.
 
-## C. Parc eolian: prognoză și decizie
+## C. Prosumatorii ridică tensiunea: posturi de transformare în pericol mâine (recomandată, la egalitate cu A)
+
+Găsită la a doua căutare, 7 nov. 2026.
+
+- Problema: la 30 iunie 2026, ANRE avea 359.378 de prosumatori racordați (324.535 persoane fizice, 34.843 firme), cu circa 3.800 MW instalați și peste 101.000 cu baterii. La prânz, energia injectată ridică tensiunea în rețeaua de joasă tensiune cu până la 10%, iar invertoarele se opresc singure. Știrile PRO TV spun că zeci de mii de panouri se deconectează automat la orele de vârf. Prosumatorii nu sunt împrăștiați uniform: la un alt distribuitor, peste 40% din posturi nu au niciun prosumator, iar altele sunt aglomerate. Guvernul pregătește condiții mai stricte de racordare. Rețele Electrice a pomenit prosumatorii explicit la platforma GIS nouă, iar Daniel Albu a spus că rețeaua devine bidirecțională. Problema nu e în portofoliul AI al PPC.
+- Perceive: prognoza meteo pe mâine (radiație, temperatură, de la Open-Meteo), câți prosumatori și ce putere are fiecare post, consumul tipic pe zi și oră.
+- Estimate: modelul nostru prezice, pentru fiecare post de transformare, tensiunea maximă și încărcarea de mâine, pe ore, cu interval de încredere.
+- Decide: pragul e cel din standard (tensiune în ±10% față de nominal, deci peste 1,10 în unități relative înseamnă problemă). Decide pentru fiecare post: nimic, prevenție sau intervenție, după risc și încredere.
+- Act, pe trei firme PPC: (1) Rețele Electrice primește lista posturilor cu risc pe mâine și reglajul recomandat (priza transformatorului, setările invertoarelor). (2) PPC Energy le trimite prosumatorilor de pe acele posturi un mesaj: "mâine între 11 și 15 pornește mașina de spălat și boilerul", legat de oferta Ore Smart, așa că energia se consumă local. (3) Pentru planul de investiții: clasamentul posturilor de modernizat și un răspuns la cererile noi de racordare (aprobat, aprobat cu limită de injecție sau studiu).
+- Date: SimBench (rețele de joasă tensiune de referință, cu profile reale de consum și fotovoltaic la 15 minute pe un an, licență ODbL pentru date, cod BSD, pachet Python `simbench` 1.6.3) plus pandapower (calcul de circulație de puteri, versiunea 3.5.6). Generăm scenarii cu tot mai mulți prosumatori, calculăm tensiunile cu fizica rețelei, iar rezultatele devin etichete. Vremea din România vine de la Open-Meteo și PVGIS.
+- Baseline: o regulă simplă, puterea prosumatorilor raportată la puterea transformatorului. Model: gradient boosting care învață să înlocuiască simularea (milisecunde în loc de minute). Test: pe o rețea pe care modelul n-a văzut-o deloc, ca să arătăm că merge pe posturi noi.
+- Robustețe: prognoza meteo incertă (zile înnorate parțial), date lipsă de la contoare, rețele cu structură nouă.
+- Explicabilitate: "postul 1432: 38 de prosumatori, 410 kW, duminică cu soare 900 W/m² și consum mic, deci 1,12 la ora 13".
+- Etică: nu deconectăm pe nimeni automat. Agentul recomandă, dispecerul decide. Mesajele către clienți sunt opționale.
+- Costuri: modelul rulează pe CPU, iar simularea grea se face o singură dată, offline.
+- Riscul: echipa trebuie să învețe repede pandapower. Simularea pe un an întreg poate dura zeci de minute, deci începem cu o singură rețea mică.
+
+## D. Baterie și parc solar la prețuri negative
+
+Găsită la a doua căutare, 7 nov. 2026.
+
+- Problema: în 2026, România are tot mai des prețuri negative la prânz (de exemplu 27 aprilie, ore întregi negative) și vârfuri mari seara (29 iunie: medie de 224 €/MWh, peste 800 €/MWh seara). Unele parcuri solare se opresc la prețuri negative. PPC are baterii în România (Corugea 40 MW / 80 MWh, Fântânele-Vest), un JV de 1,5 GW de baterii cu Metlen și peste 1,6 GW de regenerabile. Portofoliul lor AI prognozează consumul și producția, dar nu prețul și nici decizia bateriei.
+- Perceive: prețurile din ultimele zile, prognoza meteo, producția solară și eoliană din România.
+- Estimate: modelul nostru prognozează prețul pe mâine pe fiecare interval, cu interval de încredere (cuantile).
+- Decide: planul de încărcare și descărcare, cu limitele bateriei (putere, capacitate, cicluri pe zi, randament) și cu decizia de a opri parcul când prețul e negativ. Când încrederea e mică, ia varianta prudentă.
+- Act: planul pe mâine, alerte pentru intervalele cu risc, raport cu banii câștigați față de strategia simplă.
+- Date: Energy-Charts (Fraunhofer ISE), API fără cheie: prețuri pentru România la 15 minute în 2026 (orare în 2024) și producția pe tipuri (eolian, solar, baterii). Verificat pe 7 nov. Licența spune "private and internal use only", deci e bine pentru un hackathon, dar trebuie spus. Alternativ, ENTSO-E cu token.
+- Baseline: prețul de ieri la aceeași oră. Strategia simplă pentru baterie: încarcă la prânz, descarcă seara.
+- Robustețe: vârfuri de preț, zile cu prețuri negative, date lipsă.
+- Explicabilitate: "încarc la 13:00 pentru că prognoza dă -5 €/MWh, cu soare puternic și consum mic de weekend".
+- Riscul: prognoza prețului e grea, iar trading-ul e domeniul PPC Trading, care poate pune întrebări grele.
+- Notă: pe 27 aprilie, Energy-Charts arată un minim de -1 €/MWh, iar presa a scris -97,5 €/MWh. De verificat înainte să folosim cifra în prezentare.
+
+## E. Parc eolian: prognoză și decizie
 
 - PPC are deja prognoza producției eoliene în dezvoltare (proiectul 08) și Smart Sentry în producție. E credibil, dar ne compară cu munca lor.
 - Agent: ajustarea poziției pe piața intraday, programarea mentenanței în ferestrele fără vânt, încărcarea bateriilor.
 - Date: SCADA de turbine publice (de exemplu setul de pe Kaggle din Turcia, la 10 minute), vremea istorică de la Open-Meteo, PVGIS pentru solar.
 
-## D. Stații de încărcare PPC Blue: cerere și defecte
+## F. Stații de încărcare PPC Blue: cerere și defecte
 
 - Model: cererea pe stație și oră, sau detectarea stațiilor defecte din sesiuni scurte sau eșuate.
 - Agent: prioritizează mentenanța, recomandă prețuri mai mici la vârful solar, alertează.
 - Date: ACN-Data (Caltech, cont gratuit), datele deschise din Palo Alto, Boulder sau Dundee.
 
-## E. PPC Energy: neplată sau consum mutat în orele ieftine
+## G. PPC Energy: neplată sau consum mutat în orele ieftine
 
 - Riscul de neplată completează AI Claims Agent, dar nu există date publice de facturare la energie, deci ar fi doar sintetice.
 - Programarea consumului în orele Ore Smart se suprapune cu myEnergy Coach.
