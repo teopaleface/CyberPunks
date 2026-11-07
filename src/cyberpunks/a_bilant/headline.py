@@ -1,6 +1,6 @@
 """Cifrele bilanțului pentru prezentare, într-o pagină: `reports/bilant/headline.md`.
 
-    uv run python -m cyberpunks.a_bilant.headline      # după evaluate; citește doar reports/bilant/metrics.json
+    uv run python -m cyberpunks.a_bilant.headline      # după evaluate și predict (inclus în `make bilant-predict`)
 
 Nicio cifră nu e scrisă de mână: toate vin din `metrics.json` (comanda `make bilant-eval`). SIMULARE pe date publice.
 """
@@ -57,6 +57,8 @@ def main() -> None:
         "",
         f"SIMULARE pe date publice, gândită pentru datele PPC. Sursa: `reports/bilant/metrics.json` ({mj['model_version']}), comanda `make bilant-data bilant-eval`. Test: cele 300 de posturi ale hărții (registrul C), rețele nevăzute la antrenare; defectele de contor sunt cele ale firului A.",
         "",
+        "**Baza legală:** Codul de măsurare ANRE (Ord. 103/2015) cere ca sistemele de măsurare inteligentă să permită „cel puţin un contor de balanţă la fiecare post de transformare, pentru a facilita identificarea pierderilor tehnice şi netehnice”.",
+        "",
         "## 1. Ce vede doar bilanțul (cifra principală)",
         "",
         "Contoarele clienților (modelul A) nu au cum să vadă aceste probleme: A găsește 0 prin construcție.",
@@ -75,6 +77,7 @@ def main() -> None:
         f"- **Bilanțul găsește {pct(M['cauze_post_energy_found_share'])} din energia pierdută din aceste cauze, ~{ro(M['cauze_post_lei_per_month_found'], 0)} lei pe lună** pe cele 300 de posturi (la 0,70 lei/kWh, `config/economics.yaml`). Din posturile marcate, {pct(M['cauze_post_false_alarm_share_of_found'])} sunt de fapt normale.",
         f"- În ziua demo, **{pct(M['invizibil_share_invisible_to_meters'])} din energia pierdută peste normal nu apare la niciun contor de client**.",
         f"- Diagnosticul cauzei: F1 macro {ro(M['diagnoza_macro_f1'], 2)} față de {ro(B['diagnoza_macro_f1'], 2)} la tabelul de reguli din concept.",
+        f"- **Contorul martor** (regulă, prag 0,5% = clasa de exactitate): pe posturile cu martor prinde {pct(M.get('martor_rule_recall_contor_post', 0))} din contoarele de balanță setate greșit, cu {int(M.get('martor_rule_false_alarms', 0))} alarme false; diferența normală martor − contor de balanță are mediana {ro(M.get('martor_normal_diff_median_pct', 0), 2)}% (mentorul PPC: ~0,1%).",
         "",
         "## 2. Cu bilanț față de fără, la verificările de contoare",
         "",
@@ -98,9 +101,9 @@ def main() -> None:
         + ro(M["fuziune_sgcc_value_lei_per_day_at_10"] / max(B["fuziune_sgcc_value_lei_per_day_at_10"], 1), 1)
         + " ori în primele 10).",
         "",
-        "## 3. Unde montăm întâi contoarele de bilanț (planul B)",
+        "## 3. Unde montăm întâi contoarele de balanță (planul B)",
         "",
-        "`reports/bilant/plan_b.md`: gradul de integrare a contoarelor inteligente e 56-67% pe regiuni (31 dec. 2025). Montând contoare de bilanț la 20% din posturi, în ordinea modelului, găsim mai multă energie lipsă decât la întâmplare sau la „posturile mari întâi”.",
+        "`reports/bilant/plan_b.md`: gradul de integrare a contoarelor inteligente e 56-67% pe regiuni (31 dec. 2025). Montând contoare de balanță la 20% din posturi, în ordinea modelului, găsim mai multă energie lipsă decât la întâmplare sau la „posturile mari întâi”.",
         "",
         "## 4. Postul pentru demo",
         "",

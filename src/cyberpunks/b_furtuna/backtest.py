@@ -11,7 +11,9 @@ cu ce ordin de mărime.
 
 from __future__ import annotations
 
+import json
 from datetime import date, timedelta
+from pathlib import Path
 
 import matplotlib
 
@@ -104,7 +106,31 @@ def run() -> pd.DataFrame:
     df = pd.DataFrame(rows)
     figure(df[df["date"].isin(DAYS)], model.decision_threshold)
     write_md(df, model)
+    write_summary(df)
     return df
+
+
+def write_summary(df: pd.DataFrame) -> Path:
+    """Cifrele-cheie ale celor trei cazuri, pentru fișa modelului (reports/B/backtest_summary.json)."""
+    c1 = df[df["date"].isin(DAYS[1:3])]
+    b1, r1 = c1[c1["region"] == "banat"], c1[c1["region"] != "banat"]
+    c2 = df[df["date"] == CASE2_DAYS[1]]
+    p2 = float(c2.loc[c2["zone_id"] == CASE2_ZONE, "p"].iloc[0])
+    ties2 = sorted(c2.loc[(c2["p"] == p2) & (c2["zone_id"] != CASE2_ZONE), "zone_id"])
+    c3 = df[df["date"] == CASE3_DAYS[2]]
+    d3, r3 = c3[c3["region"] == CASE3_REGION], c3[c3["region"] != CASE3_REGION]
+    out = {
+        "banat_2025_07_07_08": {"p_banat": round(float(b1["p"].mean()), 3), "p_rest": round(float(r1["p"].mean()), 3),
+                                "crews_banat_zone_days": int((b1["action"] == "preposition_crew").sum()),
+                                "crews_rest_zone_days": int((r1["action"] == "preposition_crew").sum())},
+        "slobozia_2025_07_17": {"rank": int((c2["p"] > p2).sum()) + 1, "zones": len(c2), "p": round(p2, 3),
+                                "tied_with": ties2},
+        "dobrogea_2023_11_26": {"p_dobrogea": round(float(d3["p"].mean()), 3), "p_rest": round(float(r3["p"].mean()), 3),
+                                "crews_dobrogea": int((d3["action"] == "preposition_crew").sum()), "zones_dobrogea": len(d3)},
+    }
+    path = REPORTS / "B" / "backtest_summary.json"
+    path.write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
+    return path
 
 
 def figure(df: pd.DataFrame, thr: float) -> None:
@@ -202,7 +228,10 @@ def write_md(df: pd.DataFrame, model: BModel) -> None:
     tgt = c2[c2["zone_id"] == CASE2_ZONE].set_index("date")
     others = c2[c2["zone_id"] != CASE2_ZONE].groupby("date")["p"].mean()
     d17 = CASE2_DAYS[1]
-    rank17 = int((c2[c2["date"] == d17]["p"] > tgt.loc[d17, "p"]).sum()) + 1
+    day17 = c2[c2["date"] == d17]
+    rank17 = int((day17["p"] > tgt.loc[d17, "p"]).sum()) + 1
+    ties17 = sorted(day17.loc[(day17["p"] == tgt.loc[d17, "p"]) & (day17["zone_id"] != CASE2_ZONE), "zone_id"])
+    tie_txt = f", la egalitate cu {', '.join(ties17)}" if ties17 else ""
     lines += [
         "## Al doilea caz: furtuna de la Slobozia, 17 iulie 2025",
         "",
@@ -219,7 +248,7 @@ def write_md(df: pd.DataFrame, model: BModel) -> None:
                      f"{r['precip48']} | {r['onset']} | {others.loc[d]:.2f} |")
     lines += [
         "",
-        (f"Pe 17 iulie, Slobozia a fost pe locul {rank17} din 26 de zone după risc (P = {tgt.loc[d17, 'p']:.2f}). "
+        (f"Pe 17 iulie, Slobozia a fost pe locul {rank17} din 26 de zone după risc{tie_txt} (P = {tgt.loc[d17, 'p']:.2f}). "
          "Nu avem cifre despre clienții fără curent, deci verificăm doar dacă zona lovită iese în față."),
         "",
     ]

@@ -10,6 +10,7 @@ import {
   EXTERNAL_DATASET,
   compare,
   deltaSentence,
+  explainFor,
   fmtMetric,
   fmtTick,
   metricMeta,
@@ -43,6 +44,19 @@ export function ModelColumn({ source, report, hasAnalysis }: { source: Source; r
       </header>
       {report ? <ReportBody source={source} report={report} hasAnalysis={hasAnalysis} /> : <MissingReport source={source} />}
     </section>
+  );
+}
+
+/** Contoare: validarea pe furturi reale (SGCC), sub metrica principală. Referința e regula simplă pe același set. */
+function SgccLine({ metrics, baseline }: { metrics: Record<string, number>; baseline: Record<string, number> }) {
+  const m = metrics.sgcc_precision_at_k;
+  const b = typeof metrics.sgcc_vee_precision_at_k === "number" ? metrics.sgcc_vee_precision_at_k : baseline.sgcc_precision_at_k;
+  if (typeof m !== "number" || typeof b !== "number") return null;
+  return (
+    <p className="mt-2.5 border-t border-rule pt-2.5 text-[15px] leading-snug">
+      <b className="font-[620]">Pe furturi reale (SGCC, etichete reale):</b> precizie în primele K {fmtMetric("sgcc_precision_at_k", m)}, față
+      de {fmtMetric("sgcc_precision_at_k", b)} la regula simplă.
+    </p>
   );
 }
 
@@ -88,11 +102,12 @@ function ReportBody({ source, report: r, hasAnalysis }: { source: Source; report
           <h3 className="text-[17px] font-[650]">{pm.label}</h3>
           <span className="text-[13.5px] text-muted-foreground">metrica principală</span>
         </div>
-        {pm.explain ? <p className="mt-1 text-[14.5px] leading-snug text-muted-foreground">{pm.explain}</p> : null}
+        {explainFor(source, key) ? <p className="mt-1 text-[14.5px] leading-snug text-muted-foreground">{explainFor(source, key)}</p> : null}
         {typeof model === "number" && typeof base === "number" ? (
           <>
             <HeroBars metric={key} model={model} baseline={base} modelId={r.model_id} baselineId={baseline.short} prevalence={prevalence} />
             <p className="mt-2.5 text-[17px] leading-snug font-[620]">{deltaSentence(key, pm, model, base)}</p>
+            {source === "A" && !key.startsWith("sgcc_") ? <SgccLine metrics={r.metrics} baseline={r.baseline_metrics} /> : null}
           </>
         ) : (
           <p className="mt-3 text-[15px] text-muted-foreground">Metrica principală lipsește din raport.</p>

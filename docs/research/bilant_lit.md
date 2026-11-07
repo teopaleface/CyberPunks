@@ -5,7 +5,7 @@ Sursele PDF mari le-am citit local (text extras), nu doar din rezumate.
 
 ---
 
-## 1. România / ANRE: CPT și contoare de bilanț
+## 1. România / ANRE: CPT și contoare de balanță
 
 ### 1.1 Cât CPT are Rețele Electrice (date reale, ale lor)
 
@@ -57,7 +57,7 @@ Concluzie pentru noi: pe JT, pierderea totală (tehnică + comercială) e cam 10
   - MT: 83,36 total, CPT util 31,86. IT: 31,96 total, CPT util 7,15.
   - Cum componenta CPT pe JT e cam 100,57 lei/MWh (80,60 + 19,97) la o energie distribuită pe JT, ea include și volumul de CPT, nu doar prețul. Nu o folosim ca preț al energiei.
 
-### 1.5 Contoare de bilanț și SMI în România
+### 1.5 Contoare de balanță și SMI în România
 
 - Planul de dezvoltare 2026-2035 (sursa de la 1.1) cere ca infrastructura SMI să permită „cel puțin un contor pentru balanță la fiecare post de transformare, pentru identificarea pierderilor tehnice și nontehnice prin analiza balanțelor de energie"; funcția e declarată obligatorie, iar contoarele de balanță sunt „componente necesare".
 - Planul menționează și „instalarea grupurilor de măsurare pentru balanță pe liniile de MT, în posturile de transformare, pentru identificarea zonelor cu CPT ridicat". Calendarul SMI e conform Ordinului ANRE 177.
@@ -125,7 +125,7 @@ Concluzie pentru noi: pe JT, pierderea totală (tehnică + comercială) e cam 10
 - Fang & Ma 2020, IET GTD 14(4): 675-681 (Univ. Bath): curenții dezechilibrați cresc pierderile de fază cu „aproximativ 33%"; pe linii până la 33% din pierderile de conductoare, în transformatoare până la 27% din pierderile în cupru; la WPD, mai mult de 50% din rețelele JT au dezechilibru notabil, iar faza cea mai încărcată o depășește pe cea mai slabă cu peste 50% în mod frecvent. Atenție: „până la" e maxim, nu valoare tipică. https://doi.org/10.1049/iet-gtd.2019.1036 (PDF la https://kh.aquaenergyexpo.com/wp-content/uploads/2023/03/Assessment-Of-Additional-Phase-Energy-Losses-Caused-By-Phase-Imbalance-For-Data-Scarce-LV-Networks.pdf)
 - Alte cifre (din rezumate de căutare, sursă secundară): transformator de 200 kVA: pierderile de 6,23% la dezechilibrul cel mai mare față de 0,22% la cel mai mic, https://jurnalelektro.petra.ac.id/index.php/elk/article/view/16701 (studiu indonezian, nu l-am citit integral).
 - Remediu: reechilibrarea (mutarea clienților monofazați între faze) reduce pierderea în plus; un articol din Bosnia a redus factorul de dezechilibru și pierderile pe o rețea JT reală (cifră %: negăsită). Un calcul de load-flow pe feeder e necesar pentru economia exactă.
-- Pentru model: dezechilibrul crește pierderea tehnică a postului. Dacă un post cu dezechilibru mare iese cu exces de bilanț, o parte e tehnică și nu furt. De aceea măsurăm dezechilibrul (max/min curent pe fază) la contorul de bilanț.
+- Pentru model: dezechilibrul crește pierderea tehnică a postului. Dacă un post cu dezechilibru mare iese cu exces de bilanț, o parte e tehnică și nu furt. De aceea măsurăm dezechilibrul (max/min curent pe fază) la contorul de balanță.
 
 ---
 
@@ -137,7 +137,7 @@ Concluzie pentru noi: pe JT, pierderea totală (tehnică + comercială) e cam 10
 4. Dezechilibru: pierdere în plus de faze, trecută ca variabilă în model (ex. (Imax−Imin)/Imedie). Ca ordine de mărime, maximum 33% din pierderile de conductoare (Fang & Ma 2020), tipic mult mai mic (IPOTEZĂ: 5-15% din pierderea tehnică, nesprijinit de o sursă).
 5. Pragul de alarmă: reziduu = (energie post − Σ contoare) − pierdere prezisă; alarmă la reziduu > 3σ din istoricul postului (IPOTEZĂ), cu cel puțin 2-3 zile consecutive ca să tăiem zgomotul.
 6. Diagnostic de cauză (reguli, IPOTEZĂ):
-   - Salt brusc, constant, de factor ~2 (sau 0,5) față de istoric și de suma contoarelor → raport TC greșit pe contorul de bilanț.
+   - Salt brusc, constant, de factor ~2 (sau 0,5) față de istoric și de suma contoarelor → raport TC greșit pe contorul de balanță.
    - Reziduu dintr-un post pozitiv și în alt post vecin negativ de aceeași mărime → client mapat la post greșit (cerem și regresia de la secțiunea 4).
    - Exces lent crescător, concentrat pe o fază → furt înainte de contor sau bypass; dezechilibru de faze mare fără exces → pierdere tehnică.
    - Contor client cu consum plat sau zero față de vecini → contor defect.

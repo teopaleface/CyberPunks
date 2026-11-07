@@ -17,6 +17,7 @@ Decizia lui Teo (7 nov. 2026, 12:30): facem în paralel A (contoare), B (furtun�
 | Planificator | Teo-planificator | agentul: decizii, trasee OR-Tools, acțiuni, jurnal, API pe portul 8710 |
 | Interfață | Teo-ui | consola dispecerului, Next.js, portul 3710 |
 | Bilanț pe post | Teo-bilant | pierderi pe post, diagnosticul cauzei, fuziunea cu A (adăugat la 14:05, vezi 11-bilant-pe-post.md) |
+| Landing page | Teo-landing | pagina de prezentare Daybreak, inspirată din 10 site-uri alese de Teo, cu paleta PPC explicită (fără logoul PPC, cu notă că nu e produs oficial) |
 | Prezentare | Teo-prezentare | video de 30 s cu HyperFrames în stil Apple, slideuri, scriptul demo-ului |
 
 ## Thread-urile pornite (7 nov., 12:44) și worktree-urile lor
@@ -29,6 +30,7 @@ Worktree-urile sunt în `/Users/teo/.t3/worktrees/CyberPunks/<branch>`.
 - Planificator: `mcp:8a721147-9253-4a31-a5c5-45843bf660ae`
 - Interfață: `mcp:258543d3-0b7d-4643-bfb8-99aa0e4bc313`
 - Prezentare: `mcp:1b443203-dc89-437d-bf33-01ad5692d571`
+- Landing page Daybreak (pornit la 17:15 din conversația principală): `mcp:66c2c9c4-6dfb-48d6-acc7-2065c7d1e217`, branch `Teo-landing`, deține doar `landing/` (Next.js separat, export static) și `status/Teo-landing.md`
 - Bilanț pe post (pornit la 14:05): `mcp:509cafcf-5f9a-4ee8-9ab0-68cb1bfbb85a`, worktree `/Users/teo/.t3/worktrees/CyberPunks/Teo-bilant`
 
 Orchestratorul rulează automat la fiecare 30 de minute, prin programarea T3 "Orchestrator CyberPunks (la 30 de minute)" (`scheduled-task:command:mcp:2b4adb6a-3dd4-464e-9117-b6bdd3211bf4:schedule-task:cyberpunks-orchestrator-tick-v1`), legată de conversația laterală. Se oprește după demo (duminică, 13:30). Mac-ul e ținut treaz cu `caffeinate -dimsu -t 93600` (26 de ore, pornit la 12:46).

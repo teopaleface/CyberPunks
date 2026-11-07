@@ -61,7 +61,7 @@ Am împărțit județele în 26 de zone de mărimea unui comitat american. Model
 **13. Ce dovadă aveți că merge în România?**
 Am verificat trei furtuni reale din presă:
 - 8 iulie 2025, cod roșu în Banat: riscul mediu e 0,31 în Banat față de 0,07 în rest, cu echipă recomandată în 22 de zone-zi din Banat și în niciuna din rest.
-- 17 iulie 2025, Slobozia: zona iese pe locul 1 din 26.
+- 17 iulie 2025, Slobozia: zona iese pe locul 1 din 26, la egalitate cu Oravița (P = 0,36).
 - 26 noiembrie 2023, viscol în Dobrogea: riscul mediu e 0,87 în Dobrogea față de 0,09 în rest, iar toate cele 10 zone din Dobrogea primesc echipă.
 Fără istoricul RER, verificarea e calitativă. Sursa: `reports/B/backtest_romania.md`.
 
@@ -139,6 +139,11 @@ Tema cere ca deciziile să vină din modelele noastre și din reguli scrise în 
 - Pragul de 0,5 pentru vizita la contor e un prag etic.
 - O echipă ajută cel mult 500 de clienți într-o tură, calculat din furtuna din Timiș: circa 40.000 de consumatori și 80 de echipe.
 Sursa: `reports/B/metrics.json` (`decision_threshold`), `config/planner.yaml`, `config/economics.yaml` (`customers_helped_per_crew_shift`).
+
+## Întrebări despre demo
+
+**31. În fereastra furtunii (15:00-21:00), vântul din grafic scade. De ce trimiteți echipa?**
+Graficul arată arhiva Open-Meteo, care netezește vijeliile: la Timișoara dă cel mult 50 km/h la 14:00 și 37 km/h la 15:00. Furtuna reală a avut rafale măsurate de 90-120 km/h (Transelectrica), iar ANM a dat cod roșu de vijelii exact pentru 15:00-21:00. Cu o seară înainte, prognoza ICON dădea 68-72 km/h la Reșița, Caransebeș și Deva, iar ECMWF arăta aer foarte instabil la Timișoara (CAPE de 1.960 J/kg). Riscul modelului din grafic urcă exact la 15:00, odată cu ploaia de furtună: de la 0,19 la 0,36, apoi la 0,43. Orele sunt ora României (+03:00): vremea e cerută cu fusul Europe/Bucharest. Sursa: seria `B-20250708-TM-TIMISOARA` (`expected` = riscul zilei, cu vremea de până la acea oră), `reports/B/backtest_romania.md`, `docs/research/B.md` (secțiunea 3).
 
 ## Puncte slabe (de reparat sau de pregătit răspunsul)
 

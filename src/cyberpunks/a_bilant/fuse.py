@@ -78,7 +78,7 @@ def _nearest_post(state: dict, lat: float, lon: float) -> str | None:
 def fuse(items: list[WorkItem], scenario: str, date: str | Date) -> list[WorkItem]:
     """Întoarce lucrările, cu cele A pe contoare confirmate sau infirmate de bilanțul postului.
 
-    Lucrările care nu sunt A pe contor, sau al căror post nu are contor de bilanț, rămân neschimbate. Fără starea bilanțului pentru scenariu și dată, funcția nu schimbă nimic.
+    Lucrările care nu sunt A pe contor, sau al căror post nu are contor de balanță, rămân neschimbate. Fără starea bilanțului pentru scenariu și dată, funcția nu schimbă nimic.
     """
     state = _load_state(scenario, date)
     if not state:
@@ -105,7 +105,7 @@ def fuse(items: list[WorkItem], scenario: str, date: str | Date) -> list[WorkIte
         if approx:
             # contorul nu e în registrul de posturi: legătura după poziție nu e o dovadă, scorul rămâne cel al lui A
             comb, log_lr = a, 0.0
-        comb = round(comb, 4)
+        comb = round(min(comb, 0.99), 4)  # nicio probabilitate afișată nu e 100%
         if approx:
             note = f"Contorul nu e legat în bază de un post din registru; cel mai apropiat post e {pid}, dar fără legătură sigură bilanțul nu schimbă scorul."
         elif log_lr > 0.5:

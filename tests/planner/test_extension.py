@@ -210,7 +210,10 @@ def test_ladder_crew_step_needs_notice(out_root: Path, tmp_path: Path) -> None:
     it = _c_with_ladder("PT-L003", opts)
     write_items(out_root, "C", [it])
     d = _decisions(agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root))[it["work_item_id"]]
-    assert d.decision.value == "notify" and "le programez pe" in d.reason_ro  # fără preaviz ANRE: programată mai târziu
+    assert d.decision.value == "notify" and "cu echipa pe" in d.reason_ro  # fără preaviz ANRE: programată mai târziu
+    assert d.reason_ro.startswith("Soluția aleasă:")  # QA 17:55: combinația întâi, nu doar „mesaj către clienți”
+    titles = json.loads((out_root / "plans" / SCENARIO / "titles.json").read_text(encoding="utf-8"))
+    assert titles[it["work_item_id"]] == "Soluție: mutare pe faze"  # treapta cu echipă, deși mâine pleacă doar mesajul
     out2 = tmp_path / "o2"
     write_items(out2, "C", [it])
     res = agent.run(SCENARIO, date=DATE, mode="existing", out_root=out2, as_of=EARLY)

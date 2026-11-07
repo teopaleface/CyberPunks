@@ -1,7 +1,7 @@
 # Status: Teo-ui
-Actualizat: 2026-11-07 16:30
-Milestone curent: M3 (M0 13:50, M1 13:55, M2 14:40)
-Gata de merge: da (commit a4e9364: numele Daybreak, graficul bilanțului pe seriile reale, culorile posturilor din API, alertele cu ce a decis agentul, `make web-demo`)
+Actualizat: 2026-11-07 17:25
+Milestone curent: M4 (M0 13:50, M1 13:55, M2 14:40, /demo 16:50, M3 17:00, M4 17:05); înghețarea interfeței la 20:00
+Gata de merge: da (commit 4b65254 și următoarele: M3 și M4 gata; Daybreak, graficul bilanțului, `/demo` pentru filmare, review-ul final reparat, capturile, rezerva fără API reverificată)
 
 ## Făcut
 - 12:45 Citite instrucțiunile, memoria, planul, contractele; `uv sync` și `make check` trec.
@@ -40,16 +40,22 @@ Gata de merge: da (commit a4e9364: numele Daybreak, graficul bilanțului pe seri
 - 16:20 Reparat: posturile roșii apăreau gri pe hartă (API-ul scrie „rosu”, fără diacritică). Cauza din bilanț apare în cuvinte, nu cod. Pragurile de culoare se citesc din `config/planner.yaml` (200 și 600 lei); legenda spunea 150.
 - 16:25 Alerta principală arată, lângă textul planificatorului, ce a decis agentul pentru lucrările ei, numărat din decizii („11 în trasee, 182 verificate de la distanță”). La fel pe „Alerte și mesaje”.
 - 16:25 `make web-demo`: build de producție (~10 s, fără avertismente) și consola pe 3710; testul de fum trece 14/14, paginile se încarcă de 2–3 ori mai repede decât în modul de dezvoltare.
+- 16:40 Verificat la 1920×1080 pe planul real de la API: posturile (harta, lista, pagina), scara de soluții, ofertele de baterii (8 posturi), coada „Nu sunt sigur” (25), aprobarea listei (butonul nu a fost apăsat pe API-ul comun). Reparat pe parcurs: 269 de erori React pe „Alerte” (planificatorul pune aceeași lucrare de două ori în `alerts[].work_item_ids`; titlul „194 cazuri” număra dublurile, acum 103), lista posturilor fără lipsa pe zi, jurnalul cu termeni în engleză („Fusion”, „a score”) și „true” în loc de „da”.
+- 16:50 `/demo` pentru filmare: harta lasă loc subtitrării (în scena 4 traseul Reșița–Oravița era sub ea), încadrarea cuprinde lucrarea scenei (scena 2: cazul din Ineu ieșea pe margine), linia de timp derulează la echipa lucrării (scena 4: E-RS-1 pleacă la 12:47 și ajunge la 14:00, furtuna e la 15:00), axa orelor rămâne sus. Consola fără erori pe toate ecranele.
+- 17:00 Review final: `web-design-guidelines` pe toate ecranele (3 subagenți, 93 de observații: 1 gravă, 13 medii, restul mici) și `impeccable` (detectorul: 0 probleme; review vizual la 1920 și 1440). Reparate: cea gravă și 12 din 13 medii, plus majoritatea celor mici (detaliile în commit-ul 42a71fd). Filtrele jurnalului stau acum în adresă (`?cine=`, `?sursa=`, `?decizia=`, `?cauta=`).
+- 17:03 Capturi pentru slideuri în `web/design/captures/` (12, la 1920×1080, toate din planul `PLAN-demo-vara-20250708-170128-31d6`), cu README.
+
+- 17:25 Rezerva reverificată după schimbările de azi, pe build-ul de producție: API oprit → „Ultimul plan salvat”, 14/14 ecrane; doar fixture-uri → „Date de test”, 14/14. Scenariul „Mâine, cu prognoza reală” merge pe API (636 de lucrări, 23 în trasee), fără erori în consolă.
 
 ## Urmează
-- Verificare la 1920×1080 pe planul real de la API: posturile, scara de soluții, ofertele de baterii, coada „Nu sunt sigur”, aprobarea listei.
-- `/demo` în tema închisă pentru înregistrări.
-- Review final cu `web-design-guidelines` și `impeccable`, reparații, apoi capturi pentru slideuri în `web/design/captures/`.
+- Până la 20:00: captura paginii unui post cu graficul bilanțului, dacă seriile ajung în API sau în instantaneu; altfel nimic nou, doar ce găsește testarea.
+- După 20:00: doar bug-uri. Schimbările de design de pe `design` le aduc în `Teo-ui` doar din `web/` (`git diff <bază>..origin/design -- web | git apply -3`), nu prin merge: `design` șterge datele și modelele. De acolo ajung în `Teo` prin merge-ul orchestratorului (eu nu fac push pe `Teo`). Acum `design` nu are schimbări în `web/`.
 
 ## Blocaje
 - niciunul
 
 ## Cereri către orchestrator
+- (17:05) Către planificator: în `alerts[].work_item_ids` aceeași lucrare apare de două ori (alerta „cazuri cu risc de siguranță”: 194 de intrări, 103 lucrări distincte), iar titlul și „și încă N” din text numără dublurile. Interfața le scoate și corectează numărul din titlu; textul („și încă 188”) rămâne cum vine. Tot acolo: „Întăriri necesare: 1 cazuri de siguranță” (plural).
 - (16:30) **Seriile bilanțului lipsesc în continuare** din API și din instantaneu. Lucrările `A-20250708-PT-*` au `extra.series_ref = outputs/series/demo-vara/A-20250708-PT-*.json`, dar `GET /api/series/A-20250708-PT-1269` dă 404 și `outputs/demo/series/demo-vara/` are doar seriile A (contoare), B și C. În worktree-ul Teo-bilant există acum doar `outputs/series/maine/A-20261108-PT-*.json` (98); cele pentru demo-vara nu mai sunt. Propunere: `make bilant-predict` în checkout-ul din care rulează API-ul, apoi `make demo-snapshot`. Graficul e gata și verificat pe formatul real; consola caută seria în API, în `outputs/demo/series/<s>/` și în `outputs/series/<s>/`.
 - (16:30) Către planificator, text fals în alerta principală: „193 cazuri cu risc de siguranță: Intră primele în trasee, oricare ar fi costul”, dar din cele 193 doar 11 sunt în trasee, 182 merg la verificare de la distanță (`R-SAFETY-OVER-CAP`). În listă, numele se repetă („PT-1293, Sector 3 (sintetic), PT-1293, Sector 3 (sintetic)”: postul și contorul de pe el). Interfața arată acum, lângă text, numărătoarea reală din decizii, dar textul ar trebui reparat la sursă (de exemplu „11 intră în trasee azi; 182 se verifică întâi de la distanță, echipele sunt pline”).
 - (16:30) Către firul bilanț (texte): lipse negative (A-20250708-PT-1282: „La post lipsesc ~-47.1 kWh/zi peste pierderea normală (-2.3% din energie)”; A-20250708-PT-1182: „Postul vecin are surplus de ~-5.5 kWh/zi (potrivire -15%)”; A-20250708-PT-1005: „Lipsa de ~-448 kWh/zi e doar pe hârtie”) și zecimale cu punct în rezumat (PT-1005: „de 1.70 ori”). Când valoarea e negativă, formularea ar trebui să fie de surplus, nu de lipsă.
@@ -66,6 +72,12 @@ Gata de merge: da (commit a4e9364: numele Daybreak, graficul bilanțului pe seri
 - Către planificator: `GET /api/posts` (registrul posturilor cu lei pierduți pe lună și starea verde/galben/roșu) ar scuti interfața de calcule; până atunci fac un exemplu local, etichetat sintetic.
 - Rezolvate de orchestrator la 13:20: seriile de exemplu, planul complet, `depart_at`/`return_at`, `visit_cost_lei`, structura `outputs/demo/`, `scenario_id`, jurnalul.
 
+## Pornirea consolei pentru testare
+1. Prima dată: `make web-install` (instalează pachetele consolei cu bun).
+2. Cu agentul în direct: `make api` într-un terminal și `make web-demo` în altul, apoi http://localhost:3710 (planul) și http://localhost:3710/demo (prezentarea, tema închisă).
+3. Fără modele și fără API: `make web`; consola citește singură planul salvat din `outputs/demo/` și scrie sus „Ultimul plan salvat”.
+4. Verificări: `make web-test` (38 de teste) și, cu consola pornită, `make web-smoke` (14 ecrane).
+
 ## Cum se rulează (comenzile exacte)
 - **Pentru demo:** `make api` (sau `make api-demo` fără modele) într-un terminal, apoi `make web-demo` în altul → http://localhost:3710 (planul), http://localhost:3710/demo (prezentarea în tema închisă: ← → sau 1–5 schimbă scena, `?scena=N`, `?auto=1`). Fără API, consola merge singură pe instantaneul `outputs/demo/` din git.
 - La dezvoltare: `make web` → http://localhost:3710 (cu API-ul pe 8710 dacă rulează; altfel instantaneul demo sau fixture-urile, automat)
@@ -76,6 +88,8 @@ Gata de merge: da (commit a4e9364: numele Daybreak, graficul bilanțului pe seri
 - niciuna (interfața doar afișează cifrele firelor; culorile surselor validate cu `node validate_palette.js` din abilitatea dataviz)
 
 ## Decizii (cu ora)
+- 17:00 Din review: Aprobă, Respinge și Amână rămân fără fereastră de confirmare. Decizia nu șterge nimic: intră în jurnal cu actorul „om”, iar planul următor o reevaluează; o confirmare la fiecare caz ar încetini dispecerul (și demo-ul).
+- 16:50 În `/demo`, scena își alege încadrarea: harta lasă loc subtitrării, iar linia de timp arată echipa lucrării din scenă.
 - 16:15 Daybreak (decizia lui Teo, 15:30): antetul are doar cuvântul, cu fontul interfeței, până la identitatea aleasă separat; culorile surselor A, B, C rămân. Logourile respinse ies din `public/`, ca nimeni să nu le folosească din greșeală în slideuri.
 - 16:25 Când textul unei alerte și deciziile nu se potrivesc, interfața arată deciziile (numărate), lângă text, fără să rescrie textul planificatorului.
 - 16:20 Pragurile de culoare ale posturilor vin din `config/planner.yaml`, aceleași cu ale planificatorului; culoarea primită de la API are prioritate, normalizată („rosu” → „roșu”).

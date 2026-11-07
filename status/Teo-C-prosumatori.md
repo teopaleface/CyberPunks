@@ -1,7 +1,16 @@
 # Status: Teo-C-prosumatori
-Actualizat: 2026-11-07 16:50
+Actualizat: 2026-11-07 17:59
 Milestone curent: M4 terminat (M0 13:10, M1 13:45, M2 14:11, M3 15:40, M4 16:50)
-Gata de merge: da (commit 2ffeda1; `git merge Teo` făcut la 16:42, `make check` trece: 272 de teste, 32 în `tests/c`)
+Gata de merge: da (commit ede7919; `git merge Teo` făcut la 17:58, `make check` trece)
+
+## QA cap-coadă (cererea de la 17:55)
+- Zecimalele din textele scării sunt cu virgulă (PT-1269: „0,020 pu”, „0,001 pu”, „2,2 ori”), la fel în cererile de racordare și în raportul de baterii; datele din anunțul de întrerupere au luna în litere („9 iulie 2025”).
+- Probabilitatea în texte: „peste 99%” în loc de 100%, „sub 1%” în loc de 0%.
+- `extra.ladder_base_p90_pu` e în fiecare lucrare cu scară (PT-1269: 1,1768), mai mare sau egal cu P90 al modelului.
+- Test nou, cap-coadă și offline (`tests/c/test_predict.py`): contractul, seriile, valoarea așteptată, câmpurile scării, fără zecimale cu punct și fără 0%/100% în texte.
+
+## Testele C fără rețea (cererea de la 17:05)
+- Cele 32 de teste din `tests/c` rulează offline: vremea vine din mostra din git `data/samples/C/weather_2025_utc.parquet` (2025, 0,15 MB), descărcările sunt blocate în `tests/c/conftest.py`. Verificat cu `data/raw/C`, `data/processed/C`, `data/interim/C` și `models/C` ascunse și rețeaua blocată (proxy invalid, `uv run --offline`): 32 trec.
 
 ## Postul pentru prezentare (legătura bilanț → C): **PT-1082**
 - PT-1082, 1 Decembrie (Ilfov, sintetic). Bilanțul (`A-20250708-PT-1082`, `grid_inspection`) are `extra.phase_rebalance_input`: pierderi pe cabluri de 2,87 ori normalul, circa 77% din case pe o fază.
@@ -33,7 +42,7 @@ Gata de merge: da (commit 2ffeda1; `git merge Teo` făcut la 16:42, `make check`
 ## Cereri către orchestrator
 1. Interfață: la C, `explanation.top_factors[].contribution` e în log-odds pe P(tensiune > 1,10 pu) (`extra.factors_unit`), deci poate fi mare (de exemplu +11); cât mută fiecare grup tensiunea, în pu, e în `extra.voltage_contributions_pu`.
 2. Planificator: P90 de pornire al scării e `extra.ladder_base_p90_pu` (P90 model + dezechilibrul estimat, cel mult 0,02 pu); `p90_after_pu` din opțiuni pornește de la el. Dacă bilanțul a dat dezechilibrul, `extra.phase_rebalance_input_from` are lucrarea lui și treapta „faze” are încredere medie. C citește `outputs/work_items/<scenariu>/A_bilant.jsonl` dacă există (bilanțul rulează înaintea lui C în `cyberpunks run`).
-3. Modelul C are 4 versiuni în istoricul git (8,7 MB fiecare), notate pentru curățenia de la final.
+3. Modelul C are 4 versiuni în istoricul git (8,7 MB fiecare), notate pentru curățenia de la final. Regula de la 17:15 e respectată: modelul local e identic cu cel din git, deci nu mai fac commit în `models/release/`; dacă modelul s-ar schimba, o singură dată, la versiunea finală. Cel mai mare fișier C urmărit în afară de model: `data/samples/C/similar_cases.parquet` (0,35 MB).
 
 ## Cum se rulează (comenzile exacte)
 - Tot lanțul: `make c-all` (circa 15-25 de minute, cel mult 4 nuclee). Pas cu pas: `make c-weather c-sim c-population c-train c-predict c-eval`; `make c-bench`; `make c-test`.

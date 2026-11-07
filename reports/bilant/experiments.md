@@ -4,11 +4,11 @@ SIMULARE. Același test: ferestrele celor 300 de posturi ale hărții, cu defect
 
 | Varianta | F1 macro | normal | contor_client | furt_inainte_contor | pierdere_tehnica | client_post_gresit | contor_bilant_setat |
 |---|---|---|---|---|---|---|---|
-| modelul actual (lotul train, clase echilibrate) | 0.714 | 0.912 | 0.398 | 0.695 | 0.522 | 0.772 | 0.988 |
-| antrenat doar pe train2 (defecte ca la A) | 0.594 | 0.762 | 0.262 | 0.475 | 0.326 | 0.750 | 0.990 |
-| antrenat pe train + train2 | 0.706 | 0.885 | 0.383 | 0.676 | 0.510 | 0.789 | 0.995 |
-| clase echilibrate la radical | 0.716 | 0.920 | 0.412 | 0.691 | 0.524 | 0.758 | 0.990 |
-| fără echilibrarea claselor | 0.714 | 0.924 | 0.425 | 0.681 | 0.526 | 0.740 | 0.986 |
+| modelul actual (lotul train, clase echilibrate) | 0.703 | 0.912 | 0.384 | 0.670 | 0.505 | 0.758 | 0.988 |
+| antrenat doar pe train2 (defecte ca la A) | 0.595 | 0.767 | 0.263 | 0.469 | 0.322 | 0.762 | 0.986 |
+| antrenat pe train + train2 | 0.700 | 0.879 | 0.371 | 0.677 | 0.482 | 0.791 | 1.000 |
+| clase echilibrate la radical | 0.704 | 0.920 | 0.402 | 0.669 | 0.501 | 0.748 | 0.985 |
+| fără echilibrarea claselor | 0.705 | 0.925 | 0.412 | 0.656 | 0.504 | 0.748 | 0.988 |
 
 Concluzii:
 - Lotul `train2` (defecte trase pe tot anul) face din „contor de client” clasa dominantă la antrenare, altfel decât la test, unde defectele lui A au apărut doar în ultimele 60 de zile. Rezultatul e mai slab; nu l-am păstrat.

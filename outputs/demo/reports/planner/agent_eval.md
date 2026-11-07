@@ -1,6 +1,6 @@
 # Evaluarea agentului: cifrele (generat de script)
 
-Generat automat de `uv run python -m cyberpunks.planner.evaluate --days 30 --seed 7 --meters 120` la 2026-11-07T16:32:14+02:00 (`planner@0.1.0+b296ca7`). Lume SINTETICĂ, 30 de zile, 120 de lucrări A pe zi. Metoda: `reports/planner/README.md`.
+Generat automat de `uv run python -m cyberpunks.planner.evaluate --days 30 --seed 7 --meters 120` la 2026-11-07T17:26:13+02:00 (`planner@0.1.0+a23ffdb`). Lume SINTETICĂ, 30 de zile, 120 de lucrări A pe zi. Metoda: `reports/planner/README.md`.
 
 | Strategie | Valoare netă pe zi (lei) | Km pe zi | Vizite fără problemă reală | Urgențe ratate | Furtuni reale acoperite |
 |---|---|---|---|---|---|

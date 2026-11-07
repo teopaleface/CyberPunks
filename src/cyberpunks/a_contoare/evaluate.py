@@ -414,20 +414,28 @@ def run(retrain: bool = False) -> dict:
     (REPORTS_A / "metrics_full.json").write_text(json.dumps(full, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     keys = ["precision_at_k", "recall_at_k", "pr_auc", "roc_auc"]
-    metrics = {kk: res_l["model"][kk] for kk in keys}
+    # Metrica principală (decizia echipei, 17:55): precizia@K pe problemele SUBTILE, cifra cinstită. Pe tot testul
+    # Londra, vârful listei e umplut de defectele evidente (1,00), pe care le prinde și o regulă. A doua cifră: SGCC.
+    # Baseline-ul din metrics.json e regula simplă cerută, care e și cea mai puternică dintre cele două reguli pe
+    # problemele subtile; regula VEE completă apare în `metrics`, cu prefixul vee_.
+    metrics = {"subtle_precision_at_k": res_l["subtle_only"]["model"]["precision_at_k"],
+               "sgcc_precision_at_k": res_s["model"]["precision_at_k"]}
+    metrics.update({f"subtle_{kk}": res_l["subtle_only"]["model"][kk] for kk in keys})
+    metrics.update({f"sgcc_{kk}": res_s["model"][kk] for kk in keys})
+    metrics.update({kk: res_l["model"][kk] for kk in keys})
     metrics.update({"value_at_k_lei": res_l["model"]["value_at_k_lei"], "brier": res_l["calibration"]["brier"],
                     "ece": res_l["calibration"]["ece"]})
-    metrics.update({f"sgcc_{kk}": res_s["model"][kk] for kk in keys})
-    metrics.update({f"iforest_{kk}": res_l["iforest"][kk] for kk in keys})
-    metrics.update({f"vee_{kk}": res_l["vee"][kk] for kk in keys})
-    metrics.update({f"subtle_{kk}": res_l["subtle_only"]["model"][kk] for kk in keys})
     metrics.update({f"subtle_vee_{kk}": res_l["subtle_only"]["vee"][kk] for kk in keys})
     metrics.update({f"sgcc_vee_{kk}": res_s["vee"][kk] for kk in keys})
+    metrics.update({f"vee_{kk}": res_l["vee"][kk] for kk in keys})
+    metrics.update({f"iforest_{kk}": res_l["iforest"][kk] for kk in keys})
     metrics.update({f"sgcc_iforest_{kk}": res_s["iforest"][kk] for kk in keys})
-    baseline = {kk: res_l["rule"][kk] for kk in keys}
-    baseline["value_at_k_lei"] = res_l["rule"]["value_at_k_lei"]
+    baseline = {"subtle_precision_at_k": res_l["subtle_only"]["rule"]["precision_at_k"],
+                "sgcc_precision_at_k": res_s["rule"]["precision_at_k"]}
     baseline.update({f"subtle_{kk}": res_l["subtle_only"]["rule"][kk] for kk in keys})
     baseline.update({f"sgcc_{kk}": res_s["rule"][kk] for kk in keys})
+    baseline.update({kk: res_l["rule"][kk] for kk in keys})
+    baseline["value_at_k_lei"] = res_l["rule"]["value_at_k_lei"]
     report = ModelReport(
         source="A",
         model_id="a-lgbm",
@@ -445,12 +453,17 @@ def run(retrain: bool = False) -> dict:
         ],
         split=(
             "Londra: gospodării nevăzute și perioadă ulterioară (test sept. 2013 - feb. 2014, antrenare dec. 2012 - "
-            "aug. 2013); SGCC: 20% din clienți, stratificat, nevăzuți. K = 1% din contoare."
+            "aug. 2013); SGCC: 20% din clienți, stratificat, nevăzuți. K = 1% din contoare. Metrica principală: "
+            "precizia@K pe problemele subtile (testul Londra fără defectele evidente pe care le prinde orice regulă VEE: "
+            "contor oprit, blocat, citiri negative, goluri); a doua: precizia@K pe SGCC, cu etichete reale de furt."
         ),
         test_size=int(len(y_l) + len(y_s)),
-        primary_metric="precision_at_k",
+        primary_metric="subtle_precision_at_k",
         metrics=metrics,
-        baseline_id="regula-vee (zero >= 7 zile sau scădere >= 50% față de propriul istoric)",
+        baseline_id=(
+            "regula-simpla (zero >= 7 zile sau scădere >= 50% față de propriul istoric); regula VEE completă e în "
+            "metrics, cu prefixul vee_"
+        ),
         baseline_metrics=baseline,
         synthetic_share=_r(len(y_l) / (len(y_l) + len(y_s))),
         created_at=now,

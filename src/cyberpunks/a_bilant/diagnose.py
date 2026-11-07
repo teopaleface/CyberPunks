@@ -133,3 +133,26 @@ def pair_consistency(win: pd.DataFrame, dec: pd.DataFrame) -> pd.DataFrame:
     out.loc[flip, "abstain_reason"] = ""
     out["pair_linked"] = flip
     return out
+
+
+def apply_martor_rule(win: pd.DataFrame, dec: pd.DataFrame) -> pd.DataFrame:
+    """Regula contorului martor (`martor.py`), aplicată după model, unde postul are martor:
+    - diferență peste clasa de exactitate → contorul de balanță e defect sau setat greșit (sigur, fără abținere);
+    - diferență în clasă, dar modelul spusese „contor de post setat greșit” → contorul de balanță e confirmat bun,
+      deci se alege a doua cauză a modelului."""
+    from cyberpunks.a_bilant.martor import MARTOR_DIFF_LIMIT
+
+    out = dec.copy()
+    d = win["martor_diff"].to_numpy() if "martor_diff" in win else np.full(len(win), np.nan)
+    has = np.isfinite(d)
+    over = has & (d > MARTOR_DIFF_LIMIT)
+    ok_meter = has & ~over & (out["label"].to_numpy() == "contor_bilant_setat")
+    out.loc[over, "label"] = "contor_bilant_setat"
+    out.loc[over, "p_label"] = 1.0
+    out.loc[over, "p_problem"] = 1.0
+    out.loc[over, "abstain"] = False
+    out.loc[over, "abstain_reason"] = ""
+    out.loc[ok_meter, "label"] = out.loc[ok_meter, "second"]
+    out.loc[ok_meter, "p_label"] = out.loc[ok_meter, "p_second"]
+    out["martor_rule"] = np.where(over, "diferenta_peste_clasa", np.where(ok_meter, "contor_balanta_confirmat", np.where(has, "in_clasa", "fara_martor")))
+    return out

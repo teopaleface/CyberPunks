@@ -11,7 +11,7 @@
     ],
     "cost_lei": 12439.34,
     "p90_before_pu": 1.1768,
-    "p90_after_pu": 1.0952,
+    "p90_after_pu": 1.0944,
     "why_not_cheaper": [
       "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,175 pu",
       "cu oferta de baterii singură (24 lei), tensiunea ajunge doar la 1,162 pu",
@@ -358,6 +358,37 @@
     "invest": false,
     "battery": null,
     "inverter_trips_avoided": 1.0,
+    "crew_steps": [
+      "phase_rebalance",
+      "adjust_tap"
+    ]
+  },
+  {
+    "post_id": "PT-1082",
+    "work_item_id": "C-20250708-PT-1082",
+    "label": "PT-1082, 1 Decembrie (sintetic)",
+    "feasible": true,
+    "chosen": [
+      "phase_rebalance",
+      "adjust_tap",
+      "offer_battery"
+    ],
+    "cost_lei": 1966.0,
+    "p90_before_pu": 1.138,
+    "p90_after_pu": 1.0947,
+    "why_not_cheaper": [
+      "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,136 pu",
+      "cu oferta de baterii singură (10 lei), tensiunea ajunge doar la 1,130 pu",
+      "cu mesajele către clienții Ore Smart și oferta de baterii (13 lei, la 10% participare), tensiunea ajunge doar la 1,128 pu"
+    ],
+    "invest": false,
+    "battery": {
+      "battery_kwh_total": 20.0,
+      "revenue_lei": 4500.0,
+      "payback_years": 5.15,
+      "customers_targeted": 5
+    },
+    "inverter_trips_avoided": 5.0,
     "crew_steps": [
       "phase_rebalance",
       "adjust_tap"

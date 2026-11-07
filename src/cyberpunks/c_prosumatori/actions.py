@@ -200,7 +200,9 @@ def from_ladder(dec: Decision, ladder) -> Decision:
 
 def outage_notice(post_label: str, d_tap: date) -> str:
     """Anunțul întreruperii planificate pentru schimbarea prizei (doar demo: nu se trimite nimic)."""
-    return (f"Rețele Electrice: pe {d_tap.day}.{d_tap.month:02d}.{d_tap.year}, între 10:00 și 11:00, alimentarea din postul "
+    from cyberpunks.c_prosumatori.explain import MONTHS_RO
+
+    return (f"Rețele Electrice: pe {d_tap.day} {MONTHS_RO[d_tap.month - 1]} {d_tap.year}, între 10:00 și 11:00, alimentarea din postul "
             f"{post_label} se întrerupe aproximativ o oră pentru reglajul tensiunii. După lucrare, invertoarele "
             "fotovoltaice ar trebui să se oprească mai rar la prânz.")
 

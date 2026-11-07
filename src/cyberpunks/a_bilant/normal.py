@@ -61,7 +61,7 @@ def load(name: str = "normal") -> NormalModel:
 
 
 def drop_history(df: pd.DataFrame) -> pd.DataFrame:
-    """Aceleași rânduri fără istoricul postului (post nou sau contor de bilanț abia montat)."""
+    """Aceleași rânduri fără istoricul postului (post nou sau contor de balanță abia montat)."""
     cold = df.copy()
     cold[["hist_p20_ratio", "hist_p50_ratio"]] = np.nan
     cold["hist_days"] = 0.0

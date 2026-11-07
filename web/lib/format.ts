@@ -29,9 +29,12 @@ export function fmtScore(p: number): string {
   return decFmt(2).format(p);
 }
 
-/** Lei fără zecimale peste 100, cu două zecimale sub (costurile mici contează la centime). */
+/**
+ * Lei fără zecimale peste 100 și la sume întregi („2 lei”, „0 lei”); sub 100, cu bani, două zecimale
+ * („2,70 lei”: costurile mici contează la bani).
+ */
 export function fmtLei(n: number, opts: { decimals?: number } = {}): string {
-  const d = opts.decimals ?? (Math.abs(n) >= 100 ? 0 : 2);
+  const d = opts.decimals ?? (Math.abs(n) >= 100 || Number.isInteger(n) ? 0 : 2);
   return `${d === 0 ? fmtInt(n) : fmtDec(n, d)} lei`;
 }
 

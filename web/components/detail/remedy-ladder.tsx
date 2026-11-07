@@ -101,7 +101,7 @@ export function RemedyLadder({
                 </span>
               </div>
               <div className="text-right">
-                <div className="text-[16px] font-[620] tabular-nums">{o.cost_lei === 0 ? "0 lei" : fmtLei(o.cost_lei)}</div>
+                <div className="text-[16px] font-[620] tabular-nums">{fmtLei(o.cost_lei)}</div>
                 <div className={"text-[13px] " + (ok ? "text-muted-foreground" : "text-att-ink")}>{ok ? "sub limită" : "nu ajunge"}</div>
               </div>
             </li>

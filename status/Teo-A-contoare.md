@@ -1,7 +1,7 @@
 # Status: Teo-A-contoare
-Actualizat: 2026-11-07 16:52
+Actualizat: 2026-11-07 18:01
 Milestone curent: M4 gata; reproducerea cap-coadă gata (docs/REPRODUCERE.md). LIBER
-Gata de merge: da (commit d14d99e)
+Gata de merge: da (commit feacd0f)
 
 ## Făcut
 - 13:30 M0: `docs/research/A.md`, date descărcate cu sume de control (SGCC, 45 de fișiere Low Carbon London).
@@ -33,6 +33,13 @@ Gata de merge: da (commit d14d99e)
 - 16:38 **Reproducerea cap-coadă a ramurii Teo dintr-o clonă curată** (commit 791c94c): tot lanțul merge în 32,5 minute (A, B, C, bilanț, `cyberpunks run`, `agent-eval`). Toate ieșirile sunt valide (A 518, bilanț 79, B 26, C 41, planul). Comenzile, duratele și ce produce fiecare pas sunt în `docs/REPRODUCERE.md`. Vremea Open-Meteo a fost copiată din cache-urile firelor, deci cota nu a fost atinsă.
 - 16:44 Reparat la A (commit 905374d): descărcarea Londra reîncearcă dacă serverul ignoră cererea pe interval (HTTP 200), iar antrenarea refuză un set incomplet (în clonă mersese pe 44 din 45 de fișiere, fără avertisment). Are 3 teste cu server simulat.
 
+- 17:13 Regula fișierelor grele (Teo): nu mai fac commit cu `models/release/A/` sau cu mostrele mari din `data/samples/A/` (pachetul demo, `similar_ref.parquet`, `meters.csv`) decât la versiunea finală și doar dacă s-au schimbat. Versiunea din git (commit 68c1d1c) e cea pe care sunt făcute toate cifrele actuale; `tests/test_repo_size.py` trece. Mărimile din `docs/REPRODUCERE.md` sunt corectate: GitHub raportează 267 MB, iar fișierele de pe `main` au 35 MB.
+
+- 18:01 **QA cap-coadă (cele 3 probleme de la 17:55), rezolvate** (commit feacd0f):
+  1. `reports/A/metrics.json`: `primary_metric` = `subtle_precision_at_k`, precizia@K pe problemele subtile: **0,63**, față de **0,07** la regula simplă. E prima cheie în `metrics` și în `baseline_metrics`. Baseline-ul e regula simplă cerută, care pe acest subset e cea mai puternică dintre cele două reguli; regula VEE (**0,02**) e în `metrics` ca `subtle_vee_precision_at_k`. A doua cifră e SGCC: `sgcc_precision_at_k` 0,80 față de 0,04. Fișa modelului spune asta explicit.
+  2. Adnotarea de pe grafic: „consumul scade sub normal” cade acum pe prima zi a căderii, prin fereastră înainte, nu înapoi. Pentru `A-20250708-MTR-005889`, 11.06 (înainte 08.06). Are test.
+  3. Riscul de siguranță: vezi mai jos, la „Cereri către orchestrator”.
+
 ## Urmează
 - **Sunt liber** (M0-M4 gata). Pot ajuta la B sau la alt fir; scrieți-mi direct în thread.
 - La cerere: reparații pe A dacă planificatorul sau interfața au nevoie de ceva în lucrări sau în serii.
@@ -45,12 +52,13 @@ Gata de merge: da (commit d14d99e)
 - Niciunul.
 
 ## Cereri către orchestrator
+- **Pentru planificator (riscul de siguranță, QA 17:55):** în instantaneul demo erau 194 de lucrări cu `safety_flag`, toate cu sursa A. 175 veneau de la modelul A (`a-lgbm`), cu regula veche: orice furt cu scor de cel puțin 0,5. Din ele, 84 erau manipulări de date (profil aplatizat sau inversat), fără risc de incendiu, și doar 2 ocoliri reale. Celelalte 19 vin de la bilanț (`bilant-diagnoza-lgbm`), după regula firului bilanț. **Regula nouă la A:** `safety_flag` doar la ocolirea fizică, cu risc de incendiu, la un furt cu scor de cel puțin 0,8: în medie cel puțin 3 ore pe zi de zero exact la aceleași ore (punte sau comutator improvizat), sau ocolire parțială sigură (nivel scăzut brusc, forma zilei păstrată). Rezultat: **40 pe 8 iulie** (38 ocoliri cu comutator, 2 parțiale) și 26 pe `maine`, toate furturi reale. Tiparul e în `extra.tamper_pattern` și `extra.tamper_pattern_ro`; urgența la siguranță e 48 de ore. După merge, rulați din nou `cyberpunks run`, ca instantaneul să ia lucrările noi.
 - **Din reproducerea cap-coadă** (detalii în `docs/REPRODUCERE.md`, secțiunea „Probleme găsite”):
   1. **Firul C:** 9 teste cer internet (`tests/c/test_connection.py` ×5, `test_decisions.py` ×1, `test_remedies.py` ×3). Fără `data/raw/C`, `weather.archive()` descarcă vremea de la Open-Meteo, deci `make check` pică într-o clonă curată fără internet, iar cu internet consumă cotă. Soluție: o mostră mică de vreme în `data/samples/C/`, sau testele sărite când lipsesc datele.
   2. **Firul B:** gazetteer-ul recensământului se descarcă de mână. Soluție: pasul în `make b-data`, sau fișierul de 776 KB în `data/samples/B/`.
   3. **Firul B:** `make b-weather` ia ~7.300 de apeluri Open-Meteo (~73% din cota zilnică) și ~2 ore. Soluție: tabelul procesat de vreme în git și o notă în README, ca juriul să poată sări pasul.
   4. **Firul bilanț:** `make bilant-eval` scrie în raport „PT-1269: rulează întâi make bilant-predict”. Soluție: inversată ordinea în `docs/data/bilant.md`, sau raportul independent de predicții.
-  5. **Orchestrator / prezentare:** repo-ul are 365 MB, din care ~112 MB sunt arhive `.zip` în `presentation/assets/` și ~52 MB `.wav`; modelul C (9 MB) apare de 4 ori în istoric. Clona de pe GitHub mergea cu ~120 KB/s. De decis înainte de public: scoase din istoric sau mutate în Git LFS.
+  5. **Orchestrator / prezentare:** istoricul e mare (GitHub: 267 MB, față de 35 MB pe `main`), din cauza arhivelor `.zip` din `presentation/assets/`, a pistelor `.wav` și a modelelor salvate de mai multe ori. Clona de pe GitHub mergea cu ~120 KB/s. Regula nouă oprește creșterea; curățarea istoricului rămâne decizia lui Teo înainte de public.
   6. **README-ul principal** spune „Pașii completi de reproducere se adaugă pe măsură ce firele livrează”. Propun un link la `docs/REPRODUCERE.md`.
 - **Pentru planificator (text absurd în jurnal):** în `outputs/demo/plans/demo-vara/audit.jsonl` apare „valoarea așteptată (20 lei) nu acoperă vizita (365 lei; scorul ar trebui să fie peste 1004%)”. Un scor peste 100% nu există. Când nici la scor 100% valoarea nu acoperă vizita, textul ar trebui să spună „nici sigur nu acoperă costul vizitei”.
 - **Observații pentru firul bilanț** (fuziunea verificată pe testul A: populația demo, adevărul injectat; formula `fuse.combine_arrays` neschimbată; bilanțul postului construit din energia nemăsurată, cu zgomotul pierderilor normale sigma = 1 / 2 / 4% din consumul postului):

@@ -34,12 +34,10 @@ from cyberpunks.common.paths import REPORTS
 
 OUT_DIR = REPORTS / "B"
 TEST_YEAR = 2025  # anul nevăzut; antrenarea folosește toți anii de dinainte, câți există în date
-MIN_TRAIN_YEAR: int | None = None  # dacă e setat, antrenarea pornește din acest an (de exemplu 2023)
 
 
 def train_years(df: pd.DataFrame) -> tuple[int, ...]:
-    years = (int(y) for y in df["year"].unique() if y < TEST_YEAR)
-    return tuple(sorted(y for y in years if MIN_TRAIN_YEAR is None or y >= MIN_TRAIN_YEAR))
+    return tuple(sorted(int(y) for y in df["year"].unique() if y < TEST_YEAR))
 GUST_RULE_KMH = 70.0
 DATASETS = [
     "EAGLE-I, ORNL: Brelsford et al. (2024), Scientific Data 11:271; figshare 10.6084/m9.figshare.24237376.v4 (CC BY 4.0)",

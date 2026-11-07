@@ -4,6 +4,10 @@ Proiectul echipei CyberPunks la SmartHack XI 2026 (7-8 noiembrie, București), p
 
 Stare: în lucru, vezi [`status/ACUM.md`](status/ACUM.md). Planul: [`docs/PLAN.md`](docs/PLAN.md). Formatele de date: [`docs/CONTRACTS.md`](docs/CONTRACTS.md). Contextul și research-ul: [`memory/`](memory/INDEX.md).
 
+## Cum testezi
+
+Ghidul pentru echipă, cu pornirea demo-ului într-o singură comandă (`make demo`) și ce verifici pe fiecare ecran: [`docs/TESTARE.md`](docs/TESTARE.md).
+
 ## Pornire rapidă
 
 ```bash
