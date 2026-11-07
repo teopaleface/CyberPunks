@@ -92,3 +92,12 @@ Contorul de post lipsă trece postul pe planul B. Orele dublate se curăță. Un
 - Lumea simulată se înlocuiește cu datele reale: contorul de bilanț la 15 minute, contoarele clienților, lista client → post, GIS-ul. Modelele și trăsăturile rămân.
 - Eticheta pierderii normale e lipsa măsurată în perioadele verificate. Etichetele diagnosticului vin din verdictele echipelor după vizită (`feedback.py`).
 - De întrebat la mentor: câte posturi au azi contor de bilanț (concentratorul de date nu e contor de bilanț)? Cât de bună e lista client → post?
+
+## Verificarea dintr-o clonă curată (7 nov. 2026, 16:10)
+
+`git clone --branch Teo-bilant` într-un director gol, apoi exact comenzile de mai sus, de la `uv sync` la `make bilant-test`. Toate au mers fără intervenție, în ~10 minute. Rezultatul:
+- `reports/bilant/metrics.json`: toate cele 142 de cifre identice cu cele din repo;
+- `A_bilant.jsonl` pentru demo-vara: aceleași 78 de lucrări, cu aceleași acțiuni;
+- testele firului trec (25).
+
+Lucrările depind de `A.jsonl`: bilanțul nu dublează posturile unde A are deja lucrări. Cu altă versiune a lui A, numărul de lucrări de bilanț se poate schimba, dar metricile nu.
