@@ -44,3 +44,7 @@ Tunelul și tokenul Meta sunt temporare. Procesele locale trebuie să rămână 
 ## Conturi nominale, 8 noiembrie
 
 Teo a cerut explicit aceleași trei conturi local și pe live: dispecer@daybreak.ro, tehnician@daybreak.ro și client@daybreak.ro, cu parola comună stabilită de el, păstrată numai privat. Conturile au fost configurate cu rolurile corespunzătoare, păstrând identificatorii și asocierea WhatsApp. Formularul a fost corectat pentru autentificarea cu parola existentă, păstrând minimul obișnuit la creare/resetare. Toate cele șase autentificări din formular, trei roluri în două medii, au trecut. Publicare din copie izolată a sursei comise, versiunea 2c071473-84fb-4923-a5e7-2135d343fad1. Serviciul operațional rămâne local.
+
+## Corecție cerută: integrare în consola veche
+
+Teo a respins explicit pagina separată de workspace. Agentul trebuie să fie funcțional în interfața veche, cu navigarea, componentele și paleta PPC ale restului site-ului. Implementarea locală folosește /app și AppShell pentru toate rolurile; dispecerul păstrează planul vechi, iar datele celorlalte roluri sunt filtrate. Agentul este un panou contextual comun, cu text, voce și confirmări. /workspace rămâne numai redirecționare compatibilă, fără produs separat. Butoanele existente de aprobare/revizuire deschid formularele agentului. Verificate toate rolurile pe desktop/mobil, conversație Codex reală și confirmarea unei sesizări. Nu reintroduceți o pagină cu branding separat pentru această funcție.

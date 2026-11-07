@@ -1,6 +1,7 @@
 "use client";
 import type { DraftRequest } from "@/lib/operations/types";
 import { parseProposalId } from "@/lib/operations/proposal-link";
+import { readableDate } from "./scope";
 import { ACTION_NAMES } from "./proposal-form";
 export function DraftRequests({
   proposals,
@@ -27,7 +28,9 @@ export function DraftRequests({
         <article key={proposal.proposal_id}>
           <h3>{ACTION_NAMES[proposal.action]}</h3>
           <p>{proposal.summary}</p>
-          <p className="db-muted">Expires {proposal.expires_at}</p>
+          <p className="db-muted">
+            Expires {readableDate(proposal.expires_at)}
+          </p>
           <div className="db-actions">
             <button
               type="button"

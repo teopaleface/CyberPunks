@@ -4,6 +4,7 @@ import type { Actor } from "@/lib/operations/policy";
 import type { PendingCommand } from "@/lib/operations/types";
 import { label } from "@/lib/operations/types";
 import { recoveryControl } from "@/lib/operations/recovery";
+import { readableDate } from "./scope";
 import { ACTION_NAMES } from "./proposal-form";
 export function PendingCommands({
   commands,
@@ -48,7 +49,8 @@ export function PendingCommands({
               Command {command.command_id} · {label(command.status)}
             </p>
             <p className="db-muted">
-              Created {command.created_at}. Proposal {command.proposal_id}.
+              Created {readableDate(command.created_at)}. Proposal{" "}
+              {command.proposal_id}.
             </p>
             {command.recovery_action === "manual_review" ? (
               <p>

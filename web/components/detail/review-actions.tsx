@@ -1,70 +1,20 @@
 "use client";
-
-import { englishText } from "@/lib/english";
-import { useRouter } from "next/navigation";
-import { useId, useRef, useState, useTransition } from "react";
-import { toast } from "sonner";
+import { useId, useState } from "react";
 import { Check, Clock, NotebookPen, X } from "lucide-react";
 import { btn } from "@/components/ds";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { submitReview } from "@/lib/data/actions";
+import { requestAssistantAction, requestAssistantContext } from "@/lib/operations/assistant-intent";
 import type { ReviewDecision } from "@/lib/data/types";
-
-const DONE: Record<ReviewDecision, string> = { approve: "Approved", reject: "Rejected", defer: "Deferred" };
-
-/** Decizia omului: aprobă, respinge sau amână, cu o notă. Se scrie în jurnal cu actor „om”. */
-export function ReviewActions({ workItemId, scenario, layout = "default" }: { workItemId: string; scenario?: string; layout?: "default" | "card" }) {
-  const router = useRouter();
-  const noteId = useId();
-  const itemId = useId();
-  const [note, setNote] = useState("");
-  const [noteOpen, setNoteOpen] = useState(false);
-  const [pending, startTransition] = useTransition();
-  const [acting, setActing] = useState<ReviewDecision | null>(null);
-  const [undoing, setUndoing] = useState<ReviewDecision | null>(null);
-  const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Respinge și Amână replanifică ziua: 5 secunde în care decizia se poate anula, apoi se trimite
-  const act = (d: ReviewDecision) => {
-    if (d === "approve") return send(d);
-    setUndoing(d);
-    const toastId = toast(`${DONE[d]} ${workItemId}`, {
-      description: "Sends in 5 seconds.",
-      duration: 5000,
-      action: {
-        label: "Undo",
-        onClick: () => {
-          if (undoTimer.current) clearTimeout(undoTimer.current);
-          undoTimer.current = null;
-          setUndoing(null);
-        },
-      },
-    });
-    undoTimer.current = setTimeout(() => {
-      undoTimer.current = null;
-      toast.dismiss(toastId);
-      setUndoing(null);
-      send(d);
-    }, 5000);
-  };
-  const send = (d: ReviewDecision) => {
-    setActing(d);
-    startTransition(async () => {
-      const r = await submitReview(workItemId, d, note, scenario);
-      setActing(null);
-      if (r.ok) {
-        toast.success(`${DONE[d]} ${workItemId}`, { description: "Your decision was recorded. The plan is being recalculated." });
-        setNote("");
-        setNoteOpen(false);
-        router.refresh();
-      } else {
-        toast.error("Decision was not saved", { description: englishText(r.error) });
-      }
-    });
-  };
+export function ReviewActions({workItemId, scenario, layout="default"}: {workItemId:string;scenario?:string;layout?:"default"|"card"}) {
+ const noteId=useId(), itemId=useId();
+ const [note,setNote]=useState("");
+ const [noteOpen,setNoteOpen]=useState(false);
+ const act=(decision:ReviewDecision)=>requestAssistantAction("review_work_item",{work_item_id:workItemId,decision,note},scenario);
   if (layout === "card") {
     return (
       <div className="space-y-4">
+        <Button variant="outline" onClick={() => requestAssistantContext(workItemId, scenario)}>Ask about this work</Button>
         <span id={itemId} className="sr-only">
           lucrarea {workItemId}
         </span>
@@ -86,17 +36,17 @@ export function ReviewActions({ workItemId, scenario, layout = "default" }: { wo
           />
         </div>
         <div className="grid grid-cols-3 gap-3 max-sm:grid-cols-1">
-          <button type="button" className={btn("primary", "lg")} onClick={() => act("approve")} disabled={pending || undoing !== null} aria-describedby={itemId}>
+          <button type="button" className={btn("primary", "lg")} onClick={() => act("approve")} aria-describedby={itemId}>
             <Check aria-hidden="true" size={22} strokeWidth={2.2} />
-            {acting === "approve" ? "Sending…" : "Approve"}
+            Approve
           </button>
-          <button type="button" className={btn("danger", "lg")} onClick={() => act("reject")} disabled={pending || undoing !== null} aria-describedby={itemId}>
+          <button type="button" className={btn("danger", "lg")} onClick={() => act("reject")} aria-describedby={itemId}>
             <X aria-hidden="true" size={22} strokeWidth={2.2} />
-            {acting === "reject" || undoing === "reject" ? "Sending…" : "Reject"}
+            Reject
           </button>
-          <button type="button" className={btn("outline", "lg")} onClick={() => act("defer")} disabled={pending || undoing !== null} aria-describedby={itemId}>
+          <button type="button" className={btn("outline", "lg")} onClick={() => act("defer")} aria-describedby={itemId}>
             <Clock aria-hidden="true" size={22} strokeWidth={1.9} />
-            {acting === "defer" || undoing === "defer" ? "Sending…" : "Defer"}
+            Defer
           </button>
         </div>
       </div>
@@ -104,18 +54,19 @@ export function ReviewActions({ workItemId, scenario, layout = "default" }: { wo
   }
   return (
     <div className="space-y-4">
+        <Button variant="outline" onClick={() => requestAssistantContext(workItemId, scenario)}>Ask about this work</Button>
       <span id={itemId} className="sr-only">
         lucrarea {workItemId}
       </span>
       <div className="flex flex-wrap items-center gap-3">
-        <Button size="panel" className="min-w-[116px] text-[17px]" onClick={() => act("approve")} disabled={pending || undoing !== null} aria-describedby={itemId}>
-          {acting === "approve" ? "Sending…" : "Approve"}
+        <Button size="panel" className="min-w-[116px] text-[17px]" onClick={() => act("approve")} aria-describedby={itemId}>
+          Approve
         </Button>
-        <Button size="panel" variant="outline" className="text-[17px]" onClick={() => act("reject")} disabled={pending || undoing !== null} aria-describedby={itemId}>
-          {acting === "reject" || undoing === "reject" ? "Sending…" : "Reject"}
+        <Button size="panel" variant="outline" className="text-[17px]" onClick={() => act("reject")} aria-describedby={itemId}>
+          Reject
         </Button>
-        <Button size="panel" variant="outline" className="text-[17px]" onClick={() => act("defer")} disabled={pending || undoing !== null} aria-describedby={itemId}>
-          {acting === "defer" || undoing === "defer" ? "Sending…" : "Defer"}
+        <Button size="panel" variant="outline" className="text-[17px]" onClick={() => act("defer")} aria-describedby={itemId}>
+          Defer
         </Button>
       </div>
       {noteOpen ? (

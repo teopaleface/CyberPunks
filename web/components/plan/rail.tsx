@@ -2,12 +2,9 @@
 
 import { englishText } from "@/lib/english";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { Alert, Decision, WorkItem } from "@/lib/contracts";
-import { submitReview } from "@/lib/data/actions";
+import { requestAssistantAction } from "@/lib/operations/assistant-intent";
 import { scoreText } from "@/lib/human";
 import { alertOutcomeRo, clampPercentRo, factorLabelRo, ACTION_RO, CONFIDENCE_RO, DECISION_LABEL_RO, outcomeRo, predictionLabelRo, ruleRo } from "@/lib/data/labels";
 import type { ReviewDecision } from "@/lib/data/types";
@@ -25,11 +22,6 @@ function Marker({ w, decision, selected = false }: { w: WorkItem; decision?: Dec
   );
 }
 
-const REVIEW_DONE: Record<ReviewDecision, string> = {
-  approve: "Approved",
-  reject: "Rejected",
-  defer: "Deferred",
-};
 
 // --------------------------------------------------------------------------------------------
 // „Nu sunt sigur”: ce n-a putut decide agentul singur
@@ -47,27 +39,12 @@ export function QueuePanel({
   onSelect: (id: string) => void;
   recovered?: { count: number; lei: number };
 }) {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-  const [acting, setActing] = useState<ReviewDecision | null>(null);
   const first = queue[0];
   const w = first ? itemsById[first.work_item_id] : undefined;
 
   const act = (decision: ReviewDecision) => {
     if (!first) return;
-    setActing(decision);
-    startTransition(async () => {
-      const result = await submitReview(first.work_item_id, decision, "", scenario);
-      setActing(null);
-      if (result.ok) {
-        toast.success(`${REVIEW_DONE[decision]} ${first.work_item_id}`, {
-          description: "Your decision was recorded. The plan is being recalculated.",
-        });
-        router.refresh();
-      } else {
-        toast.error("Decision was not saved", { description: englishText(result.error) });
-      }
-    });
+    requestAssistantAction("review_work_item", {work_item_id:first.work_item_id,decision,note:""},scenario);
   };
 
   return (
@@ -119,14 +96,14 @@ export function QueuePanel({
             <span className="font-[400] whitespace-nowrap text-muted-foreground">Your decision is required.</span>
           </p>
           <div className="col-span-2 col-start-2 flex flex-wrap items-center gap-2.5">
-            <Button size="panel" onClick={() => act("approve")} disabled={pending}>
-              {acting === "approve" ? "Sending…" : "Approve"}
+            <Button size="panel" onClick={() => act("approve")}>
+              Approve
             </Button>
-            <Button size="panel" variant="outline" onClick={() => act("reject")} disabled={pending}>
-              {acting === "reject" ? "Sending…" : "Reject"}
+            <Button size="panel" variant="outline" onClick={() => act("reject")}>
+              Reject
             </Button>
-            <Button size="panel" variant="outline" onClick={() => act("defer")} disabled={pending}>
-              {acting === "defer" ? "Sending…" : "Defer"}
+            <Button size="panel" variant="outline" onClick={() => act("defer")}>
+              Defer
             </Button>
             <span className="ml-auto text-[14px] text-muted-foreground tabular-nums [@media(max-height:950px)]:hidden">
               interval {fmtScore(w.prediction.interval_low ?? w.prediction.score)}–{fmtScore(w.prediction.interval_high ?? w.prediction.score)},{" "}

@@ -3,13 +3,12 @@
 import { englishText } from "@/lib/english";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
-import { toast } from "sonner";
+import { useMemo } from "react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { submitReview } from "@/lib/data/actions";
+import { requestAssistantAction } from "@/lib/operations/assistant-intent";
 import { alertOutcomeRo } from "@/lib/data/labels";
 import type { ReviewDecision } from "@/lib/data/types";
 import type { Briefing as BriefingModel, CrewGroup } from "@/lib/briefing";
@@ -21,7 +20,6 @@ import { SOURCES } from "@/lib/sources";
 import { ApproveList } from "./approve-list";
 import { PlanMap, type MapItem } from "./plan-map";
 
-const REVIEW_DONE: Record<ReviewDecision, string> = { approve: "Approved", reject: "Rejected", defer: "Deferred" };
 // harta mică are loc doar pentru trasee: margini egale, fără butoane de regiune
 const THUMB_PADDING = { top: 36, bottom: 36, left: 36, right: 36 };
 
@@ -105,9 +103,6 @@ export function Briefing({
 
 // ------------------------------------------------------------------ următorul caz
 function NextCase({ briefing: b, scenario, highlight = false }: { briefing: BriefingModel; scenario: string; highlight?: boolean }) {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-  const [acting, setActing] = useState<ReviewDecision | null>(null);
   const next = b.next;
   if (!next) {
     return (
@@ -121,17 +116,8 @@ function NextCase({ briefing: b, scenario, highlight = false }: { briefing: Brie
     );
   }
   const act = (decision: ReviewDecision) => {
-    setActing(decision);
-    startTransition(async () => {
-      const result = await submitReview(next.decision.work_item_id, decision, "", scenario);
-      setActing(null);
-      if (result.ok) {
-        toast.success(`${REVIEW_DONE[decision]}: ${next.place}`, { description: "Your decision was recorded. The plan is being recalculated." });
-        router.refresh();
-      } else {
-        toast.error("Decision was not saved", { description: englishText(result.error) });
-      }
-    });
+    if (!next) return;
+    requestAssistantAction("review_work_item", {work_item_id:next.decision.work_item_id,decision,note:""},scenario);
   };
   const meta = SOURCES[next.item.source];
   return (
@@ -147,14 +133,14 @@ function NextCase({ briefing: b, scenario, highlight = false }: { briefing: Brie
       </h2>
       <p className="mt-2 max-w-[40ch] text-[19px] leading-[1.45] text-ink-soft">{next.what}</p>
       <div className="mt-6 flex flex-wrap gap-2.5">
-        <Button size="panel" onClick={() => act("approve")} disabled={pending} aria-describedby="case" className="active:scale-[0.98]">
-          {acting === "approve" ? "Sending…" : "Approve"}
+        <Button size="panel" onClick={() => act("approve")} aria-describedby="case" className="active:scale-[0.98]">
+          Approve
         </Button>
-        <Button size="panel" variant="outline" onClick={() => act("reject")} disabled={pending} aria-describedby="case" className="active:scale-[0.98]">
-          {acting === "reject" ? "Sending…" : "Reject"}
+        <Button size="panel" variant="outline" onClick={() => act("reject")} aria-describedby="case" className="active:scale-[0.98]">
+          Reject
         </Button>
-        <Button size="panel" variant="outline" onClick={() => act("defer")} disabled={pending} aria-describedby="case" className="active:scale-[0.98]">
-          {acting === "defer" ? "Sending…" : "Defer"}
+        <Button size="panel" variant="outline" onClick={() => act("defer")} aria-describedby="case" className="active:scale-[0.98]">
+          Defer
         </Button>
       </div>
       <p className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-[16.5px]">
