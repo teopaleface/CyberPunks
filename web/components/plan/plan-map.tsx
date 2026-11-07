@@ -85,12 +85,12 @@ export function arc(a: [number, number], b: [number, number], bend = 0.2, n = 32
 // --------------------------------------------------------------------------------------------
 const PALETTE = {
   light: { bg: "#e4e7e6", water: "#cdd5d8", waterLine: "#c3cdd1", build: "#dadedd", green: "#dfe3e2", land: "#dce0df", road: "#f6f7f5", casing: "#d3d8d8", rail: "#d2d7d7", admin: "#a9b1b3", city: "#3e4952", text: "#6a747c" },
-  dark: { bg: "#0a1521", water: "#0d2133", waterLine: "#13304a", build: "#101e2c", green: "#0c1a27", land: "#0c1926", road: "#1b2c3e", casing: "#14243a", rail: "#16263a", admin: "#3a4f66", city: "#c9d3dc", text: "#7f91a3" },
+  dark: { bg: "#020f22", water: "#04182f", waterLine: "#0b2744", build: "#071629", green: "#041325", land: "#031325", road: "#13233a", casing: "#0c1b30", rail: "#11213a", admin: "#2d3f58", city: "#c3ccd8", text: "#76839a" },
 } as const;
 
 const LAYER_COLORS = {
   light: { A: "#2c6fd9", B: "#a23c9e", C: "#d99100", att: "#d4430f", panel: "#f2f3f1", ink: "#13202a", verde: "#2f8f5b", galben: "#d9a400", rosu: "#c8321e", gri: "#9aa4a9" },
-  dark: { A: "#3b82f0", B: "#b84fc0", C: "#c4880a", att: "#ff6a3d", panel: "#0f1d2b", ink: "#e9eef2", verde: "#4fb57a", galben: "#e0b52a", rosu: "#ff6b5e", gri: "#5d6f81" },
+  dark: { A: "#3986fc", B: "#ad5fd6", C: "#e59b15", att: "#fc521e", panel: "#061221", ink: "#eef2f7", verde: "#22c55e", galben: "#eab308", rosu: "#ef4444", gri: "#4a5a70" },
 } as const;
 
 function postsGeoJSON(posts: MapPost[]) {
@@ -218,7 +218,7 @@ export function PlanMap({
   posts = [],
   mode = "items",
   onPostClick,
-  theme = "light",
+  theme = "dark",
   padding = DEFAULT_PADDING,
   className,
 }: {

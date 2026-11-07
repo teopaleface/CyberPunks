@@ -50,23 +50,19 @@ export function Provenance({
       <TooltipTrigger asChild>
         <button
           type="button"
-          className="flex h-10 items-center gap-3 rounded-[4px] border border-ink px-3 text-[15px] font-[520] whitespace-nowrap max-[1600px]:gap-2 max-[1600px]:text-[14.5px]"
+          className="flex w-full flex-col items-start gap-1 rounded-[10px] border border-[#2a3a52] px-3 py-2.5 text-left text-[13.5px] hover:bg-[#0f1a2b]"
         >
-          <span className="flex items-center gap-2">
-            <SyntheticGlyph />
-            <span className="max-[1600px]:hidden">
-              {allSynthetic || totalItems === 0 ? "Date sintetice" : `Date sintetice în ${syntheticItems} din ${totalItems}`}
-            </span>
-            <span className="hidden max-[1600px]:inline">Date sintetice</span>
+          <span className="flex items-center gap-2 font-[560]">
+            <SyntheticGlyph size={14} />
+            {allSynthetic || totalItems === 0 ? "Date sintetice" : `Date sintetice: ${syntheticItems} din ${totalItems}`}
           </span>
-          <span className="h-5 w-px bg-rule" aria-hidden="true" />
-          <span className="flex items-center gap-2 text-muted-foreground">
+          <span className="flex items-center gap-2 text-ink-soft">
             <span className={`size-2 rounded-full ${DOT[source]}`} aria-hidden="true" />
-            <span className="max-[1500px]:sr-only">{PROVENANCE_SHORT_RO[source]}</span>
+            {PROVENANCE_SHORT_RO[source]}
           </span>
         </button>
       </TooltipTrigger>
-      <TooltipContent side="bottom" align="end" className="max-w-[360px] text-[14px] leading-snug">
+      <TooltipContent side="right" align="end" className="max-w-[360px] text-[14px] leading-snug">
         <p>
           Contoarele, posturile de transformare, bazele și echipele sunt sintetice, puse pe harta reală. Vremea și
           rețelele de test vin din surse publice, citate la fiecare lucrare.

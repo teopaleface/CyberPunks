@@ -316,7 +316,7 @@ function DayDetails({ data, generatedAt }: { data: PlanScreenData; generatedAt: 
 }
 
 // ------------------------------------------------------------------ harta mică
-function MapCard({ data, theme = "light" }: { data: PlanScreenData; theme?: "light" | "dark" }) {
+function MapCard({ data, theme = "dark" }: { data: PlanScreenData; theme?: "light" | "dark" }) {
   const router = useRouter();
   const region = data.regions.find((r) => r.id === data.defaultRegion);
   const items: MapItem[] = useMemo(() => {

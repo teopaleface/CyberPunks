@@ -22,6 +22,10 @@
   --color-att-surface: var(--att-surface);
   --color-ok: var(--ok);
   --color-on-att: var(--on-att);
+  --color-surface-2: var(--surface-2);
+  --color-violet: var(--violet);
+  --color-action: var(--action);
+  --color-ok-ink: var(--ok-ink);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
@@ -66,106 +70,69 @@
 }
 
 /*
- * Tema „Panou” (direcția aleasă pe 7 nov., 13:14): disciplina panourilor de dispecerat.
- * Totul e gri în repaus; culoarea apare doar când înseamnă ceva: sursa unei lucrări (A, B, C)
- * sau ceva ce cere un om (portocaliu). Culorile surselor sunt validate pentru daltonism
- * (scriptul abilității dataviz, toate perechile): A #2C6FD9, B #A23C9E, C #D99100.
+ * Tema „Noapte” (designul lui Teo, 7 nov., 19:00): fundal bleumarin închis, carduri cu colțuri rotunjite,
+ * o singură culoare de acțiune (albastru), portocaliu pentru „decide un om”, verde pentru „aprobat”.
+ * Culorile surselor vin din design: A albastru, B violet, C chihlimbar. Valorile sunt luate cu pipeta
+ * din capturile designului (app-01 … app-14).
  */
-:root {
-  --canvas: #e4e7e6;
-  --panel: #f2f3f1;
-  --ink: #13202a;
-  --ink-soft: #2a3742;
-  --rule: #c3c9c9;
-  --grid: #dce0df;
-  --idle: #9aa4a9;
-  --travel: #56616b;
-  --src-a: #2c6fd9;
-  --src-b: #a23c9e;
-  --src-c: #d99100;
-  --src-c-ink: #8a5c00;
-  --att: #d4430f;
-  --att-ink: #a8360b;
-  --att-surface: #f8e3da;
-  --ok: #2f7d4f;
-  /* textul de pe discurile A/B și de pe insigna portocalie */
-  --on-src: #ffffff;
+:root,
+.dark {
+  color-scheme: dark;
+  --canvas: #000c1e;
+  --panel: #061221;
+  --surface-2: #0b1626;
+  --ink: #eef2f7;
+  --ink-soft: #c3ccd8;
+  --rule: #1c2a3e;
+  --grid: #13213a;
+  --idle: #4a5a70;
+  --travel: #8a97aa;
+  --src-a: #3986fc;
+  --src-b: #ad5fd6;
+  --src-c: #e59b15;
+  --src-c-ink: #f2b544;
+  --att: #fc521e;
+  --att-ink: #ff8a5c;
+  --att-surface: #2a140c;
+  --ok: #16a34a;
+  --ok-ink: #4ade80;
+  --violet: #ad7cfc;
+  --action: #0b46f5;
+  --on-src: #000c1e;
   --on-att: #ffffff;
 
   --background: var(--canvas);
   --foreground: var(--ink);
   --card: var(--panel);
   --card-foreground: var(--ink);
-  --popover: #fbfbfa;
+  --popover: #0b1626;
   --popover-foreground: var(--ink);
-  --primary: var(--ink);
-  --primary-foreground: #f2f3f1;
-  --secondary: #e9ecea;
+  --primary: var(--action);
+  --primary-foreground: #ffffff;
+  --secondary: #0f1a2b;
   --secondary-foreground: var(--ink);
-  --muted: #dde1e0;
-  --muted-foreground: #56616b;
-  --accent: #dde1e0;
+  --muted: #121e30;
+  --muted-foreground: #8d99ab;
+  --accent: #16233a;
   --accent-foreground: var(--ink);
-  --destructive: #b42318;
+  --destructive: var(--att);
   --border: var(--rule);
-  --input: #8b959c;
-  --ring: var(--ink);
+  --input: #24344b;
+  --ring: #6ea0ff;
   --chart-1: var(--src-a);
   --chart-2: var(--src-b);
   --chart-3: var(--src-c);
-  --chart-4: #56616b;
-  --chart-5: #9aa4a9;
-  --radius: 0.25rem;
-  --sidebar: var(--panel);
+  --chart-4: #8a97aa;
+  --chart-5: #4a5a70;
+  --radius: 0.75rem;
+  --sidebar: var(--canvas);
   --sidebar-foreground: var(--ink);
-  --sidebar-primary: var(--ink);
-  --sidebar-primary-foreground: #f2f3f1;
-  --sidebar-accent: #dde1e0;
+  --sidebar-primary: var(--action);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1b2434;
   --sidebar-accent-foreground: var(--ink);
-  --sidebar-border: var(--rule);
-  --sidebar-ring: var(--ink);
-}
-
-/* Varianta închisă (pentru video, opțională). Culorile surselor sunt pașii validați pe fundal închis. */
-.dark {
-  color-scheme: dark;
-  --canvas: #0a1521;
-  --panel: #0f1d2b;
-  --ink: #e9eef2;
-  --ink-soft: #c9d3dc;
-  --rule: #22344a;
-  --grid: #1a2a3b;
-  --idle: #5d6f81;
-  --travel: #93a3b3;
-  --src-a: #3b82f0;
-  --src-b: #b84fc0;
-  --src-c: #c4880a;
-  --src-c-ink: #e0a42a;
-  --att: #ff6a3d;
-  --att-ink: #ff8a63;
-  --att-surface: #3a1d14;
-  --ok: #4fb57a;
-  --on-src: #06101a;
-  --on-att: #1a0a05;
-
-  --background: var(--canvas);
-  --foreground: var(--ink);
-  --card: var(--panel);
-  --card-foreground: var(--ink);
-  --popover: #152637;
-  --popover-foreground: var(--ink);
-  --primary: #e9eef2;
-  --primary-foreground: #0a1521;
-  --secondary: #152637;
-  --secondary-foreground: var(--ink);
-  --muted: #152637;
-  --muted-foreground: #93a3b3;
-  --accent: #1a2e42;
-  --accent-foreground: var(--ink);
-  --destructive: #ff6b5e;
-  --border: var(--rule);
-  --input: #3a4f66;
-  --ring: #e9eef2;
+  --sidebar-border: #152133;
+  --sidebar-ring: var(--ring);
 }
 
 @layer base {
@@ -206,7 +173,12 @@
     text-wrap: balance;
   }
   ::selection {
-    background: color-mix(in oklab, var(--src-a) 22%, transparent);
+    background: color-mix(in oklab, var(--src-a) 40%, transparent);
+  }
+  /* bare de derulare în tonul paginii */
+  * {
+    scrollbar-color: #24344b transparent;
+    scrollbar-width: thin;
   }
 }
 

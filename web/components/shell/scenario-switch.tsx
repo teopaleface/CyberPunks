@@ -26,7 +26,7 @@ export function ScenarioSwitch({
       <SelectTrigger
         aria-label="Scenariul"
         data-pending={pending ? "" : undefined}
-        className="h-10 w-auto shrink-0 gap-2 rounded-[4px] border-input bg-panel px-3 text-[15px] font-[520] whitespace-nowrap data-pending:opacity-70 *:data-[slot=select-value]:line-clamp-none"
+        className="h-auto min-h-10 w-full gap-2 rounded-[10px] border-[#2a3a52] bg-transparent px-3 py-2 text-left text-[14px] font-[520] data-pending:opacity-70 *:data-[slot=select-value]:line-clamp-none"
       >
         {/* eticheta întreagă, niciodată tăiată („Zi de vară cu furtuni”, „Mâine, cu prognoza reală”) */}
         <SelectValue>{scenarios.find((s) => s.id === scenario)?.label ?? scenario}</SelectValue>
