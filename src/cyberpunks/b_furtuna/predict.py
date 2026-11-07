@@ -257,9 +257,10 @@ def build_items(model: BModel, zones: list[romania.Zone], feats: pd.DataFrame, h
             action = "no_action"
 
         cust = np.round(q[i] * z.customers).astype(int)
-        value_if_true = float(cust[1] * econ["restoration_speedup_hours"] * econ["cost_per_customer_hour_lei"])
+        value_if_true = round(float(cust[1] * econ["restoration_speedup_hours"] * econ["cost_per_customer_hour_lei"]), 2)
+        score = round(float(p[i]), 4)
         wid = f"B-{target:%Y%m%d}-{z.zone_id}"
-        tw_start = onset - timedelta(hours=3)
+        tw_start = onset  # planificatorul cere echipa pe poziție cu 60 de minute înainte de start
         tw_end = onset + timedelta(hours=6)
         gust = row.get("gust_max")
         item = WorkItem(
@@ -276,7 +277,7 @@ def build_items(model: BModel, zones: list[romania.Zone], feats: pd.DataFrame, h
                 model_version=model.version,
                 prediction_id=str(uuid.uuid4()),
                 label="outage_risk",
-                score=round(float(p[i]), 4),
+                score=score,
                 interval_low=round(float(lo[i]), 4),
                 interval_high=round(float(hi[i]), 4),
                 point_estimate=float(cust[1]),
@@ -287,8 +288,8 @@ def build_items(model: BModel, zones: list[romania.Zone], feats: pd.DataFrame, h
                 abstain_reason="; ".join(abstain_reasons) if abstain else None,
             ),
             impact=Impact(
-                expected_value_lei=round(float(p[i]) * value_if_true, 2),
-                value_if_true_lei=round(value_if_true, 2),
+                expected_value_lei=round(score * value_if_true, 2),  # exact scor × valoare (verificat de carantină)
+                value_if_true_lei=value_if_true,
                 customers_affected=int(cust[1]),
                 urgency_hours=max(round((onset - created).total_seconds() / 3600, 1), 1.0),
                 safety_flag=bool(pd.notna(gust) and gust >= SAFETY_GUST_KMH),
@@ -336,10 +337,12 @@ def run(scenario: str, date: str | None = None) -> Path:
     zones = romania.load_zones()
     created = decision_time(target, mode)
 
+    openmeteo.STALE_NOTES.clear()
     wx, wx_issues = romania.weather_daily(zones, target, mode)
     hourly = romania.weather_hourly(zones, target, mode)
     feats = target_features(zones, wx, target)
     lo, hi, unc_source = uncertainty(model, zones, feats, target, mode)
+    wx_issues = list(wx_issues) + sorted(set(openmeteo.STALE_NOTES))
     items, series = build_items(model, zones, feats, hourly, target, mode, created, econ, scenario, lo, hi,
                                 unc_source, wx_issues)
 
@@ -378,7 +381,7 @@ def make_series(wid: str, z: romania.Zone, h: pd.DataFrame, target: date, onset:
         points=points,
         thresholds={"rafala_inceput_furtuna_kmh": ONSET_GUST_KMH, "rafala_periculoasa_kmh": SAFETY_GUST_KMH},
         annotations=[
-            SeriesAnnotation(t=tw_start, label_ro="echipa pe poziție (cu 3 ore înainte)"),
+            SeriesAnnotation(t=tw_start - timedelta(hours=1), label_ro="echipa pe poziție (cu o oră înainte)"),
             SeriesAnnotation(t=onset, label_ro="începutul furtunii (estimat)"),
         ],
         synthetic=False,

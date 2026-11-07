@@ -70,6 +70,14 @@ def zones_frame(zones: list[Zone] | None = None) -> pd.DataFrame:
     return pd.DataFrame([z.__dict__ for z in (zones or load_zones())])
 
 
+def _forecast_payloads(zones: list[Zone], target: date) -> list[dict]:
+    """O singură cerere de prognoză (zilnic + orar) pentru zone; a doua folosire vine din cache."""
+    start = target - timedelta(days=LAG_DAYS)
+    past = min(max((date.today() - start).days, 1), 92)
+    ahead = min(max((target - date.today()).days + 2, 2), 16)
+    return openmeteo.forecast([z.lat for z in zones], [z.lon for z in zones], past_days=past, forecast_days=ahead)
+
+
 def weather_daily(zones: list[Zone], target: date, mode: str) -> tuple[pd.DataFrame, list[str]]:
     """Vremea zilnică pentru zone, de la target-LAG_DAYS la target (sau până la target+1 pentru prognoză).
 
@@ -80,9 +88,7 @@ def weather_daily(zones: list[Zone], target: date, mode: str) -> tuple[pd.DataFr
     if mode == "historical":
         payloads = openmeteo.archive_daily(lats, lons, start.isoformat(), target.isoformat(), timezone="Europe/Bucharest")
     else:
-        past = max((date.today() - start).days, 0)
-        ahead = max((target - date.today()).days + 1, 1)
-        payloads = openmeteo.forecast(lats, lons, past_days=min(past, 92), forecast_days=min(ahead + 1, 16))
+        payloads = _forecast_payloads(zones, target)
     frames = []
     for z, p in zip(zones, payloads, strict=True):
         d = openmeteo.daily_frame(p)
@@ -123,7 +129,7 @@ def weather_hourly(zones: list[Zone], target: date, mode: str) -> pd.DataFrame:
         payloads = openmeteo.archive_hourly(lats, lons, (target - timedelta(days=1)).isoformat(),
                                             (target + timedelta(days=1)).isoformat(), timezone="Europe/Bucharest")
     else:
-        payloads = openmeteo.forecast(lats, lons, past_days=1, forecast_days=max((target - date.today()).days + 2, 2))
+        payloads = _forecast_payloads(zones, target)
     frames = []
     for z, p in zip(zones, payloads, strict=True):
         h = openmeteo.hourly_frame(p)

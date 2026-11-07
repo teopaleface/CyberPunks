@@ -96,7 +96,8 @@ def test_items_are_valid_contracts_and_have_explanations(tiny_model):
         WorkItem.model_validate(it.model_dump())
         assert it.work_item_id.startswith("B-20250708-")
         assert 1 <= len(it.explanation.top_factors) <= 8
-        assert it.time_window.start.hour == 12  # furtuna începe la 15 (prima oră cu 70 km/h), echipa la 12
+        assert it.time_window.start.hour == 15  # furtuna începe la 15 (prima oră cu 70 km/h)
+        assert abs(it.impact.expected_value_lei - it.prediction.score * it.impact.value_if_true_lei) <= 0.01
         assert it.prediction.interval_low <= it.prediction.score <= it.prediction.interval_high
 
 
@@ -137,7 +138,7 @@ def test_weather_sources_disagree_means_human_review(tiny_model):
 def test_no_hourly_weather_uses_afternoon_default(tiny_model):
     zones = [z for z in romania.load_zones() if z.zone_id == "AR-ARAD"]
     items, series = _build(tiny_model, zones, _feats(zones), hourly=pd.DataFrame())
-    assert items[0].time_window.start.hour == 11  # 14:00 implicit minus 3 ore
+    assert items[0].time_window.start.hour == 14  # implicit: după-amiaza, ora 14
     assert series[0].points[0].flag == "gol"
 
 

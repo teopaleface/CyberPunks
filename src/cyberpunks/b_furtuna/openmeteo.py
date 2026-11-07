@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import time
 from datetime import UTC, datetime
@@ -61,12 +62,11 @@ def _log_cost(url: str, n_locations: int, cost: str | None, status: int) -> None
         w.writerow([datetime.now(UTC).isoformat(timespec="seconds"), url.split("?")[0], n_locations, cost, status])
 
 
-def get(url: str, params: dict, n_locations: int = 1, retries: int = 4) -> tuple[object, float]:
+def _get_live(url: str, params: dict, n_locations: int, retries: int, wait: float, timeout: float) -> tuple[object, float]:
     """GET cu reîncercări. Întoarce (json, cost). La 429 așteaptă, apoi renunță cu RateLimited."""
-    wait = 30.0
     for attempt in range(1, retries + 1):
         try:
-            r = httpx.get(url, params=params, timeout=120, headers={"User-Agent": USER_AGENT})
+            r = httpx.get(url, params=params, timeout=timeout, headers={"User-Agent": USER_AGENT})
         except httpx.HTTPError as exc:
             if attempt == retries:
                 raise
@@ -88,6 +88,42 @@ def get(url: str, params: dict, n_locations: int = 1, retries: int = 4) -> tuple
     raise RuntimeError("nu ar trebui să ajungem aici")
 
 
+# Cache pe disc: arhiva și prognozele trecute nu se mai schimbă (păstrate permanent); prognoza și ensemble-ul
+# se reîmprospătează după 3 ore. Dacă Open-Meteo nu răspunde, folosim ultima copie salvată și o notăm în STALE_NOTES.
+CACHE_DIR = OM_DIR / "cache"
+TTL_S: dict[str, float | None] = {ARCHIVE: None, HIST_FORECAST: None, FORECAST: 3 * 3600, ENSEMBLE: 3 * 3600}
+STALE_NOTES: list[str] = []
+
+
+def _cache_path(url: str, params: dict) -> Path:
+    blob = json.dumps({"url": url, "params": params}, sort_keys=True, default=str)
+    return CACHE_DIR / f"{hashlib.sha1(blob.encode('utf-8')).hexdigest()}.json"
+
+
+def get(url: str, params: dict, n_locations: int = 1, retries: int = 4, use_cache: bool = True,
+        fast: bool = False) -> tuple[object, float]:
+    """GET cu cache și reîncercări. `fast=True`: puține reîncercări și timeout scurt (pentru agentul live)."""
+    path = _cache_path(url, params)
+    ttl = TTL_S.get(url, 0.0)
+    if use_cache and path.exists():
+        age = time.time() - path.stat().st_mtime
+        if ttl is None or age < ttl:
+            return json.loads(path.read_text(encoding="utf-8")), 0.0
+    try:
+        data, cost = _get_live(url, params, n_locations, 2 if fast else retries, 5.0 if fast else 30.0,
+                               20.0 if fast else 120.0)
+    except (httpx.HTTPError, RateLimited, RuntimeError) as exc:
+        if use_cache and path.exists():
+            age_h = (time.time() - path.stat().st_mtime) / 3600
+            STALE_NOTES.append(f"Open-Meteo n-a răspuns ({type(exc).__name__}): am folosit datele salvate acum {age_h:.1f} h")
+            return json.loads(path.read_text(encoding="utf-8")), 0.0
+        raise
+    if use_cache:
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(data), encoding="utf-8")
+    return data, cost
+
+
 def _coords(lats: list[float], lons: list[float]) -> dict:
     return {"latitude": ",".join(f"{x:.4f}" for x in lats), "longitude": ",".join(f"{x:.4f}" for x in lons)}
 
@@ -105,10 +141,11 @@ def hourly_frame(payload: dict) -> pd.DataFrame:
     return h
 
 
-def archive_daily(lats: list[float], lons: list[float], start: str, end: str, timezone: str = "auto") -> list[dict]:
+def archive_daily(lats: list[float], lons: list[float], start: str, end: str, timezone: str = "auto",
+                  use_cache: bool = True) -> list[dict]:
     params = {**_coords(lats, lons), "start_date": start, "end_date": end, "daily": ",".join(DAILY_VARS),
               "timezone": timezone}
-    data, _ = get(ARCHIVE, params, n_locations=len(lats))
+    data, _ = get(ARCHIVE, params, n_locations=len(lats), use_cache=use_cache)
     return data if isinstance(data, list) else [data]
 
 
@@ -123,7 +160,7 @@ def forecast(lats: list[float], lons: list[float], past_days: int = 2, forecast_
              timezone: str = "Europe/Bucharest") -> list[dict]:
     params = {**_coords(lats, lons), "daily": ",".join(DAILY_VARS), "hourly": ",".join(HOURLY_VARS),
               "past_days": past_days, "forecast_days": forecast_days, "timezone": timezone}
-    data, _ = get(FORECAST, params, n_locations=len(lats))
+    data, _ = get(FORECAST, params, n_locations=len(lats), fast=True)
     return data if isinstance(data, list) else [data]
 
 
@@ -140,7 +177,7 @@ def ensemble_gusts(lats: list[float], lons: list[float], forecast_days: int = 3,
     """Rafalele orare din ensemble (un model, toți membrii). Scump: ~ membri/10 apeluri pe locație."""
     params = {**_coords(lats, lons), "hourly": "wind_gusts_10m,precipitation", "models": model,
               "forecast_days": forecast_days, "timezone": timezone}
-    data, _ = get(ENSEMBLE, params, n_locations=len(lats))
+    data, _ = get(ENSEMBLE, params, n_locations=len(lats), fast=True)
     return data if isinstance(data, list) else [data]
 
 
@@ -166,7 +203,7 @@ def us_history(sample_csv: Path, start: str, end: str, calls_per_hour: float = 3
         if dest.exists():
             continue
         t0 = time.time()
-        payload = archive_daily([c["lat"]], [c["lon"]], start, end)[0]
+        payload = archive_daily([c["lat"]], [c["lon"]], start, end, use_cache=False)[0]
         payload["_meta"] = {"fips": c["fips"], "state": c["state"], "county": c["county"], "source": ARCHIVE,
                             "fetched_utc": datetime.now(UTC).isoformat(timespec="seconds")}
         dest.write_text(json.dumps(payload), encoding="utf-8")
