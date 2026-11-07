@@ -4,7 +4,7 @@
     "audience": "echipa",
     "asset_id": "CS-ORAVITA",
     "message_ro": "Mâine, echipa E-RS-1: fiți în Zona Oravița (Caraș-Severin) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-    "scheduled_for": "2026-11-07T16:30:06+02:00",
+    "scheduled_for": "2026-11-07T17:26:56+02:00",
     "work_item_id": "B-20250708-CS-ORAVITA",
     "demo_only": true
   },
@@ -13,7 +13,7 @@
     "audience": "echipa",
     "asset_id": "TM-TIMISOARA",
     "message_ro": "Mâine, echipa E-TM-1: fiți în Zona Timișoara (Timiș) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-    "scheduled_for": "2026-11-07T16:30:06+02:00",
+    "scheduled_for": "2026-11-07T17:26:56+02:00",
     "work_item_id": "B-20250708-TM-TIMISOARA",
     "demo_only": true
   },
@@ -22,7 +22,7 @@
     "audience": "echipa",
     "asset_id": "AR-ARAD",
     "message_ro": "Mâine, echipa E-AR-1: fiți în Zona Arad (Arad) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-    "scheduled_for": "2026-11-07T16:30:06+02:00",
+    "scheduled_for": "2026-11-07T17:26:56+02:00",
     "work_item_id": "B-20250708-AR-ARAD",
     "demo_only": true
   },
@@ -390,13 +390,31 @@
     "notification_id": "N-44",
     "audience": "prosumatori",
     "asset_id": "PT-1082",
-    "message_ro": "Mâine, marți 08.07.2025, între 10:00 și 17:00 e soare puternic, iar tensiunea în rețeaua din zona PT-1082, 1 Decembrie (sintetic) poate trece de limită. Dacă puteți, porniți atunci aparatele mari (mașina de spălat, boilerul, încărcarea mașinii). Așa folosiți energia produsă de panouri, iar invertorul nu se mai oprește singur.",
+    "message_ro": "PPC Energie: pentru prosumatorii din zona PT-1082, 1 Decembrie (sintetic), o baterie ar păstra energia de la prânz pentru seară și ar opri deconectările invertorului. Propunere: 20 kWh de baterii pe post, recuperare în ~5,2 ani. Detalii în magazinele PPC.",
     "scheduled_for": "2025-07-07T18:05:00+03:00",
     "work_item_id": "C-20250708-PT-1082",
     "demo_only": true
   },
   {
     "notification_id": "N-45",
+    "audience": "prosumatori",
+    "asset_id": "PT-1082",
+    "message_ro": "Mâine între 11 și 17, panourile solare de pe strada ta se pot opri de circa 3 ori din cauza tensiunii mari. Dacă 1 din 5 vecini pornește atunci mașina de spălat și boilerul, se evită circa 1 opriri. Cu PPC Ore Smart+, consumul de la prânz costă mai puțin.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1082",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-46",
+    "audience": "clienti_zona",
+    "asset_id": "PT-1082",
+    "message_ro": "Rețele Electrice: joi 10.07.2025, între 09:00 și 10:00, alimentarea cu energie electrică va fi întreruptă în zona postului de transformare PT-1082, 1 Decembrie (sintetic), pentru lucrări de reglaj al tensiunii. Ne cerem scuze pentru neplăcere.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1082",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-47",
     "audience": "prosumatori",
     "asset_id": "PT-1047",
     "message_ro": "Mâine, marți 08.07.2025, între 11:00 și 15:00 e soare puternic, iar tensiunea în rețeaua din zona PT-1047, Măgurele (sintetic) poate trece de limită. Dacă puteți, porniți atunci aparatele mari (mașina de spălat, boilerul, încărcarea mașinii). Așa folosiți energia produsă de panouri, iar invertorul nu se mai oprește singur.",
@@ -405,7 +423,7 @@
     "demo_only": true
   },
   {
-    "notification_id": "N-46",
+    "notification_id": "N-48",
     "audience": "prosumatori",
     "asset_id": "PT-1196",
     "message_ro": "Mâine, marți 08.07.2025, între 10:00 și 16:00 e soare puternic, iar tensiunea în rețeaua din zona PT-1196, Glina (sintetic) poate trece de limită. Dacă puteți, porniți atunci aparatele mari (mașina de spălat, boilerul, încărcarea mașinii). Așa folosiți energia produsă de panouri, iar invertorul nu se mai oprește singur.",
