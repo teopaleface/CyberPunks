@@ -1,7 +1,7 @@
 # Status: Teo-C-prosumatori
 Actualizat: 2026-11-07 16:50
 Milestone curent: M4 terminat (M0 13:10, M1 13:45, M2 14:11, M3 15:40, M4 16:50)
-Gata de merge: da (commit-ul de după 16:50, vezi `git log -1`; `git merge Teo` făcut la 16:42, `make check` trece: 272 de teste, 32 în `tests/c`)
+Gata de merge: da (commit 473d1b7; `git merge Teo` făcut la 16:42, `make check` trece: 272 de teste, 32 în `tests/c`)
 
 ## Postul pentru prezentare (legătura bilanț → C): **PT-1082**
 - PT-1082, 1 Decembrie (Ilfov, sintetic). Bilanțul (`A-20250708-PT-1082`, `grid_inspection`) are `extra.phase_rebalance_input`: pierderi pe cabluri de 2,87 ori normalul, circa 77% din case pe o fază.
