@@ -208,6 +208,14 @@ def _window(series: pd.DataFrame) -> tuple[int, int]:
     return h0, max(h1, h0 + 1)
 
 
+def _window_end(d: date, h1: int) -> datetime:
+    """Sfârșitul ferestrei; ora 24 înseamnă miezul nopții de după (nu 23:59)."""
+    if h1 >= 24:
+        n = d + timedelta(days=1)
+        return datetime(n.year, n.month, n.day, 0, 0, tzinfo=TZ)
+    return datetime(d.year, d.month, d.day, h1, 0, tzinfo=TZ)
+
+
 def _confidence(p: float, width: float, abstain: bool) -> str:
     if abstain:
         return "low"
@@ -314,7 +322,7 @@ def run(scenario: str, date_str: str | None = None) -> Path:
             "asset_type": "transformer_post",
             "location": {"lat": float(st["lat"]), "lon": float(st["lon"]), "zone_id": st["zone_id"], "county": st["county"], "label": st["label"]},
             "target_date": d.isoformat(),
-            "time_window": {"start": win_start.isoformat(), "end": datetime(d.year, d.month, d.day, min(h1, 23), 59 if h1 >= 24 else 0, tzinfo=TZ).isoformat()},
+            "time_window": {"start": win_start.isoformat(), "end": _window_end(d, h1).isoformat()},
             "prediction": {
                 "model_id": "c-surrogate",
                 "model_version": bundle.version,

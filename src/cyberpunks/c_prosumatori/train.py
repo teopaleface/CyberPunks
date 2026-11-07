@@ -202,7 +202,8 @@ class DailyModel:
         out = {"q10": q10, "q50": q50, "q90": q90, "raw_p": raw_p}
         if calibrated:
             m = self.margins(df)
-            out["q10"], out["q90"] = q10 - m, q90 + m
+            # o margine negativă (interval prea larg) poate strânge intervalul, dar nu are voie să încrucișeze P50
+            out["q10"], out["q90"] = np.minimum(q10 - m, q50), np.maximum(q90 + m, q50)
             out["p_exceed"] = self.iso.predict(raw_p) if self.iso is not None else raw_p
         else:
             out["p_exceed"] = raw_p
@@ -281,7 +282,8 @@ class HourlyModel:
         X = df[self.features]
         q = {a: self.models[a].predict(X) for a in QUANTILES}
         m = getattr(self, "cqr_margin", 0.0)
-        return {"q10": np.minimum(q[0.1], q[0.5]) - m, "q50": q[0.5], "q90": np.maximum(q[0.9], q[0.5]) + m}
+        q10, q50, q90 = np.minimum(q[0.1], q[0.5]), q[0.5], np.maximum(q[0.9], q[0.5])
+        return {"q10": np.minimum(q10 - m, q50), "q50": q50, "q90": np.maximum(q90 + m, q50)}
 
 
 def hourly_logo_margin(df: pd.DataFrame, feats: list[str], level: float = 0.8) -> float:
