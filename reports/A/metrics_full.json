@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-11-07T13:44:37+02:00",
+  "created_at": "2026-11-07T13:51:50+02:00",
   "budget_share": 0.01,
   "vee_thresholds_from_calibration": {
     "sgcc": {
@@ -14,6 +14,25 @@
   "models": {
     "a-lgbm": "a-lgbm@b82b20a",
     "a-lgbm-sgcc": "a-lgbm-sgcc@b82b20a"
+  },
+  "leakage_checks": {
+    "lcl_households_train_test_overlap": 0,
+    "lcl_households_train_cal_overlap": 0,
+    "lcl_households_cal_test_overlap": 0,
+    "sgcc_customers_train_test_overlap": 0,
+    "sgcc_customers_cal_test_overlap": 0,
+    "lcl_train_last_scoring_date": "2013-08-24",
+    "lcl_test_first_scoring_date": "2013-09-07",
+    "lcl_permutation": {
+      "pr_auc_shuffled": 0.0479,
+      "roc_auc_shuffled": 0.467,
+      "prevalence": 0.0458
+    },
+    "sgcc_permutation": {
+      "pr_auc_shuffled": 0.0984,
+      "roc_auc_shuffled": 0.5031,
+      "prevalence": 0.0853
+    }
   },
   "sgcc_real_labels": {
     "n": 8475,
@@ -161,6 +180,92 @@
         "recall": 0.4857,
         "n_normal": 1412,
         "n_problem": 280
+      }
+    ],
+    "ranking_at_ks": [
+      {
+        "k": 50,
+        "k_over_positives": 0.0692,
+        "model_precision": 0.82,
+        "model_recall": 0.0567,
+        "rule_precision": 0.06,
+        "rule_recall": 0.0041,
+        "vee_precision": 0.14,
+        "vee_recall": 0.0097,
+        "iforest_precision": 0.2,
+        "iforest_recall": 0.0138
+      },
+      {
+        "k": 85,
+        "k_over_positives": 0.1176,
+        "model_precision": 0.8118,
+        "model_recall": 0.0954,
+        "rule_precision": 0.0353,
+        "rule_recall": 0.0041,
+        "vee_precision": 0.1059,
+        "vee_recall": 0.0124,
+        "iforest_precision": 0.1882,
+        "iforest_recall": 0.0221
+      },
+      {
+        "k": 100,
+        "k_over_positives": 0.1383,
+        "model_precision": 0.8,
+        "model_recall": 0.1107,
+        "rule_precision": 0.04,
+        "rule_recall": 0.0055,
+        "vee_precision": 0.1,
+        "vee_recall": 0.0138,
+        "iforest_precision": 0.16,
+        "iforest_recall": 0.0221
+      },
+      {
+        "k": 200,
+        "k_over_positives": 0.2766,
+        "model_precision": 0.68,
+        "model_recall": 0.1881,
+        "rule_precision": 0.035,
+        "rule_recall": 0.0097,
+        "vee_precision": 0.08,
+        "vee_recall": 0.0221,
+        "iforest_precision": 0.14,
+        "iforest_recall": 0.0387
+      },
+      {
+        "k": 400,
+        "k_over_positives": 0.5533,
+        "model_precision": 0.515,
+        "model_recall": 0.2849,
+        "rule_precision": 0.035,
+        "rule_recall": 0.0194,
+        "vee_precision": 0.0875,
+        "vee_recall": 0.0484,
+        "iforest_precision": 0.135,
+        "iforest_recall": 0.0747
+      },
+      {
+        "k": 723,
+        "k_over_positives": 1.0,
+        "model_precision": 0.4274,
+        "model_recall": 0.4274,
+        "rule_precision": 0.0498,
+        "rule_recall": 0.0498,
+        "vee_precision": 0.0996,
+        "vee_recall": 0.0996,
+        "iforest_precision": 0.1272,
+        "iforest_recall": 0.1272
+      },
+      {
+        "k": 1446,
+        "k_over_positives": 2.0,
+        "model_precision": 0.296,
+        "model_recall": 0.592,
+        "rule_precision": 0.0519,
+        "rule_recall": 0.1037,
+        "vee_precision": 0.0996,
+        "vee_recall": 0.1992,
+        "iforest_precision": 0.0989,
+        "iforest_recall": 0.1978
       }
     ]
   },
@@ -428,7 +533,188 @@
       },
       "model_beats_rule_share": 1.0,
       "model_beats_vee_share": 1.0,
-      "model_beats_iforest_share": 1.0
+      "model_beats_iforest_share": 1.0,
+      "ranking_at_ks": [
+        {
+          "k": 50,
+          "k_over_positives": 0.1309,
+          "model_precision": 0.72,
+          "model_recall": 0.0942,
+          "rule_precision": 0.02,
+          "rule_recall": 0.0026,
+          "vee_precision": 0.02,
+          "vee_recall": 0.0026,
+          "iforest_precision": 0.06,
+          "iforest_recall": 0.0079
+        },
+        {
+          "k": 100,
+          "k_over_positives": 0.2618,
+          "model_precision": 0.76,
+          "model_recall": 0.199,
+          "rule_precision": 0.02,
+          "rule_recall": 0.0052,
+          "vee_precision": 0.02,
+          "vee_recall": 0.0052,
+          "iforest_precision": 0.04,
+          "iforest_recall": 0.0105
+        },
+        {
+          "k": 128,
+          "k_over_positives": 0.3351,
+          "model_precision": 0.6875,
+          "model_recall": 0.2304,
+          "rule_precision": 0.0625,
+          "rule_recall": 0.0209,
+          "vee_precision": 0.0156,
+          "vee_recall": 0.0052,
+          "iforest_precision": 0.0391,
+          "iforest_recall": 0.0131
+        },
+        {
+          "k": 200,
+          "k_over_positives": 0.5236,
+          "model_precision": 0.61,
+          "model_recall": 0.3194,
+          "rule_precision": 0.07,
+          "rule_recall": 0.0366,
+          "vee_precision": 0.02,
+          "vee_recall": 0.0105,
+          "iforest_precision": 0.04,
+          "iforest_recall": 0.0209
+        },
+        {
+          "k": 382,
+          "k_over_positives": 1.0,
+          "model_precision": 0.4555,
+          "model_recall": 0.4555,
+          "rule_precision": 0.1204,
+          "rule_recall": 0.1204,
+          "vee_precision": 0.034,
+          "vee_recall": 0.034,
+          "iforest_precision": 0.0497,
+          "iforest_recall": 0.0497
+        }
+      ]
+    },
+    "ranking_at_ks": [
+      {
+        "k": 50,
+        "k_over_positives": 0.0838,
+        "model_precision": 1.0,
+        "model_recall": 0.0838,
+        "rule_precision": 0.62,
+        "rule_recall": 0.0519,
+        "vee_precision": 0.64,
+        "vee_recall": 0.0536,
+        "iforest_precision": 0.1,
+        "iforest_recall": 0.0084
+      },
+      {
+        "k": 100,
+        "k_over_positives": 0.1675,
+        "model_precision": 1.0,
+        "model_recall": 0.1675,
+        "rule_precision": 0.65,
+        "rule_recall": 0.1089,
+        "vee_precision": 0.61,
+        "vee_recall": 0.1022,
+        "iforest_precision": 0.07,
+        "iforest_recall": 0.0117
+      },
+      {
+        "k": 130,
+        "k_over_positives": 0.2178,
+        "model_precision": 1.0,
+        "model_recall": 0.2178,
+        "rule_precision": 0.5231,
+        "rule_recall": 0.1139,
+        "vee_precision": 0.6077,
+        "vee_recall": 0.1323,
+        "iforest_precision": 0.0923,
+        "iforest_recall": 0.0201
+      },
+      {
+        "k": 200,
+        "k_over_positives": 0.335,
+        "model_precision": 0.93,
+        "model_recall": 0.3116,
+        "rule_precision": 0.415,
+        "rule_recall": 0.139,
+        "vee_precision": 0.555,
+        "vee_recall": 0.1859,
+        "iforest_precision": 0.215,
+        "iforest_recall": 0.072
+      },
+      {
+        "k": 300,
+        "k_over_positives": 0.5025,
+        "model_precision": 0.8967,
+        "model_recall": 0.4506,
+        "rule_precision": 0.3267,
+        "rule_recall": 0.1642,
+        "vee_precision": 0.48,
+        "vee_recall": 0.2412,
+        "iforest_precision": 0.33,
+        "iforest_recall": 0.1658
+      },
+      {
+        "k": 400,
+        "k_over_positives": 0.67,
+        "model_precision": 0.805,
+        "model_recall": 0.5394,
+        "rule_precision": 0.3,
+        "rule_recall": 0.201,
+        "vee_precision": 0.4025,
+        "vee_recall": 0.2697,
+        "iforest_precision": 0.3275,
+        "iforest_recall": 0.2194
+      },
+      {
+        "k": 597,
+        "k_over_positives": 1.0,
+        "model_precision": 0.6449,
+        "model_recall": 0.6449,
+        "rule_precision": 0.2898,
+        "rule_recall": 0.2898,
+        "vee_precision": 0.3065,
+        "vee_recall": 0.3065,
+        "iforest_precision": 0.3049,
+        "iforest_recall": 0.3049
+      },
+      {
+        "k": 1194,
+        "k_over_positives": 2.0,
+        "model_precision": 0.3735,
+        "model_recall": 0.7471,
+        "rule_precision": 0.2085,
+        "rule_recall": 0.4171,
+        "vee_precision": 0.2379,
+        "vee_recall": 0.4757,
+        "iforest_precision": 0.2312,
+        "iforest_recall": 0.4623
+      }
+    ],
+    "top_k_composition": {
+      "model_top_k": {
+        "stuck": 44,
+        "zero": 33,
+        "negative": 29,
+        "gaps": 11,
+        "h4": 8,
+        "h6": 3,
+        "h3": 2
+      },
+      "vee_top_k": {
+        "normal": 48,
+        "zero": 45,
+        "negative": 21,
+        "stuck": 12,
+        "vacation": 2,
+        "h3": 1,
+        "occupancy_change": 1
+      },
+      "obvious_problems_in_test": 215
     },
     "per_kind_model": [
       {

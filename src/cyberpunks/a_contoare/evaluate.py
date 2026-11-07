@@ -167,6 +167,37 @@ def type_accuracy(test: pd.DataFrame, pred: pd.DataFrame) -> dict:
     return {"family_accuracy_on_problems": _r(float(ok.mean())), "n": int(m.sum())}
 
 
+def ranking_at_ks(y: np.ndarray, scores: dict[str, np.ndarray], ks: list[int]) -> list[dict]:
+    """Precizia și recall-ul la mai multe valori K (ca să nu depindem de un singur K)."""
+    rows = []
+    for k in sorted(set(ks)):
+        row = {"k": int(k), "k_over_positives": _r(k / max(1, int(np.sum(y))))}
+        for m_, s in scores.items():
+            row[f"{m_}_precision"] = _r(M.precision_at_k(y, s, k))
+            row[f"{m_}_recall"] = _r(M.recall_at_k(y, s, k))
+        rows.append(row)
+    return rows
+
+
+def top_k_composition(test: pd.DataFrame, s: np.ndarray, k: int) -> dict[str, int]:
+    """Ce tipuri de probleme (sau normale) ocupă primele K locuri din clasament."""
+    top = test.iloc[M.rank(s)[:k]]
+    lab = np.where(top["problem"] == 1, top["kind"], np.where(top["kind"].isin(BENIGN_KINDS), top["kind"], "normal"))
+    return pd.Series(lab).value_counts().to_dict()
+
+
+def permutation_check(model_id: str, features: list[str], classes: list[str], tr: pd.DataFrame, y_tr: np.ndarray,
+                      te: pd.DataFrame, y_te: np.ndarray, seed: int = 0) -> dict[str, float]:
+    """Antrenare pe etichete amestecate la întâmplare: dacă nu există scurgeri, PR-AUC pe test cade la prevalență."""
+    from cyberpunks.a_contoare.train import DETERMINISTIC
+
+    rng = np.random.default_rng(seed)
+    m = MeterModel(model_id, features, classes).fit(tr, rng.permutation(y_tr), params=DETERMINISTIC)
+    s = m.raw_problem_score(te)
+    return {"pr_auc_shuffled": _r(M.pr_auc(y_te, s)), "roc_auc_shuffled": _r(M.roc_auc(y_te, s)),
+            "prevalence": _r(float(np.mean(y_te)))}
+
+
 # --------------------------------------------------------------------------------------------
 # Figuri
 # --------------------------------------------------------------------------------------------
@@ -297,6 +328,37 @@ def run(retrain: bool = False) -> dict:
         M.k_for(int(subtle.sum())), groups=l_te["household"].to_numpy()[subtle],
         value_true=l_te["value_true_lei"].to_numpy()[subtle],
     )
+    # scurgeri și cât de ușor e vârful clasamentului (cerut de orchestrator la 13:55)
+    pos_l, pos_s = int(y_l.sum()), int(y_s.sum())
+    res_l["ranking_at_ks"] = ranking_at_ks(y_l, sc_l, [50, 100, k_l, 200, 300, 400, pos_l, 2 * pos_l])
+    res_s["ranking_at_ks"] = ranking_at_ks(y_s, sc_s, [50, k_s, 100, 200, 400, pos_s, 2 * pos_s])
+    res_l["subtle_only"]["ranking_at_ks"] = ranking_at_ks(
+        y_l[subtle], {m_: v[subtle] for m_, v in sc_l.items()}, [50, 100, 128, 200, int(y_l[subtle].sum())]
+    )
+    res_l["top_k_composition"] = {
+        "model_top_k": top_k_composition(l_te, sc_l["model"], k_l),
+        "vee_top_k": top_k_composition(l_te, sc_l["vee"], k_l),
+        "obvious_problems_in_test": int((l_te["kind"].isin(OBVIOUS_KINDS) & (l_te["problem"] == 1)).sum()),
+    }
+    l_ca_h, l_tr_h, l_te_h = (set(smp.loc[smp.split == x, "household"]) for x in ("cal", "train", "test"))
+    s_ids = {x: set(f.loc[f.split == x, "customer_id"]) for x in ("train", "cal", "test")}
+    leakage = {
+        "lcl_households_train_test_overlap": len(l_tr_h & l_te_h),
+        "lcl_households_train_cal_overlap": len(l_tr_h & l_ca_h),
+        "lcl_households_cal_test_overlap": len(l_ca_h & l_te_h),
+        "sgcc_customers_train_test_overlap": len(s_ids["train"] & s_ids["test"]),
+        "sgcc_customers_cal_test_overlap": len(s_ids["cal"] & s_ids["test"]),
+        "lcl_train_last_scoring_date": str(smp.loc[smp.split == "train", "date"].max().date()),
+        "lcl_test_first_scoring_date": str(smp.loc[smp.split == "test", "date"].min().date()),
+        "lcl_permutation": permutation_check(
+            "perm-lcl", ALL_FEATURES, ["normal", "faulty", "tamper"], l_tr,
+            l_tr["family"].map({"normal": 0, "faulty": 1, "tamper": 2}).to_numpy(), l_te, y_l,
+        ),
+        "sgcc_permutation": permutation_check(
+            "perm-sgcc", DAILY_FEATURES, ["normal", "tamper"], s_tr, s_tr["label"].to_numpy(), s_te, y_s
+        ),
+    }
+    print(f"[scurgeri] {leakage}")
     res_l["per_kind_model"] = per_kind(l_te, sc_l["model"])
     res_l["per_kind_vee"] = per_kind(l_te, sc_l["vee"])
     res_l["per_kind_rule"] = per_kind(l_te, sc_l["rule"])
@@ -315,6 +377,7 @@ def run(retrain: bool = False) -> dict:
         "budget_share": M.BUDGET_SHARE,
         "vee_thresholds_from_calibration": {"sgcc": vee_s, "lcl": vee_l},
         "models": {"a-lgbm": m_lcl.version, "a-lgbm-sgcc": m_sgcc.version},
+        "leakage_checks": leakage,
         "sgcc_real_labels": res_s,
         "lcl_injected": res_l,
         "notes": [
