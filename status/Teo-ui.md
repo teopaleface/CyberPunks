@@ -26,6 +26,9 @@ Gata de merge: da (commit a68f2aa: M2, toate ecranele de bază pe API și pe ins
 
 - 14:40 M2 gata: ecranele Jurnal (filtre, praguri, urmărire, descărcare JSONL) și Alerte și mesaje (subagent); posturile folosesc bilanțul real (lei pe lună, cauza); test de fum pentru toate ecranele (`make web-smoke`, 12 ecrane); 23 de teste (`make web-test`).
 
+- 14:50 Pagina planului mai ușoară: 3,05 MB → 1,98 MB (214 KB gzip) cu 556 de lucrări; detaliile lucrării se încarcă la selecție.
+- 14:55 Rezerva fără API verificată cu testul de fum: (1) API oprit, fără instantaneu → „Date de test”, 12/12 ecrane merg; (2) API oprit, cu instantaneul planificatorului (`DEMO_DIR=…/outputs/demo`) → „Ultimul plan salvat”, 12/12 ecrane merg, ordinul de lucru PDF vine din instantaneu.
+
 ## Urmează
 - M3: audit `impeccable`, rezerva fără API verificată (API oprit), pagina principală mai ușoară (detaliile lucrărilor la cerere), un review independent cu Codex.
 - Scara de soluții C și bilanțul apar automat când firele C și bilanț pun `extra.remedy_options` și lucrările `A_bilant` (componentele sunt gata).
