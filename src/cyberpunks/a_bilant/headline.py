@@ -1,6 +1,6 @@
 """Cifrele bilanțului pentru prezentare, într-o pagină: `reports/bilant/headline.md`.
 
-    uv run python -m cyberpunks.a_bilant.headline      # după evaluate; citește doar reports/bilant/metrics.json
+    uv run python -m cyberpunks.a_bilant.headline      # după evaluate și predict (inclus în `make bilant-predict`)
 
 Nicio cifră nu e scrisă de mână: toate vin din `metrics.json` (comanda `make bilant-eval`). SIMULARE pe date publice.
 """

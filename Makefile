@@ -114,9 +114,10 @@ bilant-eval:      ## Bilanț: modelele și metodele simple, reports/bilant/metri
 	uv run python -m cyberpunks.a_bilant.evaluate
 	uv run python -m cyberpunks.a_bilant.planb
 	uv run python -m cyberpunks.a_bilant.error_analysis
-	uv run python -m cyberpunks.a_bilant.headline
-bilant-predict:   ## Bilanț: lucrările A_bilant.jsonl, seriile și starea pentru fuziune, scenariul demo-vara
+bilant-predict:   ## Bilanț: lucrările A_bilant.jsonl, seriile, starea pentru fuziune, demo_posts.md și headline.md (demo-vara)
 	uv run python -m cyberpunks.a_bilant.predict --scenario demo-vara
+	uv run python -m cyberpunks.a_bilant.demo_story
+	uv run python -m cyberpunks.a_bilant.headline
 bilant-test:      ## Bilanț: testele firului
 	uv run pytest tests/bilant
 
