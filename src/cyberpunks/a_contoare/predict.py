@@ -47,6 +47,7 @@ MAX_ACTION = 150  # lucrări sigure trimise planificatorului (cele mai valoroase
 MAX_WATCHLIST = 40  # următoarele, de urmărit fără vizită
 MAX_REVIEW = 40  # cazuri "nu sunt sigur" trimise la om
 MIN_REVIEW_SCORE = 0.10  # sub acest scor, un caz nesigur nu merită timpul unui om
+MIN_REVIEW_VALUE_LEI = 10.0  # și nici dacă valoarea așteptată e de câțiva lei
 SERIES_DAYS = 60
 LOW_LEVEL_QUANTILE = 0.20  # chintila de jos a consumului: furtul suspectat merge întâi la om (etică)
 DATA_SOURCES = [
@@ -232,6 +233,7 @@ def run(scenario: str, date: str | None = None) -> Path:
     data_ab = tab.index[tab["data_abstain"].notna()]
     sure = tab[(tab["conformal"] == "problem") & tab["data_abstain"].isna()].sort_values("expected_value", ascending=False)
     unsure = tab[(tab["conformal"] == "unsure") & tab["data_abstain"].isna() & (tab["score"] >= MIN_REVIEW_SCORE)]
+    unsure = unsure[unsure["expected_value"] >= MIN_REVIEW_VALUE_LEI]
     unsure = unsure.sort_values("expected_value", ascending=False).head(MAX_REVIEW)
     action_idx = list(sure.index[:MAX_ACTION])
     watch_idx = list(sure.index[MAX_ACTION : MAX_ACTION + MAX_WATCHLIST])
@@ -260,8 +262,9 @@ def run(scenario: str, date: str | None = None) -> Path:
             abstain, reason = True, str(r["data_abstain"])
         elif why == "unsure":
             abstain = True
-            reason = (f"nu sunt sigur: scorul {score:.2f} e în zona în care, pe datele de calibrare, modelul nu poate "
-                      "separa contoarele normale de cele cu probleme (conformal)")
+            reason = (f"nu sunt sigur: probabilitatea de problemă e {score:.0%}, în zona gri dintre pragul pentru "
+                      f"normal ({model.conformal.q_normal:.2f}) și cel pentru problemă "
+                      f"({1 - model.conformal.q_problem:.2f}); pe datele de calibrare, aici modelul greșește des")
         guard = False
         if label == "tamper" and not abstain and feats.loc[i, "level_kwh"] <= low_level_cut:
             guard, abstain = True, True
