@@ -62,10 +62,10 @@ Imaginile sunt generate cu Codex și au eticheta "Imagine generată cu AI".
 ## Frame 5 — Agentul (16,25-22,5s)
 
 - act: Agentul
-- scene: Harta București-Ilfov. Perceive: lucrările apar. Estimate: fiecare primește mărimea scorului. Decide: ce e sigur primește echipă, ce nu e sigur merge "la om", restul se amână. Act: traseele echipelor se desenează din bazele operative.
+- scene: Harta București-Ilfov. Perceive: lucrările apar. Estimate: fiecare primește mărimea scorului. Decide: ce e sigur primește echipă, ce nu e sigur merge "la om", restul se amână; camera intră pe contorul cel mai sigur, iar bilanțul postului lui (energia ieșită din post față de cea facturată) confirmă suspiciunea, deci deplasarea nu e degeaba. Act: traseele echipelor se desenează din bazele operative.
 - duration: 6.25s
 - transition_in: blur pe aceeași scenă
-- reads: "Aceleași echipe, un singur plan." (16,4-18,7 s); "Perceive" (16,25), "Estimate" (17,5), "Decide" (18,75), "Act" (20,0), apoi traseele până la 22,3 s
+- reads: "Aceleași echipe, un singur plan." (16,4-18,7 s); "Perceive" (16,25), "Estimate" (17,5), "Decide" (18,75), "Bilanțul confirmă." (19,05-19,9 s), "Act" (20,0), apoi traseele până la 22,3 s
 - sound: groove plin, câte o notă pe fiecare pas; cea mai caldă parte a piesei
 - status: built (schiță cu date sintetice; se înlocuiește cu captura din consolă după 01:00)
 - src: compositions/s5-agent.html

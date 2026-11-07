@@ -14,8 +14,28 @@
     #s5-cam {
       position: absolute;
       inset: 0;
-      transform-origin: 50% 46%;
+      transform-origin: 0 0;
     }
+    .s5-post { fill: var(--ground); stroke: var(--ink); stroke-width: 2.5; }
+    .s5-post-link { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 3 3; }
+    /* Bilanțul postului: energia ieșită din post față de suma contoarelor clienților (schiță, valori ilustrative fără cifre). */
+    #s5-bil {
+      position: absolute;
+      left: 1040px;
+      top: 330px;
+      width: 560px;
+      padding: 28px 32px 30px;
+      border-radius: 14px;
+      background: rgba(11, 22, 34, 0.92);
+      box-shadow: inset 0 0 0 1.5px rgba(245, 244, 240, 0.22);
+    }
+    #s5-bil-title { font-size: 46px; font-weight: 600; letter-spacing: -0.025em; color: var(--ink); }
+    .s5-bil-row { display: flex; align-items: center; gap: 18px; margin-top: 22px; }
+    .s5-bil-name { width: 200px; flex: none; font-size: 28px; font-weight: 450; color: var(--ink-2); }
+    .s5-bil-bar { height: 26px; border-radius: 3px; transform-origin: 0 50%; }
+    #s5-bil-out { width: 280px; background: var(--ink); }
+    #s5-bil-sum { width: 196px; background: rgba(245, 244, 240, 0.4); }
+    #s5-bil-gap { width: 84px; height: 26px; border-radius: 3px; box-shadow: inset 0 0 0 2px var(--ink); background: repeating-linear-gradient(135deg, rgba(245,244,240,0.35) 0 6px, transparent 6px 12px); transform-origin: 0 50%; }
     #s5-map {
       position: absolute;
       left: 0;
@@ -75,6 +95,7 @@
           <g id="s5-labels"><text id="s5-ql19" class="s5-review-label" x="937.0" y="501.5">la om</text><text id="s5-ql32" class="s5-review-label" x="1122.0" y="252.4">la om</text><text id="s5-ql44" class="s5-review-label" x="994.2" y="794.2">la om</text></g>
           <g id="s5-stops"><circle id="s5-s0-0" class="s5-stop" cx="898.0" cy="577.1" r="15"/><circle id="s5-s0-1" class="s5-stop" cx="896.6" cy="458.3" r="15"/><circle id="s5-s0-2" class="s5-stop" cx="859.1" cy="460.4" r="15"/><circle id="s5-s1-0" class="s5-stop" cx="827.1" cy="631.5" r="15"/><circle id="s5-s1-1" class="s5-stop" cx="841.9" cy="662.7" r="15"/><circle id="s5-s1-2" class="s5-stop" cx="721.9" cy="702.8" r="15"/><circle id="s5-s2-0" class="s5-stop" cx="1017.9" cy="610.5" r="15"/><circle id="s5-s2-1" class="s5-stop" cx="999.6" cy="661.8" r="15"/><circle id="s5-s2-2" class="s5-stop" cx="1033.6" cy="773.7" r="15"/><circle id="s5-s2-3" class="s5-stop" cx="1075.1" cy="788.2" r="15"/><circle id="s5-s3-0" class="s5-stop" cx="958.9" cy="629.4" r="15"/><circle id="s5-s3-1" class="s5-stop" cx="922.9" cy="629.8" r="15"/><circle id="s5-s3-2" class="s5-stop" cx="923.0" cy="672.9" r="15"/><circle id="s5-s3-3" class="s5-stop" cx="947.3" cy="745.6" r="15"/></g>
           <g id="s5-depots"><rect class="s5-depot" x="814.6" y="591.0" width="22" height="22" rx="4"/><rect class="s5-depot" x="971.6" y="597.4" width="22" height="22" rx="4"/></g>
+          <g id="s5-postg"><rect id="s5-post" class="s5-post" x="948.9" y="595.8" width="20" height="20" rx="3"/><path id="s5-post-link" class="s5-post-link" d="M930.9,623.8L948.9,609.8"/></g>
         </svg>
       </div>
       <div id="s5-steps">
@@ -84,14 +105,32 @@
         <span id="s5-st4" class="s5-step">Act</span>
       </div>
       <h2 id="s5-head">Aceleași echipe, un singur plan.</h2>
+      <div id="s5-bil">
+        <div id="s5-bil-title">Bilanțul confirmă.</div>
+        <div class="s5-bil-row"><span class="s5-bil-name">ieșit din post</span><div id="s5-bil-out" class="s5-bil-bar"></div></div>
+        <div class="s5-bil-row"><span class="s5-bil-name">facturat</span><div id="s5-bil-sum" class="s5-bil-bar"></div><div id="s5-bil-gap"></div></div>
+      </div>
       <p id="s5-note" data-layout-ignore>Schiță cu date sintetice. Se înlocuiește cu captura reală din consola dispecerului.</p>
     </div>
   </div>
   <script>
     (function () {
-      const D = {"points": [[833.1, 529.6, "A", 0.54], [874.5, 634.7, "A", 0.38], [983.9, 558.5, "A", 0.29], [925.6, 554.6, "A", 0.5], [923.0, 672.9, "A", 0.75], [1017.9, 610.5, "A", 0.7], [861.2, 576.7, "C", 0.24], [777.9, 618.8, "C", 0.4], [827.1, 631.5, "C", 0.86], [955.8, 595.3, "A", 0.02], [896.6, 458.3, "C", 0.66], [958.9, 629.4, "A", 0.64], [898.0, 577.1, "A", 0.7], [818.9, 488.6, "C", 0.21], [882.4, 511.6, "A", 0.16], [948.1, 708.4, "C", 0.47], [958.5, 669.3, "A", 0.5], [828.7, 595.6, "A", 0.52], [841.9, 662.7, "A", 0.78], [911.0, 492.5, "A", 0.58], [790.3, 545.6, "C", 0.28], [887.1, 671.9, "C", 0.24], [999.6, 661.8, "C", 0.66], [922.9, 629.8, "A", 0.84], [859.1, 460.4, "A", 0.65], [956.9, 532.1, "C", 0.58], [928.5, 252.0, "A", 0.27], [947.3, 745.6, "A", 0.74], [711.6, 509.5, "A", 0.28], [880.2, 166.1, "C", 0.38], [1085.7, 677.2, "A", 0.06], [721.9, 702.8, "C", 0.67], [1096.0, 243.4, "A", 0.48], [1075.1, 788.2, "A", 0.64], [807.7, 725.3, "A", 0.23], [1033.6, 773.7, "A", 0.74], [777.9, 366.5, "C", 0.41], [915.0, 191.7, "A", 0.11], [1102.3, 611.7, "A", 0.37], [1166.2, 254.5, "A", 0.23], [972.0, 234.0, "A", 0.45], [1017.6, 718.2, "A", 0.4], [847.8, 193.0, "A", 0.43], [1004.9, 522.1, "A", 0.26], [968.2, 785.2, "C", 0.53], [1083.8, 202.1, "A", 0.44]], "assigned": [8, 23, 18, 4, 27, 35, 5, 12, 31, 10, 22, 24, 11, 33], "review": [19, 32, 44], "routes": [[0, 3], [1, 3], [2, 4], [3, 4]]};
+      const D = {"focus": [922.9, 629.8], "points": [[833.1, 529.6, "A", 0.54], [874.5, 634.7, "A", 0.38], [983.9, 558.5, "A", 0.29], [925.6, 554.6, "A", 0.5], [923.0, 672.9, "A", 0.75], [1017.9, 610.5, "A", 0.7], [861.2, 576.7, "C", 0.24], [777.9, 618.8, "C", 0.4], [827.1, 631.5, "C", 0.86], [955.8, 595.3, "A", 0.02], [896.6, 458.3, "C", 0.66], [958.9, 629.4, "A", 0.64], [898.0, 577.1, "A", 0.7], [818.9, 488.6, "C", 0.21], [882.4, 511.6, "A", 0.16], [948.1, 708.4, "C", 0.47], [958.5, 669.3, "A", 0.5], [828.7, 595.6, "A", 0.52], [841.9, 662.7, "A", 0.78], [911.0, 492.5, "A", 0.58], [790.3, 545.6, "C", 0.28], [887.1, 671.9, "C", 0.24], [999.6, 661.8, "C", 0.66], [922.9, 629.8, "A", 0.84], [859.1, 460.4, "A", 0.65], [956.9, 532.1, "C", 0.58], [928.5, 252.0, "A", 0.27], [947.3, 745.6, "A", 0.74], [711.6, 509.5, "A", 0.28], [880.2, 166.1, "C", 0.38], [1085.7, 677.2, "A", 0.06], [721.9, 702.8, "C", 0.67], [1096.0, 243.4, "A", 0.48], [1075.1, 788.2, "A", 0.64], [807.7, 725.3, "A", 0.23], [1033.6, 773.7, "A", 0.74], [777.9, 366.5, "C", 0.41], [915.0, 191.7, "A", 0.11], [1102.3, 611.7, "A", 0.37], [1166.2, 254.5, "A", 0.23], [972.0, 234.0, "A", 0.45], [1017.6, 718.2, "A", 0.4], [847.8, 193.0, "A", 0.43], [1004.9, 522.1, "A", 0.26], [968.2, 785.2, "C", 0.53], [1083.8, 202.1, "A", 0.44]], "assigned": [8, 23, 18, 4, 27, 35, 5, 12, 31, 10, 22, 24, 11, 33], "review": [19, 32, 44], "routes": [[0, 3], [1, 3], [2, 4], [3, 4]]};
       const tl = gsap.timeline({ paused: true });
-      tl.fromTo("#s5-cam", { scale: 1.0 }, { scale: 1.06, duration: 6.25, ease: "power2.inOut" }, 0);
+      const F = D.focus, S = 1.85;
+      const at = (s) => ({ x: 960 * (1 - s), y: 540 * (1 - s), scale: s });
+      tl.fromTo("#s5-cam", at(1.0), { ...at(1.035), duration: 2.45, ease: "power1.inOut" }, 0);
+      // Decide: camera intră pe contorul cel mai sigur și pe postul lui.
+      tl.to("#s5-cam", { x: 760 - S * F[0], y: 520 - S * F[1], scale: S, duration: 0.45, ease: "power3.inOut" }, 2.5);
+      tl.fromTo("#s5-bil", { opacity: 0, x: 24, filter: "blur(8px)" }, { opacity: 1, x: 0, filter: "blur(0px)", duration: 0.35, ease: "expo.out" }, 2.8);
+      tl.fromTo("#s5-bil-out", { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "power3.out" }, 2.9);
+      tl.fromTo("#s5-bil-sum", { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "power3.out" }, 2.98);
+      tl.fromTo("#s5-bil-gap", { opacity: 0, scaleX: 0 }, { opacity: 1, scaleX: 1, duration: 0.3, ease: "power3.out" }, 3.3);
+      tl.fromTo(["#s5-post", "#s5-post-link"], { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, 2.7);
+      tl.to("#s5-bil", { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power3.in" }, 3.62);
+      // Act: înapoi la toată harta, traseele se desenează.
+      tl.to("#s5-cam", { ...at(1.05), duration: 0.45, ease: "power3.inOut" }, 3.7);
+      tl.to("#s5-cam", { ...at(1.08), duration: 2.1, ease: "power1.inOut" }, 4.15);
       tl.fromTo("#s5-map", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.35, ease: "expo.out" }, 0);
       const step = (id, at) => {
         tl.fromTo(id, { opacity: 0.3 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, at);

@@ -130,7 +130,10 @@ def main() -> None:
         f'<circle id="s5-s{ri}-{si}" class="s5-stop" cx="{pts[i][0]:.1f}" cy="{pts[i][1]:.1f}" r="15"/>'
         for ri, si, n, i in stops
     )
+    focus = next(i for i in assigned if pts[i][2] == "A")
+    fx, fy = pts[focus][0], pts[focus][1]
     data = {
+        "focus": [round(fx, 1), round(fy, 1)],
         "points": [[round(p[0], 1), round(p[1], 1), p[2], p[3]] for p in pts],
         "assigned": assigned,
         "review": sorted(review),
@@ -145,6 +148,8 @@ def main() -> None:
         routes="".join(route_paths),
         stops=stop_svg,
         depots=depot_svg,
+        post=f'<rect id="s5-post" class="s5-post" x="{fx + 26:.1f}" y="{fy - 34:.1f}" width="20" height="20" rx="3"/>'
+        f'<path id="s5-post-link" class="s5-post-link" d="M{fx + 8:.1f},{fy - 6:.1f}L{fx + 26:.1f},{fy - 20:.1f}"/>',
         data=json.dumps(data),
     )
     OUT.write_text(html)
@@ -167,8 +172,28 @@ TEMPLATE = """<template>
     #s5-cam {{
       position: absolute;
       inset: 0;
-      transform-origin: 50% 46%;
+      transform-origin: 0 0;
     }}
+    .s5-post {{ fill: var(--ground); stroke: var(--ink); stroke-width: 2.5; }}
+    .s5-post-link {{ stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 3 3; }}
+    /* Bilanțul postului: energia ieșită din post față de suma contoarelor clienților (schiță, valori ilustrative fără cifre). */
+    #s5-bil {{
+      position: absolute;
+      left: 1040px;
+      top: 330px;
+      width: 560px;
+      padding: 28px 32px 30px;
+      border-radius: 14px;
+      background: rgba(11, 22, 34, 0.92);
+      box-shadow: inset 0 0 0 1.5px rgba(245, 244, 240, 0.22);
+    }}
+    #s5-bil-title {{ font-size: 46px; font-weight: 600; letter-spacing: -0.025em; color: var(--ink); }}
+    .s5-bil-row {{ display: flex; align-items: center; gap: 18px; margin-top: 22px; }}
+    .s5-bil-name {{ width: 200px; flex: none; font-size: 28px; font-weight: 450; color: var(--ink-2); }}
+    .s5-bil-bar {{ height: 26px; border-radius: 3px; transform-origin: 0 50%; }}
+    #s5-bil-out {{ width: 280px; background: var(--ink); }}
+    #s5-bil-sum {{ width: 196px; background: rgba(245, 244, 240, 0.4); }}
+    #s5-bil-gap {{ width: 84px; height: 26px; border-radius: 3px; box-shadow: inset 0 0 0 2px var(--ink); background: repeating-linear-gradient(135deg, rgba(245,244,240,0.35) 0 6px, transparent 6px 12px); transform-origin: 0 50%; }}
     #s5-map {{
       position: absolute;
       left: 0;
@@ -228,6 +253,7 @@ TEMPLATE = """<template>
           <g id="s5-labels">{labels}</g>
           <g id="s5-stops">{stops}</g>
           <g id="s5-depots">{depots}</g>
+          <g id="s5-postg">{post}</g>
         </svg>
       </div>
       <div id="s5-steps">
@@ -237,6 +263,11 @@ TEMPLATE = """<template>
         <span id="s5-st4" class="s5-step">Act</span>
       </div>
       <h2 id="s5-head">Aceleași echipe, un singur plan.</h2>
+      <div id="s5-bil">
+        <div id="s5-bil-title">Bilanțul confirmă.</div>
+        <div class="s5-bil-row"><span class="s5-bil-name">ieșit din post</span><div id="s5-bil-out" class="s5-bil-bar"></div></div>
+        <div class="s5-bil-row"><span class="s5-bil-name">facturat</span><div id="s5-bil-sum" class="s5-bil-bar"></div><div id="s5-bil-gap"></div></div>
+      </div>
       <p id="s5-note" data-layout-ignore>Schiță cu date sintetice. Se înlocuiește cu captura reală din consola dispecerului.</p>
     </div>
   </div>
@@ -244,7 +275,20 @@ TEMPLATE = """<template>
     (function () {{
       const D = {data};
       const tl = gsap.timeline({{ paused: true }});
-      tl.fromTo("#s5-cam", {{ scale: 1.0 }}, {{ scale: 1.06, duration: 6.25, ease: "power2.inOut" }}, 0);
+      const F = D.focus, S = 1.85;
+      const at = (s) => ({{ x: 960 * (1 - s), y: 540 * (1 - s), scale: s }});
+      tl.fromTo("#s5-cam", at(1.0), {{ ...at(1.035), duration: 2.45, ease: "power1.inOut" }}, 0);
+      // Decide: camera intră pe contorul cel mai sigur și pe postul lui.
+      tl.to("#s5-cam", {{ x: 760 - S * F[0], y: 520 - S * F[1], scale: S, duration: 0.45, ease: "power3.inOut" }}, 2.5);
+      tl.fromTo("#s5-bil", {{ opacity: 0, x: 24, filter: "blur(8px)" }}, {{ opacity: 1, x: 0, filter: "blur(0px)", duration: 0.35, ease: "expo.out" }}, 2.8);
+      tl.fromTo("#s5-bil-out", {{ scaleX: 0 }}, {{ scaleX: 1, duration: 0.4, ease: "power3.out" }}, 2.9);
+      tl.fromTo("#s5-bil-sum", {{ scaleX: 0 }}, {{ scaleX: 1, duration: 0.4, ease: "power3.out" }}, 2.98);
+      tl.fromTo("#s5-bil-gap", {{ opacity: 0, scaleX: 0 }}, {{ opacity: 1, scaleX: 1, duration: 0.3, ease: "power3.out" }}, 3.3);
+      tl.fromTo(["#s5-post", "#s5-post-link"], {{ opacity: 0 }}, {{ opacity: 1, duration: 0.3, ease: "power2.out" }}, 2.7);
+      tl.to("#s5-bil", {{ opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power3.in" }}, 3.62);
+      // Act: înapoi la toată harta, traseele se desenează.
+      tl.to("#s5-cam", {{ ...at(1.05), duration: 0.45, ease: "power3.inOut" }}, 3.7);
+      tl.to("#s5-cam", {{ ...at(1.08), duration: 2.1, ease: "power1.inOut" }}, 4.15);
       tl.fromTo("#s5-map", {{ opacity: 0, filter: "blur(10px)" }}, {{ opacity: 1, filter: "blur(0px)", duration: 0.35, ease: "expo.out" }}, 0);
       const step = (id, at) => {{
         tl.fromTo(id, {{ opacity: 0.3 }}, {{ opacity: 1, duration: 0.3, ease: "power2.out" }}, at);
