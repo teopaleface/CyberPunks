@@ -188,11 +188,53 @@ def test_tap_change_needs_notice_and_value(out_root: Path, tmp_path: Path) -> No
 
 
 def test_storm_region_cap(out_root: Path) -> None:
+    from cyberpunks.planner.settings import Settings
+
+    cap = int(Settings.load().rule("storm", "max_crews_per_region"))
     b = fixture_items("B")[0]
-    rows = [variant(b, f"CT-Z{i}", **{"location.lon": 28.2 + 0.05 * i}) for i in range(4)]
+    rows = [variant(b, f"CT-Z{i}", **{"location.lon": 28.2 + 0.05 * i}) for i in range(cap + 2)]
     write_items(out_root, "B", rows)
     d = _decisions(agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root))
     assert sum(1 for x in d.values() if x.rule_id == "R-B-REGION-CAP") == 2
+
+
+def test_plan_totals_are_consistent(out_root: Path) -> None:
+    """Cererea interfeței: totalurile din rezumat se potrivesc cu traseele și cu deciziile."""
+    res = agent.run("demo-vara", mode="fixtures", out_root=out_root)
+    plan = res.plan
+    items = {it["work_item_id"]: it for s in "ABC" for it in fixture_items(s)}
+    s = plan.summary
+    assert s.total_km == round(sum(r.total_km for r in plan.routes), 2)
+    assigned = [d for d in plan.decisions if d.decision.value == "assigned"]
+    assert s.expected_value_lei == round(sum(items[d.work_item_id]["impact"]["expected_value_lei"] for d in assigned), 2)
+    assert s.assigned == len(assigned) and s.crews_used == len(plan.routes)
+    counts = {k: sum(1 for d in plan.decisions if d.decision.value == k) for k in ("deferred", "human_review", "remote_action")}
+    assert (s.deferred, s.human_review, s.remote_actions) == (counts["deferred"], counts["human_review"], counts["remote_action"])
+    assert s.items_in == s.items_valid + s.items_invalid == len(plan.decisions)
+    assert s.notifications == len(plan.notifications)
+    stops = {st.work_item_id: r.crew_id for r in plan.routes for st in r.stops}
+    assert sorted(stops) == sorted(d.work_item_id for d in assigned)  # fiecare alocare e exact într-un traseu
+    for d in assigned:
+        assert d.crew_id == stops[d.work_item_id]
+        assert d.threshold["cost_lei"] > 0 and "action_cost_lei" in d.threshold  # costul folosit la decizie
+    for r in plan.routes:
+        assert r.depart_at is not None and r.depart_at <= r.stops[0].eta
+        if r.return_at is not None:
+            assert r.return_at >= r.stops[-1].eta
+
+
+def test_storm_onset_and_gust_warning(out_root: Path) -> None:
+    b = fixture_items("B")[0]
+    gusty = variant(b, "CT-RAFALE", **{"impact.safety_flag": True, "extra": {"storm_onset": "2026-11-09T15:00:00+02:00", "gust_max_kmh": 95}})
+    write_items(out_root, "B", [gusty])
+    res = agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root)
+    d = _decisions(res)[gusty["work_item_id"]]
+    assert d.rule_id == "R-B-PREPOSITION"  # la B, safety_flag nu face lucrarea obligatorie
+    assert "nu lucrează la înălțime" in d.reason_ro and "15:00" in d.reason_ro
+    stop = next(st for r in res.plan.routes for st in r.stops if st.work_item_id == gusty["work_item_id"])
+    assert stop.eta.hour < 14  # ajunge cu o oră înainte de furtuna de la 15:00
+    route = next(r for r in res.plan.routes if r.stops[-1].work_item_id == gusty["work_item_id"])
+    assert route.return_at is None  # echipa rămâne în zonă
 
 
 def test_human_review_approve_then_replan(out_root: Path) -> None:

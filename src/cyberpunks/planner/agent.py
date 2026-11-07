@@ -253,6 +253,14 @@ def run(
 
     t1 = time.perf_counter()
     picks = estimate(scenario, plan_date, mode, out_root)
+    fixture_date = _fixture_date()
+    if mode == "auto" and date is None and fixture_date and fixture_date != plan_date and all(p.origin == "missing" for p in picks.values()):
+        # Niciun model nu are încă ieșiri pentru data scenariului: planul rulează pe exemple, marcat clar (surse "degraded").
+        note = f"nicio ieșire de model pentru {plan_date.isoformat()}; plan pe exemplele din contracts/fixtures/ ({fixture_date.isoformat()})"
+        plan_date = fixture_date
+        picks = estimate(scenario, plan_date, "fixtures", out_root)
+        for pick in picks.values():
+            pick.note = f"{note}; {pick.note}"
     timings["estimate"] = round(time.perf_counter() - t1, 3)
 
     plan_dir = out_root / "plans" / scenario

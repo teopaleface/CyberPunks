@@ -233,9 +233,23 @@ def _send_time(ctx: Context) -> datetime:
 # ------------------------------------------------------------------ regulile
 
 
+def _cost_keys(costs: Costs | None) -> dict[str, float]:
+    """Costul folosit la decizie, scris în `threshold` (cerut de interfață): total, acțiune, deplasare, întrerupere."""
+    if costs is None:
+        return {}
+    out = {"cost_lei": round(costs.total, 2), "action_cost_lei": round(costs.action_cost, 2)}
+    if costs.travel_cost:
+        out["travel_cost_lei"] = round(costs.travel_cost, 2)
+        out["travel_km_est"] = round(costs.travel_km, 2)
+    if costs.outage_cost:
+        out["outage_cost_lei"] = round(costs.outage_cost, 2)
+    return out
+
+
 def _route(ctx: Context, item: Item, rule_id: str, reason: str, action: str, costs: Costs, threshold: dict, **kw: Any) -> Proposal:
     wi = item.wi
     start, end = ctx.shift()
+    threshold = {**threshold, **_cost_keys(costs)}
     p = Proposal(
         item=item,
         decision=DecisionType.assigned,
@@ -255,7 +269,8 @@ def _route(ctx: Context, item: Item, rule_id: str, reason: str, action: str, cos
 
 
 def _final(item: Item, decision: DecisionType, rule_id: str, reason: str, action: str, threshold: dict | None = None, **kw: Any) -> Proposal:
-    p = Proposal(item=item, decision=decision, rule_id=rule_id, reason_ro=reason, action=action, threshold=threshold or {})
+    threshold = {**(threshold or {}), **_cost_keys(kw.get("costs"))}
+    p = Proposal(item=item, decision=decision, rule_id=rule_id, reason_ro=reason, action=action, threshold=threshold)
     for k, v in kw.items():
         setattr(p, k, v)
     return p
@@ -350,8 +365,10 @@ def rule_uncertain(ctx: Context, item: Item) -> Proposal | None:
 
 
 def rule_safety(ctx: Context, item: Item) -> Proposal | None:
+    """Risc pentru oameni (A: șunt cu risc de incendiu; C). La B, safety_flag înseamnă rafale ≥ 75 km/h, adică lucru
+    periculos la înălțime pentru echipă: se tratează în rule_storm ca avertisment, nu ca prioritate obligatorie."""
     wi = item.wi
-    if not wi.impact.safety_flag:
+    if not wi.impact.safety_flag or wi.source == Source.B:
         return None
     action = {Source.A: "inspect_on_site", Source.B: "preposition_crew", Source.C: "measurement_campaign"}[wi.source]
     costs = estimate_costs(ctx, wi, action)
@@ -456,12 +473,25 @@ def rule_meters(ctx: Context, item: Item) -> Proposal:
 # ---- B: furtună
 
 
+def storm_onset(wi: WorkItem) -> datetime | None:
+    """Începutul estimat al furtunii: extra.storm_onset (firul B), altfel începutul ferestrei de timp."""
+    raw = wi.extra.get("storm_onset")
+    if isinstance(raw, str):
+        try:
+            t = datetime.fromisoformat(raw)
+            return t if t.tzinfo else t.replace(tzinfo=TZ)
+        except ValueError:
+            pass
+    return wi.time_window.start if wi.time_window is not None else None
+
+
 def _storm_window(ctx: Context, p: Proposal) -> None:
     wi = p.wi
     before = int(ctx.settings.rule("storm", "arrive_before_start_min", default=60))
     start, _ = ctx.shift()
-    if wi.time_window is not None:
-        p.latest = wi.time_window.start.astimezone(TZ) - timedelta(minutes=before)
+    onset = storm_onset(wi)
+    if onset is not None:
+        p.latest = onset.astimezone(TZ) - timedelta(minutes=before)
     p.earliest = start
     p.terminal = True
     p.threshold.setdefault("arrive_before_start_min", float(before))
@@ -477,7 +507,11 @@ def rule_storm(ctx: Context, item: Item) -> Proposal:
     ev = wi.impact.expected_value_lei
     net = ev - costs.total
     tw = wi.time_window
-    window_ro = f"Fereastra de risc: {hhmm(tw.start.astimezone(TZ))}-{hhmm(tw.end.astimezone(TZ))}" if tw else "Fereastra de risc: mâine"
+    onset = storm_onset(wi)
+    if onset is not None and tw is not None:
+        window_ro = f"Furtuna e așteptată de la {hhmm(onset.astimezone(TZ))} (fereastra {hhmm(tw.start.astimezone(TZ))}-{hhmm(tw.end.astimezone(TZ))})"
+    else:
+        window_ro = f"Fereastra de risc: {hhmm(tw.start.astimezone(TZ))}-{hhmm(tw.end.astimezone(TZ))}" if tw else "Fereastra de risc: mâine"
     p90 = f"; în scenariul pesimist (P90), {num(pr.point_interval[1])} clienți fără curent" if pr.point_interval else ""
     risk = f"{_factors(wi).capitalize()}. {window_ro}. Probabilitate de avarii {pct(pr.score)}{p90}."
     th = {
@@ -504,6 +538,12 @@ def rule_storm(ctx: Context, item: Item) -> Proposal:
             alerts=alerts,
         )
     reason = f"{risk} Valoarea așteptată {lei(ev)} depășește costul turei ({lei(costs.total)}) cu {lei(net)}."
+    if wi.recommended_action != RecommendedAction.preposition_crew:
+        reason += f" Modelul a recomandat „{ACTION_RO.get(wi.recommended_action.value, wi.recommended_action.value)}”; decide pragul de cost."
+    if wi.impact.safety_flag:
+        gust = wi.extra.get("gust_max_kmh")
+        reason += f" Rafale{f' de {num(float(gust))} km/h' if isinstance(gust, (int, float)) else ' puternice'}: echipa nu lucrează la înălțime până scade vântul."
+        th["crew_safety_gusts"] = 1.0
     p = _route(ctx, item, "R-B-PREPOSITION", reason, "preposition_crew", costs, th, alerts=alerts)
     _storm_window(ctx, p)
     return p

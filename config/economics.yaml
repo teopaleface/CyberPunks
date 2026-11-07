@@ -18,7 +18,12 @@ storm:                                   # B
   preposition_cost_lei_per_crew_shift: 2700   # CALCUL (IPOTEZĂ): 3 oameni × 8 h × 58,1 lei/h (câștig mediu brut iulie 2026, 9.709 lei/lună) × 1,0225 (CAM) × 1,75 (spor ore suplimentare, Codul muncii art. 123) + ~200 lei vehicul; interval 1.500-4.100
   cost_per_customer_hour_lei: 12              # CALCUL (IPOTEZĂ): VoLL casnic România 4,52 €/kWh (CEPA pentru ACER, 2018, tabel G.1) × 0,23 kWh/h × 5,34 lei/€ ≈ 5,5 lei; cu 15% clienți non-casnici ≈ 15 lei; interval 5,5-15
   restoration_speedup_hours: 2.5              # IPOTEZĂ: n-am găsit un studiu verificabil; de variat 1-4 h
-  compensation_lei_per_customer_lv: 30        # SURSĂ: Ord. ANRE 46/2021, Anexa 1: 30 lei JT (200 MT, 300 la 110 kV) la depășirea duratei maxime de restabilire; plată automată (art. 36)
+  compensation_lei_per_customer_lv: 30        # SURSĂ: Ord. ANRE 46/2021, Anexa 1: 30 lei JT la depășirea duratei maxime de restabilire; plată automată (art. 36)
+  compensation_lei_per_customer_mv: 200       # SURSĂ: idem, medie tensiune
+  compensation_lei_per_customer_hv: 300       # SURSĂ: idem, 110 kV
+  compensation_cap_lei_per_month_lv: 50       # SURSĂ: art. 36 alin. (5): plafonul lunar al compensațiilor pentru un client JT
+  compensations_paid_2024_lei: 23000000       # SURSĂ (context, presă): RER a plătit circa 23 mil. lei compensații în 2024 (https://www.forbes.ro/?p=458099, preluat de firul B)
+  customers_total: 3180331                    # SURSĂ: Planul de dezvoltare RER 2026-2035, tabelele 2.1-2.3 (31.12.2024); pe județe în config/area.yaml
   restoration_limit_hours:                    # SURSĂ: Ord. ANRE 46/2021, art. 15 alin. (1)
     urban: 6
     county_seat: 4
@@ -32,6 +37,10 @@ voltage:                                 # C
   overvoltage_limit_pu: 1.10             # SURSĂ: Ord. ANRE 228/2018, Tabelul 2P: maxima de tensiune 1,1 Un mediată la 10 minute (treapta instantanee 1,15 Un, 0,5 s); EN 50160 ±10%
   planned_outage_hours: 1.0              # IPOTEZĂ: întreruperea scurtă pentru schimbarea prizei (comutator fără sarcină)
   notification_cost_lei_per_customer: 0.05    # IPOTEZĂ: un SMS (în demo nu se trimite nimic)
+  complaint_compensation_lei: 70         # SURSĂ (firul C): Ord. ANRE 46/2021, anexa 4: compensația pentru o reclamație de calitate a tensiunii nerezolvată la termen, client casnic
+  complaint_compensation_lei_legal: 130  # SURSĂ (firul C): idem, persoane juridice
+  quality_limit_95pct_pu: 1.05           # SURSĂ (firul C): Ord. ANRE 46/2021, art. 25 alin. (2): limita pentru 95% din valorile medii la 10 minute
+  ore_smart_midday: "11:00-14:59, 1 martie - 31 octombrie"   # SURSĂ: PPC Energie, comunicat 18.03.2026 (intervalele Smart de la prânz)
 outages:                                 # reguli ANRE pentru întreruperile planificate
   planned_notice_working_days_lv: 2      # SURSĂ: Ord. ANRE 46/2021, art. 12 alin. (2) lit. c): JT, minimum 2 zile lucrătoare, presă și site
   planned_notice_working_days_mv: 5      # SURSĂ: art. 12 alin. (2) lit. b): MT/IT, minimum 5 zile lucrătoare

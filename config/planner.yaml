@@ -17,8 +17,9 @@ meters:                             # A
   smart_meter_default: true         # dacă lucrarea nu spune altfel (extra.smart_meter), contorul e inteligent și se poate citi de la distanță
 
 storm:                              # B
-  arrive_before_start_min: 60       # echipa ajunge în zonă cu cel puțin o oră înainte de începutul ferestrei de risc
-  max_crews_per_region: 2           # câte echipe se mută din timp într-o regiune (restul rămân pentru lucrările curente)
+  arrive_before_start_min: 60       # echipa ajunge cu cel puțin o oră înainte de începutul furtunii (extra.storm_onset; altfel time_window.start)
+  max_crews_per_region: 3           # câte echipe se mută din timp într-o regiune (restul rămân pentru lucrările curente și avariile obișnuite)
+  safety_gust_note: true            # la B, safety_flag = rafale ≥ 75 km/h: avertisment pentru echipă (nu lucrează la înălțime), nu prioritate obligatorie
   alert_min_score: 0.4              # de la acest scor, dispeceratul primește alerta, chiar dacă nu trimitem echipa
   critical_alert_min_score: 0.75    # de la acest scor, alerta e critică
 
