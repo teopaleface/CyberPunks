@@ -122,11 +122,13 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
                 </>
               ) : (
                 <div className="py-8 text-[15px]">
-                  <p className="font-[560]">Bilanțul pe acest post nu e calculat încă.</p>
+                  <p className="font-[560]">{bilant ? "Seria bilanțului pentru grafic nu e publicată încă." : "Bilanțul pe acest post nu e calculat încă."}</p>
                   <p className="mt-1 max-w-[70ch] text-muted-foreground">
                     Bilanțul compară energia ieșită din post cu suma contoarelor clienților de sub el. Lipsa peste normal arată
-                    unde se pierd bani. Până vine bilanțul, pierderea afișată e estimată din contoarele semnalate de modelul A
-                    {posts.lossCost ? ` (kWh pe zi × scor × 30 de zile × ${fmtDec(posts.lossCost.value, 2)} lei/kWh)` : ""}.
+                    unde se pierd bani.{" "}
+                    {bilant
+                      ? "Cifrele și cauza de mai jos vin deja din bilanț; graficul apare când firul bilanțului publică seria."
+                      : `Până vine bilanțul, pierderea afișată e estimată din contoarele semnalate de modelul A${posts.lossCost ? ` (kWh pe zi × scor × 30 de zile × ${fmtDec(posts.lossCost.value, 2)} lei/kWh)` : ""}.`}
                   </p>
                 </div>
               )}
@@ -140,7 +142,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
             {bilant ? (
               <>
                 <p className="mt-1.5 max-w-[72ch] text-[16.5px] leading-relaxed">
-                  {post.diagnosis ? `${sentence(post.diagnosis)} ` : ""}
+                  {post.diagnosis && !/cauza probabilă/i.test(bilant.explanation.summary_ro) ? `${sentence(post.diagnosis)} ` : ""}
                   {bilant.explanation.summary_ro}
                 </p>
                 <ul className="mt-3 space-y-1.5 text-[15.5px]">

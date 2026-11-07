@@ -60,6 +60,13 @@ const PREDICTION_LABEL_RO: Record<string, string> = {
   faulty: "suspect de defect",
   outage_risk: "risc de avarii",
   overvoltage: "tensiune peste limită",
+  // bilanțul pe post: cauza probabilă a lipsei
+  normal: "pierderi normale",
+  contor_client: "contor defect la un client",
+  furt_inainte_contor: "furt înainte de contor",
+  pierdere_tehnica: "pierdere tehnică (cablu, faze dezechilibrate)",
+  client_post_gresit: "client trecut la postul greșit în bază",
+  contor_bilant_setat: "contorul de bilanț setat greșit",
 };
 
 export function predictionLabelRo(label: string): string {
