@@ -84,6 +84,30 @@ const CONTEXT: [prefix: string, label: string, reference: boolean][] = [
   ["loso_", "pe state nevăzute", false],
 ];
 
+/**
+ * Explicația metricii principale, pe model: aceeași metrică înseamnă altceva la contoare și la furtună.
+ * Dacă un raport își schimbă metrica principală, pagina o urmează (`primary_metric`).
+ */
+const EXPLAIN_BY_SOURCE: Record<string, Record<string, string>> = {
+  A: {
+    precision_at_k: "Din contoarele puse de model în capul listei (primele K), câte au într-adevăr o problemă. 1 înseamnă că nicio vizită nu e degeaba.",
+    pr_auc: "Cât de bine pune modelul contoarele cu probleme înaintea celor normale, pe toate pragurile. 1 e perfect; o ordine la întâmplare ia cât prevalența.",
+    roc_auc: "Cât de des un contor cu probleme ajunge înaintea unuia normal. 0,5 e la întâmplare, 1 e perfect.",
+    recall_at_k: "Din toate contoarele cu probleme, câte prinde modelul în primele K.",
+    subtle_precision_at_k: "Doar problemele greu de văzut (fără contoarele blocate pe zero, pe care le prinde orice regulă): din primele K, câte sunt reale.",
+    subtle_pr_auc: "Cât de bine ordonează modelul problemele greu de văzut, fără defectele evidente.",
+    sgcc_precision_at_k: "Pe SGCC, furturi reale cu etichete reale: din primele K, câte sunt furturi.",
+    sgcc_pr_auc: "Pe SGCC, furturi reale cu etichete reale: cât de bine pune furturile înaintea consumatorilor cinstiți.",
+  },
+  B: {
+    pr_auc: "Cât de bine pune modelul zilele cu avarii înaintea celor liniștite, pe toate pragurile. 1 e perfect; o ordine la întâmplare ia cât prevalența.",
+  },
+};
+
+export function explainFor(source: string, key: string): string | undefined {
+  return EXPLAIN_BY_SOURCE[source]?.[key] ?? metricMeta(key).explain;
+}
+
 export function metricMeta(key: string): MetricMeta {
   const direct = BASE[key];
   if (direct) return direct;
