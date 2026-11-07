@@ -1,0 +1,32 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; }
+    #s11-stage { position: absolute; inset: 0; }
+    #s11-sun { position: absolute; left: 0; top: 0; width: 840px; height: 840px; border-radius: 50%; background: var(--db-sun); }
+  </style>
+  <!-- 11 · Crews leave at daybreak. A solid PPC-orange sun rises behind the planet cutout. -->
+  <div id="root" data-composition-id="s11" data-width="1920" data-height="1080">
+    <div id="s11-sun"></div>
+    <div id="s11-stage"></div>
+  </div>
+  <script>
+    (function () {
+      const S = DB.scene("s11"), tl = gsap.timeline({ paused: true });
+      const L = V3L, P = L.planet.p11_dawn;
+      const planet = DB.plate(document.querySelector("#s11-stage"), "p11_dawn", "cut");
+      const k = DB.keyLines(document.querySelector("#s11-stage"), "s11-k", ["Crews leave", "at daybreak."], { size: 150, top: 120 });
+      const lift = L.lift.p11_dawn;
+      DB.drive(tl, S.start, S.dur, (t) => {
+        const u = DB.seg(t, S.start, S.end + 4.4);
+        // pivot on the frame's bottom edge so the cutout never lifts off it (the sun must not show beneath)
+        planet.update({ s: 1 + 0.05 * DB.E.sine(u), y: lift, ox: P.c[0], oy: 1080 });
+        // the sun rises from behind the horizon (y +300 -> 0, 1.2 s power2.out): the carrier of seam G
+        const rise = DB.E.o2(DB.seg(t, S.start, S.start + 1.2));
+        gsap.set("#s11-sun", { x: L.sun.c[0] - L.sun.r, y: L.sun.c[1] - L.sun.r + 300 * (1 - rise) - 30 * u });
+      });
+      DB.arrive(tl, k, DB.line(11).start - S.start);
+      DB.leaveUp(tl, k, S.dur);
+      window.__timelines["s11"] = tl;
+    })();
+  </script>
+</template>

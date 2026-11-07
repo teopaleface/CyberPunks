@@ -1,0 +1,107 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; }
+    #s10-stage { position: absolute; inset: 0; }
+    #s10-shade { position: absolute; inset: 0; background: linear-gradient(90deg, var(--db-navy) 0%, var(--db-navy) 36%, rgba(0, 15, 30, 0) 56%); }
+    #s10-svg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
+    #hs-card { position: absolute; left: 1300px; top: 170px; width: 560px; padding: 38px 42px; transform-origin: 50% 50%; }
+    #hs-tag { font-size: 30px; color: var(--db-cyan); display: flex; align-items: center; gap: 14px; }
+    #hs-tag i { width: 16px; height: 16px; border-radius: 50%; background: var(--db-cyan); display: inline-block; }
+    #hs-title { font-size: 56px; margin: 16px 0 30px; }
+    #hs-btns { display: flex; gap: 18px; }
+    .hs-b { font-size: 32px; }
+    #hs-house { position: absolute; left: 0; top: 0; width: 40px; height: 40px; border-radius: 50%; border: 3px solid var(--db-cyan); }
+    #hs-cursor { position: absolute; left: 0; top: 0; width: 100px; height: 127px; z-index: 20; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3)); }
+  </style>
+  <!-- 10 · Is this meter really tampered with? / Not sure? The dispatcher decides.
+       Rack focus onto the suspicious house (seam F); card on the right third; Approve on "decides". -->
+  <div id="root" data-composition-id="s10" data-width="1920" data-height="1080">
+    <div id="s10-stage"></div>
+    <div id="s10-shade"></div>
+    <svg id="s10-svg" viewBox="0 0 1920 1080" data-layout-allow-overflow><g id="s10-lines"></g><g id="s10-pings"></g><g id="s10-fx"></g></svg>
+    <div id="s10-type" style="position:absolute;inset:0"></div>
+    <div id="hs-card" class="db-card">
+      <div id="hs-tag" class="body"><i></i>Not sure</div>
+      <div id="hs-title" class="head">Send a crew?</div>
+      <div id="hs-btns"><div class="hs-b head db-btn-cyan" id="hs-yes">Approve</div><div class="hs-b head db-btn-ghost" id="hs-no">Skip</div></div>
+    </div>
+    <div id="hs-house"></div>
+    <div id="hs-cursor"></div>
+  </div>
+  <script>
+    (function () {
+      const S = DB.scene("s10"), tl = gsap.timeline({ paused: true });
+      const L = V3L, cyan = DB.css("--db-cyan"), ink = DB.css("--db-ink");
+      const plate = DB.plate(document.querySelector("#s10-stage"), "p10_house", "up");
+      const ka = DB.keyLines(document.querySelector("#s10-type"), "hs-a", ["Is this meter", "really tampered", "with?"], { size: 96, top: 290 });
+      const kb = DB.keyLines(document.querySelector("#s10-type"), "hs-b", ["Not sure?", "The dispatcher", "decides."], { size: 96, top: 290 });
+      const tWhen = DB.wordT(10, /^When/), tDec = DB.wordT(10, /^decides/);
+      // where scene 7 left the house marker (seam F carrier) -> the house on this plate starts there
+      const H0 = L.mapPoint(L.map.house, S.start);
+      const lead = DB.leader(document.querySelector("#s10-lines"), cyan); lead.el.id = "hs-ld";
+      const P = DB.ping(document.querySelector("#s10-pings"), cyan, true); P.g.id = "hs-pg"; P.g.setAttribute("opacity", 0);
+      const hit = DB.el("circle", { r: 14, fill: "none", stroke: cyan, "stroke-width": 3, opacity: 0, id: "hs-hit" }, document.querySelector("#s10-pings"));
+      const rings = DB.clickRings(document.querySelector("#s10-fx"), ink); rings.g.id = "hs-rings";
+      document.querySelector("#hs-cursor").innerHTML = DB.CURSOR_SVG;
+      const card = document.querySelector("#hs-card"), yes = document.querySelector("#hs-yes"), svgEl = document.querySelector("#s10-svg");
+      const COL = [tDec + 0.05, tDec + 0.4];
+      const cam = (t) => {
+        // starts with the house on the carrier point, then the push drifts it to its framing (1290, 760)
+        const u = DB.E.io2(DB.seg(t, S.start + 0.3, S.end));
+        const s = 1 + 0.08 * u;
+        const tx = H0[0] + (L.houseScreen[0] - H0[0]) * DB.E.o3(DB.seg(t, S.start + 0.4, S.start + 1.8));
+        const ty = H0[1] + (L.houseScreen[1] - H0[1]) * DB.E.o3(DB.seg(t, S.start + 0.4, S.start + 1.8));
+        return { s, x: tx - L.house[0], y: ty - L.house[1], ox: L.house[0], oy: L.house[1] };
+      };
+      DB.drive(tl, S.start, S.dur, (t) => {
+        const c = cam(t); plate.update(c);
+        const [hx, hy] = plate.map(L.house[0], L.house[1], c);
+        gsap.set("#hs-house", { x: hx - 20, y: hy - 20 });
+        P.update(hx, hy); hit.setAttribute("cx", hx.toFixed(1)); hit.setAttribute("cy", hy.toFixed(1));
+        // the card collapses into the cyan pin on the house (power4.in along the path)
+        const k = DB.E.i4(DB.seg(t, COL[0], COL[1]));
+        const cx = 1300 + 280, cy = 170 + 160;
+        gsap.set(card, { x: (hx - cx) * k, y: (hy - cy) * k });
+        lead.update([[hx, hy], [hx, 170 + 360], [1340, 170 + 360]]);
+        // cursor: enters from off-screen right, arcs to Approve (0.6 s), holds 0.4 s, clicks on "decides"
+        const R = svgEl.getBoundingClientRect(), Y = yes.getBoundingClientRect(), K = 1920 / (R.width || 1920);
+        const cr = card.getBoundingClientRect();
+        const bx = 1300 + ((Y.left + Y.width / 2 - cr.left) * K || 137), by = 170 + ((Y.top + Y.height / 2 - cr.top) * K || 245);
+        const kin = DB.E.io2(DB.seg(t, tDec - 1.0, tDec - 0.4));
+        const kout = DB.seg(t, tDec + 0.45, tDec + 1.0);
+        const x = 2060 + (bx - 2060) * kin + 900 * kout * kout, y = by + 260 + (by - (by + 260)) * kin - Math.sin(kin * Math.PI) * 110 + 160 * kout * kout;
+        gsap.set("#hs-cursor", { x: x - DB.CURSOR_TIP[0] * 100, y: y - DB.CURSOR_TIP[1] * 127 });
+        rings.update(bx, by);
+      });
+      // key lines (left third): the question on the line's first word, the answer on "When"
+      DB.arrive(tl, ka, DB.line(10).start - S.start);
+      DB.leaveUp(tl, ka, tWhen - S.start);
+      DB.arrive(tl, kb, tWhen - S.start);
+      DB.leaveUp(tl, kb, S.dur);
+      // the card arrives from below (binary opacity, power4.out 0.18 s) with leader + ping on the house
+      gsap.set("#hs-card", { opacity: 0 });
+      const tc = DB.line(10).start - S.start + 0.6;
+      tl.set("#hs-card", { opacity: 1 }, tc);
+      tl.fromTo("#hs-card > *", { y: 60 }, { y: 0, duration: 0.18, ease: "power4.out", immediateRender: false }, tc);
+      tl.fromTo("#hs-ld", { strokeDashoffset: 1.1 }, { strokeDashoffset: 0, duration: 0.25, ease: "power3.out" }, tc);
+      tl.set("#hs-pg", { opacity: 1 }, tc);
+      tl.set("#hs-house", { opacity: 0 }, tc);
+      // click on "decides": squash -> spring; Approve presses; click rings
+      const C = tDec - S.start;
+      tl.to("#hs-cursor", { scale: 0.86, duration: 0.06, ease: "power2.in", transformOrigin: "8% 6%" }, C - 0.03);
+      tl.to("#hs-cursor", { scale: 1, duration: 0.24, ease: "back.out(1.6)", transformOrigin: "8% 6%" }, C + 0.03);
+      tl.to("#hs-yes", { scale: 0.94, duration: 0.06, ease: "power2.in" }, C);
+      tl.to("#hs-yes", { scale: 1, duration: 0.2, ease: "back.out(1.6)" }, C + 0.06);
+      tl.set("#hs-rings", { opacity: 1 }, C);
+      tl.fromTo("#hs-rings", { scale: 0.5, transformOrigin: "50% 50%", transformBox: "fill-box" }, { scale: 1.5, opacity: 0, duration: 0.5, ease: "expo.out", immediateRender: false }, C);
+      // collapse: the card becomes the cyan pin on its way to the house; the pin hits (one ping)
+      tl.to("#hs-card > *", { opacity: 0, duration: 0.1, ease: "none" }, COL[0] - S.start);
+      tl.to("#hs-card", { scale: 0.06, borderRadius: 300, backgroundColor: cyan, duration: 0.35, ease: "power4.in" }, COL[0] - S.start);
+      tl.to("#hs-ld", { strokeDashoffset: 1.1, duration: 0.3, ease: "power4.in" }, COL[0] - S.start);
+      tl.set("#hs-card", { opacity: 0 }, COL[1] - S.start);
+      tl.set("#hs-hit", { opacity: 1 }, COL[1] - S.start);
+      tl.fromTo("#hs-hit", { attr: { r: 14 } }, { attr: { r: 80 }, opacity: 0, duration: 0.5, ease: "expo.out", immediateRender: false }, COL[1] - S.start);
+      window.__timelines["s10"] = tl;
+    })();
+  </script>
+</template>

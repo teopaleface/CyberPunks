@@ -217,3 +217,16 @@ node render/film3d.mjs probe --t 14 --spp 64 --out /tmp/p.png
 - Not loaded yet for the animatic: `cut-the-curve`, `seam-craft`, `apple-design`,
   `launch-video` and the GSAP skills, plus the seam ledger (`ledger.json`) and the
   seam gate. Milestone 2 does those.
+
+## Film v3 (FILM_V3.md, ~53 s, VO + POWER) — `film_v3/`
+
+v2 (`film/`) stays intact. One command rebuilds everything from the latest feeds and renders a draft:
+
+    sh render/v3_refresh.sh
+
+1. `render/v3_plates.py`: `../plates_v3/up|cut` → `film_v3/assets/plates/` (2880×1620 JPG + alpha PNG cutouts).
+2. `render/v3_build.mjs`: the single timing table. It reads `../audio/timing.json` (VO word times, drop, beats, button) or estimates without it. It writes `assets/timing.js`, `index.html` (scene hosts, hand seams E/F/I), `ledger.json` and the stamped seams.
+3. `npx hyperframes lint`, then `render/seam-gate-synced.mjs` (the seam gate, waiting for async seeks). It must pass.
+4. Draft render → `film_v3/renders/local/daybreak_v3_draft.mp4` (git-ignored; the POWER mix stays local, never commit it). Strip → `film_v3/stills/v3_strip.jpg`.
+
+Anchors on the plates (planet centres, map spots and routes, house, sun, s12 framing) are in `film_v3/assets/v3_layout.js`, in plate px (1920×1080). Re-measure them when a plate changes.

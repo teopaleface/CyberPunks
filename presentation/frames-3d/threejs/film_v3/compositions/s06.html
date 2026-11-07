@@ -1,0 +1,45 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; }
+    #s6-stage { position: absolute; inset: 0; }
+    #un-flat { position: absolute; left: 0; top: 0; border: 1px solid rgba(245, 247, 250, 0.01); }
+  </style>
+  <!-- 6 · Daybreak plans it for you. The drop (zoom-through, stamped) lands in p06_unfold; "Daybreak" lands
+       on the drop; the camera keeps pushing down onto the flat half, which becomes the app's map (seam E). -->
+  <div id="root" data-composition-id="s06" data-width="1920" data-height="1080">
+    <div id="s6-stage"></div>
+    <div id="un-flat"></div>
+  </div>
+  <script>
+    (function () {
+      const S = DB.scene("s06"), tl = gsap.timeline({ paused: true });
+      const root = document.querySelector("#s6-stage"), L = V3L;
+      const plate = DB.plate(root, "p06_unfold", "up");
+      const k = DB.keyLines(root, "s6-k", ["Daybreak"], { size: 220, top: 70 });
+      const F = L.flat, fc = [(F.x0 + F.x1) / 2, (F.y0 + F.y1) / 2];
+      const sEnd = 1920 / (F.x1 - F.x0); // flat half fills the frame at the seam
+      const flat = document.querySelector("#un-flat");
+      DB.drive(tl, S.start, S.dur, (t) => {
+        const u = DB.E.io3(DB.seg(t, S.start + 0.55, S.end));
+        // push from the whole plate onto the flat half: scale about its centre and bring it to frame centre
+        const s = 1 + (sEnd - 1) * u;
+        // p06's flat half is seen slightly oblique: as the camera pushes it tilts to straight down (the top
+        // of the flat comes toward the lens) and the flat widens to p07's proportions; the last 0.22 s of the
+        // push picks up full-frame motion blur, which p07 resolves out of at the cut (seam E)
+        const st = DB.E.io2(DB.seg(t, S.start + 1.0, S.end));
+        const mb = 14 * DB.E.i2(DB.seg(t, S.end - 0.22, S.end));
+        const c = { s, sx: 1 + 0.12 * st, rx: -7 * st, x: (960 - fc[0]) * u, y: (540 - fc[1]) * u, ox: fc[0], oy: fc[1], blur: mb };
+        plate.update(c);
+        const hw = (F.x1 - F.x0) / 2 / c.sx; // the carrier keeps the frame's 16:9 while the flat widens
+        const [x0, y0] = plate.map(fc[0] - hw, F.y0, c), [x1, y1] = plate.map(fc[0] + hw, F.y1, c);
+        gsap.set(flat, { x: x0, y: y0, width: x1 - x0, height: y1 - y0 });
+      });
+      // "Daybreak" lands on the drop, growing into place (same sign as the zoom-through push)
+      const td = DB.wordT(6, /^Daybreak/) - S.start;
+      tl.set(k[0], { opacity: 1 }, Math.max(0, td));
+      tl.fromTo(k[0], { scale: 0.82, transformOrigin: "0% 50%" }, { scale: 1, duration: 0.5, ease: "expo.out", immediateRender: false }, Math.max(0, td));
+      DB.leaveUp(tl, k, S.dur - 0.02);
+      window.__timelines["s06"] = tl;
+    })();
+  </script>
+</template>

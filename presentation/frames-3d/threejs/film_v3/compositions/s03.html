@@ -1,0 +1,55 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; }
+    .s3-group { position: absolute; inset: 0; }
+    .s3-shade { position: absolute; inset: 0; background: linear-gradient(90deg, var(--db-navy) 0%, var(--db-navy) 34%, rgba(0, 15, 30, 0) 58%); }
+    .s3-svg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
+  </style>
+  <!-- 3 · Meters get tampered with. → (cut-the-curve UP) → Rooftop solar overloads the grid. -->
+  <div id="root" data-composition-id="s03" data-width="1920" data-height="1080">
+    <div id="m3-meter" class="s3-group"><div id="m3-mp" class="s3-group"></div><div class="s3-shade"></div><svg id="m3-msvg" class="s3-svg" viewBox="0 0 1920 1080" data-layout-allow-overflow></svg></div>
+    <div id="m3-solar" class="s3-group"><div id="m3-sp" class="s3-group"></div><div class="s3-shade"></div><svg id="m3-ssvg" class="s3-svg" viewBox="0 0 1920 1080" data-layout-allow-overflow></svg></div>
+    <div id="m3-type" class="s3-group"></div>
+  </div>
+  <script>
+    (function () {
+      const S = DB.scene("s03"), tl = gsap.timeline({ paused: true });
+      const L = V3L;
+      const meter = DB.plate(document.querySelector("#m3-mp"), "p03_meter", "up");
+      const solar = DB.plate(document.querySelector("#m3-sp"), "p03_solar", "up");
+      const ty = document.querySelector("#m3-type");
+      const pm = DB.ping(document.querySelector("#m3-msvg"), DB.css("--db-orange"), true); pm.g.id = "m3-ping"; pm.g.setAttribute("opacity", 0);
+      const ps = DB.ping(document.querySelector("#m3-ssvg"), DB.css("--db-orange"), true); ps.g.id = "m3-sping"; ps.g.setAttribute("opacity", 0);
+      const ka = DB.keyLines(ty, "m3-a", ["Meters get", "tampered", "with."], { size: 122, top: 250 });
+      const kb = DB.keyLines(ty, "m3-b", ["Rooftop", "solar", "overloads", "the grid."], { size: 122, top: 200 });
+      const cut = DB.wordT(3, /^Rooftop/) - 0.12;
+      DB.drive(tl, S.start, S.dur, (t) => {
+        const um = DB.seg(t, S.start, cut + 0.4), us = DB.seg(t, cut - 0.3, S.end + 0.3);
+        const cm = { s: 1.02 + 0.07 * DB.E.sine(um), x: -20 * um, ox: L.magnet[0], oy: L.magnet[1] };
+        const cs = { s: 1.02 + 0.07 * DB.E.sine(us), x: 30 * us, ox: L.solar[0], oy: L.solar[1] };
+        meter.update(cm); solar.update(cs);
+        const [mx, my] = meter.map(L.magnet[0], L.magnet[1], cm); pm.update(mx, my);
+        const [sx, sy] = solar.map(L.solar[0], L.solar[1], cs); ps.update(sx, sy);
+      });
+      // one ping on the magnet, once (0 -> 1 scale, then holds)
+      const tm = DB.line(3).start - S.start + 0.55;
+      tl.set("#m3-ping", { opacity: 1 }, tm);
+      tl.fromTo("#m3-ping circle", { scale: 0, transformOrigin: "50% 50%", transformBox: "fill-box" }, { scale: 1, duration: 0.42, ease: "back.out(1.6)", stagger: { each: 0.05, from: "end" }, immediateRender: false }, tm);
+      const ts = cut - S.start + 0.6;
+      tl.set("#m3-sping", { opacity: 1 }, ts);
+      tl.fromTo("#m3-sping circle", { scale: 0, transformOrigin: "50% 50%", transformBox: "fill-box" }, { scale: 1, duration: 0.42, ease: "back.out(1.6)", stagger: { each: 0.05, from: "end" }, immediateRender: false }, ts);
+      // seam B2 (in scene): cut-the-curve UP between the two plates
+      gsap.set("#m3-solar", { opacity: 0 });
+      const c = cut - S.start;
+      tl.to("#m3-meter", { y: -230, duration: 0.34, ease: "power4.in" }, c - 0.34);
+      tl.to("#m3-meter", { opacity: 0, duration: 0.18, ease: "none" }, c - 0.18);
+      tl.fromTo("#m3-solar", { y: 230, opacity: 0.35 }, { y: 0, opacity: 1, duration: 0.42, ease: "power4.out", immediateRender: false }, c);
+      // key lines: first on the line's first word, the second waterfall-cuts in on "Rooftop"
+      DB.arrive(tl, ka, DB.line(3).start - S.start);
+      DB.leaveUp(tl, ka, c);
+      DB.arrive(tl, kb, c);
+      DB.leaveUp(tl, kb, S.dur);
+      window.__timelines["s03"] = tl;
+    })();
+  </script>
+</template>

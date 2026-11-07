@@ -15,6 +15,105 @@ window.DAYBREAK_OBJECTS = {
    "cols": 8,
    "cell": 384,
    "rows": 6
+  },
+  "source": {
+   "schema_version": 1,
+   "name": "truck",
+   "engine": "Blender 5.2.1 LTS / Cycles / Metal",
+   "color_management": {
+    "view": "AgX",
+    "look": "Medium High Contrast",
+    "exposure": -0.25,
+    "output": "sRGB display-referred"
+   },
+   "camera": {
+    "projection": "perspective",
+    "focal_length_mm": 70,
+    "model_scale": 0.011494252873563218,
+    "hero_aperture_fstop": 32
+   },
+   "alpha": "straight",
+   "background": "transparent",
+   "pivot_3d": [
+    0,
+    0,
+    0
+   ],
+   "fps": 30,
+   "hero": {
+    "path": "hero.png",
+    "size_px": [
+     1600,
+     1600
+    ],
+    "pivot_px": [
+     800,
+     800
+    ],
+    "root_rotation_euler_xyz_degrees": [
+     0,
+     0,
+     0
+    ],
+    "alpha_bbox_px": [
+     191,
+     410,
+     1362,
+     1278
+    ],
+    "min_padding_px": 191,
+    "bytes": 1445845
+   },
+   "sequences": {
+    "spin": {
+     "path_pattern": "spin/%04d.png",
+     "first_frame": 0,
+     "last_frame": 71,
+     "frame_count": 72,
+     "size_px": [
+      1024,
+      1024
+     ],
+     "pivot_px": [
+      512,
+      512
+     ],
+     "duration_seconds": 2.4,
+     "hero_angle_frame": 0,
+     "loop": true,
+     "motion_blur": {
+      "enabled": false,
+      "shutter_frames": 0,
+      "position": "CENTER"
+     },
+     "camera_framing": "Fixed sphere-safe framing"
+    },
+    "tumble": {
+     "path_pattern": "tumble/%04d.png",
+     "first_frame": 0,
+     "last_frame": 47,
+     "frame_count": 48,
+     "size_px": [
+      1024,
+      1024
+     ],
+     "pivot_px": [
+      512,
+      512
+     ],
+     "duration_seconds": 1.6,
+     "hero_angle_frame": 47,
+     "loop": false,
+     "motion_blur": {
+      "enabled": true,
+      "shutter_frames": 0.72,
+      "position": "CENTER"
+     },
+     "camera_framing": "Sphere-safe start, eased settle to hero framing over frames 28-47"
+    }
+   },
+   "source": "scene.blend",
+   "external_assets": []
   }
  },
  "meter": {
@@ -32,6 +131,105 @@ window.DAYBREAK_OBJECTS = {
    "cols": 8,
    "cell": 384,
    "rows": 6
+  },
+  "source": {
+   "schema_version": 1,
+   "name": "meter",
+   "engine": "Blender 5.2.1 LTS / Cycles / Metal",
+   "color_management": {
+    "view": "AgX",
+    "look": "Medium High Contrast",
+    "exposure": -0.25,
+    "output": "sRGB display-referred"
+   },
+   "camera": {
+    "projection": "perspective",
+    "focal_length_mm": 70,
+    "model_scale": 0.011494252873563218,
+    "hero_aperture_fstop": 64
+   },
+   "alpha": "straight",
+   "background": "transparent",
+   "pivot_3d": [
+    0,
+    0,
+    0
+   ],
+   "fps": 30,
+   "hero": {
+    "path": "hero.png",
+    "size_px": [
+     1600,
+     1600
+    ],
+    "pivot_px": [
+     800,
+     800
+    ],
+    "root_rotation_euler_xyz_degrees": [
+     0,
+     0,
+     0
+    ],
+    "alpha_bbox_px": [
+     451,
+     191,
+     1199,
+     1319
+    ],
+    "min_padding_px": 191,
+    "bytes": 1620921
+   },
+   "sequences": {
+    "spin": {
+     "path_pattern": "spin/%04d.png",
+     "first_frame": 0,
+     "last_frame": 71,
+     "frame_count": 72,
+     "size_px": [
+      1024,
+      1024
+     ],
+     "pivot_px": [
+      512,
+      512
+     ],
+     "duration_seconds": 2.4,
+     "hero_angle_frame": 0,
+     "loop": true,
+     "motion_blur": {
+      "enabled": false,
+      "shutter_frames": 0,
+      "position": "CENTER"
+     },
+     "camera_framing": "Fixed sphere-safe framing"
+    },
+    "tumble": {
+     "path_pattern": "tumble/%04d.png",
+     "first_frame": 0,
+     "last_frame": 47,
+     "frame_count": 48,
+     "size_px": [
+      1024,
+      1024
+     ],
+     "pivot_px": [
+      512,
+      512
+     ],
+     "duration_seconds": 1.6,
+     "hero_angle_frame": 47,
+     "loop": false,
+     "motion_blur": {
+      "enabled": true,
+      "shutter_frames": 0.72,
+      "position": "CENTER"
+     },
+     "camera_framing": "Sphere-safe start, eased settle to hero framing over frames 28-47"
+    }
+   },
+   "source": "scene.blend",
+   "external_assets": []
   }
  },
  "pole": {
@@ -49,6 +247,105 @@ window.DAYBREAK_OBJECTS = {
    "cols": 8,
    "cell": 384,
    "rows": 6
+  },
+  "source": {
+   "schema_version": 1,
+   "name": "pole",
+   "engine": "Blender 5.2.1 LTS / Cycles / Metal",
+   "color_management": {
+    "view": "AgX",
+    "look": "Medium High Contrast",
+    "exposure": -0.25,
+    "output": "sRGB display-referred"
+   },
+   "camera": {
+    "projection": "perspective",
+    "focal_length_mm": 70,
+    "model_scale": 0.011494252873563218,
+    "hero_aperture_fstop": 64
+   },
+   "alpha": "straight",
+   "background": "transparent",
+   "pivot_3d": [
+    0,
+    0,
+    0
+   ],
+   "fps": 30,
+   "hero": {
+    "path": "hero.png",
+    "size_px": [
+     1600,
+     1600
+    ],
+    "pivot_px": [
+     800,
+     800
+    ],
+    "root_rotation_euler_xyz_degrees": [
+     0,
+     0,
+     0
+    ],
+    "alpha_bbox_px": [
+     355,
+     191,
+     1281,
+     1312
+    ],
+    "min_padding_px": 191,
+    "bytes": 1130934
+   },
+   "sequences": {
+    "spin": {
+     "path_pattern": "spin/%04d.png",
+     "first_frame": 0,
+     "last_frame": 71,
+     "frame_count": 72,
+     "size_px": [
+      1024,
+      1024
+     ],
+     "pivot_px": [
+      512,
+      512
+     ],
+     "duration_seconds": 2.4,
+     "hero_angle_frame": 0,
+     "loop": true,
+     "motion_blur": {
+      "enabled": false,
+      "shutter_frames": 0,
+      "position": "CENTER"
+     },
+     "camera_framing": "Fixed sphere-safe framing"
+    },
+    "tumble": {
+     "path_pattern": "tumble/%04d.png",
+     "first_frame": 0,
+     "last_frame": 47,
+     "frame_count": 48,
+     "size_px": [
+      1024,
+      1024
+     ],
+     "pivot_px": [
+      512,
+      512
+     ],
+     "duration_seconds": 1.6,
+     "hero_angle_frame": 47,
+     "loop": false,
+     "motion_blur": {
+      "enabled": true,
+      "shutter_frames": 0.72,
+      "position": "CENTER"
+     },
+     "camera_framing": "Sphere-safe start, eased settle to hero framing over frames 28-47"
+    }
+   },
+   "source": "scene.blend",
+   "external_assets": []
   }
  },
  "solar": {
@@ -66,6 +363,105 @@ window.DAYBREAK_OBJECTS = {
    "cols": 8,
    "cell": 384,
    "rows": 6
+  },
+  "source": {
+   "schema_version": 1,
+   "name": "solar",
+   "engine": "Blender 5.2.1 LTS / Cycles / Metal",
+   "color_management": {
+    "view": "AgX",
+    "look": "Medium High Contrast",
+    "exposure": -0.25,
+    "output": "sRGB display-referred"
+   },
+   "camera": {
+    "projection": "perspective",
+    "focal_length_mm": 70,
+    "model_scale": 0.011494252873563218,
+    "hero_aperture_fstop": 64
+   },
+   "alpha": "straight",
+   "background": "transparent",
+   "pivot_3d": [
+    0,
+    0,
+    0
+   ],
+   "fps": 30,
+   "hero": {
+    "path": "hero.png",
+    "size_px": [
+     1600,
+     1600
+    ],
+    "pivot_px": [
+     800,
+     800
+    ],
+    "root_rotation_euler_xyz_degrees": [
+     0,
+     0,
+     0
+    ],
+    "alpha_bbox_px": [
+     191,
+     310,
+     1362,
+     1374
+    ],
+    "min_padding_px": 191,
+    "bytes": 1899720
+   },
+   "sequences": {
+    "spin": {
+     "path_pattern": "spin/%04d.png",
+     "first_frame": 0,
+     "last_frame": 71,
+     "frame_count": 72,
+     "size_px": [
+      1024,
+      1024
+     ],
+     "pivot_px": [
+      512,
+      512
+     ],
+     "duration_seconds": 2.4,
+     "hero_angle_frame": 0,
+     "loop": true,
+     "motion_blur": {
+      "enabled": false,
+      "shutter_frames": 0,
+      "position": "CENTER"
+     },
+     "camera_framing": "Fixed sphere-safe framing"
+    },
+    "tumble": {
+     "path_pattern": "tumble/%04d.png",
+     "first_frame": 0,
+     "last_frame": 47,
+     "frame_count": 48,
+     "size_px": [
+      1024,
+      1024
+     ],
+     "pivot_px": [
+      512,
+      512
+     ],
+     "duration_seconds": 1.6,
+     "hero_angle_frame": 47,
+     "loop": false,
+     "motion_blur": {
+      "enabled": true,
+      "shutter_frames": 0.72,
+      "position": "CENTER"
+     },
+     "camera_framing": "Sphere-safe start, eased settle to hero framing over frames 28-47"
+    }
+   },
+   "source": "scene.blend",
+   "external_assets": []
   }
  },
  "hardhat": {
@@ -83,6 +479,105 @@ window.DAYBREAK_OBJECTS = {
    "cols": 8,
    "cell": 384,
    "rows": 6
+  },
+  "source": {
+   "schema_version": 1,
+   "name": "hardhat",
+   "engine": "Blender 5.2.1 LTS / Cycles / Metal",
+   "color_management": {
+    "view": "AgX",
+    "look": "Medium High Contrast",
+    "exposure": -0.25,
+    "output": "sRGB display-referred"
+   },
+   "camera": {
+    "projection": "perspective",
+    "focal_length_mm": 70,
+    "model_scale": 0.011494252873563218,
+    "hero_aperture_fstop": 64
+   },
+   "alpha": "straight",
+   "background": "transparent",
+   "pivot_3d": [
+    0,
+    0,
+    0
+   ],
+   "fps": 30,
+   "hero": {
+    "path": "hero.png",
+    "size_px": [
+     1600,
+     1600
+    ],
+    "pivot_px": [
+     800,
+     800
+    ],
+    "root_rotation_euler_xyz_degrees": [
+     0,
+     0,
+     0
+    ],
+    "alpha_bbox_px": [
+     233,
+     493,
+     1409,
+     1357
+    ],
+    "min_padding_px": 191,
+    "bytes": 1414426
+   },
+   "sequences": {
+    "spin": {
+     "path_pattern": "spin/%04d.png",
+     "first_frame": 0,
+     "last_frame": 71,
+     "frame_count": 72,
+     "size_px": [
+      1024,
+      1024
+     ],
+     "pivot_px": [
+      512,
+      512
+     ],
+     "duration_seconds": 2.4,
+     "hero_angle_frame": 0,
+     "loop": true,
+     "motion_blur": {
+      "enabled": false,
+      "shutter_frames": 0,
+      "position": "CENTER"
+     },
+     "camera_framing": "Fixed sphere-safe framing"
+    },
+    "tumble": {
+     "path_pattern": "tumble/%04d.png",
+     "first_frame": 0,
+     "last_frame": 47,
+     "frame_count": 48,
+     "size_px": [
+      1024,
+      1024
+     ],
+     "pivot_px": [
+      512,
+      512
+     ],
+     "duration_seconds": 1.6,
+     "hero_angle_frame": 47,
+     "loop": false,
+     "motion_blur": {
+      "enabled": true,
+      "shutter_frames": 0.72,
+      "position": "CENTER"
+     },
+     "camera_framing": "Sphere-safe start, eased settle to hero framing over frames 28-47"
+    }
+   },
+   "source": "scene.blend",
+   "external_assets": []
   }
  },
  "pin_orange": {
@@ -100,6 +595,105 @@ window.DAYBREAK_OBJECTS = {
    "cols": 8,
    "cell": 384,
    "rows": 6
+  },
+  "source": {
+   "schema_version": 1,
+   "name": "pin_orange",
+   "engine": "Blender 5.2.1 LTS / Cycles / Metal",
+   "color_management": {
+    "view": "AgX",
+    "look": "Medium High Contrast",
+    "exposure": -0.25,
+    "output": "sRGB display-referred"
+   },
+   "camera": {
+    "projection": "perspective",
+    "focal_length_mm": 70,
+    "model_scale": 0.011494252873563218,
+    "hero_aperture_fstop": 64
+   },
+   "alpha": "straight",
+   "background": "transparent",
+   "pivot_3d": [
+    0,
+    0,
+    0
+   ],
+   "fps": 30,
+   "hero": {
+    "path": "hero.png",
+    "size_px": [
+     1600,
+     1600
+    ],
+    "pivot_px": [
+     800,
+     800
+    ],
+    "root_rotation_euler_xyz_degrees": [
+     0,
+     0,
+     0
+    ],
+    "alpha_bbox_px": [
+     547,
+     190,
+     1053,
+     1321
+    ],
+    "min_padding_px": 190,
+    "bytes": 919279
+   },
+   "sequences": {
+    "spin": {
+     "path_pattern": "spin/%04d.png",
+     "first_frame": 0,
+     "last_frame": 71,
+     "frame_count": 72,
+     "size_px": [
+      1024,
+      1024
+     ],
+     "pivot_px": [
+      512,
+      512
+     ],
+     "duration_seconds": 2.4,
+     "hero_angle_frame": 0,
+     "loop": true,
+     "motion_blur": {
+      "enabled": false,
+      "shutter_frames": 0,
+      "position": "CENTER"
+     },
+     "camera_framing": "Fixed sphere-safe framing"
+    },
+    "tumble": {
+     "path_pattern": "tumble/%04d.png",
+     "first_frame": 0,
+     "last_frame": 47,
+     "frame_count": 48,
+     "size_px": [
+      1024,
+      1024
+     ],
+     "pivot_px": [
+      512,
+      512
+     ],
+     "duration_seconds": 1.6,
+     "hero_angle_frame": 47,
+     "loop": false,
+     "motion_blur": {
+      "enabled": true,
+      "shutter_frames": 0.72,
+      "position": "CENTER"
+     },
+     "camera_framing": "Sphere-safe start, eased settle to hero framing over frames 28-47"
+    }
+   },
+   "source": "scene.blend",
+   "external_assets": []
   }
  },
  "pin_cyan": {
@@ -117,6 +711,105 @@ window.DAYBREAK_OBJECTS = {
    "cols": 8,
    "cell": 384,
    "rows": 6
+  },
+  "source": {
+   "schema_version": 1,
+   "name": "pin_cyan",
+   "engine": "Blender 5.2.1 LTS / Cycles / Metal",
+   "color_management": {
+    "view": "AgX",
+    "look": "Medium High Contrast",
+    "exposure": -0.25,
+    "output": "sRGB display-referred"
+   },
+   "camera": {
+    "projection": "perspective",
+    "focal_length_mm": 70,
+    "model_scale": 0.011494252873563218,
+    "hero_aperture_fstop": 64
+   },
+   "alpha": "straight",
+   "background": "transparent",
+   "pivot_3d": [
+    0,
+    0,
+    0
+   ],
+   "fps": 30,
+   "hero": {
+    "path": "hero.png",
+    "size_px": [
+     1600,
+     1600
+    ],
+    "pivot_px": [
+     800,
+     800
+    ],
+    "root_rotation_euler_xyz_degrees": [
+     0,
+     0,
+     0
+    ],
+    "alpha_bbox_px": [
+     547,
+     190,
+     1053,
+     1321
+    ],
+    "min_padding_px": 190,
+    "bytes": 924890
+   },
+   "sequences": {
+    "spin": {
+     "path_pattern": "spin/%04d.png",
+     "first_frame": 0,
+     "last_frame": 71,
+     "frame_count": 72,
+     "size_px": [
+      1024,
+      1024
+     ],
+     "pivot_px": [
+      512,
+      512
+     ],
+     "duration_seconds": 2.4,
+     "hero_angle_frame": 0,
+     "loop": true,
+     "motion_blur": {
+      "enabled": false,
+      "shutter_frames": 0,
+      "position": "CENTER"
+     },
+     "camera_framing": "Fixed sphere-safe framing"
+    },
+    "tumble": {
+     "path_pattern": "tumble/%04d.png",
+     "first_frame": 0,
+     "last_frame": 47,
+     "frame_count": 48,
+     "size_px": [
+      1024,
+      1024
+     ],
+     "pivot_px": [
+      512,
+      512
+     ],
+     "duration_seconds": 1.6,
+     "hero_angle_frame": 47,
+     "loop": false,
+     "motion_blur": {
+      "enabled": true,
+      "shutter_frames": 0.72,
+      "position": "CENTER"
+     },
+     "camera_framing": "Sphere-safe start, eased settle to hero framing over frames 28-47"
+    }
+   },
+   "source": "scene.blend",
+   "external_assets": []
   }
  },
  "pin_blue": {
@@ -134,6 +827,105 @@ window.DAYBREAK_OBJECTS = {
    "cols": 8,
    "cell": 384,
    "rows": 6
+  },
+  "source": {
+   "schema_version": 1,
+   "name": "pin_blue",
+   "engine": "Blender 5.2.1 LTS / Cycles / Metal",
+   "color_management": {
+    "view": "AgX",
+    "look": "Medium High Contrast",
+    "exposure": -0.25,
+    "output": "sRGB display-referred"
+   },
+   "camera": {
+    "projection": "perspective",
+    "focal_length_mm": 70,
+    "model_scale": 0.011494252873563218,
+    "hero_aperture_fstop": 64
+   },
+   "alpha": "straight",
+   "background": "transparent",
+   "pivot_3d": [
+    0,
+    0,
+    0
+   ],
+   "fps": 30,
+   "hero": {
+    "path": "hero.png",
+    "size_px": [
+     1600,
+     1600
+    ],
+    "pivot_px": [
+     800,
+     800
+    ],
+    "root_rotation_euler_xyz_degrees": [
+     0,
+     0,
+     0
+    ],
+    "alpha_bbox_px": [
+     547,
+     190,
+     1053,
+     1321
+    ],
+    "min_padding_px": 190,
+    "bytes": 924479
+   },
+   "sequences": {
+    "spin": {
+     "path_pattern": "spin/%04d.png",
+     "first_frame": 0,
+     "last_frame": 71,
+     "frame_count": 72,
+     "size_px": [
+      1024,
+      1024
+     ],
+     "pivot_px": [
+      512,
+      512
+     ],
+     "duration_seconds": 2.4,
+     "hero_angle_frame": 0,
+     "loop": true,
+     "motion_blur": {
+      "enabled": false,
+      "shutter_frames": 0,
+      "position": "CENTER"
+     },
+     "camera_framing": "Fixed sphere-safe framing"
+    },
+    "tumble": {
+     "path_pattern": "tumble/%04d.png",
+     "first_frame": 0,
+     "last_frame": 47,
+     "frame_count": 48,
+     "size_px": [
+      1024,
+      1024
+     ],
+     "pivot_px": [
+      512,
+      512
+     ],
+     "duration_seconds": 1.6,
+     "hero_angle_frame": 47,
+     "loop": false,
+     "motion_blur": {
+      "enabled": true,
+      "shutter_frames": 0.72,
+      "position": "CENTER"
+     },
+     "camera_framing": "Sphere-safe start, eased settle to hero framing over frames 28-47"
+    }
+   },
+   "source": "scene.blend",
+   "external_assets": []
   }
  },
  "cloud": {
@@ -151,6 +943,105 @@ window.DAYBREAK_OBJECTS = {
    "cols": 8,
    "cell": 384,
    "rows": 6
+  },
+  "source": {
+   "schema_version": 1,
+   "name": "cloud",
+   "engine": "Blender 5.2.1 LTS / Cycles / Metal",
+   "color_management": {
+    "view": "AgX",
+    "look": "Medium High Contrast",
+    "exposure": -0.25,
+    "output": "sRGB display-referred"
+   },
+   "camera": {
+    "projection": "perspective",
+    "focal_length_mm": 70,
+    "model_scale": 0.011494252873563218,
+    "hero_aperture_fstop": 64
+   },
+   "alpha": "straight",
+   "background": "transparent",
+   "pivot_3d": [
+    0,
+    0,
+    0
+   ],
+   "fps": 30,
+   "hero": {
+    "path": "hero.png",
+    "size_px": [
+     1600,
+     1600
+    ],
+    "pivot_px": [
+     800,
+     800
+    ],
+    "root_rotation_euler_xyz_degrees": [
+     0,
+     0,
+     0
+    ],
+    "alpha_bbox_px": [
+     254,
+     504,
+     1409,
+     1117
+    ],
+    "min_padding_px": 191,
+    "bytes": 1476650
+   },
+   "sequences": {
+    "spin": {
+     "path_pattern": "spin/%04d.png",
+     "first_frame": 0,
+     "last_frame": 71,
+     "frame_count": 72,
+     "size_px": [
+      1024,
+      1024
+     ],
+     "pivot_px": [
+      512,
+      512
+     ],
+     "duration_seconds": 2.4,
+     "hero_angle_frame": 0,
+     "loop": true,
+     "motion_blur": {
+      "enabled": false,
+      "shutter_frames": 0,
+      "position": "CENTER"
+     },
+     "camera_framing": "Fixed sphere-safe framing"
+    },
+    "tumble": {
+     "path_pattern": "tumble/%04d.png",
+     "first_frame": 0,
+     "last_frame": 47,
+     "frame_count": 48,
+     "size_px": [
+      1024,
+      1024
+     ],
+     "pivot_px": [
+      512,
+      512
+     ],
+     "duration_seconds": 1.6,
+     "hero_angle_frame": 47,
+     "loop": false,
+     "motion_blur": {
+      "enabled": true,
+      "shutter_frames": 0.72,
+      "position": "CENTER"
+     },
+     "camera_framing": "Sphere-safe start, eased settle to hero framing over frames 28-47"
+    }
+   },
+   "source": "scene.blend",
+   "external_assets": []
   }
  }
 };

@@ -22,3 +22,5 @@ plates_v3/attempts/
 **/__pycache__/
 audio/vo/**/*.wav
 audio/vo/*.wav
+threejs/film_v3/renders/
+threejs/film_v3/assets/frames3d/

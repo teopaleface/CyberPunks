@@ -1,0 +1,45 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; }
+    #s12-stage { position: absolute; inset: 0; }
+    #dy-num { position: absolute; left: 120px; top: 90px; font-size: 330px; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; opacity: 0; transform-origin: 0% 60%; }
+    #dy-pc { position: absolute; left: 0; top: 0; border-radius: 50%; border: 1px solid rgba(245, 247, 250, 0.01); }
+  </style>
+  <!-- 12 · 30% less driving. Fewer wasted trips. (30-day simulation) -->
+  <div id="root" data-composition-id="s12" data-width="1920" data-height="1080">
+    <div id="s12-stage"></div>
+    <div id="dy-num" class="display">30%</div>
+    <div id="dy-pc"></div>
+  </div>
+  <script>
+    (function () {
+      const S = DB.scene("s12"), tl = gsap.timeline({ paused: true });
+      const L = V3L, P = L.planet.p12_day;
+      const stage = document.querySelector("#s12-stage");
+      const planet = DB.plate(stage, "p12_day", "cut");
+      const k1 = DB.keyLines(stage, "dy-a", ["less driving."], { size: 76, top: 400, cls: "head" });
+      const k2 = DB.keyLines(stage, "dy-b", ["Fewer wasted trips."], { size: 76, top: 490, cls: "head" });
+      const k3 = DB.keyLines(stage, "dy-c", ["30-day simulation"], { size: 30, top: 596, cls: "body muted" });
+      const lift = L.lift.p12_day;
+      const num = document.querySelector("#dy-num");
+      const tThirty = DB.line(12).start, tFewer = DB.wordT(12, /^Fewer/);
+      const pc = document.querySelector("#dy-pc");
+      DB.drive(tl, S.start, S.dur, (t) => {
+        const u = DB.seg(t, S.start - 3.4, S.end);
+        const F = L.frame12, c = { s: F.s * (1 + 0.05 * DB.E.sine(u)), x: F.x, y: lift, ox: P.c[0], oy: P.c[1] };
+        planet.update(c);
+        const [x, y] = planet.map(P.c[0], P.c[1], c), r = P.r * c.s;
+        gsap.set(pc, { x: x - r, y: y - r, width: 2 * r, height: 2 * r });
+        num.textContent = Math.round(30 * DB.E.expo(DB.seg(t, tThirty, tThirty + 0.5))) + "%";
+      });
+      // "30%": inverse zoom-through arrival with count-up (1.25 -> 1, blur 10 -> 0, 0.5 s expo.out)
+      const t0 = tThirty - S.start;
+      tl.fromTo("#dy-num", { opacity: 0.15, scale: 1.25, filter: "blur(10px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out", immediateRender: false }, t0);
+      DB.arrive(tl, k1, t0 + 0.3);
+      DB.arrive(tl, k2, tFewer - S.start);
+      DB.arrive(tl, k3, tFewer - S.start + 0.12, { y0: 30 });
+      DB.leaveUp(tl, ["#dy-num", ...k1, ...k2, ...k3], S.dur);
+      window.__timelines["s12"] = tl;
+    })();
+  </script>
+</template>

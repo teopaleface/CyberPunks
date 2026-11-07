@@ -1,0 +1,48 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; }
+    #s13-stage { position: absolute; inset: 0; }
+    #en-dot { position: absolute; left: 0; top: 0; border-radius: 50%; background: var(--db-orange); opacity: 0; }
+    #en-pc { position: absolute; left: 0; top: 0; border-radius: 50%; border: 1px solid rgba(245, 247, 250, 0.01); }
+    #en-word { transform-origin: 50% 50%; }
+  </style>
+  <!-- 13 · Daybreak. Tomorrow's crews, planned tonight. Everything pulls back into the orange dot. -->
+  <div id="root" data-composition-id="s13" data-width="1920" data-height="1080">
+    <div id="s13-stage"></div>
+    <div id="en-pc"></div>
+    <div id="en-dot"></div>
+  </div>
+  <script>
+    (function () {
+      const S = DB.scene("s13"), tl = gsap.timeline({ paused: true });
+      const L = V3L, P = L.planet.p12_day;
+      const stage = document.querySelector("#s13-stage");
+      const planet = DB.plate(stage, "p12_day", "cut");
+      const kw = DB.keyLines(stage, "en-w", ["Daybreak"], { size: 250, top: 450, align: "center" });
+      const kt = DB.keyLines(stage, "en-t", ["Tomorrow’s crews, planned tonight."], { size: 56, top: 720, align: "center", cls: "head" });
+      const kc = DB.keyLines(stage, "en-c", ["For Rețele Electrice dispatchers · CyberPunks · SmartHack 2026"], { size: 28, top: 980, align: "center", cls: "body muted" });
+      const lift = L.lift.p12_day;
+      const DOT = [960, 402], DR = 22;
+      const pc = document.querySelector("#en-pc"), dot = document.querySelector("#en-dot");
+      DB.drive(tl, S.start, S.dur, (t) => {
+        // the planet (s12's framing) shrinks into the dot: scale 1 -> 0.06, 0.6 s power3.in; centre travels to the dot
+        const k = DB.E.i3(DB.seg(t, S.start, S.start + 0.6));
+        const F = L.frame12, s0 = 1.05 * F.s, sc = s0 + (DR / P.r - s0) * k;
+        const cx = P.c[0] + F.x + (DOT[0] - P.c[0] - F.x) * k, cy = P.c[1] + lift + (DOT[1] - P.c[1] - lift) * k;
+        planet.update({ s: sc, x: cx - P.c[0], y: cy - P.c[1], ox: P.c[0], oy: P.c[1] });
+        const r = Math.max(DR, P.r * sc);
+        gsap.set(pc, { x: cx - P.r * sc, y: cy - P.r * sc, width: 2 * P.r * sc, height: 2 * P.r * sc });
+        gsap.set(dot, { x: cx - r, y: cy - r, width: 2 * r, height: 2 * r });
+      });
+      // final 0.15 s: swap to the solid #FA4616 dot
+      tl.fromTo("#en-dot", { opacity: 0 }, { opacity: 1, duration: 0.15, ease: "none", immediateRender: false }, 0.5);
+      // "Daybreak" inverse zoom-through; tagline on "Tomorrow's"; credits; then a still hold to the end
+      const tw = Math.max(0.55, DB.line(13).start - S.start);
+      tl.fromTo(kw[0], { opacity: 0.15, scale: 1.25, filter: "blur(10px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.5, ease: "expo.out", immediateRender: false }, tw);
+      DB.arrive(tl, kt, Math.max(tw + 0.4, DB.wordT(13, /^Tomorrow/) - S.start));
+      // the credit line lands on the music "button" (hook downbeat), then a still hold to the end
+      DB.arrive(tl, kc, Math.max(tw + 0.6, (DB.V.button || DB.wordT(13, /^Tomorrow/) + 1.2) - S.start), { y0: 30 });
+      window.__timelines["s13"] = tl;
+    })();
+  </script>
+</template>

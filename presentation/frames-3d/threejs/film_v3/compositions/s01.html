@@ -1,0 +1,34 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; }
+    #s1-stage { position: absolute; inset: 0; }
+  </style>
+  <!-- 1 · A storm hits Banat. (p01_storm cutout, slow push + roll, the cloud crosses in front) -->
+  <div id="root" data-composition-id="s01" data-width="1920" data-height="1080">
+    <div id="s1-stage"></div>
+  </div>
+  <script>
+    (function () {
+      const S = DB.scene("s01"), tl = gsap.timeline({ paused: true });
+      const root = document.querySelector("#s1-stage"), L = V3L;
+      const planet = DB.plate(root, "p01_storm", "cut");
+      const cloud = DB.sprite(root, "cloud"); cloud.el.id = "s1-cloud";
+      const pc = L.planet.p01_storm.c;
+      const k = DB.keyLines(root, "s1-k", ["A storm", "hits", "Banat."], { size: 146, top: 270 });
+      DB.drive(tl, S.start, S.dur, (t) => {
+        const u = DB.seg(t, 0, S.end + 4.2); // the push continues across the dark scene
+        const f = DB.E.expo(DB.seg(t, 0.0, 0.9)); // the planet focuses in
+        planet.update({ s: (0.96 + 0.04 * f) * (1 + 0.07 * DB.E.sine(u)), r: 1.2 * u, x: L.offset.p01_storm, ox: pc[0], oy: pc[1], blur: 12 * (1 - f), opacity: f });
+        const c = DB.seg(t, 0.35, S.end + 1.2);
+        cloud.update({ x: L.cloud.from[0] + (L.cloud.to[0] - L.cloud.from[0]) * c, y: L.cloud.from[1] + (L.cloud.to[1] - L.cloud.from[1]) * c - 60 * Math.sin(c * Math.PI), size: L.cloud.size, mode: "spin", u: t / 7, blur: L.cloud.blur });
+      });
+      // the headline: one line per spoken word (waterfall entry), leaves just before the seam
+      const W = (re) => DB.wordT(1, re) - S.start;
+      DB.arrive(tl, [k[0]], W(/^A$/), { y0: 70 });
+      DB.arrive(tl, [k[1]], W(/^hits/), { y0: 50 });
+      DB.arrive(tl, [k[2]], W(/^Banat/), { y0: 80 });
+      DB.leaveUp(tl, k, S.dur);
+      window.__timelines["s01"] = tl;
+    })();
+  </script>
+</template>

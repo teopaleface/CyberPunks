@@ -1,0 +1,78 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; }
+    #s4-stage { position: absolute; inset: 0; }
+    #s4-svg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
+    #s4-count { position: absolute; left: 120px; top: 380px; font-size: 230px; font-variant-numeric: tabular-nums; opacity: 0; }
+    #s4-pill { position: absolute; left: 0; top: 0; opacity: 0; }
+  </style>
+  <!-- 4 · 11 crews. 556 problems. (556 dots cascade onto the planet; the counter follows the voice)
+       5 · Where should each crew go? (dots blink twice on beats; everything else holds still) -->
+  <div id="root" data-composition-id="s04" data-width="1920" data-height="1080">
+    <div id="s4-stage"></div>
+    <svg id="s4-svg" viewBox="0 0 1920 1080" data-layout-allow-overflow><g id="s4-dots"></g><g id="s4-lead"></g></svg>
+    <div id="s4-pill" class="db-pill" style="background:var(--db-orange)">11 crews</div>
+    <div id="s4-count" class="display">0</div>
+  </div>
+  <script>
+    (function () {
+      const S = DB.scene("s04"), tl = gsap.timeline({ paused: true });
+      const root = document.querySelector("#s4-stage"), L = V3L;
+      const planet = DB.plate(root, "p04_wide", "cut");
+      const P = L.planet.p04_wide;
+      const ka = DB.keyLines(root, "s4-a", ["11 crews."], { size: 110, top: 250 });
+      const kc = DB.keyLines(root, "s4-c", ["problems."], { size: 110, top: 610 });
+      const kq = DB.keyLines(root, "s4-q", ["Where", "should each", "crew go?"], { size: 96, top: 300 });
+      const five = DB.wordT(4, /^five/), probs = DB.wordT(4, /^problems/), eleven = DB.wordT(4, /^eleven/);
+      const L5 = DB.line(5).start;
+      // 556 problem dots, seeded uniformly inside the planet disc (plate px)
+      const R = DB.rng(556), dots = [];
+      const g = document.querySelector("#s4-dots");
+      const cyan = DB.css("--db-cyan"), orange = DB.css("--db-orange"), ink = DB.css("--db-ink");
+      for (let i = 0; i < 556; i++) {
+        const a = R() * Math.PI * 2, rr = Math.sqrt(R()) * P.r * 0.86;
+        const col = R() < 0.16 ? orange : R() < 0.6 ? cyan : ink;
+        dots.push({ px: P.c[0] + Math.cos(a) * rr, py: P.c[1] + Math.sin(a) * rr * 0.92, t: five + (probs + 0.25 - five) * Math.pow((i + 1) / 556, 0.85), el: DB.el("circle", { r: 0, fill: col }, g) });
+      }
+      const lead = DB.leader(document.querySelector("#s4-lead"), orange); lead.el.id = "s4-ld";
+      const ping = DB.ping(document.querySelector("#s4-lead"), orange, false); ping.g.id = "s4-pg"; ping.g.setAttribute("opacity", 0);
+      const beats = DB.V.beats.filter((b) => b > L5 + 0.2 && b < S.end - 0.5).slice(0, 2);
+      const count = document.querySelector("#s4-count"), pill = document.querySelector("#s4-pill");
+      DB.drive(tl, S.start, S.dur, (t) => {
+        // camera: slow push, then a near stop for the question (stillness before the drop)
+        const u = Math.min(DB.seg(t, S.start, L5), 1) * 0.85 + 0.15 * DB.E.o3(DB.seg(t, L5, L5 + 0.8));
+        const c = { s: 1 + 0.06 * DB.E.sine(u), x: L.offset.p04_wide, ox: P.c[0], oy: P.c[1] };
+        planet.update(c);
+        let blink = 1;
+        beats.forEach((b) => { const k = DB.seg(t, b, b + 0.3); if (k > 0 && k < 1) blink = Math.min(blink, 0.25 + 0.75 * Math.abs(Math.cos(k * Math.PI))); });
+        for (const d of dots) {
+          const [x, y] = planet.map(d.px, d.py, c);
+          const k = DB.seg(t, d.t, d.t + 0.18);
+          d.el.setAttribute("cx", x.toFixed(1)); d.el.setAttribute("cy", y.toFixed(1));
+          d.el.setAttribute("r", k <= 0 ? 0 : (4.2 * DB.E.back(k, 2)).toFixed(2));
+          d.el.setAttribute("opacity", blink.toFixed(2));
+        }
+        // counter 0 -> 556 with the voice ("five hundred and fifty-six")
+        count.textContent = String(Math.round(556 * DB.E.o2(DB.seg(t, five, probs + 0.1))));
+        // the 11 trucks in the depot get their pill
+        const [dx, dy] = planet.map(L.depot[0], L.depot[1], c);
+        gsap.set(pill, { x: dx + 60, y: dy - 120 });
+        lead.update([[dx, dy], [dx + 60, dy - 92]]);
+        ping.update(dx, dy);
+      });
+      DB.arrive(tl, ka, eleven - S.start);
+      tl.set("#s4-pill", { opacity: 1 }, eleven - S.start);
+      tl.fromTo("#s4-pill", { yPercent: 60 }, { yPercent: 0, duration: 0.2, ease: "power4.out", immediateRender: false }, eleven - S.start);
+      tl.fromTo("#s4-ld", { strokeDashoffset: 1.1 }, { strokeDashoffset: 0, duration: 0.25, ease: "power3.out" }, eleven - S.start);
+      tl.set("#s4-pg", { opacity: 1 }, eleven - S.start);
+      DB.arrive(tl, ["#s4-count"], five - S.start, { y0: 60 });
+      DB.arrive(tl, kc, probs - S.start);
+      // line 5: waterfall cut UP into the question, then stillness until the drop
+      const c5 = L5 - S.start;
+      DB.leaveUp(tl, [...ka, "#s4-count", ...kc], c5);
+      tl.to(["#s4-pill", "#s4-ld", "#s4-pg"], { opacity: 0, duration: 0.2, ease: "none" }, c5 - 0.2);
+      DB.arrive(tl, kq, c5);
+      window.__timelines["s04"] = tl;
+    })();
+  </script>
+</template>

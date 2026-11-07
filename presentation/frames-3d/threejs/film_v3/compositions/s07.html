@@ -1,0 +1,144 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; }
+    #pr-win { position: absolute; left: 120px; top: 190px; width: 1680px; height: 860px; }
+    #pr-chrome { position: absolute; inset: 0; border-radius: 30px; background: var(--db-window); box-shadow: var(--db-shadow); }
+    #pr-head { position: absolute; left: 0; top: 0; right: 0; height: 80px; display: flex; align-items: center; justify-content: space-between; padding: 0 34px; border-bottom: 1px solid rgba(245, 247, 250, 0.08); }
+    #pr-brand { font-size: 34px; }
+    #pr-brand .body { font-size: 28px; margin-left: 24px; letter-spacing: 0; }
+    #pr-btn { font-size: 28px; }
+    #pr-side { position: absolute; left: 1150px; top: 104px; right: 30px; bottom: 26px; }
+    .pr-row { position: absolute; left: 0; right: 0; height: 58px; display: flex; align-items: center; gap: 16px; font-size: 30px; }
+    .pr-rank { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; background: #10263f; }
+    .pr-crew { position: absolute; left: 0; right: 0; height: 64px; display: flex; align-items: center; gap: 18px; background: var(--db-crew); border-radius: 16px; padding: 0 20px; font-size: 30px; }
+    .pr-crew .body { font-size: 28px; margin-left: auto; }
+    #pr-mapbox { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; border-radius: 0; }
+    #pr-svg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
+    #pr-carrier { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; border: 1px solid rgba(245, 247, 250, 0.01); }
+    #pr-house { position: absolute; left: 0; top: 0; width: 40px; height: 40px; border-radius: 50%; border: 3px solid var(--db-cyan); opacity: 0; }
+  </style>
+  <!-- 7 · It finds the problems.  8 · Urgent ones first.  9 · The shortest route for every crew.
+       The flat map arrives full frame (carrier of seam E) and shrinks into the product window. -->
+  <div id="root" data-composition-id="s07" data-width="1920" data-height="1080">
+    <div id="pr-win"><div id="pr-chrome">
+      <div id="pr-head"><div id="pr-brand" class="head">Daybreak<span class="body muted">Tomorrow’s plan · Banat</span></div><div id="pr-btn" class="head db-btn-orange">Plan tomorrow</div></div>
+      <div id="pr-side"></div>
+    </div></div>
+    <div id="pr-mapbox"><div id="pr-mapimg"></div></div>
+    <svg id="pr-svg" viewBox="0 0 1920 1080" data-layout-allow-overflow><g id="pr-routes"></g><g id="pr-pings"></g></svg>
+    <div id="pr-objs" style="position:absolute;inset:0"></div>
+    <div id="pr-type" style="position:absolute;inset:0"></div>
+    <div id="pr-carrier"></div>
+    <div id="pr-house"></div>
+  </div>
+  <script>
+    (function () {
+      const S = DB.scene("s07"), tl = gsap.timeline({ paused: true });
+      const L = V3L, M = L.map;
+      const COL = { o: DB.css("--db-orange"), c: DB.css("--db-cyan"), b: DB.css("--db-blue"), ink: DB.css("--db-ink") };
+      const map = DB.plate(document.querySelector("#pr-mapimg"), "p07_map", "up");
+      // the map slot inside the window (screen px)
+      const SLOT = { x: 120 + 24, y: 190 + 96, w: 1100, h: 740 };
+      const fitS = Math.min(SLOT.w / 1920, SLOT.h / 1080) * 1.12;
+      const k7 = DB.keyLines(document.querySelector("#pr-type"), "pr-a", ["It finds the problems."], { size: 84, top: 54 });
+      const k8 = DB.keyLines(document.querySelector("#pr-type"), "pr-b", ["Urgent ones first."], { size: 84, top: 54 });
+      const k9 = DB.keyLines(document.querySelector("#pr-type"), "pr-c", ["The shortest route for every crew."], { size: 76, top: 58 });
+      const T7 = DB.line(7).start, T8 = DB.line(8).start, T9 = DB.line(9).start;
+      const tUrg = DB.wordT(8, /^urgent/), tRoute = DB.wordT(9, /^route/), tEvery = DB.wordT(9, /^every/);
+      // map camera: full frame (seam E carrier) -> FLIP into the slot (0.7 s power3.inOut), then a slow push
+      const flip = (t) => DB.E.io3(DB.seg(t, S.start + 0.05, S.start + 0.75));
+      const mcam = (t) => {
+        const k = flip(t), push = 1 + 0.04 * DB.E.sine(DB.seg(t, S.start + 0.75, S.end));
+        const s = (1 + (fitS - 1) * k) * push;
+        const cx = 960 + (SLOT.x + SLOT.w / 2 - 960) * k, cy = 540 + (SLOT.y + SLOT.h / 2 - 540) * k;
+        return { s, x: cx - 960, y: cy - 540, ox: 960, oy: 540 };
+      };
+      const box = document.querySelector("#pr-mapbox");
+      // problem pings (12 spots), coloured by urgency on line 8
+      const pingsG = document.querySelector("#pr-pings");
+      const spots = M.spots.map((p, i) => { const P = DB.ping(pingsG, COL.c, false); P.g.setAttribute("opacity", 0); P.g.id = "pr-p" + i; return { p, P, urgent: M.urgent.includes(i) }; });
+      // routes: one per crew, quadratic arcs (like the real console) from the depot through its stops
+      const routesG = document.querySelector("#pr-routes");
+      const crews = [];
+      const pal = [COL.o, COL.c, COL.b];
+      M.routes.forEach((pts, i) => {
+        const casing = DB.el("path", { fill: "none", stroke: DB.css("--db-navy"), "stroke-width": 12, "stroke-linecap": "round", "stroke-linejoin": "round", pathLength: 1, "stroke-dasharray": "1 1.2", "stroke-dashoffset": 1.1, opacity: 0.8, id: "pr-rc" + i }, routesG);
+        crews.push({ pts, col: pal[i % 3], casing, el: DB.el("path", { fill: "none", stroke: pal[i % 3], "stroke-width": 6, "stroke-linecap": "round", "stroke-linejoin": "round", pathLength: 1, "stroke-dasharray": "1 1.2", "stroke-dashoffset": 1.1, id: "pr-r" + i }, routesG) });
+      });
+      // 3D objects fly into the map and land as pings on their problem spots
+      const objs = Object.entries(M.objects).map(([name, idx], j) => ({ name, idx, S: DB.sprite(document.querySelector("#pr-objs"), name), from: [[2150, 120], [2150, 980], [-260, 1000]][j], t1: T7 + 0.35 + j * 0.22 }));
+      const side = document.querySelector("#pr-side");
+      const rows = ["Fallen pole", "Tampered meter", "Solar overload", "Storm damage", "Low voltage"].map((txt, i) => {
+        const d = document.createElement("div"); d.className = "pr-row head"; d.id = "pr-row" + i; d.style.top = (i * 70) + "px"; d.style.opacity = 0;
+        d.innerHTML = `<span class="pr-rank">${i + 1}</span>${txt}`; side.appendChild(d); return d;
+      });
+      const cards = [1, 2, 3, 4, 5, 6].map((n, i) => {
+        const d = document.createElement("div"); d.className = "pr-crew head"; d.id = "pr-cc" + i; d.style.top = (i * 76) + "px"; d.style.opacity = 0;
+        d.innerHTML = `<span style="width:14px;height:14px;border-radius:50%;background:${pal[i % 3]};display:inline-block"></span>Crew ${n}<span class="body muted">ready</span>`; side.appendChild(d); return d;
+      });
+      const more = document.createElement("div"); more.className = "pr-row body muted"; more.id = "pr-more"; more.style.top = (6 * 76 + 6) + "px"; more.style.opacity = 0; more.textContent = "+ 5 more crews"; side.appendChild(more);
+      const house = document.querySelector("#pr-house"), carrier = document.querySelector("#pr-carrier");
+      DB.drive(tl, S.start, S.dur, (t) => {
+        const c = mcam(t);
+        // resolve out of s06's push blur (seam E): 14 px -> 0 in 0.3 s
+        c.blur = 14 * (1 - DB.E.o2(DB.seg(t, S.start, S.start + 0.3)));
+        map.update(c);
+        const k = flip(t);
+        // clip the map to the slot as it arrives (full frame -> rounded slot)
+        const ix = SLOT.x * k, iy = SLOT.y * k, ir = (1920 - (SLOT.x + SLOT.w)) * k, ib = (1080 - (SLOT.y + SLOT.h)) * k;
+        box.style.clipPath = `inset(${iy.toFixed(1)}px ${ir.toFixed(1)}px ${ib.toFixed(1)}px ${ix.toFixed(1)}px round ${(22 * k).toFixed(1)}px)`;
+        const [cx0, cy0] = map.map(0, 0, c), [cx1, cy1] = map.map(1920, 1080, c);
+        gsap.set(carrier, { x: cx0, y: cy0, width: cx1 - cx0, height: cy1 - cy0 });
+        const mp = (p) => map.map(p[0], p[1], c);
+        spots.forEach((s, i) => {
+          const [x, y] = mp(s.p); s.P.update(x, y);
+          const col = t >= tUrg + i * 0.03 ? (s.urgent ? COL.o : i % 2 ? COL.b : COL.c) : COL.c;
+          s.P.rings.forEach((r) => (r.getAttribute("fill") === "none" ? r.setAttribute("stroke", col) : r.setAttribute("fill", col)));
+        });
+        crews.forEach((cr, ci) => {
+          // smooth Catmull-Rom through the road waypoints (small lateral offset so shared roads read as bundles)
+          const off = (ci % 4 - 1.5) * 4;
+          const P = cr.pts.map(mp);
+          let d = `M${P[0][0].toFixed(1)} ${P[0][1].toFixed(1)}`;
+          for (let i = 0; i < P.length - 1; i++) {
+            const p0 = P[Math.max(0, i - 1)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(P.length - 1, i + 2)];
+            const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6 + off], c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6 + off];
+            d += ` C${c1[0].toFixed(1)} ${c1[1].toFixed(1)} ${c2[0].toFixed(1)} ${c2[1].toFixed(1)} ${p2[0].toFixed(1)} ${(p2[1] + (i < P.length - 2 ? off : 0)).toFixed(1)}`;
+          }
+          cr.el.setAttribute("d", d); cr.casing.setAttribute("d", d);
+        });
+        objs.forEach((o) => {
+          const u = DB.seg(t, o.t1 - 0.5, o.t1);
+          if (u <= 0 || t > o.t1 + 0.1) { o.S.hide(); return; }
+          const [x, y] = mp(M.spots[o.idx]);
+          const e = DB.E.o3(u);
+          o.S.update({ x: o.from[0] + (x - o.from[0]) * e, y: o.from[1] + (y - o.from[1]) * e - Math.sin(e * Math.PI) * 120, size: 300 - 250 * e, mode: "tumble", u, blur: u > 0.15 && u < 0.7 ? 6 : 0 });
+        });
+        const [hx, hy] = mp(M.house);
+        gsap.set(house, { x: hx - 20, y: hy - 20 });
+      });
+      // 7: the window chrome resolves around the arriving map; problems light up (objects land first)
+      gsap.set("#pr-win", { opacity: 0 });
+      tl.fromTo("#pr-win", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out", immediateRender: false }, 0.35);
+      DB.arrive(tl, k7, T7 - S.start + 0.0);
+      objs.forEach((o) => { tl.set(`#pr-p${o.idx}`, { opacity: 1 }, o.t1 - S.start); });
+      spots.forEach((s, i) => { if (!objs.some((o) => o.idx === i)) tl.set(`#pr-p${i}`, { opacity: 1 }, T7 - S.start + 0.9 + i * 0.05); });
+      // 8: the ranked list slides in, urgent spots turn orange (in the drive)
+      DB.leaveUp(tl, k7, T8 - S.start);
+      DB.arrive(tl, k8, T8 - S.start);
+      rows.forEach((r, i) => { tl.set(r, { opacity: 1 }, tUrg - S.start + i * 0.06); tl.fromTo(r, { x: 60 }, { x: 0, duration: 0.24, ease: "power4.out", immediateRender: false }, tUrg - S.start + i * 0.06); });
+      // 9: one route per crew draws; crew cards fill in on the words
+      DB.leaveUp(tl, k8, T9 - S.start);
+      DB.arrive(tl, k9, T9 - S.start);
+      tl.to(rows, { opacity: 0, x: -40, duration: 0.18, ease: "power3.in", stagger: 0.03 }, T9 - S.start - 0.05);
+      crews.forEach((cr, i) => tl.fromTo([cr.casing, cr.el], { strokeDashoffset: 1.1 }, { strokeDashoffset: 0, duration: 0.45, ease: "power3.out", immediateRender: false }, tRoute - S.start + i * 0.06));
+      cards.forEach((cd, i) => { tl.set(cd, { opacity: 1 }, tEvery - S.start + i * 0.05); tl.fromTo(cd, { y: "+=40" }, { y: "-=40", duration: 0.16, ease: "power4.out", immediateRender: false }, tEvery - S.start + i * 0.05); });
+      tl.set("#pr-more", { opacity: 1 }, tEvery - S.start + 0.35);
+      // the suspicious house gets its cyan ring just before the rack focus (carrier of seam F)
+      tl.set("#pr-house", { opacity: 1 }, S.dur - 0.5);
+      tl.fromTo("#pr-house", { scale: 2 }, { scale: 1, duration: 0.3, ease: "power3.out", immediateRender: false }, S.dur - 0.5);
+      DB.leaveUp(tl, k9, S.dur - 0.05);
+      window.__timelines["s07"] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,4 @@
+.hyperframes/
+node_modules/
+assets/plates/*.jpg
+assets/plates/*.png

@@ -1,0 +1,97 @@
+{
+ "fps": 30,
+ "seams": [
+  {
+   "id": "A storm -> dark",
+   "cut": 4.945,
+   "technique": "cut-the-curve UP",
+   "exit": {
+    "selector": "#s01",
+    "axis": "y",
+    "dir": -1
+   },
+   "entry": {
+    "selector": "#s02",
+    "axis": "y",
+    "dir": -1
+   }
+  },
+  {
+   "id": "B dark -> meter",
+   "cut": 8.841,
+   "technique": "cut-the-curve UP",
+   "exit": {
+    "selector": "#s02",
+    "axis": "y",
+    "dir": -1
+   },
+   "entry": {
+    "selector": "#s03",
+    "axis": "y",
+    "dir": -1
+   }
+  },
+  {
+   "id": "C solar -> wide",
+   "cut": 14.295,
+   "technique": "cut-the-curve UP",
+   "exit": {
+    "selector": "#s03",
+    "axis": "y",
+    "dir": -1
+   },
+   "entry": {
+    "selector": "#s04",
+    "axis": "y",
+    "dir": -1
+   }
+  },
+  {
+   "id": "D wide -> unfold (the drop)",
+   "cut": 21.698,
+   "technique": "zoom-through (push)",
+   "exit": {
+    "selector": "#s04",
+    "axis": "z",
+    "dir": 1
+   },
+   "entry": {
+    "selector": "#s06",
+    "axis": "z",
+    "dir": 1,
+    "scanRoot": "#s06"
+   },
+   "blur": 18
+  },
+  {
+   "id": "G house -> dawn",
+   "cut": 36.893,
+   "technique": "cut-the-curve UP (sun enters rising)",
+   "exit": {
+    "selector": "#s10-in",
+    "axis": "y",
+    "dir": -1
+   },
+   "entry": {
+    "selector": "#s11",
+    "axis": "y",
+    "dir": -1
+   }
+  },
+  {
+   "id": "H dawn -> day",
+   "cut": 39.23,
+   "technique": "cut-the-curve UP",
+   "exit": {
+    "selector": "#s11",
+    "axis": "y",
+    "dir": -1
+   },
+   "entry": {
+    "selector": "#s12",
+    "axis": "y",
+    "dir": -1
+   }
+  }
+ ]
+}
