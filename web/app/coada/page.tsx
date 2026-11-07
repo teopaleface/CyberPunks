@@ -281,7 +281,7 @@ function Value({ w, abstained }: { w: WorkItem | null; abstained: boolean }) {
   if (!w) return null;
   const ev = w.impact.expected_value_lei;
   const ifTrue = w.impact.value_if_true_lei;
-  const lei = (n: number) => (n === 0 ? "0 lei" : fmtLei(n));
+  const lei = (n: number) => fmtLei(n);
   if (ev > 0 || !abstained) {
     return (
       <p className="mt-4 text-[15.5px]">
