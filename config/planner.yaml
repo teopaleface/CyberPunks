@@ -56,8 +56,9 @@ alerts:
 
 routing:
   solver: ortools                   # ortools | greedy
-  time_limit_s: 10                  # după atât, se păstrează cea mai bună soluție găsită
-  solution_limit: 400               # oprire după un număr fix de soluții: același plan la fiecare rulare
+  time_limit_s: 60                  # plasă de siguranță; în mod normal oprește limita de soluții de mai jos
+  solution_limit: 200               # oprire după un număr fix de soluții: același plan la fiecare rulare, oricât de ocupat
+                                    # e calculatorul (cu limita de 10 s, planul real ieșea puțin diferit de la o rulare la alta)
   briefing_min: 30                  # instructaj și încărcare la bază înainte de plecare
   break_min: 30                     # pauza din tură (scade din timpul disponibil)
   value_scale: 100                  # lei → bani, pentru costurile întregi din OR-Tools

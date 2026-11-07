@@ -195,7 +195,12 @@ def test_storm_region_cap(out_root: Path) -> None:
     rows = [variant(b, f"CT-Z{i}", **{"location.lon": 28.2 + 0.05 * i}) for i in range(cap + 2)]
     write_items(out_root, "B", rows)
     d = _decisions(agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root))
-    assert sum(1 for x in d.values() if x.rule_id == "R-B-REGION-CAP") == 2
+    capped = sum(1 for x in d.values() if x.rule_id == "R-B-REGION-CAP")
+    kept = [x for x in d.values() if x.rule_id == "R-B-PREPOSITION"]
+    # Cel mult `cap` zone păstrate și doar câte echipe pot ajunge la timp (în Dobrogea, o singură echipă de medie tensiune);
+    # restul cer întăriri la dispecer.
+    assert 1 <= len(kept) <= cap and capped == len(rows) - len(kept)
+    assert all(x.decision.value == "assigned" for x in kept)
 
 
 def test_plan_totals_are_consistent(out_root: Path) -> None:

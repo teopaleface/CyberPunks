@@ -721,6 +721,13 @@ def _storm_window(ctx: Context, p: Proposal) -> None:
     p.threshold.setdefault("arrive_before_start_min", float(before))
 
 
+def storm_min_score(ctx: Context, wi: WorkItem) -> float:
+    """Pragul de la care se mută echipe din timp: cel mai mare dintre config și pragul publicat de modelul B (extra.decision_threshold)."""
+    b_threshold = wi.extra.get("decision_threshold")
+    return max(float(ctx.settings.rule("storm", "preposition_min_score", default=0.15)),
+               float(b_threshold) if isinstance(b_threshold, (int, float)) and 0 < float(b_threshold) < 1 else 0.0)
+
+
 def rule_storm(ctx: Context, item: Item) -> Proposal:
     wi = item.wi
     pr = wi.prediction
@@ -750,9 +757,7 @@ def rule_storm(ctx: Context, item: Item) -> Proposal:
     if pr.score >= alert_min:
         sev = "critical" if pr.score >= crit_min else "warning"
         alerts.append(AlertSpec(sev, f"Risc de avarii: {_label(wi)}", risk))
-    b_threshold = wi.extra.get("decision_threshold")
-    min_score = max(float(ctx.settings.rule("storm", "preposition_min_score", default=0.15)),
-                    float(b_threshold) if isinstance(b_threshold, (int, float)) and 0 < float(b_threshold) < 1 else 0.0)
+    min_score = storm_min_score(ctx, wi)
     th["preposition_min_score"] = round(min_score, 3)
     if pr.score < min_score:
         return _final(
@@ -1133,33 +1138,104 @@ def _drop_unreachable_storms(ctx: Context, proposals: list[Proposal]) -> None:
             )
 
 
+def _storm_net_by_crew(ctx: Context, p: Proposal) -> dict[str, float]:
+    """Valoarea netă a turei trimise din timp, pentru fiecare echipă potrivită care ajunge înainte de ora limită:
+    valoarea așteptată minus costul turei minus drumul de la baza ei (aceleași formule ca estimate_costs)."""
+    wi = p.wi
+    start, _ = ctx.shift()
+    per_km = ctx.settings.econ("travel", "vehicle_cost_lei_per_km", 0.0)
+    per_hour = ctx.settings.econ("crew", "cost_lei_per_person_hour", 0.0) * wi.effort.crew_size
+    base = wi.impact.expected_value_lei - ((p.costs.action_cost + p.costs.outage_cost) if p.costs else 0.0)
+    out: dict[str, float] = {}
+    for c in ctx.eligible_crews(wi.effort.crew_skill.value, wi.effort.crew_size):
+        depot = ctx.settings.depots[c.depot_id]
+        km = ctx.travel.road_km(depot.lat, depot.lon, wi.location.lat, wi.location.lon)
+        minutes = ctx.travel.minutes(km)
+        if p.latest is not None and start + timedelta(minutes=minutes) > p.latest:
+            continue
+        net = base - (km * per_km + minutes / 60.0 * per_hour)
+        if net > 0:
+            out[c.crew_id] = net
+    return out
+
+
+def pick_storm_zones(nets: dict[int, dict[str, float]], region_of: dict[int, str], cap: int) -> set[int]:
+    """Zonele care primesc echipe: cel mult `cap` pe regiune, o echipă într-o singură zonă, suma valorilor nete cât mai mare.
+    Problemă mică de atribuire (câteva echipe, câteva zone): CP-SAT din OR-Tools o rezolvă exact; fără OR-Tools,
+    perechile echipă-zonă cele mai valoroase întâi."""
+    pairs = [(i, c) for i, by_crew in nets.items() for c in by_crew]
+    if not pairs or cap <= 0:
+        return set()
+    try:
+        from ortools.sat.python import cp_model
+    except ImportError:
+        cp_model = None
+    if cp_model is not None:
+        m = cp_model.CpModel()
+        x = {(i, c): m.NewBoolVar(f"x_{i}_{c}") for i, c in pairs}
+        for i, by_crew in nets.items():
+            m.Add(sum(x[i, c] for c in by_crew) <= 1)
+        for crew in {c for _, c in pairs}:
+            m.Add(sum(x[i, c] for i, c in pairs if c == crew) <= 1)
+        for region in set(region_of.values()):
+            m.Add(sum(x[i, c] for i, c in pairs if region_of[i] == region) <= cap)
+        m.Maximize(sum(round(nets[i][c] * 100) * x[i, c] for i, c in pairs))
+        solver = cp_model.CpSolver()
+        solver.parameters.max_time_in_seconds = 5.0
+        solver.parameters.num_workers = 1  # rezultat la fel la fiecare rulare
+        if solver.Solve(m) in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+            return {i for i, c in pairs if solver.Value(x[i, c])}
+    chosen: set[int] = set()
+    used: set[str] = set()
+    per_region: dict[str, int] = {}
+    for i, c in sorted(pairs, key=lambda ic: -nets[ic[0]][ic[1]]):
+        if i in chosen or c in used or per_region.get(region_of[i], 0) >= cap:
+            continue
+        chosen.add(i)
+        used.add(c)
+        per_region[region_of[i]] = per_region.get(region_of[i], 0) + 1
+    return chosen
+
+
 def cap_storm_per_region(ctx: Context, proposals: list[Proposal]) -> None:
-    """Cel mult `max_crews_per_region` echipe trimise din timp într-o regiune; restul rămân pentru lucrările curente."""
+    """Cel mult `max_crews_per_region` echipe trimise din timp într-o regiune; restul rămân pentru lucrările curente.
+    Zonele păstrate sunt cele unde echipele aduc cea mai mare valoare netă, socotită de la baza fiecărei echipe
+    (fiecare echipă merge într-o singură zonă), nu primele din fișier."""
     _drop_unreachable_storms(ctx, proposals)
     cap = int(ctx.settings.rule("storm", "max_crews_per_region", default=2))
-    by_region: dict[str, list[int]] = {}
+    region_of: dict[int, str] = {}
     for i, p in enumerate(proposals):
         if p.route and p.action == "preposition_crew" and not p.mandatory:
             rid = ctx.settings.region_of_county(p.wi.location.county) or ""
-            region = (ctx.settings.regions.get(rid) or {}).get("label_ro", "zona necunoscută")
-            by_region.setdefault(region, []).append(i)
-    for region, idxs in by_region.items():
-        idxs.sort(key=lambda i: proposals[i].priority or 0.0, reverse=True)
-        for i in idxs[cap:]:
-            p = proposals[i]
-            # Valoare peste cost, dar plafonul regional e atins: agentul nu amână în tăcere, cere întăriri și lasă decizia
-            # dispecerului (aprobarea face lucrarea obligatorie și o trimite cu prima echipă liberă).
-            proposals[i] = _final(
-                p.item,
-                DecisionType.human_review,
-                "R-B-REGION-CAP",
-                f"{p.reason_ro} Dar în regiunea {region} sunt deja {cap} echipe trimise din timp (plafonul din config): "
-                "cer întăriri (echipe din alte regiuni sau contractori); decide dispecerul.",
-                "human_review",
-                {**p.threshold, "max_crews_per_region": float(cap)},
-                alerts=p.alerts,
-                priority=p.priority,
-            )
+            region_of[i] = (ctx.settings.regions.get(rid) or {}).get("label_ro", "zona necunoscută")
+    counts: dict[str, int] = {}
+    for region in region_of.values():
+        counts[region] = counts.get(region, 0) + 1
+    over = {i: r for i, r in region_of.items() if counts[r] > cap}
+    if not over:
+        return
+    keep = pick_storm_zones({i: _storm_net_by_crew(ctx, proposals[i]) for i in over}, over, cap)
+    for i, region in over.items():
+        if i in keep:
+            continue
+        p = proposals[i]
+        kept_here = sorted(_label(proposals[j].wi) for j in keep if over[j] == region)
+        kept = ", ".join(kept_here) or "niciuna"
+        limit = (f"plafonul e de {cap} echipe trimise din timp (config)" if len(kept_here) >= cap
+                 else f"doar {len(kept_here)} echipe potrivite ajung la timp")
+        # Valoare peste cost, dar plafonul regional e atins: agentul nu amână în tăcere, cere întăriri și lasă decizia
+        # dispecerului (aprobarea face lucrarea obligatorie și o trimite cu prima echipă liberă).
+        proposals[i] = _final(
+            p.item,
+            DecisionType.human_review,
+            "R-B-REGION-CAP",
+            f"{p.reason_ro} Dar în regiunea {region} {limit}, iar ele merg unde aduc cea mai mare valoare netă de la baza "
+            f"fiecăreia: {kept}. Cer întăriri (echipe din alte regiuni sau contractori); decide dispecerul.",
+            "human_review",
+            {**p.threshold, "max_crews_per_region": float(cap)},
+            alerts=p.alerts,
+            priority=p.priority,
+        )
 
 
 # ------------------------------------------------------------------ intrarea principală
@@ -1224,15 +1300,19 @@ def cap_mandatory_safety(ctx: Context, proposals: list[Proposal]) -> None:
                                 "remote_reading", p.threshold, costs=remote, alerts=p.alerts)
 
 
+def _urgent_storm(ctx: Context, wi: WorkItem) -> bool:
+    return wi.source == Source.B and wi.prediction.score >= storm_min_score(ctx, wi)
+
+
 def cap_human_queue(ctx: Context, proposals: list[Proposal]) -> None:
     """Omul e și el o resursă limitată: cel mult `human_review_max_per_day` cazuri pe zi în coada „nu sunt sigur”.
-    În ordine: cererile de întăriri pentru furtună, riscul pentru oameni, apoi valoarea așteptată, până se umple coada.
+    În ordine: furtunile de mâine (întăriri, zone incerte), riscul pentru oameni, apoi valoarea așteptată, până se umple coada.
     Ce nu încape rămâne la urmărire și revine în planul următor."""
     cap = int(ctx.g("human_review_max_per_day", 25))
     queue = [i for i, p in enumerate(proposals) if p.decision == DecisionType.human_review]
-    # Ordinea în coadă: întâi cererile de întăriri pentru furtună (puține și urgente: furtuna vine mâine după-amiază),
-    # apoi riscul pentru oameni cu semnal puternic, apoi valoarea așteptată.
-    queue.sort(key=lambda i: (proposals[i].rule_id != "R-B-REGION-CAP", not strong_safety(ctx, proposals[i].wi),
+    # Ordinea în coadă: întâi furtunile de mâine peste pragul modelului B (cereri de întăriri și zone incerte: puține și
+    # urgente, decizia nu poate aștepta planul următor), apoi riscul pentru oameni cu semnal puternic, apoi valoarea așteptată.
+    queue.sort(key=lambda i: (not _urgent_storm(ctx, proposals[i].wi), not strong_safety(ctx, proposals[i].wi),
                               -proposals[i].wi.impact.expected_value_lei))
     for i in queue[cap:]:
         p = proposals[i]
@@ -1265,7 +1345,8 @@ RULE_CATALOG: dict[str, str] = {
     "R-B-PREPOSITION": "Furtună: valoarea așteptată peste costul turei; echipa ajunge înainte de fereastra de risc.",
     "R-B-BELOW-COST": "Furtună cu risc mic: doar alertă la dispecerat.",
     "R-B-BELOW-THRESHOLD": "Furtună: probabilitatea e sub pragul modelului B pentru un eveniment; nu se mută echipe, oricât de mare e zona.",
-    "R-B-REGION-CAP": "Furtună: plafonul de echipe pe regiune e atins.",
+    "R-B-REGION-CAP": "Furtună: plafonul de echipe pe regiune e atins; echipele merg în zonele cu cea mai mare valoare netă "
+                      "de la baza lor, pentru restul agentul cere întăriri.",
     "R-B-TOO-LATE": "Furtună: nicio echipă nu poate ajunge înainte de fereastra de risc.",
     "R-C-WATCH": "Tensiune: sub prag sau sub limită chiar și în scenariul pesimist: urmărire.",
     "R-C-TAP": "Tensiune: întreruperea a fost anunțată la timp, schimbarea prizei merită: echipă.",
