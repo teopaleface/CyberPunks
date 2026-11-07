@@ -9,6 +9,37 @@ Blender Cycles (the other team), rendered from `camera_path.json`. The film keep
 clean seam: the 3D layer is a swappable full-frame image sequence, and the 2D layer
 reads only `film/assets/tracks.js`.
 
+## PAUSED (7 Nov, ~19:50): waiting for the new ~60 s script
+
+Teo rejected the 30 s animatic. He does not understand the purpose, what Daybreak does or how it
+works, and 30 s is too short. A new script of about 60 s (who, problem, how it works, result) is
+being written. Nothing was rendered after the pause.
+
+**State of the code at the pause**
+- **Last delivered animatic:** `film/renders/local/daybreak_animatic_v2.mp4` (30 s).
+- **3D objects synced.** `render/sync_objects.py` built spin and tumble atlases for all 9
+  objects in `film/assets/objects/` (45 MB). The film uses them automatically.
+- **Meter = unsure house** (done in code: `src/planet/world.js`, `film/assets/layout.js`).
+  `tracks`/frames were **not** re-exported after this change, so `film/assets/tracks.js` and
+  `frames3d/` still show the meter on the R3 house.
+- **Dawn in progress** (code changed, not rendered):
+  - The orange sun is now drawn in the 3D final pass, behind the geometry and composited by
+    coverage (`src/studio.js` `uSun`; `main.js` `settingsAt`), so the village and trucks
+    silhouette against it. The 2D sun in `film/compositions/dawn.html` should be removed when
+    this lands.
+  - The camera is telephoto and low on the curved horizon (`timeline.js`: az 40, el 12, dist
+    5.2, fov 12, shift [-0.354, 2.07]). Probes showed a clean horizon and a free left column,
+    but the trucks were partly hidden. A test of az 0/80/130/180/230/300 at el 6 is in
+    `/tmp/db/azs.jpg` (scratch).
+  - The five trucks roll out along R1 from 20.457 s (`scene.js`).
+  - Still to do: bigger hard hats in the left column (`film/compositions/objects.html`, the HATS
+    array).
+- **Seam gate:** the last full run passed 7/7 with `render/seam-gate-synced.mjs`.
+- **To resume:** `node render/film3d.mjs tracks` → `node render/film3d.mjs frames --from 0 --to 899
+  --spp 48 --mblur` → `cd film && npx hyperframes lint && node ../render/seam-gate-synced.mjs verify
+  --ledger ledger.json --project .`. For a longer film, the timeline (`src/planet/timeline.js`,
+  `film/index.html` hosts, `ledger.json`) must be re-planned from the new script.
+
 ## Milestone 2 v2: style frames v2 + MOTION_SCRIPT + 3D objects (19:30)
 
 - **Animatic:** `film/renders/local/daybreak_animatic_v2.mp4`. It is 1920×1080, 30 fps, H.264 yuv420p, AAC with POWER, and git-ignored. The render took 12.7 s (`npx hyperframes render --quality draft`).

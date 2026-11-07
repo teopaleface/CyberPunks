@@ -61,7 +61,14 @@ function settingsAt(t) {
   rim.intensity = 1.6 * (1 - 0.5 * L.key.intensity / 6);
   scene.updateMatrixWorld(true);
   const fitR = 1.85 + (1 - f) * 1.6;
-  return { cam, key: L.key, sky: L.sky, env: L.env, exposure: L.exposure, fade, fit: { center: new THREE.Vector3(0, 0.25 + (1 - f) * 0.75, 0), radius: fitR }, f };
+  // dawn: the giant orange sun rises behind the horizon (screen space, behind the geometry)
+  let sun = null;
+  if (t >= 20.457 && t < 25.2) {
+    const rise = 1 - Math.pow(1 - seg(t, 20.457, 21.657), 2);
+    const sink = Math.pow(seg(t, 24.85, 25.124), 3);
+    sun = { x: 1480 * W / 1920, y: (640 + 300 * (1 - rise) + 520 * sink) * H / 1080, r: 420 * W / 1920 };
+  }
+  return { cam, key: L.key, sky: L.sky, env: L.env, exposure: L.exposure, fade, sun, fit: { center: new THREE.Vector3(0, 0.25 + (1 - f) * 0.75, 0), radius: fitR }, f };
 }
 
 function renderFrame(t, spp = 32, opts = {}) {

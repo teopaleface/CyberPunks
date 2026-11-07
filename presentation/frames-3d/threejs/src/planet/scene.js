@@ -453,6 +453,15 @@ export function applyAt(SC, t) {
     if (SC.unsure) place(SC.askPin, SC.unsure.x, SC.unsure.z, f, 0, SC.unsure.ridge * 0.92 - Math.sin(kb * Math.PI) * 0.12);
   }
 
+  // daybreak: all five crews roll out in a line along the main road
+  if (t >= 20.457) {
+    const r1 = SMOOTH.R1;
+    SC.trucks.forEach((tk, i) => {
+      const s = 2.2 + (4 - i) * 1.45 + (t - 20.457) * 0.55;
+      const q = polyAt(r1, s);
+      place(tk, q.x, q.z, f, Math.atan2(q.dx, q.dz), 0.035);
+    });
+  }
   // workers: by the trucks in the depot, and at the fallen pole after it falls
   SC.depotWorkers.forEach((w, i) => {
     const pk = SC.park[[1, 2, 3][i]];

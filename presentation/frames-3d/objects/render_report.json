@@ -1,0 +1,51 @@
+{
+  "seconds_final_deliverables": 329.838,
+  "seconds_sequence_render_attempts": 1207.802,
+  "per_object": {
+    "truck": {
+      "hero_seconds": 4.048,
+      "spin_seconds": 17.325,
+      "tumble_seconds": 17.782
+    },
+    "meter": {
+      "hero_seconds": 2.131,
+      "spin_seconds": 18.303,
+      "tumble_seconds": 15.957
+    },
+    "pole": {
+      "hero_seconds": 3.46,
+      "spin_seconds": 21.602,
+      "tumble_seconds": 15.643
+    },
+    "solar": {
+      "hero_seconds": 2.307,
+      "spin_seconds": 18.316,
+      "tumble_seconds": 16.89
+    },
+    "hardhat": {
+      "hero_seconds": 2.077,
+      "spin_seconds": 17.751,
+      "tumble_seconds": 16.209
+    },
+    "pin_orange": {
+      "hero_seconds": 2.379,
+      "spin_seconds": 15.759,
+      "tumble_seconds": 11.743
+    },
+    "pin_cyan": {
+      "hero_seconds": 1.387,
+      "spin_seconds": 14.491,
+      "tumble_seconds": 11.595
+    },
+    "pin_blue": {
+      "hero_seconds": 1.557,
+      "spin_seconds": 17.124,
+      "tumble_seconds": 10.902
+    },
+    "cloud": {
+      "hero_seconds": 2.54,
+      "spin_seconds": 32.005,
+      "tumble_seconds": 18.555
+    }
+  }
+}

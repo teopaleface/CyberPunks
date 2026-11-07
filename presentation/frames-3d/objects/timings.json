@@ -6,56 +6,74 @@
     "spin": {
       "frames": 72,
       "rendered_this_run": 72,
-      "wall_seconds_this_run": 17.162,
-      "sum_render_seconds_this_run": 17.15,
+      "wall_seconds_this_run": 17.371,
+      "sum_render_seconds_this_run": 17.323,
       "samples": 24,
       "motion_blur": false,
       "shutter_frames": 0,
       "previous_run": {
         "frames": 72,
-        "rendered_this_run": 0,
-        "wall_seconds_this_run": 0.001,
-        "sum_render_seconds_this_run": 0,
+        "rendered_this_run": 72,
+        "wall_seconds_this_run": 17.162,
+        "sum_render_seconds_this_run": 17.15,
         "samples": 24,
         "motion_blur": false,
         "shutter_frames": 0,
         "previous_run": {
           "frames": 72,
-          "rendered_this_run": 59,
-          "wall_seconds_this_run": 163.91,
-          "sum_render_seconds_this_run": 163.869,
+          "rendered_this_run": 0,
+          "wall_seconds_this_run": 0.001,
+          "sum_render_seconds_this_run": 0,
           "samples": 24,
           "motion_blur": false,
           "shutter_frames": 0,
-          "previous_run": null
+          "previous_run": {
+            "frames": 72,
+            "rendered_this_run": 59,
+            "wall_seconds_this_run": 163.91,
+            "sum_render_seconds_this_run": 163.869,
+            "samples": 24,
+            "motion_blur": false,
+            "shutter_frames": 0,
+            "previous_run": null
+          }
         }
       }
     },
     "tumble": {
       "frames": 48,
       "rendered_this_run": 48,
-      "wall_seconds_this_run": 13.012,
-      "sum_render_seconds_this_run": 13.004,
+      "wall_seconds_this_run": 17.815,
+      "sum_render_seconds_this_run": 17.777,
       "samples": 24,
       "motion_blur": true,
       "shutter_frames": 0.72,
       "previous_run": {
         "frames": 48,
-        "rendered_this_run": 0,
-        "wall_seconds_this_run": 0.0,
-        "sum_render_seconds_this_run": 0,
+        "rendered_this_run": 48,
+        "wall_seconds_this_run": 13.012,
+        "sum_render_seconds_this_run": 13.004,
         "samples": 24,
         "motion_blur": true,
         "shutter_frames": 0.72,
         "previous_run": {
           "frames": 48,
-          "rendered_this_run": 48,
-          "wall_seconds_this_run": 315.932,
-          "sum_render_seconds_this_run": 315.883,
+          "rendered_this_run": 0,
+          "wall_seconds_this_run": 0.0,
+          "sum_render_seconds_this_run": 0,
           "samples": 24,
           "motion_blur": true,
           "shutter_frames": 0.72,
-          "previous_run": null
+          "previous_run": {
+            "frames": 48,
+            "rendered_this_run": 48,
+            "wall_seconds_this_run": 315.932,
+            "sum_render_seconds_this_run": 315.883,
+            "samples": 24,
+            "motion_blur": true,
+            "shutter_frames": 0.72,
+            "previous_run": null
+          }
         }
       }
     }
@@ -67,39 +85,57 @@
     "spin": {
       "frames": 72,
       "rendered_this_run": 72,
-      "wall_seconds_this_run": 15.063,
-      "sum_render_seconds_this_run": 15.053,
+      "wall_seconds_this_run": 18.327,
+      "sum_render_seconds_this_run": 18.304,
       "samples": 24,
       "motion_blur": false,
       "shutter_frames": 0,
       "previous_run": {
         "frames": 72,
-        "rendered_this_run": 46,
-        "wall_seconds_this_run": 12.966,
-        "sum_render_seconds_this_run": 12.959,
+        "rendered_this_run": 72,
+        "wall_seconds_this_run": 15.063,
+        "sum_render_seconds_this_run": 15.053,
         "samples": 24,
         "motion_blur": false,
         "shutter_frames": 0,
-        "previous_run": null
+        "previous_run": {
+          "frames": 72,
+          "rendered_this_run": 46,
+          "wall_seconds_this_run": 12.966,
+          "sum_render_seconds_this_run": 12.959,
+          "samples": 24,
+          "motion_blur": false,
+          "shutter_frames": 0,
+          "previous_run": null
+        }
       }
     },
     "tumble": {
       "frames": 48,
       "rendered_this_run": 48,
-      "wall_seconds_this_run": 12.731,
-      "sum_render_seconds_this_run": 12.721,
+      "wall_seconds_this_run": 15.967,
+      "sum_render_seconds_this_run": 15.954,
       "samples": 24,
       "motion_blur": true,
       "shutter_frames": 0.72,
       "previous_run": {
         "frames": 48,
         "rendered_this_run": 48,
-        "wall_seconds_this_run": 13.546,
-        "sum_render_seconds_this_run": 13.538,
+        "wall_seconds_this_run": 12.731,
+        "sum_render_seconds_this_run": 12.721,
         "samples": 24,
         "motion_blur": true,
         "shutter_frames": 0.72,
-        "previous_run": null
+        "previous_run": {
+          "frames": 48,
+          "rendered_this_run": 48,
+          "wall_seconds_this_run": 13.546,
+          "sum_render_seconds_this_run": 13.538,
+          "samples": 24,
+          "motion_blur": true,
+          "shutter_frames": 0.72,
+          "previous_run": null
+        }
       }
     }
   },
@@ -110,22 +146,40 @@
     "spin": {
       "frames": 72,
       "rendered_this_run": 72,
-      "wall_seconds_this_run": 14.236,
-      "sum_render_seconds_this_run": 14.219,
+      "wall_seconds_this_run": 21.636,
+      "sum_render_seconds_this_run": 21.599,
       "samples": 24,
       "motion_blur": false,
       "shutter_frames": 0,
-      "previous_run": null
+      "previous_run": {
+        "frames": 72,
+        "rendered_this_run": 72,
+        "wall_seconds_this_run": 14.236,
+        "sum_render_seconds_this_run": 14.219,
+        "samples": 24,
+        "motion_blur": false,
+        "shutter_frames": 0,
+        "previous_run": null
+      }
     },
     "tumble": {
       "frames": 48,
       "rendered_this_run": 48,
-      "wall_seconds_this_run": 11.341,
-      "sum_render_seconds_this_run": 11.33,
+      "wall_seconds_this_run": 15.661,
+      "sum_render_seconds_this_run": 15.639,
       "samples": 24,
       "motion_blur": true,
       "shutter_frames": 0.72,
-      "previous_run": null
+      "previous_run": {
+        "frames": 48,
+        "rendered_this_run": 48,
+        "wall_seconds_this_run": 11.341,
+        "sum_render_seconds_this_run": 11.33,
+        "samples": 24,
+        "motion_blur": true,
+        "shutter_frames": 0.72,
+        "previous_run": null
+      }
     }
   },
   "solar": {
@@ -135,22 +189,40 @@
     "spin": {
       "frames": 72,
       "rendered_this_run": 72,
-      "wall_seconds_this_run": 17.075,
-      "sum_render_seconds_this_run": 17.065,
+      "wall_seconds_this_run": 18.338,
+      "sum_render_seconds_this_run": 18.313,
       "samples": 24,
       "motion_blur": false,
       "shutter_frames": 0,
-      "previous_run": null
+      "previous_run": {
+        "frames": 72,
+        "rendered_this_run": 72,
+        "wall_seconds_this_run": 17.075,
+        "sum_render_seconds_this_run": 17.065,
+        "samples": 24,
+        "motion_blur": false,
+        "shutter_frames": 0,
+        "previous_run": null
+      }
     },
     "tumble": {
       "frames": 48,
       "rendered_this_run": 48,
-      "wall_seconds_this_run": 16.326,
-      "sum_render_seconds_this_run": 16.296,
+      "wall_seconds_this_run": 16.922,
+      "sum_render_seconds_this_run": 16.891,
       "samples": 24,
       "motion_blur": true,
       "shutter_frames": 0.72,
-      "previous_run": null
+      "previous_run": {
+        "frames": 48,
+        "rendered_this_run": 48,
+        "wall_seconds_this_run": 16.326,
+        "sum_render_seconds_this_run": 16.296,
+        "samples": 24,
+        "motion_blur": true,
+        "shutter_frames": 0.72,
+        "previous_run": null
+      }
     }
   },
   "hardhat": {
@@ -160,22 +232,40 @@
     "spin": {
       "frames": 72,
       "rendered_this_run": 72,
-      "wall_seconds_this_run": 18.898,
-      "sum_render_seconds_this_run": 18.792,
+      "wall_seconds_this_run": 17.779,
+      "sum_render_seconds_this_run": 17.754,
       "samples": 24,
       "motion_blur": false,
       "shutter_frames": 0,
-      "previous_run": null
+      "previous_run": {
+        "frames": 72,
+        "rendered_this_run": 72,
+        "wall_seconds_this_run": 18.898,
+        "sum_render_seconds_this_run": 18.792,
+        "samples": 24,
+        "motion_blur": false,
+        "shutter_frames": 0,
+        "previous_run": null
+      }
     },
     "tumble": {
       "frames": 48,
       "rendered_this_run": 48,
-      "wall_seconds_this_run": 14.181,
-      "sum_render_seconds_this_run": 14.167,
+      "wall_seconds_this_run": 16.223,
+      "sum_render_seconds_this_run": 16.208,
       "samples": 24,
       "motion_blur": true,
       "shutter_frames": 0.72,
-      "previous_run": null
+      "previous_run": {
+        "frames": 48,
+        "rendered_this_run": 48,
+        "wall_seconds_this_run": 14.181,
+        "sum_render_seconds_this_run": 14.167,
+        "samples": 24,
+        "motion_blur": true,
+        "shutter_frames": 0.72,
+        "previous_run": null
+      }
     }
   },
   "pin_orange": {
@@ -185,22 +275,40 @@
     "spin": {
       "frames": 72,
       "rendered_this_run": 72,
-      "wall_seconds_this_run": 13.49,
-      "sum_render_seconds_this_run": 13.48,
+      "wall_seconds_this_run": 15.78,
+      "sum_render_seconds_this_run": 15.761,
       "samples": 24,
       "motion_blur": false,
       "shutter_frames": 0,
-      "previous_run": null
+      "previous_run": {
+        "frames": 72,
+        "rendered_this_run": 72,
+        "wall_seconds_this_run": 13.49,
+        "sum_render_seconds_this_run": 13.48,
+        "samples": 24,
+        "motion_blur": false,
+        "shutter_frames": 0,
+        "previous_run": null
+      }
     },
     "tumble": {
       "frames": 48,
       "rendered_this_run": 48,
-      "wall_seconds_this_run": 9.517,
-      "sum_render_seconds_this_run": 9.51,
+      "wall_seconds_this_run": 11.764,
+      "sum_render_seconds_this_run": 11.74,
       "samples": 24,
       "motion_blur": true,
       "shutter_frames": 0.72,
-      "previous_run": null
+      "previous_run": {
+        "frames": 48,
+        "rendered_this_run": 48,
+        "wall_seconds_this_run": 9.517,
+        "sum_render_seconds_this_run": 9.51,
+        "samples": 24,
+        "motion_blur": true,
+        "shutter_frames": 0.72,
+        "previous_run": null
+      }
     }
   },
   "pin_cyan": {
@@ -210,22 +318,40 @@
     "spin": {
       "frames": 72,
       "rendered_this_run": 72,
-      "wall_seconds_this_run": 13.187,
-      "sum_render_seconds_this_run": 13.178,
+      "wall_seconds_this_run": 14.514,
+      "sum_render_seconds_this_run": 14.492,
       "samples": 24,
       "motion_blur": false,
       "shutter_frames": 0,
-      "previous_run": null
+      "previous_run": {
+        "frames": 72,
+        "rendered_this_run": 72,
+        "wall_seconds_this_run": 13.187,
+        "sum_render_seconds_this_run": 13.178,
+        "samples": 24,
+        "motion_blur": false,
+        "shutter_frames": 0,
+        "previous_run": null
+      }
     },
     "tumble": {
       "frames": 48,
       "rendered_this_run": 48,
-      "wall_seconds_this_run": 8.941,
-      "sum_render_seconds_this_run": 8.935,
+      "wall_seconds_this_run": 11.617,
+      "sum_render_seconds_this_run": 11.596,
       "samples": 24,
       "motion_blur": true,
       "shutter_frames": 0.72,
-      "previous_run": null
+      "previous_run": {
+        "frames": 48,
+        "rendered_this_run": 48,
+        "wall_seconds_this_run": 8.941,
+        "sum_render_seconds_this_run": 8.935,
+        "samples": 24,
+        "motion_blur": true,
+        "shutter_frames": 0.72,
+        "previous_run": null
+      }
     }
   },
   "pin_blue": {
@@ -235,22 +361,40 @@
     "spin": {
       "frames": 72,
       "rendered_this_run": 72,
-      "wall_seconds_this_run": 12.983,
-      "sum_render_seconds_this_run": 12.972,
+      "wall_seconds_this_run": 17.152,
+      "sum_render_seconds_this_run": 17.126,
       "samples": 24,
       "motion_blur": false,
       "shutter_frames": 0,
-      "previous_run": null
+      "previous_run": {
+        "frames": 72,
+        "rendered_this_run": 72,
+        "wall_seconds_this_run": 12.983,
+        "sum_render_seconds_this_run": 12.972,
+        "samples": 24,
+        "motion_blur": false,
+        "shutter_frames": 0,
+        "previous_run": null
+      }
     },
     "tumble": {
       "frames": 48,
       "rendered_this_run": 48,
-      "wall_seconds_this_run": 8.835,
-      "sum_render_seconds_this_run": 8.827,
+      "wall_seconds_this_run": 10.947,
+      "sum_render_seconds_this_run": 10.899,
       "samples": 24,
       "motion_blur": true,
       "shutter_frames": 0.72,
-      "previous_run": null
+      "previous_run": {
+        "frames": 48,
+        "rendered_this_run": 48,
+        "wall_seconds_this_run": 8.835,
+        "sum_render_seconds_this_run": 8.827,
+        "samples": 24,
+        "motion_blur": true,
+        "shutter_frames": 0.72,
+        "previous_run": null
+      }
     }
   },
   "cloud": {
@@ -260,22 +404,40 @@
     "spin": {
       "frames": 72,
       "rendered_this_run": 72,
-      "wall_seconds_this_run": 26.987,
-      "sum_render_seconds_this_run": 26.976,
+      "wall_seconds_this_run": 32.036,
+      "sum_render_seconds_this_run": 32.004,
       "samples": 24,
       "motion_blur": false,
       "shutter_frames": 0,
-      "previous_run": null
+      "previous_run": {
+        "frames": 72,
+        "rendered_this_run": 72,
+        "wall_seconds_this_run": 26.987,
+        "sum_render_seconds_this_run": 26.976,
+        "samples": 24,
+        "motion_blur": false,
+        "shutter_frames": 0,
+        "previous_run": null
+      }
     },
     "tumble": {
       "frames": 48,
       "rendered_this_run": 48,
-      "wall_seconds_this_run": 14.015,
-      "sum_render_seconds_this_run": 14.006,
+      "wall_seconds_this_run": 18.581,
+      "sum_render_seconds_this_run": 18.554,
       "samples": 24,
       "motion_blur": true,
       "shutter_frames": 0.72,
-      "previous_run": null
+      "previous_run": {
+        "frames": 48,
+        "rendered_this_run": 48,
+        "wall_seconds_this_run": 14.015,
+        "sum_render_seconds_this_run": 14.006,
+        "samples": 24,
+        "motion_blur": true,
+        "shutter_frames": 0.72,
+        "previous_run": null
+      }
     }
   }
 }

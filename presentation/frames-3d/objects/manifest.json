@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "objects": [
+    {
+      "name": "truck",
+      "manifest": "truck/manifest.json"
+    },
+    {
+      "name": "meter",
+      "manifest": "meter/manifest.json"
+    },
+    {
+      "name": "pole",
+      "manifest": "pole/manifest.json"
+    },
+    {
+      "name": "solar",
+      "manifest": "solar/manifest.json"
+    },
+    {
+      "name": "hardhat",
+      "manifest": "hardhat/manifest.json"
+    },
+    {
+      "name": "pin_orange",
+      "manifest": "pin_orange/manifest.json"
+    },
+    {
+      "name": "pin_cyan",
+      "manifest": "pin_cyan/manifest.json"
+    },
+    {
+      "name": "pin_blue",
+      "manifest": "pin_blue/manifest.json"
+    },
+    {
+      "name": "cloud",
+      "manifest": "cloud/manifest.json"
+    }
+  ],
+  "contact_sheet": "contact_navy.jpg",
+  "contact_order": "Left to right, top to bottom",
+  "navy": "#000F1E",
+  "total_sequence_frames": 1080,
+  "total_hero_images": 9
+}

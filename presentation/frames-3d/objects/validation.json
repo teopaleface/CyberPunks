@@ -1,0 +1,235 @@
+{
+  "all_images_decoded": true,
+  "all_images_rgba": true,
+  "all_images_have_transparency": true,
+  "all_images_unclipped_at_alpha_gt_8": true,
+  "object_count": 9,
+  "sequence_frame_count": 1080,
+  "objects": {
+    "truck": {
+      "hero": {
+        "alpha_bbox_px": [
+          191,
+          410,
+          1362,
+          1278
+        ],
+        "min_padding_px": 191,
+        "bytes": 1445845
+      },
+      "sequences": {
+        "spin": {
+          "frame_count": 72,
+          "minimum_padding_px": 173,
+          "total_bytes": 37132830
+        },
+        "tumble": {
+          "frame_count": 48,
+          "minimum_padding_px": 122,
+          "total_bytes": 24492515
+        }
+      },
+      "hero_landing_max_bbox_edge_difference_px": 0
+    },
+    "meter": {
+      "hero": {
+        "alpha_bbox_px": [
+          451,
+          191,
+          1199,
+          1319
+        ],
+        "min_padding_px": 191,
+        "bytes": 1620921
+      },
+      "sequences": {
+        "spin": {
+          "frame_count": 72,
+          "minimum_padding_px": 171,
+          "total_bytes": 38246254
+        },
+        "tumble": {
+          "frame_count": 48,
+          "minimum_padding_px": 122,
+          "total_bytes": 26662239
+        }
+      },
+      "hero_landing_max_bbox_edge_difference_px": 1
+    },
+    "pole": {
+      "hero": {
+        "alpha_bbox_px": [
+          355,
+          191,
+          1281,
+          1312
+        ],
+        "min_padding_px": 191,
+        "bytes": 1130934
+      },
+      "sequences": {
+        "spin": {
+          "frame_count": 72,
+          "minimum_padding_px": 167,
+          "total_bytes": 30087893
+        },
+        "tumble": {
+          "frame_count": 48,
+          "minimum_padding_px": 122,
+          "total_bytes": 20178485
+        }
+      },
+      "hero_landing_max_bbox_edge_difference_px": 1
+    },
+    "solar": {
+      "hero": {
+        "alpha_bbox_px": [
+          191,
+          310,
+          1362,
+          1374
+        ],
+        "min_padding_px": 191,
+        "bytes": 1899720
+      },
+      "sequences": {
+        "spin": {
+          "frame_count": 72,
+          "minimum_padding_px": 124,
+          "total_bytes": 55238556
+        },
+        "tumble": {
+          "frame_count": 48,
+          "minimum_padding_px": 122,
+          "total_bytes": 30376394
+        }
+      },
+      "hero_landing_max_bbox_edge_difference_px": 1
+    },
+    "hardhat": {
+      "hero": {
+        "alpha_bbox_px": [
+          233,
+          493,
+          1409,
+          1357
+        ],
+        "min_padding_px": 191,
+        "bytes": 1414426
+      },
+      "sequences": {
+        "spin": {
+          "frame_count": 72,
+          "minimum_padding_px": 250,
+          "total_bytes": 31088352
+        },
+        "tumble": {
+          "frame_count": 48,
+          "minimum_padding_px": 122,
+          "total_bytes": 22424238
+        }
+      },
+      "hero_landing_max_bbox_edge_difference_px": 1
+    },
+    "pin_orange": {
+      "hero": {
+        "alpha_bbox_px": [
+          547,
+          190,
+          1053,
+          1321
+        ],
+        "min_padding_px": 190,
+        "bytes": 919279
+      },
+      "sequences": {
+        "spin": {
+          "frame_count": 72,
+          "minimum_padding_px": 178,
+          "total_bytes": 27116706
+        },
+        "tumble": {
+          "frame_count": 48,
+          "minimum_padding_px": 122,
+          "total_bytes": 17545515
+        }
+      },
+      "hero_landing_max_bbox_edge_difference_px": 0
+    },
+    "pin_cyan": {
+      "hero": {
+        "alpha_bbox_px": [
+          547,
+          190,
+          1053,
+          1321
+        ],
+        "min_padding_px": 190,
+        "bytes": 924890
+      },
+      "sequences": {
+        "spin": {
+          "frame_count": 72,
+          "minimum_padding_px": 178,
+          "total_bytes": 26879436
+        },
+        "tumble": {
+          "frame_count": 48,
+          "minimum_padding_px": 122,
+          "total_bytes": 17572569
+        }
+      },
+      "hero_landing_max_bbox_edge_difference_px": 0
+    },
+    "pin_blue": {
+      "hero": {
+        "alpha_bbox_px": [
+          547,
+          190,
+          1053,
+          1321
+        ],
+        "min_padding_px": 190,
+        "bytes": 924479
+      },
+      "sequences": {
+        "spin": {
+          "frame_count": 72,
+          "minimum_padding_px": 178,
+          "total_bytes": 26953393
+        },
+        "tumble": {
+          "frame_count": 48,
+          "minimum_padding_px": 122,
+          "total_bytes": 17595281
+        }
+      },
+      "hero_landing_max_bbox_edge_difference_px": 0
+    },
+    "cloud": {
+      "hero": {
+        "alpha_bbox_px": [
+          254,
+          504,
+          1409,
+          1117
+        ],
+        "min_padding_px": 191,
+        "bytes": 1476650
+      },
+      "sequences": {
+        "spin": {
+          "frame_count": 72,
+          "minimum_padding_px": 187,
+          "total_bytes": 32658132
+        },
+        "tumble": {
+          "frame_count": 48,
+          "minimum_padding_px": 122,
+          "total_bytes": 23092070
+        }
+      },
+      "hero_landing_max_bbox_edge_difference_px": 0
+    }
+  }
+}

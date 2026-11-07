@@ -433,9 +433,10 @@ export function buildPlanet() {
 
   // ---------------- special houses (anchors) -------------------------------
   const pick = (road, near) => houses.filter((h) => h.road === road).sort((a, b) => Math.abs(a.s - near) - Math.abs(b.s - near))[0];
-  const meterHouse = pick('R3', 5.0);
-  const hotHouse = pick('R2', 6.5);
+  // the tampered meter is on the house the agent is unsure about (the ask beat is about this meter)
   const unsureHouse = pick('R4', 6.5);
+  const meterHouse = unsureHouse;
+  const hotHouse = pick('R2', 6.5);
   for (const [key, h] of [['meter', meterHouse], ['hot_roof', hotHouse], ['unsure_house', unsureHouse]]) {
     if (h) anchors[key] = { x: h.x, z: h.z, h: key === 'hot_roof' ? h.ridge : 0.4, house: h.id };
   }

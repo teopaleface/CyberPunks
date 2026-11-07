@@ -27,6 +27,10 @@ def main():
             entry={'path_pattern':mode+'/%04d.png','first_frame':0,'last_frame':count-1,'frame_count':count,'size_px':[1024,1024],'pivot_px':[512,512],'duration_seconds':count/30,'hero_angle_frame':0 if mode=='spin' else 47,'loop':mode=='spin','motion_blur':{'enabled':mode=='tumble','shutter_frames':.72 if mode=='tumble' else 0,'position':'CENTER'},'camera_framing':'Fixed sphere-safe framing' if mode=='spin' else 'Sphere-safe start, eased settle to hero framing over frames 28-47'}
             m['sequences'][mode]=entry
             q['sequences'][mode]={'frame_count':count,'minimum_padding_px':min(f['min_padding_px'] for f in frames),'total_bytes':sum(f['bytes'] for f in frames)}
+        with Image.open(folder/'hero.png') as im:
+            hero_box=im.resize((1024,1024),Image.Resampling.LANCZOS).getchannel('A').point(lambda a:255 if a>8 else 0).getbbox()
+        with Image.open(folder/'tumble/0047.png') as im:landing_box=im.getchannel('A').point(lambda a:255 if a>8 else 0).getbbox()
+        q['hero_landing_max_bbox_edge_difference_px']=max(abs(a-b) for a,b in zip(hero_box,landing_box))
         (folder/'manifest.json').write_text(json.dumps(m,indent=2)+'\n');manifests.append({'name':name,'manifest':name+'/manifest.json'});qa[name]=q
     contact.save(ROOT/'contact_navy.jpg',quality=96,subsampling=0)
     (ROOT/'manifest.json').write_text(json.dumps({'schema_version':1,'objects':manifests,'contact_sheet':'contact_navy.jpg','contact_order':'Left to right, top to bottom','navy':'#000F1E','total_sequence_frames':total,'total_hero_images':9},indent=2)+'\n')

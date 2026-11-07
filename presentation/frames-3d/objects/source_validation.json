@@ -1,0 +1,155 @@
+{
+  "truck": {
+    "camera": "PERSP",
+    "lens_mm": 70.0,
+    "hero_fstop": 32.0,
+    "hero_focus_distance_m": 0.17211051285266876,
+    "hero_camera_distance_m": 0.18296149810454548,
+    "spin_camera_distance_m": 0.21318419143823975,
+    "motion_blur_position": "CENTER",
+    "cycles_gpu": "GPU",
+    "gpu_denoising": true,
+    "root_scale": [
+      0.01149425283074379,
+      0.01149425283074379,
+      0.01149425283074379
+    ],
+    "text_objects": 0
+  },
+  "meter": {
+    "camera": "PERSP",
+    "lens_mm": 70.0,
+    "hero_fstop": 64.0,
+    "hero_focus_distance_m": 0.09629292041063309,
+    "hero_camera_distance_m": 0.10104241227380359,
+    "spin_camera_distance_m": 0.11743200246527752,
+    "motion_blur_position": "CENTER",
+    "cycles_gpu": "GPU",
+    "gpu_denoising": true,
+    "root_scale": [
+      0.01149425283074379,
+      0.01149425283074379,
+      0.01149425283074379
+    ],
+    "text_objects": 0
+  },
+  "pole": {
+    "camera": "PERSP",
+    "lens_mm": 70.0,
+    "hero_fstop": 64.0,
+    "hero_focus_distance_m": 0.1183948740363121,
+    "hero_camera_distance_m": 0.11839486952050962,
+    "spin_camera_distance_m": 0.14483758192517637,
+    "motion_blur_position": "CENTER",
+    "cycles_gpu": "GPU",
+    "gpu_denoising": true,
+    "root_scale": [
+      0.01149425283074379,
+      0.01149425283074379,
+      0.01149425283074379
+    ],
+    "text_objects": 0
+  },
+  "solar": {
+    "camera": "PERSP",
+    "lens_mm": 70.0,
+    "hero_fstop": 64.0,
+    "hero_focus_distance_m": 0.12604475021362305,
+    "hero_camera_distance_m": 0.12604474644818178,
+    "spin_camera_distance_m": 0.13117583708997665,
+    "motion_blur_position": "CENTER",
+    "cycles_gpu": "GPU",
+    "gpu_denoising": true,
+    "root_scale": [
+      0.01149425283074379,
+      0.01149425283074379,
+      0.01149425283074379
+    ],
+    "text_objects": 0
+  },
+  "hardhat": {
+    "camera": "PERSP",
+    "lens_mm": 70.0,
+    "hero_fstop": 64.0,
+    "hero_focus_distance_m": 0.06868624687194824,
+    "hero_camera_distance_m": 0.06868624500016032,
+    "spin_camera_distance_m": 0.10253305790714096,
+    "motion_blur_position": "CENTER",
+    "cycles_gpu": "GPU",
+    "gpu_denoising": true,
+    "root_scale": [
+      0.01149425283074379,
+      0.01149425283074379,
+      0.01149425283074379
+    ],
+    "text_objects": 0
+  },
+  "pin_orange": {
+    "camera": "PERSP",
+    "lens_mm": 70.0,
+    "hero_fstop": 64.0,
+    "hero_focus_distance_m": 0.06116986274719238,
+    "hero_camera_distance_m": 0.061169864427964044,
+    "spin_camera_distance_m": 0.07096517423784389,
+    "motion_blur_position": "CENTER",
+    "cycles_gpu": "GPU",
+    "gpu_denoising": true,
+    "root_scale": [
+      0.01149425283074379,
+      0.01149425283074379,
+      0.01149425283074379
+    ],
+    "text_objects": 0
+  },
+  "pin_cyan": {
+    "camera": "PERSP",
+    "lens_mm": 70.0,
+    "hero_fstop": 64.0,
+    "hero_focus_distance_m": 0.06116986274719238,
+    "hero_camera_distance_m": 0.061169864427964044,
+    "spin_camera_distance_m": 0.07096517423784389,
+    "motion_blur_position": "CENTER",
+    "cycles_gpu": "GPU",
+    "gpu_denoising": true,
+    "root_scale": [
+      0.01149425283074379,
+      0.01149425283074379,
+      0.01149425283074379
+    ],
+    "text_objects": 0
+  },
+  "pin_blue": {
+    "camera": "PERSP",
+    "lens_mm": 70.0,
+    "hero_fstop": 64.0,
+    "hero_focus_distance_m": 0.06116986274719238,
+    "hero_camera_distance_m": 0.061169864427964044,
+    "spin_camera_distance_m": 0.07096517423784389,
+    "motion_blur_position": "CENTER",
+    "cycles_gpu": "GPU",
+    "gpu_denoising": true,
+    "root_scale": [
+      0.01149425283074379,
+      0.01149425283074379,
+      0.01149425283074379
+    ],
+    "text_objects": 0
+  },
+  "cloud": {
+    "camera": "PERSP",
+    "lens_mm": 70.0,
+    "hero_fstop": 64.0,
+    "hero_focus_distance_m": 0.12668611109256744,
+    "hero_camera_distance_m": 0.12668611331458798,
+    "spin_camera_distance_m": 0.15368686989143157,
+    "motion_blur_position": "CENTER",
+    "cycles_gpu": "GPU",
+    "gpu_denoising": true,
+    "root_scale": [
+      0.01149425283074379,
+      0.01149425283074379,
+      0.01149425283074379
+    ],
+    "text_objects": 0
+  }
+}

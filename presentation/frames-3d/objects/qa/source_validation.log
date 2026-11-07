@@ -1,0 +1,18 @@
+00:01.036  blend            | Read blend: "/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/truck/scene.blend"
+00:01.067  blend            | Read blend: "/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/meter/scene.blend"
+00:01.080  blend            | Read blend: "/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/pole/scene.blend"
+00:01.101  blend            | Read blend: "/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/solar/scene.blend"
+00:01.114  blend            | Read blend: "/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/hardhat/scene.blend"
+00:01.126  blend            | Read blend: "/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/pin_orange/scene.blend"
+00:01.133  blend            | Read blend: "/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/pin_cyan/scene.blend"
+00:01.140  blend            | Read blend: "/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/pin_blue/scene.blend"
+00:01.146  blend            | Read blend: "/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/frames-3d/objects/cloud/scene.blend"
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+SOURCE_VALIDATED 9 perspective macro scenes
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

@@ -25,6 +25,11 @@
     const T = window.DAYBREAK_TRACKS;
     const a = T[anchorName][Math.round(10.1 * T.fps)];
     const am = toMap([a[0], a[1]]);
+    if (key === '*') { // nearest stop on any route
+      let best = null, bd = 1e9;
+      stops.forEach((q) => q.pts.forEach((p, i) => { const d = Math.hypot(p[0] - am[0], p[1] - am[1]); if (d < bd) { bd = d; best = { key: q.key, index: i, map: p }; } }));
+      return best;
+    }
     const st = stops.find((q) => q.key === key);
     let best = 0, bd = 1e9;
     st.pts.forEach((p, i) => { const d = Math.hypot(p[0] - am[0], p[1] - am[1]); if (d < bd) { bd = d; best = i; } });
@@ -32,7 +37,7 @@
   }
   const LAND = {
     pole: nearestStop('orange', 'fallen_pole'),
-    meter: nearestStop('blue', 'meter'),
+    meter: nearestStop('*', 'meter'),
     solar: nearestStop('cyan', 'hot_roof'),
   };
   // crew pills tied to the trucks (style frame 04): pill top-left = truck + offset;

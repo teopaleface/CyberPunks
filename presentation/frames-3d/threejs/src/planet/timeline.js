@@ -67,8 +67,8 @@ export const CAM_KEYS = [
   { t: 16.556, cut: true, rel: 'unsure_house', az: 14, el: -34, dist: 1.85, target: 'unsure_house', fov: 30, ap: 0.035, shift: [-0.344, 0.407] },
   { t: 20.457, rel: 'unsure_house', az: 26, el: -37, dist: 1.6, target: 'unsure_house', fov: 30, ap: 0.035, shift: [-0.344, 0.407] },
   // CUT 20.457 (cut-the-curve UP): dawn, huge horizon at the bottom
-  { t: 20.457, cut: true, az: 296, el: 14, dist: 2.25, target: [0, 0, 0], fov: 30, ap: 0.02, shift: [0.0625, 2.06] },
-  { t: 25.124, az: 318, el: 15, dist: 2.3, target: [0, 0, 0], fov: 30, ap: 0.02, shift: [0.0625, 2.06] },
+  { t: 20.457, cut: true, az: 40, el: 12, dist: 5.2, target: [0, 0, 0], fov: 12, ap: 0.006, shift: [-0.354, 2.07] },
+  { t: 25.124, az: 50, el: 12, dist: 5.2, target: [0, 0, 0], fov: 12, ap: 0.006, shift: [-0.354, 2.07] },
   // pull into the orange dot above the wordmark (960,402)
   { t: 25.89, az: 326, el: 22, dist: 33.6, target: [0, 0, 0], fov: 30, ap: 0.0, shift: [0, -0.256] },
   { t: 26.4, az: 330, el: 24, dist: 91, target: [0, 0, 0], fov: 30, ap: 0.0, shift: [0, -0.256] },
