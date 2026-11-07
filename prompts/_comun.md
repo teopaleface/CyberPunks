@@ -4,7 +4,7 @@ Ești unul dintre cele 6 fire de lucru paralele ale echipei CyberPunks la SmartH
 
 Termene (ora României): predarea e duminică 8 nov. la 12:00. Înghețarea codului la 10:30. Demo live de la 13:00: 5 minute plus 2 minute de întrebări tehnice.
 
-## Produsul: "Tura de mâine" (nume de lucru)
+## Produsul: "Daybreak" (nume de lucru)
 
 Un agent AI care decide unde merg mâine echipele de teren Rețele Electrice (distribuitorul PPC în Muntenia Sud, Dobrogea și Banat). Trei modele ML antrenate de noi produc lucrări (`WorkItem`):
 - A: contoare defecte sau manipulate (verificări la fața locului, citiri la distanță);

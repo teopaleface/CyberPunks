@@ -12,6 +12,7 @@ global:
   safety_priority_multiplier: 3.0   # riscul pentru oameni triplează prioritatea și intră primul în traseu
   safety_mandatory: true            # un caz cu risc pentru oameni intră în traseu oricare ar fi valoarea (siguranța înainte de bani); costul regulii e în evaluare
   safety_min_score: 0.7             # sub acest scor, semnalul de siguranță e prea slab ca să treacă peste cost: prioritate triplă, fără obligativitate
+  safety_max_mandatory_per_day: 12  # IPOTEZĂ: cota zilei pentru siguranță, ~jumătate din capacitatea echipelor de contorizare; restul cazurilor au prioritate triplă
   degraded_invalid_share: 0.2       # peste 20% linii respinse, sursa e "degraded"
 
 meters:                             # A
@@ -22,6 +23,7 @@ meters:                             # A
 
 storm:                              # B
   arrive_before_start_min: 60       # echipa ajunge cu cel puțin o oră înainte de începutul furtunii (extra.storm_onset; altfel time_window.start)
+  max_crews_per_zone: 1             # o zonă primește cel mult o echipă trimisă din timp (o lucrare B = o zonă = o echipă care rămâne acolo)
   max_crews_per_region: 3           # câte echipe se mută din timp într-o regiune (restul rămân pentru lucrările curente și avariile obișnuite)
   preposition_min_score: 0.15       # sub această probabilitate nu se mută echipe din timp, oricât de mare e zona (se folosește pragul modelului B, extra.decision_threshold, dacă e mai mare)
   safety_gust_note: true            # la B, safety_flag = rafale ≥ 75 km/h: avertisment pentru echipă (nu lucrează la înălțime), nu prioritate obligatorie

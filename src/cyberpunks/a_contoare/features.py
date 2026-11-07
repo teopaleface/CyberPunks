@@ -20,6 +20,7 @@ import numpy as np
 import pandas as pd
 
 EPS = 1e-6
+MIN_DENOMINATOR_KWH = 0.1  # sub 0,1 kWh, un raport "față de istoric" sau "față de vecini" nu mai are sens
 
 
 @dataclass(frozen=True)
@@ -301,6 +302,9 @@ def label_ro(feature: str, value: float | None) -> str:
         text = CAP_LABELS[feature]
     else:
         text = info.label(float(value))
+    # plafon la afișare: niciun procent peste 1.000% nu ajunge la dispecer ("de peste 10 ori" sau "peste 1.000%")
+    text = re.sub(r"cu (\d+)%", lambda m: "de peste 10 ori" if int(m.group(1)) > 1000 else m.group(0), text)
+    text = re.sub(r"(\d+)%", lambda m: "peste 1.000%" if int(m.group(1)) > 1000 else m.group(0), text)
     return re.sub(r"(\d)\.(\d)", r"\1,\2", text)
 
 
@@ -440,7 +444,7 @@ def daily_features(x: np.ndarray, peer: np.ndarray | None = None, recent: int = 
 
     med_r = _nanmedian(r)
     med_b = _nanmedian(b) if b.shape[1] else np.full(n, np.nan)
-    out["recent_vs_base"] = _safe_ratio(med_r, med_b + EPS)
+    out["recent_vs_base"] = _safe_ratio(med_r, np.maximum(med_b, MIN_DENOMINATOR_KWH))
 
     # cea mai mare scădere bruscă: mediana pe 28 de zile după t față de mediana pe 90 de zile înainte de t
     drops = []
@@ -494,8 +498,8 @@ def daily_features(x: np.ndarray, peer: np.ndarray | None = None, recent: int = 
         p = np.broadcast_to(np.asarray(peer, dtype=np.float64), x.shape)
         pr = p[:, w - recent :]
         pb = p[:, max(0, w - recent - base) : w - recent]
-        ratio_r = _nanmedian(_safe_ratio(r, pr + EPS))
-        ratio_b = _nanmedian(_safe_ratio(b, pb + EPS)) if b.shape[1] else np.full(n, np.nan)
+        ratio_r = _nanmedian(_safe_ratio(r, np.maximum(pr, MIN_DENOMINATOR_KWH)))
+        ratio_b = _nanmedian(_safe_ratio(b, np.maximum(pb, MIN_DENOMINATOR_KWH))) if b.shape[1] else np.full(n, np.nan)
         out["peer_ratio_recent"] = ratio_r
         out["peer_ratio_change"] = _safe_ratio(ratio_r, ratio_b + EPS)
         out["peer_corr"] = _row_corr(x, p)
@@ -568,7 +572,10 @@ def intraday_features(recent: np.ndarray, base: np.ndarray) -> pd.DataFrame:
 
     ns_r, ns_b = night_share(recent), night_share(base)
     out["night_share_recent"] = ns_r
-    out["night_share_change"] = _safe_ratio(ns_r, ns_b + EPS)
+    # numitor minim: dacă în istoric noaptea are sub 0,1 kWh în medie, schimbarea relativă nu are sens (NaN)
+    base_days_n = np.maximum((np.isfinite(base).sum(axis=2) >= 40).sum(axis=1), 1)
+    base_night_kwh = np.nansum(np.nansum(base[:, :, NIGHT_SLOTS], axis=2), axis=1) / base_days_n
+    out["night_share_change"] = np.where(base_night_kwh >= MIN_DENOMINATOR_KWH, _safe_ratio(ns_r, ns_b + EPS), np.nan)
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", RuntimeWarning)

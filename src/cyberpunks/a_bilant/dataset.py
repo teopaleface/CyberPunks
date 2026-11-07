@@ -251,6 +251,11 @@ def run_post(args: tuple[dict, dict, str]) -> dict:
         moved["rec"] = np.where(day >= moved["onset"], imp[moved["customer"]], 0.0).astype("float32")
         moved["volt"] = w.cust_voltage[moved["customer"]]
     vmed = np.median(w.cust_voltage[keep], axis=0)
+    # candidatul pentru „legat fizic la alt post”: contorul din bază cu tensiunea cea mai puțin asemănătoare cu a postului,
+    # pe toată perioada (simplificare: un singur candidat pe post)
+    all_h = np.arange(T)
+    cc_all = _vcorr(w.cust_voltage[keep], vmed, all_h)
+    cand_volt = w.cust_voltage[np.flatnonzero(keep)[int(np.argmin(cc_all))]].astype("float32")
 
     # semnalele contoarelor, pe zi: zi cu zero, zi blocată (24 de valori egale), consum negativ noaptea la neprosumatori
     cust_daily = np.zeros((n, D))
@@ -331,9 +336,43 @@ def run_post(args: tuple[dict, dict, str]) -> dict:
         "bal_h": w.balance_kwh.astype("float32"),
         "db_h": db.astype("float32"),
         "vmed": vmed.astype("float32"),
+        "cand_volt": cand_volt,
         "moved": moved,
         "seconds": time.perf_counter() - t0,
     }
+
+
+def voltage_topology(res: dict, nb: dict, wx: world.Weather, ev: list[int]) -> pd.DataFrame:
+    """Identificarea topologiei din tensiuni (Short 2013; comparația din 2022, `docs/research/bilant_lit.md`).
+
+    Pentru candidații fiecărui post (contorul cu tensiunea cea mai ciudată și, la receptor, clientul venit din altă
+    parte, care e în baza lui), pe fereastra de 14 zile:
+    - `volt_elsewhere`: cât de mult seamănă un candidat mai bine cu un vecin decât cu postul lui (corelație vecin − proprie);
+    - `volt_claimed`: cât de mult seamănă candidatul unui vecin mai bine cu acest post decât cu postul lui.
+    """
+    cands: dict[str, list[np.ndarray]] = {k: [r["cand_volt"]] for k, r in res.items()}
+    for r in res.values():
+        mv = r["moved"]
+        if mv and mv["receiver"] in cands:
+            cands[mv["receiver"]].append(mv["volt"])
+    rows = []
+    for e in ev:
+        hours = np.flatnonzero((wx.local_day > e - WINDOW) & (wx.local_day <= e))
+        gain: dict[str, float] = {}
+        claim: dict[str, float] = {}
+        for p, cl in cands.items():
+            qs = [q for q in nb.get(p, []) if q in res]
+            if not qs:
+                continue
+            V = np.stack(cl)
+            own = _vcorr(V, res[p]["vmed"], hours)
+            for q in qs:
+                g = _vcorr(V, res[q]["vmed"], hours) - own
+                gain[p] = max(gain.get(p, -1.0), float(g.max()))
+                claim[q] = max(claim.get(q, -1.0), float(g.max()))
+        for p in res:
+            rows.append({"post_id": p, "day": e, "volt_elsewhere": gain.get(p, 0.0), "volt_claimed": claim.get(p, 0.0)})
+    return pd.DataFrame(rows)
 
 
 def eval_days(D: int) -> list[int]:
@@ -430,6 +469,7 @@ def build(pool: str, workers: int = 4, limit: int | None = None) -> pd.DataFrame
         vc.loc[better, "vcorr_min"] = vc.loc[better, "moved_corr"]
         vc.loc[better, "vcorr_min_customer"] = -1  # clientul venit din altă parte
         vc = vc.drop(columns="moved_corr")
+    vc = vc.merge(voltage_topology(res, neighbors(meta), wx, ev), on=["post_id", "day"], how="left")
     posts = pd.DataFrame([{"post_id": k, **{a: b for a, b in r["static"].items() if not isinstance(b, list)}} for k, r in res.items()]).merge(meta, on="post_id", how="left")
     out = OUT / pool
     out.mkdir(parents=True, exist_ok=True)

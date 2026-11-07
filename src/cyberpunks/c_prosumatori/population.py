@@ -87,17 +87,32 @@ def _km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return math.hypot(dx, dy)
 
 
-def download_osm() -> None:
+OVERPASS_ENDPOINTS = ("https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter")
+
+
+def download_osm(tries: int = 3) -> None:
+    """Descarcă posturile din OSM; încearcă două servere Overpass, cu reîncercări (serviciul cade uneori, 502/504)."""
+    import time
+
     import httpx
 
     from cyberpunks.c_prosumatori.weather import record_checksum
 
-    r = httpx.post("https://overpass-api.de/api/interpreter", data={"data": OVERPASS_QUERY}, timeout=120,
-                   headers={"User-Agent": "CyberPunks-hackathon/0.1"})
-    r.raise_for_status()
-    OSM_FILE.parent.mkdir(parents=True, exist_ok=True)
-    OSM_FILE.write_bytes(r.content)
-    record_checksum(OSM_FILE)
+    last = None
+    for attempt in range(tries):
+        for url in OVERPASS_ENDPOINTS:
+            try:
+                r = httpx.post(url, data={"data": OVERPASS_QUERY}, timeout=120, headers={"User-Agent": "CyberPunks-hackathon/0.1"})
+                r.raise_for_status()
+                OSM_FILE.parent.mkdir(parents=True, exist_ok=True)
+                OSM_FILE.write_bytes(r.content)
+                record_checksum(OSM_FILE)
+                return
+            except httpx.HTTPError as exc:
+                last = exc
+                print(f"Overpass {url}: {exc}; reîncerc", flush=True)
+        time.sleep(10 * (attempt + 1))
+    raise RuntimeError(f"OpenStreetMap (Overpass) nu răspunde: {last}")
 
 
 def _max_voltage(tag: str | None) -> float:
@@ -200,16 +215,37 @@ def export_samples(reg: pd.DataFrame) -> None:
             "simbench_code", "kva", "n_customers", "n_houses", "n_prosumers", "pv_kw", "battery_kwh", "line_type", "tap_pos"]
     full = list(dict.fromkeys(cols + STATIC + ["vm_mv_est"] + [c for c in reg.columns if c.startswith("spec_")]))
     SAMPLE.parent.mkdir(parents=True, exist_ok=True)
-    reg[full].assign(synthetic=True).to_csv(SAMPLE, index=False, float_format="%.6g")
+    out = reg[full].assign(synthetic=True)
+    for c in ("kva", "tap_pos", "n_customers", "n_houses", "n_prosumers", "spec_seed", "spec_kva", "spec_tap_pos"):
+        if c in out:
+            out[c] = out[c].astype(int)
+    # fără rotunjire: parametrii spec_* trebuie să refacă exact aceeași rețea dintr-o clonă curată
+    out.to_csv(SAMPLE, index=False)
 
 
-def main() -> None:
+LOCATION_COLS = ["post_id", "label", "lat", "lon", "zone_id", "county", "locality", "area", "position_source", "osm_ref", "osm_tags"]
+
+
+def registry_from_git() -> tuple[pd.DataFrame, list[grids.PostSpec]]:
+    """Registrul din git (`data/samples/C/posts.csv`): aceleași posturi și coduri PT pentru toate firele, fără OSM."""
+    reg = pd.read_csv(SAMPLE)
+    specs = [grids.spec_from_row(r) for _, r in reg.iterrows()]
+    return reg[[c for c in LOCATION_COLS if c in reg.columns]], specs
+
+
+def main(from_osm: bool = False) -> None:
+    """Implicit refolosește registrul din git (posturile, pozițiile și parametrii exacți), apoi simulează.
+    Cu --from-osm reconstruiește registrul de la zero din OpenStreetMap (codurile PT se pot schimba)."""
     from cyberpunks.c_prosumatori import simulate
 
-    reg, specs = build_registry()
+    if from_osm or not SAMPLE.exists():
+        reg, specs = build_registry()
+        reg = reg.drop(columns=["topology"])
+    else:
+        reg, specs = registry_from_git()
     OUT.mkdir(parents=True, exist_ok=True)
     posts = simulate.run_pool("population", specs, workers=4)
-    reg = reg.drop(columns=["topology"]).merge(posts, on="post_id")
+    reg = reg.merge(posts, on="post_id")
     reg.to_parquet(OUT / "registry.parquet")
     export_samples(reg)
     print(reg.groupby(["county", "area"]).size(), "\n", reg.position_source.value_counts())
@@ -217,4 +253,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--from-osm", action="store_true", help="reconstruiește registrul din OpenStreetMap (codurile PT se pot schimba)")
+    main(ap.parse_args().from_osm)

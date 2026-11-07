@@ -57,6 +57,8 @@ WIN_FEATURES = [
     "quad_ratio",
     "intercept_jump_kwh_h",
     "linear_jump",
+    "volt_elsewhere",
+    "volt_claimed",
 ]
 # calculate și salvate, dar scoase din model: au ridicat pierderea tehnică (F1 0,46 → 0,47) și au coborât F1 macro
 # (0,668 → 0,658), diferențe în zgomot (7 nov., 15:15)
@@ -195,8 +197,10 @@ def build_windows(d: pd.DataFrame, pred: pd.DataFrame, pool: str, days: list[int
             try:
                 v = vc.loc[(p, e)]
                 vmin, vgap = float(v["vcorr_min"]), float(v["vcorr_med"] - v["vcorr_min"])
+                v_else = float(v.get("volt_elsewhere", 0.0) or 0.0)
+                v_claim = float(v.get("volt_claimed", 0.0) or 0.0)
             except KeyError:
-                vmin, vgap = 1.0, 0.0
+                vmin, vgap, v_else, v_claim = 1.0, 0.0, 0.0, 0.0
             lab = w.iloc[-1]
             cls = lab["true_class"]
             ex = float(w["true_excess_kwh"].mean())
@@ -241,6 +245,8 @@ def build_windows(d: pd.DataFrame, pred: pd.DataFrame, pool: str, days: list[int
                     "loss_ratio_cv": float(np.std(ratio_d) / max(abs(np.mean(ratio_d)), 0.1)),
                     "ratio_vs_gis": ratio_gis,
                     "r_vs_gis_kwh": r_gis,
+                    "volt_elsewhere": v_else,
+                    "volt_claimed": v_claim,
                     "quad_ratio": q_ratio,
                     "intercept_jump_kwh_h": a_jump,
                     "linear_jump": b_jump,

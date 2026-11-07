@@ -317,7 +317,9 @@ def run(scenario: str, date_str: str | None = None) -> Path:
     X, info = predict_day(bundle, reg, wx, forecast, u_override=0.4 if climate else None)  # IPOTEZĂ: ±40% fără prognoză
     X = X.set_index("post_id").loc[reg["post_id"]].reset_index()
     after_tap = tap_counterfactual(bundle, reg, wx)
-    contrib = explain.shap_groups(bundle.daily.quantile_models[0.5], X[bundle.daily.features])
+    # motivele explică scorul lucrării (probabilitatea depășirii): SHAP pe clasificator, în log-odds
+    contrib = explain.shap_groups(bundle.daily.clf, X[bundle.daily.features])
+    contrib_pu = explain.shap_groups(bundle.daily.quantile_models[0.5], X[bundle.daily.features])
     sim = None
     now = datetime.now(TZ).replace(microsecond=0)
     created = now if d > now.date() else datetime(d.year, d.month, d.day, 6, 0, tzinfo=TZ) - timedelta(days=1)
@@ -353,6 +355,7 @@ def run(scenario: str, date_str: str | None = None) -> Path:
         if sim is None:
             sim = explain.SimilarCases(explain.similar_reference())
         factors = explain.top_factors(contrib.iloc[i], r, d)
+        volt_pu = {g: round(float(contrib_pu.iloc[i][g]), 4) for g in explain.GROUPS}  # cât mută fiecare grup tensiunea P50
         p = float(np.clip(r["p_exceed"], 0.0, 1.0))
         p_lo, p_hi = (float(r["p_low"]), float(r["p_high"])) if forecast else (None, None)
         if p_lo is not None:
@@ -417,6 +420,8 @@ def run(scenario: str, date_str: str | None = None) -> Path:
                 if dec.action in ("notify_customers", "adjust_tap") and int(st["n_prosumers"]) > 0 else None,
                 "season_horizon_days": actions.season_horizon_days(d),
                 "context_ro": CONTEXT_RO.get(st["county"]),
+                "factors_unit": "log-odds pe P(tensiune > 1,10 pu)",
+                "voltage_contributions_pu": volt_pu,
                 **(tap_extra(st, d, created) if dec.action == "adjust_tap" or (ladder and "adjust_tap" in ladder.choice) else {}),
                 **(ladder_extra(ladder) if ladder else {}),
             },

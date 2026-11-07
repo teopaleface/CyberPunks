@@ -45,7 +45,7 @@ Test pe **rețele nevăzute** (leave-one-topology-out pe cele 6 topologii) și *
 
 ## Explicabilitatea
 
-Fiecare lucrare are 3-5 motive din contribuțiile SHAP ale modelului P50 (TreeSHAP), grupate și spuse simplu, cu cifrele postului (de exemplu „315 kW de panouri pe un transformator de 250 kVA (44 prosumatori)”, „soare 956 W/m² pe panou la prânz”), cazuri similare din simulare și o frază din șablon. Pentru fiecare post cu depășire, scara de soluții arată efectul simulat al fiecărei măsuri și de ce nu s-a ales una mai ieftină.
+Fiecare lucrare are 3-5 motive din contribuțiile SHAP la scorul ei (TreeSHAP pe clasificatorul P(tensiune > 1,10 pu), în log-odds; pozitiv împinge spre depășire), grupate și spuse simplu, cu cifrele postului; cât mută fiecare grup tensiunea P50, în pu, e în `extra.voltage_contributions_pu` (de exemplu „315 kW de panouri pe un transformator de 250 kVA (44 prosumatori)”, „soare 956 W/m² pe panou la prânz”), cazuri similare din simulare și o frază din șablon. Pentru fiecare post cu depășire, scara de soluții arată efectul simulat al fiecărei măsuri și de ce nu s-a ales una mai ieftină.
 
 ## Robustețe
 

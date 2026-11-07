@@ -1,4 +1,6 @@
-# Convențiile consolei „Tura de mâine” (pentru oricine scrie ecrane noi)
+# Convențiile consolei Daybreak (pentru oricine scrie ecrane noi)
+
+Antetul: doar cuvântul „Daybreak” (`Wordmark` din `components/brand/logo.tsx`), cu fontul interfeței, fără semn grafic, până la identitatea aleasă separat. Culorile surselor A, B, C rămân.
 
 Direcția vizuală: „Panou” (vezi `web/design/directions/panou.jpg`): disciplina panourilor de dispecerat. Totul e gri în repaus; culoarea apare doar când înseamnă ceva: sursa unei lucrări (A albastru, B mov-prună, C chihlimbar) sau ceva ce cere un om (portocaliu `att`). Proiector 1920×1080, temă deschisă.
 

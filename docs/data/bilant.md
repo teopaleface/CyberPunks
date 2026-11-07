@@ -4,17 +4,36 @@
 
 ## Comenzile, în ordine (dintr-o clonă curată)
 
+Verificat pe 7 nov. 2026 într-o clonă curată a branch-ului (vezi „Verificarea dintr-o clonă curată” mai jos).
+
 ```bash
 uv sync
-make c-weather          # meteo Open-Meteo 2023-2026 în data/raw/C (firul C), o singură dată
-make bilant-data        # lumea simulată: 600 de posturi, 373 de zile (~1 minut, 4 procese)
-make bilant-eval        # modelele, reports/bilant/metrics.json, figurile, planul B, analiza erorilor (~5 minute)
+make c-weather          # meteo Open-Meteo 2023-2026 în data/raw/C (firul C), o singură dată, ~30 s, rețea
+make bilant-data        # lumea simulată: 600 de posturi, 373 de zile, ~1 minut, 4 procese
+                        # (lotul hărții citește outputs/work_items/demo-vara/A_ground_truth.csv; dacă lipsește,
+                        #  rulează singur `cyberpunks.a_contoare.predict --scenario demo-vara`)
+make bilant-eval        # ~6 minute: modelele (models/bilant/), reports/bilant/metrics.json, figurile, planul B,
+                        # analiza erorilor, reports/bilant/headline.md
 make bilant-predict     # outputs/work_items/demo-vara/A_bilant.jsonl, seriile, starea pentru fuziune
+                        # (citește A.jsonl, dacă există, ca să nu dubleze lucrările lui A)
 uv run python -m cyberpunks.a_bilant.demo_story   # reports/bilant/demo_posts.md
-make bilant-test
+make bilant-test        # testele firului (tests/bilant/)
 ```
 
-`cyberpunks.a_bilant.predict.run(scenario, date)` reface singur lotul și modelele dacă lipsesc.
+Validare: `uv run cyberpunks validate reports/bilant/metrics.json outputs/work_items/demo-vara/A_bilant.jsonl`.
+
+`cyberpunks.a_bilant.predict.run(scenario, date)` reface singur lotul și modelele dacă lipsesc (așa îl apelează planificatorul).
+
+Ce iese și unde:
+
+| Fișier | Ce e |
+|---|---|
+| `reports/bilant/metrics.json` | ModelReport (sursa A, `bilant-lgbm`): pierderea normală, diagnosticul, fuziunea, cauzele de post |
+| `reports/bilant/headline.md` | cifrele pentru prezentare, generate din `metrics.json` |
+| `reports/bilant/model_card.md`, `error_analysis.md`, `plan_b.md`, `demo_posts.md` | fișa modelului, erorile, planul B, posturile pentru demo |
+| `reports/bilant/*.png` | figurile |
+| `outputs/work_items/<s>/A_bilant.jsonl`, `outputs/series/<s>/A-*-PT-*.json` | lucrările și seriile pentru planificator și interfață |
+| `outputs/bilant/<s>/posts_<data>.json` | starea fiecărui post, citită de `fuse.fuse` |
 
 ## Sursele
 
@@ -73,3 +92,12 @@ Contorul de post lipsă trece postul pe planul B. Orele dublate se curăță. Un
 - Lumea simulată se înlocuiește cu datele reale: contorul de bilanț la 15 minute, contoarele clienților, lista client → post, GIS-ul. Modelele și trăsăturile rămân.
 - Eticheta pierderii normale e lipsa măsurată în perioadele verificate. Etichetele diagnosticului vin din verdictele echipelor după vizită (`feedback.py`).
 - De întrebat la mentor: câte posturi au azi contor de bilanț (concentratorul de date nu e contor de bilanț)? Cât de bună e lista client → post?
+
+## Verificarea dintr-o clonă curată (7 nov. 2026, 16:10)
+
+`git clone --branch Teo-bilant` într-un director gol, apoi exact comenzile de mai sus, de la `uv sync` la `make bilant-test`. Toate au mers fără intervenție, în ~10 minute. Rezultatul:
+- `reports/bilant/metrics.json`: toate cele 142 de cifre identice cu cele din repo;
+- `A_bilant.jsonl` pentru demo-vara: aceleași 78 de lucrări, cu aceleași acțiuni;
+- testele firului trec (25).
+
+Lucrările depind de `A.jsonl`: bilanțul nu dublează posturile unde A are deja lucrări. Cu altă versiune a lui A, numărul de lucrări de bilanț se poate schimba, dar metricile nu.

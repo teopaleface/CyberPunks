@@ -1,7 +1,7 @@
 # Status: Teo-C-prosumatori
-Actualizat: 2026-11-07 15:23
+Actualizat: 2026-11-07 16:09
 Milestone curent: M3 în lucru (M2 terminat la 14:11; M3 aproape gata: analiza erorilor, investiții, racordări, teste)
-Gata de merge: da (commit 972344e; `make check` trece, 249 de teste în tot repo-ul, 31 în `tests/c`)
+Gata de merge: da (commit 3bb7a48; `make check` trece; reproductibilitate verificată dintr-o clonă curată)
 
 ## Făcut
 - M0 (13:10): calcul de rețea vectorizat verificat față de pandapower, prima rețea simulată, `docs/research/C.md`.
@@ -56,14 +56,20 @@ Gata de merge: da (commit 972344e; `make check` trece, 249 de teste în tot repo
 - 14:55 Rezervă pentru lipsa prognozei: ultima copie salvată, apoi clima medie a perioadei (incertitudine mare, cazurile de lângă prag la om); testat cu rețeaua tăiată.
 
 ## Urmează
-- 15:25 Rulez `make c-all` într-o clonă curată (circa 25 de minute) și compar cifrele cu cele din git.
 - Notă pentru orchestrator: modelul C are 4 versiuni în istoricul git (8,7 MB fiecare); nu mai adaug altele decât dacă modelul se schimbă.
 - M4: comenzi reproductibile verificate dintr-o clonă curată, curățenie.
 
 ## Blocaje
 - niciunul
 
+- 15:55 Clona curată a scos la iveală o dependență fragilă: populația cerea OpenStreetMap (Overpass a căzut cu 502). Acum `make c-population` refolosește registrul din git (aceleași coduri PT pentru toate firele), cu parametrii scriși la precizie completă (rețeaua se reface identic); OSM doar la `--from-osm`, cu două servere și reîncercări. În `posts.csv`, lat/lon au acum 5 zecimale (înainte 4); codurile, zonele și topologiile sunt aceleași.
+
+- 16:00 **Reproductibilitate verificată dintr-o clonă curată**: `make c-weather c-sim c-population c-train c-predict c-eval` refac `reports/C/metrics.json`; 29 din 30 de cifre identice, ECE diferă la a cincea zecimală (LightGBM pe mai multe fire). Lucrările `demo-vara` și `maine` ies valide.
+
+- 16:15 QA în interfață (localhost:3710, lucrarea C-20250708-PT-1252): graficul orar, motivele, cazurile similare și scara de soluții apar bine. Problemă găsită și reparată la C: contribuțiile motivelor erau în pu (0,003) și se vedeau „+0,00”. Acum sunt SHAP pe clasificator, în log-odds (de exemplu +11,45, +0,71), cum cere contractul („contribuția la scor”); motivul fizic spune cauza („de la 1,036 pu fără sarcină, panourile ridică tensiunea cu 0,073 pu la soarele zilei”).
+
 ## Cereri către orchestrator
+00. Pentru interfață: la lucrările C, `explanation.top_factors[].contribution` e acum în log-odds pe P(tensiune > 1,10 pu) (`extra.factors_unit`); cât mută fiecare grup tensiunea, în pu, e în `extra.voltage_contributions_pu`. Valorile pot fi mari (de exemplu +11), deci bara ar trebui scalată la maximul lucrării.
 0. Pentru planificator, despre scară: P90 de pornire al scării e `extra.ladder_base_p90_pu` = P90 al modelului (`prediction.point_interval[1]`, calcul echilibrat) + dezechilibrul estimat pe faze (cel mult 0,02 pu). `p90_after_pu` din fiecare opțiune pornește de la el; combinațiile se aproximează adunând `effect_pu`. Alegerea mea e în `extra.ladder_choice` și `extra.ladder_reason_ro`.
 1. Pentru planificator (`config/economics.yaml`), chei noi pentru scara de soluții, toate IPOTEZĂ până găsim surse:
    - `voltage.notify_participation_rates: [0.10, 0.20, 0.30]`

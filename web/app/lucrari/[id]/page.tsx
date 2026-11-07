@@ -11,7 +11,7 @@ import { AppShell } from "@/components/shell/app-shell";
 import type { AuditRecord, Decision, WorkItem } from "@/lib/contracts";
 import { getSeries, getWorkItem } from "@/lib/data";
 import { getRemedies } from "@/lib/data/remedies";
-import { auditActionRo, factorLabelRo,
+import { auditActionRo, clampPercentRo, factorLabelRo,
   ACTION_RO,
   CONFIDENCE_RO,
   DECISION_LABEL_RO,
@@ -153,7 +153,7 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
                     <SeriesLegend source={series.data.source} bilant={isBilantSeries(series.data)} />
                     {series.data.annotations?.length ? (
                       <span className="text-[14px] text-muted-foreground">
-                        {series.data.annotations.map((a) => `${String(a.t).length > 10 ? fmtTime(String(a.t)) : String(a.t).slice(8, 10) + "." + String(a.t).slice(5, 7)}: ${a.label_ro}`).join("; ")}
+                        {series.data.annotations.map((a) => `${String(a.t).length > 10 ? fmtTime(String(a.t)) : String(a.t).slice(8, 10) + "." + String(a.t).slice(5, 7)}: ${clampPercentRo(a.label_ro)}`).join("; ")}
                       </span>
                     ) : null}
                   </div>
@@ -170,7 +170,7 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
             <h2 id="why-title" className="text-[20px] font-[650]">
               De ce
             </h2>
-            <p className="mt-1.5 max-w-[72ch] text-[16.5px] leading-relaxed">{w.explanation.summary_ro}</p>
+            <p className="mt-1.5 max-w-[72ch] text-[16.5px] leading-relaxed">{clampPercentRo(w.explanation.summary_ro)}</p>
             <Factors w={w} />
           </section>
 

@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { LogoMark } from "@/components/brand/logo";
+import { Wordmark } from "@/components/brand/logo";
 import { PlanScreen } from "@/components/plan/plan-screen";
 import { Readouts } from "@/components/plan/readouts";
 import { AppShell } from "@/components/shell/app-shell";
@@ -99,8 +99,7 @@ function PlanSkeleton() {
   return (
     <div className="flex h-dvh min-h-[720px] flex-col overflow-hidden" aria-busy="true" aria-label="Se încarcă planul de mâine">
       <div className="flex h-16 shrink-0 items-center gap-3 border-b border-rule bg-panel px-7">
-        <LogoMark size={26} />
-        <span className="text-[21px] font-[650]">Tura de mâine</span>
+        <Wordmark />
       </div>
       <div className="h-[92px] shrink-0 border-b border-rule bg-panel/60" />
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_clamp(460px,38vw,732px)]">

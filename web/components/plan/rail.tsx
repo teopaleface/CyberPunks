@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { Alert, Decision, WorkItem } from "@/lib/contracts";
 import { submitReview } from "@/lib/data/actions";
-import { factorLabelRo, ACTION_RO, CONFIDENCE_RO, DECISION_LABEL_RO, outcomeRo, predictionLabelRo, ruleRo } from "@/lib/data/labels";
+import { clampPercentRo, factorLabelRo, ACTION_RO, CONFIDENCE_RO, DECISION_LABEL_RO, outcomeRo, predictionLabelRo, ruleRo } from "@/lib/data/labels";
 import type { ReviewDecision } from "@/lib/data/types";
 import { fmtDec, fmtInt, fmtLei, fmtScore, fmtTime, sentence } from "@/lib/format";
 import { markerKind, markerSvg } from "@/lib/marker-svg";
@@ -358,7 +358,7 @@ export function WorkItemPeek({
               </span>
             </div>
           ))}
-          <p className="text-[14px] text-muted-foreground">{w.explanation.summary_ro}</p>
+          <p className="text-[14px] text-muted-foreground">{clampPercentRo(w.explanation.summary_ro)}</p>
         </dd>
 
         {w.explanation.similar_cases?.length ? (
