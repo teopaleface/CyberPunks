@@ -108,7 +108,7 @@ function Field({ label, icon: Icon, children }: { label: string; icon: Component
 }
 
 const TRIGGER =
-  "h-11 w-full rounded-[10px] border-rule bg-surface-2 px-4 text-[15.5px] text-ink hover:bg-[#101d30] dark:bg-surface-2 dark:hover:bg-[#101d30]";
+  "h-11 w-full rounded-[10px] border-rule bg-surface-2 px-4 text-[15.5px] text-ink hover:bg-accent";
 
 const th = "border-b border-rule px-2.5 py-3.5 text-left align-middle text-[15px] font-[600] text-ink";
 
@@ -451,7 +451,7 @@ function DecisionRowImpl({
               href={href}
               translate="no"
               title={r.itemTitle ? `${r.workItemId}: ${englishText(r.itemTitle)}` : r.workItemId ?? undefined}
-              className="inline-flex max-w-full items-center rounded-[8px] border border-rule bg-surface-2 px-2.5 py-1 text-[14px] tabular-nums transition-colors duration-150 hover:border-ink-soft hover:bg-[#101d30] focus-visible:outline-2 focus-visible:outline-ring"
+              className="inline-flex max-w-full items-center rounded-[8px] border border-rule bg-surface-2 px-2.5 py-1 text-[14px] tabular-nums transition-colors duration-150 hover:border-ink-soft hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring"
             >
               <span className="truncate">{r.assetId}</span>
             </Link>
@@ -552,7 +552,7 @@ function DecisionRowImpl({
                 </p>
                 {r.itemTitle ? <p className="mt-1 text-[14px] text-ink-soft">{englishText(r.itemTitle)}</p> : null}
                 {href ? (
-                  <Link href={href} className="mt-2.5 inline-block text-[15px] font-[600] text-[#8db8ff] underline decoration-rule underline-offset-4 hover:decoration-current">
+                  <Link href={href} className="mt-2.5 inline-block text-[15px] font-[600] text-src-a underline decoration-rule underline-offset-4 hover:decoration-current">
                     Open work item <span translate="no">{r.workItemId}</span>
                   </Link>
                 ) : null}

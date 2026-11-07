@@ -192,13 +192,13 @@ export function ModelsBoard({
       node: (
         <Card title="Agent net gain" icon={BotIcon} className={cardClass} bodyClassName="flex h-full flex-col px-5 pt-3 pb-5">
           {gainPct !== null ? (
-            <p className="mt-2 text-center text-[44px] leading-none font-[750] tracking-[-0.03em] text-[#4be08a] tabular-nums">
+            <p className="mt-2 text-center text-[44px] leading-none font-[750] tracking-[-0.03em] text-ok-ink tabular-nums">
               {gainPct >= 0 ? "+" : "−"}
               {fmtDec(Math.abs(gainPct), 0)}% <span className="text-[30px]">net/day</span>
             </p>
           ) : null}
           <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-            <span className="rounded-[12px] border border-[#1f8a4a] bg-[#0b2a18] px-4 py-2 text-[20px] font-[650] tabular-nums">{fmtLei(agent.net)}/day</span>
+            <span className="rounded-[12px] border border-ok/60 bg-ok/10 text-ok-ink px-4 py-2 text-[20px] font-[650] tabular-nums">{fmtLei(agent.net)}/day</span>
             <span className="text-[14px] text-ink-soft">vs.</span>
             <span className="rounded-[12px] border border-rule px-4 py-2 text-[20px] font-[650] tabular-nums">{fmtLei(best.net)}/day</span>
           </div>

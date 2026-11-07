@@ -11,7 +11,7 @@ export function Balance() {
             <h2 className="h-section">Transformer energy balance</h2>
           </Reveal>
           <Reveal delay={0.06} className="lg:col-span-6">
-            <p className="text-white/90 lg:text-lg">
+            <p className="text-foreground/90 lg:text-lg">
               Select a transformer to see its excess loss, likely cause and planned action.
             </p>
           </Reveal>

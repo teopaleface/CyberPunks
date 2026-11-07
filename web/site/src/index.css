@@ -3,7 +3,8 @@
 
 @theme inline {
   --color-background: var(--bg-dark);
-  --color-foreground: #ffffff;
+  --color-foreground: var(--foreground);
+  --color-accent-ink: var(--accent-ink);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-muted: var(--muted);
@@ -22,6 +23,14 @@
 
 :root {
   --bg-dark: #000000;
+  --foreground: #ffffff;
+  --accent-ink: #ffdc6b;
+  --focus-ring: #ffc502;
+  --source-a: #3b82f0;
+  --source-b: #ff5cff;
+  --source-c: #ffc502;
+  --nav-glass: rgb(11 11 12 / 90%);
+  --glass-shadow: inset 0 1px 0 rgb(255 255 255 / 28%), 0 10px 40px -12px rgb(0 0 0 / 90%);
   --surface: #0b0b0c;
   --surface-2: #141416;
   --muted: #a3a3a8;
@@ -38,10 +47,30 @@
   color-scheme: dark;
 }
 
+/* Keep yellow surfaces bright; use a darker gold for readable text on white. */
+:root.light {
+  --bg-dark: #ffffff;
+  --foreground: #000000;
+  --surface: #f3f3f4;
+  --surface-2: #e6e6e9;
+  --muted: #57575f;
+  --accent-ink: #725200;
+  --focus-ring: #725200;
+  --source-a: #205fc5;
+  --source-b: #a328a3;
+  --source-c: #8b6500;
+  --ok: #16703b;
+  --bad: #a328a3;
+  --magenta: #a328a3;
+  --nav-glass: rgb(255 255 255 / 94%);
+  --glass-shadow: inset 0 1px 0 rgb(255 255 255 / 70%), 0 8px 30px -12px rgb(0 0 0 / 25%);
+  color-scheme: light;
+}
+
 @layer base {
   html {
     background: var(--bg-dark);
-    color: #fff;
+    color: var(--foreground);
     /* No side scrollbar: Lenis drives the scroll, the bar is hidden. */
     overflow-x: clip;
     scrollbar-width: none;
@@ -69,7 +98,7 @@
     color: #000;
   }
   :focus-visible {
-    outline: 2px solid var(--ember);
+    outline: 2px solid var(--focus-ring);
     outline-offset: 3px;
     border-radius: 6px;
   }
@@ -269,4 +298,10 @@ html.lenis body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Glass controls stay readable when content passes behind the fixed header. */
+.site-glass {
+  background: var(--nav-glass);
+  box-shadow: var(--glass-shadow);
 }

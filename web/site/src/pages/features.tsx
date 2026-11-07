@@ -61,17 +61,17 @@ export function BilantPage() {
         <dl className="tabular grid gap-6 md:grid-cols-3">
           <div data-ui className="rounded-2xl bg-surface p-6">
             <dd className="text-4xl font-semibold">
-              {fmt(m.metrics.normal_mae_kwh_day, 1)} <span className="text-lg text-white/70">kWh/day</span>
+              {fmt(m.metrics.normal_mae_kwh_day, 1)} <span className="text-lg text-foreground/70">kWh/day</span>
             </dd>
-            <dt className="mt-2 text-white/80">normal-loss error, versus {fmt(m.baseline.normal_mae_kwh_day, 1)} for the physical formula</dt>
+            <dt className="mt-2 text-foreground/80">normal-loss error, versus {fmt(m.baseline.normal_mae_kwh_day, 1)} for the physical formula</dt>
           </div>
           <div data-ui className="rounded-2xl bg-surface p-6">
             <dd className="text-4xl font-semibold">{fmt(m.metrics.diagnoza_macro_f1, 2)}</dd>
-            <dt className="mt-2 text-white/80">cause classification F1, versus {fmt(m.baseline.diagnoza_macro_f1, 2)} for the rule table</dt>
+            <dt className="mt-2 text-foreground/80">cause classification F1, versus {fmt(m.baseline.diagnoza_macro_f1, 2)} for the rule table</dt>
           </div>
           <div data-ui className="rounded-2xl bg-surface p-6">
             <dd className="text-4xl font-semibold">{fmt(m.metrics.diagnoza_abstain_rate * 100)}%</dd>
-            <dt className="mt-2 text-white/80">of transformers receive an uncertain result instead of a cause</dt>
+            <dt className="mt-2 text-foreground/80">of transformers receive an uncertain result instead of a cause</dt>
           </div>
         </dl>
       </Block>
@@ -81,7 +81,7 @@ export function BilantPage() {
           {INPUTS.map((x) => (
             <div key={x.t}>
               <dt className="font-semibold">{x.t}</dt>
-              <dd className="mt-1 text-white/80">{x.d}</dd>
+              <dd className="mt-1 text-foreground/80">{x.d}</dd>
             </div>
           ))}
         </dl>
@@ -92,7 +92,7 @@ export function BilantPage() {
           {TO_CONFIRM.map((c) => (
             <li key={c} className="flex gap-3">
               <span aria-hidden className="mt-2.5 size-2 shrink-0 rounded-full bg-ember" />
-              <span className="text-white/90">{c}</span>
+              <span className="text-foreground/90">{c}</span>
             </li>
           ))}
         </ul>
@@ -150,7 +150,7 @@ export function DiagnosticPage() {
                     aria-current={active === i ? "true" : undefined}
                     className={cn(
                       "relative w-full cursor-pointer rounded-2xl py-2.5 pr-3 pl-5 text-left transition-colors duration-150",
-                      active === i ? "bg-surface text-white" : "text-white/70 hover:text-white"
+                      active === i ? "bg-surface text-foreground" : "text-foreground/70 hover:text-foreground"
                     )}
                   >
                     {active === i && <span aria-hidden className="absolute inset-y-3 left-0 w-1 rounded-full bg-ember" />}
@@ -173,31 +173,31 @@ export function DiagnosticPage() {
                 <Reveal delay={0.06} data-ui className="mt-6 grid gap-8 rounded-2xl bg-surface p-[clamp(20px,3vw,36px)] md:grid-cols-2">
                   <dl className="space-y-5">
                     <div>
-                      <dt className="text-sm text-white/60">Observed pattern</dt>
+                      <dt className="text-sm text-foreground/60">Observed pattern</dt>
                       <dd className="mt-1">{d.sees}</dd>
                     </div>
                     <div>
-                      <dt className="text-sm text-white/60">Who acts</dt>
+                      <dt className="text-sm text-foreground/60">Who acts</dt>
                       <dd className="mt-1 font-medium">{d.team}</dd>
                     </div>
                     <div className="tabular flex gap-10">
                       <div>
                         <dd className="text-2xl font-semibold">{n}</dd>
-                        <dt className="text-sm text-white/60">transformers in the plan</dt>
+                        <dt className="text-sm text-foreground/60">transformers in the plan</dt>
                       </div>
                       <div>
                         <dd className="text-2xl font-semibold">{fmt(f1[`diagnoza_f1_${d.key}`] ?? 0, 2)}</dd>
-                        <dt className="text-sm text-white/60">Test F1</dt>
+                        <dt className="text-sm text-foreground/60">Test F1</dt>
                       </div>
                     </div>
                   </dl>
                   {example ? (
                     <figure>
-                      <figcaption className="mb-3 text-sm text-white/70">{example.label}: model evidence</figcaption>
+                      <figcaption className="mb-3 text-sm text-foreground/70">{example.label}: model evidence</figcaption>
                       <DiagnosisBars c={example} />
                     </figure>
                   ) : (
-                    <p className="text-white/70">No transformer in this plan has this cause.</p>
+                    <p className="text-foreground/70">No transformer in this plan has this cause.</p>
                   )}
                 </Reveal>
               </section>
@@ -216,7 +216,7 @@ export function DiagnosticPage() {
           ].map(([t, d]) => (
             <li key={t}>
               <h3 className="font-sans font-semibold">{t}</h3>
-              <p className="mt-1 text-white/80">{d}</p>
+              <p className="mt-1 text-foreground/80">{d}</p>
             </li>
           ))}
         </ul>
@@ -262,7 +262,7 @@ export function AgentPage() {
           ].map(([t, d]) => (
             <li key={t}>
               <h3 className="font-sans font-semibold">{t}</h3>
-              <p className="mt-1 text-white/80">{d}</p>
+              <p className="mt-1 text-foreground/80">{d}</p>
             </li>
           ))}
         </ul>

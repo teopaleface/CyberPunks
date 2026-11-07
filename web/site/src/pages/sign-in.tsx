@@ -53,8 +53,8 @@ function Field({
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${id}-err` : hint ? `${id}-hint` : undefined}
         className={cn(
-          "h-12 w-full rounded-2xl bg-surface-2 px-4 text-white outline-none transition-[box-shadow] duration-150",
-          "placeholder:text-white/40 focus-visible:ring-2 focus-visible:ring-ember disabled:opacity-60",
+          "h-12 w-full rounded-2xl bg-surface-2 px-4 text-foreground outline-none transition-[box-shadow] duration-150",
+          "placeholder:text-foreground/60 focus-visible:ring-2 focus-visible:ring-accent-ink disabled:opacity-60",
           error && "ring-2 ring-bad"
         )}
       />
@@ -63,7 +63,7 @@ function Field({
           {error}
         </p>
       ) : hint ? (
-        <p id={`${id}-hint`} className="mt-1.5 text-sm text-white/65">
+        <p id={`${id}-hint`} className="mt-1.5 text-sm text-foreground/65">
           {hint}
         </p>
       ) : null}
@@ -77,7 +77,7 @@ function Notice({ tone, children }: { tone: "error" | "success"; children: React
       role={tone === "error" ? "alert" : "status"}
       className={cn(
         "flex gap-3 rounded-2xl p-4",
-        tone === "error" ? "bg-bad/15 text-white" : "bg-ok/12 text-white"
+        tone === "error" ? "bg-bad/15 text-foreground" : "bg-ok/12 text-foreground"
       )}
     >
       {tone === "success" && <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-ok" aria-hidden />}
@@ -154,14 +154,14 @@ export default function SignInPage() {
   if (auth.user && !auth.recovering) {
     return (
       <Shell title="You are signed in">
-        <p className="text-white/90">
+        <p className="text-foreground/90">
           Signed in as <span className="font-medium">{displayName(auth.user, auth.profile)}</span> ({auth.user.email}).
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-4">
           <GlassButton size="lg" variant="signal" onClick={() => navigate(ROUTES.app)}>
             Open console
           </GlassButton>
-          <button type="button" onClick={() => auth.signOut()} className="cursor-pointer text-white/80 underline-offset-4 hover:text-white hover:underline">
+          <button type="button" onClick={() => auth.signOut()} className="cursor-pointer text-foreground/80 underline-offset-4 hover:text-foreground hover:underline">
             Sign out
           </button>
         </div>
@@ -181,7 +181,7 @@ export default function SignInPage() {
               onClick={() => setMode(m)}
               className={cn(
                 "h-10 cursor-pointer rounded-full px-5 text-sm font-medium transition-colors duration-200",
-                view === m ? "bg-white text-black" : "text-white/80 hover:text-white"
+                view === m ? "bg-foreground text-background" : "text-foreground/80 hover:text-foreground"
               )}
             >
               {m === "intra" ? "Sign in" : "Create account"}
@@ -212,7 +212,7 @@ export default function SignInPage() {
           ) : (
             <>
               {view === "resetare" && (
-                <p className="text-white/85">Email password recovery is unavailable. Ask the administrator for help or create a new account.</p>
+                <p className="text-foreground/85">Email password recovery is unavailable. Ask the administrator for help or create a new account.</p>
               )}
               {view === "cont-nou" && (
                 <Field label="Name" value={name} onChange={setName} autoComplete="name" error={nameErr} disabled={busy} />
@@ -251,12 +251,12 @@ export default function SignInPage() {
                         : "Save password"}
                 </GlassButton>}
                 {view === "intra" && (
-                  <button type="button" onClick={() => setMode("resetare")} className="cursor-pointer text-white/80 underline-offset-4 hover:text-white hover:underline">
+                  <button type="button" onClick={() => setMode("resetare")} className="cursor-pointer text-foreground/80 underline-offset-4 hover:text-foreground hover:underline">
                     Forgot password?
                   </button>
                 )}
                 {view === "resetare" && (
-                  <button type="button" onClick={() => setMode("intra")} className="cursor-pointer text-white/80 underline-offset-4 hover:text-white hover:underline">
+                  <button type="button" onClick={() => setMode("intra")} className="cursor-pointer text-foreground/80 underline-offset-4 hover:text-foreground hover:underline">
                     Back to sign in
                   </button>
                 )}
@@ -266,12 +266,12 @@ export default function SignInPage() {
         </motion.form>
       </AnimatePresence>
 
-      <p className="mt-12 text-white/70">
-        The demo is public.{" "}
-        <Link to={ROUTES.app} className="text-white underline underline-offset-4 hover:text-ember-soft">
-          Continue without an account
+      <p className="mt-12 text-foreground/70">
+        The public site explains how Daybreak works.{" "}
+        <Link to="/agent" className="text-foreground underline underline-offset-4 hover:text-accent-ink">
+          Explore Daybreak
         </Link>
-        . Sign in to save your approvals and profile.
+        . Sign in to open your workspace.
       </p>
     </Shell>
   )
@@ -279,13 +279,13 @@ export default function SignInPage() {
 
 function Shell({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <main className="container-page flex min-h-[100svh] items-center py-[clamp(112px,14vh,150px)]">
+    <main className="container-page flex min-h-[100svh] items-center py-[clamp(172px,18vh,200px)]">
       <div className="grid w-full items-center gap-12 lg:grid-cols-12">
         <div className="lg:col-span-6">
           <h1 className="text-[clamp(2.2rem,min(4.2vw,7.5vh),3.9rem)] leading-[1.02] font-semibold tracking-[-0.03em]">
-            Save your decisions
+            Your Daybreak workspace
           </h1>
-          <p className="mt-6 max-w-[40ch] text-lg text-white/80">Use an account to keep your approvals and profile. You can explore the plan without signing in.</p>
+          <p className="mt-6 max-w-[40ch] text-lg text-foreground/80">Sign in to track your cases or assigned work. Your verified account determines which connections and work you can access.</p>
         </div>
         <div className="lg:col-span-6">
           <div className="rounded-2xl bg-surface p-[clamp(24px,3vw,40px)]">

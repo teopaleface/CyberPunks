@@ -13,3 +13,9 @@ Auditul și limitele verificării sunt în `web/design/AUDIT-UI-UX.md`. Nu s-a f
 ## Revizuire de utilitate și limba produsului
 
 Teo a respins eticheta „Consola dispecerului” și căutarea globală din antet și a cerut un audit UI/UX mai strict. Produsul, atât landingul cât și consola, trebuie să fie în engleză. Comentariile și conversația cu Teo pot rămâne în română. Antetul desktop se elimină; navigarea operațională rămâne în sidebar, iar instrumentele agentului se deschid la cerere. Nu adăugăm texte sau controale doar ca să umple spațiul.
+
+## Light și Dark
+
+7 noiembrie, 23:04. Teo a cerut ca ordinul alb să fie întunecat și să existe un toggle Light/Dark. Ambele aplicații folosesc alegerea locală `daybreak-theme`, cu Dark implicit. Consola are comutator în meniul lateral și în meniul mobil; landingul lângă cont. Ordinul urmează tema pe ecran, dar se tipărește alb. Harta recreează împreună stilul și markerii la schimbare.
+
+QA într-o copie separată din cauza modificărilor simultane de autentificare: date din API-ul local existent, fără secrete sau setări de automatizare. Comutarea, persistența între landing/consolă, meniul mobil și culorile print sunt verificate în browser. Harta păstrează 28 de markeri după Dark → Light → Dark. Fără deploy sau acțiuni de aprobare/rulare.

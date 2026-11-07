@@ -18,7 +18,7 @@ export interface RegionInfo {
 }
 
 const COLOR_HEX: Record<PostColor, string> = { verde: "#22c55e", galben: "#eab308", roșu: "#ef4444", necunoscut: "#4a5a70" };
-const COLOR_TEXT: Record<PostColor, string> = { verde: "text-[#4ade80]", galben: "text-[#facc15]", roșu: "text-[#f87171]", necunoscut: "text-ink-soft" };
+const COLOR_TEXT: Record<PostColor, string> = { verde: "text-ok-ink", galben: "text-src-c-ink", roșu: "text-red-700 dark:text-red-300", necunoscut: "text-ink-soft" };
 const COLOR_NAME: Record<PostColor, string> = { verde: "Under RON 200", galben: "RON 200 to 600", roșu: "Over RON 600", necunoscut: "No energy balance" };
 const REGION_TONES: Tone[] = ["blue", "violet", "amber"];
 const STATUS_ITEMS: { id: Exclude<StatusFilter, "toate">; tone: Tone }[] = [
@@ -152,7 +152,6 @@ export function PostsScreen({
               posts={mapPosts}
               mode="posts"
               onPostClick={onPostClick}
-              theme="dark"
               padding={{ top: 28, bottom: 28, left: 28, right: 28 }}
               className="absolute inset-0"
             />

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { UserRound } from "lucide-react";
 import { Wordmark } from "@/components/brand/logo";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import type { ShellInfo } from "@/lib/server/queries";
 import { MobileMenu } from "./mobile-menu";
 import { Provenance } from "./provenance";
@@ -25,6 +26,7 @@ export function AppShell({ info, fit = false, children }: { info: ShellInfo; fit
             <SideNav counts={{ review: info.counts.review, alerts: info.counts.alerts + info.counts.notifications }} />
           </div>
           <div className="space-y-3 border-t border-rule px-1 pt-5">
+            <ThemeToggle />
             <ScenarioSwitch scenario={info.scenario} scenarios={info.scenarios} />
             <Provenance {...info.provenance} />
             <a href="/intra" className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-[15px] text-ink-soft hover:bg-surface-2 hover:text-ink">

@@ -24,25 +24,25 @@ export function Hero() {
   })
 
   return (
-    <section id="top" className="relative h-[100svh] min-h-[600px] overflow-hidden bg-black">
+    <section id="top" className="relative h-[100svh] min-h-[760px] overflow-hidden bg-background sm:min-h-[600px]">
       <div className="absolute inset-0" aria-hidden>
         {USE_UNICORN_SCENE ? <EnergyBeam className="!h-full" /> : <EnergyBeamShader />}
       </div>
 
-      {/* Fade to black, short and steep, so the next screen starts on pure black. */}
+      {/* Fade the decorative scene into the page background. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[16vh] bg-[linear-gradient(to_bottom,rgba(0,0,0,0)_0%,rgba(0,0,0,.65)_45%,#000_90%)]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[16vh] bg-[linear-gradient(to_bottom,transparent_0%,var(--bg-dark)_90%)]"
       />
 
-      <div className="container-page relative z-10 flex h-full flex-col items-center justify-start pt-[19vh] text-center">
+      <div className="container-page relative z-10 flex h-full flex-col items-center justify-start pt-[max(172px,19vh)] text-center">
         <motion.h1
           {...drop(0.1)}
           className="max-w-[16ch] text-[clamp(2.6rem,min(7.2vw,12vh),6.6rem)] leading-[0.98] font-semibold"
         >
           Where crews go tomorrow
         </motion.h1>
-        <motion.p {...drop(0.18)} className="mt-8 max-w-[56ch] text-[clamp(1rem,1.3vw,1.2rem)] text-white/90">
+        <motion.p {...drop(0.18)} className="mt-8 max-w-[56ch] text-[clamp(1rem,1.3vw,1.2rem)] text-foreground/90">
           {SITE.name} uses meter, weather and grid data to plan field work for Rețele Electrice.
           Every decision has a reason. Uncertain cases go to a dispatcher.
         </motion.p>

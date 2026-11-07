@@ -9,6 +9,7 @@ import type { ShellInfo } from "@/lib/server/queries";
 import { Provenance } from "./provenance";
 import { ScenarioSwitch } from "./scenario-switch";
 import { NAV } from "./side-nav";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 /** Pe telefon, meniul include aceleași ecrane și setări ca meniul lateral. */
 export function MobileMenu({ info }: { info: ShellInfo }) {
@@ -39,6 +40,7 @@ export function MobileMenu({ info }: { info: ShellInfo }) {
           <a href="/intra" className={`${item} text-ink-soft`}>Account</a>
         </nav>
         <div className="space-y-3">
+          <ThemeToggle />
           <p className="text-[13px] text-ink-soft">Scenario</p>
           <ScenarioSwitch scenario={info.scenario} scenarios={info.scenarios} />
           <Provenance {...info.provenance} />

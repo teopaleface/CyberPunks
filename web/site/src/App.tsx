@@ -41,7 +41,7 @@ function ToConsole() {
   }, [pathname, search])
   return (
     <main className="container-page flex min-h-[100svh] flex-col justify-center">
-      <p className="text-lg text-white/85">Opening the console…</p>
+      <p className="text-lg text-foreground/85">Opening the console…</p>
     </main>
   )
 }
@@ -50,8 +50,8 @@ function NotFound() {
   return (
     <main className="container-page flex min-h-[100svh] flex-col justify-center">
       <h1 className="h-page">Page not found</h1>
-      <p className="mt-6 max-w-[48ch] text-lg text-white/85">This link is incorrect or the page has moved.</p>
-      <Link to="/" className="mt-8 self-start text-white underline underline-offset-4 hover:text-ember-soft">
+      <p className="mt-6 max-w-[48ch] text-lg text-foreground/85">This link is incorrect or the page has moved.</p>
+      <Link to="/" className="mt-8 self-start text-foreground underline underline-offset-4 hover:text-accent-ink">
         Back to home
       </Link>
     </main>

@@ -25,20 +25,20 @@ export function CaseChart({ data, unit, color, limit, label }: { data: CasePoint
               <stop offset="100%" stopColor={color} stopOpacity={0.04} />
             </linearGradient>
           </defs>
-          <CartesianGrid vertical={false} stroke="#1c2a3e" />
-          <XAxis dataKey="x" tick={{ fontSize: 12.5, fill: "#c3ccd8" }} tickLine={false} axisLine={{ stroke: "#2a3a52" }} minTickGap={36} />
+          <CartesianGrid vertical={false} stroke="var(--grid)" />
+          <XAxis dataKey="x" tick={{ fontSize: 12.5, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={{ stroke: "var(--rule)" }} minTickGap={36} />
           <YAxis
-            tick={{ fontSize: 12.5, fill: "#c3ccd8" }}
+            tick={{ fontSize: 12.5, fill: "var(--muted-foreground)" }}
             tickLine={false}
             axisLine={false}
             width={44}
             domain={[Math.max(0, Math.floor(lo - pad)), Math.ceil(hi + pad)]}
-            tickFormatter={(v: number) => String(Number.isInteger(v) ? v : Math.round(v * 100) / 100).replace(".", ",")}
+            tickFormatter={(v: number) => String(Number.isInteger(v) ? v : Math.round(v * 100) / 100)}
           />
           {limit != null ? <ReferenceLine y={limit} stroke="var(--att)" strokeDasharray="4 4" /> : null}
           <Tooltip
-            cursor={{ stroke: "#3d5170" }}
-            contentStyle={{ background: "#0b1626", border: "1px solid #2a3a52", borderRadius: 10, color: "#eef2f7", fontSize: 13 }}
+            cursor={{ stroke: "var(--ink-soft)" }}
+            contentStyle={{ background: "var(--popover)", border: "1px solid var(--rule)", borderRadius: 10, color: "var(--ink)", fontSize: 13 }}
             formatter={(v) => [`${String(v)} ${unit}`, ""]}
             separator=""
           />

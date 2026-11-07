@@ -22,22 +22,22 @@ export function PerceiveVisual() {
       <dl className="tabular grid grid-cols-3 gap-4">
         <div>
           <dd className="text-[clamp(1.8rem,3vw,2.8rem)] leading-none font-semibold">{fmt(S.items_in)}</dd>
-          <dt className="mt-2 text-sm text-white/70">incoming jobs</dt>
+          <dt className="mt-2 text-sm text-foreground/70">incoming jobs</dt>
         </div>
         <div>
           <dd className="text-[clamp(1.8rem,3vw,2.8rem)] leading-none font-semibold">{fmt(S.items_valid)}</dd>
-          <dt className="mt-2 text-sm text-white/70">valid</dt>
+          <dt className="mt-2 text-sm text-foreground/70">valid</dt>
         </div>
         <div>
           <dd className="text-[clamp(1.8rem,3vw,2.8rem)] leading-none font-semibold">{fmt(S.items_invalid)}</dd>
-          <dt className="mt-2 text-sm text-white/70">quarantined</dt>
+          <dt className="mt-2 text-sm text-foreground/70">quarantined</dt>
         </div>
       </dl>
       <ul className="space-y-4">
         {INPUTS.map((x) => (
           <li key={x.t}>
             <div className="font-medium">{x.t}</div>
-            <div className="text-white/75">{x.d}</div>
+            <div className="text-foreground/75">{x.d}</div>
           </li>
         ))}
       </ul>
@@ -71,17 +71,17 @@ export function EstimateVisual() {
       <ul className="space-y-5">
         {(["A", "B", "C"] as SourceKey[]).map((s) => (
           <li key={s} className="grid grid-cols-[auto_1fr_auto] items-start gap-x-5">
-            <span className="grid size-14 place-items-center rounded-2xl bg-white/[0.05]" style={{ color: SOURCES[s].color }}>
-              <SourceIcon s={s} size={36} accent={SOURCES[s].color} className="text-white/85" />
+            <span className="grid size-14 place-items-center rounded-2xl bg-foreground/[0.05]">
+              <SourceIcon s={s} size={36} accent={`var(--source-${s.toLowerCase()})`} className="text-foreground/85" />
             </span>
             <div>
               <div className="font-medium">{SOURCES[s].name}</div>
-              <p className="mt-0.5 text-white/85">{MODEL_LINES[s].what}</p>
-              <p className="mt-0.5 text-sm text-white/60">{MODEL_LINES[s].metric}</p>
+              <p className="mt-0.5 text-foreground/85">{MODEL_LINES[s].what}</p>
+              <p className="mt-0.5 text-sm text-foreground/60">{MODEL_LINES[s].metric}</p>
             </div>
             <div className="tabular text-right">
               <div className="text-2xl font-semibold">{fmt(counts[s]?.total ?? 0)}</div>
-              <div className="text-sm text-white/60">jobs</div>
+              <div className="text-sm text-foreground/60">jobs</div>
             </div>
           </li>
         ))}
@@ -100,11 +100,11 @@ export function DecideVisual() {
         {DECISION_ORDER.map((d, i) => {
           const n = DB.decisionCounts[d] ?? 0
           return (
-            <li key={d} className="grid grid-cols-[11rem_1fr_3.5rem] items-center gap-4">
-              <span className={cn("text-[15px]", d === "human_review" ? "font-medium text-ember" : "text-white/85")}>{DECISION_RO[d]}</span>
-              <span className="h-2 overflow-hidden rounded-full bg-white/10">
+            <li key={d} className="grid grid-cols-[minmax(0,1fr)_minmax(24px,0.6fr)_2.5rem] items-center gap-3 sm:grid-cols-[11rem_1fr_3.5rem] sm:gap-4">
+              <span className={cn("text-[15px]", d === "human_review" ? "font-medium text-accent-ink" : "text-foreground/85")}>{DECISION_RO[d]}</span>
+              <span className="h-2 overflow-hidden rounded-full bg-foreground/10">
                 <motion.span
-                  className={cn("block h-full rounded-full", d === "human_review" ? "bg-ember" : "bg-white/70")}
+                  className={cn("block h-full rounded-full", d === "human_review" ? "bg-ember" : "bg-foreground/70")}
                   initial={{ width: 0 }}
                   animate={{ width: `${(n / max) * 100}%` }}
                   transition={{ delay: i * 0.05, duration: 0.4, ease }}
@@ -137,16 +137,16 @@ export function ActVisual() {
           return (
             <li key={r.crew} className="grid grid-cols-[4.5rem_1fr_7rem] items-center gap-3 text-sm">
               <span className="font-medium">{r.crew}</span>
-              <span className="relative h-5 rounded-[4px] bg-white/[0.06]">
+              <span className="relative h-5 rounded-[4px] bg-foreground/[0.06]">
                 <motion.span
                   className="absolute inset-y-0 rounded-[4px]"
-                  style={{ left: `${a * 100}%`, background: SOURCES[src].color }}
+                  style={{ left: `${a * 100}%`, background: `var(--source-${src.toLowerCase()})` }}
                   initial={{ width: 0 }}
                   animate={{ width: `${(b - a) * 100}%` }}
                   transition={{ delay: i * 0.04, duration: 0.4, ease }}
                 />
               </span>
-              <span className="tabular text-right text-white/75">
+              <span className="tabular text-right text-foreground/75">
                 {r.stops === 1 ? "1 stop" : `${r.stops} stops`}, {fmt(r.km, 1)} km
               </span>
             </li>
@@ -156,15 +156,15 @@ export function ActVisual() {
       <dl className="tabular grid grid-cols-3 gap-4">
         <div>
           <dd className="text-2xl font-semibold">{fmt(S.total_km, 1)} km</dd>
-          <dt className="text-sm text-white/65">for {S.crews_used} crews</dt>
+          <dt className="text-sm text-foreground/65">for {S.crews_used} crews</dt>
         </div>
         <div>
           <dd className="text-2xl font-semibold">{fmt(S.notifications)}</dd>
-          <dt className="text-sm text-white/65">notifications</dt>
+          <dt className="text-sm text-foreground/65">notifications</dt>
         </div>
         <div>
           <dd className="text-2xl font-semibold">{fmt(DB.alerts.length)}</dd>
-          <dt className="text-sm text-white/65">dispatcher alerts</dt>
+          <dt className="text-sm text-foreground/65">dispatcher alerts</dt>
         </div>
       </dl>
     </div>
@@ -210,7 +210,7 @@ export function HowItWorks() {
       <div className="container-page grid items-start gap-10 lg:grid-cols-12">
         <div className="lg:col-span-5">
           <Reveal><h2 className="h-section">How it works</h2></Reveal>
-          <p className="mt-5 text-white/70">Select a step to inspect its output.</p>
+          <p className="mt-5 text-foreground/70">Select a step to inspect its output.</p>
           <ol className="mt-6 space-y-2">
             {STEPS.map((step, i) => (
               <li key={step.title}>
@@ -221,8 +221,8 @@ export function HowItWorks() {
                   aria-controls="agent-step-output"
                   className={cn("w-full cursor-pointer rounded-2xl p-4 text-left transition-colors", i === active ? "bg-surface-2" : "hover:bg-surface")}
                 >
-                  <span className={cn("block font-display text-lg font-semibold", i === active ? "text-ember" : "text-white")}>{step.title}</span>
-                  <span className="mt-2 block text-white/85">{step.body}</span>
+                  <span className={cn("block font-display text-lg font-semibold", i === active ? "text-accent-ink" : "text-foreground")}>{step.title}</span>
+                  <span className="mt-2 block text-foreground/85">{step.body}</span>
                 </button>
               </li>
             ))}

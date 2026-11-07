@@ -9,12 +9,12 @@ export type Tone = "blue" | "violet" | "amber" | "green" | "orange" | "red" | "g
 
 /** Culoarea fiecărui ton: text, fundal nuanțat, contur. */
 export const TONE: Record<Tone, { text: string; bg: string; border: string; solid: string }> = {
-  blue: { text: "text-[#8db8ff]", bg: "bg-[#0f2547]", border: "border-[#2a63c9]", solid: "bg-src-a" },
-  violet: { text: "text-[#d6a8f0]", bg: "bg-[#2f1840]", border: "border-[#8c47b3]", solid: "bg-src-b" },
-  amber: { text: "text-[#f5c66b]", bg: "bg-[#3a2808]", border: "border-[#b87a12]", solid: "bg-src-c" },
-  green: { text: "text-[#7ee2a0]", bg: "bg-[#0b2a18]", border: "border-[#1f8a4a]", solid: "bg-ok" },
-  orange: { text: "text-[#ffa27c]", bg: "bg-[#33160a]", border: "border-[#c9471b]", solid: "bg-att" },
-  red: { text: "text-[#ff9b9b]", bg: "bg-[#3a1012]", border: "border-[#b93a3a]", solid: "bg-[#ef4444]" },
+  blue: { text: "text-src-a", bg: "bg-src-a/10", border: "border-src-a/60", solid: "bg-src-a" },
+  violet: { text: "text-src-b", bg: "bg-src-b/10", border: "border-src-b/60", solid: "bg-src-b" },
+  amber: { text: "text-src-c-ink", bg: "bg-src-c/10", border: "border-src-c/60", solid: "bg-src-c" },
+  green: { text: "text-ok-ink", bg: "bg-ok/10", border: "border-ok/60", solid: "bg-ok" },
+  orange: { text: "text-att-ink", bg: "bg-att/10", border: "border-att/60", solid: "bg-att" },
+  red: { text: "text-red-700 dark:text-red-300", bg: "bg-red-500/10", border: "border-red-500/60", solid: "bg-red-500" },
   grey: { text: "text-ink-soft", bg: "bg-surface-2", border: "border-input", solid: "bg-idle" },
 };
 

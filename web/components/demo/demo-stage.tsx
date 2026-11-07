@@ -284,7 +284,7 @@ export function DemoStage({
             }
           >
             <div className="absolute inset-x-0 top-3 bottom-0 overflow-hidden rounded-b-[14px]">
-              <PlanMap className="absolute inset-0" items={mapItems} routes={mapRoutes} depots={mapDepots} bounds={bounds} selectedId={scene.item} onSelect={noop} theme="dark" padding={MAP_PADDING} />
+              <PlanMap className="absolute inset-0" items={mapItems} routes={mapRoutes} depots={mapDepots} bounds={bounds} selectedId={scene.item} onSelect={noop} padding={MAP_PADDING} />
             </div>
           </Card>
 

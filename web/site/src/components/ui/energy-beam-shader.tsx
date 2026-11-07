@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react"
 import { useReduced } from "@/lib/motion"
 import { cn } from "@/lib/utils"
+import { useTheme } from "@/lib/theme"
 
 /**
  * Energy beam drawn with one WebGL fragment shader, matching the reference
@@ -20,6 +21,7 @@ precision highp float;
 uniform vec2 uRes;
 uniform float uTime;
 uniform vec2 uMouse;
+uniform float uLight;
 
 float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float noise(float x){ float i = floor(x); float f = fract(x); return mix(hash(vec2(i, 0.0)), hash(vec2(i + 1.0, 0.0)), smoothstep(0.0, 1.0, f)); }
@@ -80,13 +82,16 @@ void main(){
   col *= vig;
   col += (hash(frag + t) - 0.5) * 0.02;
 
-  gl_FragColor = vec4(col, 1.0);
+  // In light mode retain the animated beam as a pale gold illustration on white.
+  vec3 lightCol = mix(vec3(1.0), vec3(1.0, 0.78, 0.20), clamp(I * vig * 0.35, 0.0, 0.42));
+  gl_FragColor = vec4(mix(col, lightCol, uLight), 1.0);
 }
 `
 
 export function EnergyBeamShader({ className }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const reduce = useReduced()
+  const theme = useTheme()
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -117,6 +122,7 @@ export function EnergyBeamShader({ className }: { className?: string }) {
     const uRes = gl.getUniformLocation(prog, "uRes")
     const uTime = gl.getUniformLocation(prog, "uTime")
     const uMouse = gl.getUniformLocation(prog, "uMouse")
+    gl.uniform1f(gl.getUniformLocation(prog, "uLight"), theme === "light" ? 1 : 0)
 
     const mouse = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5 }
     let visible = true
@@ -169,7 +175,7 @@ export function EnergyBeamShader({ className }: { className?: string }) {
       gl.deleteBuffer(buf)
       gl.deleteProgram(prog)
     }
-  }, [reduce])
+  }, [reduce, theme])
 
-  return <canvas ref={canvasRef} aria-hidden className={cn("block h-full w-full bg-black", className)} />
+  return <canvas ref={canvasRef} aria-hidden className={cn("block h-full w-full bg-background", className)} />
 }

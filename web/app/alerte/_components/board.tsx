@@ -58,7 +58,7 @@ function DraftPill({ size = "md" }: { size?: "sm" | "md" }) {
 }
 
 function Stat({ icon: Icon, tone, value, label }: { icon: typeof ZapIcon; tone: Tone; value: ReactNode; label: string }) {
-  const color = { blue: "text-[#8db8ff]", violet: "text-[#d6a8f0]", amber: "text-[#f5c66b]", green: "text-[#7ee2a0]", orange: "text-[#ffa27c]", red: "text-[#ff9b9b]", grey: "text-ink-soft" }[tone];
+  const color = { blue: "text-src-a", violet: "text-src-b", amber: "text-src-c-ink", green: "text-ok-ink", orange: "text-att-ink", red: "text-red-700 dark:text-red-300", grey: "text-ink-soft" }[tone];
   return (
     <div className="flex min-w-0 items-center gap-3 border-l border-rule pl-4 first:border-l-0 first:pl-0">
       <Icon size={28} strokeWidth={1.6} aria-hidden="true" className={`shrink-0 ${color}`} />
@@ -71,7 +71,7 @@ function Stat({ icon: Icon, tone, value, label }: { icon: typeof ZapIcon; tone: 
 }
 
 function Eyebrow({ icon: Icon, tone, children }: { icon: typeof ZapIcon; tone: Tone; children: ReactNode }) {
-  const color = { blue: "text-[#6fa6ff]", violet: "text-[#c58bf0]", amber: "text-[#f5c66b]", green: "text-[#7ee2a0]", orange: "text-[#ffa27c]", red: "text-[#ff9b9b]", grey: "text-ink-soft" }[tone];
+  const color = { blue: "text-src-a", violet: "text-src-b", amber: "text-src-c-ink", green: "text-ok-ink", orange: "text-att-ink", red: "text-red-700 dark:text-red-300", grey: "text-ink-soft" }[tone];
   return (
     <p className="flex items-center gap-3 text-[16px] text-ink-soft">
       <Icon size={22} strokeWidth={1.7} aria-hidden="true" className={color} />
@@ -183,7 +183,7 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
           <p className="text-[16px] leading-relaxed text-ink-soft">{englishText(msg.message_ro)}</p>
           <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-3 pt-1">
             <span className="flex items-center gap-2.5 text-[17px] font-[600]">
-              <MapPinIcon size={20} aria-hidden="true" className="text-[#8db8ff]" />
+              <MapPinIcon size={20} aria-hidden="true" className="text-src-a" />
               <span translate="no">{msg.asset_id}</span>
             </span>
             {p90 !== null ? (
@@ -309,7 +309,7 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
           iconTone="orange"
           className="rounded-[18px]"
           action={
-            <Link href={`/coada${q(scenario)}`} className="text-[14.5px] font-[600] text-[#8db8ff] underline decoration-rule underline-offset-4 hover:decoration-current">
+            <Link href={`/coada${q(scenario)}`} className="text-[14.5px] font-[600] text-src-a underline decoration-rule underline-offset-4 hover:decoration-current">
               All ({fmtInt(pending.length)})
             </Link>
           }

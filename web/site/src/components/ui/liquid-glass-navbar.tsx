@@ -103,10 +103,9 @@ export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className
     <nav
       aria-label="Main navigation"
       className={cn(
-        "relative flex items-center gap-1 rounded-full p-1.5 pl-4",
-        "bg-white/[0.06] backdrop-blur-2xl backdrop-saturate-150",
-        "shadow-[inset_0_1px_0_rgba(255,255,255,.28),inset_0_-1px_0_rgba(255,255,255,.06),0_10px_40px_-12px_rgba(0,0,0,.9)]",
-        "ring-1 ring-white/10",
+        "site-glass relative flex items-center gap-1 rounded-full p-1.5 pl-3 sm:pl-4",
+        "backdrop-blur-2xl backdrop-saturate-150",
+        "ring-1 ring-foreground/10",
         className
       )}
     >
@@ -126,13 +125,13 @@ export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className
         </defs>
       </svg>
 
-      <div className="mr-2 shrink-0">{logo}</div>
+      <div className="mr-1 shrink-0 sm:mr-2">{logo}</div>
 
       <div ref={trackRef} className="relative flex items-center" onMouseLeave={() => setHover(null)}>
         {/* hover meniscus */}
         <motion.span
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 rounded-full bg-white/[0.07]"
+          className="pointer-events-none absolute inset-y-0 rounded-full bg-foreground/[0.07]"
           animate={{
             x: hoverRect?.x ?? 0,
             width: hoverRect?.w ?? 0,
@@ -191,8 +190,8 @@ export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className
                 onNavigate(item.href)
               }}
               className={cn(
-                "group/item relative z-10 flex h-10 items-center gap-2 rounded-full px-3 text-sm transition-colors duration-300 md:px-4",
-                active ? "text-white" : "text-white/70 hover:text-white"
+                "group/item relative z-10 flex h-11 min-w-11 items-center justify-center gap-2 rounded-full px-1.5 text-xs transition-colors duration-300 sm:h-10 sm:px-3 sm:text-sm md:px-4",
+                active ? "text-foreground" : "text-foreground/70 hover:text-foreground"
               )}
             >
               <Icon
@@ -200,7 +199,7 @@ export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className
                 className={cn(
                   "hidden size-4 shrink-0 sm:block transition-transform duration-500 ease-[var(--ease-out)]",
                   "group-hover/item:-rotate-12 group-hover/item:scale-110",
-                  active && "text-white"
+                  active && "text-foreground"
                 )}
               />
               <span>{item.label}</span>

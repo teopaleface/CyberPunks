@@ -14,7 +14,7 @@ export function DaybreakMark({ className }: { className?: string }) {
         x="150"
         y="46"
         textAnchor="middle"
-        fill="#fff"
+        fill="var(--foreground)"
         fontFamily="Unbounded, Geist, sans-serif"
         fontWeight="700"
         fontSize="44"
@@ -116,14 +116,14 @@ export function LiquidGlassLogoReveal({ className }: { className?: string }) {
       {/* splash ring */}
       <motion.span
         aria-hidden
-        className="splash absolute size-[40%] rounded-full ring-2 ring-white/70"
+        className="splash absolute size-[40%] rounded-full ring-2 ring-foreground/70"
         initial={{ opacity: 0 }}
       />
 
       {/* glass tile: bent, magnified copy of the mark with dispersion */}
       <motion.div
         aria-hidden
-        className="tile absolute grid size-[64%] place-items-center overflow-hidden bg-white/[0.06] backdrop-blur-[2px] shadow-[inset_0_2px_0_rgba(255,255,255,.7),inset_0_-14px_30px_rgba(255,92,255,.25),inset_0_0_0_1px_rgba(255,255,255,.18),0_30px_80px_-20px_rgba(255,197,2,.55)]"
+        className="tile absolute grid size-[64%] place-items-center overflow-hidden bg-foreground/[0.06] backdrop-blur-[2px] shadow-[inset_0_2px_0_rgba(255,255,255,.7),inset_0_-14px_30px_rgba(255,92,255,.25),inset_0_0_0_1px_rgba(255,255,255,.18),0_30px_80px_-20px_rgba(255,197,2,.55)]"
         initial={{ opacity: 0, scale: 0 }}
       >
         <motion.div className="lens relative w-[90%]" style={{ filter: `url(#bend-${fid})` }}>
@@ -132,7 +132,7 @@ export function LiquidGlassLogoReveal({ className }: { className?: string }) {
           <DaybreakMark className="relative w-full" />
         </motion.div>
         {/* specular sweep */}
-        <span className="pointer-events-none absolute -top-1/4 -left-1/4 h-1/2 w-[150%] rotate-[-18deg] bg-white/10 blur-xl" />
+        <span className="pointer-events-none absolute -top-1/4 -left-1/4 h-1/2 w-[150%] rotate-[-18deg] bg-foreground/10 blur-xl" />
       </motion.div>
     </button>
   )

@@ -8,13 +8,13 @@ import { Footer } from "@/sections/footer"
 export function PageShell({ title, lead, children }: { title: string; lead: ReactNode; children: ReactNode }) {
   return (
     <>
-      <main className="pt-[clamp(120px,18vh,180px)]">
+      <main className="pt-[clamp(172px,18vh,200px)]">
         <header className="container-page">
           <Reveal>
             <h1 className="h-page max-w-[18ch]">{title}</h1>
           </Reveal>
           <Reveal delay={0.06}>
-            <p className="mt-6 max-w-[60ch] text-lg text-white/90">{lead}</p>
+            <p className="mt-6 max-w-[60ch] text-lg text-foreground/90">{lead}</p>
           </Reveal>
         </header>
         {children}
@@ -32,7 +32,7 @@ export function Block({ id, title, intro, children }: { id?: string; title: stri
       </Reveal>
       {intro && (
         <Reveal delay={0.05}>
-          <p className="mt-4 max-w-[60ch] text-white/85">{intro}</p>
+          <p className="mt-4 max-w-[60ch] text-foreground/85">{intro}</p>
         </Reveal>
       )}
       <Reveal delay={0.1} className="mt-8">

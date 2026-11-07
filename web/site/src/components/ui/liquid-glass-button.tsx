@@ -33,7 +33,7 @@ const glass = cva(
           "hover:bg-ember-soft",
         ],
         ember: [
-          "text-white bg-[linear-gradient(135deg,rgba(255,197,2,0.34),rgba(255,92,255,0.18))]",
+          "text-foreground bg-[linear-gradient(135deg,rgba(255,197,2,0.34),rgba(255,92,255,0.18))]",
           "shadow-[inset_0_1px_0_rgba(255,255,255,.55),inset_0_-10px_24px_rgba(255,197,2,.35),0_8px_32px_-8px_rgba(255,197,2,.65)]",
           "hover:bg-[linear-gradient(135deg,rgba(255,197,2,0.48),rgba(255,92,255,0.3))] hover:shadow-[inset_0_1px_0_rgba(255,255,255,.7),inset_0_-12px_28px_rgba(255,92,255,.5),0_12px_44px_-6px_rgba(255,197,2,.9)]",
         ],
@@ -44,9 +44,9 @@ const glass = cva(
           "hover:bg-[linear-gradient(180deg,rgba(40,82,245,0.95),rgba(24,65,232,0.75))] hover:shadow-[inset_0_1px_0_rgba(255,255,255,.65),inset_0_-12px_28px_rgba(60,100,255,.5),0_12px_40px_-6px_rgba(24,65,232,.9)]",
         ],
         frost: [
-          "text-white bg-white/[0.08]",
+          "text-foreground bg-foreground/[0.08]",
           "shadow-[inset_0_1px_0_rgba(255,255,255,.45),inset_0_-8px_20px_rgba(255,255,255,.06),0_8px_28px_-10px_rgba(0,0,0,.8)]",
-          "hover:bg-white/[0.14]",
+          "hover:bg-foreground/[0.14]",
         ],
       },
       size: {

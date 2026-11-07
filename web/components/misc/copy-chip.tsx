@@ -39,7 +39,7 @@ export function CopyChip({ text, label, className }: { text: string; label: stri
         type="button"
         onClick={copy}
         aria-label={done ? `${label}: copied` : label}
-        className="inline-grid size-7 shrink-0 place-items-center rounded-[6px] text-ink-soft transition-colors duration-150 hover:bg-[#16243a] hover:text-ink focus-visible:outline-2 focus-visible:outline-ring"
+        className="inline-grid size-7 shrink-0 place-items-center rounded-[6px] text-ink-soft transition-colors duration-150 hover:bg-accent hover:text-ink focus-visible:outline-2 focus-visible:outline-ring"
       >
         {done ? <CheckIcon size={15} aria-hidden="true" className="text-ok-ink" /> : <CopyIcon size={15} aria-hidden="true" />}
       </button>

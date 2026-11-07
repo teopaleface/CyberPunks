@@ -41,8 +41,8 @@ export function useApprovedValue() {
 /** The source's icon in its colour, plus its name. */
 export function SourceTag({ s }: { s: keyof typeof SOURCES }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-sm text-white/85">
-      <SourceIcon s={s} size={20} accent={SOURCES[s].color} className="shrink-0 text-white/75" />
+    <span className="inline-flex items-center gap-1.5 text-sm text-foreground/85">
+      <SourceIcon s={s} size={20} accent={`var(--source-${s.toLowerCase()})`} className="shrink-0 text-foreground/75" />
       {SOURCES[s].name}
     </span>
   )

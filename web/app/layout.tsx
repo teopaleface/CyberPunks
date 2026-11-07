@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Unbounded } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/components/theme/theme-provider";
 import "./globals.css";
 
 // Aceleași fonturi ca web/site: Geist pentru text, Unbounded pentru titlurile paginilor și numele produsului.
@@ -34,10 +35,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geist.variable} ${unbounded.variable} dark h-full antialiased`}>
+    <html lang="en" suppressHydrationWarning className={`${geist.variable} ${unbounded.variable} h-full antialiased`}>
       <body className="min-h-full bg-canvas text-ink">
-        <TooltipProvider delayDuration={250}>{children}</TooltipProvider>
-        <Toaster position="bottom-right" />
+        <ThemeProvider>
+          <TooltipProvider delayDuration={250}>{children}</TooltipProvider>
+          <Toaster position="bottom-right" />
+        </ThemeProvider>
       </body>
     </html>
   );

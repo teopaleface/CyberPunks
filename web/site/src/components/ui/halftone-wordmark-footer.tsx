@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react"
 import { useReduced } from "@/lib/motion"
 import { cn } from "@/lib/utils"
+import { useTheme } from "@/lib/theme"
 
 interface HalftoneWordmarkProps {
   word: string
@@ -13,6 +14,7 @@ interface HalftoneWordmarkProps {
 }
 
 const REST: [number, number, number] = [235, 235, 238]
+const LIGHT_REST: [number, number, number] = [23, 23, 23]
 const HOT: [number, number, number] = [255,197,2]
 
 interface Dot {
@@ -36,10 +38,12 @@ export function HalftoneWordmark({
   word,
   className,
   crop = -0.24,
-  rest = REST,
+  rest,
   hot = HOT,
 }: HalftoneWordmarkProps) {
   const reduce = useReduced()
+  const theme = useTheme()
+  const ink = rest ?? (theme === "light" ? LIGHT_REST : REST)
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -122,9 +126,9 @@ export function HalftoneWordmark({
       ctx.clearRect(0, 0, W, H)
       for (const d of dots) {
         const t = Math.min(1, d.heat)
-        const r = Math.round(rest[0] + (hot[0] - rest[0]) * t)
-        const g = Math.round(rest[1] + (hot[1] - rest[1]) * t)
-        const b = Math.round(rest[2] + (hot[2] - rest[2]) * t)
+        const r = Math.round(ink[0] + (hot[0] - ink[0]) * t)
+        const g = Math.round(ink[1] + (hot[1] - ink[1]) * t)
+        const b = Math.round(ink[2] + (hot[2] - ink[2]) * t)
         ctx.fillStyle = `rgb(${r},${g},${b})`
         ctx.beginPath()
         ctx.arc(d.x, d.y, d.r * (1 + t * 0.25), 0, Math.PI * 2)
@@ -223,7 +227,7 @@ export function HalftoneWordmark({
       canvas.removeEventListener("pointerleave", onLeave)
       canvas.removeEventListener("pointerdown", onDown)
     }
-  }, [word, crop, rest, hot, reduce])
+  }, [word, crop, ink, hot, reduce])
 
   return (
     <div ref={wrapRef} className={cn("relative w-full", className)}>

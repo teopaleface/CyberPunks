@@ -168,7 +168,7 @@ function MessageCard({ ctx }: { ctx: ItemCtx }) {
       title="Alerts and messages"
       icon={TriangleAlert}
       iconTone="amber"
-      className="w-full border-att/50 bg-[linear-gradient(180deg,#1d1209,#061221_70%)]"
+      className="w-full border-att/50 bg-att-surface"
     >
       {msg ? (
         <>

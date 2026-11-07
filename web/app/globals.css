@@ -141,6 +141,56 @@
   --sidebar-ring: var(--ring);
 }
 
+.light {
+  color-scheme: light;
+  --canvas: #ffffff;
+  --panel: #fafafa;
+  --surface-2: #f0f0f2;
+  --ink: #151518;
+  --ink-soft: #505058;
+  --rule: #d4d4d9;
+  --grid: #e4e4e8;
+  --track: #c5c5cc;
+  --idle: #696972;
+  --travel: #61616b;
+  --src-a: #2563c7;
+  --src-b: #893ab4;
+  --src-c: #a56500;
+  --src-c-ink: #8b5300;
+  --att: #c53a12;
+  --att-ink: #a52f0d;
+  --att-surface: #fff0e8;
+  --ok: #168143;
+  --ok-ink: #126b36;
+  --violet: #7d38b8;
+  --muted: #ededf0;
+  --muted-foreground: #62626c;
+  --accent: #e8e8ed;
+  --input: #8d8d98;
+  --ring: #8b5a00;
+}
+
+/* Yellow remains the button fill; standalone text needs darker ink on white. */
+.light .text-action { color: #865700; }
+
+/* Work orders follow the screen theme, but print as an ink-friendly document. */
+@media print {
+  #order-paper {
+    color-scheme: light;
+    --panel: #ffffff;
+    --surface-2: #f8fafc;
+    --ink: #0b1322;
+    --ink-soft: #334155;
+    --rule: #cbd5e1;
+    --src-a: #1d5fcf;
+    --src-b: #8a3fb3;
+    --src-c: #a8680a;
+    --violet: #6b2d98;
+    --action: #986400;
+    --att: #b52d20;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

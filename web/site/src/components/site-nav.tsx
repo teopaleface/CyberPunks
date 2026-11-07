@@ -3,6 +3,7 @@ import { motion } from "motion/react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { GlassLink } from "@/components/ui/liquid-glass-button"
 import { LiquidNavbar } from "@/components/ui/liquid-glass-navbar"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { displayName, useAuth } from "@/lib/auth"
 import { NAV_ITEMS, ROUTES, SITE } from "@/lib/site"
 
@@ -52,7 +53,7 @@ export function SiteNav() {
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="pointer-events-none fixed inset-x-0 top-4 z-50 flex justify-center px-4"
+        className="pointer-events-none fixed inset-x-0 top-4 z-50 flex justify-center px-2 sm:px-4"
       >
         <div className="pointer-events-auto">
           <LiquidNavbar
@@ -68,7 +69,7 @@ export function SiteNav() {
                     window.scrollTo({ top: 0, behavior: "auto" })
                   }
                 }}
-                className="rounded-md font-display text-[15px] font-semibold tracking-[-0.02em] focus-visible:outline-offset-4"
+                className="rounded-md font-display text-[13px] font-semibold tracking-[-0.02em] focus-visible:outline-offset-4 sm:text-[15px]"
                 aria-label={`${SITE.name}, home`}
               >
                 {SITE.name}
@@ -81,8 +82,9 @@ export function SiteNav() {
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed top-[84px] right-4 z-50 min-[1100px]:top-[22px] lg:right-6"
+        className="fixed top-[84px] right-4 z-50 flex items-center gap-2 min-[1280px]:top-[22px] lg:right-6"
       >
+        <ThemeToggle />
         <AccountCorner />
       </motion.div>
     </>

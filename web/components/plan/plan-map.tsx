@@ -3,6 +3,7 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Map as MLMap, Marker as MLMarker, StyleSpecification } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "next-themes";
 import type { Source } from "@/lib/contracts";
 import { depotSvg, markerSvg, type MarkerKind } from "@/lib/marker-svg";
 
@@ -208,7 +209,14 @@ export interface MapPadding {
 // sus: butoanele de regiune; dreapta: harta mică a zonei
 const DEFAULT_PADDING: MapPadding = { top: 76, bottom: 64, left: 56, right: 330 };
 
-export function PlanMap({
+export function PlanMap(props: Parameters<typeof ThemedPlanMap>[0]) {
+  const { resolvedTheme } = useTheme();
+  const theme = props.theme ?? (resolvedTheme === "light" ? "light" : "dark");
+  // Remount the map and its markers together when the base style changes.
+  return <ThemedPlanMap key={theme} {...props} theme={theme} />;
+}
+
+function ThemedPlanMap({
   items,
   routes,
   depots,
