@@ -158,6 +158,8 @@ def build() -> str:
     )
 
     parts.append("## 2. Clasamentul la mai multe K (de ce 1,00)\n")
+    parts.append("Figuri: `reports/A/figures/ranking_at_k.png` (precizie și recall pe K) și "
+                 "`reports/A/figures/headline_precision.png` (furt real, probleme subtile, toate problemele).\n")
     rows = [[str(r["k"]), f2(r["k_over_positives"]), f2(r["model_precision"]), f2(r["model_recall"]),
              f2(r["vee_precision"]), f2(r["rule_precision"])] for r in L["ranking_at_ks"]]
     parts.append(f"**Londra (sintetic), {nde(L['n'], 'eșantioane')}, {L['positives']} cu probleme:**\n")
@@ -203,9 +205,9 @@ def build() -> str:
         "Ceasul decalat mută consumul cu 30-120 de minute, la fel de mult cât variază obiceiurile unei case de la o "
         "săptămână la alta. Deriva lentă și bypass-ul cu instalare treptată seamănă, în primele săptămâni, cu o "
         "scădere normală de consum. Pentru ceasul decalat am adăugat decalajul profilului zilei (`profile_lag`, "
-        "`profile_lag_gain`), iar pentru derivă panta față de vecini (`peer_ratio_slope`). Pe calibrare, ceasul "
-        "decalat a urcat de la 0% la 12% în primele 5%, iar deriva de la 10% la 20%. Rămân puncte slabe, spuse "
-        "deschis. Ceasul decalat nu schimbă energia totală, deci contează doar la tarifele pe ore.\n"
+        "`profile_lag_gain`), iar pentru derivă panta față de vecini (`peer_ratio_slope`); efectul lor e în "
+        "secțiunea 8. Rămân puncte slabe, spuse deschis. Ceasul decalat nu schimbă energia totală, deci contează "
+        "doar la tarifele pe ore.\n"
     )
 
     parts.append("## 4. Schimbări normale care NU trebuie semnalate\n")
@@ -223,17 +225,24 @@ def build() -> str:
 
     parts.append("## 5. Pe nivel de consum (etică: consumul mic nu e dovadă de furt)\n")
     rows = []
-    for q, qr, qs in zip(L["false_alarms_by_level"], L["false_alarms_by_level_rule"], S["false_alarms_by_level"],
-                         strict=False):
+    s_rule = S.get("false_alarms_by_level_rule", [{}] * len(S["false_alarms_by_level"]))
+    for q, qr, qs, qsr in zip(L["false_alarms_by_level"], L["false_alarms_by_level_rule"], S["false_alarms_by_level"],
+                              s_rule, strict=False):
         rows.append([str(q["quintile"]), f2(q["level_kwh_median"], 1), pct(q["false_alarm_rate"]), pct(q["recall"]),
-                     pct(qr["false_alarm_rate"]), f2(qs["level_kwh_median"], 1), pct(qs["false_alarm_rate"])])
+                     pct(qr["false_alarm_rate"]), f2(qs["level_kwh_median"], 1), pct(qs["false_alarm_rate"]),
+                     pct(qsr.get("false_alarm_rate"))])
     parts.append(table(["Chintila de consum", "Londra: kWh/zi", "Alarme false model", "Recall model",
-                        "Alarme false regulă", "SGCC: kWh/zi", "Alarme false model SGCC"], rows) + "\n")
+                        "Alarme false regulă", "SGCC: kWh/zi", "Alarme false model SGCC", "Alarme false regulă SGCC"],
+                       rows) + "\n")
+    parts.append("Figura: `reports/A/figures/false_alarms_by_consumption.png`.\n")
     parts.append(
         "Alarmă falsă = un contor fără problemă ajunge în primele 5% din clasament. Pe Londra, casele cu cel mai "
         "mic consum primesc de câteva ori mai multe alarme false decât celelalte. La ele, o scădere sau câteva "
         "zile cu zero înseamnă mai puțini kWh absoluți, iar zgomotul relativ e mai mare. Pe SGCC, tiparul e "
-        "invers: furturile reale sunt la consumatori mari, iar alarmele false cresc spre chintila de sus. "
+        "invers: furturile reale sunt la consumatori mari, iar alarmele false ale modelului cresc spre chintila de sus. "
+        "Regula simplă face greșeala opusă și mult mai mare: pe SGCC trimite echipa la "
+        f"{f2(100 * s_rule[0].get('false_alarm_rate', float('nan')), 1)}% dintre consumatorii cei mai mici fără "
+        f"problemă, modelul la {f2(100 * S['false_alarms_by_level'][0]['false_alarm_rate'], 1)}%. "
         "Consumul mic poate însemna o locuință goală sau sărăcie energetică. De aceea, în agent:\n"
         "- un furt suspectat la un contor din chintila de jos a consumului NU merge direct la vizită. Merge la un "
         "om, cu motivul scris (`extra.low_consumption_guard`, `abstain_reason`);\n"
@@ -313,7 +322,10 @@ def build() -> str:
         f"200 de scoruri de test: maximum {f2(L.get('venn_abers_grid_vs_exact', {}).get('max_abs_p'), 4)}). Scorul mediu "
         "e aproape egal cu prevalența reală, deci planificatorul poate înmulți scorul cu valoarea în lei.\n\n"
         "Conformal lucrează pe scorul brut al modelului, cu pragurile alese pe calibrare (alpha 1% pentru normal, "
-        "30% pentru problemă). Garanția privește acoperirea MULȚIMII: \"conține clasa reală\". Nu e același lucru cu "
+        "30% pentru problemă). Funcția de scor (modelul și features) e aleasă fără etichetele de calibrare. Totuși, "
+        "garanția formală cere rânduri interschimbabile, iar la Londra setul de calibrare are mai multe ferestre "
+        "din aceeași gospodărie. De aceea prezentăm acoperirea ca EMPIRICĂ, măsurată pe test (tabelul de mai sus), "
+        "nu ca garanție. Acoperirea privește MULȚIMEA: \"conține clasa reală\". Nu e același lucru cu "
         "\"recunoscut sigur\". O problemă din zona gri e acoperită (mulțimea are ambele clase), dar merge la om, nu la "
         f"echipă. În probabilitate calibrată, zona gri e între {pct(conf_l.get('p_threshold_problem'))} și "
         f"{pct(conf_l.get('p_threshold_normal'))} pe Londra. Pe SGCC e mai largă, pentru că etichetele reale sunt mai "
@@ -325,13 +337,17 @@ def build() -> str:
         so, sn = sel["sgcc"]["vechi"], sel["sgcc"]["nou"]
         lo, ln, lf = sel["lcl"]["vechi"], sel["lcl"]["nou"], sel["lcl"]["nou_fara_sezoniere_brute"]
         sel_txt = (
-            f"PR-AUC SGCC {f2(so['pr_auc'])} -> {f2(sn['pr_auc'])}, precizia@K {f2(so['precision_at_k'])} -> "
-            f"{f2(sn['precision_at_k'])}; Londra PR-AUC {f2(lo['pr_auc'])} -> {f2(ln['pr_auc'])}; în primele 5%: ceasul "
-            f"decalat {pct(lo['top5_by_kind']['clock_drift'])} -> {pct(ln['top5_by_kind']['clock_drift'])}, deriva "
-            f"{pct(lo['top5_by_kind']['drift'])} -> {pct(ln['top5_by_kind']['drift'])}, furtul de noapte "
-            f"{pct(lo['top5_by_kind']['night'])} -> {pct(ln['top5_by_kind']['night'])}. Fără features sezoniere "
-            f"brute, PR-AUC a rămas {f2(lf['pr_auc'])}, dar ceasul decalat a scăzut la "
-            f"{pct(lf['top5_by_kind']['clock_drift'])}, deci le-am păstrat."
+            f"PR-AUC SGCC {f2(so['pr_auc'])} -> {f2(sn['pr_auc'])}, ROC-AUC {f2(so['roc_auc'])} -> {f2(sn['roc_auc'])}; "
+            f"Londra PR-AUC {f2(lo['pr_auc'])} -> {f2(ln['pr_auc'])}; ROC-AUC pe tip, față de contoarele normale: "
+            f"ceasul decalat {f2(lo['auc_by_kind']['clock_drift'])} -> {f2(ln['auc_by_kind']['clock_drift'])}, deriva "
+            f"{f2(lo['auc_by_kind']['drift'])} -> {f2(ln['auc_by_kind']['drift'])}, furtul de noapte "
+            f"{f2(lo['auc_by_kind']['night'])} -> {f2(ln['auc_by_kind']['night'])}. Fără features sezoniere brute, "
+            f"PR-AUC {f2(lf['pr_auc'])} și ceasul decalat {f2(lf['auc_by_kind']['clock_drift'])}, deci le-am păstrat. "
+            "Costul: concediul seamănă puțin mai mult cu o problemă (ROC-AUC față de contoarele normale "
+            f"{f2(lo['auc_benign_vs_normal']['vacation'])} -> {f2(ln['auc_benign_vs_normal']['vacation'])}; 0,5 = de "
+            "nedeosebit, deci mai mic e mai bine aici). "
+            "Validarea are prevalența de antrenare (aproape jumătate probleme), deci cifrele absolute nu se compară cu "
+            "testul; contează doar diferența dintre variante."
         )
     else:
         sel_txt = "rulează select_features.py pentru cifre."
@@ -356,7 +372,8 @@ def build() -> str:
         "3. **Sezonul și tipurile slabe.** În iulie, consumul scade natural față de primăvară, iar modelul vedea "
         "scăderi peste tot. Am adăugat 10 features: scăderea și panta raportate la vecinii de pe post "
         "(`max_drop_peer`, `peer_ratio_slope`), care scot vremea și sezonul, decalajul profilului zilei, forma "
-        "distribuției, golurile separate și ritmul săptămânal. Le-am ales pe setul de calibrare, nu pe test "
+        "distribuției, golurile separate și ritmul săptămânal. Le-am ales pe o validare din setul de antrenare "
+        "(gospodării ținute deoparte), nu pe calibrare și nu pe test "
         f"(`select_features.py`): {sel_txt}\n"
         "4. **Un baseline mai corect.** Pe lângă regula simplă cerută (zero >= 7 zile sau scădere >= 50%), am "
         "construit regula VEE completă: zero, valori repetate, goluri, negative, salturi, scădere. Pragurile de "
@@ -367,7 +384,52 @@ def build() -> str:
         "6. **Paza pentru consum mic** (secțiunea 5).\n"
     )
 
-    parts.append("## 9. Limite cunoscute\n")
+    fc_path = REP / "fusion_check.json"
+    if fc_path.exists():
+        fc = json.loads(fc_path.read_text(encoding="utf-8"))
+        parts.append("## 9. Fuziunea cu bilanțul pe post (verificare pe testul A)\n")
+        parts.append(
+            "Am aplicat formula de fuziune a firului bilanț (`cyberpunks.a_bilant.fuse.combine_arrays`, doar confirmare, "
+            "neschimbată) pe populația demo. Bilanțul fiecărui post e construit din adevărul injectat: energia "
+            "nemăsurată de contoarele postului, plus zgomotul pierderilor normale, cu abaterea sigma = 1%, 2% sau 4% din "
+            "consumul postului. Rezultatele sunt mediate pe 3 trageri ale zgomotului (`reports/A/fusion_check.json`, "
+            "`uv run python -m cyberpunks.a_contoare.fusion_check`).\n"
+        )
+        rows = []
+        for sc in ("demo-vara", "maine"):
+            for sg in ("sigma_1pct", "sigma_2pct", "sigma_4pct"):
+                a = fc.get(sc, {}).get(sg)
+                if not a:
+                    continue
+                cs = a["confirmed_share"]
+                rows.append([sc, sg.replace("sigma_", "").replace("pct", "%"),
+                             f"{f2(a['precision_at_10_a'])} -> {f2(a['precision_at_10_fused'])}",
+                             f"{f2(a['precision_at_100_a'])} -> {f2(a['precision_at_100_fused'])}",
+                             f"{f2(a['pr_auc_a'], 3)} -> {f2(a['pr_auc_fused'], 3)}",
+                             pct(cs["furt_real"]), pct(cs["defect_real"]), pct(cs["fara_problema"])])
+        parts.append(table(["Scenariu", "Sigma bilanț", "Precizia@10", "Precizia@100", "PR-AUC",
+                            "Furturi confirmate", "Defecte confirmate", "Fără problemă, confirmate"], rows) + "\n")
+        k1 = fc.get("demo-vara", {}).get("sigma_1pct", {}).get("confirmed_share_by_kind", {})
+        g1 = fc.get("demo-vara", {}).get("sigma_1pct", {}).get("gray_zone", {})
+        if k1:
+            parts.append(
+                "**Unde ajută și unde nu** (demo-vara, bilanț precis, sigma 1%, ce parte din fiecare tip e confirmată):\n"
+                f"- defectele care pierd multă energie: contor oprit {pct(k1.get('zero'))}, citiri negative "
+                f"{pct(k1.get('negative'))}, valoare blocată {pct(k1.get('stuck'))}. Pe acestea modelul le pune oricum "
+                "în vârful listei, deci precizia în primele 10-100 nu se schimbă;\n"
+                f"- furtul: consum redus constant {pct(k1.get('h1'))}, oprire pe ore {pct(k1.get('h3'))}, bypass "
+                f"{pct(k1.get('bypass'))}. Pierderea unui contor (câțiva kWh/zi) e mică față de zgomotul postului;\n"
+                f"- tiparele care nu schimbă energia nu pot fi confirmate: profil aplatizat {pct(k1.get('h4'))}, profil "
+                f"inversat {pct(k1.get('h6'))}, ceas decalat {pct(k1.get('clock_drift'))}, goluri {pct(k1.get('gaps'))}, "
+                f"salturi {pct(k1.get('spikes'))}. E corect că fuziunea doar confirmă și nu coboară scorul;\n"
+                f"- riscul: bilanțul confirmă POSTUL, nu contorul. Pe un post cu energie lipsă, și vecinii fără problemă "
+                f"cu o scădere naturală sunt confirmați: concediu {pct(k1.get('vacation'))}, schimbarea ocupanților "
+                f"{pct(k1.get('occupancy_change'))};\n"
+                f"- în zona gri a lui A ({int(g1.get('meters', 0))} de contoare, {pct(g1.get('real_problem_share'))} probleme "
+                f"reale), cele confirmate au {pct(g1.get('real_problem_share_if_confirmed'))} probleme reale, deci "
+                "confirmarea nu le separă. Asta susține decizia bilanțului de a nu rezolva automat cazurile nesigure.\n"
+            )
+    parts.append("## 10. Limite cunoscute\n")
     parts.append(
         "- Etichetele din Londra sunt sintetice: modelul învață tiparele pe care le-am injectat noi. Le-am făcut "
         "realiste, cu parametri din literatură, intensități mici, instalare treptată și schimbări normale "
@@ -443,7 +505,8 @@ def build_model_card() -> str:
         ("- **Reper pe furt real:** SGCC (State Grid Corporation of China, Zheng et al. 2018), 42.372 de clienți, "
         "3.615 cu furt. Fără licență explicită: îl folosim doar pentru cercetare, fără să-l redistribuim."),
         ("- **Împărțirea:** Londra pe gospodării (60/20/20) și pe timp (test după antrenare); SGCC pe clienți "
-        "(60/20/20), stratificat. Calibrarea și pragurile, doar pe setul de calibrare."),
+        "(60/20/20), stratificat. Features alese pe o validare din setul de antrenare (gospodării ținute deoparte); "
+        "calibrarea și pragurile conformal, doar pe setul de calibrare; testul, privit o singură dată pe versiune."),
         ("- **Demo:** 15.850 de contoare SINTETICE pe cele 300 de posturi din registrul comun (58,81% din clienți, "
         "gradul de integrare din Muntenia), cu profile reale ale gospodăriilor de test."),
         "",
@@ -472,8 +535,8 @@ def build_model_card() -> str:
         ),
         "",
         (f"- Calibrare (Londra, test): Brier {f2(L['calibration']['brier'], 3)}, ECE {f2(L['calibration']['ece'], 3)}. "
-         f"Conformal (acoperirea mulțimii, garanția): {pct(L['conformal']['set_coverage_normal'])} la normale "
-         f"(țintă 99%), {pct(L['conformal']['set_coverage_problem'])} la probleme (țintă 70%). Ca decizii: "
+         f"Conformal (acoperirea empirică a mulțimii, pe test): {pct(L['conformal']['set_coverage_normal'])} la "
+         f"normale (țintă 99%), {pct(L['conformal']['set_coverage_problem'])} la probleme (țintă 70%). Ca decizii: "
          f"{pct(L['conformal']['problem_recall_sure'])} din probleme recunoscute sigur, precizia deciziilor "
          f"\"problemă\" {pct(L['conformal']['problem_precision_sure'])}, "
          f"{pct(L['conformal']['normal_to_problem'])} din contoarele normale declarate \"problemă\", "
@@ -486,6 +549,8 @@ def build_model_card() -> str:
         ("- Precizia@K = 1,00 pe Londra vine din defectele evidente care umplu vârful listei. La K = numărul de "
         f"probleme, precizia e {f2(next(r['model_precision'] for r in L['ranking_at_ks'] if r['k'] == L['positives']))}. "
         "Detalii în `error_analysis.md`, secțiunea 2."),
+        ("- Figuri: `reports/A/figures/headline_precision.png`, `ranking_at_k.png`, `false_alarms_by_consumption.png`, "
+         "`calibration.png`, `detection_by_kind.png`."),
     ]
     if curve:
         c0, c3, c5 = curve.get(0.0, {}), curve.get(0.3, {}), curve.get(0.5, {})
@@ -493,6 +558,17 @@ def build_model_card() -> str:
             f"- Date lipsă (populația demo): PR-AUC {f2(c0.get('pr_auc'))} -> {f2(c3.get('pr_auc'))} -> "
             f"{f2(c5.get('pr_auc'))} la 0 / 30 / 50% zile lipsă. Peste 2/3 lipsă, agentul se abține și trimite la om."
         )
+    fc_path = REP / "fusion_check.json"
+    if fc_path.exists():
+        fc = json.loads(fc_path.read_text(encoding="utf-8"))
+        a2 = fc.get("demo-vara", {}).get("sigma_2pct", {})
+        if a2:
+            lines.append(
+                f"- Fuziunea cu bilanțul pe post (verificată pe testul A, bilanț cu sigma 2%): precizia@10 "
+                f"{f2(a2['precision_at_10_a'])} -> {f2(a2['precision_at_10_fused'])}, PR-AUC {f2(a2['pr_auc_a'], 3)} -> "
+                f"{f2(a2['pr_auc_fused'], 3)}. Confirmă mai ales defectele cu pierdere mare de energie, rar furtul, "
+                "niciodată tiparele fără pierdere de energie (`error_analysis.md`, secțiunea 9)."
+            )
     lines += [
         "",
         "## Limite",

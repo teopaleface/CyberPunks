@@ -20,7 +20,7 @@ from cyberpunks.common.paths import OUTPUTS, REPORTS
 from cyberpunks.planner.settings import TZ
 
 PLAN_FILES = ["plan.json", "audit.jsonl", "work_items.jsonl", "quarantine.jsonl", "alerts.json", "notifications.json",
-              "report.md", "run.json", "remedies.json", "approvals.json", "labels.jsonl"]
+              "report.md", "run.json", "remedies.json", "approvals.json", "labels.jsonl", "actions.json", "posts.json", "plan_approval.json"]
 REPORT_FILES = {
     "A": ["metrics.json"], "B": ["metrics.json"], "C": ["metrics.json"], "bilant": ["metrics.json"],
     "planner": ["agent_eval.json", "agent_eval.md", "agent_eval.png", "solver_benchmark.json", "README.md"],

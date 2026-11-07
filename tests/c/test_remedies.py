@@ -80,3 +80,49 @@ def test_ladder_options_follow_contract(demo_day: remedies.Day) -> None:
         assert o["effect_pu"] <= 1e-3  # nicio treaptă nu urcă tensiunea
     notify = next(o for o in lad.options if o["action"] == "notify_customers")
     assert notify["participation_rate"] == pytest.approx(0.1) and notify["message_preview_ro"]
+
+
+def test_shift_is_energy_neutral_and_never_negative() -> None:
+    rng = np.random.default_rng(0)
+    load = rng.uniform(0.0, 0.6, (12, 24))
+    load[3, 18:22] = 0.05  # o casă care consumă foarte puțin seara
+    hours = np.arange(24)
+    risk, eve = (hours >= 11) & (hours < 15), (hours >= 18) & (hours < 22)
+    extra = remedies.shift_profile(load, risk, eve, kwh=1.5)
+    assert np.allclose(extra.sum(axis=1), 0.0)  # energia doar se mută
+    assert (load + extra >= -1e-12).all()  # consumul nu devine negativ
+    assert extra[:, risk].sum() > 0 and extra[3].sum() == pytest.approx(0.0)
+    # orele care sunt și cu risc, și de seară nu se dublează
+    both = remedies.shift_profile(load, hours >= 10, hours >= 12, kwh=1.0)
+    assert np.allclose(both.sum(axis=1), 0.0)
+
+
+def test_negative_margin_never_crosses_quantiles() -> None:
+    from cyberpunks.c_prosumatori import features as F
+    from cyberpunks.c_prosumatori import train as T
+
+    b = T.load_bundle()
+    d = date(2025, 7, 8)
+    start = pd.Timestamp(d, tz="Europe/Bucharest").tz_convert("UTC") + pd.Timedelta(hours=1)
+    hw = F.hourly_weather(weather.archive().reindex(pd.date_range(start, periods=24, freq="h")))
+    st = posts.load_posts().iloc[0]
+    b.hourly.cqr_margin = -0.05
+    p = b.hourly.predict(F.hourly_features(st, hw))
+    assert (p["q10"] <= p["q50"] + 1e-12).all() and (p["q50"] <= p["q90"] + 1e-12).all()
+
+
+def test_window_ending_at_midnight() -> None:
+    from cyberpunks.c_prosumatori.predict import _window_end
+
+    end = _window_end(date(2025, 7, 8), 24)
+    assert (end.year, end.month, end.day, end.hour, end.minute) == (2025, 7, 9, 0, 0)
+
+
+def test_widen_never_crosses_median() -> None:
+    from cyberpunks.c_prosumatori.train import widen
+
+    q10, q50, q90 = np.array([1.04]), np.array([1.05]), np.array([1.06])
+    lo, hi = widen(q10, q50, q90, 0.01)
+    assert lo[0] == pytest.approx(1.03) and hi[0] == pytest.approx(1.07)
+    lo, hi = widen(q10, q50, q90, -0.02)  # strângere prea mare: se oprește la P50
+    assert lo[0] == pytest.approx(1.05) and hi[0] == pytest.approx(1.05)

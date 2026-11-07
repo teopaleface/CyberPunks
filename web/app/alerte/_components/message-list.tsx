@@ -25,14 +25,30 @@ function safeMoment(iso: string): string {
   }
 }
 
+function escapeRe(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Localitatea, cu diacriticele din eticheta locului („PT-1269, Afumați (sintetic)” → „Afumați, Ilfov”). */
+function placeOf(w: WorkItem): string {
+  const label = w.location.label?.trim() ?? "";
+  const rest = label
+    .replace(new RegExp(`^(Contor\\s+)?${escapeRe(w.asset_id)},?\\s*`), "")
+    .replace(/\s*\(sintetic\)\s*$/i, "")
+    .trim();
+  const county = w.location.county ?? "";
+  if (!rest || w.asset_type === "zone") return itemPlace(w);
+  return county && !rest.includes(county) ? `${rest}, ${county}` : rest;
+}
+
 /** Cui îi e scris mesajul, în cuvinte: echipa din plan, prosumatorii unui post, clienții unei zone. */
 function recipient(n: Notification, w: WorkItem | undefined, d: Decision | undefined): string {
   if (n.audience === "echipa") {
     if (d?.crew_id) return `Către echipa ${d.crew_id}`;
     return `Către echipa trimisă în ${w ? itemTitle(w) : n.asset_id}`;
   }
-  if (n.audience === "prosumatori") return `Către prosumatorii de la ${n.asset_id}${w ? `, ${itemPlace(w)}` : ""}`;
-  return `Către clienții din zona ${w ? itemPlace(w) : n.asset_id}`;
+  if (n.audience === "prosumatori") return `Către prosumatorii de la ${n.asset_id}${w ? `, ${placeOf(w)}` : ""}`;
+  return `Către clienții din zona ${w ? placeOf(w) : n.asset_id}`;
 }
 
 /** Câte mesaje se văd din fiecare grup; mesajele către prosumatori seamănă mult între ele. */
@@ -56,11 +72,11 @@ function MessageItem({
   const toCustomers = n.audience !== "echipa";
   return (
     <li className="px-7 py-4">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex max-w-[780px] items-start justify-between gap-4">
         <p className="pt-0.5 text-[16px] leading-snug font-[620]">{recipient(n, w, d)}</p>
         {n.demo_only !== false || toCustomers ? <DemoStamp /> : null}
       </div>
-      <blockquote className="mt-2 max-w-[72ch] rounded-[4px] border border-rule bg-popover px-4 py-3 text-[16px] leading-relaxed">
+      <blockquote className="mt-2 max-w-[780px] rounded-[4px] border border-rule bg-popover px-4 py-3 text-[16px] leading-relaxed">
         {n.message_ro}
       </blockquote>
       <div className="mt-2.5 flex flex-wrap items-center gap-x-6 gap-y-2 text-[14.5px] text-muted-foreground">

@@ -3,13 +3,15 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { RemedyLadder } from "@/components/detail/remedy-ladder";
 import { ReviewActions } from "@/components/detail/review-actions";
-import { SeriesChart, SeriesLegend, isBilantSeries } from "@/components/detail/series-chart";
+import { SeriesChart, SeriesLegend } from "@/components/detail/series-chart";
+import { isBilantSeries } from "@/lib/series-utils";
 import { ScoreScale } from "@/components/plan/score-scale";
 import { SyntheticGlyph } from "@/components/shell/provenance";
 import { AppShell } from "@/components/shell/app-shell";
 import type { AuditRecord, Decision, WorkItem } from "@/lib/contracts";
 import { getSeries, getWorkItem } from "@/lib/data";
-import {
+import { getRemedies } from "@/lib/data/remedies";
+import { auditActionRo, factorLabelRo,
   ACTION_RO,
   CONFIDENCE_RO,
   DECISION_LABEL_RO,
@@ -51,7 +53,12 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
   await connection();
   const id = safeDecode((await params).id);
   const scenario = await resolveScenario(searchParams);
-  const [{ info }, result, series] = await Promise.all([loadShellInfo(scenario), getWorkItem(id, scenario), getSeries(id, scenario)]);
+  const [{ info }, result, series, remedies] = await Promise.all([
+    loadShellInfo(scenario),
+    getWorkItem(id, scenario),
+    getSeries(id, scenario),
+    id.startsWith("C-") ? getRemedies(scenario).catch(() => null) : Promise.resolve(null),
+  ]);
   const detail = result.data;
 
   if (!detail) {
@@ -89,7 +96,7 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
           <span className="h-6 w-px bg-rule" aria-hidden="true" />
           <span className="size-9 shrink-0" dangerouslySetInnerHTML={{ __html: markerSvg({ source: w.source, kind: markerKind(decision?.decision) }) }} />
           <div className="min-w-0">
-            <h1 className="code-id text-[24px] leading-tight">{w.work_item_id}</h1>
+            <h1 className="code-id text-[24px] leading-tight" translate="no">{w.work_item_id}</h1>
             <p className="text-[15.5px] text-muted-foreground">
               {itemTitle(w)}, {itemPlace(w)}: {predictionLabelRo(p.label)}
             </p>
@@ -105,7 +112,7 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
             <span
               className={
                 "rounded-[4px] px-3 py-1.5 text-[15px] font-[600] " +
-                (decision.decision === "human_review" ? "bg-att text-white" : "bg-ink text-panel")
+                (decision.decision === "human_review" ? "bg-att text-on-att" : "bg-ink text-panel")
               }
             >
               {sentence(DECISION_LABEL_RO[decision.decision]).replace(/\.$/, "")}
@@ -206,6 +213,7 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
                 decision={decision}
                 recommended={w.recommended_action}
                 p90Before={p.point_interval?.[1] ?? null}
+                choice={remedies?.data.find((r) => r.work_item_id === w.work_item_id) ?? null}
               />
             </section>
           ) : null}
@@ -331,7 +339,7 @@ function Factors({ w }: { w: WorkItem }) {
       {w.explanation.top_factors.map((f) => (
         <div key={f.feature} className="grid grid-cols-[minmax(0,1fr)_minmax(140px,240px)_56px] items-center gap-x-4 text-[16px]">
           <span>
-            {sentence(f.label_ro).replace(/\.$/, "")}
+            {factorLabelRo(f.label_ro)}
             <span className="dense ml-2 text-[13px] text-muted-foreground">{f.feature}</span>
           </span>
           <span className="relative h-3 bg-muted" aria-hidden="true">
@@ -375,7 +383,7 @@ function DecisionBlock({ w, decision }: { w: WorkItem; decision: Decision | null
       <h2 id="dec-title" className="text-[18px] font-[650]">
         Decizia agentului
       </h2>
-      <p className="mt-1.5 text-[16.5px] leading-relaxed">{decision.reason_ro}</p>
+      <p className="mt-1.5 text-[16.5px] leading-relaxed">{decision.reason_ro.charAt(0).toLocaleUpperCase("ro-RO") + decision.reason_ro.slice(1)}</p>
       <div className="mt-3 flex flex-wrap items-baseline gap-x-3">
         <span className="code-id text-[16px]">{decision.rule_id}</span>
         <span className="text-[15px] text-muted-foreground">
@@ -433,7 +441,7 @@ function AuditTrail({ audit }: { audit: AuditRecord[] }) {
       {sorted.map((a) => (
         <li key={a.audit_id} className="text-[14.5px]">
           <span className="font-[600]">{a.actor === "human" ? "Om" : "Agent"}</span>, {fmtMoment(a.ts)}:{" "}
-          {(DECISION_LABEL_RO as Record<string, string>)[a.action] ?? a.action}
+          {auditActionRo(a.action)}
           {a.rule_id ? <span className="dense text-muted-foreground"> ({a.rule_id})</span> : null}
           {a.note ? <span className="block text-muted-foreground">„{a.note}”</span> : null}
         </li>

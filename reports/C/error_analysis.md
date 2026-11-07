@@ -16,7 +16,7 @@ uv run python -m cyberpunks.c_prosumatori.evaluate --ablation fara_tensiune_porn
 - Eroarea medie (MAE) e 0,0054 pu față de 0,0227 la baseline, pe fiecare tip de rețea, lună și vreme. Nu există o felie în care baseline-ul să fie mai bun.
 - Modelul greșește cel mai mult pe **rețelele rurale lungi și slabe** (cablu torsadat TYIR 50, aluminiu vechi), pe **posturile cu baterii** și **lângă prag** (1,09-1,11 pu).
 - Ratările sunt depășiri la limită: mediana tensiunii reale la ratări e 1,104 pu, iar 97% sunt sub 1,115 pu. Alarmele false sunt aproape de prag: mediana e 1,095 pu, iar 84% sunt peste 1,09 pu.
-- Ce am schimbat după analiză: calibrarea izotonică (eroarea de calibrare ECE de la 0,012 la 0,003), lărgirea conformală a intervalelor (acoperirea P10-P90 de la 43% la 81% la modelul zilnic și de la 50% la 80% la cel orar) și repararea prizei în simulare (vezi mai jos).
+- Ce am schimbat după analiză: calibrarea izotonică (eroarea de calibrare ECE de la 0,012 la 0,003), lărgirea conformală a intervalelor, pe grupe de rețea (acoperirea P10-P90 de la 43% la 82% la modelul zilnic și de la 50% la 80% la cel orar (80,4%)) și repararea prizei în simulare (vezi mai jos).
 
 ## 1. Rețele rurale lungi
 
@@ -37,7 +37,7 @@ uv run python -m cyberpunks.c_prosumatori.evaluate --ablation fara_tensiune_porn
 
 Ce înseamnă: pe rețelele lungi eroarea crește cu 40% (de la 0,0045 la 0,0063 pu), iar intervalul acoperă mai puțin (77% față de 86%). Cele mai mari 200 de erori sunt toate pe rural2 și rural3, aproape toate pe TYIR 50, Al 35 sau TYIR 70, în zile mai senine decât media (nori 25% față de 55%) și pe posturi la care panourile ridică tensiunea mult (sensibilitate mediană 0,21 pu, față de 0,03 pu în tot testul). 62% dintre ele sunt subestimări. Pe rețelele scurte depășirile sunt rare, deci PR-AUC e mai mic acolo, deși eroarea e mică.
 
-Pe topologii, acoperirea intervalului variază: 73% pe rural3 și semiurb5, 88% pe rural1 și semiurb4. Marginea conformală e una singură pentru toate rețelele; o margine pe tip de rețea ar egaliza acoperirea (de încercat).
+Pe topologii, acoperirea intervalului varia între 73% (rural3, semiurb5) și 88% (rural1, semiurb4) cu o singură margine conformală. Cu margini pe patru grupe de rețea (după cât ridică panourile tensiunea în cel mai expus punct) intervalul se lărgește pe rețelele slabe și se strânge pe cele puternice: acoperirea totală e 82,1%, pe topologii între 76% (semiurb5) și 87% (rural2), iar rural3 urcă de la 73% la 80%.
 
 ## 2. Zile parțial înnorate
 
@@ -82,11 +82,16 @@ MAE rămâne între 0,0047 și 0,0057 pu în fiecare lună. Vara modelul subesti
 | Probabilitatea brută a clasificatorului | Brier 0,0165, ECE 0,0123 | înlocuită |
 | Calibrare izotonică pe predicții din topologii nevăzute | Brier 0,0150, ECE 0,0032 | păstrată |
 | Intervale P10-P90 brute | acoperire 42,8% (zilnic), 49,8% (orar) pe rețele nevăzute | prea înguste |
-| Lărgire conformală (CQR) din reziduuri pe topologii nevăzute | acoperire 80,9% (zilnic), 80,0% (orar) | păstrată |
+| Lărgire conformală (CQR) din reziduuri pe topologii nevăzute, o margine globală | acoperire 80,9% (zilnic), pe topologii 73-88% | înlocuită |
+| Lărgire conformală pe grupe de rețea (patru grupe după cât ridică panourile tensiunea) | acoperire 82,1% (zilnic), pe topologii 76-87%; rural3 de la 73% la 80% | păstrată |
+| Model orar, lărgire conformală calibrată imbricat: doar perioada de antrenare, fără topologia testată (după două runde de review Codex: prima variantă folosea și reziduuri din perioada de test) | acoperire 80,4% (49,8% fără lărgire) | păstrată |
 | Constrângeri monotone (mai mult soare / kW / rețea mai slabă nu pot coborî tensiunea) | LightGBM le acceptă doar la clasificator, nu la cuantile | păstrate la clasificator |
 | Simularea cu priza ignorată (bug pandapower 3.x: `tap_changer_type` gol în SimBench) | modelul învăța priza ca pe un zgomot; estimarea „după priză” nu se mișca | reparat; simulări refăcute |
-| Fără trăsăturile fizice din topologie | vezi `reports/C/ablation_fara_fizica.json` | (completat mai jos) |
-| Fără tensiunea de pornire și priză | vezi `reports/C/ablation_fara_tensiune_pornire.json` | (completat mai jos) |
+| Fără trăsăturile fizice din topologie (sensibilitățile rețelei, estimarea liniară a tensiunii, rezistența) | MAE 0,0119 pu (de 2,2 ori mai mare); PR-AUC 0,384, sub baseline (0,428); pe rural2 MAE 0,0239 față de 0,0061 | trăsăturile rămân: fără ele modelul nu se transferă pe rețele noi |
+| Fără tensiunea de pornire și priză | MAE 0,0205 pu (de 3,8 ori mai mare); PR-AUC 0,728 | rămân: sunt cel mai important semnal |
+| Radiația de dimineață (6-11) ca trăsătură, pentru bateriile care se umplu înainte de prânz (`reports/C/experiment_gti_morning.json`) | MAE 0,00535 față de 0,00543; pe posturile cu baterii doar 1-2% mai bine; recall 84,2% față de 86,5%, Brier 0,0153 față de 0,0150 | neadoptată: clasificarea, care decide lucrările, iese mai slabă; incertitudinea bateriilor vine din starea lor de încărcare, pe care nu o știm |
+
+Ce înseamnă ablațiile pentru PPC: modelul are nevoie de două lucruri pe care distribuitorul le poate avea, dar nu le are peste tot azi. Primul e topologia rețelei de joasă tensiune, din care se calculează cât ridică panourile tensiunea în cel mai expus punct; asta aduce GIS-ul nou, pentru care Rețele Electrice a lansat licitația în aprilie 2026. Al doilea e priza și tensiunea pe medie tensiune la fiecare post. Fără ele, eroarea se dublează, respectiv aproape se împătrește.
 
 ## 7. Limite cunoscute
 

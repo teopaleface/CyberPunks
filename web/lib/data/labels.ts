@@ -60,6 +60,13 @@ const PREDICTION_LABEL_RO: Record<string, string> = {
   faulty: "suspect de defect",
   outage_risk: "risc de avarii",
   overvoltage: "tensiune peste limită",
+  // bilanțul pe post: cauza probabilă a lipsei
+  normal: "pierderi normale",
+  contor_client: "contor defect la un client",
+  furt_inainte_contor: "furt înainte de contor",
+  pierdere_tehnica: "pierdere tehnică (cablu, faze dezechilibrate)",
+  client_post_gresit: "client trecut la postul greșit în bază",
+  contor_bilant_setat: "contorul de bilanț setat greșit",
 };
 
 export function predictionLabelRo(label: string): string {
@@ -122,6 +129,10 @@ const RULE_RO: Record<string, string> = {
   "R-C-MEASURE": "întâi măsurători la post",
   "R-C-MEASURE-THEN-TAP": "măsurători, apoi schimbarea prizei",
   "R-C-WATCH": "depășire puțin probabilă: urmărire",
+  "R-A-VISIT-MEDIUM": "încredere medie: vizită doar dacă marja de valoare e mare",
+  "R-BILANT-GRID": "bilanțul arată pierdere tehnică: echipa de rețea",
+  "R-BILANT-METER": "bilanțul arată contor defect: echipa de contoare",
+  "R-BILANT-OFFICE": "corecție în bază, fără deplasare",
   "R-FUSION-BILANT": "contorul e confirmat de bilanțul postului",
 };
 
@@ -165,7 +176,20 @@ const THRESHOLD_RO: Record<string, string> = {
   arrive_before_start_min: "ajunge înainte de furtună cu",
   safety_flag: "risc pentru oameni",
   safety_priority_multiplier: "prioritate înmulțită pentru siguranță",
+  smart_meter: "contor inteligent",
+  planned_notice_working_days: "zile lucrătoare de anunț pentru întrerupere",
+  abstain: "modelul s-a abținut",
+  human: "trimis la om",
+  visit_min_score: "scor minim pentru vizită",
+  medium_confidence_margin_lei: "marja cerută la încredere medie",
+  p90_before_pu: "tensiunea P90 fără soluție",
+  p90_after_pu: "tensiunea P90 după soluție",
+  remedy_cost_lei: "costul soluției alese",
+  remedy_steps: "trepte combinate",
+  remedy_options_checked: "variante verificate",
 };
+
+const FLAG_KEYS = new Set(["safety_flag", "smart_meter", "abstain", "human"]);
 
 export function thresholdLabelRo(key: string): string {
   return THRESHOLD_RO[key] ?? key.replaceAll("_", " ");
@@ -175,13 +199,46 @@ export function thresholdValueRo(key: string, v: unknown): string {
   if (typeof v !== "number") return String(v);
   const ro = (n: number, d: number) =>
     new Intl.NumberFormat("ro-RO", { minimumFractionDigits: d, maximumFractionDigits: d }).format(n);
-  if (key === "safety_flag") return v ? "da" : "nu";
+  if (FLAG_KEYS.has(key)) return v ? "da" : "nu";
+  // scorurile întâi: „score_min” e un scor, nu minute
+  if (key.includes("score") || key === "confidence_low") return ro(v, 2);
   if (key.endsWith("_lei")) return `${ro(v, Math.abs(v) >= 100 || Number.isInteger(v) ? 0 : 2)} lei`;
   if (key.endsWith("_pu")) return `${ro(v, 3).replace(/0$/, "")} pu`;
+  if (key.endsWith("_days")) return `${ro(v, 0)} zile`;
   if (key.endsWith("_min")) return `${ro(v, 0)} min`;
   if (key.startsWith("travel_km")) return `${ro(v, 1)} km`;
   if (key.includes("ratio") || key.includes("width")) return ro(v, 2);
-  if (key.includes("score") || key === "confidence_low") return ro(v, 2);
   if (key.endsWith("multiplier")) return `×${ro(v, Number.isInteger(v) ? 0 : 1)}`;
   return Number.isInteger(v) ? ro(v, 0) : ro(v, 2);
+}
+
+/**
+ * Textul unui factor, pregătit pentru afișare: zecimalele cu punct devin virgulă („0.46” → „0,46”),
+ * iar procentele absurde (împărțiri la aproape zero, de exemplu „18273047%”) devin „peste 1.000%”.
+ * Datele originale rămân neatinse; e doar o protecție la afișare.
+ */
+export function factorLabelRo(label: string): string {
+  const t = label
+    .replace(/(\d)\.(\d)/g, "$1,$2")
+    .replace(/(\d+(?:,\d+)?)\s?%/g, (m, n: string) => (Number(n.replace(",", ".")) > 1000 ? "peste 1.000%" : m));
+  const out = t.trim();
+  if (!out) return out;
+  return (out.charAt(0).toLocaleUpperCase("ro-RO") + out.slice(1)).replace(/\.$/, "");
+}
+
+/** Acțiunile din jurnal (AuditRecord.action), în cuvinte. */
+const AUDIT_ACTION_RO: Record<string, string> = {
+  run: "agentul a făcut planul",
+  replan: "agentul a refăcut planul",
+  review_approve: "omul a aprobat",
+  review_reject: "omul a respins",
+  review_defer: "omul a amânat",
+  approve: "omul a aprobat",
+  reject: "omul a respins",
+  defer: "omul a amânat",
+  plan_approved: "omul a aprobat lista echipelor",
+};
+
+export function auditActionRo(action: string): string {
+  return AUDIT_ACTION_RO[action] ?? (DECISION_LABEL_RO as Record<string, string>)[action] ?? action.replaceAll("_", " ");
 }

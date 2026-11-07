@@ -11,7 +11,7 @@ De ce un model, nu calculul de rețea direct: Rețele Electrice are peste 26.000
 ## Versiunea
 
 - `model_id`: `c-surrogate`; `model_version`: `c-lgbm@<commit>` (scris în fiecare lucrare și în `models/release/C/bundle.json`).
-- Componente: LightGBM 4.7 regresie cuantilă (P10, P50, P90) pentru tensiunea maximă zilnică; LightGBM clasificator (constrângeri monotone) pentru P(> 1,10 pu), calibrat izotonic; lărgire conformală a intervalului; model pentru kWh pierduți; model orar (P10, P50, P90) pentru grafic, tot cu lărgire conformală.
+- Componente: LightGBM 4.7 regresie cuantilă (P10, P50, P90) pentru tensiunea maximă zilnică; LightGBM clasificator (constrângeri monotone) pentru P(> 1,10 pu), calibrat izotonic; lărgire conformală a intervalului, pe patru grupe de rețea; model pentru kWh pierduți; model orar (P10, P50, P90) pentru grafic, tot cu lărgire conformală.
 - Antrenare: `make c-train` (circa 3 minute pe 4 nuclee). Ziua demo (2025-07-08) și cele 3 zile dinainte și de după sunt scoase din antrenare.
 
 ## Datele
@@ -30,16 +30,17 @@ Test pe **rețele nevăzute** (leave-one-topology-out pe cele 6 topologii) și *
 |---|---|---|
 | MAE tensiune maximă (pu) | **0,0054** | 0,0227 |
 | RMSE (pu) | 0,0070 | 0,0277 |
-| Acoperirea intervalului P10-P90 (ținta 80%) | **80,9%** | 78,8% (de 4 ori mai lat) |
-| Lățimea medie a intervalului (pu) | 0,017 | 0,069 |
+| Acoperirea intervalului P10-P90 (ținta 80%) | **82,1%** | 78,8% (de 4 ori mai lat) |
+| Lățimea medie a intervalului (pu) | 0,018 | 0,069 |
 | PR-AUC depășiri peste 1,10 pu | **0,951** | 0,428 |
 | Recall / precizie la pragul 0,5 | 86,5% / 86,9% | 25,6% / 60,5% |
 | Brier | 0,015 | 0,058 |
 | Eroarea de calibrare (ECE) | 0,003 | 0,013 |
 
 - Pe topologii: MAE între 0,0044 și 0,0064 pu (baseline 0,0200-0,0269). Reper din literatură, pe aceleași 6 rețele, leave-one-grid-out: RMSE 0,0134 pu pe noduri (BOOST-RPF, arXiv:2603.21977; altă sarcină, același ordin de mărime).
-- Modelul orar (seria din grafic): MAE 0,0049 pu, acoperire P10-P90 80,0% după lărgirea conformală (49,8% înainte).
+- Modelul orar (seria din grafic): MAE 0,0049 pu, acoperire P10-P90 80,4% după lărgirea conformală, calibrată imbricat doar pe perioada de antrenare și fără topologia testată (49,8% înainte).
 - Backtest pe ziua demo (8 iulie 2025, populația de 300 de posturi): simularea fizică dă 16 posturi peste 1,10 pu; modelul le dă probabilitate peste 50% tuturor celor 16, plus 2 posturi aflate la 1,097 pu. MAE în ziua aceea: 0,0052 pu.
+- Ablații (aceeași evaluare): fără trăsăturile fizice din topologie, MAE 0,0119 pu și PR-AUC 0,384 (sub baseline); fără tensiunea de pornire și priză, MAE 0,0205 pu. Modelul are nevoie de topologia din GIS și de priza fiecărui post.
 - Analiza erorilor: `reports/C/error_analysis.md`.
 
 ## Explicabilitatea

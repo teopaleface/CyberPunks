@@ -1,7 +1,7 @@
 ,normal,contor_client,furt_inainte_contor,pierdere_tehnica,client_post_gresit,contor_bilant_setat
-normal,6134,680,15,157,84,0
-contor_client,1179,2069,267,83,83,0
-furt_inainte_contor,69,209,455,42,19,0
-pierdere_tehnica,125,76,44,164,2,0
-client_post_gresit,214,411,47,64,216,0
-contor_bilant_setat,0,1,4,0,0,287
+normal,8709,976,15,94,50,1
+contor_client,220,568,69,25,22,2
+furt_inainte_contor,54,188,499,42,11,0
+pierdere_tehnica,104,84,39,183,0,1
+client_post_gresit,206,284,10,42,410,0
+contor_bilant_setat,0,0,0,0,0,292

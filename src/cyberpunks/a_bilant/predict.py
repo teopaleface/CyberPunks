@@ -132,11 +132,11 @@ def post_states(pool: str, target_day: int) -> tuple[pd.DataFrame, pd.DataFrame,
     """Trăsăturile zilnice cu pierderea normală, fereastra zilei țintă, diagnosticul."""
     d = F.load_pool(pool)
     models = {"warm": N.load("normal"), "cold": N.load("normal_cold")}
-    pred = N.predict_any(models, d)
+    pred = W.predict_normal(models, d)
     win = W.build_windows(d, pred, pool, days=[target_day])
     diag = G.load()
     proba = diag.proba(win)
-    dec = G.decide(proba, win)
+    dec = G.pair_consistency(win, G.decide(proba, win))
     d = d.assign(p10=pred["p10"].to_numpy(), p50=pred["p50"].to_numpy(), p90=pred["p90"].to_numpy())
     return d, win.join(dec), proba
 
@@ -183,6 +183,19 @@ def ensure_ready(pool: str = "pop") -> None:
         from cyberpunks.a_bilant import evaluate
 
         evaluate.main()
+
+
+def a_items_by_post(scenario: str) -> dict[str, list[dict]]:
+    """Lucrările lui A pe contoare (dacă A a rulat deja pentru scenariu), grupate pe post."""
+    p = work_items_path(scenario, "A")
+    out: dict[str, list[dict]] = {}
+    if not p.exists():
+        return out
+    for line in p.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            w = json.loads(line)
+            out.setdefault(str(w.get("extra", {}).get("post_id", "")), []).append({"id": w["work_item_id"], "meter": w["asset_id"], "action": w["recommended_action"]})
+    return out
 
 
 def input_checks(pool: str, tday: int, post_ids: set[str]) -> dict[str, tuple[bool, list[str]]]:
@@ -234,6 +247,8 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
     now = datetime.now(TZ).replace(microsecond=0)
     version = json.loads((N.MODEL_DIR / "version.json").read_text())["version"] if (N.MODEL_DIR / "version.json").exists() else f"{MODEL_ID}@local"
     checks = input_checks(pool, tday, set(win["post_id"]))
+    a_by_post = a_items_by_post(scenario)
+    dedup = {"human_review_left_to_A": 0, "meter_work_left_to_A": 0}
     shap_idx = np.array([CLASSES.index(c) for c in win["label"]])
     shap = _shap(G.load(), win, shap_idx)
 
@@ -299,6 +314,16 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
             value = 2 * eco["visit_cost"]
             extra["paper_loss_kwh_day"] = round(float(r["r_mean_kwh"]), 1)
         score = float(np.clip(r["p_problem"], 0, 1))
+        # fără dubluri cu A: un post nu ajunge la om de două ori, iar munca pe contoare o face lucrarea lui A
+        a_here = a_by_post.get(pid, [])
+        if r["abstain"] and any(x["action"] == "human_review" for x in a_here):
+            states[pid]["left_to_A"] = [x["id"] for x in a_here]
+            dedup["human_review_left_to_A"] += 1
+            continue
+        if label == "contor_client" and not r["abstain"] and a_here:
+            states[pid]["left_to_A"] = [x["id"] for x in a_here]
+            dedup["meter_work_left_to_A"] += 1
+            continue  # fuziunea confirmă lucrarea lui A pe contor; o lucrare de post în plus ar dubla munca
         if r["abstain"]:
             action, skill, dur, size, urg = "human_review", "metering", 15, 1, 72.0
         elif label in ACTION:
@@ -383,7 +408,7 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
     sp = state_path(scenario, target)
     sp.parent.mkdir(parents=True, exist_ok=True)
     sp.write_text(json.dumps({"scenario": scenario, "date": target.isoformat(), "simulated_day": sim_day.isoformat(), "model_version": version, "loss_cost_lei_per_kwh": eco["price"], "synthetic": True, "posts": states}, ensure_ascii=False, indent=1), encoding="utf-8")
-    print(f"{len(items)} lucrări -> {out}; {len(series)} serii; starea a {len(states)} posturi -> {sp}")
+    print(f"{len(items)} lucrări -> {out}; {len(series)} serii; starea a {len(states)} posturi -> {sp}; fără dubluri cu A: {dedup}")
     return out
 
 

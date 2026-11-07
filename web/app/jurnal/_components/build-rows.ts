@@ -41,13 +41,29 @@ export const ACTION_ORDER = [
 
 /** Explicația scurtă a fiecărui tip de decizie, pentru rezumat. */
 export const DECISION_HINT_RO: Record<DecisionType, string> = {
-  assigned: "echipă trimisă la fața locului",
-  remote_action: "rezolvată fără deplasare",
-  notify: "anunț, fără echipă",
-  deferred: "nu merită o echipă acum",
-  human_review: "agentul n-a fost sigur",
-  rejected_invalid: "date greșite la intrare",
+  assigned: "cu echipă",
+  remote_action: "fără deplasare",
+  notify: "fără echipă",
+  deferred: "nu merită acum",
+  human_review: "agentul nu e sigur",
+  rejected_invalid: "date greșite",
 };
+
+function escapeRe(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Ce e și unde, fără să repete ID-ul și cu diacriticele din eticheta locului:
+ * „Contor la PT 9979, Tineretului”, „Zona Timișoara (Timiș)”, „Post de transformare, Afumați (sintetic)”.
+ */
+export function shortTitle(w: WorkItem): string {
+  const label = w.location.label?.trim() ?? "";
+  const rest = label.replace(new RegExp(`^(Contor\\s+)?${escapeRe(w.asset_id)},?\\s*`), "").trim();
+  if (w.asset_type === "meter") return rest ? `Contor la ${rest}` : `Contor, ${itemPlace(w)}`;
+  if (w.asset_type === "transformer_post") return `Post de transformare, ${rest || itemPlace(w)}`;
+  return label || itemTitle(w);
+}
 
 /** Praguri pe care etichetele comune nu le au încă. */
 const EXTRA_THRESHOLD_RO: Record<string, string> = {
@@ -104,8 +120,8 @@ function markerOf(r: AuditRecord): MarkerKind {
 function splitReviewer(note: string | null | undefined): { reviewer: string | null; note: string | null } {
   if (!note) return { reviewer: null, note: null };
   const i = note.indexOf(": ");
-  if (i < 0) return { reviewer: note.trim() || null, note: null };
-  return { reviewer: note.slice(0, i).trim() || null, note: note.slice(i + 2).trim() || null };
+  if (i < 0) return { reviewer: cap(note.trim()) || null, note: null };
+  return { reviewer: cap(note.slice(0, i).trim()) || null, note: note.slice(i + 2).trim() || null };
 }
 
 function time(ts: string): number {
@@ -158,7 +174,7 @@ export function buildRows(records: AuditRecord[], workItemsById: Record<string, 
       workItemId: id,
       source: id ? sourceOf(id) : null,
       marker: markerOf(r),
-      itemTitle: w ? `${itemTitle(w)}, ${itemPlace(w)}` : null,
+      itemTitle: w ? shortTitle(w) : null,
       ruleId: r.rule_id ?? null,
       ruleText: ruleRo(r.rule_id),
       thresholds: thresholds(r.threshold),

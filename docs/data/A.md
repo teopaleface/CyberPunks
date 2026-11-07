@@ -7,9 +7,11 @@ Ce face: din consumul contoarelor inteligente, modelul nostru găsește contoare
 ```bash
 uv sync
 make a-predict      # lucrările pentru demo-vara și maine, din modelul și pachetul demo din git (~10 s)
-make a-all          # totul de la zero: descărcare (~260 MB), features, antrenare, evaluare, lucrări (~5 min)
+make a-all          # totul de la zero: descărcare (~260 MB), features, antrenare, evaluare, robustețe, figuri, rapoarte
 make a-test         # testele firului A
 ```
+
+**Verificat dintr-o clonă curată** (7 nov. 2026, 15:15-15:24): `git clone --branch Teo-A-contoare` de pe GitHub într-un folder gol, apoi `uv sync` (25 s), `make a-predict` (aceleași 524 / 563 de lucrări, din pachetul din git, fără descărcări), `make a-test` (89 de teste trec), `make a-all` (7 minute, cu descărcarea de ~260 MB). Metricile din `reports/A/metrics.json` și `metrics_full.json` au ieșit identice cu cele din repo, iar lucrările pentru `demo-vara` identice (ID, scor, acțiune, valoare). Serverul din Londra limitează cererile (HTTP 429); scriptul așteaptă și reîncearcă singur.
 
 Pașii din `make a-all`, separat:
 
@@ -23,6 +25,8 @@ Pașii din `make a-all`, separat:
 | Lucrări pentru planificator | `uv run python -m cyberpunks.a_contoare.predict --scenario demo-vara` | `outputs/work_items/<s>/A.jsonl`, `outputs/series/<s>/<id>.json`, `A_summary.json`, `A_ground_truth.csv` |
 | Robustețe (date lipsă, SGCC pe timp) | `uv run python -m cyberpunks.a_contoare.robustness` | `reports/A/robustness.json` |
 | Alegerea features pe calibrare | `uv run python -m cyberpunks.a_contoare.select_features` | `reports/A/feature_selection.json` |
+| Figurile pentru prezentare | `uv run python -m cyberpunks.a_contoare.figures` | `reports/A/figures/headline_precision.png`, `ranking_at_k.png`, `false_alarms_by_consumption.png` |
+| Fuziunea cu bilanțul pe post, pe testul A | `uv run python -m cyberpunks.a_contoare.fusion_check` | `reports/A/fusion_check.json` |
 | Analiza erorilor și model card | `uv run python -m cyberpunks.a_contoare.report` | `reports/A/error_analysis.md`, `reports/A/model_card.md` |
 | Ce intră în git pentru demo | `uv run python -m cyberpunks.a_contoare.train --release` | `models/release/A/a-lgbm.joblib`, `data/samples/A/demo_pack.*`, `data/samples/A/similar_ref.parquet` |
 
@@ -58,12 +62,12 @@ Curățarea Londra (`lcl.py`): spațiile și textul "Null" din valori, rânduril
 
 - **Zilnice** (27, merg și pe SGCC): goluri (lungime, număr de goluri separate), zile cu zero, valori repetate, scăderea față de propriul istoric și față de vecini, cea mai mare scădere bruscă, panta (proprie și față de vecini), variația, forma distribuției, ritmul săptămânal, salturile, valorile negative, raportul față de vecinii de pe post, corelația cu vecinii, nivelul de consum.
 - **Din citirile la 30 de minute** (13): ponderea consumului de noapte și schimbarea ei, asemănarea profilului zilei cu cel obișnuit, decalajul profilului (ceas decalat), profilul plat, vârful mutat, intervalele de exact zero, citirile negative, salturile, valorile repetate.
-- Setul a fost ales pe setul de calibrare, nu pe test (`select_features.py`).
+- Setul a fost ales pe o validare din setul de antrenare (gospodării ținute deoparte), nu pe calibrare și nu pe test (`select_features.py`).
 
 ## Modelul și deciziile
 
 - **`a-lgbm`** (folosit de agent): LightGBM cu 3 clase (normal / defect / manipulare), ponderi pe clase, oprire timpurie validată pe gospodării separate. Scorul de problemă e calibrat Venn-ABERS (pe o grilă de cuantile, cu abaterea față de calculul exact măsurată) și are interval (`interval_low`, `interval_high`).
-- **"Nu sunt sigur":** conformal Mondrian pe scorul brut al modelului, cu pragurile alese pe calibrare (α = 1% pentru "normal", 30% pentru "problemă"). Garanția privește acoperirea mulțimii de predicție: conține "normal" pentru cel puțin ~99% din contoarele normale și "problemă" pentru cel puțin ~70% din problemele reale. Asta nu înseamnă că 70% din probleme sunt recunoscute sigur: o parte cad în zona gri (ambele clase în mulțime). Acolo lucrarea are `abstain=True`, cu motivul scris, și merge la `human_review`. La om ajung și contoarele cu istoric prea scurt, cu prea puține date recente sau cu unitate de măsură suspectă (`validate.py`). Câte contoare normale ajung efectiv la echipă sau la om se măsoară pe demo și e raportat în `reports/A/error_analysis.md`, secțiunea 7.
+- **"Nu sunt sigur":** conformal Mondrian pe scorul brut al modelului, cu pragurile alese pe calibrare (α = 1% pentru "normal", 30% pentru "problemă"). Acoperirea mulțimii de predicție (empirică, măsurată pe test, pentru că ferestrele de calibrare repetă gospodăriile): conține "normal" pentru ~99% din contoarele normale și "problemă" pentru ~70% din problemele reale. Asta nu înseamnă că 70% din probleme sunt recunoscute sigur: o parte cad în zona gri (ambele clase în mulțime). Acolo lucrarea are `abstain=True`, cu motivul scris, și merge la `human_review`. La om ajung și contoarele cu istoric prea scurt, cu prea puține date recente sau cu unitate de măsură suspectă (`validate.py`). Câte contoare normale ajung efectiv la echipă sau la om se măsoară pe demo și e raportat în `reports/A/error_analysis.md`, secțiunea 7.
 - **Consum mic** (etică): un furt suspectat la un contor din chintila de jos a consumului merge întâi la un om. Poate fi o locuință goală sau sărăcie energetică, nu furt.
 - **Valoarea** (`config/economics.yaml`, cheia `meters`): kWh lipsă pe zi față de normal (propriul istoric, mutat după sezonul vecinilor) × 90 de zile × 0,70 lei/kWh. La un contor defect se adaugă o vizită evitată (citire manuală sau reclamație), egală cu costul vizitei. `expected_value_lei = score × value_if_true_lei`.
 - **Recomandarea** (decizia finală o ia planificatorul): furt sigur → verificare la fața locului (cu `safety_flag`); defect sigur → verificare sau, dacă golurile sunt recente și scorul mai mic, citire la distanță întâi; contor fără comunicație → verificare (`extra.smart_meter=false`); următoarele 40 → urmărire.

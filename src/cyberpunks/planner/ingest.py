@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import date
@@ -92,6 +93,19 @@ def _pydantic_errors(exc: ValidationError) -> list[str]:
 def semantic_errors(wi: WorkItem, plan_date: date | None) -> list[str]:
     """Verificări de sens pe care contractul nu le face."""
     errs: list[str] = []
+    numbers = {
+        "impact.expected_value_lei": wi.impact.expected_value_lei, "impact.value_if_true_lei": wi.impact.value_if_true_lei,
+        "impact.urgency_hours": wi.impact.urgency_hours, "prediction.score": wi.prediction.score,
+        "prediction.point_estimate": wi.prediction.point_estimate, "data_quality.missing_ratio": wi.data_quality.missing_ratio,
+    }
+    if wi.prediction.point_interval:
+        numbers.update({"prediction.point_interval[0]": wi.prediction.point_interval[0], "prediction.point_interval[1]": wi.prediction.point_interval[1]})
+    bad = [k for k, v in numbers.items() if v is not None and not math.isfinite(float(v))]
+    if bad:
+        return [f"valori care nu sunt numere finite: {', '.join(bad)}"]
+    for tw_t in (wi.time_window.start, wi.time_window.end) if wi.time_window else ():
+        if tw_t.tzinfo is None:
+            errs.append("fereastra de timp nu are fus orar")
     if plan_date is not None and wi.target_date != plan_date:
         errs.append(f"lucrarea e pentru {wi.target_date.isoformat()}, planul e pentru {plan_date.isoformat()}")
     if wi.work_item_id[2:10] != wi.target_date.strftime("%Y%m%d"):
@@ -159,6 +173,9 @@ def load_source(source: str, path: Path | None, origin: Origin, plan_date: date 
         except ValidationError as exc:
             load.quarantined.append(Quarantined(source, line_no, qid, _pydantic_errors(exc), raw, digest))
             continue
+        except (TypeError, ValueError, OverflowError) as exc:  # de exemplu ore cu și fără fus orar amestecate
+            load.quarantined.append(Quarantined(source, line_no, qid, [f"intrare greșită: {type(exc).__name__}: {str(exc)[:160]}"], raw, digest))
+            continue
         errs = semantic_errors(wi, plan_date)
         if wi.work_item_id in seen:
             errs.append("ID duplicat: lucrarea a mai apărut o dată (se păstrează prima apariție)")
@@ -176,7 +193,11 @@ def infer_plan_date(paths: list[Path]) -> date | None:
     for p in paths:
         if not p or not p.exists():
             continue
-        for line in p.read_text(encoding="utf-8").splitlines():
+        try:
+            text = p.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue  # fișier stricat: îl tratează loaderul (sursă lipsă)
+        for line in text.splitlines():
             try:
                 d = json.loads(line).get("target_date")
             except (json.JSONDecodeError, AttributeError):

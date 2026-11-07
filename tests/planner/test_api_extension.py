@@ -83,3 +83,24 @@ def test_run_info_and_health(live) -> None:
     health = client.get("/api/health", params={"scenario": SCENARIO}).json()
     assert health["plan_id"] == info["plan_id"] and health["mode"] == "live"
     assert client.get("/api/run-info", params={"scenario": "nimic"}).status_code == 404
+
+
+def test_plan_approval(live) -> None:
+    client, out = live
+    plan = client.get("/api/plan", params={"scenario": SCENARIO}).json()
+    assert client.get("/api/plan/approval", params={"scenario": SCENARIO}).json()["approved"] is False
+    r = client.post("/api/plan/approve", json={"scenario": SCENARIO, "plan_id": plan["plan_id"], "approver": "Ana", "note": "ok"})
+    assert r.status_code == 200 and r.json()["action"] == "plan_approved" and r.json()["actor"] == "human"
+    assert client.get("/api/plan/approval", params={"scenario": SCENARIO}).json()["approved"] is True
+    assert client.post("/api/plan/approve", json={"scenario": SCENARIO, "plan_id": "PLAN-vechi"}).status_code == 409
+    assert (out / "plans" / SCENARIO / "posts.json").exists()
+
+
+def test_api_source_can_be_pinned_to_demo(live, tmp_path, monkeypatch) -> None:
+    from cyberpunks.planner.snapshot import snapshot
+
+    client, out = live
+    snapshot(SCENARIO, src=out, dest=tmp_path / "demo", reports=tmp_path / "rep")
+    monkeypatch.setenv("CYBERPUNKS_API_SOURCE", "demo")
+    assert client.get("/api/health", params={"scenario": SCENARIO}).json()["mode"] == "demo"
+    assert (tmp_path / "demo" / "plans" / SCENARIO / "posts.json").exists()

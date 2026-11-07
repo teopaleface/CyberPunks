@@ -1,6 +1,7 @@
 import type { Decision, RecommendedAction } from "@/lib/contracts";
 import { ACTION_RO, CONFIDENCE_RO } from "@/lib/data/labels";
 import type { RemedyOption } from "@/lib/extras";
+import type { RemedyChoice } from "@/lib/data/remedies";
 import { fmtDec, fmtDuration, fmtInt, fmtLei, fmtPercent } from "@/lib/format";
 
 /**
@@ -10,26 +11,22 @@ import { fmtDec, fmtDuration, fmtInt, fmtLei, fmtPercent } from "@/lib/format";
  */
 export function RemedyLadder({
   options,
-  decision,
-  recommended,
   limit = 1.1,
   p90Before,
+  choice,
 }: {
   options: RemedyOption[];
-  decision: Decision | null;
-  recommended: RecommendedAction;
+  /** Păstrate pentru apelanți; alegerea vine doar din `choice`. */
+  decision?: Decision | null;
+  recommended?: RecommendedAction;
   limit?: number;
   p90Before: number | null;
+  /** Combinația aleasă de agent (remedies), dacă o avem. */
+  choice?: RemedyChoice | null;
 }) {
   const sorted = options.toSorted((a, b) => a.cost_lei - b.cost_lei);
-  // treapta aleasă: cea din decizie (R-REMEDY-LADDER, `threshold.chosen_cost_lei` dacă există), altfel acțiunea recomandată
-  const chosenCost = typeof decision?.threshold?.chosen_cost_lei === "number" ? decision.threshold.chosen_cost_lei : null;
-  const chosen =
-    (chosenCost != null ? sorted.find((o) => Math.abs(o.cost_lei - chosenCost) < 0.5) : undefined) ??
-    sorted.find((o) => o.action === recommended) ??
-    sorted.find((o) => o.p90_after_pu < limit) ??
-    null;
-  const cheaperFailing = chosen ? sorted.filter((o) => o.cost_lei < chosen.cost_lei) : [];
+  // treptele alese vin doar din combinația agentului (remedies); interfața nu ghicește
+  const chosenSet = new Set<string>(choice?.chosen ?? []);
   const allVals = [limit, ...(p90Before != null ? [p90Before] : []), ...sorted.map((o) => o.p90_after_pu)];
   const vMin = Math.min(...allVals) - 0.01;
   const vMax = Math.max(...allVals) + 0.01;
@@ -39,7 +36,7 @@ export function RemedyLadder({
     <div>
       <ol className="divide-y divide-rule border-y border-rule">
         {sorted.map((o, i) => {
-          const isChosen = chosen === o;
+          const isChosen = chosenSet.has(o.action);
           const ok = o.p90_after_pu < limit;
           return (
             <li
@@ -107,19 +104,32 @@ export function RemedyLadder({
           );
         })}
       </ol>
-      <p className="mt-3 text-[15px]">
-        {chosen ? (
-          <>
-            Agentul alege <b className="font-[620]">{ACTION_RO[chosen.action] ?? chosen.action}</b> ({fmtLei(chosen.cost_lei)}), cea mai ieftină treaptă care
-            aduce P90 sub {fmtDec(limit, 2)} pu.
-            {cheaperFailing.length
-              ? ` Treptele mai ieftine (${cheaperFailing.map((o) => ACTION_RO[o.action] ?? o.action).join(", ")}) lasă P90 peste limită.`
-              : ""}
-          </>
-        ) : (
-          "Nicio treaptă nu aduce P90 sub limită singură; decizia merge la un om."
-        )}
-      </p>
+      {choice ? (
+        <div className="mt-3 space-y-1.5 text-[15px]">
+          <p>
+            Agentul combină{" "}
+            <b className="font-[620]">{choice.chosen.map((a) => ACTION_RO[a as RecommendedAction] ?? a).join(" + ")}</b>, cost{" "}
+            {fmtLei(choice.cost_lei)}: P90 scade de la {fmtDec(choice.p90_before_pu, 3)} la{" "}
+            <b className="font-[620]">{fmtDec(choice.p90_after_pu, 3)} pu</b>, sub limita de {fmtDec(limit, 2)}.
+            {choice.inverter_trips_avoided ? ` Se evită circa ${fmtInt(choice.inverter_trips_avoided)} opriri ale invertoarelor.` : ""}
+          </p>
+          {choice.why_not_cheaper?.length ? (
+            <div>
+              <p className="text-muted-foreground">De ce nu ajunge ceva mai ieftin:</p>
+              <ul className="mt-0.5 list-disc pl-5 text-[14.5px]">
+                {choice.why_not_cheaper.map((r) => (
+                  <li key={r}>{r}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+      {!choice ? (
+        <p className="mt-3 text-[15px] text-muted-foreground">
+          Combinația aleasă de agent și motivul ei sunt în decizie, mai sus. Aici se vede efectul fiecărei trepte, singură.
+        </p>
+      ) : null}
       <p className="mt-1 text-[13.5px] text-muted-foreground">
         Efectul fiecărei trepte e calculat cu modelul de rețea al firului C, nu ghicit. Punctul gol arată P90 fără nicio soluție.
       </p>

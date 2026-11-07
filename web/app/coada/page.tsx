@@ -6,12 +6,12 @@ import { ScoreScale } from "@/components/plan/score-scale";
 import { AppShell } from "@/components/shell/app-shell";
 import type { AuditRecord, Decision, WorkItem } from "@/lib/contracts";
 import { getAudit } from "@/lib/data";
-import { CONFIDENCE_RO, DECISION_LABEL_RO, SOURCE_LABEL_RO, predictionLabelRo, ruleRo } from "@/lib/data/labels";
+import { factorLabelRo, CONFIDENCE_RO, DECISION_LABEL_RO, SOURCE_LABEL_RO, predictionLabelRo, ruleRo } from "@/lib/data/labels";
 import { fmtLei, fmtMoment, fmtScore, plural, sentence } from "@/lib/format";
 import { markerSvg } from "@/lib/marker-svg";
 import { itemPlace, itemTitle } from "@/lib/plan-screen";
 import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
-import { sourceOf } from "@/lib/sources";
+import { SOURCES, sourceOf } from "@/lib/sources";
 
 export default function QueuePage({ searchParams }: PageProps<"/coada">) {
   return (
@@ -70,7 +70,7 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
         <div className="flex items-center gap-3">
           <h1 className="text-[30px] leading-tight font-[650]">Nu sunt sigur</h1>
           {waiting.length ? (
-            <span className="inline-grid h-8 min-w-8 place-items-center rounded-full bg-att px-2.5 text-[17px] font-[700] text-white tabular-nums">
+            <span className="inline-grid h-8 min-w-8 place-items-center rounded-full bg-att px-2.5 text-[17px] font-[700] text-on-att tabular-nums">
               {waiting.length}
               <span className="sr-only"> {waiting.length === 1 ? "lucrare așteaptă" : "lucrări așteaptă"} un om</span>
             </span>
@@ -81,6 +81,8 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
           au probleme, sau e un risc pentru oameni și nu e nicio echipă liberă. Decide un om. Decizia intră în jurnal cu actorul „om”, iar planul
           se recalculează.
         </p>
+
+        {waiting.length > 1 ? <Summary waiting={waiting} /> : null}
 
         {!plan ? (
           <div className="mt-8 border-y border-rule bg-panel px-5 py-6">
@@ -139,6 +141,40 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
         </p>
       </div>
     </AppShell>
+  );
+}
+
+/** Pe scurt, pentru proiector: câte lucrări din fiecare sursă și din ce motive. */
+function Summary({ waiting }: { waiting: Waiting[] }) {
+  const bySource = new Map<string, number>();
+  const byRule = new Map<string, number>();
+  for (const { decision, w } of waiting) {
+    const s = w?.source ?? sourceOf(decision.work_item_id);
+    if (s) bySource.set(s, (bySource.get(s) ?? 0) + 1);
+    byRule.set(decision.rule_id, (byRule.get(decision.rule_id) ?? 0) + 1);
+  }
+  const sources = (["A", "B", "C"] as const).filter((s) => bySource.get(s));
+  const rules = [...byRule.entries()].sort((a, b) => b[1] - a[1]);
+  return (
+    <div className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-2 text-[15px]">
+      <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
+        {sources.map((s) => (
+          <span key={s} className="flex items-center gap-1.5">
+            <span className="size-6 shrink-0" dangerouslySetInnerHTML={{ __html: markerSvg({ source: s }, 24) }} />
+            {SOURCES[s].name} <b className="font-[650] tabular-nums">{bySource.get(s)}</b>
+          </span>
+        ))}
+      </span>
+      <span className="h-5 w-px bg-rule" aria-hidden="true" />
+      <span className="text-muted-foreground">
+        {rules.map(([rule, n], i) => (
+          <span key={rule}>
+            {i ? "; " : "Motive: "}
+            {ruleRo(rule) ?? rule} <b className="font-[650] text-ink tabular-nums">{n}</b>
+          </span>
+        ))}
+      </span>
+    </div>
   );
 }
 
@@ -207,7 +243,7 @@ function WaitingRow({ item: { decision, w }, scenario }: { item: Waiting; scenar
               <div className="mt-4 space-y-2">
                 {factors.map((f) => (
                   <div key={f.feature} className="grid grid-cols-[minmax(0,1fr)_120px_52px] items-center gap-x-3 text-[15px]">
-                    <span className="min-w-0">{sentence(f.label_ro).replace(/\.$/, "")}</span>
+                    <span className="min-w-0">{factorLabelRo(f.label_ro)}</span>
                     <span className="relative h-2.5 bg-muted" aria-hidden="true">
                       <i
                         className="absolute inset-y-0 left-0"
@@ -222,10 +258,7 @@ function WaitingRow({ item: { decision, w }, scenario }: { item: Waiting; scenar
                 ))}
               </div>
             ) : null}
-            <p className="mt-4 text-[15.5px]">
-              Valoare așteptată <b className="font-[650] tabular-nums">{fmtLei(w?.impact.expected_value_lei ?? 0)}</b>
-              <span className="text-muted-foreground"> dacă problema e reală și se rezolvă</span>
-            </p>
+            <Value w={w} abstained={Boolean(p.abstain)} />
           </>
         ) : (
           <p className="text-[15px] text-muted-foreground">Fără predicție pentru această lucrare.</p>
@@ -235,9 +268,37 @@ function WaitingRow({ item: { decision, w }, scenario }: { item: Waiting; scenar
       {/* decizia omului */}
       <div className="min-w-0 border-l-[3px] border-att bg-att-surface px-5 py-4">
         <p className="mb-2 text-[16px] font-[650] text-att-ink">Decide tu</p>
-        <ReviewActions workItemId={id} />
+        <ReviewActions workItemId={id} scenario={scenario} />
       </div>
     </li>
+  );
+}
+
+/** Valoarea în joc. Când modelul se abține, valoarea așteptată e 0: arătăm cât valorează dacă problema e reală. */
+function Value({ w, abstained }: { w: WorkItem | null; abstained: boolean }) {
+  if (!w) return null;
+  const ev = w.impact.expected_value_lei;
+  const ifTrue = w.impact.value_if_true_lei;
+  const lei = (n: number) => (n === 0 ? "0 lei" : fmtLei(n));
+  if (ev > 0 || !abstained) {
+    return (
+      <p className="mt-4 text-[15.5px]">
+        Valoare așteptată <b className="font-[650] tabular-nums">{lei(ev)}</b>
+        {ifTrue > 0 ? <span className="text-muted-foreground">; {lei(ifTrue)} dacă problema e reală</span> : null}
+      </p>
+    );
+  }
+  return (
+    <p className="mt-4 text-[15.5px]">
+      {ifTrue > 0 ? (
+        <>
+          În joc <b className="font-[650] tabular-nums">{lei(ifTrue)}</b>
+          <span className="text-muted-foreground"> dacă problema e reală. Agentul nu calculează valoarea așteptată când modelul se abține.</span>
+        </>
+      ) : (
+        <span className="text-muted-foreground">Agentul nu calculează valoarea așteptată când modelul se abține.</span>
+      )}
+    </p>
   );
 }
 

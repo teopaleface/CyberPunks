@@ -22,7 +22,7 @@ validate-fixtures:
 	uv run cyberpunks validate contracts/fixtures/work_items_A.jsonl contracts/fixtures/work_items_B.jsonl contracts/fixtures/work_items_C.jsonl
 
 # ---- A: contoare (firul Teo-A-contoare) ----
-.PHONY: a-data a-train a-evaluate a-robustness a-select a-report a-predict a-release a-test a-all
+.PHONY: a-data a-train a-evaluate a-robustness a-select a-figures a-fusion a-report a-predict a-release a-test a-all
 a-data:           ## A: descarcă SGCC și Low Carbon London (SHA-256), construiește features și eșantioanele
 	uv run python -m cyberpunks.a_contoare.download
 	uv run python -m cyberpunks.a_contoare.sgcc
@@ -35,6 +35,10 @@ a-robustness:     ## A: date lipsă 0-70% pe populația demo, SGCC pe timp -> re
 	uv run python -m cyberpunks.a_contoare.robustness
 a-select:         ## A: alegerea features pe setul de calibrare -> reports/A/feature_selection.json
 	uv run python -m cyberpunks.a_contoare.select_features
+a-figures:        ## A: figurile pentru prezentare (reports/A/figures/headline_precision, ranking_at_k, false_alarms_...)
+	uv run python -m cyberpunks.a_contoare.figures
+a-fusion:         ## A: fuziunea cu bilanțul pe post, verificată pe testul A -> reports/A/fusion_check.json
+	uv run python -m cyberpunks.a_contoare.fusion_check
 a-report:         ## A: reports/A/error_analysis.md și model_card.md, generate din cifrele scripturilor
 	uv run python -m cyberpunks.a_contoare.report
 a-predict:        ## A: lucrările pentru demo-vara și maine (merge și fără a-data, din pachetul demo din git)
@@ -44,7 +48,7 @@ a-release:        ## A: modelul și pachetul demo care intră în git (models/re
 	uv run python -m cyberpunks.a_contoare.train --release
 a-test:           ## A: testele firului A
 	uv run pytest tests/a
-a-all: a-data a-train a-evaluate a-robustness a-select a-predict a-report  ## A: totul, de la zero (~8 minute)
+a-all: a-data a-train a-evaluate a-robustness a-select a-predict a-figures a-fusion a-report  ## A: totul, de la zero (~9 minute)
 
 # ---- B: furtună (firul Teo-B-furtuna) ----
 .PHONY: b-data b-weather b-dataset b-evaluate b-predict b-reports b-test b-all
@@ -110,13 +114,14 @@ bilant-eval:      ## Bilanț: modelele și metodele simple, reports/bilant/metri
 	uv run python -m cyberpunks.a_bilant.evaluate
 	uv run python -m cyberpunks.a_bilant.planb
 	uv run python -m cyberpunks.a_bilant.error_analysis
+	uv run python -m cyberpunks.a_bilant.headline
 bilant-predict:   ## Bilanț: lucrările A_bilant.jsonl, seriile și starea pentru fuziune, scenariul demo-vara
 	uv run python -m cyberpunks.a_bilant.predict --scenario demo-vara
 bilant-test:      ## Bilanț: testele firului
 	uv run pytest tests/bilant
 
 # ---- Planificator și API (firul Teo-planificator) ----
-.PHONY: api api-dev run-demo test-planner agent-eval solver-bench demo-snapshot
+.PHONY: api api-dev run-demo test-planner agent-eval solver-bench demo-snapshot api-demo demo demo-offline
 
 api:              ## API-ul agentului pe http://127.0.0.1:8710/api (documentație: /docs)
 	uv run uvicorn cyberpunks.api.app:app --host 127.0.0.1 --port 8710
@@ -139,8 +144,18 @@ solver-bench:     ## OR-Tools față de greedy pe 100-300 de lucrări (reports/p
 demo-snapshot:    ## copiază planul demo-vara în outputs/demo/ (intră în git; interfața îl folosește ca rezervă)
 	uv run python -m cyberpunks.planner.snapshot --scenario demo-vara
 
+api-demo:         ## API-ul pe instantaneul din git (outputs/demo/), fără să ruleze modelele
+	CYBERPUNKS_API_SOURCE=demo uv run uvicorn cyberpunks.api.app:app --host 127.0.0.1 --port 8710
+
+demo:             ## DEMO: planul real pentru demo-vara, apoi API-ul (8710) și consola (3710), în paralel; Ctrl-C le oprește
+	uv run cyberpunks run --scenario demo-vara
+	$(MAKE) -j2 api web
+
+demo-offline:     ## DEMO fără modele: API-ul pe instantaneul din git și consola, în paralel (fără Rulează și fără aprobări)
+	$(MAKE) -j2 api-demo web
+
 # ---- Interfață (firul Teo-ui) ----
-.PHONY: web web-install web-build web-test
+.PHONY: web web-install web-build web-test web-smoke
 web-install:      ## instalează dependențele consolei (bun; merge și npm install în web/)
 	cd web && bun install
 web: web-install  ## pornește consola dispecerului pe http://localhost:3710 (API-ul pe 8710 e opțional)
@@ -149,6 +164,8 @@ web-build: web-install  ## build de producție al consolei
 	cd web && bun run build
 web-test:         ## testele consolei (stratul de date: API, instantaneu demo, fixture-uri)
 	cd web && bun test
+web-smoke:        ## încarcă toate ecranele pe consola pornită (make web) și cade la orice eroare
+	cd web && bun run smoke
 
 # ---- Prezentare (firul Teo-prezentare) ----
 .PHONY: presentation-assets presentation-assets-v1 music video-check video-preview video-preview-stop video-render

@@ -44,7 +44,7 @@ ASSUMPTIONS = {
     "battery_min_effect_pu": 0.0005,  # IPOTEZĂ: oferta merge doar dacă bateria coboară tensiunea postului vizibil
     "battery_max_payback_years": 15.0,  # IPOTEZĂ: peste atât oferta nu e cinstită pentru client
     "battery_margin_share": 0.15,  # IPOTEZĂ: marja PPC Energie din vânzarea bateriei și a montajului
-    "battery_eta": 0.9,  # IPOTEZĂ: randamentul dus-întors al bateriei
+    "battery_eta": simulate.BATTERY_ETA_ONE_WAY**2,  # dus-întors, aceeași convenție ca în simulare (0,95 × 0,95)
     "export_caps": (0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3),  # fracții din kWp încercate pentru limita de export
     "upgrade_line_scale": 0.5,  # IPOTEZĂ: postul nou împarte rețeaua în două, drumurile scad la jumătate
     # EN 50160: factorul de dezechilibru al tensiunii ≤ 2% în 95% din timp; o rețea mai dezechilibrată ar fi deja
@@ -213,6 +213,22 @@ def phase_unbalance(post: grids.Post, base: Sim) -> dict:
             "raw_before": float(raw_before), "capped": scale < 1.0}
 
 
+def shift_profile(load: np.ndarray, risk: np.ndarray, eve: np.ndarray, kwh: float) -> np.ndarray:
+    """Consumul mutat din seară în orele cu risc, pe casă: aceeași energie scoasă și adăugată (cel mult cât consumă
+    casa seara), scoasă proporțional cu consumul de seară, deci consumul nu devine negativ. load: (case, ore) în kW."""
+    risk_idx, eve_idx = np.flatnonzero(risk & ~eve), np.flatnonzero(eve & ~risk)
+    out = np.zeros_like(load, dtype=float)
+    if not len(risk_idx) or not len(eve_idx):
+        return out
+    eve_load = load[:, eve_idx]
+    avail = eve_load.sum(axis=1)
+    e = np.minimum(kwh, avail)
+    share = np.divide(eve_load, avail[:, None], out=np.zeros_like(eve_load, dtype=float), where=avail[:, None] > 0)
+    out[:, eve_idx] -= e[:, None] * share
+    out[:, risk_idx] += (e / len(risk_idx))[:, None]
+    return out
+
+
 # ------------------------------------------------------------------------------------------------
 # treapta 4: bateria pe profilul fiecărui prosumator
 # ------------------------------------------------------------------------------------------------
@@ -252,18 +268,22 @@ def battery_profiles(post: grids.Post, day: Day, base: Sim, hours: list[int], c:
         if post.bat_kwh[i] > 0 or not post.load_is_house[post.pv_load[i]]:
             continue
         sur_y = pv_y[i] - load_y[i]
-        noon_surplus = np.add.reduceat(np.where(noon_y, np.maximum(sur_y, 0), 0.0), starts)
-        eve_need = np.add.reduceat(np.where(eve_y, np.maximum(-sur_y, 0), 0.0), starts)
         n_risk = max(int(risk.sum()), 1)
         for size in c["battery_sizes_kwh"]:
             # puterea de încărcare repartizată pe orele cu risc, ca bateria să nu fie plină înainte de vârf
             p_kw = float(min(np.clip(size / 2.0, 2.5, 5.0), size / n_risk))
+            # pe an, oră cu oră: încărcarea limitată de putere și de capacitate, descărcarea limitată de putere
+            charge = np.minimum(np.add.reduceat(np.where(noon_y, np.minimum(np.maximum(sur_y, 0), p_kw), 0.0), starts), size)
+            need = np.add.reduceat(np.where(eve_y, np.minimum(np.maximum(-sur_y, 0), p_kw), 0.0), starts)
+            delivered = np.minimum(charge * eta, need)  # kWh pe zi livrați seara
             # energia absorbită în orele cu risc din ziua țintă (limitată de putere și de capacitate)
             absorbed = float(min(np.minimum(np.maximum(surplus_day[i][risk], 0), p_kw).sum(), size))
             peak_abs = float(min(max(surplus_day[i][k_peak], 0.0), p_kw))
             dv = float(R[j, pv_lv[i]] * peak_abs / 1000.0)
-            shifted = np.minimum(np.minimum(noon_surplus, size), eve_need / eta).sum() * eta  # kWh pe an
-            saving = shifted * (c["retail_price"] - c["export_value"])
+            shifted = float(delivered.sum())  # kWh pe an livrați seara
+            # economia: energia livrată seara la prețul de cumpărare minus energia PV folosită la încărcare,
+            # care altfel ar fi fost injectată (cu pierderile bateriei)
+            saving = shifted * c["retail_price"] - (shifted / eta) * c["export_value"]
             cost = size * c["battery_price_lei_per_kwh"] + c["battery_installation_cost_lei"]
             grant = min(c["afm_grant_share"] * cost, c["afm_grant_cap_lei"]) if size >= c["afm_min_kwh"] else 0.0
             payback = (cost - grant) / saving if saving > 0 else float("inf")
@@ -361,11 +381,10 @@ def build_ladder(post_id: str, day: Day, p90_model: float, n_customers: int, hor
     risk = np.isin(day.hour, hours)
     eve = (day.hour >= ASSUMPTIONS["evening_hours"][0]) & (day.hour < ASSUMPTIONS["evening_hours"][1])
     res_rate = {}
+    base_load = base.detail["load"][houses]  # kW pe oră, consumul fiecărei case în ziua țintă
     for rate in c["notify_participation_range"]:
-        e = ASSUMPTIONS["shift_kwh_per_household"] * rate * c["smart_meter_share"]
         extra = np.zeros((len(post.load_bus), len(day.hour)))
-        extra[np.ix_(houses, np.flatnonzero(risk))] = e / max(int(risk.sum()), 1)
-        extra[np.ix_(houses, np.flatnonzero(eve))] = -e / max(int(eve.sum()), 1)
+        extra[houses] = shift_profile(base_load, risk, eve, ASSUMPTIONS["shift_kwh_per_household"] * rate * c["smart_meter_share"])
         s = run_sim(post, day, vm=vm, extra_load=extra)
         res_rate[rate] = (s.vmax - base.vmax, max(base.trips - s.trips, 0.0))
     r_min = min(c["notify_participation_range"])

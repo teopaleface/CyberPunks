@@ -184,6 +184,31 @@ def run() -> str:
         "Le tratăm ca zero doar în comitatele cu acoperire bună, așa că o parte din „alarmele false” pot fi avarii nevăzute."),
         "",
     ]
+    missed_all = ext[ext["p"] < thr]
+    quiet = ((missed_all["gust_max_2d"] < 60) & (missed_all["precip_48h"] < 30) & (missed_all["snow_3d"] < 5)
+             & (missed_all["ice_proxy"] < 2))
+    quiet_share = float(quiet.mean()) if len(missed_all) else float("nan")
+    by_type = table(te, "tip", thr).set_index("tip")
+    calm = "fără semnal meteo puternic"
+    share_calm = by_type.loc[calm, "evenimente"] / max(by_type["evenimente"].sum(), 1) if calm in by_type.index else float("nan")
+    rest = by_type.drop(index=calm, errors="ignore")
+    best, worst = rest["PR-AUC"].idxmax(), rest["PR-AUC"].idxmin()
+    parts += [
+        "## Concluzii (calculate din tabelele de mai sus)",
+        "",
+        (f"- {share_calm:.0%} din evenimente apar în zile fără semnal meteo puternic (defecte obișnuite). Vremea nu le poate "
+         "prezice, iar ele dau plafonul de PR-AUC pe toate zilele."),
+        (f"- Cel mai bine merge la „{best}” (PR-AUC {rest.loc[best, 'PR-AUC']:.2f}, recall la prag "
+         f"{rest.loc[best, 'recall la prag']:.0%}); cel mai slab la „{worst}” (PR-AUC {rest.loc[worst, 'PR-AUC']:.2f}, "
+         f"recall {rest.loc[worst, 'recall la prag']:.0%}). Ninsoarea zilnică nu spune dacă zăpada e grea și udă, adică "
+         "felul care rupe liniile."),
+        (f"- Evenimentele extreme (≥ 10%): {(ext['p'] >= thr).mean():.0%} prinse la prag. Din cele {len(missed_all)} ratate, "
+         f"{(missed_all['gust_max_2d'] < 60).mean():.0%} au rafale sub 60 km/h în arhivă, iar {quiet_share:.0%} nu au niciun "
+         "semnal meteo puternic: fie vijelii locale pe care modelul meteo nu le vede, fie cauze fără legătură cu vremea "
+         "(defecte, artefacte de date). Nu le putem deosebi fără istoricul de intervenții."),
+        (f"- Cuantilele: {inside:.0%} din vârfurile reale în intervalul P10-P90, după calibrarea conformală."),
+        "",
+    ]
     if EXPERIMENTS.exists():
         exps = json.loads(EXPERIMENTS.read_text(encoding="utf-8"))
         parts += ["## Ce am încercat", "", md(pd.DataFrame(exps)), ""]

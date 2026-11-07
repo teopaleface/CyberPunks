@@ -35,7 +35,17 @@ async function Demo({ searchParams }: { searchParams: PageProps<"/demo">["search
       </div>
     );
   }
-  const data = toPlanScreenData(view.data);
+  // lucrările arătate în scene vin întregi, ca înregistrarea să nu prindă încărcări
+  const slim = toPlanScreenData(view.data);
+  const decisions = view.data.plan.decisions;
+  const human = decisions.find((d) => d.decision === "human_review")?.work_item_id;
+  const top = decisions
+    .filter((d) => d.decision === "assigned" && d.rank != null)
+    .toSorted((a, b) => (a.rank ?? 99) - (b.rank ?? 99))[0]?.work_item_id;
+  const storms = decisions.filter((d) => d.work_item_id.startsWith("B-") && (d.decision === "assigned" || d.decision === "human_review"));
+  const storm = (storms.find((d) => slim.regionOf[d.work_item_id] === "banat") ?? storms[0])?.work_item_id;
+  const full = [slim.defaultSelected, human, top, storm].filter((x): x is string => Boolean(x));
+  const data = toPlanScreenData(view.data, full);
   const scene = Number(typeof params.scena === "string" ? params.scena : "1") || 1;
   return (
     <DemoStage

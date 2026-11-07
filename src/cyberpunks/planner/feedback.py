@@ -76,7 +76,7 @@ def approve_route(scenario: str, crew_id: str, reviewer: str, note: str | None =
     approvals = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
     approvals[crew_id] = {
         "crew_id": crew_id, "reviewer": reviewer, "note": note, "ts": now.isoformat(), "plan_id": plan["plan_id"],
-        "work_item_ids": [s["work_item_id"] for s in route["stops"]], "route_signature": _signature(route),
+        "work_item_ids": [s["work_item_id"] for s in route["stops"]], "route_signature": _signature(route, plan_dir, plan),
         "audit_ids": [r.audit_id for r in records],
     }
     write_json(path, approvals)
@@ -89,7 +89,7 @@ def approvals(scenario: str, *, out_root: Path = OUTPUTS) -> list[dict[str, Any]
     if not path.exists():
         return []
     current = (json.loads((plan_dir / "plan.json").read_text(encoding="utf-8")) if (plan_dir / "plan.json").exists() else {})
-    routes = {r["crew_id"]: _signature(r) for r in current.get("routes", [])}
+    routes = {r["crew_id"]: _signature(r, plan_dir, current) for r in current.get("routes", [])}
     out = []
     for a in json.loads(path.read_text(encoding="utf-8")).values():
         # Veche dacă traseul echipei s-a schimbat de la aprobare: alte opriri, altă ordine sau alte ore.
@@ -98,8 +98,19 @@ def approvals(scenario: str, *, out_root: Path = OUTPUTS) -> list[dict[str, Any]
     return out
 
 
-def _signature(route: dict[str, Any]) -> list[list[str]]:
-    return [[s["work_item_id"], str(s["seq"]), s["eta"]] for s in route.get("stops", [])]
+def _signature(route: dict[str, Any], plan_dir: Path, plan: dict[str, Any]) -> list[list[str]]:
+    """Ce aprobă omul: opririle, ordinea, orele, durata, acțiunea aleasă, regula și predicția fiecărei opriri."""
+    actions_path = plan_dir / "actions.json"
+    actions = json.loads(actions_path.read_text(encoding="utf-8")) if actions_path.exists() else {}
+    decisions = {d["work_item_id"]: d for d in plan.get("decisions", [])}
+    items = _items(plan_dir)
+    sig = []
+    for s in route.get("stops", []):
+        wid = s["work_item_id"]
+        pred = ((items.get(wid) or {}).get("prediction") or {}).get("prediction_id", "")
+        sig.append([wid, str(s["seq"]), s["eta"], str(s.get("duration_min")), str(actions.get(wid, "")),
+                    str((decisions.get(wid) or {}).get("rule_id", "")), str(pred)])
+    return sig
 
 
 def record_verdict(
@@ -138,3 +149,32 @@ def labels(scenario: str, *, out_root: Path = OUTPUTS) -> list[dict[str, Any]]:
     if not path.exists():
         return []
     return [json.loads(x) for x in path.read_text(encoding="utf-8").splitlines() if x.strip()]
+
+
+def approve_plan(scenario: str, plan_id: str, approver: str, note: str | None = None, *, out_root: Path = OUTPUTS) -> AuditRecord:
+    """Dispecerul aprobă planul întreg (după ce a văzut traseele, coada și alertele). ValueError dacă planul s-a schimbat."""
+    plan_dir = _plan_dir(scenario, out_root)
+    plan = _load_plan(plan_dir)
+    if plan_id != plan["plan_id"]:
+        raise ValueError(f"planul s-a schimbat între timp (curent: {plan['plan_id']}); reîncarcă și aprobă din nou")
+    now = datetime.now(TZ).replace(microsecond=0)
+    s = plan.get("summary") or {}
+    record = AuditRecord(
+        audit_id=str(uuid.uuid4()), ts=now, actor="human", action="plan_approved",
+        threshold={k: float(s.get(k, 0)) for k in ("assigned", "human_review", "remote_actions", "crews_used", "expected_value_lei", "total_km")},
+        note=f"{approver}: aprob planul {plan_id}" + (f" ({note})" if note else ""),
+    )
+    write_jsonl(plan_dir / "audit.jsonl", [record.model_dump(mode="json")], append=True)
+    write_json(plan_dir / "plan_approval.json", {"plan_id": plan_id, "approver": approver, "note": note, "ts": now.isoformat(),
+                                                 "audit_id": record.audit_id})
+    return record
+
+
+def plan_approval(scenario: str, *, out_root: Path = OUTPUTS) -> dict[str, Any] | None:
+    plan_dir = _plan_dir(scenario, out_root)
+    path = plan_dir / "plan_approval.json"
+    if not path.exists() or not (plan_dir / "plan.json").exists():
+        return None
+    a = json.loads(path.read_text(encoding="utf-8"))
+    current = json.loads((plan_dir / "plan.json").read_text(encoding="utf-8")).get("plan_id")
+    return {**a, "stale": a.get("plan_id") != current}

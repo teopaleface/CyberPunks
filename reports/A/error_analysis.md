@@ -1,6 +1,6 @@
 # Analiza erorilor, firul A (contoare defecte sau manipulate)
 
-Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metrics_full.json` (creat 2026-11-07T14:11:18+02:00), `reports/A/robustness.json` și ieșirile `predict`. Modele: a-lgbm@e60cbaf (Londra) și a-lgbm-sgcc@e60cbaf (SGCC). K = 1% din contoarele din test. Londra = etichete SINTETICE (probleme injectate de noi peste consum real); SGCC = etichete reale de furt.
+Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metrics_full.json` (creat 2026-11-07T15:13:09+02:00), `reports/A/robustness.json` și ieșirile `predict`. Modele: a-lgbm@c670b95 (Londra) și a-lgbm-sgcc@c670b95 (SGCC). K = 1% din contoarele din test. Londra = etichete SINTETICE (probleme injectate de noi peste consum real); SGCC = etichete reale de furt.
 
 ## Pe scurt
 
@@ -28,6 +28,8 @@ Testul cu etichete amestecate e o verificare de bun-simț, nu o dovadă. Arată 
 - limite rămase: ferestrele de test (180 de zile înapoi) acoperă și luni din perioada de antrenare, pe alte gospodării, cum lucrează și agentul în producție. Etichetele Londra sunt sintetice, deci un artefact al injecției poate fi învățat; unul l-am găsit și reparat (secțiunea 8).
 
 ## 2. Clasamentul la mai multe K (de ce 1,00)
+
+Figuri: `reports/A/figures/ranking_at_k.png` (precizie și recall pe K) și `reports/A/figures/headline_precision.png` (furt real, probleme subtile, toate problemele).
 
 **Londra (sintetic), 13.028 de eșantioane, 597 cu probleme:**
 
@@ -90,7 +92,7 @@ Concluzia: K = 130 e doar 22% din probleme, iar testul are 215 defecte evidente.
 | concediu (consum de așteptare) | benign | 255 | 0,54 | 2% | 0,73 | 13% |
 | schimbare de ocupare (nivel nou, formă ușor diferită) | benign | 241 | 0,65 | 12% | 0,66 | 3% |
 
-**Unde greșește:** ceas decalat (profil mutat) (ROC-AUC 0,65); subînregistrare progresivă (contor îmbătrânit) (ROC-AUC 0,78); bypass parțial, cu instalare treptată (ROC-AUC 0,83). Ceasul decalat mută consumul cu 30-120 de minute, la fel de mult cât variază obiceiurile unei case de la o săptămână la alta. Deriva lentă și bypass-ul cu instalare treptată seamănă, în primele săptămâni, cu o scădere normală de consum. Pentru ceasul decalat am adăugat decalajul profilului zilei (`profile_lag`, `profile_lag_gain`), iar pentru derivă panta față de vecini (`peer_ratio_slope`). Pe calibrare, ceasul decalat a urcat de la 0% la 12% în primele 5%, iar deriva de la 10% la 20%. Rămân puncte slabe, spuse deschis. Ceasul decalat nu schimbă energia totală, deci contează doar la tarifele pe ore.
+**Unde greșește:** ceas decalat (profil mutat) (ROC-AUC 0,65); subînregistrare progresivă (contor îmbătrânit) (ROC-AUC 0,78); bypass parțial, cu instalare treptată (ROC-AUC 0,83). Ceasul decalat mută consumul cu 30-120 de minute, la fel de mult cât variază obiceiurile unei case de la o săptămână la alta. Deriva lentă și bypass-ul cu instalare treptată seamănă, în primele săptămâni, cu o scădere normală de consum. Pentru ceasul decalat am adăugat decalajul profilului zilei (`profile_lag`, `profile_lag_gain`), iar pentru derivă panta față de vecini (`peer_ratio_slope`); efectul lor e în secțiunea 8. Rămân puncte slabe, spuse deschis. Ceasul decalat nu schimbă energia totală, deci contează doar la tarifele pe ore.
 
 ## 4. Schimbări normale care NU trebuie semnalate
 
@@ -103,15 +105,17 @@ Concediul și schimbarea ocupanților arată ca o scădere de consum. Regula sim
 
 ## 5. Pe nivel de consum (etică: consumul mic nu e dovadă de furt)
 
-| Chintila de consum | Londra: kWh/zi | Alarme false model | Recall model | Alarme false regulă | SGCC: kWh/zi | Alarme false model SGCC |
-|---|---|---|---|---|---|---|
-| 1 | 3,4 | 5% | 63% | 8% | 0,0 | 0% |
-| 2 | 5,8 | 1% | 64% | 2% | 1,9 | 1% |
-| 3 | 7,5 | 1% | 69% | 3% | 5,6 | 1% |
-| 4 | 9,8 | 2% | 65% | 2% | 10,4 | 3% |
-| 5 | 16,1 | 1% | 69% | 4% | 20,9 | 9% |
+| Chintila de consum | Londra: kWh/zi | Alarme false model | Recall model | Alarme false regulă | SGCC: kWh/zi | Alarme false model SGCC | Alarme false regulă SGCC |
+|---|---|---|---|---|---|---|---|
+| 1 | 3,4 | 5% | 63% | 8% | 0,0 | 0% | 19% |
+| 2 | 5,8 | 1% | 64% | 2% | 1,9 | 1% | 3% |
+| 3 | 7,5 | 1% | 69% | 3% | 5,6 | 1% | 1% |
+| 4 | 9,8 | 2% | 65% | 2% | 10,4 | 3% | 1% |
+| 5 | 16,1 | 1% | 69% | 4% | 20,9 | 9% | 1% |
 
-Alarmă falsă = un contor fără problemă ajunge în primele 5% din clasament. Pe Londra, casele cu cel mai mic consum primesc de câteva ori mai multe alarme false decât celelalte. La ele, o scădere sau câteva zile cu zero înseamnă mai puțini kWh absoluți, iar zgomotul relativ e mai mare. Pe SGCC, tiparul e invers: furturile reale sunt la consumatori mari, iar alarmele false cresc spre chintila de sus. Consumul mic poate însemna o locuință goală sau sărăcie energetică. De aceea, în agent:
+Figura: `reports/A/figures/false_alarms_by_consumption.png`.
+
+Alarmă falsă = un contor fără problemă ajunge în primele 5% din clasament. Pe Londra, casele cu cel mai mic consum primesc de câteva ori mai multe alarme false decât celelalte. La ele, o scădere sau câteva zile cu zero înseamnă mai puțini kWh absoluți, iar zgomotul relativ e mai mare. Pe SGCC, tiparul e invers: furturile reale sunt la consumatori mari, iar alarmele false ale modelului cresc spre chintila de sus. Regula simplă face greșeala opusă și mult mai mare: pe SGCC trimite echipa la 19,4% dintre consumatorii cei mai mici fără problemă, modelul la 0,4%. Consumul mic poate însemna o locuință goală sau sărăcie energetică. De aceea, în agent:
 - un furt suspectat la un contor din chintila de jos a consumului NU merge direct la vizită. Merge la un om, cu motivul scris (`extra.low_consumption_guard`, `abstain_reason`);
 - nivelul de consum rămâne feature, pentru că din el se calculează și valoarea pierderii. În schimb, rata de alarme false pe chintile se verifică la fiecare evaluare (tabelul de mai sus).
 
@@ -149,8 +153,8 @@ La 31 dec. 2025, gradul de integrare a contoarelor inteligente era 66,85% în Do
 
 | Scenariu | Lucrări pentru echipă | Din ele, probleme reale | Lucrări la om | Din ele, probleme reale | Contoare normale la echipă | Contoare normale la om |
 |---|---|---|---|---|---|---|
-| demo-vara | 250 | 97% | 117 | 11% | 0% | 1% |
-| maine | 250 | 99% | 139 | 23% | 0% | 1% |
+| demo-vara | 386 | 94% | 138 | 23% | 0% | 1% |
+| maine | 364 | 91% | 199 | 28% | 0% | 1% |
 
 **Pe populațiile demo** (adevărul injectat, nevăzut de model):
 
@@ -161,18 +165,38 @@ La 31 dec. 2025, gradul de integrare a contoarelor inteligente era 66,85% în Do
 
 Scorul e o probabilitate calibrată (Venn-ABERS pe o grilă de cuantile; abaterea față de calculul exact, pe 200 de scoruri de test: maximum 0,0174). Scorul mediu e aproape egal cu prevalența reală, deci planificatorul poate înmulți scorul cu valoarea în lei.
 
-Conformal lucrează pe scorul brut al modelului, cu pragurile alese pe calibrare (alpha 1% pentru normal, 30% pentru problemă). Garanția privește acoperirea MULȚIMII: "conține clasa reală". Nu e același lucru cu "recunoscut sigur". O problemă din zona gri e acoperită (mulțimea are ambele clase), dar merge la om, nu la echipă. În probabilitate calibrată, zona gri e între 14% și 34% pe Londra. Pe SGCC e mai largă, pentru că etichetele reale sunt mai zgomotoase.
+Conformal lucrează pe scorul brut al modelului, cu pragurile alese pe calibrare (alpha 1% pentru normal, 30% pentru problemă). Funcția de scor (modelul și features) e aleasă fără etichetele de calibrare. Totuși, garanția formală cere rânduri interschimbabile, iar la Londra setul de calibrare are mai multe ferestre din aceeași gospodărie. De aceea prezentăm acoperirea ca EMPIRICĂ, măsurată pe test (tabelul de mai sus), nu ca garanție. Acoperirea privește MULȚIMEA: "conține clasa reală". Nu e același lucru cu "recunoscut sigur". O problemă din zona gri e acoperită (mulțimea are ambele clase), dar merge la om, nu la echipă. În probabilitate calibrată, zona gri e între 14% și 34% pe Londra. Pe SGCC e mai largă, pentru că etichetele reale sunt mai zgomotoase.
 
 ## 8. Ce am încercat ca să corectăm (în ordine)
 
 1. **Artefactul de rotunjire** (commit `a1b25d4`). Prima versiune semnala aproape jumătate din contoarele demo. Cauza: atacurile prin înmulțire (α·x, β·x, deriva) dădeau valori cu multe zecimale, iar contoarele reale trimit 3 zecimale. Modelul învățase "valori nerotunjite = furt". Corecția: rotunjim la 0,001 kWh după orice injecție. Aceeași lecție am transmis-o firului bilanț.
 2. **Zgomotul din populația demo.** Zgomotul pe fiecare jumătate de oră ștergea valorile repetate naturale (frigiderul noaptea), deci orice contor părea manipulat. L-am înlocuit cu un factor pe zi.
-3. **Sezonul și tipurile slabe.** În iulie, consumul scade natural față de primăvară, iar modelul vedea scăderi peste tot. Am adăugat 10 features: scăderea și panta raportate la vecinii de pe post (`max_drop_peer`, `peer_ratio_slope`), care scot vremea și sezonul, decalajul profilului zilei, forma distribuției, golurile separate și ritmul săptămânal. Le-am ales pe setul de calibrare, nu pe test (`select_features.py`): PR-AUC SGCC 0,43 -> 0,46, precizia@K 0,75 -> 0,78; Londra PR-AUC 0,71 -> 0,72; în primele 5%: ceasul decalat 0% -> 6%, deriva 10% -> 17%, furtul de noapte 46% -> 55%. Fără features sezoniere brute, PR-AUC a rămas 0,72, dar ceasul decalat a scăzut la 6%, deci le-am păstrat.
+3. **Sezonul și tipurile slabe.** În iulie, consumul scade natural față de primăvară, iar modelul vedea scăderi peste tot. Am adăugat 10 features: scăderea și panta raportate la vecinii de pe post (`max_drop_peer`, `peer_ratio_slope`), care scot vremea și sezonul, decalajul profilului zilei, forma distribuției, golurile separate și ritmul săptămânal. Le-am ales pe o validare din setul de antrenare (gospodării ținute deoparte), nu pe calibrare și nu pe test (`select_features.py`): PR-AUC SGCC 0,38 -> 0,43, ROC-AUC 0,82 -> 0,84; Londra PR-AUC 0,90 -> 0,90; ROC-AUC pe tip, față de contoarele normale: ceasul decalat 0,60 -> 0,63, deriva 0,74 -> 0,77, furtul de noapte 0,81 -> 0,81. Fără features sezoniere brute, PR-AUC 0,90 și ceasul decalat 0,61, deci le-am păstrat. Costul: concediul seamănă puțin mai mult cu o problemă (ROC-AUC față de contoarele normale 0,48 -> 0,54; 0,5 = de nedeosebit, deci mai mic e mai bine aici). Validarea are prevalența de antrenare (aproape jumătate probleme), deci cifrele absolute nu se compară cu testul; contează doar diferența dintre variante.
 4. **Un baseline mai corect.** Pe lângă regula simplă cerută (zero >= 7 zile sau scădere >= 50%), am construit regula VEE completă: zero, valori repetate, goluri, negative, salturi, scădere. Pragurile de salt le-am ales pe calibrare, ca să-i dăm cea mai bună șansă.
 5. **Pragurile pentru "nu sunt sigur".** Cu 5% / 20%, aproape orice scor peste 0,08 devenea "problemă", iar zona gri era goală. Cu 1% / 30% (pe demo: demo-vara: deciziile "problemă" au precizie 87%, iar în zona gri sunt 14% probleme reale; maine: deciziile "problemă" au precizie 68%, iar în zona gri sunt 22% probleme reale), zona gri chiar merită privirea unui om.
 6. **Paza pentru consum mic** (secțiunea 5).
 
-## 9. Limite cunoscute
+## 9. Fuziunea cu bilanțul pe post (verificare pe testul A)
+
+Am aplicat formula de fuziune a firului bilanț (`cyberpunks.a_bilant.fuse.combine_arrays`, doar confirmare, neschimbată) pe populația demo. Bilanțul fiecărui post e construit din adevărul injectat: energia nemăsurată de contoarele postului, plus zgomotul pierderilor normale, cu abaterea sigma = 1%, 2% sau 4% din consumul postului. Rezultatele sunt mediate pe 3 trageri ale zgomotului (`reports/A/fusion_check.json`, `uv run python -m cyberpunks.a_contoare.fusion_check`).
+
+| Scenariu | Sigma bilanț | Precizia@10 | Precizia@100 | PR-AUC | Furturi confirmate | Defecte confirmate | Fără problemă, confirmate |
+|---|---|---|---|---|---|---|---|
+| demo-vara | 1% | 1,00 -> 1,00 | 1,00 -> 1,00 | 0,707 -> 0,707 | 21% | 24% | 6% |
+| demo-vara | 2% | 1,00 -> 1,00 | 1,00 -> 1,00 | 0,707 -> 0,715 | 8% | 11% | 2% |
+| demo-vara | 4% | 1,00 -> 1,00 | 1,00 -> 1,00 | 0,707 -> 0,716 | 2% | 3% | 1% |
+| maine | 1% | 1,00 -> 1,00 | 1,00 -> 1,00 | 0,679 -> 0,688 | 17% | 23% | 3% |
+| maine | 2% | 1,00 -> 1,00 | 1,00 -> 1,00 | 0,679 -> 0,688 | 5% | 10% | 1% |
+| maine | 4% | 1,00 -> 1,00 | 1,00 -> 1,00 | 0,679 -> 0,687 | 1% | 2% | 0% |
+
+**Unde ajută și unde nu** (demo-vara, bilanț precis, sigma 1%, ce parte din fiecare tip e confirmată):
+- defectele care pierd multă energie: contor oprit 53%, citiri negative 55%, valoare blocată 27%. Pe acestea modelul le pune oricum în vârful listei, deci precizia în primele 10-100 nu se schimbă;
+- furtul: consum redus constant 28%, oprire pe ore 29%, bypass 26%. Pierderea unui contor (câțiva kWh/zi) e mică față de zgomotul postului;
+- tiparele care nu schimbă energia nu pot fi confirmate: profil aplatizat 4%, profil inversat 7%, ceas decalat 8%, goluri 1%, salturi 6%. E corect că fuziunea doar confirmă și nu coboară scorul;
+- riscul: bilanțul confirmă POSTUL, nu contorul. Pe un post cu energie lipsă, și vecinii fără problemă cu o scădere naturală sunt confirmați: concediu 24%, schimbarea ocupanților 14%;
+- în zona gri a lui A (537 de contoare, 14% probleme reale), cele confirmate au 14% probleme reale, deci confirmarea nu le separă. Asta susține decizia bilanțului de a nu rezolva automat cazurile nesigure.
+
+## 10. Limite cunoscute
 
 - Etichetele din Londra sunt sintetice: modelul învață tiparele pe care le-am injectat noi. Le-am făcut realiste, cu parametri din literatură, intensități mici, instalare treptată și schimbări normale ca exemple grele, dar un furt real poate arăta altfel. Pe etichete reale, SGCC dă un reper mai modest.
 - SGCC are o etichetă pe client, fără dată, și vine din altă țară și altă rețea. Îl folosim ca dovadă că aceleași features merg pe furt real, nu ca model pentru București.

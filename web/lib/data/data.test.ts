@@ -223,11 +223,22 @@ describe("instantaneul demo", () => {
     expect(plan.degradedReason).toBe("API-ul nu răspunde; afișez instantaneul demo");
   });
 
-  test("fără lucrări în demo, lucrările coboară pe fixtures și spun de ce", async () => {
+  test("fără lucrări în demo, tot setul coboară pe fixtures (plan, lucrări, jurnal din aceeași sursă)", async () => {
     const view = await getPlanView("demo-test", { mode: "auto" });
-    expect(view.source).toBe("demo");
+    expect(view.source).toBe("fixtures");
+    expect(view.data?.sources.plan.source).toBe("fixtures");
     expect(view.data?.sources.workItems.source).toBe("fixtures");
-    expect(view.data?.sources.workItems.degradedReason).toContain("nu există lucrări în instantaneul demo");
+    expect(view.data?.sources.audit.source).toBe("fixtures");
+    // ID-urile planului se potrivesc cu lucrările
+    expect(view.data?.unresolvedStopIds).toEqual([]);
+  });
+
+  test("o lucrare fără câmpurile de urmărire e pusă deoparte, nu oprește pagina", async () => {
+    const { splitWorkItems } = await import("./files");
+    const bad = { work_item_id: "A-20250708-X", source: "A", asset_id: "X", asset_type: "meter", location: { lat: 44.4, lon: 26.1, zone_id: "B-S1" }, prediction: { score: 0.5 } };
+    const split = splitWorkItems([bad as unknown as Record<string, unknown>], "test.jsonl");
+    expect(split.records).toHaveLength(0);
+    expect(split.errors[0].message).toContain("prediction_id");
   });
 
   test("un nume de scenariu periculos nu iese din outputs/demo", async () => {

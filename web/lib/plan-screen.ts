@@ -88,7 +88,27 @@ function invalidReason(raw: Record<string, unknown>, decision: Decision | undefi
   return reasons.length ? `Intrare greșită: ${reasons.join(" și ")}.` : "Intrare greșită: nu respectă contractul.";
 }
 
-export function toPlanScreenData(view: PlanView): PlanScreenData {
+/**
+ * Lucrarea fără câmpurile grele (factori, cazuri similare, extra, surse): ecranul planului are nevoie de ele
+ * doar pentru lucrarea selectată, pe care o încarcă la cerere. Rezumatul și scorul rămân.
+ */
+export function slimItem(w: WorkItem): WorkItem {
+  const extra = (w.extra ?? {}) as Record<string, unknown>;
+  const keep: Record<string, unknown> = {};
+  for (const k of ["post_id", "estimated_kwh_lost_per_day", "lei_per_month"]) if (k in extra) keep[k] = extra[k];
+  return {
+    ...w,
+    explanation: { top_factors: [], similar_cases: [], summary_ro: w.explanation.summary_ro },
+    data_quality: { missing_ratio: w.data_quality.missing_ratio, synthetic: w.data_quality.synthetic, data_sources: [], input_issues: [] },
+    extra: { ...keep, _slim: true },
+  };
+}
+
+export function isSlim(w: WorkItem): boolean {
+  return Boolean((w.extra as Record<string, unknown> | undefined)?._slim);
+}
+
+export function toPlanScreenData(view: PlanView, fullIds: string[] = []): PlanScreenData {
   const { plan } = view;
   const decisions = view.decisionsByWorkItemId;
 
@@ -151,11 +171,15 @@ export function toPlanScreenData(view: PlanView): PlanScreenData {
   }
 
   // lei recuperați (estimat): valoarea așteptată a lucrărilor aprobate de om, câte o dată
-  const approved = new Set<string>();
+  const lastHuman = new Map<string, { ts: string; approve: boolean }>();
   for (const a of view.audit ?? []) {
+    if (a.actor !== "human" || !a.work_item_id) continue;
     const act = (a.action ?? "").toLowerCase();
-    if (a.actor === "human" && a.work_item_id && (act.includes("approve") || act === "aprob" || a.rule_id === "R-HUMAN-APPROVE")) approved.add(a.work_item_id);
+    const approve = act.includes("approve") || act === "aprob" || a.rule_id === "R-HUMAN-APPROVE";
+    const prev = lastHuman.get(a.work_item_id);
+    if (!prev || a.ts >= prev.ts) lastHuman.set(a.work_item_id, { ts: a.ts, approve });
   }
+  const approved = new Set([...lastHuman].filter(([, v]) => v.approve).map(([id]) => id));
   const recovered = {
     count: approved.size,
     lei: [...approved].reduce((sum, id) => sum + (view.workItemsById[id]?.impact.expected_value_lei ?? 0), 0),
@@ -168,9 +192,12 @@ export function toPlanScreenData(view: PlanView): PlanScreenData {
     planDate: plan.plan_date,
     shift: view.shift,
     summary: plan.summary,
-    items: view.workItems,
+    items: view.workItems.map((w) => (fullIds.includes(w.work_item_id) ? w : slimItem(w))),
     decisions,
-    routes: view.routes,
+    routes: view.routes.map((r) => ({
+      ...r,
+      stops: r.stops.map((s) => ({ ...s, workItem: null, decision: null })),
+    })),
     depots: view.depots,
     crews: view.crews,
     alerts: plan.alerts ?? [],
@@ -183,16 +210,34 @@ export function toPlanScreenData(view: PlanView): PlanScreenData {
   };
 }
 
+/** Eticheta din date, fără marcajul „(sintetic)” (transparența o arată pătratul hașurat). */
+function cleanLabel(w: WorkItem): string | null {
+  const l = w.location.label?.replace(/\s*\(sintetic\)\s*$/i, "").trim();
+  return l || null;
+}
+
 export function itemTitle(w: WorkItem): string {
   if (w.asset_type === "meter") return `Contor ${w.asset_id}`;
   if (w.asset_type === "transformer_post") return w.asset_id;
-  return w.location.label?.replace(/^Zona\s+/, "Zona ") ?? w.asset_id;
+  const l = cleanLabel(w);
+  return l ? l.replace(/\s*\([^)]*\)\s*$/, "") : w.asset_id;
 }
 
-/** Locul, în cuvinte: „București, sectorul 6”, „Chiajna, Ilfov”, „Medgidia, Constanța”. */
+/** Locul, în cuvinte, cu diacriticele din date: „PT-1208, Chiajna”, „Afumați, Ilfov”, „Ilfov”. */
 export function itemPlace(w: WorkItem): string {
-  const z = w.location.zone_id;
   const county = w.location.county ?? "";
+  const l = cleanLabel(w);
+  if (l) {
+    const parts = l.split(",").map((x) => x.trim()).filter(Boolean);
+    if (w.asset_type === "meter" && parts.length >= 2) return parts.slice(1).join(", ");
+    if (w.asset_type === "transformer_post" && parts.length >= 2) {
+      const place = parts.slice(1).join(", ");
+      return county && !place.includes(county) ? `${place}, ${county}` : place;
+    }
+    if (w.asset_type === "zone") return county || l;
+  }
+  // rezervă: din zone_id (fără diacritice)
+  const z = w.location.zone_id;
   const sector = /^B-S(\d)$/.exec(z);
   if (sector) return `București, sectorul ${sector[1]}`;
   const local = z.includes("-") ? z.split("-").slice(1).join(" ") : "";

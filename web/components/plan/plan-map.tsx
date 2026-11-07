@@ -164,9 +164,14 @@ function routesGeoJSON(routes: MapRoute[]) {
   return { type: "FeatureCollection" as const, features };
 }
 
+/** Textele din date intră în HTML-ul markerilor și al popup-urilor: le escapăm. */
+export function esc(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);
+}
+
 function labelHtml(item: MapItem): string {
-  const sub = item.sub ? `<span class="s${item.attention ? " att" : ""}">${item.sub}</span>` : "";
-  return `<div class="lab"><span class="t">${item.title}</span>${sub}</div>`;
+  const sub = item.sub ? `<span class="s${item.attention ? " att" : ""}">${esc(item.sub)}</span>` : "";
+  return `<div class="lab"><span class="t">${esc(item.title)}</span>${sub}</div>`;
 }
 
 export function PlanMap({
@@ -306,7 +311,7 @@ export function PlanMap({
             const pr = f.properties as { title: string; sub: string };
             popup
               .setLngLat((f.geometry as unknown as { coordinates: [number, number] }).coordinates)
-              .setHTML(`<span class="t">${pr.title}</span><span class="s">${pr.sub}</span>`)
+              .setHTML(`<span class="t">${esc(pr.title)}</span><span class="s">${esc(pr.sub)}</span>`)
               .addTo(m);
           });
           m.on("mouseleave", "posts", () => {
@@ -325,7 +330,7 @@ export function PlanMap({
               const pr = f.properties as { title: string; sub: string; kind: string };
               popup
                 .setLngLat((f.geometry as unknown as { coordinates: [number, number] }).coordinates)
-                .setHTML(`<span class="t">${pr.title}</span>${pr.sub ? `<span class="s${pr.kind === "human" ? " att" : ""}">${pr.sub}</span>` : ""}`)
+                .setHTML(`<span class="t">${esc(pr.title)}</span>${pr.sub ? `<span class="s${pr.kind === "human" ? " att" : ""}">${esc(pr.sub)}</span>` : ""}`)
                 .addTo(m);
             });
             m.on("mouseleave", layer, () => {
@@ -377,7 +382,7 @@ export function PlanMap({
       depotMarkersRef.current = depots.map((d) => {
         const el = document.createElement("div");
         el.className = "mk depot";
-        el.innerHTML = depotSvg() + `<div class="lab"><span class="t">${d.label}</span></div>`;
+        el.innerHTML = depotSvg() + `<div class="lab"><span class="t">${esc(d.label)}</span></div>`;
         return new maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([d.lon, d.lat]).addTo(map);
       });
 
@@ -391,7 +396,7 @@ export function PlanMap({
         el.dataset.pinned = item.pinned ? "1" : "0";
         el.setAttribute("role", "button");
         el.setAttribute("tabindex", "0");
-        el.setAttribute("aria-label", `${item.title}${item.sub ? `, ${item.sub}` : ""}`);
+        el.setAttribute("aria-label", `${item.title}${item.sub ? `, ${item.sub}` : ""}`); // atributul nu interpretează HTML
         el.innerHTML = markerSvg({ source: item.source, kind: item.kind, selected: item.id === latest.current.selectedId }) + labelHtml(item);
         el.addEventListener("click", (e) => {
           e.stopPropagation();

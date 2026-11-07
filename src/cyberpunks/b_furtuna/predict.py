@@ -30,7 +30,7 @@ import pandas as pd
 
 from cyberpunks.b_furtuna import explain, openmeteo, romania
 from cyberpunks.b_furtuna.features import FEATURES, make_features
-from cyberpunks.b_furtuna.model import MODEL_ID, MODEL_PATH, BModel
+from cyberpunks.b_furtuna.model import CASE_FEATURES, MODEL_ID, MODEL_PATH, BModel
 from cyberpunks.common import config
 from cyberpunks.common.contracts import (
     DataQuality,
@@ -224,14 +224,15 @@ def build_items(model: BModel, zones: list[romania.Zone], feats: pd.DataFrame, h
                 ) -> tuple[list[WorkItem], list[Series]]:
     """Regulile de decizie ale lui B, fără rețea: din features și vreme orară -> WorkItem-uri și serii."""
     feats = feats.copy()
-    for f in model.features:  # modelul salvat poate cere și variabile pe care codul curent nu le mai folosește
+    for f in [*model.features, *CASE_FEATURES]:  # modelul salvat și explicațiile pot cere și alte coloane
         if f not in feats:
             feats[f] = np.nan
     cols = list(model.features)
     missing = feats[cols].isna()
     filled = feats.copy()
-    med = feats[cols].median(numeric_only=True)
-    filled[cols] = filled[cols].fillna(med).fillna(0.0)
+    fill_cols = list(dict.fromkeys([*cols, *CASE_FEATURES]))
+    med = feats[fill_cols].median(numeric_only=True)
+    filled[fill_cols] = filled[fill_cols].fillna(med).fillna(0.0)
     p = model.predict_proba(filled)
     q = model.predict_quantiles(filled)
     lo = p.copy() if lo is None else np.minimum(lo, p)

@@ -56,19 +56,32 @@ def hourly_eval(n_estimators: int = 300) -> dict:
                                    "q90": np.maximum(q[0.9], q[0.5]), "pvk": te["pvk"].to_numpy(), "topology": t}))
         print(f"  orar {t}: {len(te)} ore de test", flush=True)
     r = pd.concat(parts, ignore_index=True)
-    # lărgirea conformală pentru fiecare topologie, din reziduurile celorlalte topologii (fără etichetele ei)
-    e = np.maximum(r.q10 - r.y, r.y - r.q90).to_numpy()
+    # lărgirea conformală, imbricată: pentru topologia de test A, reziduuri out-of-fold din perioada de antrenare,
+    # produse de modele care n-au văzut nici A, nici topologia prezisă (fără etichete de test, fără A)
+    cal = tr_p.sample(frac=0.3, random_state=3)
+    topos = sorted(cal["topology"].unique())
     margin = np.zeros(len(r))
-    for t in r.topology.unique():
-        other = e[(r.topology != t).to_numpy()]
-        margin[(r.topology == t).to_numpy()] = np.quantile(other, min(1.0, np.ceil((len(other) + 1) * 0.8) / len(other)))
-    lo, hi = r.q10 - margin, r.q90 + margin
-    day = r["pvk"] > 0.05
-    out = {"test_hours": len(r), "mae_vmax_pu": float(np.mean(np.abs(r.y - r.q50))),
-           "mae_vmax_daylight_pu": float(np.mean(np.abs(r.y[day] - r.q50[day]))),
-           "coverage_p10_p90_raw": float(np.mean((r.y >= r.q10) & (r.y <= r.q90))),
-           "coverage_p10_p90": float(np.mean((r.y >= lo) & (r.y <= hi))),
-           "coverage_p10_p90_daylight": float(np.mean((r.y[day] >= lo[day]) & (r.y[day] <= hi[day]))),
+    for t_out in r.topology.unique():
+        inner = cal[cal.topology != t_out]
+        errs = []
+        for t_in in topos:
+            if t_in == t_out:
+                continue
+            a, b = inner[inner.topology != t_in], inner[inner.topology == t_in]
+            lo = T.fit_quantile(a[feats], a["vmax"].to_numpy(), 0.1, n_estimators=n_estimators).predict(b[feats])
+            hi = T.fit_quantile(a[feats], a["vmax"].to_numpy(), 0.9, n_estimators=n_estimators).predict(b[feats])
+            yb = b["vmax"].to_numpy()
+            errs.append(np.maximum(lo - yb, yb - hi))
+        margin[(r.topology == t_out).to_numpy()] = T._conformal_q(np.concatenate(errs))
+        print(f"  marginea pentru {t_out}: {margin[(r.topology == t_out).to_numpy()][0]:.4f} pu", flush=True)
+    y, q10, q50, q90 = (r[c].to_numpy() for c in ("y", "q10", "q50", "q90"))
+    lo, hi = T.widen(q10, q50, q90, margin)
+    day = (r["pvk"] > 0.05).to_numpy()
+    out = {"test_hours": len(r), "mae_vmax_pu": float(np.mean(np.abs(y - q50))),
+           "mae_vmax_daylight_pu": float(np.mean(np.abs(y[day] - q50[day]))),
+           "coverage_p10_p90_raw": float(np.mean((y >= q10) & (y <= q90))),
+           "coverage_p10_p90": float(np.mean((y >= lo) & (y <= hi))),
+           "coverage_p10_p90_daylight": float(np.mean((y[day] >= lo[day]) & (y[day] <= hi[day]))),
            "cqr_margin_mean_pu": float(margin.mean())}
     return out
 
@@ -279,7 +292,10 @@ if __name__ == "__main__":
         det = summarize(pd.read_parquet(T.DATA_PROCESSED / "C" / "eval_predictions.parquet"), old_det.get("seconds", 0.0))
         det.update({k: old_det[k] for k in ("hourly", "speed") if k in old_det})
     else:
+        old_path = OUT / "metrics_detail.json"
+        keep = json.loads(old_path.read_text()) if old_path.exists() else {}
         det = evaluate(oof_frac=a.oof_frac, monotone=not a.no_monotone)
+        det.update({k: keep[k] for k in ("hourly",) if k in keep})  # modelul orar nu se reantrenează aici
     if a.hourly:
         det["hourly"] = hourly_eval()
     spd = det.get("speed")

@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { connection } from "next/server";
 import { API_BASE, DEFAULT_SCENARIO } from "@/lib/data";
+import { isSafeSegment } from "@/lib/data/config";
 import { demoDir } from "@/lib/data/files";
 
 /**
@@ -9,14 +10,18 @@ import { demoDir } from "@/lib/data/files";
  * instantaneul demo (plans/<s>/work_orders/<crew>.pdf). Așa butonul merge și fără API.
  */
 const CREW_RE = /^[A-Z]{1,3}-[A-Z0-9]{1,4}-\d{1,3}$/;
-const SCENARIO_RE = /^[A-Za-z0-9_.-]{1,64}$/;
 
 export async function GET(request: Request, ctx: RouteContext<"/ordine/[crew]">) {
   await connection();
-  const crew = decodeURIComponent((await ctx.params).crew).replace(/\.pdf$/i, "");
+  let crew: string;
+  try {
+    crew = decodeURIComponent((await ctx.params).crew).replace(/\.pdf$/i, "");
+  } catch {
+    return new Response("Adresă greșită.", { status: 400 });
+  }
   const url = new URL(request.url);
   const requested = url.searchParams.get("scenariu") ?? "";
-  const scenario = SCENARIO_RE.test(requested) ? requested : DEFAULT_SCENARIO;
+  const scenario = requested && isSafeSegment(requested) ? requested : DEFAULT_SCENARIO;
   if (!CREW_RE.test(crew)) return new Response("Echipă necunoscută.", { status: 400 });
 
   try {
@@ -32,10 +37,13 @@ export async function GET(request: Request, ctx: RouteContext<"/ordine/[crew]">)
   } catch {
     // API-ul nu răspunde: încercăm instantaneul
   }
+  const root = path.resolve(demoDir());
   for (const file of [
-    path.join(demoDir(), "plans", scenario, "work_orders", `${crew}.pdf`),
-    path.join(demoDir(), scenario, "work_orders", `${crew}.pdf`),
+    path.join(root, "plans", scenario, "work_orders", `${crew}.pdf`),
+    path.join(root, scenario, "work_orders", `${crew}.pdf`),
   ]) {
+    // calea trebuie să rămână în dosarul instantaneului
+    if (!path.resolve(file).startsWith(root + path.sep)) continue;
     try {
       const pdf = await readFile(file);
       return new Response(new Uint8Array(pdf), {
