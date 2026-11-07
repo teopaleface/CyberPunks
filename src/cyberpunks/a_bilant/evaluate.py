@@ -22,6 +22,7 @@ from cyberpunks.a_bilant import features as F
 from cyberpunks.a_bilant import fusion_eval as FE
 from cyberpunks.a_bilant import normal as N
 from cyberpunks.a_bilant import windows as W
+from cyberpunks.a_bilant.fuse import combine_arrays
 from cyberpunks.a_bilant.problems import CLASSES
 from cyberpunks.common.config import load as load_config
 from cyberpunks.common.contracts import ModelReport
@@ -198,7 +199,13 @@ def main() -> None:
     # diagnosticul: ferestre de 14 zile; pe antrenare cu pierderea normală prezisă fără ca postul să fi fost văzut
     wtr = W.build_windows(tr, W.oof_normal(tr), "train")
     wte = W.build_windows(te, N.predict_any(models, te), "pop")
+    from cyberpunks.common.paths import DATA_PROCESSED
+
+    wtr.to_parquet(DATA_PROCESSED / "bilant" / "windows_train.parquet")
     md, bd, diag, cm = eval_diagnosis(wtr, wte)
+    proba = diag.proba(wte)
+    wte.join(G.decide(proba, wte)).join(proba.add_prefix("p_")).assign(rule=G.rules(wte)).to_parquet(DATA_PROCESSED / "bilant" / "windows_pop.parquet")
+    tec.to_parquet(DATA_PROCESSED / "bilant" / "normal_test_pop.parquet")
     diag.save()
     fig_confusion(cm)
     metrics.update(md)
@@ -213,6 +220,8 @@ def main() -> None:
     eco = load_config("economics")
     t = FE.meter_table("pop", wte, sig["delta"])
     fw, fwo = FE.evaluate(t, float(eco["energy"]["loss_cost_lei_per_kwh"]), int(eco["meters"]["detection_horizon_days"]))
+    a_sc, _, _ = FE.simulate_a_scores(t)
+    t.assign(a=a_sc, fused=combine_arrays(a_sc, t["excess"].to_numpy(), t["sigma"].to_numpy(), np.maximum(t["drop"].to_numpy(), 0.0))).to_parquet(DATA_PROCESSED / "bilant" / "fusion_meters_pop.parquet")
     fig_fusion(fw, fwo)
     metrics.update({f"fuziune_{k}": v for k, v in fw.items()})
     baseline.update({f"fuziune_{k}": v for k, v in fwo.items()})
