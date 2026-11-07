@@ -1,0 +1,34 @@
+# Slideurile: planul, slide cu slide
+
+Format: HTML 1920×1080 exportat în PDF (proiector), temă DESCHISĂ ca în consolă (hârtie `#F5F4F0`, cerneală `#0B1622`), font Archivo, logoul "răsărit pe traseu", culorile surselor A `#2C6FD9`, B `#A23C9E`, C `#D99100` (varianta pentru temă deschisă). Filmul rămâne închis (noaptea → zorii); slideurile sunt "ziua".
+
+Regula cifrelor: orice cifră a echipei vine dintr-un fișier din `reports/`, citit de scriptul de construire (`build_slides.py`), niciodată scrisă de mână. Dacă fișierul lipsește la export, slideul spune "în lucru", nu pune o cifră. Cifrele PPC și cele din presă au sursa scrisă pe slide.
+
+Demo-ul are 5 minute, deci slideurile sunt sprijin: cele marcate "principal" se arată, restul stau în anexă pentru întrebări.
+
+## Principal
+
+1. **Titlu.** Logoul, "Tura de mâine", "Agentul care planifică echipele de teren Rețele Electrice", CyberPunks, SmartHack XI 2026, tema PPC. Eticheta: produs independent, fără identitate oficială PPC.
+2. **Problema, cu cifrele PPC.** Peste 2 milioane de contoare inteligente, 96 de citiri pe zi fiecare, circa 192 de milioane pe zi; circa 136.000 km de linii; peste 26.000 de posturi de transformare (`memory/08-ppc-workshop-ai.md`). Citatul din temă: "Un scor de anomalie de 0,87 nu îi spune unui tehnician unde să meargă mâine dimineață."
+3. **O zi reală: marți, 8 iulie 2025.** Aceeași zi, trei probleme, aceleași echipe: cod roșu ANM de vijelii în Banat (rafale 90-120 km/h, stâlpi avariați pe linia de 220 kV Reșița-Timișoara, circa 40.000 de consumatori afectați în Timiș în 7-9 iulie, 80 de echipe pe teren); caniculă cu 881 W/m² la prânz în București (arhiva Open-Meteo); contoare suspecte. Surse: a1.ro, hotnews.ro, pressalert.ro, Open-Meteo (lista în `docs/research/B.md`).
+4. **Produsul: Perceive → Estimate → Decide → Act.** Schema fluxului cu piesele noastre: A contoare, bilanțul pe post, B furtună, C tensiune, planificatorul (praguri cost/valoare, OR-Tools, "nu sunt sigur" → om), acțiunile (trasee, ordine de lucru, alerte, notificări, jurnal). Captură din consolă.
+5. **Modelele față de baseline.** Pentru A, B, C și bilanț: metrica principală, baseline-ul, setul de test (cum e separat), mărimea lui, cota sintetică, comanda care refăce cifra. Sursa: `reports/<A|B|C|bilant>/metrics.json` (contractul `ModelReport`).
+6. **Bilanțul pe post.** Lipsa = energia ieșită din post − suma contoarelor clienților, în lei; modelul învață pierderea normală; diagnosticul spune cauza și cine merge (tabelul cu 5 cauze). Povestea: un post unde A și bilanțul se confirmă reciproc. Cifra: precizia în primele K și deplasările degeaba, cu bilanț față de fără, pe același test (`reports/bilant/`). Eticheta: simulare pe date publice, gândită pentru datele PPC.
+7. **Scara de soluții pentru tensiune.** Peste 1,10 pu, agentul alege cea mai ieftină combinație care aduce P90 sub limită, cu efectul calculat fizic: alte faze, priza, mesaje "consumă la prânz", baterii, limită de export, transformator nou. Povestea: dezechilibrul de faze găsit de bilanț rezolvă și tensiunea (aceeași cauză, două probleme rezolvate). Mesajele țintesc doar posturile și orele cu risc, cu efect simulat pe un interval de participare. Oferta de baterii e calculată pe profilul fiecărui prosumator (efect pe tensiune, recuperare) și iese o listă pentru PPC Energie (magazinele PPC, Flanco după preluare). Cifrele: `reports/C/`. Inspirații: Take Charge (locul 1, CSIRO Solar Hackathon 2016, comunitate care implică prosumatorii în consumul inteligent; https://blog.csiro.au/hackathon-winners-shine-light-solar) și YellowGrid (locul 1, CleanTech Hackathon 2025, București, 23-24 mai 2025, eveniment susținut de PPC România și de Ministerul Energiei; gestiunea energiei pentru prosumatori; https://green.start-up.ro/en/the-startups-that-won-the-2025-edition-of-the-cleantech-hackathon/).
+8. **Agentul se dovedește.** Evaluarea pe mai multe zile față de strategii simple (top-K după scor, primul venit, aleator, o singură sursă): valoarea capturată, km, lucrări urgente ratate, vizite inutile. Cifra principală a filmului: valoarea capturată față de cea mai bună strategie simplă (`reports/planner/agent_eval.json`).
+9. **"Nu sunt sigur" și robustețea.** Intrări greșite în carantină (exemplu real din demo: latitudine 51,5 și scor 1,4), surse lipsă (planul merge cu ce are), incertitudine mare → om, jurnalul fiecărei decizii (ID-ul predicției, versiunea modelului, regula, pragul).
+10. **Explicabilitatea.** Fiecare lucrare: factorii în cuvinte simple (SHAP), cazuri similare din istoric, regula și pragul care au decis, urmărirea până la predicție. Captură din detaliul lucrării.
+11. **Ce trebuie confirmat cu PPC.** Există contoare de bilanț în posturi și la ce procent (concentratorul nu e contor de bilanț)? E de încredere lista client → post? Cum intră planul în sistemul WFM al echipelor (din nov. 2025)? Ce constrângeri reale au echipele (abilități, ture, depouri)? Planul B pentru posturile fără contor de bilanț: energia intrată estimată din modelul rețelei și clasamentul posturilor unde merită montat primul contor.
+
+## Anexă (pentru întrebări)
+
+12. **Etică și EU AI Act.** Infrastructură critică, deci risc ridicat: om în buclă pentru deciziile cu impact, jurnal automat, documentație (model cards), date pseudonimizate, etichete "date sintetice" și "imagine generată cu AI". Ce ne-a arătat PPC la workshop (`memory/08-ppc-workshop-ai.md`).
+13. **Costuri și scalare pe platforma PPC.** Modelele rulează local (LightGBM, OR-Tools), fără API plătit. Cum se leagă de platforma lor: NiFi/Airflow la intrare, S3 Bronze/Silver, Spark pe EMR pentru features zilnice, Redshift/Kafka la ieșire. Costul de rulare: doar dacă îl măsoară un script; altfel, calitativ.
+14. **Reproducere.** Comenzile din README care refac fiecare cifră din prezentare, repo-ul public, istoricul de commit-uri.
+15. **Ce urmează.** Calibrare pe istoricul Rețele Electrice, contoare de bilanț, integrarea cu WFM, pilot pe un județ.
+
+## De făcut
+
+- `build_slides.py`: citește `reports/`, scrie `slides.html` din șablon, exportă PDF-ul cu Chrome headless în `presentation/exports/`.
+- Capturile din consolă (după 01:00, din modul `/demo`): planul pe hartă, detaliul unei lucrări, bilanțul unui post, scara de soluții, coada "Nu sunt sigur".
+- Verificarea fiecărei cifre înainte de export (scriptul tipărește tabelul cifrelor cu fișierul din care vine fiecare).
