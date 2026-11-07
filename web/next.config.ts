@@ -1,15 +1,18 @@
 import type { NextConfig } from "next";
 
+// Pe Cloudflare (OpenNext) randarea parțială a Cache Components blochează workerul: construirea pentru
+// Cloudflare (CF_BUILD=1, vezi `bun run cf:build`) o oprește; paginile rămân dinamice și citesc la fiecare cerere.
+const onCloudflare = process.env.CF_BUILD === "1";
+
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
+  cacheComponents: !onCloudflare,
   // fără insigna de dezvoltare în colț: apare în capturi și în înregistrări
   devIndicators: false,
-  partialPrefetching: true,
+  partialPrefetching: !onCloudflare,
   // Site-ul de prezentare (web/site, construit în public/landing/) e prima pagină; consola începe la /app.
   async rewrites() {
     const landing = ["/", "/bilant", "/diagnostic", "/plan", "/agent", "/intra"];
-    return { beforeFiles: landing.map((source) => ({ source, destination: "/landing/index.html" })), afterFiles: [], fallback: [] };
+    return { beforeFiles: landing.map((source) => ({ source, destination: "/site-html" })), afterFiles: [], fallback: [] };
   },
   // Legăturile site-ului spre aplicația lui (/app/...) duc la ecranele consolei.
   async redirects() {

@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readText } from "@/lib/server/read-file";
 import path from "node:path";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -31,7 +31,7 @@ export default function ModelsPage({ searchParams }: PageProps<"/modele">) {
 /** reports/<X>/error_analysis.md din repo, dacă există (scris de scriptul de analiză al modelului). */
 async function readErrorAnalysis(source: Source): Promise<string | null> {
   try {
-    const text = await readFile(path.join(REPO_ROOT, "reports", source, "error_analysis.md"), "utf8");
+    const text = await readText(path.join(REPO_ROOT, "reports", source, "error_analysis.md"));
     return text.trim() ? text : null;
   } catch {
     return null;

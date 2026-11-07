@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readBytes } from "@/lib/server/read-file";
 import path from "node:path";
 import { connection } from "next/server";
 import { API_BASE, DEFAULT_SCENARIO } from "@/lib/data";
@@ -45,7 +45,7 @@ export async function GET(request: Request, ctx: RouteContext<"/ordine/[crew]">)
     // calea trebuie să rămână în dosarul instantaneului
     if (!path.resolve(/*turbopackIgnore: true*/ file).startsWith(root + path.sep)) continue;
     try {
-      const pdf = await readFile(/*turbopackIgnore: true*/ file);
+      const pdf = await readBytes(file);
       return new Response(new Uint8Array(pdf), {
         headers: { "content-type": "application/pdf", "content-disposition": `inline; filename="ordin-de-lucru-${crew}.pdf"` },
       });

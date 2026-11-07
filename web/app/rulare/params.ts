@@ -1,5 +1,5 @@
 import "server-only";
-import { readFile } from "node:fs/promises";
+import { readText } from "@/lib/server/read-file";
 import path from "node:path";
 import YAML from "yaml";
 import { REPO_ROOT } from "@/lib/data";
@@ -26,7 +26,7 @@ const WANTED: { path: string[]; label: string; note: string; fmt: Fmt }[] = [
 
 export async function readPlannerParams(): Promise<ParamRow[]> {
   try {
-    const doc = YAML.parse(await readFile(path.join(REPO_ROOT, "config", "planner.yaml"), "utf8")) as Record<string, unknown>;
+    const doc = YAML.parse(await readText(path.join(REPO_ROOT, "config", "planner.yaml"))) as Record<string, unknown>;
     const rows: ParamRow[] = [];
     for (const w of WANTED) {
       let v: unknown = doc;

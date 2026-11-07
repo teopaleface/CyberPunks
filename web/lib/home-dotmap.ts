@@ -3,7 +3,7 @@
  * o grilă hexagonală, iar punctul se păstrează dacă cade într-un județ. Culoarea vine din regiunea județului.
  * Calculul e pur (testabil); `getRomaniaDots` îl face o singură dată pe server și ține rezultatul în memorie.
  */
-import { readFile } from "node:fs/promises";
+import { readText } from "@/lib/server/read-file";
 import path from "node:path";
 
 export type DotRegion = "muntenia_sud" | "dobrogea" | "banat" | "other";
@@ -96,6 +96,6 @@ const round1 = (v: number) => Math.round(v * 10) / 10;
 let cached: Promise<DotMap> | null = null;
 
 export function getRomaniaDots(): Promise<DotMap> {
-  cached ??= readFile(path.join(process.cwd(), "public/geo/ro-judete.json"), "utf8").then((t) => computeDots(JSON.parse(t) as GeoJson));
+  cached ??= readText(path.join(process.cwd(), "public/geo/ro-judete.json")).then((t) => computeDots(JSON.parse(t) as GeoJson));
   return cached;
 }
