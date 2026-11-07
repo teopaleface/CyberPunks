@@ -57,3 +57,29 @@ describe("locul unei lucrări, cu diacriticele din date", () => {
     expect(itemPlace(zone)).toBe("Ilfov");
   });
 });
+
+describe("orele față de ziua planului", () => {
+  test("întoarcerea după miezul nopții rămâne după plecare", async () => {
+    const { minutesOfPlanDay, hhmmDay } = await import("@/lib/format");
+    const { crewTimeline } = await import("@/lib/plan-derive");
+    expect(minutesOfPlanDay("2025-07-08T23:00:00+03:00", "2025-07-08")).toBe(23 * 60);
+    expect(minutesOfPlanDay("2025-07-09T00:15:00+03:00", "2025-07-08")).toBe(24 * 60 + 15);
+    expect(hhmmDay(24 * 60 + 15)).toBe("00:15 (+1 zi)");
+    const tl = crewTimeline(
+      {
+        crew_id: "E-X-1",
+        depot_id: "D",
+        total_km: 10,
+        total_work_min: 60,
+        total_travel_min: 30,
+        depart_at: "2025-07-08T22:30:00+03:00",
+        return_at: "2025-07-09T00:15:00+03:00",
+        stops: [{ seq: 1, work_item_id: "B-20250708-Z", eta: "2025-07-08T23:00:00+03:00", duration_min: 60, travel_km: 5 }],
+      },
+      "08:00",
+      "2025-07-08",
+    );
+    expect(tl.back).toBeGreaterThan(tl.depart);
+    expect(tl.back).toBe(24 * 60 + 15);
+  });
+});
