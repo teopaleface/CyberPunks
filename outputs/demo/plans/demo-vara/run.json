@@ -5,7 +5,7 @@
       "origin": "model",
       "status": "ok",
       "note": "ieșirea existentă a modelului",
-      "valid": 391,
+      "valid": 524,
       "invalid": 0,
       "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/demo-vara/A.jsonl",
       "seconds": 0.0,
@@ -42,24 +42,29 @@
       "optional": false
     }
   },
-  "plan_id": "PLAN-demo-vara-20250708-144945-5d00",
+  "day_context": [
+    "Contoare și posturi: 622 lucrări; 29 în trasee, 485 verificări de la distanță sau corecții în birou, 17 la dispecer.",
+    "Furtună: 26 zone analizate, cel mai mare risc 58%; 3 echipe trimise din timp.",
+    "Tensiune: 41 posturi cu risc din 300 (soare pe panou până la 956 W/m² la prânz, 35 °C): 0 echipe, 18 mesaje către prosumatori, 23 posturi la urmărire."
+  ],
+  "plan_id": "PLAN-demo-vara-20250708-152504-8c55",
   "scenario": "demo-vara",
   "plan_date": "2025-07-08",
   "as_of": "2025-07-07T18:00:00+03:00",
-  "generated_at": "2026-11-07T14:49:45+02:00",
-  "planner_version": "planner@0.1.0+5423f97",
+  "generated_at": "2026-11-07T15:25:04+02:00",
+  "planner_version": "planner@0.1.0+9884d3d",
   "solver": {
     "name": "ortools",
     "status": "SUCCESS",
-    "seconds": 10.014,
-    "objective_lei": 2400120923.09,
-    "tasks": 249,
+    "seconds": 10.047,
+    "objective_lei": 9100104343.29,
+    "tasks": 304,
     "crews": 11
   },
   "overrides": 0,
   "fusion": {
     "status": "ok",
-    "fused": 0,
+    "fused": 522,
     "rejected": 0
   },
   "remedies": [
@@ -74,18 +79,18 @@
         "export_limit"
       ],
       "cost_lei": 12439.34,
-      "p90_before_pu": 1.1756,
-      "p90_after_pu": 1.094,
+      "p90_before_pu": 1.1768,
+      "p90_after_pu": 1.0952,
       "why_not_cheaper": [
-        "mesajele către clienții Ore Smart singure (la 10% participare) (3 lei) scade tensiunea doar până la 1,174 pu",
-        "oferta de baterii singură (24 lei) scade tensiunea doar până la 1,161 pu",
-        "mesajele către clienții Ore Smart și oferta de baterii (la 10% participare) (27 lei) scade tensiunea doar până la 1,159 pu"
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,175 pu",
+        "cu oferta de baterii singură (24 lei), tensiunea ajunge doar la 1,162 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (27 lei, la 10% participare), tensiunea ajunge doar la 1,160 pu"
       ],
       "invest": false,
       "battery": {
         "battery_kwh_total": 40.0,
         "revenue_lei": 9000.0,
-        "payback_years": 5.5,
+        "payback_years": 5.75,
         "customers_targeted": 12
       },
       "inverter_trips_avoided": 25.0,
@@ -104,21 +109,51 @@
         "export_limit"
       ],
       "cost_lei": 8586.84,
-      "p90_before_pu": 1.16,
-      "p90_after_pu": 1.0927,
+      "p90_before_pu": 1.1612,
+      "p90_after_pu": 1.0939,
       "why_not_cheaper": [
-        "mesajele către clienții Ore Smart singure (la 10% participare) (3 lei) scade tensiunea doar până la 1,158 pu",
-        "oferta de baterii singură (14 lei) scade tensiunea doar până la 1,151 pu",
-        "mesajele către clienții Ore Smart și oferta de baterii (la 10% participare) (17 lei) scade tensiunea doar până la 1,149 pu"
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,159 pu",
+        "cu oferta de baterii singură (14 lei), tensiunea ajunge doar la 1,152 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (17 lei, la 10% participare), tensiunea ajunge doar la 1,150 pu"
       ],
       "invest": false,
       "battery": {
         "battery_kwh_total": 20.0,
         "revenue_lei": 4500.0,
-        "payback_years": 4.45,
+        "payback_years": 4.65,
         "customers_targeted": 7
       },
       "inverter_trips_avoided": 16.0,
+      "crew_steps": [
+        "phase_rebalance"
+      ]
+    },
+    {
+      "post_id": "PT-1300",
+      "work_item_id": "C-20250708-PT-1300",
+      "label": "PT-1300, Ștefăneștii de Jos (sintetic)",
+      "feasible": true,
+      "chosen": [
+        "phase_rebalance",
+        "offer_battery",
+        "export_limit"
+      ],
+      "cost_lei": 9811.93,
+      "p90_before_pu": 1.1551,
+      "p90_after_pu": 1.0991,
+      "why_not_cheaper": [
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,153 pu",
+        "cu oferta de baterii singură (22 lei), tensiunea ajunge doar la 1,145 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (25 lei, la 10% participare), tensiunea ajunge doar la 1,143 pu"
+      ],
+      "invest": false,
+      "battery": {
+        "battery_kwh_total": 30.0,
+        "revenue_lei": 6750.0,
+        "payback_years": 3.7,
+        "customers_targeted": 11
+      },
+      "inverter_trips_avoided": 8.0,
       "crew_steps": [
         "phase_rebalance"
       ]
@@ -134,54 +169,24 @@
         "offer_battery"
       ],
       "cost_lei": 1978.0,
-      "p90_before_pu": 1.1491,
-      "p90_after_pu": 1.0941,
+      "p90_before_pu": 1.1504,
+      "p90_after_pu": 1.0954,
       "why_not_cheaper": [
-        "mesajele către clienții Ore Smart singure (la 10% participare) (3 lei) scade tensiunea doar până la 1,147 pu",
-        "oferta de baterii singură (22 lei) scade tensiunea doar până la 1,137 pu",
-        "mesajele către clienții Ore Smart și oferta de baterii (la 10% participare) (25 lei) scade tensiunea doar până la 1,135 pu"
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,148 pu",
+        "cu oferta de baterii singură (22 lei), tensiunea ajunge doar la 1,138 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (25 lei, la 10% participare), tensiunea ajunge doar la 1,136 pu"
       ],
       "invest": false,
       "battery": {
         "battery_kwh_total": 30.0,
         "revenue_lei": 6750.0,
-        "payback_years": 7.1,
+        "payback_years": 7.4,
         "customers_targeted": 11
       },
       "inverter_trips_avoided": 10.0,
       "crew_steps": [
         "phase_rebalance",
         "adjust_tap"
-      ]
-    },
-    {
-      "post_id": "PT-1300",
-      "work_item_id": "C-20250708-PT-1300",
-      "label": "PT-1300, Ștefăneștii de Jos (sintetic)",
-      "feasible": true,
-      "chosen": [
-        "phase_rebalance",
-        "offer_battery",
-        "export_limit"
-      ],
-      "cost_lei": 9811.93,
-      "p90_before_pu": 1.1538,
-      "p90_after_pu": 1.0978,
-      "why_not_cheaper": [
-        "mesajele către clienții Ore Smart singure (la 10% participare) (3 lei) scade tensiunea doar până la 1,152 pu",
-        "oferta de baterii singură (22 lei) scade tensiunea doar până la 1,143 pu",
-        "mesajele către clienții Ore Smart și oferta de baterii (la 10% participare) (25 lei) scade tensiunea doar până la 1,142 pu"
-      ],
-      "invest": false,
-      "battery": {
-        "battery_kwh_total": 30.0,
-        "revenue_lei": 6750.0,
-        "payback_years": 3.5,
-        "customers_targeted": 11
-      },
-      "inverter_trips_avoided": 8.0,
-      "crew_steps": [
-        "phase_rebalance"
       ]
     },
     {
@@ -194,49 +199,18 @@
         "export_limit"
       ],
       "cost_lei": 9068.56,
-      "p90_before_pu": 1.1539,
-      "p90_after_pu": 1.0945,
+      "p90_before_pu": 1.1552,
+      "p90_after_pu": 1.0958,
       "why_not_cheaper": [
-        "mesajele către clienții Ore Smart singure (la 10% participare) (3 lei) scade tensiunea doar până la 1,152 pu",
-        "oferta de baterii singură (18 lei) scade tensiunea doar până la 1,144 pu",
-        "mesajele către clienții Ore Smart și oferta de baterii (la 10% participare) (21 lei) scade tensiunea doar până la 1,142 pu"
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,154 pu",
+        "cu oferta de baterii singură (18 lei), tensiunea ajunge doar la 1,145 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (21 lei, la 10% participare), tensiunea ajunge doar la 1,143 pu"
       ],
       "invest": false,
       "battery": null,
       "inverter_trips_avoided": 15.0,
       "crew_steps": [
         "phase_rebalance"
-      ]
-    },
-    {
-      "post_id": "PT-1072",
-      "work_item_id": "C-20250708-PT-1072",
-      "label": "PT-1072, Voluntari (sintetic)",
-      "feasible": true,
-      "chosen": [
-        "phase_rebalance",
-        "adjust_tap",
-        "offer_battery"
-      ],
-      "cost_lei": 2196.0,
-      "p90_before_pu": 1.1449,
-      "p90_after_pu": 1.0934,
-      "why_not_cheaper": [
-        "mesajele către clienții Ore Smart singure (la 10% participare) (3 lei) scade tensiunea doar până la 1,143 pu",
-        "oferta de baterii singură (12 lei) scade tensiunea doar până la 1,135 pu",
-        "mesajele către clienții Ore Smart și oferta de baterii (la 10% participare) (15 lei) scade tensiunea doar până la 1,133 pu"
-      ],
-      "invest": false,
-      "battery": {
-        "battery_kwh_total": 20.0,
-        "revenue_lei": 4500.0,
-        "payback_years": 5.1,
-        "customers_targeted": 6
-      },
-      "inverter_trips_avoided": 6.0,
-      "crew_steps": [
-        "phase_rebalance",
-        "adjust_tap"
       ]
     },
     {
@@ -250,21 +224,52 @@
         "offer_battery"
       ],
       "cost_lei": 1960.0,
-      "p90_before_pu": 1.1501,
-      "p90_after_pu": 1.0982,
+      "p90_before_pu": 1.1513,
+      "p90_after_pu": 1.0994,
       "why_not_cheaper": [
-        "mesajele către clienții Ore Smart singure (la 10% participare) (3 lei) scade tensiunea doar până la 1,147 pu",
-        "oferta de baterii singură (4 lei) scade tensiunea doar până la 1,137 pu",
-        "mesajele către clienții Ore Smart și oferta de baterii (la 10% participare) (7 lei) scade tensiunea doar până la 1,134 pu"
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,149 pu",
+        "cu oferta de baterii singură (4 lei), tensiunea ajunge doar la 1,138 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (7 lei, la 10% participare), tensiunea ajunge doar la 1,135 pu"
       ],
       "invest": false,
       "battery": {
         "battery_kwh_total": 10.0,
         "revenue_lei": 2250.0,
-        "payback_years": 7.2,
+        "payback_years": 7.5,
         "customers_targeted": 2
       },
       "inverter_trips_avoided": 5.0,
+      "crew_steps": [
+        "phase_rebalance",
+        "adjust_tap"
+      ]
+    },
+    {
+      "post_id": "PT-1072",
+      "work_item_id": "C-20250708-PT-1072",
+      "label": "PT-1072, Voluntari (sintetic)",
+      "feasible": true,
+      "chosen": [
+        "phase_rebalance",
+        "adjust_tap",
+        "offer_battery"
+      ],
+      "cost_lei": 2196.0,
+      "p90_before_pu": 1.1462,
+      "p90_after_pu": 1.0947,
+      "why_not_cheaper": [
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,145 pu",
+        "cu oferta de baterii singură (12 lei), tensiunea ajunge doar la 1,136 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (15 lei, la 10% participare), tensiunea ajunge doar la 1,135 pu"
+      ],
+      "invest": false,
+      "battery": {
+        "battery_kwh_total": 20.0,
+        "revenue_lei": 4500.0,
+        "payback_years": 5.3,
+        "customers_targeted": 6
+      },
+      "inverter_trips_avoided": 6.0,
       "crew_steps": [
         "phase_rebalance",
         "adjust_tap"
@@ -276,15 +281,16 @@
       "label": "PT-1005, Sector 1 (sintetic)",
       "feasible": true,
       "chosen": [
+        "notify_customers",
         "export_limit"
       ],
-      "cost_lei": 9971.31,
-      "p90_before_pu": 1.1383,
+      "cost_lei": 9974.61,
+      "p90_before_pu": 1.1396,
       "p90_after_pu": 1.0988,
       "why_not_cheaper": [
-        "mesajele către clienții Ore Smart singure (la 10% participare) (3 lei) scade tensiunea doar până la 1,137 pu",
-        "oferta de baterii singură (16 lei) scade tensiunea doar până la 1,129 pu",
-        "mesajele către clienții Ore Smart și oferta de baterii (la 10% participare) (19 lei) scade tensiunea doar până la 1,128 pu"
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,138 pu",
+        "cu oferta de baterii singură (16 lei), tensiunea ajunge doar la 1,130 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (19 lei, la 10% participare), tensiunea ajunge doar la 1,129 pu"
       ],
       "invest": false,
       "battery": null,
@@ -302,18 +308,18 @@
         "offer_battery"
       ],
       "cost_lei": 2196.0,
-      "p90_before_pu": 1.1387,
-      "p90_after_pu": 1.097,
+      "p90_before_pu": 1.1399,
+      "p90_after_pu": 1.0982,
       "why_not_cheaper": [
-        "mesajele către clienții Ore Smart singure (la 10% participare) (3 lei) scade tensiunea doar până la 1,137 pu",
-        "oferta de baterii singură (12 lei) scade tensiunea doar până la 1,132 pu",
-        "mesajele către clienții Ore Smart și oferta de baterii (la 10% participare) (15 lei) scade tensiunea doar până la 1,131 pu"
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,139 pu",
+        "cu oferta de baterii singură (12 lei), tensiunea ajunge doar la 1,133 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (15 lei, la 10% participare), tensiunea ajunge doar la 1,132 pu"
       ],
       "invest": false,
       "battery": {
         "battery_kwh_total": 20.0,
         "revenue_lei": 4500.0,
-        "payback_years": 6.199999999999999,
+        "payback_years": 6.449999999999999,
         "customers_targeted": 6
       },
       "inverter_trips_avoided": 7.0,
@@ -332,12 +338,12 @@
         "adjust_tap"
       ],
       "cost_lei": 1956.0,
-      "p90_before_pu": 1.131,
-      "p90_after_pu": 1.0945,
+      "p90_before_pu": 1.1322,
+      "p90_after_pu": 1.0957,
       "why_not_cheaper": [
-        "mesajele către clienții Ore Smart singure (la 10% participare) (3 lei) scade tensiunea doar până la 1,130 pu",
-        "oferta de baterii singură (14 lei) scade tensiunea doar până la 1,127 pu",
-        "mesajele către clienții Ore Smart și oferta de baterii (la 10% participare) (17 lei) scade tensiunea doar până la 1,126 pu"
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,131 pu",
+        "cu oferta de baterii singură (14 lei), tensiunea ajunge doar la 1,128 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (17 lei, la 10% participare), tensiunea ajunge doar la 1,127 pu"
       ],
       "invest": false,
       "battery": null,
@@ -357,41 +363,16 @@
         "adjust_tap"
       ],
       "cost_lei": 1956.0,
-      "p90_before_pu": 1.1401,
-      "p90_after_pu": 1.0984,
+      "p90_before_pu": 1.1413,
+      "p90_after_pu": 1.0996,
       "why_not_cheaper": [
-        "mesajele către clienții Ore Smart singure (la 10% participare) (3 lei) scade tensiunea doar până la 1,137 pu",
-        "oferta de baterii singură (6 lei) scade tensiunea doar până la 1,130 pu",
-        "mesajele către clienții Ore Smart și oferta de baterii (la 10% participare) (9 lei) scade tensiunea doar până la 1,127 pu"
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,138 pu",
+        "cu oferta de baterii singură (6 lei), tensiunea ajunge doar la 1,131 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (9 lei, la 10% participare), tensiunea ajunge doar la 1,128 pu"
       ],
       "invest": false,
       "battery": null,
       "inverter_trips_avoided": 2.0,
-      "crew_steps": [
-        "phase_rebalance",
-        "adjust_tap"
-      ]
-    },
-    {
-      "post_id": "PT-1252",
-      "work_item_id": "C-20250708-PT-1252",
-      "label": "PT-1252, Popești-Leordeni (sintetic)",
-      "feasible": true,
-      "chosen": [
-        "phase_rebalance",
-        "adjust_tap"
-      ],
-      "cost_lei": 1956.0,
-      "p90_before_pu": 1.132,
-      "p90_after_pu": 1.0902,
-      "why_not_cheaper": [
-        "mesajele către clienții Ore Smart singure (la 10% participare) (3 lei) scade tensiunea doar până la 1,130 pu",
-        "oferta de baterii singură (32 lei) scade tensiunea doar până la 1,128 pu",
-        "mesajele către clienții Ore Smart și oferta de baterii (la 10% participare) (35 lei) scade tensiunea doar până la 1,126 pu"
-      ],
-      "invest": false,
-      "battery": null,
-      "inverter_trips_avoided": 1.0,
       "crew_steps": [
         "phase_rebalance",
         "adjust_tap"
@@ -407,22 +388,47 @@
         "offer_battery"
       ],
       "cost_lei": 1658.0,
-      "p90_before_pu": 1.1323,
-      "p90_after_pu": 1.0985,
+      "p90_before_pu": 1.1336,
+      "p90_after_pu": 1.0998,
       "why_not_cheaper": [
-        "mesajele către clienții Ore Smart singure (la 10% participare) (3 lei) scade tensiunea doar până la 1,131 pu",
-        "oferta de baterii singură (20 lei) scade tensiunea doar până la 1,124 pu",
-        "mesajele către clienții Ore Smart și oferta de baterii (la 10% participare) (23 lei) scade tensiunea doar până la 1,123 pu"
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,133 pu",
+        "cu oferta de baterii singură (20 lei), tensiunea ajunge doar la 1,126 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (23 lei, la 10% participare), tensiunea ajunge doar la 1,125 pu"
       ],
       "invest": false,
       "battery": {
         "battery_kwh_total": 30.0,
         "revenue_lei": 6750.0,
-        "payback_years": 5.9,
+        "payback_years": 6.1,
         "customers_targeted": 10
       },
       "inverter_trips_avoided": 18.0,
       "crew_steps": [
+        "adjust_tap"
+      ]
+    },
+    {
+      "post_id": "PT-1252",
+      "work_item_id": "C-20250708-PT-1252",
+      "label": "PT-1252, Popești-Leordeni (sintetic)",
+      "feasible": true,
+      "chosen": [
+        "phase_rebalance",
+        "adjust_tap"
+      ],
+      "cost_lei": 1956.0,
+      "p90_before_pu": 1.1333,
+      "p90_after_pu": 1.0915,
+      "why_not_cheaper": [
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,131 pu",
+        "cu oferta de baterii singură (32 lei), tensiunea ajunge doar la 1,129 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (35 lei, la 10% participare), tensiunea ajunge doar la 1,127 pu"
+      ],
+      "invest": false,
+      "battery": null,
+      "inverter_trips_avoided": 1.0,
+      "crew_steps": [
+        "phase_rebalance",
         "adjust_tap"
       ]
     }
@@ -433,15 +439,14 @@
     "E-BV-3.pdf",
     "E-BE-1.pdf",
     "E-BE-2.pdf",
-    "E-CT-1.pdf",
     "E-TM-1.pdf",
     "E-AR-1.pdf",
     "E-RS-1.pdf"
   ],
   "timings": {
-    "perceive": 0.008,
+    "perceive": 0.007,
     "estimate": 0.0,
-    "decide": 10.324,
-    "act": 1.451
+    "decide": 10.396,
+    "act": 1.229
   }
 }

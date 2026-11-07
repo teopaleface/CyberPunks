@@ -97,13 +97,16 @@ def estimate(scenario: str, plan_date: Date | None, mode: Mode, out_root: Path, 
     picks: dict[str, SourcePick] = {}
     fixture_date = _fixture_date()
     settings = settings or Settings.load()
+    sc = settings.scenarios.get(scenario)
+    sc_fixed_date = bool(sc and sc.date_spec and sc.date_spec[:1].isdigit())
     slow = set(settings.rule("estimate", "reuse_fresh_output", default=[]) or [])
     max_age = float(settings.rule("estimate", "max_age_hours", default=12))
     for src, module in PREDICTORS.items():
         existing = _work_items_file(out_root, scenario, src)
         t0 = time.perf_counter()
         note = ""
-        if mode == "auto" and src in slow and _fresh_output(existing, plan_date, max_age):
+        historical = sc_fixed_date and plan_date is not None  # zi istorică: aceleași intrări, ieșirea nu se învechește
+        if mode == "auto" and src in slow and _fresh_output(existing, plan_date, float("inf") if historical else max_age):
             # Model lent (de exemplu bilanțul, ~4 minute): ieșirea lui pentru aceeași zi, din ultimele ore, se refolosește.
             ran_at = datetime.fromtimestamp(existing.stat().st_mtime, TZ).strftime("%H:%M")
             picks[src] = SourcePick(existing, "model", f"ieșirea modelului {src} pentru aceeași zi, rulată la {ran_at} (model lent, refolosit)",
@@ -335,6 +338,13 @@ def _decide_and_act(
         ).model_dump(mode="json")
         for it, f in fusion_events
     ]
+    from cyberpunks.planner.context import day_context
+
+    context_lines = day_context(ctx, outcome.final, meta.get("sources") or {})
+    if context_lines:
+        plan.alerts.append(Alert(alert_id=f"AL-{len(plan.alerts) + 1}", severity="info", title_ro="Contextul zilei",
+                                 body_ro=" ".join(context_lines), channel="dispecerat", created_at=generated_at))
+    meta["day_context"] = context_lines
     if fusion_meta.get("status") == "eroare":
         plan.alerts.append(Alert(alert_id=f"AL-{len(plan.alerts) + 1}", severity="warning", title_ro="Fuziunea cu bilanțul n-a mers",
                                  body_ro=f"Planul folosește scorurile A fără confirmarea bilanțului ({fusion_meta.get('note', '')}).",

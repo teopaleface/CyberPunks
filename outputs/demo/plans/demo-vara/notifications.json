@@ -4,66 +4,39 @@
     "audience": "echipa",
     "asset_id": "TM-TIMISOARA",
     "message_ro": "Mâine, echipa E-TM-1: fiți în Zona Timișoara (Timiș) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-    "scheduled_for": "2026-11-07T14:50:45+02:00",
+    "scheduled_for": "2026-11-07T15:26:04+02:00",
     "work_item_id": "B-20250708-TM-TIMISOARA",
     "demo_only": true
   },
   {
     "notification_id": "N-2",
     "audience": "echipa",
-    "asset_id": "CS-RESITA",
-    "message_ro": "Mâine, echipa E-RS-1: fiți în Zona Reșița (Caraș-Severin) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-    "scheduled_for": "2026-11-07T14:50:45+02:00",
-    "work_item_id": "B-20250708-CS-RESITA",
+    "asset_id": "AR-ARAD",
+    "message_ro": "Mâine, echipa E-AR-1: fiți în Zona Arad (Arad) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
+    "scheduled_for": "2026-11-07T15:26:04+02:00",
+    "work_item_id": "B-20250708-AR-ARAD",
     "demo_only": true
   },
   {
     "notification_id": "N-3",
     "audience": "echipa",
-    "asset_id": "AR-ARAD",
-    "message_ro": "Mâine, echipa E-AR-1: fiți în Zona Arad (Arad) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-    "scheduled_for": "2026-11-07T14:50:45+02:00",
-    "work_item_id": "B-20250708-AR-ARAD",
+    "asset_id": "TM-LUGOJ",
+    "message_ro": "Mâine, echipa E-RS-1: fiți în Zona Lugoj (Timiș) la 14:00, înainte de 15:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
+    "scheduled_for": "2026-11-07T15:26:04+02:00",
+    "work_item_id": "B-20250708-TM-LUGOJ",
     "demo_only": true
   },
   {
     "notification_id": "N-4",
-    "audience": "echipa",
-    "asset_id": "IF-BUFTEA",
-    "message_ro": "Mâine, echipa E-BE-2: fiți în Zona Buftea (Ilfov) la 15:30, înainte de 17:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-    "scheduled_for": "2026-11-07T14:50:45+02:00",
-    "work_item_id": "B-20250708-IF-BUFTEA",
-    "demo_only": true
-  },
-  {
-    "notification_id": "N-5",
-    "audience": "echipa",
-    "asset_id": "IL-SLOBOZIA",
-    "message_ro": "Mâine, echipa E-CT-1: fiți în Zona Slobozia (Ialomița) la 15:30, înainte de 18:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-    "scheduled_for": "2026-11-07T14:50:45+02:00",
-    "work_item_id": "B-20250708-IL-SLOBOZIA",
-    "demo_only": true
-  },
-  {
-    "notification_id": "N-6",
-    "audience": "echipa",
-    "asset_id": "GR-GIURGIU",
-    "message_ro": "Mâine, echipa E-BV-3: fiți în Zona Giurgiu (Giurgiu) la 15:30, înainte de 22:00, când începe fereastra de risc. Rămâneți în zonă până la ridicarea alertei; materialele pentru linii aeriene în mașină.",
-    "scheduled_for": "2026-11-07T14:50:45+02:00",
-    "work_item_id": "B-20250708-GR-GIURGIU",
-    "demo_only": true
-  },
-  {
-    "notification_id": "N-7",
     "audience": "prosumatori",
     "asset_id": "PT-1269",
-    "message_ro": "PPC Energie: pentru prosumatorii din zona PT-1269, Afumați (sintetic), o baterie ar păstra energia de la prânz pentru seară și ar opri deconectările invertorului. Propunere: 40 kWh de baterii pe post, recuperare în ~5,5 ani. Detalii în magazinele PPC.",
+    "message_ro": "PPC Energie: pentru prosumatorii din zona PT-1269, Afumați (sintetic), o baterie ar păstra energia de la prânz pentru seară și ar opri deconectările invertorului. Propunere: 40 kWh de baterii pe post, recuperare în ~5,8 ani. Detalii în magazinele PPC.",
     "scheduled_for": "2025-07-07T18:05:00+03:00",
     "work_item_id": "C-20250708-PT-1269",
     "demo_only": true
   },
   {
-    "notification_id": "N-8",
+    "notification_id": "N-5",
     "audience": "prosumatori",
     "asset_id": "PT-1269",
     "message_ro": "Rețele Electrice: propunem prosumatorilor din zona PT-1269, Afumați (sintetic) o limită de injecție în rețea la prânz, ca tensiunea să rămână sub 253 V și invertoarele să nu se oprească.",
@@ -72,7 +45,16 @@
     "demo_only": true
   },
   {
-    "notification_id": "N-9",
+    "notification_id": "N-6",
+    "audience": "prosumatori",
+    "asset_id": "PT-1269",
+    "message_ro": "Mâine între 10 și 17, panourile solare de pe strada ta se pot opri de circa 18 ori din cauza tensiunii mari. Dacă 1 din 5 vecini pornește atunci mașina de spălat și boilerul, se evită circa 3 opriri. Cu PPC Ore Smart+, consumul de la prânz costă mai puțin.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1269",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-7",
     "audience": "clienti_zona",
     "asset_id": "PT-1269",
     "message_ro": "Rețele Electrice: joi 10.07.2025, între 09:00 și 10:00, alimentarea cu energie electrică va fi întreruptă în zona postului de transformare PT-1269, Afumați (sintetic), pentru lucrări de reglaj al tensiunii. Ne cerem scuze pentru neplăcere.",
@@ -81,16 +63,16 @@
     "demo_only": true
   },
   {
-    "notification_id": "N-10",
+    "notification_id": "N-8",
     "audience": "prosumatori",
     "asset_id": "PT-1076",
-    "message_ro": "PPC Energie: pentru prosumatorii din zona PT-1076, Cornetu (sintetic), o baterie ar păstra energia de la prânz pentru seară și ar opri deconectările invertorului. Propunere: 20 kWh de baterii pe post, recuperare în ~4,5 ani. Detalii în magazinele PPC.",
+    "message_ro": "PPC Energie: pentru prosumatorii din zona PT-1076, Cornetu (sintetic), o baterie ar păstra energia de la prânz pentru seară și ar opri deconectările invertorului. Propunere: 20 kWh de baterii pe post, recuperare în ~4,7 ani. Detalii în magazinele PPC.",
     "scheduled_for": "2025-07-07T18:05:00+03:00",
     "work_item_id": "C-20250708-PT-1076",
     "demo_only": true
   },
   {
-    "notification_id": "N-11",
+    "notification_id": "N-9",
     "audience": "prosumatori",
     "asset_id": "PT-1076",
     "message_ro": "Rețele Electrice: propunem prosumatorilor din zona PT-1076, Cornetu (sintetic) o limită de injecție în rețea la prânz, ca tensiunea să rămână sub 253 V și invertoarele să nu se oprească.",
@@ -99,7 +81,16 @@
     "demo_only": true
   },
   {
-    "notification_id": "N-12",
+    "notification_id": "N-10",
+    "audience": "prosumatori",
+    "asset_id": "PT-1076",
+    "message_ro": "Mâine între 10 și 17, panourile solare de pe strada ta se pot opri de circa 11 ori din cauza tensiunii mari. Dacă 1 din 5 vecini pornește atunci mașina de spălat și boilerul, se evită circa 3 opriri. Cu PPC Ore Smart+, consumul de la prânz costă mai puțin.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1076",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-11",
     "audience": "clienti_zona",
     "asset_id": "PT-1076",
     "message_ro": "Rețele Electrice: joi 10.07.2025, între 09:00 și 10:00, alimentarea cu energie electrică va fi întreruptă în zona postului de transformare PT-1076, Cornetu (sintetic), pentru lucrări de reglaj al tensiunii. Ne cerem scuze pentru neplăcere.",
@@ -108,34 +99,16 @@
     "demo_only": true
   },
   {
-    "notification_id": "N-13",
-    "audience": "prosumatori",
-    "asset_id": "PT-1147",
-    "message_ro": "PPC Energie: pentru prosumatorii din zona PT-1147, Tunari (sintetic), o baterie ar păstra energia de la prânz pentru seară și ar opri deconectările invertorului. Propunere: 30 kWh de baterii pe post, recuperare în ~7,1 ani. Detalii în magazinele PPC.",
-    "scheduled_for": "2025-07-07T18:05:00+03:00",
-    "work_item_id": "C-20250708-PT-1147",
-    "demo_only": true
-  },
-  {
-    "notification_id": "N-14",
-    "audience": "clienti_zona",
-    "asset_id": "PT-1147",
-    "message_ro": "Rețele Electrice: joi 10.07.2025, între 09:00 și 10:00, alimentarea cu energie electrică va fi întreruptă în zona postului de transformare PT-1147, Tunari (sintetic), pentru lucrări de reglaj al tensiunii. Ne cerem scuze pentru neplăcere.",
-    "scheduled_for": "2025-07-07T18:05:00+03:00",
-    "work_item_id": "C-20250708-PT-1147",
-    "demo_only": true
-  },
-  {
-    "notification_id": "N-15",
+    "notification_id": "N-12",
     "audience": "prosumatori",
     "asset_id": "PT-1300",
-    "message_ro": "PPC Energie: pentru prosumatorii din zona PT-1300, Ștefăneștii de Jos (sintetic), o baterie ar păstra energia de la prânz pentru seară și ar opri deconectările invertorului. Propunere: 30 kWh de baterii pe post, recuperare în ~3,5 ani. Detalii în magazinele PPC.",
+    "message_ro": "PPC Energie: pentru prosumatorii din zona PT-1300, Ștefăneștii de Jos (sintetic), o baterie ar păstra energia de la prânz pentru seară și ar opri deconectările invertorului. Propunere: 30 kWh de baterii pe post, recuperare în ~3,7 ani. Detalii în magazinele PPC.",
     "scheduled_for": "2025-07-07T18:05:00+03:00",
     "work_item_id": "C-20250708-PT-1300",
     "demo_only": true
   },
   {
-    "notification_id": "N-16",
+    "notification_id": "N-13",
     "audience": "prosumatori",
     "asset_id": "PT-1300",
     "message_ro": "Rețele Electrice: propunem prosumatorilor din zona PT-1300, Ștefăneștii de Jos (sintetic) o limită de injecție în rețea la prânz, ca tensiunea să rămână sub 253 V și invertoarele să nu se oprească.",
@@ -144,7 +117,16 @@
     "demo_only": true
   },
   {
-    "notification_id": "N-17",
+    "notification_id": "N-14",
+    "audience": "prosumatori",
+    "asset_id": "PT-1300",
+    "message_ro": "Mâine între 10 și 17, panourile solare de pe strada ta se pot opri de circa 5 ori din cauza tensiunii mari. Dacă 1 din 5 vecini pornește atunci mașina de spălat și boilerul, se evită circa 1 opriri. Cu PPC Ore Smart+, consumul de la prânz costă mai puțin.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1300",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-15",
     "audience": "clienti_zona",
     "asset_id": "PT-1300",
     "message_ro": "Rețele Electrice: joi 10.07.2025, între 09:00 și 10:00, alimentarea cu energie electrică va fi întreruptă în zona postului de transformare PT-1300, Ștefăneștii de Jos (sintetic), pentru lucrări de reglaj al tensiunii. Ne cerem scuze pentru neplăcere.",
@@ -153,7 +135,34 @@
     "demo_only": true
   },
   {
+    "notification_id": "N-16",
+    "audience": "prosumatori",
+    "asset_id": "PT-1147",
+    "message_ro": "PPC Energie: pentru prosumatorii din zona PT-1147, Tunari (sintetic), o baterie ar păstra energia de la prânz pentru seară și ar opri deconectările invertorului. Propunere: 30 kWh de baterii pe post, recuperare în ~7,4 ani. Detalii în magazinele PPC.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1147",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-17",
+    "audience": "prosumatori",
+    "asset_id": "PT-1147",
+    "message_ro": "Mâine între 11 și 16, panourile solare de pe strada ta se pot opri de circa 5 ori din cauza tensiunii mari. Dacă 1 din 5 vecini pornește atunci mașina de spălat și boilerul, se evită circa 2 opriri. Cu PPC Ore Smart+, consumul de la prânz costă mai puțin.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1147",
+    "demo_only": true
+  },
+  {
     "notification_id": "N-18",
+    "audience": "clienti_zona",
+    "asset_id": "PT-1147",
+    "message_ro": "Rețele Electrice: joi 10.07.2025, între 09:00 și 10:00, alimentarea cu energie electrică va fi întreruptă în zona postului de transformare PT-1147, Tunari (sintetic), pentru lucrări de reglaj al tensiunii. Ne cerem scuze pentru neplăcere.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1147",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-19",
     "audience": "prosumatori",
     "asset_id": "PT-1131",
     "message_ro": "Rețele Electrice: propunem prosumatorilor din zona PT-1131, Chitila (sintetic) o limită de injecție în rețea la prânz, ca tensiunea să rămână sub 253 V și invertoarele să nu se oprească.",
@@ -162,7 +171,16 @@
     "demo_only": true
   },
   {
-    "notification_id": "N-19",
+    "notification_id": "N-20",
+    "audience": "prosumatori",
+    "asset_id": "PT-1131",
+    "message_ro": "Mâine între 10 și 17, panourile solare de pe strada ta se pot opri de circa 15 ori din cauza tensiunii mari. Dacă 1 din 5 vecini pornește atunci mașina de spălat și boilerul, se evită circa 1 opriri. Cu PPC Ore Smart+, consumul de la prânz costă mai puțin.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1131",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-21",
     "audience": "clienti_zona",
     "asset_id": "PT-1131",
     "message_ro": "Rețele Electrice: joi 10.07.2025, între 09:00 și 10:00, alimentarea cu energie electrică va fi întreruptă în zona postului de transformare PT-1131, Chitila (sintetic), pentru lucrări de reglaj al tensiunii. Ne cerem scuze pentru neplăcere.",
@@ -171,34 +189,25 @@
     "demo_only": true
   },
   {
-    "notification_id": "N-20",
-    "audience": "prosumatori",
-    "asset_id": "PT-1072",
-    "message_ro": "PPC Energie: pentru prosumatorii din zona PT-1072, Voluntari (sintetic), o baterie ar păstra energia de la prânz pentru seară și ar opri deconectările invertorului. Propunere: 20 kWh de baterii pe post, recuperare în ~5,1 ani. Detalii în magazinele PPC.",
-    "scheduled_for": "2025-07-07T18:05:00+03:00",
-    "work_item_id": "C-20250708-PT-1072",
-    "demo_only": true
-  },
-  {
-    "notification_id": "N-21",
-    "audience": "clienti_zona",
-    "asset_id": "PT-1072",
-    "message_ro": "Rețele Electrice: joi 10.07.2025, între 09:00 și 10:00, alimentarea cu energie electrică va fi întreruptă în zona postului de transformare PT-1072, Voluntari (sintetic), pentru lucrări de reglaj al tensiunii. Ne cerem scuze pentru neplăcere.",
-    "scheduled_for": "2025-07-07T18:05:00+03:00",
-    "work_item_id": "C-20250708-PT-1072",
-    "demo_only": true
-  },
-  {
     "notification_id": "N-22",
     "audience": "prosumatori",
     "asset_id": "PT-1075",
-    "message_ro": "PPC Energie: pentru prosumatorii din zona PT-1075, Cornetu (sintetic), o baterie ar păstra energia de la prânz pentru seară și ar opri deconectările invertorului. Propunere: 10 kWh de baterii pe post, recuperare în ~7,2 ani. Detalii în magazinele PPC.",
+    "message_ro": "PPC Energie: pentru prosumatorii din zona PT-1075, Cornetu (sintetic), o baterie ar păstra energia de la prânz pentru seară și ar opri deconectările invertorului. Propunere: 10 kWh de baterii pe post, recuperare în ~7,5 ani. Detalii în magazinele PPC.",
     "scheduled_for": "2025-07-07T18:05:00+03:00",
     "work_item_id": "C-20250708-PT-1075",
     "demo_only": true
   },
   {
     "notification_id": "N-23",
+    "audience": "prosumatori",
+    "asset_id": "PT-1075",
+    "message_ro": "Mâine între 11 și 16, panourile solare de pe strada ta se pot opri de circa 3 ori din cauza tensiunii mari. Dacă 1 din 5 vecini pornește atunci mașina de spălat și boilerul, se evită circa 2 opriri. Cu PPC Ore Smart+, consumul de la prânz costă mai puțin.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1075",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-24",
     "audience": "clienti_zona",
     "asset_id": "PT-1075",
     "message_ro": "Rețele Electrice: joi 10.07.2025, între 09:00 și 10:00, alimentarea cu energie electrică va fi întreruptă în zona postului de transformare PT-1075, Cornetu (sintetic), pentru lucrări de reglaj al tensiunii. Ne cerem scuze pentru neplăcere.",
@@ -207,7 +216,43 @@
     "demo_only": true
   },
   {
-    "notification_id": "N-24",
+    "notification_id": "N-25",
+    "audience": "prosumatori",
+    "asset_id": "PT-1072",
+    "message_ro": "PPC Energie: pentru prosumatorii din zona PT-1072, Voluntari (sintetic), o baterie ar păstra energia de la prânz pentru seară și ar opri deconectările invertorului. Propunere: 20 kWh de baterii pe post, recuperare în ~5,3 ani. Detalii în magazinele PPC.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1072",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-26",
+    "audience": "prosumatori",
+    "asset_id": "PT-1072",
+    "message_ro": "Mâine între 10 și 16, panourile solare de pe strada ta se pot opri de circa 4 ori din cauza tensiunii mari. Dacă 1 din 5 vecini pornește atunci mașina de spălat și boilerul, se evită circa 0 opriri. Cu PPC Ore Smart+, consumul de la prânz costă mai puțin.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1072",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-27",
+    "audience": "clienti_zona",
+    "asset_id": "PT-1072",
+    "message_ro": "Rețele Electrice: joi 10.07.2025, între 09:00 și 10:00, alimentarea cu energie electrică va fi întreruptă în zona postului de transformare PT-1072, Voluntari (sintetic), pentru lucrări de reglaj al tensiunii. Ne cerem scuze pentru neplăcere.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1072",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-28",
+    "audience": "prosumatori",
+    "asset_id": "PT-1005",
+    "message_ro": "Mâine între 10 și 16, panourile solare de pe strada ta se pot opri de circa 4 ori din cauza tensiunii mari. Dacă 1 din 5 vecini pornește atunci mașina de spălat și boilerul, se evită circa 0 opriri. Cu PPC Ore Smart+, consumul de la prânz costă mai puțin.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1005",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-29",
     "audience": "prosumatori",
     "asset_id": "PT-1005",
     "message_ro": "Rețele Electrice: propunem prosumatorilor din zona PT-1005, Sector 1 (sintetic) o limită de injecție în rețea la prânz, ca tensiunea să rămână sub 253 V și invertoarele să nu se oprească.",
@@ -216,16 +261,25 @@
     "demo_only": true
   },
   {
-    "notification_id": "N-25",
+    "notification_id": "N-30",
     "audience": "prosumatori",
     "asset_id": "PT-1255",
-    "message_ro": "PPC Energie: pentru prosumatorii din zona PT-1255, Sector 6 (sintetic), o baterie ar păstra energia de la prânz pentru seară și ar opri deconectările invertorului. Propunere: 20 kWh de baterii pe post, recuperare în ~6,2 ani. Detalii în magazinele PPC.",
+    "message_ro": "PPC Energie: pentru prosumatorii din zona PT-1255, Sector 6 (sintetic), o baterie ar păstra energia de la prânz pentru seară și ar opri deconectările invertorului. Propunere: 20 kWh de baterii pe post, recuperare în ~6,4 ani. Detalii în magazinele PPC.",
     "scheduled_for": "2025-07-07T18:05:00+03:00",
     "work_item_id": "C-20250708-PT-1255",
     "demo_only": true
   },
   {
-    "notification_id": "N-26",
+    "notification_id": "N-31",
+    "audience": "prosumatori",
+    "asset_id": "PT-1255",
+    "message_ro": "Mâine între 10 și 16, panourile solare de pe strada ta se pot opri de circa 6 ori din cauza tensiunii mari. Dacă 1 din 5 vecini pornește atunci mașina de spălat și boilerul, se evită circa 2 opriri. Cu PPC Ore Smart+, consumul de la prânz costă mai puțin.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1255",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-32",
     "audience": "clienti_zona",
     "asset_id": "PT-1255",
     "message_ro": "Rețele Electrice: joi 10.07.2025, între 09:00 și 10:00, alimentarea cu energie electrică va fi întreruptă în zona postului de transformare PT-1255, Sector 6 (sintetic), pentru lucrări de reglaj al tensiunii. Ne cerem scuze pentru neplăcere.",
@@ -234,34 +288,25 @@
     "demo_only": true
   },
   {
-    "notification_id": "N-27",
-    "audience": "clienti_zona",
-    "asset_id": "PT-1119",
-    "message_ro": "Rețele Electrice: joi 10.07.2025, între 09:00 și 10:00, alimentarea cu energie electrică va fi întreruptă în zona postului de transformare PT-1119, Ștefăneștii de Jos (sintetic), pentru lucrări de reglaj al tensiunii. Ne cerem scuze pentru neplăcere.",
-    "scheduled_for": "2025-07-07T18:05:00+03:00",
-    "work_item_id": "C-20250708-PT-1119",
-    "demo_only": true
-  },
-  {
-    "notification_id": "N-28",
-    "audience": "clienti_zona",
-    "asset_id": "PT-1252",
-    "message_ro": "Rețele Electrice: joi 10.07.2025, între 09:00 și 10:00, alimentarea cu energie electrică va fi întreruptă în zona postului de transformare PT-1252, Popești-Leordeni (sintetic), pentru lucrări de reglaj al tensiunii. Ne cerem scuze pentru neplăcere.",
-    "scheduled_for": "2025-07-07T18:05:00+03:00",
-    "work_item_id": "C-20250708-PT-1252",
-    "demo_only": true
-  },
-  {
-    "notification_id": "N-29",
+    "notification_id": "N-33",
     "audience": "prosumatori",
     "asset_id": "PT-1263",
-    "message_ro": "PPC Energie: pentru prosumatorii din zona PT-1263, Sector 4 (sintetic), o baterie ar păstra energia de la prânz pentru seară și ar opri deconectările invertorului. Propunere: 30 kWh de baterii pe post, recuperare în ~5,9 ani. Detalii în magazinele PPC.",
+    "message_ro": "PPC Energie: pentru prosumatorii din zona PT-1263, Sector 4 (sintetic), o baterie ar păstra energia de la prânz pentru seară și ar opri deconectările invertorului. Propunere: 30 kWh de baterii pe post, recuperare în ~6,1 ani. Detalii în magazinele PPC.",
     "scheduled_for": "2025-07-07T18:05:00+03:00",
     "work_item_id": "C-20250708-PT-1263",
     "demo_only": true
   },
   {
-    "notification_id": "N-30",
+    "notification_id": "N-34",
+    "audience": "prosumatori",
+    "asset_id": "PT-1263",
+    "message_ro": "Mâine între 10 și 17, panourile solare de pe strada ta se pot opri de circa 12 ori din cauza tensiunii mari. Dacă 1 din 5 vecini pornește atunci mașina de spălat și boilerul, se evită circa 3 opriri. Cu PPC Ore Smart+, consumul de la prânz costă mai puțin.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1263",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-35",
     "audience": "clienti_zona",
     "asset_id": "PT-1263",
     "message_ro": "Rețele Electrice: joi 10.07.2025, între 09:00 și 10:00, alimentarea cu energie electrică va fi întreruptă în zona postului de transformare PT-1263, Sector 4 (sintetic), pentru lucrări de reglaj al tensiunii. Ne cerem scuze pentru neplăcere.",
@@ -270,7 +315,34 @@
     "demo_only": true
   },
   {
-    "notification_id": "N-31",
+    "notification_id": "N-36",
+    "audience": "prosumatori",
+    "asset_id": "PT-1119",
+    "message_ro": "Mâine între 11 și 15, panourile solare de pe strada ta se pot opri de circa 2 ori din cauza tensiunii mari. Dacă 1 din 5 vecini pornește atunci mașina de spălat și boilerul, se evită circa 0 opriri. Cu PPC Ore Smart+, consumul de la prânz costă mai puțin.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1119",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-37",
+    "audience": "clienti_zona",
+    "asset_id": "PT-1119",
+    "message_ro": "Rețele Electrice: joi 10.07.2025, între 09:00 și 10:00, alimentarea cu energie electrică va fi întreruptă în zona postului de transformare PT-1119, Ștefăneștii de Jos (sintetic), pentru lucrări de reglaj al tensiunii. Ne cerem scuze pentru neplăcere.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1119",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-38",
+    "audience": "prosumatori",
+    "asset_id": "PT-1087",
+    "message_ro": "Mâine între 11 și 16, panourile solare de pe strada ta se pot opri de circa 2 ori din cauza tensiunii mari. Dacă 1 din 5 vecini pornește atunci mașina de spălat și boilerul, se evită circa 1 opriri. Cu PPC Ore Smart+, consumul de la prânz costă mai puțin.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1087",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-39",
     "audience": "clienti_zona",
     "asset_id": "PT-1087",
     "message_ro": "Rețele Electrice: joi 10.07.2025, între 09:00 și 10:00, alimentarea cu energie electrică va fi întreruptă în zona postului de transformare PT-1087, Otopeni (sintetic), pentru lucrări de reglaj al tensiunii. Ne cerem scuze pentru neplăcere.",
@@ -279,7 +351,25 @@
     "demo_only": true
   },
   {
-    "notification_id": "N-32",
+    "notification_id": "N-40",
+    "audience": "prosumatori",
+    "asset_id": "PT-1252",
+    "message_ro": "Mâine între 11 și 15, panourile solare de pe strada ta se pot opri de circa 1 ori din cauza tensiunii mari. Dacă 1 din 5 vecini pornește atunci mașina de spălat și boilerul, se evită circa 1 opriri. Cu PPC Ore Smart+, consumul de la prânz costă mai puțin.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1252",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-41",
+    "audience": "clienti_zona",
+    "asset_id": "PT-1252",
+    "message_ro": "Rețele Electrice: joi 10.07.2025, între 09:00 și 10:00, alimentarea cu energie electrică va fi întreruptă în zona postului de transformare PT-1252, Popești-Leordeni (sintetic), pentru lucrări de reglaj al tensiunii. Ne cerem scuze pentru neplăcere.",
+    "scheduled_for": "2025-07-07T18:05:00+03:00",
+    "work_item_id": "C-20250708-PT-1252",
+    "demo_only": true
+  },
+  {
+    "notification_id": "N-42",
     "audience": "prosumatori",
     "asset_id": "PT-1015",
     "message_ro": "Mâine, marți 08.07.2025, între 11:00 și 15:00 e soare puternic, iar tensiunea în rețeaua din zona PT-1015, Otopeni (sintetic) poate trece de limită. Dacă puteți, porniți atunci aparatele mari (mașina de spălat, boilerul, încărcarea mașinii). Așa folosiți energia produsă de panouri, iar invertorul nu se mai oprește singur.",
@@ -288,7 +378,7 @@
     "demo_only": true
   },
   {
-    "notification_id": "N-33",
+    "notification_id": "N-43",
     "audience": "prosumatori",
     "asset_id": "PT-1058",
     "message_ro": "Mâine, marți 08.07.2025, între 11:00 și 15:00 e soare puternic, iar tensiunea în rețeaua din zona PT-1058, Afumați (sintetic) poate trece de limită. Dacă puteți, porniți atunci aparatele mari (mașina de spălat, boilerul, încărcarea mașinii). Așa folosiți energia produsă de panouri, iar invertorul nu se mai oprește singur.",
@@ -297,7 +387,7 @@
     "demo_only": true
   },
   {
-    "notification_id": "N-34",
+    "notification_id": "N-44",
     "audience": "prosumatori",
     "asset_id": "PT-1082",
     "message_ro": "Mâine, marți 08.07.2025, între 10:00 și 17:00 e soare puternic, iar tensiunea în rețeaua din zona PT-1082, 1 Decembrie (sintetic) poate trece de limită. Dacă puteți, porniți atunci aparatele mari (mașina de spălat, boilerul, încărcarea mașinii). Așa folosiți energia produsă de panouri, iar invertorul nu se mai oprește singur.",
@@ -306,7 +396,7 @@
     "demo_only": true
   },
   {
-    "notification_id": "N-35",
+    "notification_id": "N-45",
     "audience": "prosumatori",
     "asset_id": "PT-1047",
     "message_ro": "Mâine, marți 08.07.2025, între 11:00 și 15:00 e soare puternic, iar tensiunea în rețeaua din zona PT-1047, Măgurele (sintetic) poate trece de limită. Dacă puteți, porniți atunci aparatele mari (mașina de spălat, boilerul, încărcarea mașinii). Așa folosiți energia produsă de panouri, iar invertorul nu se mai oprește singur.",
@@ -315,7 +405,7 @@
     "demo_only": true
   },
   {
-    "notification_id": "N-36",
+    "notification_id": "N-46",
     "audience": "prosumatori",
     "asset_id": "PT-1196",
     "message_ro": "Mâine, marți 08.07.2025, între 10:00 și 16:00 e soare puternic, iar tensiunea în rețeaua din zona PT-1196, Glina (sintetic) poate trece de limită. Dacă puteți, porniți atunci aparatele mari (mașina de spălat, boilerul, încărcarea mașinii). Așa folosiți energia produsă de panouri, iar invertorul nu se mai oprește singur.",
