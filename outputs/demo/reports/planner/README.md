@@ -54,6 +54,14 @@ Strategiile simple folosesc inserarea greedy în ordinea lor, deci traseele lor 
 - **Sensibilitate**: costul pe client-oră (5,5-15 lei), tura de furtună (1.500-4.100 lei) și vizita (180-340 lei) variate pe intervalele din `docs/research/planificator.md`; agentul rămâne în față.
 - **Solverul**: OR-Tools față de greedy pe 100-300 de lucrări candidate (`solver_benchmark.json`): câte procente de valoare netă aduce optimizarea și în câte secunde.
 
+## A doua evaluare: ziua demo, pe lucrările reale ale modelului A
+
+Lumea sintetică arată cât valorează stratul de decizie dacă modelele sunt calibrate. A doua evaluare folosește ieșirea reală a modelului A pentru 8 iulie 2025 și adevărul injectat de firul A în contoarele din Londra (`outputs/work_items/demo-vara/A_ground_truth.csv`). Valoarea capturată e valoarea reală a problemei, nu estimarea modelului. Pentru B și C nu avem adevărul zilei, deci secțiunea e doar pentru contoare.
+
+Reproducere: întâi ieșirea lui A (`uv run python -m cyberpunks.a_contoare.predict --scenario demo-vara --date 2025-07-08`, care scrie `A.jsonl` și `A_ground_truth.csv`), apoi `make agent-eval`. Fără ieșirea lui A, raportul nu are secțiunea zilei demo.
+
+Ce arată: agentul trimite întâi cazurile cu risc pentru oameni (regula `R-SAFETY`, obligatorie de la scorul 0,7), chiar dacă valorează puțin în lei. De aceea vizitează mult mai multe cazuri reale de siguranță decât ordinea pe valoare a modelului A, dar capturează mai puțini lei. Ablația „fără siguranța obligatorie” arată cât costă regula. E o alegere de politică (`global.safety_mandatory` în `config/planner.yaml`), lăsată vizibilă.
+
 ## Limite (spuse cinstit)
 
 - Lumea e sintetică; cifrele arată cât valorează stratul de decizie dacă modelele sunt calibrate, nu cât câștigă PPC mâine.
