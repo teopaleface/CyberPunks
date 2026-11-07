@@ -301,8 +301,15 @@ def train_final(exclude_dates: list[str] | None = None, oof_frac: float = 0.35) 
     return b
 
 
+RELEASE_DIR = MODELS / "release" / "C"
+
+
 def load_bundle() -> Bundle:
-    return joblib.load(MODEL_DIR / "bundle.joblib")
+    """Modelul antrenat local (models/C) sau, într-o clonă curată, versiunea din git (models/release/C)."""
+    for d in (MODEL_DIR, RELEASE_DIR):
+        if (d / "bundle.joblib").exists():
+            return joblib.load(d / "bundle.joblib")
+    raise FileNotFoundError("Lipsește modelul C: rulați `make c-sim c-population c-train` (sau `make c-all`).")
 
 
 if __name__ == "__main__":

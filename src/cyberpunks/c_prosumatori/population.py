@@ -23,7 +23,7 @@ BBOX = (44.25, 25.85, 44.65, 26.40)  # config/area.yaml: demo_bbox_bucuresti_ilf
 CENTER = (44.4268, 26.1025)  # Piața Unirii, aproximativ
 OSM_FILE = DATA_RAW / "C" / "osm_power_bbox.json"
 OUT = DATA_PROCESSED / "C" / "population"
-SAMPLE = DATA_SAMPLES / "C" / "posts_population.csv"
+SAMPLE = DATA_SAMPLES / "C" / "posts.csv"
 OVERPASS_QUERY = f"""[out:json][timeout:90];
 (
   nwr["power"="transformer"]({BBOX[0]},{BBOX[1]},{BBOX[2]},{BBOX[3]});
@@ -190,15 +190,17 @@ def build_registry(n_total: int = 300, seed: int = 8112026) -> tuple[pd.DataFram
 
 
 def export_samples(reg: pd.DataFrame) -> None:
-    """Registrul în git: o vedere scurtă (pentru oameni) și una completă (pentru predict.py dintr-o clonă curată)."""
+    """Registrul în git (`data/samples/C/posts.csv`): tot ce trebuie pentru predict.py și pentru firele care
+    folosesc postul ca unitate comună, inclusiv parametrii exacți ai simulării (spec_*)."""
     from cyberpunks.c_prosumatori.features import STATIC
 
+    reg = reg.copy()
+    reg["simbench_code"] = reg["topology"].map(grids.TOPOLOGIES)
     cols = ["post_id", "label", "lat", "lon", "zone_id", "county", "locality", "area", "position_source", "osm_ref", "topology",
-            "kva", "line_type", "tap_pos", "n_customers", "n_prosumers", "pv_kw", "battery_kwh", "pv_kw_per_kva"]
+            "simbench_code", "kva", "n_customers", "n_houses", "n_prosumers", "pv_kw", "battery_kwh", "line_type", "tap_pos"]
+    full = list(dict.fromkeys(cols + STATIC + ["vm_mv_est"] + [c for c in reg.columns if c.startswith("spec_")]))
     SAMPLE.parent.mkdir(parents=True, exist_ok=True)
-    reg[cols].assign(synthetic=True).to_csv(SAMPLE, index=False, float_format="%.4f")
-    full = list(dict.fromkeys(cols + [c for c in reg.columns if c.startswith("spec_")] + STATIC + ["vm_mv_est"]))
-    reg[full].assign(synthetic=True).to_csv(SAMPLE.with_name("posts_population_full.csv"), index=False, float_format="%.6g")
+    reg[full].assign(synthetic=True).to_csv(SAMPLE, index=False, float_format="%.6g")
 
 
 def main() -> None:

@@ -124,9 +124,8 @@ def write_report(detail: dict, speed: dict | None = None) -> ModelReport:
     metrics.update({f"sunny_{k}": round(detail["model_sunny_days"][k], 5) for k in ("mae_vmax_pu", "pr_auc_exceed", "recall_exceed") if k in detail["model_sunny_days"]})
     base = {k: round(b[k], 5) for k in keys if k in b}
     base.update({f"sunny_{k}": round(detail["baseline_sunny_days"][k], 5) for k in ("mae_vmax_pu", "pr_auc_exceed", "recall_exceed") if k in detail["baseline_sunny_days"]})
-    if speed:
-        metrics.update({k: round(v, 4) for k, v in speed.items() if k.startswith("surrogate")})
-        base.update({k: round(v, 4) for k, v in speed.items() if k.startswith("powerflow")})
+    if speed:  # viteza: modelul față de calculul de rețea pandapower (referința fizică, nu baseline-ul)
+        metrics.update({k: round(v, 4) for k, v in speed.items()})
     rep = ModelReport(
         source="C",
         model_id="c-surrogate",
@@ -163,7 +162,9 @@ def speed_test(n_posts: int = 300, pp_snapshots: int = 48) -> dict:
     from cyberpunks.c_prosumatori import grids, weather
 
     b = T.load_bundle()
-    reg = pd.read_parquet(T.DATA_PROCESSED / "C" / "population" / "registry.parquet").head(n_posts)
+    from cyberpunks.c_prosumatori.posts import load_posts
+
+    reg = load_posts().head(n_posts)
     hw = F.hourly_weather(weather.archive("2023-01-01", "2026-11-06"))
     day = hw[hw["date"] == pd.Timestamp("2025-07-15").date()]
     t0 = time.perf_counter()
@@ -198,8 +199,12 @@ if __name__ == "__main__":
     ap.add_argument("--no-monotone", action="store_true")
     ap.add_argument("--oof-frac", type=float, default=0.35)
     ap.add_argument("--no-speed", action="store_true")
+    ap.add_argument("--speed-only", action="store_true", help="refolosește metrics_detail.json, măsoară doar viteza")
     a = ap.parse_args()
-    det = evaluate(oof_frac=a.oof_frac, monotone=not a.no_monotone)
+    if a.speed_only:
+        det = json.loads((OUT / "metrics_detail.json").read_text())
+    else:
+        det = evaluate(oof_frac=a.oof_frac, monotone=not a.no_monotone)
     spd = None
     if not a.no_speed and (T.MODEL_DIR / "bundle.joblib").exists():
         spd = speed_test()

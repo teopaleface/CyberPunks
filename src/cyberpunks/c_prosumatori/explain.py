@@ -104,6 +104,30 @@ def top_factors(contrib_row: pd.Series, feat_row: pd.Series, target_date=None, k
     return out
 
 
+SIMILAR_SAMPLE = "similar_cases.parquet"  # în data/samples/C: o mostră a simulării de antrenare, pentru clone curate
+
+
+def similar_reference() -> pd.DataFrame:
+    """Zilele-post de referință: din simularea completă dacă există, altfel mostra din git."""
+    from cyberpunks.common.paths import DATA_PROCESSED, DATA_SAMPLES
+
+    full = DATA_PROCESSED / "C" / "train" / "daily_features.parquet"
+    if full.exists():
+        df = pd.read_parquet(full)
+        df["exceed"] = (df["vmax_day"] > 1.10).astype(int)
+        return df
+    return pd.read_parquet(DATA_SAMPLES / "C" / SIMILAR_SAMPLE)
+
+
+def export_similar_sample(n: int = 20_000, seed: int = 0) -> None:
+    from cyberpunks.common.paths import DATA_SAMPLES
+
+    d = similar_reference()
+    d = d[d["pvk_max"] > 0.2].sample(n, random_state=seed)
+    cols = ["post_id", "date", "topology", "vmax_day", "hours_over_110", *SimilarCases.KEYS]
+    d[cols].assign(date=lambda x: pd.to_datetime(x["date"])).to_parquet(DATA_SAMPLES / "C" / SIMILAR_SAMPLE, index=False)
+
+
 class SimilarCases:
     """Cele mai apropiate zile-post din simularea de antrenare (trăsături standardizate)."""
 
