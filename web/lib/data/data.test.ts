@@ -96,9 +96,12 @@ describe("getPlanView cu fixtures", () => {
     expect(quarantined.data?.invalid).toBe(true);
   });
 
-  test("fixtures nu au serii; scenariile vin din config/scenarios.yaml", async () => {
+  test("fixtures au serii de exemplu (A, B, C); scenariile vin din config/scenarios.yaml", async () => {
     const series = await getSeries("A-20261109-MTR-004217", NO_DEMO, { mode: "fixtures" });
-    expect(series.data).toBeNull();
+    expect(series.data?.source).toBe("A");
+    expect(series.data?.points.length).toBeGreaterThan(10);
+    const none = await getSeries("A-20261109-NU-EXISTA", NO_DEMO, { mode: "fixtures" });
+    expect(none.data).toBeNull();
     const scenarios = await getScenarios({ mode: "fixtures" });
     expect(scenarios.data.map((s) => s.id)).toEqual(["demo-vara", "maine"]);
   });
@@ -178,10 +181,13 @@ describe("cu un API de test", () => {
     expect(plan.degradedReason).toContain("500");
   });
 
-  test("404 la serie înseamnă „nu există”, fără să caute în alte surse", async () => {
+  test("404 la serie: caută mai departe în instantaneul demo și în exemplele din fixture-uri", async () => {
     const series = await getSeries("A-20261109-MTR-004217", NO_DEMO, { mode: "auto" });
-    expect(series.source).toBe("api");
-    expect(series.data).toBeNull();
+    expect(series.source).toBe("fixtures");
+    expect(series.data?.work_item_id).toBe("A-20261109-MTR-004217");
+    expect(series.degradedReason).toContain("API-ul n-are seria");
+    const none = await getSeries("A-20261109-NU-EXISTA", NO_DEMO, { mode: "auto" });
+    expect(none.data).toBeNull();
   });
 });
 

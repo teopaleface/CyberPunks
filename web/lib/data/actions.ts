@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { apiReview, apiRun, isApiRequestError, isApiUnavailable } from "./api";
+import { apiApprovePlan, apiReview, apiRun, isApiRequestError, isApiUnavailable } from "./api";
 import { getConfig } from "./config";
 import { resetProbeCache } from "./source";
 import type { ActionResult, ReviewDecision, RunResult } from "./types";
@@ -60,8 +60,12 @@ export async function submitReview(
   workItemId: string,
   decision: ReviewDecision,
   note: string,
+  scenario?: string,
   reviewer: string = process.env.REVIEWER_NAME ?? "dispecer",
 ): Promise<ActionResult<{ audit: AuditRecord }>> {
+  if (scenario !== undefined && (typeof scenario !== "string" || !SCENARIO_RE.test(scenario))) {
+    return { ok: false, error: "Scenariul nu e valid." };
+  }
   if (typeof workItemId !== "string" || !WORK_ITEM_RE.test(workItemId)) {
     return { ok: false, error: "ID-ul lucrării nu e valid." };
   }
@@ -73,11 +77,38 @@ export async function submitReview(
   }
   const who = typeof reviewer === "string" && reviewer.trim() ? reviewer.trim().slice(0, 80) : "dispecer";
   try {
-    const audit = await apiReview(workItemId, { decision, note: note.trim(), reviewer: who });
+    const audit = await apiReview(workItemId, { decision, note: note.trim(), reviewer: who }, scenario);
     revalidatePath("/");
     revalidatePath(`/lucrari/${workItemId}`);
     return { ok: true, audit };
   } catch (err) {
     return { ok: false, error: explain(err, "Decizia nu a putut fi trimisă") };
+  }
+}
+
+/**
+ * Dispecerul aprobă lista echipelor pentru mâine (POST /plan/approve). Dacă API-ul nu are încă ruta,
+ * aprobarea rămâne doar în acest browser (cookie) și interfața spune asta.
+ */
+export async function approvePlan(
+  scenario: string,
+  planId: string,
+  note = "",
+): Promise<ActionResult<{ local: boolean; at: string; audit?: AuditRecord }>> {
+  if (typeof scenario !== "string" || !SCENARIO_RE.test(scenario)) return { ok: false, error: "Scenariul nu e valid." };
+  if (typeof planId !== "string" || !/^[A-Za-z0-9_.:-]{1,96}$/.test(planId)) return { ok: false, error: "ID-ul planului nu e valid." };
+  const at = new Date().toISOString();
+  const approver = process.env.REVIEWER_NAME ?? "dispecer";
+  try {
+    const audit = await apiApprovePlan({ scenario, plan_id: planId, approver, note: note.slice(0, MAX_NOTE) });
+    revalidatePath("/");
+    return { ok: true, local: false, at, audit };
+  } catch (err) {
+    if (isApiRequestError(err) && (err.status === 404 || err.status === 405)) {
+      const { cookies } = await import("next/headers");
+      (await cookies()).set(`aprobat_${scenario}`, `${planId}|${at}`, { path: "/", maxAge: 60 * 60 * 24, sameSite: "lax" });
+      return { ok: true, local: true, at };
+    }
+    return { ok: false, error: explain(err, "Aprobarea nu a putut fi trimisă") };
   }
 }
