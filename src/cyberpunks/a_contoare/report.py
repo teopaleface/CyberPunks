@@ -158,6 +158,8 @@ def build() -> str:
     )
 
     parts.append("## 2. Clasamentul la mai multe K (de ce 1,00)\n")
+    parts.append("Figuri: `reports/A/figures/ranking_at_k.png` (precizie și recall pe K) și "
+                 "`reports/A/figures/headline_precision.png` (furt real, probleme subtile, toate problemele).\n")
     rows = [[str(r["k"]), f2(r["k_over_positives"]), f2(r["model_precision"]), f2(r["model_recall"]),
              f2(r["vee_precision"]), f2(r["rule_precision"])] for r in L["ranking_at_ks"]]
     parts.append(f"**Londra (sintetic), {nde(L['n'], 'eșantioane')}, {L['positives']} cu probleme:**\n")
@@ -223,17 +225,24 @@ def build() -> str:
 
     parts.append("## 5. Pe nivel de consum (etică: consumul mic nu e dovadă de furt)\n")
     rows = []
-    for q, qr, qs in zip(L["false_alarms_by_level"], L["false_alarms_by_level_rule"], S["false_alarms_by_level"],
-                         strict=False):
+    s_rule = S.get("false_alarms_by_level_rule", [{}] * len(S["false_alarms_by_level"]))
+    for q, qr, qs, qsr in zip(L["false_alarms_by_level"], L["false_alarms_by_level_rule"], S["false_alarms_by_level"],
+                              s_rule, strict=False):
         rows.append([str(q["quintile"]), f2(q["level_kwh_median"], 1), pct(q["false_alarm_rate"]), pct(q["recall"]),
-                     pct(qr["false_alarm_rate"]), f2(qs["level_kwh_median"], 1), pct(qs["false_alarm_rate"])])
+                     pct(qr["false_alarm_rate"]), f2(qs["level_kwh_median"], 1), pct(qs["false_alarm_rate"]),
+                     pct(qsr.get("false_alarm_rate"))])
     parts.append(table(["Chintila de consum", "Londra: kWh/zi", "Alarme false model", "Recall model",
-                        "Alarme false regulă", "SGCC: kWh/zi", "Alarme false model SGCC"], rows) + "\n")
+                        "Alarme false regulă", "SGCC: kWh/zi", "Alarme false model SGCC", "Alarme false regulă SGCC"],
+                       rows) + "\n")
+    parts.append("Figura: `reports/A/figures/false_alarms_by_consumption.png`.\n")
     parts.append(
         "Alarmă falsă = un contor fără problemă ajunge în primele 5% din clasament. Pe Londra, casele cu cel mai "
         "mic consum primesc de câteva ori mai multe alarme false decât celelalte. La ele, o scădere sau câteva "
         "zile cu zero înseamnă mai puțini kWh absoluți, iar zgomotul relativ e mai mare. Pe SGCC, tiparul e "
-        "invers: furturile reale sunt la consumatori mari, iar alarmele false cresc spre chintila de sus. "
+        "invers: furturile reale sunt la consumatori mari, iar alarmele false ale modelului cresc spre chintila de sus. "
+        "Regula simplă face greșeala opusă și mult mai mare: pe SGCC trimite echipa la "
+        f"{pct(s_rule[0].get('false_alarm_rate'))} dintre consumatorii cei mai mici fără problemă, modelul la "
+        f"{pct(S['false_alarms_by_level'][0]['false_alarm_rate'])}. "
         "Consumul mic poate însemna o locuință goală sau sărăcie energetică. De aceea, în agent:\n"
         "- un furt suspectat la un contor din chintila de jos a consumului NU merge direct la vizită. Merge la un "
         "om, cu motivul scris (`extra.low_consumption_guard`, `abstain_reason`);\n"

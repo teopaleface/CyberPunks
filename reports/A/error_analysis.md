@@ -1,6 +1,6 @@
 # Analiza erorilor, firul A (contoare defecte sau manipulate)
 
-Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metrics_full.json` (creat 2026-11-07T14:19:25+02:00), `reports/A/robustness.json` și ieșirile `predict`. Modele: a-lgbm@c670b95 (Londra) și a-lgbm-sgcc@c670b95 (SGCC). K = 1% din contoarele din test. Londra = etichete SINTETICE (probleme injectate de noi peste consum real); SGCC = etichete reale de furt.
+Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metrics_full.json` (creat 2026-11-07T15:13:09+02:00), `reports/A/robustness.json` și ieșirile `predict`. Modele: a-lgbm@c670b95 (Londra) și a-lgbm-sgcc@c670b95 (SGCC). K = 1% din contoarele din test. Londra = etichete SINTETICE (probleme injectate de noi peste consum real); SGCC = etichete reale de furt.
 
 ## Pe scurt
 
@@ -28,6 +28,8 @@ Testul cu etichete amestecate e o verificare de bun-simț, nu o dovadă. Arată 
 - limite rămase: ferestrele de test (180 de zile înapoi) acoperă și luni din perioada de antrenare, pe alte gospodării, cum lucrează și agentul în producție. Etichetele Londra sunt sintetice, deci un artefact al injecției poate fi învățat; unul l-am găsit și reparat (secțiunea 8).
 
 ## 2. Clasamentul la mai multe K (de ce 1,00)
+
+Figuri: `reports/A/figures/ranking_at_k.png` (precizie și recall pe K) și `reports/A/figures/headline_precision.png` (furt real, probleme subtile, toate problemele).
 
 **Londra (sintetic), 13.028 de eșantioane, 597 cu probleme:**
 
@@ -103,15 +105,17 @@ Concediul și schimbarea ocupanților arată ca o scădere de consum. Regula sim
 
 ## 5. Pe nivel de consum (etică: consumul mic nu e dovadă de furt)
 
-| Chintila de consum | Londra: kWh/zi | Alarme false model | Recall model | Alarme false regulă | SGCC: kWh/zi | Alarme false model SGCC |
-|---|---|---|---|---|---|---|
-| 1 | 3,4 | 5% | 63% | 8% | 0,0 | 0% |
-| 2 | 5,8 | 1% | 64% | 2% | 1,9 | 1% |
-| 3 | 7,5 | 1% | 69% | 3% | 5,6 | 1% |
-| 4 | 9,8 | 2% | 65% | 2% | 10,4 | 3% |
-| 5 | 16,1 | 1% | 69% | 4% | 20,9 | 9% |
+| Chintila de consum | Londra: kWh/zi | Alarme false model | Recall model | Alarme false regulă | SGCC: kWh/zi | Alarme false model SGCC | Alarme false regulă SGCC |
+|---|---|---|---|---|---|---|---|
+| 1 | 3,4 | 5% | 63% | 8% | 0,0 | 0% | 19% |
+| 2 | 5,8 | 1% | 64% | 2% | 1,9 | 1% | 3% |
+| 3 | 7,5 | 1% | 69% | 3% | 5,6 | 1% | 1% |
+| 4 | 9,8 | 2% | 65% | 2% | 10,4 | 3% | 1% |
+| 5 | 16,1 | 1% | 69% | 4% | 20,9 | 9% | 1% |
 
-Alarmă falsă = un contor fără problemă ajunge în primele 5% din clasament. Pe Londra, casele cu cel mai mic consum primesc de câteva ori mai multe alarme false decât celelalte. La ele, o scădere sau câteva zile cu zero înseamnă mai puțini kWh absoluți, iar zgomotul relativ e mai mare. Pe SGCC, tiparul e invers: furturile reale sunt la consumatori mari, iar alarmele false cresc spre chintila de sus. Consumul mic poate însemna o locuință goală sau sărăcie energetică. De aceea, în agent:
+Figura: `reports/A/figures/false_alarms_by_consumption.png`.
+
+Alarmă falsă = un contor fără problemă ajunge în primele 5% din clasament. Pe Londra, casele cu cel mai mic consum primesc de câteva ori mai multe alarme false decât celelalte. La ele, o scădere sau câteva zile cu zero înseamnă mai puțini kWh absoluți, iar zgomotul relativ e mai mare. Pe SGCC, tiparul e invers: furturile reale sunt la consumatori mari, iar alarmele false ale modelului cresc spre chintila de sus. Regula simplă face greșeala opusă și mult mai mare: pe SGCC trimite echipa la 19% dintre consumatorii cei mai mici fără problemă, modelul la 0%. Consumul mic poate însemna o locuință goală sau sărăcie energetică. De aceea, în agent:
 - un furt suspectat la un contor din chintila de jos a consumului NU merge direct la vizită. Merge la un om, cu motivul scris (`extra.low_consumption_guard`, `abstain_reason`);
 - nivelul de consum rămâne feature, pentru că din el se calculează și valoarea pierderii. În schimb, rata de alarme false pe chintile se verifică la fiecare evaluare (tabelul de mai sus).
 

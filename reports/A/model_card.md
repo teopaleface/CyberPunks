@@ -1,6 +1,6 @@
 # Model card: `a-lgbm`, contoare defecte sau manipulate (firul A, Tura de mâine)
 
-Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metrics_full.json` (2026-11-07T14:19:25+02:00). Formatul urmează Mitchell et al. 2019, "Model Cards for Model Reporting".
+Generat de `uv run python -m cyberpunks.a_contoare.report` din `reports/A/metrics_full.json` (2026-11-07T15:13:09+02:00). Formatul urmează Mitchell et al. 2019, "Model Cards for Model Reporting".
 
 ## Pe scurt
 

@@ -46,7 +46,8 @@ FIG = REPORTS_A / "figures"
 TZ = ZoneInfo("Europe/Bucharest")
 N_BOOT = 300
 BUDGETS = [0.0025, 0.005, 0.01, 0.02, 0.05, 0.10]
-COLORS = {"model": "#1f5fbf", "rule": "#c2410c", "vee": "#d97706", "iforest": "#6b7280"}
+# paleta validată (dataviz, primele 3 sloturi, toate perechile, deuteranopie inclusă); IsolationForest: gri recesiv
+COLORS = {"model": "#2a78d6", "rule": "#eb6834", "vee": "#1baf7a", "iforest": "#898781"}
 NAMES_RO = {
     "model": "LightGBM (al nostru)",
     "rule": "Regula simplă (zero / scădere)",
@@ -179,6 +180,18 @@ def ranking_at_ks(y: np.ndarray, scores: dict[str, np.ndarray], ks: list[int]) -
             row[f"{m_}_recall"] = _r(M.recall_at_k(y, s, k))
         rows.append(row)
     return rows
+
+
+def k_curve(y: np.ndarray, scores: dict[str, np.ndarray], n_points: int = 40) -> dict:
+    """Precizia și recall-ul pe o grilă de K (până la de 2 ori numărul de probleme), pentru figuri."""
+    pos = int(np.sum(y))
+    ks = np.unique(np.linspace(max(5, pos // 40), 2 * pos, n_points).astype(int))
+    out = {"k": ks.tolist(), "positives": pos, "n": len(y)}
+    for m_, s in scores.items():
+        order = M.rank(s)
+        hits = np.cumsum(np.asarray(y)[order])
+        out[m_] = {"precision": [_r(hits[k - 1] / k) for k in ks], "recall": [_r(hits[k - 1] / pos) for k in ks]}
+    return out
 
 
 def top_k_composition(test: pd.DataFrame, s: np.ndarray, k: int) -> dict[str, int]:
@@ -344,6 +357,10 @@ def run(retrain: bool = False) -> dict:
     res_l["subtle_only"]["ranking_at_ks"] = ranking_at_ks(
         y_l[subtle], {m_: v[subtle] for m_, v in sc_l.items()}, [50, 100, 128, 200, int(y_l[subtle].sum())]
     )
+    res_l["k_curve"] = k_curve(y_l, sc_l)
+    res_s["k_curve"] = k_curve(y_s, sc_s)
+    res_l["subtle_only"]["k_curve"] = k_curve(y_l[subtle], {m_: v[subtle] for m_, v in sc_l.items()})
+    res_s["false_alarms_by_level_rule"] = false_alarms_by_level(s_te["level_kwh"].to_numpy(), y_s, sc_s["rule"])
     res_l["top_k_composition"] = {
         "model_top_k": top_k_composition(l_te, sc_l["model"], k_l),
         "vee_top_k": top_k_composition(l_te, sc_l["vee"], k_l),
