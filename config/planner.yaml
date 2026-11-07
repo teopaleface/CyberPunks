@@ -6,7 +6,7 @@ version: 1
 global:
   min_net_value_lei: 0              # o echipă merge doar dacă valoarea așteptată depășește costul (vizită + deplasare): pragul de rentabilitate
   human_review_min_ev_lei: 150      # sub atât, un caz nesigur nu merită timpul unui om (≈ 15 min de dispecer și o vizită posibilă); intră la urmărire
-  human_review_max_per_day: 25      # IPOTEZĂ: un dispecer analizează ~25 de cazuri pe zi (~10 min fiecare); în coadă intră întâi siguranța, apoi întăririle, apoi valoarea
+  human_review_max_per_day: 25      # IPOTEZĂ: un dispecer analizează ~25 de cazuri pe zi (~10 min fiecare); în coadă intră întâi întăririle pentru furtună, apoi siguranța, apoi valoarea
   max_interval_width: 0.5           # interval de încredere mai larg de 0,5 = modelul nu e sigur, chiar dacă nu s-a abținut
   max_missing_ratio: 0.4            # peste 40% date lipsă la intrare, scorul nu e de încredere
   safety_priority_multiplier: 3.0   # riscul pentru oameni triplează prioritatea și intră primul în traseu
@@ -23,6 +23,7 @@ meters:                             # A
 storm:                              # B
   arrive_before_start_min: 60       # echipa ajunge cu cel puțin o oră înainte de începutul furtunii (extra.storm_onset; altfel time_window.start)
   max_crews_per_region: 3           # câte echipe se mută din timp într-o regiune (restul rămân pentru lucrările curente și avariile obișnuite)
+  preposition_min_score: 0.15       # sub această probabilitate nu se mută echipe din timp, oricât de mare e zona (se folosește pragul modelului B, extra.decision_threshold, dacă e mai mare)
   safety_gust_note: true            # la B, safety_flag = rafale ≥ 75 km/h: avertisment pentru echipă (nu lucrează la înălțime), nu prioritate obligatorie
   alert_min_score: 0.4              # de la acest scor, dispeceratul primește alerta, chiar dacă nu trimitem echipa
   critical_alert_min_score: 0.75    # de la acest scor, alerta e critică
@@ -46,7 +47,7 @@ posts:                              # harta posturilor din interfață, după le
 
 estimate:                           # pasul Estimate în modul auto
   reuse_fresh_output: [A_bilant]    # modele lente (bilanțul rulează ~4 minute): ieșirea lor pentru aceeași zi se refolosește
-  max_age_hours: 12                 # cât de veche poate fi ieșirea refolosită
+  max_age_hours: 12                 # cât de veche poate fi ieșirea refolosită (doar la scenariile cu dată mobilă, ca `maine`; la o zi istorică, oricât)
 
 alerts:
   max_per_kind: 3                   # peste atâtea alerte de același fel (de exemplu siguranță), se strâng într-una singură

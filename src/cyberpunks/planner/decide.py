@@ -750,6 +750,21 @@ def rule_storm(ctx: Context, item: Item) -> Proposal:
     if pr.score >= alert_min:
         sev = "critical" if pr.score >= crit_min else "warning"
         alerts.append(AlertSpec(sev, f"Risc de avarii: {_label(wi)}", risk))
+    b_threshold = wi.extra.get("decision_threshold")
+    min_score = max(float(ctx.settings.rule("storm", "preposition_min_score", default=0.15)),
+                    float(b_threshold) if isinstance(b_threshold, (int, float)) and 0 < float(b_threshold) < 1 else 0.0)
+    th["preposition_min_score"] = round(min_score, 3)
+    if pr.score < min_score:
+        return _final(
+            item,
+            DecisionType.deferred,
+            "R-B-BELOW-THRESHOLD",
+            f"{risk} Probabilitatea e sub pragul de la care modelul B consideră că vine un eveniment ({pct(min_score)}): nu mut echipe din timp, "
+            f"chiar dacă zona e mare și valoarea așteptată ({lei(ev)}) ar acoperi tura. Echipele de intervenție rămân la bază.",
+            "watchlist",
+            th,
+            alerts=alerts,
+        )
     if net <= min_net:
         return _final(
             item,
@@ -1186,12 +1201,13 @@ def decide(ctx: Context, items: list[Item]) -> list[Proposal]:
 
 def cap_human_queue(ctx: Context, proposals: list[Proposal]) -> None:
     """Omul e și el o resursă limitată: cel mult `human_review_max_per_day` cazuri pe zi în coada „nu sunt sigur”.
-    Siguranța și cererile de întăriri rămân mereu; restul, ordonat după valoarea așteptată, până se umple coada.
+    În ordine: cererile de întăriri pentru furtună, riscul pentru oameni, apoi valoarea așteptată, până se umple coada.
     Ce nu încape rămâne la urmărire și revine în planul următor."""
     cap = int(ctx.g("human_review_max_per_day", 25))
     queue = [i for i, p in enumerate(proposals) if p.decision == DecisionType.human_review]
-    # Ordinea în coadă: risc pentru oameni, apoi cererile de întăriri pentru furtună, apoi valoarea așteptată.
-    queue.sort(key=lambda i: (not strong_safety(ctx, proposals[i].wi), proposals[i].rule_id != "R-B-REGION-CAP",
+    # Ordinea în coadă: întâi cererile de întăriri pentru furtună (puține și urgente: furtuna vine mâine după-amiază),
+    # apoi riscul pentru oameni cu semnal puternic, apoi valoarea așteptată.
+    queue.sort(key=lambda i: (proposals[i].rule_id != "R-B-REGION-CAP", not strong_safety(ctx, proposals[i].wi),
                               -proposals[i].wi.impact.expected_value_lei))
     for i in queue[cap:]:
         p = proposals[i]
@@ -1223,6 +1239,7 @@ RULE_CATALOG: dict[str, str] = {
     "R-CAPACITY-REMOTE": "Vizita merita, dar echipele sunt pline: citire la distanță azi.",
     "R-B-PREPOSITION": "Furtună: valoarea așteptată peste costul turei; echipa ajunge înainte de fereastra de risc.",
     "R-B-BELOW-COST": "Furtună cu risc mic: doar alertă la dispecerat.",
+    "R-B-BELOW-THRESHOLD": "Furtună: probabilitatea e sub pragul modelului B pentru un eveniment; nu se mută echipe, oricât de mare e zona.",
     "R-B-REGION-CAP": "Furtună: plafonul de echipe pe regiune e atins.",
     "R-B-TOO-LATE": "Furtună: nicio echipă nu poate ajunge înainte de fereastra de risc.",
     "R-C-WATCH": "Tensiune: sub prag sau sub limită chiar și în scenariul pesimist: urmărire.",

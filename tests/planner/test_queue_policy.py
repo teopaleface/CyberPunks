@@ -70,3 +70,12 @@ def test_ladder_starts_from_phase_adjusted_p90(out_root: Path) -> None:
     # de la 1,1756, fazele și limita împreună ajung doar la 1,1076: nicio combinație nu ajunge, decide un om.
     # De la P90-ul modelului (1,1556) ar fi părut rezolvabil (1,0876), exact greșeala pe care o evită ladder_base_p90_pu.
     assert d.decision.value == "human_review" and d.threshold["p90_after_pu"] == 1.1076
+
+
+def test_storm_below_model_threshold_is_not_prepositioned(out_root: Path) -> None:
+    b = fixture_items("B")[0]
+    calm = variant(b, "CT-LINISTIT", **{"prediction.score": 0.05, "impact.value_if_true_lei": 200000.0, "extra": {"decision_threshold": 0.16}})
+    write_items(out_root, "B", [calm])
+    d = _decisions(agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root))[calm["work_item_id"]]
+    assert d.rule_id == "R-B-BELOW-THRESHOLD" and d.decision.value == "deferred"
+    assert d.threshold["preposition_min_score"] == 0.16  # pragul modelului B, mai mare decât cel din config
