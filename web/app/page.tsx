@@ -85,7 +85,7 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/">["searchPara
         data={data}
         geo={geo}
         initialSelected={initialSelected}
-        postsInfo={posts ? { posts: posts.data, derived: posts.derived, lossCostNote: posts.lossCost?.note ?? null } : undefined}
+        postsInfo={posts ? { posts: posts.data, derived: posts.derived, lossCostNote: posts.lossCost?.note ?? null, thresholds: posts.thresholds } : undefined}
         approval={approval}
         initialRegion={typeof params.zona === "string" ? params.zona : null}
         initialMode={params.harta === "posturi" ? "posts" : "items"}

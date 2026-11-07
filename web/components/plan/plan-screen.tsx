@@ -36,6 +36,8 @@ export interface PostsInfo {
   posts: PostSummary[];
   derived: boolean;
   lossCostNote: string | null;
+  /** Pragurile de culoare, în lei pe lună (config/planner.yaml). */
+  thresholds: { yellow: number; red: number };
 }
 
 export function PlanScreen({
@@ -244,7 +246,7 @@ export function PlanScreen({
             {mapPosts.length ? <ModeSwitch mode={mode} onChange={setMode} posts={mapPosts.length} /> : null}
           </div>
           {scene ? null : mode === "posts" ? (
-            <PostsLegend derived={postsInfo?.derived ?? false} note={postsInfo?.lossCostNote ?? null} />
+            <PostsLegend derived={postsInfo?.derived ?? false} note={postsInfo?.lossCostNote ?? null} thresholds={postsInfo?.thresholds ?? { yellow: 200, red: 600 }} />
           ) : (
             <Legend />
           )}
@@ -461,15 +463,18 @@ function ModeSwitch({ mode, onChange, posts }: { mode: "items" | "posts"; onChan
   );
 }
 
-function PostsLegend({ derived, note }: { derived: boolean; note: string | null }) {
+function PostsLegend({ derived, note, thresholds }: { derived: boolean; note: string | null; thresholds: { yellow: number; red: number } }) {
   const dot = (color: string) => <span className="inline-block size-3.5 rounded-full border border-panel" style={{ background: color }} aria-hidden="true" />;
   return (
     <div className="absolute bottom-7 left-4 max-w-[760px] rounded-[4px] border border-rule bg-panel/95 px-3 py-2 text-[13.5px]">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
         <b className="font-[600]">Lei pierduți pe lună</b>
-        <span className="flex items-center gap-1.5">{dot("#2f8f5b")}sub 150</span>
-        <span className="flex items-center gap-1.5">{dot("#d9a400")}150–600</span>
-        <span className="flex items-center gap-1.5">{dot("#c8321e")}peste 600</span>
+        <span className="flex items-center gap-1.5">{dot("#2f8f5b")}sub {fmtInt(thresholds.yellow)}</span>
+        <span className="flex items-center gap-1.5">
+          {dot("#d9a400")}
+          {fmtInt(thresholds.yellow)}–{fmtInt(thresholds.red)}
+        </span>
+        <span className="flex items-center gap-1.5">{dot("#c8321e")}peste {fmtInt(thresholds.red)}</span>
         <span className="flex items-center gap-1.5">{dot("#9aa4a9")}necunoscut</span>
         <span className="text-muted-foreground">cercul mai mare, pierdere mai mare; clic pe un post pentru pagina lui</span>
         <Link href="/posturi" className="font-[560] underline decoration-rule underline-offset-4 hover:decoration-ink">

@@ -150,7 +150,7 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
                 <>
                   <SeriesChart series={series.data} workItem={w} />
                   <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-                    <SeriesLegend source={series.data.source} bilant={isBilantSeries(series.data)} />
+                    <SeriesLegend source={series.data.source} bilant={isBilantSeries(series.data)} series={series.data} />
                     {series.data.annotations?.length ? (
                       <span className="text-[14px] text-muted-foreground">
                         {series.data.annotations.map((a) => `${String(a.t).length > 10 ? fmtTime(String(a.t)) : String(a.t).slice(8, 10) + "." + String(a.t).slice(5, 7)}: ${clampPercentRo(a.label_ro)}`).join("; ")}

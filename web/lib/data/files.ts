@@ -289,6 +289,7 @@ export interface DemoCandidates {
  *      series/<scenariu>/<id>.json
  *   3. plat: outputs/demo/plan.json etc., doar dacă planul plat e al scenariului cerut
  *      (`plan.scenario`) sau dacă e cerut scenariul implicit (DEFAULT_SCENARIO)
+ * Seriile au și o ultimă variantă: outputs/series/<scenariu>/<id>.json din checkout (ieșirea directă a modelelor).
  * Metricile: outputs/demo/metrics/<A|B|C>.json, apoi reports/<A|B|C>/metrics.json (în git);
  * pentru planificator: outputs/demo/metrics/planner.json, apoi reports/planner/agent_eval.json.
  */
@@ -341,6 +342,9 @@ export async function demoCandidates(scenario: string): Promise<DemoCandidates> 
               ],
             ],
             [flat, [path.join(base, "series", `${workItemId}.json`)]],
+            // ieșirea modelelor din acest checkout (de exemplu seriile bilanțului după `make bilant-predict`),
+            // calea din `extra.series_ref`, dacă instantaneul nu are seria
+            [safe, [repoPath("outputs", "series", scenario, `${workItemId}.json`)]],
           )
         : [],
     metrics: (source) =>
@@ -416,6 +420,25 @@ export async function readLossCost(): Promise<{ value: number; note: string } | 
     const value = Number(line.split(":")[1].split("#")[0].trim());
     const note = line.includes("#") ? line.slice(line.indexOf("#") + 1).trim() : "";
     return Number.isFinite(value) ? { value, note } : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Pragurile de culoare ale posturilor, din config/planner.yaml (`posts.yellow_lei_month`, `posts.red_lei_month`),
+ * aceleași cu care planificatorul colorează posturile în /posts. Null dacă fișierul sau cheile lipsesc.
+ */
+export async function readPostThresholds(): Promise<{ yellow: number; red: number } | null> {
+  try {
+    const text = await readFile(repoPath("config", "planner.yaml"), "utf8");
+    const value = (key: string) => {
+      const m = new RegExp(`^\\s*${key}\\s*:\\s*([0-9.]+)`, "m").exec(text);
+      return m ? Number(m[1]) : Number.NaN;
+    };
+    const yellow = value("yellow_lei_month");
+    const red = value("red_lei_month");
+    return Number.isFinite(yellow) && Number.isFinite(red) && yellow < red ? { yellow, red } : null;
   } catch {
     return null;
   }

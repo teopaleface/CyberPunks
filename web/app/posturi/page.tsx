@@ -4,7 +4,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { SyntheticGlyph } from "@/components/shell/provenance";
 import { AppShell } from "@/components/shell/app-shell";
-import { POST_COLOR_THRESHOLDS, getPosts } from "@/lib/data/posts";
+import { getPosts } from "@/lib/data/posts";
 import { BILANT_LABEL } from "@/lib/extras";
 import { fmtDec, fmtInt, fmtLei } from "@/lib/format";
 import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
@@ -52,7 +52,7 @@ async function Posts({ searchParams }: { searchParams: PageProps<"/posturi">["se
             </li>
           ))}
           <li className="text-muted-foreground">
-            praguri de afișare: {POST_COLOR_THRESHOLDS.yellow} și {POST_COLOR_THRESHOLDS.red} lei pe lună
+            praguri de afișare: {posts.thresholds.yellow} și {posts.thresholds.red} lei pe lună
           </li>
         </ul>
       </section>
