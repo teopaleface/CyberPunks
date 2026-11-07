@@ -1,7 +1,7 @@
 # Status: Teo-B-furtuna
-Actualizat: 2026-11-07 13:54
-Milestone curent: M1 provizoriu (model pe 19 din 80 de comitate); M1 final pe la 15:15
-Gata de merge: da (commit a402296), versiune PROVIZORIE: formatele și `run()` sunt finale; modelul și cifrele se schimbă la M1 final (~15:30)
+Actualizat: 2026-11-07 15:10
+Milestone curent: M1 final gata; criteriile M2 îndeplinite pe cifrele finale (bate ambele metode simple, intervalele acoperă 81%)
+Gata de merge: da (commit f8357f0), M1 FINAL pe 80 de comitate (model, cifre, rapoarte, lucrări)
 
 ## Făcut
 - 12:44 Citit memoria, tema, planul, contractele, fixture-urile. `uv sync` și `make check` trec.
@@ -21,9 +21,10 @@ Gata de merge: da (commit a402296), versiune PROVIZORIE: formatele și `run()` s
 - 13:54 **Temperaturile și radiația au fost scoase din model.** Pe 36 de comitate, PR-AUC pe 2025 scade de la 0,258 la 0,250 (−3%). În schimb, pe 8 iulie 2025 riscul mediu e 0,31 în Banat față de 0,07 în Dobrogea și 0,04 în Muntenia (înainte: 0,34 față de 0,11), iar nicio zonă cu caniculă nu mai trece de prag. Cifra finală vine din `reports/B/experiments.json`, varianta `cu_temperaturi`.
 
 ## Urmează
-- 14:55 Se termină vremea pentru toate cele 80 de comitate. Reantrenez, rulez experimentele, actualizez metricile, lucrările și modelul, apoi „Gata de merge” final pentru M1.
-- M2 (21:30): modelul bate baseline-urile pe 80 de comitate (an nevăzut și state nevăzute), cuantile cu acoperire corectă (acum 62% în loc de 80%: de corectat, de exemplu cu calibrare conformală), praguri justificate.
-- După 02:00 (cota Open-Meteo se reface): vremea pentru 2021-2022, ca să dublez datele de antrenare pentru M3.
+- M2 (21:30): criteriile sunt deja îndeplinite. Mai rămân de lucrat: secțiunea de valoare din raport, după ce planificatorul decide plafonul pe echipă (cererea 9), plus încă un pas de verificare a robusteții.
+- După 02:00 (cota Open-Meteo se reface): vremea pentru 2021-2022 la aceleași 80 de comitate (circa 4.200 de apeluri). Reantrenez pe 2021-2024 și raportez dacă ajută; dacă nu ajută, rămâne modelul de acum.
+- M3 (03:00): analiza erorilor și backtest-ul sunt gata. Mai adaug testele de robustețe care lipsesc, dacă apar cazuri noi la integrare.
+- M4 (08:00): model card (există, generat din metrici), `docs/data/B.md` (există), curățenie.
 
 ## Blocaje
 - Niciunul.
@@ -51,7 +52,7 @@ Gata de merge: da (commit a402296), versiune PROVIZORIE: formatele și `run()` s
    - Sinteza Rețele Electrice, care include completarea prin Ord. ANRE 64/2022, dă aceleași termene: https://reteleelectrice.ro/wp-content/uploads/sinteza-standard-de-performanta.pdf
    - Pentru planificator: `restoration_limit_hours` din `config/economics.yaml` (4/6/12/48/72) e corect; ca sursă se poate cita „Ord. ANRE 46/2021, MO 649/1.07.2021, art. 15 alin. (1)”. Ar trebui adăugat `planned: 8`, cu sursa „anexa 1, rândul 2”.
 9. **Sugestie pentru `config/economics.yaml`, cheia `storm`** (planificatorul decide): valoarea unei echipe trimise din timp presupune acum că o echipă scurtează întreruperea pentru toți clienții afectați, oricât de mare e avaria. Cu ipotezele de acum, pe anul de test, „trimite mereu” iese mai bine decât orice regulă (vezi `reports/B/metrics_detail.json`, `decision_value`). Un plafon pe tură ar face valoarea realistă, de exemplu `customers_helped_per_crew_shift: <N>  # IPOTEZĂ`. Dacă cheia există, B o folosește deja în `value_if_true_lei`; dacă nu, B lasă calculul ca acum.
-10. **Sugestie pentru regula de furtună a planificatorului** (`rule_storm`, `config/planner.yaml`): cu valorile din config, și o zonă cu 9% risc într-o zi liniștită iese „rentabilă” (de exemplu Mangalia, pe 8 noiembrie: 9% × circa 46.000 lei, adică peste 4.000 lei, față de 2.700 lei tura), așa că agentul ar trimite echipe pe vânt de 25 km/h. Propunere: trimitem echipă doar dacă `prediction.score ≥ extra.decision_threshold` (pragul B, ales pe validare ca cel mai bun F1, acum circa 0,16) **și** valoarea netă e pozitivă. Sub prag: urmărire, plus alertă dacă scorul ≥ 0,4. Pragul e în fiecare lucrare B, la `extra.decision_threshold`, iar B îl respectă deja în `recommended_action`.
+10. **(ACTUALIZAT 15:05, cu modelul final) Sugestie pentru regula de furtună a planificatorului**: pe `demo-vara`, planificatorul trimite acum 3 echipe în Banat (Timișoara 43%, Arad 36%, Lugoj 36%), dar și 3 echipe la zone cu risc mic, pentru care B a recomandat `no_action`: CT-CONSTANTA (9,3%), GR-BOLINTIN-VALE (5,7%), IF-BUFTEA (5,7%). Motivul planificatorului: „Modelul a recomandat nicio acțiune; decide pragul de cost”. În ziua codului roșu din Banat, demo-ul ar arăta echipe trimise la 5,7% risc în Ilfov. Detaliile inițiale: (`rule_storm`, `config/planner.yaml`): cu valorile din config, și o zonă cu 9% risc într-o zi liniștită iese „rentabilă” (de exemplu Mangalia, pe 8 noiembrie: 9% × circa 46.000 lei, adică peste 4.000 lei, față de 2.700 lei tura), așa că agentul ar trimite echipe pe vânt de 25 km/h. Propunere: trimitem echipă doar dacă `prediction.score ≥ extra.decision_threshold` (pragul B, ales pe validare ca cel mai bun F1, acum circa 0,16) **și** valoarea netă e pozitivă. Sub prag: urmărire, plus alertă dacă scorul ≥ 0,4. Pragul e în fiecare lucrare B, la `extra.decision_threshold`, iar B îl respectă deja în `recommended_action`.
 
 11. **Test cap-coadă pe `demo-vara` (13:49, pe ramura B, cu codul planificatorului din `Teo`): important pentru povestea demo-ului.** `uv run cyberpunks run --scenario demo-vara` merge. B dă 26 de lucrări valide, carantina 0, iar Bucureștiul merge la om.
    - Planificatorul pune singura echipă din Banat (E-TM-1) la Timișoara (40%). Deva și Ineu (57%), Reșița și Lugoj (46%) rămân „amânate, fără capacitate” și primesc doar alertă.
@@ -73,14 +74,27 @@ uv run python -m cyberpunks.b_furtuna.predict --scenario maine
 Din Python: `from cyberpunks.b_furtuna.predict import run; run("demo-vara", None)`.
 
 ## Cifre (doar din scripturi, cu comanda)
-PROVIZORII, model `b-lgbm@409ba59` antrenat pe 19 comitate (13.889 de zile-comitat, 1.334 de evenimente). Comanda: `uv run python -m cyberpunks.b_furtuna.evaluate`. Testul e pe 2025, un an nevăzut: 6.935 de zile-comitat, cu prevalența evenimentului (vârf ≥ 1% din clienți) de 10,6%.
-- PR-AUC: model 0,240 față de climatologia pe comitat și lună 0,132, climatologia pe lună 0,122 și regula pe rafală 0,191.
-- Brier: model 0,0889 față de 0,0952 (climatologia pe comitat și lună).
-- ROC-AUC: model 0,689.
-- State nevăzute (leave-one-state-out, 8 state): PR-AUC mediu 0,238 față de 0,129 (climatologie) și 0,214 (rafală). Modelul bate climatologia în 8 din 8 state.
-- Recall la pragul de 0,16: evenimente severe (≥ 5%) 45%, extreme (≥ 10%) 54%.
-- Acoperirea intervalului P10-P90 pe zilele cu eveniment: 62% (ținta 80%, de corectat).
-- Backtest România (`uv run python -m cyberpunks.b_furtuna.backtest`): riscul mediu în Banat a fost 0,31 pe 7 iulie și 0,34 pe 8 iulie, față de 0,11-0,15 în Muntenia și Dobrogea. Pe 9-10 iulie a scăzut la 0,08.
+FINALE M1, model `b-lgbm@c5c8344` (`models/release/b_model.joblib`). Comanda: `make b-reports` sau `uv run python -m cyberpunks.b_furtuna.evaluate`.
+- Date: 80 de comitate din 8 state SUA. Antrenare pe 2023-2024: 58.480 de zile-comitat, 5.595 de evenimente. Test pe 2025, an nevăzut: 29.200 de zile-comitat, 3.014 evenimente (prevalență 10,3%).
+- **PR-AUC (metrica principală): model 0,278**, față de regula pe rafală 0,182, climatologia pe comitat și lună 0,151 și climatologia pe lună 0,120.
+- ROC-AUC: model 0,725, față de 0,612 (climatologia pe comitat și lună) și 0,611 (rafală).
+- Brier: model 0,0841, față de 0,0914 (climatologia pe comitat și lună), 0,0924 (climatologia pe lună) și 0,0890 (rafală).
+- La pragul de 0,16 (ales pe OOF): precizie 28%, recall 41%. Recall pe evenimentele severe (≥ 5%): 50%, față de 40% pentru climatologie; pe cele extreme (≥ 10%): 54%, față de 42%.
+- **State nevăzute** (leave-one-state-out, 8 state, anul 2025): PR-AUC mediu 0,259, față de climatologie 0,122 și rafală 0,188. **Modelul bate ambele metode simple în 8 din 8 state.**
+- **Cuantile:** P10-P90 acoperă 80,8% din vârfurile reale în 2025 (ținta 80%; fără calibrarea conformală, 72,2%). Pinball mediu (scara log): 0,151.
+- Echipe puține (8 pe zi pentru 80 de zone, în zonele cu scorul cel mai mare): acoperă 16,7% din clienții afectați, față de 14,6% (rafală), 12,3% (climatologie), 7,6% (la întâmplare) și 88,6% (oracol).
+- Experimente (`reports/B/experiments.json`):
+  - cu temperaturi: 0,283; fără mărimea zonei: 0,234; fără constrângeri monotone: 0,274; fără vremea din zilele precedente: 0,273;
+  - clima locală 0,276, coada rafalei 0,276, ploaie extra 0,275: nu ajută;
+  - prag de 2%: 0,197 (prevalență 6,0%); prag de 5%: 0,100 (prevalență 2,2%).
+- Analiza erorilor (`reports/B/error_analysis.md`):
+  - 61% din evenimente apar în zile fără semnal meteo puternic.
+  - Pe zile cu vânt ≥ 60 km/h: PR-AUC 0,45, recall 73%. Pe ploaie abundentă: 0,39, recall 81%. Pe polei: 0,31. Pe zăpadă: 0,12, recall 12% (punctul slab).
+  - Din 121 de evenimente extreme ratate, 85% au rafale sub 60 km/h în arhivă.
+- Backtest România (`uv run python -m cyberpunks.b_furtuna.backtest`):
+  - 7-8 iulie 2025: riscul mediu e 0,31 în Banat, față de 0,07 în Muntenia și Dobrogea. 22 de zone-zi cu echipă recomandată în Banat, 0 în rest.
+  - 17 iulie 2025 (Slobozia, cod roșu): IL-SLOBOZIA e pe locul 1 din 26 de zone (P = 0,36), cu începutul furtunii estimat la 20:00.
+- Lucrări: `demo-vara` (8 iulie 2025): 12 echipe recomandate, toate în Banat, iar Bucureștiul la om. `maine` (8 nov. 2026): 0 echipe, Bucureștiul la om (în afara datelor de antrenare).
 
 ## Decizii (cu ora)
 - 12:50 Folosim EAGLE-I v4 de pe figshare (2014-2025), nu doar 2014-2022.
@@ -95,3 +109,6 @@ PROVIZORII, model `b-lgbm@409ba59` antrenat pe 19 comitate (13.889 de zile-comit
 - 13:22 Cache Open-Meteo, ca rulările repetate ale planificatorului și ale interfeței să nu consume cota comună, iar demo-ul să meargă și fără internet.
 - 13:26 Modelul livrat în `models/release/` (permis în git), comprimat.
 - 13:27 În explicații, factorul „sezon” apare doar când crește riscul, iar fraza pornește de la factorii cu cea mai mare contribuție SHAP. Pe 8 iulie, în Ialomița și Călărași riscul vine din caniculă (38 °C, minima de 22 °C), nu din vânt. Lăsăm așa: în datele din SUA, zilele foarte calde chiar aduc avarii (suprasarcină, furtuni de după-amiază). Explicația spune deschis ce a contat.
+- 15:00 Hiperparametrii au fost aleși doar pe anii de antrenare (`reports/B/tuning.json`, 24 de configurații): 31 de frunze, minimum 100 de cazuri pe frunză, rata 0,02, 300 de runde (PR-AUC OOF 0,292). Cu 600 de runde ieșea mai prost, din cauza supraînvățării.
+- 15:05 Decizia de a scoate temperaturile e confirmată pe datele complete: costă 1,9% din PR-AUC (0,283 față de 0,278), dar riscul urmărește furtuna. Zilele asemănătoare se caută acum după aceleași pericole ca modelul.
+- 15:08 Repararea unui test picat (`make check` trecea prin `tail`, deci commitul 803c29c a intrat cu un test picat; reparat în d3aa9ea). Acum `make check` trece: 222 de teste.
