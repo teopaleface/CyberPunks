@@ -359,3 +359,8 @@
   color: var(--att-ink);
   font-weight: 560;
 }
+
+/* Modul „Posturi”: markerii lucrărilor se ascund, bazele rămân */
+.plan-map[data-posts] .mk.item {
+  display: none;
+}

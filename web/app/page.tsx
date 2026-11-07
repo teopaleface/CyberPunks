@@ -5,6 +5,7 @@ import { PlanScreen } from "@/components/plan/plan-screen";
 import { Readouts } from "@/components/plan/readouts";
 import { AppShell } from "@/components/shell/app-shell";
 import { toPlanScreenData } from "@/lib/plan-screen";
+import { getPosts } from "@/lib/data/posts";
 import { loadLocatorGeo } from "@/lib/server/geo";
 import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
 
@@ -19,7 +20,12 @@ export default function PlanPage({ searchParams }: PageProps<"/">) {
 async function Plan({ searchParams }: { searchParams: PageProps<"/">["searchParams"] }) {
   await connection();
   const scenario = await resolveScenario(searchParams);
-  const [{ info, view }, geo, params] = await Promise.all([loadShellInfo(scenario), loadLocatorGeo(), searchParams]);
+  const [{ info, view }, geo, params, posts] = await Promise.all([
+    loadShellInfo(scenario),
+    loadLocatorGeo(),
+    searchParams,
+    getPosts(scenario).catch(() => null),
+  ]);
 
   if (!view.data) {
     return (
@@ -48,7 +54,12 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/">["searchPara
         generatedAt={view.data.plan.generated_at}
         crewsTotal={data.crews.length}
       />
-      <PlanScreen data={data} geo={geo} initialSelected={initialSelected} />
+      <PlanScreen
+        data={data}
+        geo={geo}
+        initialSelected={initialSelected}
+        postsInfo={posts ? { posts: posts.data, derived: posts.derived, lossCostNote: posts.lossCost?.note ?? null } : undefined}
+      />
     </AppShell>
   );
 }

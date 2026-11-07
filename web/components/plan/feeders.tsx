@@ -20,8 +20,8 @@ const LEFT = 300;
 const RIGHT_PAD = 28;
 const SRC_FILL = { A: "var(--src-a)", B: "var(--src-b)", C: "var(--src-c)" } as const;
 
-function placeName(w: WorkItem): string {
-  if (w.asset_type === "meter") return w.asset_id;
+function placeName(w: WorkItem, short = false): string {
+  if (w.asset_type === "meter") return short ? w.asset_id.replace(/^MTR-/, "") : w.asset_id;
   const z = w.location.zone_id.split("-").slice(1).join(" ");
   const local = z ? z.charAt(0) + z.slice(1).toLowerCase() : "";
   return w.asset_type === "zone" ? `Zona ${local || w.asset_id}` : `${w.asset_id}${local ? `, ${local}` : ""}`;
@@ -292,9 +292,10 @@ function CrewRow({
         const xb = x(b.end);
         const wide = xb - xa > 190;
         // numele și orele apar doar unde încap; altfel rămân în informațiile de la trecerea mouse-ului
-        const name = placeName(w);
-        // lățimea estimată a textului (Archivo îngust, 14,5 px): ~7,4 px pe caracter
-        const showName = name.length * 7.4 <= xb - xa + 14 || sel0(b.workItemId);
+        const full = placeName(w);
+        // lățimea estimată a textului (Archivo îngust, 14,5 px): ~7,4 px pe caracter; contoarele pierd prefixul când e strâmt
+        const name = full.length * 7.4 <= xb - xa - 2 ? full : placeName(w, true);
+        const showName = name.length * 7.4 <= xb - xa - 2 || sel0(b.workItemId);
         const showTime = xb - xa >= 84 || sel0(b.workItemId);
         const sel = b.workItemId === selectedId;
         const d = decisions[b.workItemId];
@@ -303,7 +304,7 @@ function CrewRow({
             key={`blk-${b.workItemId}`}
             role="button"
             tabIndex={0}
-            aria-label={`${name}, ${hhmm(b.start)}–${hhmm(b.end)}, echipa ${route.crew_id}`}
+            aria-label={`${full}, ${hhmm(b.start)}–${hhmm(b.end)}, echipa ${route.crew_id}`}
             aria-pressed={sel}
             onClick={() => onSelect(b.workItemId)}
             onKeyDown={(e) => {
@@ -314,7 +315,7 @@ function CrewRow({
             }}
             className="cursor-pointer outline-none [&:focus-visible>.focus]:opacity-100"
           >
-            <title>{`${name}: ${hhmm(b.start)}–${hhmm(b.end)}${d ? `, ${d.reason_ro}` : ""}`}</title>
+            <title>{`${full}: ${hhmm(b.start)}–${hhmm(b.end)}${d ? `, ${d.reason_ro}` : ""}`}</title>
             <rect x={xa - 18} y={cy - 26} width={xb - xa + 26} height={52} fill="transparent" />
             <rect className="focus opacity-0" x={xa - 20} y={cy - 17} width={xb - xa + 26} height={34} rx={4} fill="none" style={{ stroke: "var(--ring)" }} strokeWidth={2} />
             {sel ? <rect x={xa - 16} y={cy - 15} width={xb - xa + 22} height={30} rx={3} fill="none" style={{ stroke: "var(--ink)" }} strokeWidth={1.5} /> : null}

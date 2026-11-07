@@ -1,16 +1,18 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { cn } from "cn";
 import type { WorkItem } from "@/lib/contracts";
 import { DECISION_LABEL_RO } from "@/lib/data/labels";
-import { hhmm, minutesOfDay } from "@/lib/format";
+import type { PostSummary } from "@/lib/data/types";
+import { fmtDec, fmtInt, hhmm, minutesOfDay } from "@/lib/format";
 import { markerKind, markerSvg } from "@/lib/marker-svg";
 import { RE_BOUNDS, itemTitle, type PlanScreenData } from "@/lib/plan-screen";
 import type { LocatorGeo } from "@/lib/server/geo";
 import { Feeders } from "./feeders";
-import type { Bounds, MapItem } from "./plan-map";
+import type { Bounds, MapItem, MapPost } from "./plan-map";
 import { AlertsPanel, QueuePanel, WorkItemPeek } from "./rail";
 
 // MapLibre e greu (~800 KB): se încarcă doar în browser, după restul ecranului.
@@ -28,17 +30,27 @@ function shortDepot(label: string): string {
     .replace(/^Baza București /, "Baza ");
 }
 
+export interface PostsInfo {
+  posts: PostSummary[];
+  derived: boolean;
+  lossCostNote: string | null;
+}
+
 export function PlanScreen({
   data,
   geo,
   initialSelected,
+  postsInfo,
   theme = "light",
 }: {
   data: PlanScreenData;
   geo: LocatorGeo | null;
   initialSelected: string | null;
+  postsInfo?: PostsInfo;
   theme?: "light" | "dark";
 }) {
+  const router = useRouter();
+  const [mode, setMode] = useState<"items" | "posts">("items");
   const itemsById = useMemo(() => Object.fromEntries(data.items.map((w) => [w.work_item_id, w])) as Record<string, WorkItem>, [data.items]);
   const stopInfo = useMemo(() => {
     const m = new Map<string, { crewId: string; seq: number; start: number; end: number }>();
@@ -105,6 +117,27 @@ export function PlanScreen({
     [data.depots],
   );
 
+  const mapPosts: MapPost[] = useMemo(() => {
+    const list = postsInfo?.posts ?? [];
+    const maxLoss = Math.max(1, ...list.map((p) => p.loss_lei_month ?? 0));
+    return list.map((p) => {
+      const parts: string[] = [];
+      if (p.loss_lei_month != null) parts.push(`${fmtInt(p.loss_lei_month)} lei pe lună pierduți${p.derived ? " (estimat din A)" : ""}`);
+      if (p.meters_flagged) parts.push(`${p.meters_flagged} ${p.meters_flagged === 1 ? "contor semnalat" : "contoare semnalate"}`);
+      if (p.voltage_p90_pu != null) parts.push(`tensiune P90 ${fmtDec(p.voltage_p90_pu, 3).replace(/0$/, "")} pu`);
+      if (p.diagnosis) parts.push(p.diagnosis);
+      return {
+        id: p.post_id,
+        lat: p.lat,
+        lon: p.lon,
+        color: p.color ?? "necunoscut",
+        title: p.label && p.label !== p.post_id ? `${p.post_id}, ${p.label.replace(`${p.post_id}, `, "")}` : p.post_id,
+        sub: parts.join("; ") || "fără semnale",
+        weight: Math.sqrt((p.loss_lei_month ?? 0) / maxLoss),
+      };
+    });
+  }, [postsInfo]);
+
   const queue = useMemo(
     () => Object.values(data.decisions).filter((d) => d.decision === "human_review"),
     [data.decisions],
@@ -124,10 +157,16 @@ export function PlanScreen({
             bounds={bounds}
             selectedId={selected}
             onSelect={select}
+            posts={mapPosts}
+            mode={mode}
+            onPostClick={(id) => router.push(`/posturi/${encodeURIComponent(id)}`)}
             theme={theme}
           />
-          <RegionChips regions={data.regions} region={region} onChange={setRegion} totalItems={data.items.length} />
-          <Legend />
+          <div className="absolute top-4 left-4 flex flex-col items-start gap-2">
+            <RegionChips regions={data.regions} region={region} onChange={setRegion} totalItems={data.items.length} />
+            {mapPosts.length ? <ModeSwitch mode={mode} onChange={setMode} posts={mapPosts.length} /> : null}
+          </div>
+          {mode === "posts" ? <PostsLegend derived={postsInfo?.derived ?? false} note={postsInfo?.lossCostNote ?? null} /> : <Legend />}
           {geo ? (
             <Locator
               geo={geo}
@@ -178,7 +217,7 @@ function RegionChips({
 }) {
   const chips = [{ id: ALL, label: "Toată zona", count: totalItems }, ...regions.map((r) => ({ id: r.id, label: r.label, count: r.itemCount }))];
   return (
-    <div role="group" aria-label="Zona arătată pe hartă" className="absolute top-4 left-4 flex overflow-hidden rounded-[4px] border border-rule bg-panel text-[14.5px]">
+    <div role="group" aria-label="Zona arătată pe hartă" className="flex overflow-hidden rounded-[4px] border border-rule bg-panel text-[14.5px]">
       {chips.map((c) => (
         <button
           key={c.id}
@@ -305,6 +344,50 @@ function Locator({
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+function ModeSwitch({ mode, onChange, posts }: { mode: "items" | "posts"; onChange: (m: "items" | "posts") => void; posts: number }) {
+  const btn = (m: "items" | "posts", label: string) => (
+    <button
+      type="button"
+      aria-pressed={mode === m}
+      onClick={() => onChange(m)}
+      className={cn(
+        "flex h-9 items-center gap-2 border-l border-rule px-3 whitespace-nowrap transition-colors duration-150 first:border-l-0",
+        mode === m ? "bg-ink font-[600] text-panel" : "font-[500] text-ink hover:bg-muted",
+      )}
+    >
+      {label}
+    </button>
+  );
+  return (
+    <div role="group" aria-label="Ce arată harta" className="flex overflow-hidden rounded-[4px] border border-rule bg-panel text-[14px]">
+      {btn("items", "Lucrările de mâine")}
+      {btn("posts", `Posturile (${posts})`)}
+    </div>
+  );
+}
+
+function PostsLegend({ derived, note }: { derived: boolean; note: string | null }) {
+  const dot = (color: string) => <span className="inline-block size-3.5 rounded-full border border-panel" style={{ background: color }} aria-hidden="true" />;
+  return (
+    <div className="absolute bottom-7 left-4 max-w-[760px] rounded-[4px] border border-rule bg-panel/95 px-3 py-2 text-[13.5px]">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+        <b className="font-[600]">Lei pierduți pe lună</b>
+        <span className="flex items-center gap-1.5">{dot("#2f8f5b")}sub 150</span>
+        <span className="flex items-center gap-1.5">{dot("#d9a400")}150–600</span>
+        <span className="flex items-center gap-1.5">{dot("#c8321e")}peste 600</span>
+        <span className="flex items-center gap-1.5">{dot("#9aa4a9")}necunoscut</span>
+        <span className="text-muted-foreground">cercul mai mare, pierdere mai mare; clic pe un post pentru pagina lui</span>
+      </div>
+      <p className="mt-1 text-[12.5px] text-muted-foreground">
+        {derived
+          ? "Estimat din contoarele semnalate de modelul A (kWh pe zi × scor), până vine bilanțul pe post. "
+          : "Din bilanțul pe post. "}
+        Simulare pe date publice, gândită pentru datele PPC.{note ? ` Prețul energiei pierdute: ${note.split(/[:;(]/)[0].trim().toLowerCase() === "proxy" ? "proxy din prețul PZU OPCOM" : note.split(";")[0]}.` : ""}
+      </p>
     </div>
   );
 }

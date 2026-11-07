@@ -213,22 +213,78 @@ function VoltageChart({ series }: { series: Series }) {
   );
 }
 
+// ------------------------------------------------------------------ bilanț pe post
+/** „Ieșit din post” (value) față de „suma clienților” (expected); lipsa dintre ele, colorată unde e peste normal. */
+export function isBilantSeries(series: Series): boolean {
+  return series.points.some((p) => p.flag === "lipsa_peste_normal") || /ieșit din post|bilan/i.test(series.title_ro);
+}
+
+function BilantChart({ series }: { series: Series }) {
+  const data: Row[] = series.points.map((p) => ({
+    t: String(p.t),
+    out: p.value ?? null,
+    sum: p.expected ?? null,
+    gap: p.value != null && p.expected != null ? [Math.min(p.value, p.expected), Math.max(p.value, p.expected)] : null,
+    over: p.flag === "lipsa_peste_normal" && p.value != null && p.expected != null ? [Math.min(p.value, p.expected), Math.max(p.value, p.expected)] : null,
+  }));
+  const daily = series.points.every((p) => isDay(String(p.t)));
+  const tick = (t: string) => (daily || isDay(t) ? dayLabel(t) : fmtTime(t));
+  return (
+    <ResponsiveContainer width="100%" height={340}>
+      <ComposedChart data={data} margin={{ top: 18, right: 18, bottom: 4, left: 4 }}>
+        <CartesianGrid vertical={false} stroke={GRID} />
+        <XAxis dataKey="t" tickFormatter={tick} tick={AXIS} tickLine={false} axisLine={{ stroke: "var(--rule)" }} minTickGap={32} />
+        <YAxis tick={AXIS} tickLine={false} axisLine={false} width={52} tickFormatter={(v: number) => fmtInt(v)} />
+        <Area dataKey="gap" type="monotone" stroke="none" fill="color-mix(in oklab, var(--ink) 9%, transparent)" isAnimationActive={false} />
+        <Area dataKey="over" type="monotone" stroke="none" fill="color-mix(in oklab, var(--att) 32%, transparent)" isAnimationActive={false} />
+        <Line dataKey="sum" type="monotone" stroke="var(--src-a)" strokeWidth={2.2} dot={false} isAnimationActive={false} />
+        <Line dataKey="out" type="monotone" stroke="var(--ink)" strokeWidth={2.2} dot={false} isAnimationActive={false} />
+        <Tooltip
+          cursor={{ stroke: "var(--ink)", strokeWidth: 1, strokeDasharray: "3 3" }}
+          content={({ active, payload }) => {
+            if (!active || !payload?.length) return null;
+            const r = payload[0].payload as Row;
+            const out = r.out == null ? null : Number(r.out);
+            const sum = r.sum == null ? null : Number(r.sum);
+            return (
+              <TooltipBox
+                title={tick(String(r.t))}
+                rows={[
+                  ["ieșit din post", out == null ? "lipsă" : `${fmtDec(out, 1)} ${series.unit}`],
+                  ["suma clienților", sum == null ? "lipsă" : `${fmtDec(sum, 1)} ${series.unit}`],
+                  ["lipsa", out != null && sum != null ? `${fmtDec(out - sum, 1)} ${series.unit}` : "–"],
+                ]}
+              />
+            );
+          }}
+        />
+      </ComposedChart>
+    </ResponsiveContainer>
+  );
+}
+
 export function SeriesChart({ series, workItem }: { series: Series; workItem: WorkItem }) {
+  if (isBilantSeries(series)) return <BilantChart series={series} />;
   if (series.source === "A") return <ConsumptionChart series={series} />;
   if (series.source === "B") return <StormCharts series={series} w={workItem} />;
   return <VoltageChart series={series} />;
 }
 
 /** Legenda graficului, cu semnele folosite (identitatea nu stă doar în culoare). */
-export function SeriesLegend({ source }: { source: Series["source"] }) {
+export function SeriesLegend({ source, bilant = false }: { source: Series["source"]; bilant?: boolean }) {
   const line = (color: string, dashed = false) => (
     <svg width="26" height="10" aria-hidden="true">
       <line x1="1" y1="5" x2="25" y2="5" style={{ stroke: color }} strokeWidth={2.4} strokeDasharray={dashed ? "5 4" : undefined} />
     </svg>
   );
   const box = (color: string) => <span className="inline-block h-3 w-5" style={{ background: color }} aria-hidden="true" />;
-  const items: [React.ReactNode, string][] =
-    source === "A"
+  const items: [React.ReactNode, string][] = bilant
+    ? [
+        [line("var(--ink)"), "ieșit din post"],
+        [line("var(--src-a)"), "suma clienților"],
+        [box("color-mix(in oklab, var(--att) 32%, transparent)"), "lipsă peste normal"],
+      ]
+    : source === "A"
       ? [
           [line("var(--src-a)"), "consumul zilnic"],
           [line("var(--idle)", true), "ce ar fi fost normal"],

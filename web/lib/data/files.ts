@@ -368,6 +368,31 @@ export async function readDemoWorkItems(
   return readWorkItemFiles(candidates.workItems, source);
 }
 
+/** Posturile din instantaneul demo (outputs/demo/plans/<s>/posts.json, aceeași formă ca GET /posts). */
+export async function readDemoPosts(scenario: string): Promise<FileRead<unknown> | null> {
+  if (!isSafeSegment(scenario)) return null;
+  const base = demoDir();
+  try {
+    return await readFirstJson<unknown>([path.join(base, "plans", scenario, "posts.json"), path.join(base, scenario, "posts.json")]);
+  } catch {
+    return null;
+  }
+}
+
+/** Costul energiei pierdute (lei/kWh) din config/economics.yaml, cu comentariul de sursă. */
+export async function readLossCost(): Promise<{ value: number; note: string } | null> {
+  try {
+    const text = await readFile(repoPath("config", "economics.yaml"), "utf8");
+    const line = text.split("\n").find((l) => /^\s*loss_cost_lei_per_kwh\s*:/.test(l));
+    if (!line) return null;
+    const value = Number(line.split(":")[1].split("#")[0].trim());
+    const note = line.includes("#") ? line.slice(line.indexOf("#") + 1).trim() : "";
+    return Number.isFinite(value) ? { value, note } : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Timpii ultimei rulări salvate (outputs/demo/plans/<s>/run.json). Null dacă lipsesc. */
 export async function readDemoRun(scenario: string): Promise<FileRead<Record<string, unknown>> | null> {
   try {

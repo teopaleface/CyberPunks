@@ -1,7 +1,7 @@
 import "server-only";
 import type { AuditRecord, Decision, ModelReport, Plan, Series, WorkItem } from "@/lib/contracts";
 import { getConfig, TIMEOUTS } from "./config";
-import type {
+import type { PostSummary,
   ApiHealth,
   MetricsBundle,
   ReviewDecision,
@@ -221,6 +221,12 @@ export async function apiAudit(scenario: string, workItemId?: string): Promise<A
   const query = { scenario, work_item_id: workItemId };
   const payload = await request<unknown>("GET", "/audit", { query });
   return asList<AuditRecord>(payload, apiUrl("/audit", query), ["records", "audit", "items", "data"]);
+}
+
+export async function apiPosts(scenario: string): Promise<PostSummary[]> {
+  const query = { scenario };
+  const payload = await request<unknown>("GET", "/posts", { query });
+  return asList<PostSummary>(payload, apiUrl("/posts", query), ["posts", "items", "data"]);
 }
 
 export async function apiMetrics(): Promise<MetricsBundle> {

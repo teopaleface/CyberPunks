@@ -3,7 +3,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { RemedyLadder } from "@/components/detail/remedy-ladder";
 import { ReviewActions } from "@/components/detail/review-actions";
-import { SeriesChart, SeriesLegend } from "@/components/detail/series-chart";
+import { SeriesChart, SeriesLegend, isBilantSeries } from "@/components/detail/series-chart";
 import { ScoreScale } from "@/components/plan/score-scale";
 import { SyntheticGlyph } from "@/components/shell/provenance";
 import { AppShell } from "@/components/shell/app-shell";
@@ -143,7 +143,7 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
                 <>
                   <SeriesChart series={series.data} workItem={w} />
                   <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-                    <SeriesLegend source={series.data.source} />
+                    <SeriesLegend source={series.data.source} bilant={isBilantSeries(series.data)} />
                     {series.data.annotations?.length ? (
                       <span className="text-[14px] text-muted-foreground">
                         {series.data.annotations.map((a) => `${String(a.t).length > 10 ? fmtTime(String(a.t)) : String(a.t).slice(8, 10) + "." + String(a.t).slice(5, 7)}: ${a.label_ro}`).join("; ")}
