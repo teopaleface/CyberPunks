@@ -41,7 +41,9 @@ export function Feeders({
   scenario,
   planId,
   approval,
+  highlight = false,
 }: {
+  highlight?: boolean;
   scenario: string;
   planId: string;
   approval: { at: string; local: boolean } | null;
@@ -116,7 +118,7 @@ export function Feeders({
   for (let h = Math.ceil(range.start / 60) * 60; h <= range.end; h += 60) hours.push(h);
 
   return (
-    <section aria-label="Ziua echipelor" className="flex shrink-0 flex-col border-t border-rule bg-panel">
+    <section aria-label="Ziua echipelor" className={"flex shrink-0 flex-col border-t border-rule bg-panel" + (highlight ? " spot" : "")}>
       <div ref={boxRef} className="max-h-[244px] overflow-y-auto">
         {routes.length === 0 ? (
           <p className="px-7 py-6 text-[15px] text-muted-foreground">

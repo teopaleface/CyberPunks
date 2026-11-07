@@ -236,7 +236,9 @@ export function WorkItemPeek({
   decision,
   crewInfo,
   scenario,
+  highlight = false,
 }: {
+  highlight?: boolean;
   w: WorkItem | null;
   decision: Decision | null;
   crewInfo: { crewId: string; seq: number; start: string; end: string } | null;
@@ -258,7 +260,7 @@ export function WorkItemPeek({
   const scoreMin = typeof decision?.threshold?.score_min === "number" ? decision.threshold.score_min : null;
   const ruleText = ruleRo(decision?.rule_id);
   return (
-    <section aria-labelledby="peek-title" className="min-h-0 flex-1 overflow-y-auto px-7 pt-3.5 pb-5">
+    <section aria-labelledby="peek-title" className={"min-h-0 flex-1 overflow-y-auto px-7 pt-3.5 pb-5" + (highlight ? " spot" : "")}>
       <div className="grid grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-x-3">
         <Marker w={w} decision={decision} selected />
         <div className="min-w-0">

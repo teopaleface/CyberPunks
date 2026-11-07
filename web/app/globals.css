@@ -364,3 +364,30 @@
 .plan-map[data-posts] .mk.item {
   display: none;
 }
+
+/* Modul de prezentare: zona despre care se vorbește primește un contur discret */
+.spot {
+  position: relative;
+}
+.spot::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  pointer-events: none;
+  animation: spot-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.spot-att::after {
+  border-color: var(--att);
+}
+@keyframes spot-in {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

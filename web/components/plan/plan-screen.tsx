@@ -43,6 +43,7 @@ export function PlanScreen({
   postsInfo,
   approval,
   theme = "light",
+  scene,
 }: {
   data: PlanScreenData;
   geo: LocatorGeo | null;
@@ -50,6 +51,8 @@ export function PlanScreen({
   postsInfo?: PostsInfo;
   approval?: { at: string; local: boolean } | null;
   theme?: "light" | "dark";
+  /** Modul de prezentare comandă regiunea, selecția și ce se evidențiază. */
+  scene?: { region?: string; selected?: string | null; spotlight?: "queue" | "peek" | "feeders" | "map" | null };
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<"items" | "posts">("items");
@@ -70,6 +73,15 @@ export function PlanScreen({
     const r = initialSelected ? data.regionOf[initialSelected] : null;
     return r ?? data.defaultRegion;
   });
+
+  // scenele din modul de prezentare (ajustare de stare în timpul randării, fără efecte)
+  const [prevScene, setPrevScene] = useState(scene);
+  if (scene !== prevScene) {
+    setPrevScene(scene);
+    if (scene?.region) setRegion(scene.region);
+    if (scene?.selected !== undefined) setSelected(scene.selected);
+  }
+  const spotlight = scene?.spotlight ?? null;
 
   const select = useCallback(
     (id: string) => {
@@ -150,7 +162,7 @@ export function PlanScreen({
   return (
     <>
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_clamp(460px,38vw,732px)]">
-        <div className="relative min-h-0 overflow-hidden border-r border-rule">
+        <div className={cn("relative min-h-0 overflow-hidden border-r border-rule", spotlight === "map" && "spot")}>
           <PlanMap
             className="absolute inset-0"
             items={mapItems}
@@ -168,7 +180,11 @@ export function PlanScreen({
             <RegionChips regions={data.regions} region={region} onChange={setRegion} totalItems={data.items.length} />
             {mapPosts.length ? <ModeSwitch mode={mode} onChange={setMode} posts={mapPosts.length} /> : null}
           </div>
-          {mode === "posts" ? <PostsLegend derived={postsInfo?.derived ?? false} note={postsInfo?.lossCostNote ?? null} /> : <Legend />}
+          {scene ? null : mode === "posts" ? (
+            <PostsLegend derived={postsInfo?.derived ?? false} note={postsInfo?.lossCostNote ?? null} />
+          ) : (
+            <Legend />
+          )}
           {geo ? (
             <Locator
               geo={geo}
@@ -181,9 +197,12 @@ export function PlanScreen({
           ) : null}
         </div>
         <aside className="flex min-h-0 flex-col bg-panel" aria-label="Decizii care cer atenție">
-          <QueuePanel queue={queue} itemsById={itemsById} scenario={data.scenario} onSelect={select} recovered={data.recovered} />
+          <div className={cn(spotlight === "queue" && "spot spot-att")}>
+            <QueuePanel queue={queue} itemsById={itemsById} scenario={data.scenario} onSelect={select} recovered={data.recovered} />
+          </div>
           <AlertsPanel alerts={data.alerts} onSelect={select} />
           <WorkItemPeek
+            highlight={spotlight === "peek"}
             w={selItem}
             decision={selected ? (data.decisions[selected] ?? null) : null}
             crewInfo={selStop ? { crewId: selStop.crewId, seq: selStop.seq, start: hhmm(selStop.start), end: hhmm(selStop.end) } : null}
@@ -192,6 +211,7 @@ export function PlanScreen({
         </aside>
       </div>
       <Feeders
+        highlight={spotlight === "feeders"}
         routes={data.routes}
         itemsById={itemsById}
         decisions={data.decisions}
