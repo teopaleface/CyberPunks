@@ -151,6 +151,18 @@ export function derivePosts(
   });
 }
 
+/**
+ * Completează lipsa pe zi din lucrarea bilanțului (`prediction.point_estimate`, kWh/zi peste pierderea normală),
+ * când /posts nu o are. Nu schimbă nimic altceva.
+ */
+export function withBilantLoss(posts: PostSummary[], workItemsById: Record<string, WorkItem | undefined>): PostSummary[] {
+  return posts.map((p) => {
+    if (p.loss_kwh_day != null || !p.bilant_work_item_id) return p;
+    const estimate = workItemsById[p.bilant_work_item_id]?.prediction.point_estimate;
+    return typeof estimate === "number" && Number.isFinite(estimate) ? { ...p, loss_kwh_day: estimate } : p;
+  });
+}
+
 export async function getPosts(scenario: string): Promise<PostsResult> {
   const result = await resolveData<PostSummary[]>(
     {
