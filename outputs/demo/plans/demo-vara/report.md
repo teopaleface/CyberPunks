@@ -1,17 +1,17 @@
 # Planul pentru marți 08.07.2025
 
-Scenariu: `demo-vara`. Plan `PLAN-demo-vara-20250708-172556-fd43`, generat la 2026-11-07 17:25 de `planner@0.1.0+a23ffdb`.
+Scenariu: `demo-vara`. Plan `PLAN-demo-vara-20250708-182006-043b`, generat la 2026-11-07 18:20 de `planner@0.1.0+e7b7c7d`.
 Activele și echipele din demo sunt sintetice, plasate pe hartă reală. Nimic nu a fost trimis în afară.
 
 ## Pe scurt
 
 - Lucrări primite: 689 (689 valide, 0 în carantină).
 - În trasee: 20, cu 8 echipe și 291,8 km; valoare așteptată 71.803 lei.
-- Citiri la distanță: 504. Mesaje (demo): 48. La om: 25. Amânate: 122.
+- Citiri la distanță: 473. Mesaje (demo): 48. La om: 25. Amânate: 153.
 
 ## Contextul zilei
 
-- Contoare și posturi: 630 lucrări; 17 în trasee, 504 verificări de la distanță sau corecții în birou, 17 la dispecer.
+- Contoare și posturi: 630 lucrări; 17 în trasee, 473 verificări de la distanță sau corecții în birou, 17 la dispecer.
 - Furtună: 26 zone analizate, cel mai mare risc 58%; 3 echipe trimise din timp.
 - Tensiune: 33 posturi cu risc din 300 (soare pe panou până la 956 W/m² la prânz, 35 °C): 15 posturi rămân la urmărire (15 sub prag sau sub limită chiar și în scenariul pesimist), 18 primesc mesaje către prosumatori, 0 primesc echipă.
 
@@ -30,7 +30,7 @@ Activele și echipele din demo sunt sintetice, plasate pe hartă reală. Nimic n
 - `A-20250708-PT-1201` (`R-BILANT-REMOTE`): Bilanțul postului PT-1201: contor defect sau manipulat la un client de sub post (probabilitate 98%), lipsă peste normal ~1.287 lei pe lună. Întâi verificări de la distanță (2 lei): recitirea contoarelor de sub post și jurnalul lor de evenimente; echipa doar dacă se confirmă.
 - `A-20250708-MTR-011050` (`R-CAPACITY-REMOTE`): Vizita merita (3.218 lei valoare netă), dar echipele de contorizare sunt pline: citire la distanță azi (2 lei), vizita în planul următor.
 - `A-20250708-MTR-010957` (`R-CAPACITY-REMOTE`): Vizita merita (2.927 lei valoare netă), dar echipele de contorizare sunt pline: citire la distanță azi (2 lei), vizita în planul următor.
-- `A-20250708-PT-1293` (`R-SAFETY-OVER-CAP`): Risc pentru siguranța oamenilor (La post lipsesc ~52.7 kWh/zi peste pierderea normală (5.7% din energie), 14 din 14 zile peste P90, scor 96%): intră primul în traseu, oricare ar fi costul. Azi sunt deja 12 cazuri de siguranță obligatorii (cota zilei, cele cu scorul cel mai mare): acesta păstrează prioritatea triplă, fără să fie obligatoriu. Nu a încăput în turele de mâine: citire la distanță acum, apoi primul în planul următor.
+- `A-20250708-PT-1293` (`R-SAFETY-OVER-CAP`): Risc pentru siguranța oamenilor (La post lipsesc ~52.7 kWh/zi peste pierderea normală (5.7% din energie), 14 din 14 zile peste P90, scor 96%, văzut direct în bilanțul postului): intră primul în traseu, oricare ar fi costul. Azi sunt deja 12 cazuri de siguranță obligatorii (cota zilei, cele cu scorul cel mai mare): acesta păstrează prioritatea triplă, fără să fie obligatoriu. Nu a încăput în turele de mâine: citire la distanță acum, apoi primul în planul următor.
 - `A-20250708-PT-1282` (`R-BILANT-REMOTE`): Bilanțul postului PT-1282: contor defect sau manipulat la un client de sub post (probabilitate 100%), lipsă peste normal ~990 lei pe lună. Întâi verificări de la distanță (2 lei): recitirea contoarelor de sub post și jurnalul lor de evenimente; echipa doar dacă se confirmă.
 - `A-20250708-PT-1076` (`R-BILANT-REMOTE`): Bilanțul postului PT-1076: contor defect sau manipulat la un client de sub post (probabilitate 91%), lipsă peste normal ~1.063 lei pe lună. Întâi verificări de la distanță (2 lei): recitirea contoarelor de sub post și jurnalul lor de evenimente; echipa doar dacă se confirmă.
 - `A-20250708-MTR-013202` (`R-CAPACITY-REMOTE`): Vizita merita (2.006 lei valoare netă), dar echipele de contorizare sunt pline: citire la distanță azi (2 lei), vizita în planul următor.
@@ -48,10 +48,10 @@ Activele și echipele din demo sunt sintetice, plasate pe hartă reală. Nimic n
 - `A-20250708-MTR-005569` (`R-CAPACITY-REMOTE`): Vizita merita (1.223 lei valoare netă), dar echipele de contorizare sunt pline: citire la distanță azi (2 lei), vizita în planul următor.
 - `A-20250708-MTR-010959` (`R-CAPACITY-REMOTE`): Vizita merita (1.200 lei valoare netă), dar echipele de contorizare sunt pline: citire la distanță azi (2 lei), vizita în planul următor.
 - `A-20250708-MTR-011508` (`R-CAPACITY-REMOTE`): Vizita merita (1.190 lei valoare netă), dar echipele de contorizare sunt pline: citire la distanță azi (2 lei), vizita în planul următor.
-- `A-20250708-PT-1097` (`R-SAFETY-OVER-CAP`): Risc pentru siguranța oamenilor (La post lipsesc ~21.6 kWh/zi peste pierderea normală (3.0% din energie), 14 din 14 zile peste P90, scor 98%): intră primul în traseu, oricare ar fi costul. Azi sunt deja 12 cazuri de siguranță obligatorii (cota zilei, cele cu scorul cel mai mare): acesta păstrează prioritatea triplă, fără să fie obligatoriu. Nu a încăput în turele de mâine: citire la distanță acum, apoi primul în planul următor.
-- `A-20250708-MTR-007525` (`R-SAFETY-OVER-CAP`): Risc pentru siguranța oamenilor (98% din intervale repetă exact valoarea anterioară, scor 96%): intră primul în traseu, oricare ar fi costul. Azi sunt deja 12 cazuri de siguranță obligatorii (cota zilei, cele cu scorul cel mai mare): acesta păstrează prioritatea triplă, fără să fie obligatoriu. Nu a încăput în turele de mâine: citire la distanță acum, apoi primul în planul următor.
+- `A-20250708-PT-1097` (`R-SAFETY-OVER-CAP`): Risc pentru siguranța oamenilor (La post lipsesc ~21.6 kWh/zi peste pierderea normală (3.0% din energie), 14 din 14 zile peste P90, scor 98%, văzut direct în bilanțul postului): intră primul în traseu, oricare ar fi costul. Azi sunt deja 12 cazuri de siguranță obligatorii (cota zilei, cele cu scorul cel mai mare): acesta păstrează prioritatea triplă, fără să fie obligatoriu. Nu a încăput în turele de mâine: citire la distanță acum, apoi primul în planul următor.
+- `A-20250708-MTR-007525` (`R-CAPACITY-REMOTE`): Vizita merita (1.042 lei valoare netă), dar echipele de contorizare sunt pline: citire la distanță azi (2 lei), vizita în planul următor.
 - `A-20250708-MTR-004609` (`R-CAPACITY-REMOTE`): Vizita merita (1.043 lei valoare netă), dar echipele de contorizare sunt pline: citire la distanță azi (2 lei), vizita în planul următor.
-- … și încă 479 (toate sunt în `plan.json` și în consolă).
+- … și încă 448 (toate sunt în `plan.json` și în consolă).
 
 ## Lista pe echipe, după lei pe oră de lucru
 
@@ -89,7 +89,7 @@ Activele și echipele din demo sunt sintetice, plasate pe hartă reală. Nimic n
 | 30 | `A-20250708-MTR-009079` | - | citire la distanță | - |
 | 31 | `A-20250708-MTR-004609` | - | citire la distanță | - |
 | 32 | `A-20250708-PT-1292` | 1.222 | amânat | - |
-| 33 | `A-20250708-MTR-007525` | 1.213 | citire la distanță | - |
+| 33 | `A-20250708-MTR-007525` | - | citire la distanță | - |
 | 34 | `A-20250708-MTR-007153` | - | citire la distanță | - |
 | 35 | `A-20250708-PT-1033` | 1.087 | amânat | - |
 | 36 | `A-20250708-MTR-003279` | - | citire la distanță | - |
@@ -184,34 +184,34 @@ Lista o aprobă un om (consola: aprobă traseul echipei); verdictul de după viz
 - `B-20250708-HD-BRAD`: Sezonul de vară: frunziș bogat, furtuni convective; 9 mm de ploaie în 48 de ore. Furtuna e așteptată de la 16:00 (fereastra 16:00-22:00). Probabilitate de avarii 27%; în scenariul pesimist (P90), 4.039 clienți fără curent. Valoarea așteptată 4.119 lei depășește costul turei (2.947 lei) cu 1.172 lei. Dar în regiunea Banat plafonul e de 3 echipe trimise din timp (config), iar ele merg unde aduc cea mai mare valoare netă de la baza fiecăreia: Zona Arad (Arad), Zona Oravița (Caraș-Severin), Zona Timișoara (Timiș). Cer întăriri (echipe din alte regiuni sau contractori); decide dispecerul.
 - `A-20250708-PT-1182`: Modelul nu e sigur: două cauze aproape la egalitate. E risc pentru oameni: decide un om azi.
 - `A-20250708-PT-1238`: Modelul nu e sigur: cauza cea mai probabilă are sub 50%. E risc pentru oameni: decide un om azi.
+- `A-20250708-PT-1017`: Modelul nu e sigur: cauza cea mai probabilă are sub 50%. Valoarea așteptată 1.357 lei: decide un om.
+- `A-20250708-PT-1166`: Modelul nu e sigur: cauza cea mai probabilă are sub 50%. Valoarea așteptată 1.279 lei: decide un om.
+- `A-20250708-PT-1067`: Modelul nu e sigur: cauza cea mai probabilă are sub 50%. Valoarea așteptată 1.179 lei: decide un om.
+- `A-20250708-PT-1257`: Modelul nu e sigur: cauza cea mai probabilă are sub 50%. Valoarea așteptată 1.014 lei: decide un om.
+- `A-20250708-PT-1047`: Modelul nu e sigur: două cauze aproape la egalitate. Valoarea așteptată 738 lei: decide un om.
+- `A-20250708-PT-1091`: Modelul nu e sigur: cauza cea mai probabilă are sub 50%. Valoarea așteptată 592 lei: decide un om.
+- `A-20250708-PT-1239`: Modelul nu e sigur: două cauze aproape la egalitate. Valoarea așteptată 507 lei: decide un om.
+- `A-20250708-PT-1219`: Modelul nu e sigur: cauza cea mai probabilă are sub 50%. Valoarea așteptată 423 lei: decide un om.
+- `A-20250708-MTR-015386`: Modelul nu e sigur: probabilitatea de problemă e 17%: sub 11% contorul ar fi sigur normal, peste 33% sigur o problemă; între ele, pe datele de calibrare se amestecă cele două. Valoarea așteptată 303 lei: decide un om.
+- `A-20250708-MTR-004241`: Modelul nu e sigur: probabilitatea de problemă e 16%: sub 11% contorul ar fi sigur normal, peste 33% sigur o problemă; între ele, pe datele de calibrare se amestecă cele două. Valoarea așteptată 292 lei: decide un om.
+- `A-20250708-MTR-009763`: Modelul nu e sigur: probabilitatea de problemă e 33%: sub 11% contorul ar fi sigur normal, peste 33% sigur o problemă; între ele, pe datele de calibrare se amestecă cele două. Valoarea așteptată 270 lei: decide un om.
 - `A-20250708-MTR-004149`: Modelul nu e sigur: consum mic: poate fi o locuință goală sau sărăcie energetică, nu furt; un om verifică înainte să trimitem echipa. E risc pentru oameni: decide un om azi.
-- `A-20250708-MTR-003459`: Modelul nu e sigur: consum mic: poate fi o locuință goală sau sărăcie energetică, nu furt; un om verifică înainte să trimitem echipa. E risc pentru oameni: decide un om azi.
-- `A-20250708-MTR-000121`: Modelul nu e sigur: consum mic: poate fi o locuință goală sau sărăcie energetică, nu furt; un om verifică înainte să trimitem echipa. E risc pentru oameni: decide un om azi.
 - `A-20250708-MTR-010557`: Modelul nu e sigur: consum mic: poate fi o locuință goală sau sărăcie energetică, nu furt; un om verifică înainte să trimitem echipa. E risc pentru oameni: decide un om azi.
 - `A-20250708-MTR-000963`: Modelul nu e sigur: consum mic: poate fi o locuință goală sau sărăcie energetică, nu furt; un om verifică înainte să trimitem echipa. E risc pentru oameni: decide un om azi.
-- `A-20250708-MTR-004514`: Modelul nu e sigur: consum mic: poate fi o locuință goală sau sărăcie energetică, nu furt; un om verifică înainte să trimitem echipa. E risc pentru oameni: decide un om azi.
-- `A-20250708-MTR-005573`: Modelul nu e sigur: consum mic: poate fi o locuință goală sau sărăcie energetică, nu furt; un om verifică înainte să trimitem echipa. E risc pentru oameni: decide un om azi.
-- `A-20250708-MTR-004473`: Modelul nu e sigur: consum mic: poate fi o locuință goală sau sărăcie energetică, nu furt; un om verifică înainte să trimitem echipa. E risc pentru oameni: decide un om azi.
-- `A-20250708-MTR-008329`: Modelul nu e sigur: consum mic: poate fi o locuință goală sau sărăcie energetică, nu furt; un om verifică înainte să trimitem echipa. E risc pentru oameni: decide un om azi.
 - `A-20250708-MTR-005865`: Modelul nu e sigur: consum mic: poate fi o locuință goală sau sărăcie energetică, nu furt; un om verifică înainte să trimitem echipa. E risc pentru oameni: decide un om azi.
-- `A-20250708-MTR-010160`: Modelul nu e sigur: consum mic: poate fi o locuință goală sau sărăcie energetică, nu furt; un om verifică înainte să trimitem echipa. E risc pentru oameni: decide un om azi.
-- `A-20250708-MTR-015308`: Modelul nu e sigur: consum mic: poate fi o locuință goală sau sărăcie energetică, nu furt; un om verifică înainte să trimitem echipa. E risc pentru oameni: decide un om azi.
-- `A-20250708-MTR-015211`: Modelul nu e sigur: consum mic: poate fi o locuință goală sau sărăcie energetică, nu furt; un om verifică înainte să trimitem echipa. E risc pentru oameni: decide un om azi.
-- `A-20250708-MTR-009232`: Modelul nu e sigur: consum mic: poate fi o locuință goală sau sărăcie energetică, nu furt; un om verifică înainte să trimitem echipa. E risc pentru oameni: decide un om azi.
-- `A-20250708-MTR-004652`: Modelul nu e sigur: consum mic: poate fi o locuință goală sau sărăcie energetică, nu furt; un om verifică înainte să trimitem echipa. E risc pentru oameni: decide un om azi.
 
 ## Alerte
 
-- **critical** 103 cazuri cu risc de siguranță. Intră primele în trasee, oricare ar fi costul: PT-1293, Sector 3 (sintetic), PT-1097, Sector 1 (sintetic), Contor MTR-007525, PT-1145, Sector 2 (sintetic), PT-1098, 1 Decembrie (sintetic), PT-1194, Ștefăneștii de Jos (sintetic), PT-1154, Sector 5 (sintetic) și încă 97.
-- **critical** 20 cazuri de siguranță de decis azi. Modelul nu e sigur, dar e risc pentru oameni: Contor MTR-013553, PT-1255, Sector 6 (sintetic), Contor MTR-005980, PT-1116, Tunari (sintetic), Contor MTR-005165, PT-1101, Sector 4 (sintetic), PT-1182, Sector 3 (sintetic), PT-1238, Chitila (sintetic), Contor MTR-004149, PT-1081, Sector 3 (sintetic) și încă 14.
+- **critical** 24 cazuri cu risc de siguranță. Cu dovadă din bilanțul postului (energie lipsă confirmată sau furt înainte de contor). Intră primele în trasee, oricare ar fi costul: PT-1293, Sector 3 (sintetic), PT-1097, Sector 1 (sintetic), PT-1098, 1 Decembrie (sintetic), PT-1194, Ștefăneștii de Jos (sintetic), PT-1154, Sector 5 (sintetic), PT-1291, Otopeni (sintetic) și încă 18.
 - **warning** Risc de avarii: Zona Oravița (Caraș-Severin). Rafale de vânt de 70 km/h; sezonul de vară: frunziș bogat, furtuni convective. Furtuna e așteptată de la 15:00 (fereastra 15:00-21:00). Probabilitate de avarii 50%; în scenariul pesimist (P90), 2.455 clienți fără curent.
 - **warning** Risc de avarii: Zona Timișoara (Timiș). 15 mm de ploaie în 48 de ore; sezonul de vară: frunziș bogat, furtuni convective. Furtuna e așteptată de la 15:00 (fereastra 15:00-21:00). Probabilitate de avarii 43%; în scenariul pesimist (P90), 14.693 clienți fără curent.
 - **warning** Risc de avarii: Zona Ineu (Arad) (model nesigur, decide dispecerul). 19 mm de ploaie în 48 de ore; rafale de 78 km/h în ziua de dinainte. Furtuna e așteptată de la 15:00 (fereastra 15:00-21:00). Probabilitate de avarii 58%; în scenariul pesimist (P90), 4.886 clienți fără curent.
+- **critical** 6 cazuri de siguranță de decis azi. Modelul nu e sigur, dar e risc pentru oameni: PT-1182, Sector 3 (sintetic), PT-1238, Chitila (sintetic), Contor MTR-004149, PT-1081, Sector 3 (sintetic), Contor MTR-010557, PT-1199, Sector 3 (sintetic), Contor MTR-000963, PT-1020, Sector 2 (sintetic), Contor MTR-005865, PT-1114, Sector 4 (sintetic).
 - **critical** Întăriri necesare: 1 cazuri de siguranță nu încap în turele de mâine. Au primit o citire la distanță și trec primele în planul următor. Propun ore suplimentare sau echipe din alte baze: PT-1194, Ștefăneștii de Jos (sintetic).
 - **critical** Întăriri necesare: 7 zone de furtună fără echipă. Plafonul de echipe trimise din timp e atins în Banat. Valoare așteptată 36.762 lei: Zona Lugoj (Timiș), Zona Sânnicolau Mare (Timiș), Zona Lipova (Arad), Zona Reșița (Caraș-Severin), Zona Caransebeș (Caraș-Severin), Zona Deva (Hunedoara) și încă 1. Propun echipe din alte regiuni sau contractori; dispecerul aprobă zonele din coada „nu sunt sigur”.
-- **info** 25 lucrări așteaptă decizia unui om. Valoare așteptată totală 50.102 lei. Aprobă, respinge sau amână din consolă.
-- **warning** 181 lucrări n-au încăput în turele de mâine. Valoare așteptată 144.869 lei. Ce s-a putut, trece pe citire la distanță; restul rămâne pentru planul următor.
-- **info** Contextul zilei. Contoare și posturi: 630 lucrări; 17 în trasee, 504 verificări de la distanță sau corecții în birou, 17 la dispecer. Furtună: 26 zone analizate, cel mai mare risc 58%; 3 echipe trimise din timp. Tensiune: 33 posturi cu risc din 300 (soare pe panou până la 956 W/m² la prânz, 35 °C): 15 posturi rămân la urmărire (15 sub prag sau sub limită chiar și în scenariul pesimist), 18 primesc mesaje către prosumatori, 0 primesc echipă.
+- **info** 25 lucrări așteaptă decizia unui om. Valoare așteptată totală 57.615 lei. Aprobă, respinge sau amână din consolă.
+- **warning** 194 lucrări n-au încăput în turele de mâine. Valoare așteptată 151.165 lei. Ce s-a putut, trece pe citire la distanță; restul rămâne pentru planul următor.
+- **info** Contextul zilei. Contoare și posturi: 630 lucrări; 17 în trasee, 473 verificări de la distanță sau corecții în birou, 17 la dispecer. Furtună: 26 zone analizate, cel mai mare risc 58%; 3 echipe trimise din timp. Tensiune: 33 posturi cu risc din 300 (soare pe panou până la 956 W/m² la prânz, 35 °C): 15 posturi rămân la urmărire (15 sub prag sau sub limită chiar și în scenariul pesimist), 18 primesc mesaje către prosumatori, 0 primesc echipă.
 
 ## Scara de soluții pentru tensiune
 
@@ -264,19 +264,19 @@ Fuziunea cu bilanțul pe post: ok, 530 contoare confirmate.
 
 | Regula | Decizii |
 |---|---|
-| `R-CAPACITY-REMOTE` | 174 |
-| `R-A-REMOTE-FIRST` | 116 |
-| `R-SAFETY-OVER-CAP` | 91 |
+| `R-CAPACITY-REMOTE` | 187 |
+| `R-A-REMOTE-FIRST` | 154 |
+| `R-ABSTAIN-WATCH` | 62 |
 | `R-ABSTAIN-DATA` | 61 |
 | `R-BILANT-REMOTE` | 51 |
-| `R-ABSTAIN-WATCH` | 48 |
-| `R-HUMAN-QUEUE-FULL` | 25 |
+| `R-A-WATCH` | 42 |
 | `R-ABSTAIN` | 17 |
 | `R-C-WATCH` | 15 |
 | `R-REMEDY-LADDER` | 14 |
 | `R-B-BELOW-THRESHOLD` | 14 |
-| `R-A-WATCH` | 14 |
+| `R-SAFETY-OVER-CAP` | 12 |
 | `R-SAFETY` | 11 |
+| `R-HUMAN-QUEUE-FULL` | 11 |
 | `R-BILANT-OFFICE` | 7 |
 | `R-CAPACITY` | 7 |
 | `R-B-REGION-CAP` | 7 |
@@ -291,7 +291,7 @@ Fuziunea cu bilanțul pe post: ok, 530 contoare confirmate.
 
 ## Cum a lucrat agentul
 
-- Timpi (secunde): Perceive 0.01, Estimate 15.40, Decide 7.81, Act 0.00.
-- Optimizator: ortools (SUCCESS), 293 lucrări candidate, 11 echipe, 7.67 s.
+- Timpi (secunde): Perceive 0.01, Estimate 14.06, Decide 5.94, Act 0.00.
+- Optimizator: ortools (SUCCESS), 227 lucrări candidate, 11 echipe, 5.83 s.
 - Ipotezele de cost: `config/economics.yaml` (cu sursele); pragurile: `config/planner.yaml`.
 - Fiecare decizie are în jurnal (`audit.jsonl`) ID-ul predicției, versiunea modelului, regula și pragurile.

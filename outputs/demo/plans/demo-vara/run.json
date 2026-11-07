@@ -8,7 +8,7 @@
       "valid": 532,
       "invalid": 0,
       "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/demo-vara/A.jsonl",
-      "seconds": 10.498,
+      "seconds": 9.483,
       "optional": false
     },
     "A_bilant": {
@@ -18,7 +18,7 @@
       "valid": 98,
       "invalid": 0,
       "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/demo-vara/A_bilant.jsonl",
-      "seconds": 0.004,
+      "seconds": 0.002,
       "optional": false
     },
     "B": {
@@ -28,7 +28,7 @@
       "valid": 26,
       "invalid": 0,
       "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/demo-vara/B.jsonl",
-      "seconds": 0.156,
+      "seconds": 0.144,
       "optional": false
     },
     "C": {
@@ -38,27 +38,27 @@
       "valid": 33,
       "invalid": 0,
       "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/demo-vara/C.jsonl",
-      "seconds": 4.744,
+      "seconds": 4.431,
       "optional": false
     }
   },
   "day_context": [
-    "Contoare și posturi: 630 lucrări; 17 în trasee, 504 verificări de la distanță sau corecții în birou, 17 la dispecer.",
+    "Contoare și posturi: 630 lucrări; 17 în trasee, 473 verificări de la distanță sau corecții în birou, 17 la dispecer.",
     "Furtună: 26 zone analizate, cel mai mare risc 58%; 3 echipe trimise din timp.",
     "Tensiune: 33 posturi cu risc din 300 (soare pe panou până la 956 W/m² la prânz, 35 °C): 15 posturi rămân la urmărire (15 sub prag sau sub limită chiar și în scenariul pesimist), 18 primesc mesaje către prosumatori, 0 primesc echipă."
   ],
-  "plan_id": "PLAN-demo-vara-20250708-172556-fd43",
+  "plan_id": "PLAN-demo-vara-20250708-182006-043b",
   "scenario": "demo-vara",
   "plan_date": "2025-07-08",
   "as_of": "2025-07-07T18:00:00+03:00",
-  "generated_at": "2026-11-07T17:25:56+02:00",
-  "planner_version": "planner@0.1.0+a23ffdb",
+  "generated_at": "2026-11-07T18:20:06+02:00",
+  "planner_version": "planner@0.1.0+e7b7c7d",
   "solver": {
     "name": "ortools",
     "status": "SUCCESS",
-    "seconds": 7.669,
-    "objective_lei": 100167052.26,
-    "tasks": 293,
+    "seconds": 5.829,
+    "objective_lei": 100130974.16,
+    "tasks": 227,
     "crews": 11
   },
   "overrides": 0,
@@ -96,7 +96,8 @@
       "inverter_trips_avoided": 25.0,
       "crew_steps": [
         "phase_rebalance"
-      ]
+      ],
+      "title_ro": "Soluție: mutare pe faze + baterii + limită de injecție"
     },
     {
       "post_id": "PT-1076",
@@ -126,7 +127,8 @@
       "inverter_trips_avoided": 16.0,
       "crew_steps": [
         "phase_rebalance"
-      ]
+      ],
+      "title_ro": "Soluție: mutare pe faze + baterii + limită de injecție"
     },
     {
       "post_id": "PT-1300",
@@ -156,7 +158,8 @@
       "inverter_trips_avoided": 8.0,
       "crew_steps": [
         "phase_rebalance"
-      ]
+      ],
+      "title_ro": "Soluție: mutare pe faze + baterii + limită de injecție"
     },
     {
       "post_id": "PT-1147",
@@ -187,7 +190,8 @@
       "crew_steps": [
         "phase_rebalance",
         "adjust_tap"
-      ]
+      ],
+      "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
     },
     {
       "post_id": "PT-1131",
@@ -211,7 +215,8 @@
       "inverter_trips_avoided": 15.0,
       "crew_steps": [
         "phase_rebalance"
-      ]
+      ],
+      "title_ro": "Soluție: mutare pe faze + limită de injecție"
     },
     {
       "post_id": "PT-1075",
@@ -242,7 +247,8 @@
       "crew_steps": [
         "phase_rebalance",
         "adjust_tap"
-      ]
+      ],
+      "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
     },
     {
       "post_id": "PT-1072",
@@ -273,7 +279,8 @@
       "crew_steps": [
         "phase_rebalance",
         "adjust_tap"
-      ]
+      ],
+      "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
     },
     {
       "post_id": "PT-1005",
@@ -295,7 +302,8 @@
       "invest": false,
       "battery": null,
       "inverter_trips_avoided": 4.0,
-      "crew_steps": []
+      "crew_steps": [],
+      "title_ro": "Soluție: mesaje Ore Smart + limită de injecție"
     },
     {
       "post_id": "PT-1255",
@@ -326,7 +334,8 @@
       "crew_steps": [
         "phase_rebalance",
         "adjust_tap"
-      ]
+      ],
+      "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
     },
     {
       "post_id": "PT-1119",
@@ -351,7 +360,8 @@
       "crew_steps": [
         "phase_rebalance",
         "adjust_tap"
-      ]
+      ],
+      "title_ro": "Soluție: mutare pe faze + priza transformatorului"
     },
     {
       "post_id": "PT-1087",
@@ -376,7 +386,8 @@
       "crew_steps": [
         "phase_rebalance",
         "adjust_tap"
-      ]
+      ],
+      "title_ro": "Soluție: mutare pe faze + priza transformatorului"
     },
     {
       "post_id": "PT-1263",
@@ -405,7 +416,8 @@
       "inverter_trips_avoided": 18.0,
       "crew_steps": [
         "adjust_tap"
-      ]
+      ],
+      "title_ro": "Soluție: priza transformatorului + baterii"
     },
     {
       "post_id": "PT-1252",
@@ -430,7 +442,8 @@
       "crew_steps": [
         "phase_rebalance",
         "adjust_tap"
-      ]
+      ],
+      "title_ro": "Soluție: mutare pe faze + priza transformatorului"
     },
     {
       "post_id": "PT-1082",
@@ -461,7 +474,8 @@
       "crew_steps": [
         "phase_rebalance",
         "adjust_tap"
-      ]
+      ],
+      "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
     }
   ],
   "work_orders": [
@@ -475,9 +489,9 @@
     "E-RS-1.pdf"
   ],
   "timings": {
-    "perceive": 0.008,
-    "estimate": 15.404,
-    "decide": 7.832,
-    "act": 0.959
+    "perceive": 0.009,
+    "estimate": 14.06,
+    "decide": 5.957,
+    "act": 1.051
   }
 }
