@@ -1,0 +1,14 @@
+<template><link rel="stylesheet" href="assets/theme.css"><style>#root{position:absolute;inset:0;overflow:hidden;background:var(--paper)}#out-caption{font-size:94px;font-weight:620;letter-spacing:-.045em;line-height:1.08}</style>
+<div id="root" data-composition-id="outage" data-width="1920" data-height="1080"><h1 id="out-title" class="headline" style="position:absolute;left:192px;top:105px">Poles fall.</h1>
+<div id="out-screen" class="screen" style="left:192px;top:250px;width:1536px;height:750px"><img src="assets/screens/plan.png" alt="Actual Daybreak dispatch console"></div>
+<div id="out-caption" class="body" style="position:absolute;left:192px;top:106px;background:white;width:1500px">Homes go dark.</div>
+</div>
+<script>(function(){const tl=gsap.timeline({paused:true});
+gsap.set('#out-screen img',{scale:.8});
+gsap.set('#out-caption',{opacity:0});
+tl.fromTo('#out-screen',{y:70,opacity:0},{y:0,opacity:1,duration:.7,ease:'power3.out'},.05);
+tl.to('#out-title',{opacity:0,duration:.12},1.27);
+tl.fromTo('#out-caption',{x:40,opacity:0},{x:0,opacity:1,duration:.35,ease:'power3.out'},1.35);
+tl.to('#out-screen img',{scale:1.18,x:-50,y:-125,duration:1.0,ease:'power3.inOut'},1.7);
+
+window.__timelines=window.__timelines||{};window.__timelines["outage"]=tl;})();</script></template>

@@ -1,0 +1,14 @@
+<template><link rel="stylesheet" href="assets/theme.css"><style>#root{position:absolute;inset:0;overflow:hidden;background:var(--paper)}#root{background:#000f1e}</style>
+<div id="root" data-composition-id="end" data-width="1920" data-height="1080"><div id="end-name" class="title" style="position:absolute;left:192px;top:310px;width:1536px;text-align:center;font-size:192px;color:#fff">Daybreak</div>
+<p id="end-line1" class="body" style="position:absolute;left:192px;top:570px;width:1536px;text-align:center;color:#fff;font-size:56px">Tomorrow’s crews,</p>
+<p id="end-line2" class="body" style="position:absolute;left:192px;top:640px;width:1536px;text-align:center;color:#fff;font-size:56px">planned tonight.</p>
+<p id="end-audience" class="body" style="position:absolute;left:192px;top:810px;width:1536px;text-align:center;font-size:32px;color:#b4c1cd">For Rețele Electrice dispatchers.</p>
+<p id="end-team" class="small" style="position:absolute;left:192px;top:915px;width:1536px;text-align:center;color:#b4c1cd">CyberPunks / SmartHack 2026</p></div>
+<script>(function(){const tl=gsap.timeline({paused:true});
+tl.fromTo('#end-name',{scale:1.15},{scale:1,duration:.65,ease:'power3.out'},0);
+tl.fromTo('#end-line1',{y:30,opacity:0},{y:0,opacity:1,duration:.5,ease:'power3.out'},1.55);
+tl.fromTo('#end-line2',{y:30,opacity:0},{y:0,opacity:1,duration:.5,ease:'power3.out'},2.4);
+tl.fromTo('#end-audience',{opacity:0},{opacity:1,duration:.5},4.0);
+tl.fromTo('#end-team',{opacity:0},{opacity:1,duration:.5},6.42);
+
+window.__timelines=window.__timelines||{};window.__timelines["end"]=tl;})();</script></template>
