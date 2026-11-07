@@ -30,6 +30,15 @@ def read_private_env() -> dict[str, str]:
 def environment() -> dict[str, str]:
     values = os.environ.copy()
     values.update(read_private_env())
+    for name in ("channels.env", "meta-whatsapp.env"):
+        path = RUNTIME / name
+        if path.is_file():
+            if path.stat().st_mode & 0o077:
+                raise SystemExit(f"Private credentials must have mode 0600: {path.name}")
+            for line in path.read_text().splitlines():
+                key, sep, value = line.partition("=")
+                if sep and key.startswith(("ELEVENLABS_", "DAYBREAK_META_", "DAYBREAK_WHATSAPP_")):
+                    values[key] = value.strip().strip("\"'")
     return values
 
 
