@@ -96,6 +96,111 @@
     "note_ro": {
       "title": "Note Ro",
       "type": "string"
+    },
+    "participation_rate": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Rata de participare folosită (IPOTEZĂ)",
+      "title": "Participation Rate"
+    },
+    "risk_hours": {
+      "description": "Orele cu risc vizate, de exemplu ['12:00-15:00']",
+      "items": {
+        "type": "string"
+      },
+      "title": "Risk Hours",
+      "type": "array"
+    },
+    "inverter_trips_avoided": {
+      "anyOf": [
+        {
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Opriri ale invertoarelor evitate",
+      "title": "Inverter Trips Avoided"
+    },
+    "message_preview_ro": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Textul de grup, pe post, fără date personale",
+      "title": "Message Preview Ro"
+    },
+    "customers_targeted": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Customers Targeted"
+    },
+    "battery_kwh_total": {
+      "anyOf": [
+        {
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "kWh de baterii propuși, total pe post",
+      "title": "Battery Kwh Total"
+    },
+    "revenue_lei": {
+      "anyOf": [
+        {
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Venit estimat pentru PPC Energie",
+      "title": "Revenue Lei"
+    },
+    "payback_years": {
+      "anyOf": [
+        {
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Perioada de recuperare pentru client",
+      "title": "Payback Years"
     }
   },
   "required": [

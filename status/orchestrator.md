@@ -5,6 +5,7 @@ Actualizat: 2026-11-07 12:43
 - Schelet: pachetul Python, contractele (WorkItem, Plan, AuditRecord, ModelReport, Series), fixture-uri, teste, configurări, planul (docs/PLAN.md), contractele explicate (docs/CONTRACTS.md), instrucțiunile firelor (prompts/).
 - 12:44: pornite cele 6 fire (thread-urile în memory/10-implementare.md), fiecare în worktree-ul lui din /Users/teo/.t3/worktrees/CyberPunks/.
 - 12:46: programarea de 30 de minute (prima rulare 13:15) și caffeinate pentru 26 de ore.
+- 14:05: decizia lui Teo (13:45): bilanț pe post (fir nou Teo-bilant, mcp:509cafcf-5f9a-4ee8-9ab0-68cb1bfbb85a) și scara de soluții pentru C. Contracte extinse, mesaje către A, C, planificator, interfață, prezentare; programarea actualizată cu firul nou.
 ## Urmează
 - Verificare la fiecare 30 de minute: stări, cereri, merge-uri, teste de integrare.
 - Data demo-vara pusă: 2025-07-08.

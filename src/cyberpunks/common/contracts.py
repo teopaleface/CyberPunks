@@ -225,6 +225,15 @@ class RemedyOption(_Strict):
     crew_skill: CrewSkill | None = None
     combinable: bool = Field(default=True, description="Se poate combina cu alte trepte")
     note_ro: str
+    # Treapta 3 (mesaje țintite pe post) și treapta 4 (baterii pe profil), completări aprobate la 14:00
+    participation_rate: float | None = Field(default=None, ge=0.0, le=1.0, description="Rata de participare folosită (IPOTEZĂ)")
+    risk_hours: list[str] = Field(default_factory=list, description="Orele cu risc vizate, de exemplu ['12:00-15:00']")
+    inverter_trips_avoided: float | None = Field(default=None, ge=0.0, description="Opriri ale invertoarelor evitate")
+    message_preview_ro: str | None = Field(default=None, description="Textul de grup, pe post, fără date personale")
+    customers_targeted: int | None = Field(default=None, ge=0)
+    battery_kwh_total: float | None = Field(default=None, ge=0.0, description="kWh de baterii propuși, total pe post")
+    revenue_lei: float | None = Field(default=None, ge=0.0, description="Venit estimat pentru PPC Energie")
+    payback_years: float | None = Field(default=None, ge=0.0, description="Perioada de recuperare pentru client")
 
 
 class BilantFusion(_Strict):

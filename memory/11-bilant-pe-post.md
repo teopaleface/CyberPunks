@@ -44,3 +44,10 @@ Regula: cea mai ieftină combinație care aduce P90 al tensiunii sub 1,10 pu; ex
 - Detalii: `docs/CONTRACTS.md`, secțiunea "Extinderea din 7 nov., 14:00".
 
 Regula echipei de la 21:30 rămâne: dacă A, B sau C nu bate metoda simplă la M2, efortul merge întâi acolo.
+
+## Completări pentru scara C (Teo, 7 nov., 14:00)
+
+- **Treapta 3, mesaje țintite pe post** (inspirat de Take Charge, CSIRO Solar Hackathon 2016): mesajul pleacă doar către clienții Ore Smart de pe posturile cu P90 peste 1,10 pu și doar pentru orele cu risc. Efectul se calculează cu simularea C, pentru o rată de participare din config (IPOTEZĂ, interval 10/20/30%): cât scade tensiunea și câte opriri ale invertoarelor se evită. Textul e de grup, pe post sau stradă, din șablon cu cifre verificate în cod, fără date personale ("Strada ta a evitat ieri 3 opriri ale panourilor solare. Mâine între 12 și 15, pornește mașina de spălat și boilerul."). Dacă la participarea minimă P90 nu coboară sub 1,10 pu, treapta se combină cu următoarea.
+- **Treapta 4, baterie calculată pe profil** (inspirat de YellowGrid, locul 1 la CleanTech Hackathon 2025, eveniment susținut de PPC): pentru fiecare prosumator de pe un post cu risc, variante de 5, 10, 15 kWh: energia neinjectată la prânz, efectul pe tensiunea postului (simularea C, cu bateriile tuturor celor care acceptă), perioada de recuperare (prețuri și costuri în config, cu SURSĂ sau IPOTEZĂ). Oferta merge doar la cei la care bateria ajută postul. Rezultat: listă pentru PPC Energie, ordonată după efectul pe tensiune și după venit, plus textul ofertei. Canal: magazinele PPC și Flanco după preluare.
+- Contract: `RemedyOption` are câmpuri opționale noi: `participation_rate`, `risk_hours`, `inverter_trips_avoided`, `message_preview_ro`, `customers_targeted`, `battery_kwh_total`, `revenue_lei`, `payback_years`.
+- Respinse de Teo: prognoza pentru cumpărarea de energie a furnizorului (PPC o are în producție) și jocul Take Charge ca funcție separată (rămâne doar textul de grup).
