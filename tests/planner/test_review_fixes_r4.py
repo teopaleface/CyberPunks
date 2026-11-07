@@ -128,3 +128,19 @@ def test_uncertain_high_risk_storm_still_raises_the_risk_alert(out_root: Path) -
     assert _decisions(res)[storm["work_item_id"]].decision.value == "human_review"
     risk = [a for a in res.plan.alerts if a.title_ro.startswith("Risc de avarii") and storm["work_item_id"] in a.work_item_ids]
     assert len(risk) == 1 and "decide dispecerul" in risk[0].title_ro
+
+
+def test_remote_first_text_never_asks_for_a_score_above_100_percent(out_root: Path) -> None:
+    """Cererea orchestratorului de la 17:05: „scorul ar trebui să fie peste 1004%” nu are sens."""
+    a = fixture_items("A")[1]
+    tiny = variant(a, "MTR-T001", **{"prediction.score": 0.6, "prediction.confidence": "medium", "impact.value_if_true_lei": 40.0})
+    near = variant(a, "MTR-T002", **{"prediction.score": 0.6, "prediction.confidence": "medium", "impact.value_if_true_lei": 400.0})
+    write_items(out_root, "A", [tiny, near])
+    d = _decisions(agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root))
+    small = d[tiny["work_item_id"]]
+    assert small.rule_id == "R-A-REMOTE-FIRST"
+    assert "Chiar dacă problema ar fi sigură, valoarea (40 lei) nu acoperă vizita" in small.reason_ro
+    assert "scorul ar trebui" not in small.reason_ro and "breakeven_score" not in small.threshold
+    mid = d[near["work_item_id"]]  # valoarea sigură (400 lei) acoperă vizita, cea așteptată nu: pragul are sens și se scrie
+    assert mid.rule_id == "R-A-REMOTE-FIRST" and "scorul ar trebui să fie peste" in mid.reason_ro
+    assert 0 < mid.threshold["breakeven_score"] <= 1

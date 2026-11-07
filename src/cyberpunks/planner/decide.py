@@ -513,15 +513,18 @@ def rule_meters(ctx: Context, item: Item) -> Proposal:
     remote = estimate_costs(ctx, wi, "remote_reading")
     ev = wi.impact.expected_value_lei
     net_visit = ev - visit.total
-    breakeven = visit.total / wi.impact.value_if_true_lei if wi.impact.value_if_true_lei else 1.0
+    # Scorul de la care vizita se plătește. Peste 1 nu există: atunci nici o problemă sigură nu acoperă vizita.
+    value_if_true = wi.impact.value_if_true_lei
+    breakeven = visit.total / value_if_true if value_if_true > 0 else float("inf")
     th = {
         "min_net_value_lei": min_net,
         "expected_value_lei": round(ev, 2),
         "visit_cost_lei": round(visit.total, 2),
         "net_value_lei": round(net_visit, 2),
-        "breakeven_score": round(breakeven, 3),
         "score": pr.score,
     }
+    if breakeven <= 1.0:
+        th["breakeven_score"] = round(breakeven, 3)
     remote_fallback = None
     if smart and pr.score >= remote_min:
         remote_fallback = _final(
@@ -571,6 +574,11 @@ def rule_meters(ctx: Context, item: Item) -> Proposal:
             why = (
                 f"Încredere medie (scor {pct(pr.score)}) și valoare netă mică ({lei(net_visit)}, sub marja de {lei(margin)}): "
                 f"întâi citire la distanță ({lei(remote.total)}), fără deplasare."
+            )
+        elif breakeven > 1.0:
+            why = (
+                f"Chiar dacă problema ar fi sigură, valoarea ({lei(value_if_true)}) nu acoperă vizita ({lei(visit.total)}): "
+                f"citire la distanță ({lei(remote.total)})."
             )
         else:
             why = (
