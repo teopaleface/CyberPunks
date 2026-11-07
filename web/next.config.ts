@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+
+// local (next dev): legăturile Cloudflare din wrangler.jsonc (KV-ul conturilor) sunt simulate de wrangler
+initOpenNextCloudflareForDev();
 
 // Pe Cloudflare (OpenNext) randarea parțială a Cache Components blochează workerul: construirea pentru
 // Cloudflare (CF_BUILD=1, vezi `bun run cf:build`) o oprește; paginile rămân dinamice și citesc la fiecare cerere.
