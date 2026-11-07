@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Wordmark } from "@/components/brand/logo";
+import { Briefing } from "@/components/plan/briefing";
 import { PlanScreen, type PostsInfo } from "@/components/plan/plan-screen";
 import { Readouts } from "@/components/plan/readouts";
 import { SyntheticGlyph } from "@/components/shell/provenance";
+import { toBriefing } from "@/lib/briefing";
 import { fmtDateLong } from "@/lib/format";
 import type { PlanScreenData } from "@/lib/plan-screen";
 import type { LocatorGeo } from "@/lib/server/geo";
@@ -12,9 +14,13 @@ import type { LocatorGeo } from "@/lib/server/geo";
 interface Scene {
   title: string;
   text: string;
+  /** „briefing”: primul ecran simplu; „map”: harta mare, cu linia de timp și detaliile lucrării. */
+  view: "briefing" | "map";
   region?: string;
   selected?: string | null;
   spotlight?: "queue" | "peek" | "feeders" | "map" | null;
+  /** Ce se evidențiază pe briefing. */
+  spot?: "case" | null;
 }
 
 /**
@@ -38,7 +44,6 @@ export function DemoStage({
 }) {
   const scenes: Scene[] = useMemo(() => {
     const decisions = Object.values(data.decisions);
-    const human = decisions.find((d) => d.decision === "human_review");
     const ranked = decisions.filter((d) => d.decision === "assigned" && d.rank != null).toSorted((a, b) => (a.rank ?? 99) - (b.rank ?? 99));
     const top = ranked[0];
     const storm = decisions
@@ -46,23 +51,42 @@ export function DemoStage({
       .toSorted((a, b) => (data.regionOf[a.work_item_id] === "banat" ? -1 : 0) - (data.regionOf[b.work_item_id] === "banat" ? -1 : 0))[0];
     const stormRegion = storm ? (data.regionOf[storm.work_item_id] ?? undefined) : undefined;
     return [
-      { title: "Planul de mâine", text: "Unde merg echipele mâine și de ce, din trei modele antrenate de noi: contoare, furtună, tensiune.", region: data.defaultRegion, selected: data.defaultSelected, spotlight: null },
+      {
+        title: "Planul de mâine",
+        text: "Unde merg echipele mâine și de ce, din trei modele antrenate de noi: contoare, furtună, tensiune.",
+        view: "briefing",
+        spot: null,
+      },
       {
         title: "Nu sunt sigur: decide un om",
         text: "Ce nu poate decide singur, agentul trimite la dispecer, cu motivul în cuvinte simple.",
-        selected: human?.work_item_id ?? data.defaultSelected,
-        region: (human ? data.regionOf[human.work_item_id] : null) ?? data.defaultRegion,
-        spotlight: "queue",
+        view: "briefing",
+        spot: "case",
       },
       {
         title: "De ce a decis agentul așa",
         text: "Scorul, intervalul, factorii, cazul asemănător și regula, până la predicția și versiunea modelului.",
+        view: "map",
         selected: top?.work_item_id ?? data.defaultSelected,
         region: (top ? data.regionOf[top.work_item_id] : null) ?? data.defaultRegion,
         spotlight: "peek",
       },
-      { title: "Echipa ajunge înainte de furtună", text: "Unde vine furtuna, echipa e trimisă din timp, înainte de fereastra de risc.", region: stormRegion, selected: storm?.work_item_id ?? null, spotlight: "map" },
-      { title: "Ziua echipelor", text: "Traseele devin ordine de lucru; dispecerul aprobă lista pentru mâine.", region: data.defaultRegion, selected: data.defaultSelected, spotlight: "feeders" },
+      {
+        title: "Echipa ajunge înainte de furtună",
+        text: "Unde vine furtuna, echipa e trimisă din timp, înainte de fereastra de risc.",
+        view: "map",
+        region: stormRegion,
+        selected: storm?.work_item_id ?? null,
+        spotlight: "map",
+      },
+      {
+        title: "Ziua echipelor",
+        text: "Traseele devin ordine de lucru; dispecerul aprobă lista pentru mâine.",
+        view: "map",
+        region: data.defaultRegion,
+        selected: data.defaultSelected,
+        spotlight: "feeders",
+      },
     ];
   }, [data]);
 
@@ -104,6 +128,7 @@ export function DemoStage({
 
   const scene = scenes[index];
   const sceneProp = useMemo(() => ({ region: scene.region, selected: scene.selected, spotlight: scene.spotlight }), [scene]);
+  const briefing = useMemo(() => toBriefing(data), [data]);
 
   return (
     <div className="dark flex h-dvh min-h-[720px] flex-col overflow-hidden bg-canvas text-ink [color-scheme:dark]">
@@ -137,25 +162,32 @@ export function DemoStage({
           ))}
         </nav>
       </header>
-      <Readouts summary={data.summary} planDate={data.planDate} shift={data.shift} generatedAt={generatedAt} crewsTotal={data.crews.length} />
-      <div className="relative flex min-h-0 flex-1 flex-col">
-        <PlanScreen key={data.planId} data={data} geo={geo} initialSelected={scenes[index].selected ?? data.defaultSelected} postsInfo={postsInfo} theme="dark" scene={sceneProp} />
-        <div
-          key={index}
-          className="pointer-events-none absolute bottom-[326px] left-4 z-20 w-[min(720px,52%)] animate-in fade-in slide-in-from-bottom-2 rounded-[6px] border border-rule bg-panel/95 px-5 py-3.5 duration-500"
-          aria-hidden="true"
-        >
-          <p className="text-[13px] tracking-[0.01em] text-muted-foreground tabular-nums">
-            Scena {index + 1} din {scenes.length}
-          </p>
-          <p className="text-[22px] leading-tight font-[650]">{scene.title}</p>
-          <p className="mt-1 text-[16px] leading-snug text-ink-soft">{scene.text}</p>
-        </div>
-        {/* regiunea anunțată rămâne montată; subtitrarea vizibilă se remontează doar pentru intrare */}
-        <p role="status" className="sr-only">
-          Scena {index + 1} din {scenes.length}: {scene.title}. {scene.text}
+      {/* subtitrarea scenei: o bandă opacă a ei, nu peste hartă (se citește și pe proiector) */}
+      <section aria-hidden="true" className="flex shrink-0 items-baseline gap-6 border-b border-rule bg-panel px-7 py-4">
+        <p className="shrink-0 text-[15px] text-muted-foreground tabular-nums">
+          Scena {index + 1} din {scenes.length}
         </p>
-      </div>
+        <p key={index} className="animate-in fade-in duration-300 motion-reduce:animate-none">
+          <b className="text-[24px] leading-tight font-[620]">{scene.title}.</b>{" "}
+          <span className="text-[19px] text-ink-soft">{scene.text}</span>
+        </p>
+      </section>
+      {/* regiunea anunțată rămâne montată */}
+      <p role="status" className="sr-only">
+        Scena {index + 1} din {scenes.length}: {scene.title}. {scene.text}
+      </p>
+      {scene.view === "briefing" ? (
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <Briefing data={data} briefing={briefing} generatedAt={generatedAt} approval={null} theme="dark" spot={scene.spot ?? null} compact />
+        </div>
+      ) : (
+        <>
+          <Readouts summary={data.summary} planDate={data.planDate} shift={data.shift} generatedAt={generatedAt} crewsTotal={data.crews.length} />
+          <div className="relative flex min-h-0 flex-1 flex-col">
+            <PlanScreen key={data.planId} data={data} geo={geo} initialSelected={scenes[index].selected ?? data.defaultSelected} postsInfo={postsInfo} theme="dark" scene={sceneProp} />
+          </div>
+        </>
+      )}
     </div>
   );
 }

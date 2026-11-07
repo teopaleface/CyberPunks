@@ -33,16 +33,24 @@ export function Briefing({
   briefing: b,
   generatedAt,
   approval,
+  theme = "light",
+  spot = null,
+  compact = false,
 }: {
   data: PlanScreenData;
   briefing: BriefingModel;
   generatedAt: string;
   approval: { at: string; local: boolean } | null;
+  theme?: "light" | "dark";
+  /** În prezentare: ce se evidențiază (cazul de decis). */
+  spot?: "case" | null;
+  /** Mai puțin spațiu sus (prezentarea are deja o bandă cu subtitrarea). */
+  compact?: boolean;
 }) {
   const critical = data.alerts.filter((a) => a.severity === "critical").length;
   const shift = data.shift ? `tura ${data.shift.start}–${data.shift.end}` : "tura de zi";
   return (
-    <div className="mx-auto w-full max-w-[1776px] px-[72px] pt-12 pb-16 max-[1500px]:px-10">
+    <div className={cn("mx-auto w-full max-w-[1776px] px-[72px] pb-16 max-[1500px]:px-10", compact ? "pt-8" : "pt-12")}>
       <section aria-labelledby="ziua" className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-x-16 gap-y-8 max-[1300px]:grid-cols-1">
         <div>
           <p className="text-[18px] text-muted-foreground">
@@ -82,17 +90,17 @@ export function Briefing({
       </section>
 
       {/* sub 1700 px, harta trece pe rândul ei, pe toată lățimea: cazul și echipele au loc să respire */}
-      <div className="mt-14 grid grid-cols-2 gap-x-14 gap-y-12 min-[1700px]:grid-cols-[minmax(0,560px)_minmax(0,1fr)_minmax(0,560px)]">
-        <NextCase briefing={b} scenario={data.scenario} />
+      <div className={cn("grid grid-cols-2 gap-x-14 gap-y-12 min-[1700px]:grid-cols-[minmax(0,560px)_minmax(0,1fr)_minmax(0,560px)]", compact ? "mt-10" : "mt-14")}>
+        <NextCase briefing={b} scenario={data.scenario} highlight={spot === "case"} />
         <CrewsSummary briefing={b} data={data} approval={approval} />
-        <MapCard data={data} />
+        <MapCard data={data} theme={theme} />
       </div>
     </div>
   );
 }
 
 // ------------------------------------------------------------------ următorul caz
-function NextCase({ briefing: b, scenario }: { briefing: BriefingModel; scenario: string }) {
+function NextCase({ briefing: b, scenario, highlight = false }: { briefing: BriefingModel; scenario: string; highlight?: boolean }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [acting, setActing] = useState<ReviewDecision | null>(null);
@@ -122,7 +130,7 @@ function NextCase({ briefing: b, scenario }: { briefing: BriefingModel; scenario
   };
   const meta = SOURCES[next.item.source];
   return (
-    <section aria-labelledby="caz" className="self-start rounded-[6px] border border-rule bg-panel px-7 py-6">
+    <section aria-labelledby="caz" className={cn("self-start rounded-[6px] border border-rule bg-panel px-7 py-6", highlight && "spot")}>
       <p className="flex items-center gap-2.5 text-[16px] font-[600] text-att-ink">
         <span className="size-3 rounded-full" style={{ background: `var(--src-${next.item.source.toLowerCase()})` }} aria-hidden="true" />
         Următorul caz de decis
@@ -305,7 +313,7 @@ function DayDetails({ data, generatedAt }: { data: PlanScreenData; generatedAt: 
 }
 
 // ------------------------------------------------------------------ harta mică
-function MapCard({ data }: { data: PlanScreenData }) {
+function MapCard({ data, theme = "light" }: { data: PlanScreenData; theme?: "light" | "dark" }) {
   const router = useRouter();
   const region = data.regions.find((r) => r.id === data.defaultRegion);
   const items: MapItem[] = useMemo(() => {
@@ -350,6 +358,7 @@ function MapCard({ data }: { data: PlanScreenData }) {
           selectedId={null}
           onSelect={(id) => router.push(`/lucrari/${encodeURIComponent(id)}?scenariu=${encodeURIComponent(data.scenario)}`)}
           padding={THUMB_PADDING}
+          theme={theme}
         />
       </div>
       <p className="mt-3 text-[16.5px] leading-snug text-ink-soft">
