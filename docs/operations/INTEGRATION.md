@@ -27,9 +27,11 @@ Routerul cyberpunks.operations.router exportă router, cu prefix /api/operations
 
 - GET /api/operations/context returnează actor, scenario, plan, connections, work_items și cases, toate filtrate.
 - POST /api/operations/proposals primește action, data și scenario.
+- GET /api/operations/proposals/{id} recitește numai propunerea proprie, încă validă, fără executare. Contextul include cel mult zece propuneri proprii în pending_proposals.
 - Acțiunile sunt create_case, record_verdict, review_work_item, approve_plan, set_availability și request_human.
 - POST /api/operations/proposals/{id}/confirm execută propunerea confirmată și returnează comanda și rezultatul.
 - GET /api/operations/commands/{id} permite recuperarea rezultatului după întrerupere.
+- POST /api/operations/commands/{id}/recover permite anularea motivată de către dispecerul cu recover_commands numai când efectul nu a fost publicat. pending_commands face comenzile întrerupte vizibile după refresh.
 
 Modificările suplimentare ale contractului se scriu aici înainte de integrare. Nicio acțiune pregătită de conversație nu se confirmă automat.
 
