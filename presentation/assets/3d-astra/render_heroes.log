@@ -1,0 +1,42 @@
+/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/assets/3d-astra/build_render.py:24: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(name); m.use_nodes=True
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+RENDER_DEVICES [('Apple M5 Max', 'CPU', False), ('Apple M5 Max (GPU - 32 cores)', 'METAL', True)]
+/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/assets/3d-astra/build_render.py:158: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  scene.world=bpy.data.worlds.new('Neutral studio environment'); scene.world.use_nodes=True
+FRAMING meter hero_span 0.8 max_span 0.8849412455117821
+00:06.818  render           | Saved: '/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/assets/3d-astra/meter_hero.png'
+Info: Saved as "meter.blend"
+ASSET_FRAME meter 29 1024 6.269
+ASSET_FINISHED meter
+RENDER_DEVICES [('Apple M5 Max', 'CPU', False), ('Apple M5 Max (GPU - 32 cores)', 'METAL', True)]
+FRAMING transformer hero_span 0.7486814510287247 max_span 0.9000000000000001
+00:16.535  render           | Saved: '/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/assets/3d-astra/transformer_hero.png'
+Info: Saved as "transformer.blend"
+ASSET_FRAME transformer 29 1024 6.041
+ASSET_FINISHED transformer
+RENDER_DEVICES [('Apple M5 Max', 'CPU', False), ('Apple M5 Max (GPU - 32 cores)', 'METAL', True)]
+FRAMING solar hero_span 0.7999999999999999 max_span 0.8201110574574053
+00:20.839  render           | Saved: '/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/assets/3d-astra/solar_hero.png'
+Info: Saved as "solar.blend"
+ASSET_FRAME solar 29 1024 3.649
+ASSET_FINISHED solar
+RENDER_DEVICES [('Apple M5 Max', 'CPU', False), ('Apple M5 Max (GPU - 32 cores)', 'METAL', True)]
+FRAMING storm hero_span 0.8 max_span 0.8137376964379366
+00:25.971  render           | Saved: '/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/assets/3d-astra/storm_hero.png'
+Info: Saved as "storm.blend"
+ASSET_FRAME storm 29 1024 3.811
+ASSET_FINISHED storm
+RENDER_DEVICES [('Apple M5 Max', 'CPU', False), ('Apple M5 Max (GPU - 32 cores)', 'METAL', True)]
+FRAMING helmet hero_span 0.7569095736633347 max_span 0.9000000000000001
+00:30.018  render           | Saved: '/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/assets/3d-astra/helmet_hero.png'
+Info: Saved as "helmet.blend"
+ASSET_FRAME helmet 29 1024 3.733
+ASSET_FINISHED helmet
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

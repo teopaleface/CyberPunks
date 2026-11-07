@@ -151,10 +151,14 @@ web-test:         ## testele consolei (stratul de date: API, instantaneu demo, f
 	cd web && bun test
 
 # ---- Prezentare (firul Teo-prezentare) ----
-.PHONY: presentation-assets music video-check video-preview video-preview-stop video-render
+.PHONY: presentation-assets presentation-assets-v1 music video-check video-preview video-preview-stop video-render
 HF := npx -y hyperframes@0.9.19
 
-presentation-assets:  ## harta de noapte NASA, granițele regiunilor, schița scenei cu agentul
+presentation-assets:  ## cifrele din film (din reports/ și outputs/demo/) și captura consolei reale
+	uv run python presentation/scripts/cifre_film.py
+	@echo "Captura consolei: pornește make web și make api, apoi rulează bash presentation/scripts/capture_consola.sh"
+
+presentation-assets-v1:  ## activele variantei 1 a filmului (harta NASA, granițele, schița scenei 5), păstrate pentru istoric
 	uv run python presentation/scripts/fetch_night_lights.py
 	uv run --with shapely python presentation/scripts/build_map_overlay.py
 	uv run --with shapely python presentation/scripts/build_s5_scene.py
@@ -172,6 +176,6 @@ video-preview:        ## previzualizare pe portul 3720 (rămâne pornită în fu
 video-preview-stop:
 	cd presentation/video && $(HF) preview --stop
 
-video-render:         ## exportul final în presentation/exports/ (H.264, AAC 48 kHz, -16 LUFS)
+video-render:         ## exportul final în presentation/exports/ (H.264, AAC 48 kHz, -14 LUFS), verificat automat
 	bash presentation/scripts/export_video.sh
 

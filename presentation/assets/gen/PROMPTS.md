@@ -77,3 +77,10 @@ Create one photorealistic premium Apple-style product-film still. Landscape 16:9
 
 All five PNG files were checked with sips. Visual inspection found no text, logos, numbers or people. The meter was regenerated once to reduce subject size. Requested largest available resolution / ideally 3840×2160 in every prompt; the built-in tool exposes no size control and returned 1672×941. No resizing or code drawing was used.
 
+
+
+## 3D Blender, gpt-6.1-sol
+
+2026-11-07. Cinci obiecte pentru "Tura de mâine": contor, transformator pe un segment de stâlp de beton, panou solar pe o bucată de acoperiș cu soare amber, nor cu bază prună și fulger alb, cască albă cu bandă amber. Modele 3D create de un agent AI în Blender 5.2.1, procedural prin bpy, cu geometrie reală, muchii rotunjite, materiale Principled și patru lumini de studio. Fără modele sau texturi descărcate. Referințele obj_*.png din gen3d au fost consultate vizual.
+
+Rezultate în `../3d-sol/`: cinci imagini principale transparente 1024×1024, cinci rotații de 120° a câte 30 de cadre transparente 512×512 și cinci foi RGBA 3072×2560. Cycles Metal, 64/32 de eșantioane, denoise, Film Transparent, color management Standard. Scripturile, comenzile exacte, timpii măsurați și verificările sunt în același director. Material vizual realizat cu AI, 3D modelled by an AI agent in Blender.

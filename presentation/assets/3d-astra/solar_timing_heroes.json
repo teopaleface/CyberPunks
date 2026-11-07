@@ -1,0 +1,12 @@
+{
+  "object": "solar",
+  "engine": "CYCLES",
+  "frames": [
+    {
+      "path": "solar_hero.png",
+      "seconds": 3.649,
+      "size": 1024,
+      "samples": 96
+    }
+  ]
+}

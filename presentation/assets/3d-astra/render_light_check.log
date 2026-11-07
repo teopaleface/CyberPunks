@@ -1,0 +1,24 @@
+/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/assets/3d-astra/build_render.py:24: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(name); m.use_nodes=True
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+RENDER_DEVICES [('Apple M5 Max', 'CPU', False), ('Apple M5 Max (GPU - 32 cores)', 'METAL', True)]
+/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/assets/3d-astra/build_render.py:158: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  scene.world=bpy.data.worlds.new('Neutral studio environment'); scene.world.use_nodes=True
+FRAMING helmet hero_span 0.7569095736633347 max_span 0.9000000000000001
+00:07.095  render           | Saved: '/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/assets/3d-astra/helmet_hero.png'
+Info: Saved as "helmet.blend"
+ASSET_FRAME helmet 29 1024 6.427
+ASSET_FINISHED helmet
+RENDER_DEVICES [('Apple M5 Max', 'CPU', False), ('Apple M5 Max (GPU - 32 cores)', 'METAL', True)]
+FRAMING meter hero_span 0.8 max_span 0.8849412455117821
+00:12.400  render           | Saved: '/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/assets/3d-astra/meter_hero.png'
+Info: Saved as "meter.blend"
+ASSET_FRAME meter 29 1024 5.098
+ASSET_FINISHED meter
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

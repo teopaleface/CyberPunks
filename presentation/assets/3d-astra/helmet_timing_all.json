@@ -1,0 +1,192 @@
+{
+  "object": "helmet",
+  "engine": "CYCLES",
+  "frames": [
+    {
+      "path": "helmet_hero.png",
+      "seconds": 3.704,
+      "size": 1024,
+      "samples": 96
+    },
+    {
+      "path": "helmet_spin/0000.png",
+      "seconds": 0.81,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0001.png",
+      "seconds": 0.704,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0002.png",
+      "seconds": 0.653,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0003.png",
+      "seconds": 0.644,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0004.png",
+      "seconds": 0.628,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0005.png",
+      "seconds": 0.703,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0006.png",
+      "seconds": 0.681,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0007.png",
+      "seconds": 0.671,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0008.png",
+      "seconds": 0.706,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0009.png",
+      "seconds": 0.677,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0010.png",
+      "seconds": 0.69,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0011.png",
+      "seconds": 0.656,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0012.png",
+      "seconds": 0.628,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0013.png",
+      "seconds": 0.627,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0014.png",
+      "seconds": 0.623,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0015.png",
+      "seconds": 0.616,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0016.png",
+      "seconds": 0.588,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0017.png",
+      "seconds": 0.596,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0018.png",
+      "seconds": 0.592,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0019.png",
+      "seconds": 0.603,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0020.png",
+      "seconds": 0.591,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0021.png",
+      "seconds": 0.59,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0022.png",
+      "seconds": 0.592,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0023.png",
+      "seconds": 0.592,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0024.png",
+      "seconds": 0.59,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0025.png",
+      "seconds": 0.62,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0026.png",
+      "seconds": 0.6,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0027.png",
+      "seconds": 0.615,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0028.png",
+      "seconds": 0.655,
+      "size": 512,
+      "samples": 32
+    },
+    {
+      "path": "helmet_spin/0029.png",
+      "seconds": 0.644,
+      "size": 512,
+      "samples": 32
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "object": "transformer",
+  "engine": "CYCLES",
+  "frames": [
+    {
+      "path": "transformer_hero.png",
+      "seconds": 6.041,
+      "size": 1024,
+      "samples": 96
+    }
+  ]
+}

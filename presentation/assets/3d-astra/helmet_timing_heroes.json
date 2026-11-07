@@ -1,0 +1,12 @@
+{
+  "object": "helmet",
+  "engine": "CYCLES",
+  "frames": [
+    {
+      "path": "helmet_hero.png",
+      "seconds": 3.733,
+      "size": 1024,
+      "samples": 96
+    }
+  ]
+}

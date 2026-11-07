@@ -1,0 +1,19 @@
+00:00.443  blend            | Read blend: "/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/assets/3d-astra/meter.blend"
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+SCENE_PASS meter 34 meshes 4400 vertices
+00:00.543  blend            | Read blend: "/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/assets/3d-astra/transformer.blend"
+SCENE_PASS transformer 102 meshes 40112 vertices
+00:04.174  blend            | Read blend: "/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/assets/3d-astra/solar.blend"
+SCENE_PASS solar 209 meshes 10304 vertices
+00:04.379  blend            | Read blend: "/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/assets/3d-astra/storm.blend"
+SCENE_PASS storm 2 meshes 30222 vertices
+00:05.589  blend            | Read blend: "/Users/teo/.t3/worktrees/CyberPunks/Teo-prezentare/presentation/assets/3d-astra/helmet.blend"
+SCENE_PASS helmet 37 meshes 38001 vertices
+ALL_SCENES_PASS
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit
