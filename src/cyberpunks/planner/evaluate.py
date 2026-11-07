@@ -442,6 +442,63 @@ def render_markdown(report: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def render_chart(report: dict[str, Any], path: Path) -> Path:
+    """Graficul evaluării (PNG): valoarea netă pe zi și urgențele ratate, pe strategii; agentul evidențiat.
+    Două panouri cu aceeași ordine (nu o axă dublă); valorile scrise direct pe bare; tabelul complet e în agent_eval.md."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib import font_manager
+
+    fonts = Path(__file__).parent / "assets" / "fonts"
+    for f in ("NotoSans-Regular.ttf", "NotoSans-Bold.ttf"):
+        font_manager.fontManager.addfont(str(fonts / f))
+    plt.rcParams.update({"font.family": "Noto Sans", "font.size": 10})
+    surface, ink, ink2, grid = "#fcfcfb", "#0b0b0b", "#52514e", "#e6e5e1"
+    accent, muted = "#2a78d6", "#a9a79f"
+    s = report["main"]["strategies"]
+    order = list(STRATEGIES)
+    labels = [NAMES_RO[n].replace(" (reguli + OR-Tools)", "").replace(" (o singură sursă)", "") for n in order]
+    panels = [
+        ("Valoare netă pe zi (lei)", [s[n]["net_value_lei_per_day"] for n in order], lambda v: _fmt(v)),
+        ("Urgențe ratate (mai puțin e mai bine)", [100 * s[n]["urgent_missed_rate"] for n in order], lambda v: f"{_fmt(v, 0)}%"),
+    ]
+    fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.6), dpi=160, gridspec_kw={"wspace": 0.55})
+    fig.patch.set_facecolor(surface)
+    for ax, (title, values, fmt) in zip(axes, panels, strict=True):
+        ax.set_facecolor(surface)
+        ys = list(range(len(order)))[::-1]
+        colors = [accent if n == "agent" else muted for n in order]
+        ax.barh(ys, values, height=0.56, color=colors, edgecolor=surface, linewidth=2)
+        top = max(values) or 1.0
+        for y, v, n in zip(ys, values, order, strict=True):
+            ax.text(v + top * 0.02, y, fmt(v), va="center", ha="left", color=ink if n == "agent" else ink2,
+                    fontweight="bold" if n == "agent" else "normal", fontsize=9.5)
+        ax.set_yticks(ys, labels, color=ink)
+        ax.set_xlim(0, top * 1.25)
+        ax.set_title(title, loc="left", color=ink, fontsize=11, fontweight="bold", pad=8)
+        ax.grid(axis="x", color=grid, linewidth=0.8)
+        ax.set_axisbelow(True)
+        ax.tick_params(axis="x", colors=ink2, labelsize=8.5, length=0)
+        ax.tick_params(axis="y", length=0)
+        ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(nbins=4))
+        ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _pos: _fmt(v)))
+        for side in ("top", "right", "left"):
+            ax.spines[side].set_visible(False)
+        ax.spines["bottom"].set_color(grid)
+    m = report["main"]
+    fig.text(0.01, 0.995, f"Agentul față de strategii simple: {m['days']} de zile SINTETICE, aceleași 11 echipe și restricții",
+             ha="left", va="top", color=ink2, fontsize=9)
+    fig.text(0.01, 0.01, f"Refacere: {report['reproduce_cmd']}. Tabelul complet: reports/planner/agent_eval.md",
+             ha="left", va="bottom", color=ink2, fontsize=7.5)
+    fig.subplots_adjust(left=0.13, right=0.97, top=0.82, bottom=0.17)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, facecolor=surface)
+    plt.close(fig)
+    return path
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Evaluarea agentului față de strategii simple (lume sintetică).")
     ap.add_argument("--days", type=int, default=30)
@@ -471,6 +528,7 @@ def main(argv: list[str] | None = None) -> int:
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     args.out.with_suffix(".md").write_text(render_markdown(report), encoding="utf-8")
+    render_chart(report, args.out.with_suffix(".png"))
     s = main_run["strategies"]
     print(f"Scris {args.out} ({report['runtime_s']} s)")
     print(f"{'strategie':<15}{'valoare netă/zi':>17}{'km/zi':>9}{'vizite inutile':>16}{'urgențe ratate':>16}")

@@ -23,7 +23,7 @@ PLAN_FILES = ["plan.json", "audit.jsonl", "work_items.jsonl", "quarantine.jsonl"
               "report.md", "run.json", "remedies.json", "approvals.json", "labels.jsonl"]
 REPORT_FILES = {
     "A": ["metrics.json"], "B": ["metrics.json"], "C": ["metrics.json"], "bilant": ["metrics.json"],
-    "planner": ["agent_eval.json", "agent_eval.md", "solver_benchmark.json", "README.md"],
+    "planner": ["agent_eval.json", "agent_eval.md", "agent_eval.png", "solver_benchmark.json", "README.md"],
 }
 
 

@@ -10,7 +10,9 @@ Fișiere:
 | `agent_eval.md` | tabelele, generate din `agent_eval.json` (nicio cifră scrisă de mână) | aceeași comandă |
 | `solver_benchmark.json` | OR-Tools față de inserarea greedy, pe 100, 200 și 300 de lucrări | `uv run python -m cyberpunks.planner.benchmark` (~6 min) |
 
-Rezultatele (tabelele) sunt în `agent_eval.md`.
+Rezultatele (tabelele) sunt în `agent_eval.md`; graficul, generat de aceeași comandă:
+
+![Agentul față de strategii simple](agent_eval.png)
 
 ## Lumea simulată (SINTETICĂ)
 
