@@ -109,6 +109,18 @@ def load_lcl(force: bool = False) -> tuple[np.ndarray, pd.DataFrame]:
     return np.load(HH_NPY, mmap_mode="r"), meta
 
 
+METER_RESOLUTION_KWH = 0.001  # contoarele din Londra raportează cu 3 zecimale (kWh)
+
+
+def quantize(hh: np.ndarray, step: float = METER_RESOLUTION_KWH) -> np.ndarray:
+    """Rotunjește la rezoluția contorului (NaN rămâne NaN).
+
+    Fără pasul ăsta, injecțiile prin înmulțire (alpha·x, beta·x, deriva) produc valori cu multe zecimale pe care
+    niciun contor real nu le trimite, iar modelul învață artefactul în loc de tiparul de consum.
+    """
+    return np.round(np.asarray(hh, dtype=np.float64) / step) * step
+
+
 def daily_from_halfhours(hh: np.ndarray, min_slots: int = 40) -> np.ndarray:
     """Consumul zilnic din citirile la 30 de minute; zilele cu sub `min_slots` citiri devin NaN (gol)."""
     n_valid = np.isfinite(hh).sum(axis=-1)
@@ -151,15 +163,29 @@ def assign_posts(split: np.ndarray, seed: int = SEED) -> np.ndarray:
     return post
 
 
-def value_lei(kwh_lost: float, n_days: int, family: str, kind: str) -> float:
-    """Valoarea reală (în lei) dacă problema e găsită acum: pierderea zilnică × orizont × cost + componenta fixă."""
+def economics() -> dict[str, float]:
+    """Ipotezele economice din config/economics.yaml (cheia `meters` și costul energiei pierdute)."""
     econ = load_config("economics")
     m = econ.get("meters", {})
-    horizon = float(m.get("detection_horizon_days", 90))
-    cost = float(econ.get("energy", {}).get("loss_cost_lei_per_kwh", 0.55))
-    fixed = float(m.get("faulty_meter_fixed_value_lei", 150.0)) if family == "faulty" else 0.0
+    visit = float(m.get("inspection_visit_cost_lei", 250))
+    return {
+        "horizon_days": float(m.get("detection_horizon_days", 90)),
+        "loss_cost_lei_per_kwh": float(econ.get("energy", {}).get("loss_cost_lei_per_kwh", 0.70)),
+        "visit_cost_lei": visit,
+        "remote_cost_lei": float(m.get("remote_reading_cost_lei", 2)),
+        "service_time_min": float(m.get("service_time_min", 40)),
+        # CALCUL: un contor defect, nereparat, cere cel puțin o deplasare în orizont (citire manuală sau reclamație),
+        # deci repararea lui evită costul unei vizite. Dacă planificatorul adaugă cheia, o folosim pe aceea.
+        "faulty_fixed_lei": float(m.get("faulty_meter_fixed_value_lei", visit)),
+    }
+
+
+def value_lei(kwh_lost: float, n_days: int, family: str, kind: str = "") -> float:
+    """Valoarea reală (în lei) dacă problema e găsită acum: pierderea zilnică × orizont × cost + componenta fixă."""
+    e = economics()
+    fixed = e["faulty_fixed_lei"] if family == "faulty" else 0.0
     daily_loss = max(0.0, kwh_lost) / max(n_days, 1)
-    return round(daily_loss * horizon * cost + fixed, 2)
+    return round(daily_loss * e["horizon_days"] * e["loss_cost_lei_per_kwh"] + fixed, 2)
 
 
 def _window(arr: np.ndarray, h: int, end_day: int) -> np.ndarray:
@@ -207,6 +233,7 @@ def build_samples(force: bool = False, seed: int = SEED) -> pd.DataFrame:
                     else:
                         start = int(rng.integers(WINDOW - 60, WINDOW - 3))
                     new, info = inj.inject(window, kind, rng, start)
+                    new = quantize(new)  # rezoluția contorului: altfel modelul învață "valori nerotunjite = furt"
                     active = info.kind != "none" and info.end_day > WINDOW - RECENT
                     family = info.family if active else "normal"
                     n_aff = max(1, info.end_day - info.start_day) if info.kind != "none" else 1

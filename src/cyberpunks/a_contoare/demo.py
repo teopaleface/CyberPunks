@@ -27,6 +27,7 @@ from cyberpunks.a_contoare.lcl import (
     build_samples,
     kind_probs,
     load_lcl,
+    quantize,
     value_lei,
 )
 from cyberpunks.common.paths import DATA_SAMPLES
@@ -94,14 +95,17 @@ def build_population(target: date, scenario: str = "demo", n_meters: int | None 
             if np.isfinite(win).any(axis=1).sum() >= 150 and np.isfinite(win[-RECENT:]).any(axis=1).sum() >= 21:
                 break
         scale = float(np.exp(rng.normal(0.0, 0.25)))
-        noise = rng.normal(1.0, 0.05, win.shape).clip(0.7, 1.3)
-        win = np.clip(win * scale * noise, 0.0, None)
+        # variație pe zi (nu pe jumătate de oră): păstrează forma zilei și valorile repetate naturale (frigiderul
+        # noaptea), care altfel ar dispărea și ar face orice contor să pară manipulat
+        day_factor = rng.normal(1.0, 0.04, (win.shape[0], 1)).clip(0.85, 1.15)
+        win = quantize(np.clip(win * scale * day_factor, 0.0, None))
         kind = inj.sample_kind(rng, probs)
         if kind in inj.EPISODIC_KINDS:
             start = int(rng.integers(WINDOW - 40, WINDOW - 7))
         else:
             start = int(rng.integers(WINDOW - 60, WINDOW - 3))
         new, info = inj.inject(win, kind, rng, start)
+        new = quantize(new)
         active = info.kind != "none" and info.end_day > WINDOW - RECENT
         family = info.family if active else "normal"
         lost = info.kwh_true - info.kwh_recorded
