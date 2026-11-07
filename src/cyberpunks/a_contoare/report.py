@@ -505,7 +505,8 @@ def build_model_card() -> str:
         ("- **Reper pe furt real:** SGCC (State Grid Corporation of China, Zheng et al. 2018), 42.372 de clienți, "
         "3.615 cu furt. Fără licență explicită: îl folosim doar pentru cercetare, fără să-l redistribuim."),
         ("- **Împărțirea:** Londra pe gospodării (60/20/20) și pe timp (test după antrenare); SGCC pe clienți "
-        "(60/20/20), stratificat. Calibrarea și pragurile, doar pe setul de calibrare."),
+        "(60/20/20), stratificat. Features alese pe o validare din setul de antrenare (gospodării ținute deoparte); "
+        "calibrarea și pragurile conformal, doar pe setul de calibrare; testul, privit o singură dată pe versiune."),
         ("- **Demo:** 15.850 de contoare SINTETICE pe cele 300 de posturi din registrul comun (58,81% din clienți, "
         "gradul de integrare din Muntenia), cu profile reale ale gospodăriilor de test."),
         "",
@@ -548,6 +549,8 @@ def build_model_card() -> str:
         ("- Precizia@K = 1,00 pe Londra vine din defectele evidente care umplu vârful listei. La K = numărul de "
         f"probleme, precizia e {f2(next(r['model_precision'] for r in L['ranking_at_ks'] if r['k'] == L['positives']))}. "
         "Detalii în `error_analysis.md`, secțiunea 2."),
+        ("- Figuri: `reports/A/figures/headline_precision.png`, `ranking_at_k.png`, `false_alarms_by_consumption.png`, "
+         "`calibration.png`, `detection_by_kind.png`."),
     ]
     if curve:
         c0, c3, c5 = curve.get(0.0, {}), curve.get(0.3, {}), curve.get(0.5, {})
@@ -555,6 +558,17 @@ def build_model_card() -> str:
             f"- Date lipsă (populația demo): PR-AUC {f2(c0.get('pr_auc'))} -> {f2(c3.get('pr_auc'))} -> "
             f"{f2(c5.get('pr_auc'))} la 0 / 30 / 50% zile lipsă. Peste 2/3 lipsă, agentul se abține și trimite la om."
         )
+    fc_path = REP / "fusion_check.json"
+    if fc_path.exists():
+        fc = json.loads(fc_path.read_text(encoding="utf-8"))
+        a2 = fc.get("demo-vara", {}).get("sigma_2pct", {})
+        if a2:
+            lines.append(
+                f"- Fuziunea cu bilanțul pe post (verificată pe testul A, bilanț cu sigma 2%): precizia@10 "
+                f"{f2(a2['precision_at_10_a'])} -> {f2(a2['precision_at_10_fused'])}, PR-AUC {f2(a2['pr_auc_a'], 3)} -> "
+                f"{f2(a2['pr_auc_fused'], 3)}. Confirmă mai ales defectele cu pierdere mare de energie, rar furtul, "
+                "niciodată tiparele fără pierdere de energie (`error_analysis.md`, secțiunea 9)."
+            )
     lines += [
         "",
         "## Limite",
