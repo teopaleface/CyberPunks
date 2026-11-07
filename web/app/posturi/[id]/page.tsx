@@ -11,6 +11,7 @@ import type { WorkItem } from "@/lib/contracts";
 import { getSeries } from "@/lib/data";
 import { factorLabelRo, DECISION_LABEL_RO, predictionLabelRo, ruleRo } from "@/lib/data/labels";
 import { POST_COLOR_THRESHOLDS, getPosts } from "@/lib/data/posts";
+import { getRemedies } from "@/lib/data/remedies";
 import { BILANT_LABEL, bilantFusion, remedyOptions } from "@/lib/extras";
 import { fmtDec, fmtInt, fmtLei, fmtScore, sentence } from "@/lib/format";
 import { markerKind, markerSvg } from "@/lib/marker-svg";
@@ -43,7 +44,12 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
   await connection();
   const id = safeDecode((await params).id);
   const scenario = await resolveScenario(searchParams);
-  const [{ info }, posts, view] = await Promise.all([loadShellInfo(scenario), getPosts(scenario), loadPlanView(scenario)]);
+  const [{ info }, posts, view, remedies] = await Promise.all([
+    loadShellInfo(scenario),
+    getPosts(scenario),
+    loadPlanView(scenario),
+    getRemedies(scenario).catch(() => null),
+  ]);
   const post = posts.data.find((p) => p.post_id === id);
   const items = view.data?.workItems ?? [];
   const decisions = view.data?.decisionsByWorkItemId ?? {};
@@ -80,8 +86,8 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
     <AppShell info={info}>
       <section className="border-b border-rule bg-panel">
         <div className="mx-auto flex max-w-[1760px] flex-wrap items-center gap-x-6 gap-y-3 px-7 py-5">
-          <Link href="/" className="text-[15px] text-muted-foreground underline decoration-rule underline-offset-4 hover:text-ink">
-            Planul de mâine
+          <Link href="/posturi" className="text-[15px] text-muted-foreground underline decoration-rule underline-offset-4 hover:text-ink">
+            Toate posturile
           </Link>
           <span className="h-6 w-px bg-rule" aria-hidden="true" />
           <span className="size-7 shrink-0 rounded-full border-2 border-panel" style={{ background: status.color }} aria-hidden="true" />
@@ -267,7 +273,13 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
                 Scara de soluții
               </h2>
               <div className="mt-2">
-                <RemedyLadder options={options} decision={cDecision ?? null} recommended={cItem.recommended_action} p90Before={cItem.prediction.point_interval?.[1] ?? null} />
+                <RemedyLadder
+                  options={options}
+                  decision={cDecision ?? null}
+                  recommended={cItem.recommended_action}
+                  p90Before={cItem.prediction.point_interval?.[1] ?? null}
+                  choice={remedies?.data.find((r) => r.work_item_id === cItem.work_item_id) ?? null}
+                />
               </div>
             </section>
           ) : null}

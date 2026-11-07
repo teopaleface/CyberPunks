@@ -90,6 +90,24 @@ export function minutesOfDay(iso: string): number {
   return (h % 24) * 60 + m;
 }
 
+const dayFmt = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" });
+
+/**
+ * Minutul față de miezul nopții din ziua planului (București): o întoarcere a doua zi la 00:15 devine 1455,
+ * nu 15, ca să rămână după plecare.
+ */
+export function minutesOfPlanDay(iso: string, planDate: string): number {
+  const day = dayFmt.format(new Date(iso));
+  const diffDays = Math.round((Date.parse(`${day}T00:00:00Z`) - Date.parse(`${planDate.slice(0, 10)}T00:00:00Z`)) / 86_400_000);
+  return minutesOfDay(iso) + diffDays * 1440;
+}
+
+/** „08:05”, iar a doua zi „00:15 (+1 zi)”. */
+export function hhmmDay(min: number): string {
+  const extra = Math.floor(min / 1440);
+  return extra > 0 ? `${hhmm(min)} (+${extra} zi)` : hhmm(min);
+}
+
 /** „HH:MM” → minutul zilei. */
 export function parseHHMM(s: string): number {
   const [h, m] = s.split(":").map(Number);

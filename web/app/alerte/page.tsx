@@ -8,6 +8,8 @@ import { fmtMoment, sentence } from "@/lib/format";
 import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
 import { AlertList } from "./_components/alert-list";
 import { MessageList } from "./_components/message-list";
+import { BatteryOffers } from "./_components/battery-offers";
+import { getRemedies } from "@/lib/data/remedies";
 import { DemoStamp } from "./_components/parts";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -23,7 +25,7 @@ export default function AlertsPage({ searchParams }: { searchParams: SearchParam
 async function Alerts({ searchParams }: { searchParams: SearchParams }) {
   await connection();
   const scenario = await resolveScenario(searchParams);
-  const { info, view } = await loadShellInfo(scenario);
+  const [{ info, view }, remedies] = await Promise.all([loadShellInfo(scenario), getRemedies(scenario).catch(() => null)]);
   const data = view.data;
   const scenarioLabel = info.scenarios.find((s) => s.id === scenario)?.label ?? scenario;
 
@@ -73,6 +75,8 @@ async function Alerts({ searchParams }: { searchParams: SearchParams }) {
           </div>
         </div>
       )}
+
+      {data && remedies ? <BatteryOffers remedies={remedies.data} scenario={scenario} /> : null}
 
       <p className="px-7 pt-4 pb-8 text-[13.5px] text-muted-foreground">
         Planul vine din: {SOURCE_LABEL_RO[view.source]}

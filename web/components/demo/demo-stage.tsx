@@ -47,10 +47,22 @@ export function DemoStage({
     const stormRegion = storm ? (data.regionOf[storm.work_item_id] ?? undefined) : undefined;
     return [
       { title: "Planul de mâine", text: "Unde merg echipele mâine și de ce, din trei modele antrenate de noi: contoare, furtună, tensiune.", region: data.defaultRegion, selected: data.defaultSelected, spotlight: null },
-      { title: "Nu sunt sigur: decide un om", text: "Ce nu poate decide singur, agentul trimite la dispecer, cu motivul în cuvinte simple.", selected: human?.work_item_id ?? data.defaultSelected, spotlight: "queue" },
-      { title: "De ce a decis agentul așa", text: "Scorul, intervalul, factorii, cazul asemănător și regula, până la predicția și versiunea modelului.", selected: top?.work_item_id ?? data.defaultSelected, spotlight: "peek" },
+      {
+        title: "Nu sunt sigur: decide un om",
+        text: "Ce nu poate decide singur, agentul trimite la dispecer, cu motivul în cuvinte simple.",
+        selected: human?.work_item_id ?? data.defaultSelected,
+        region: (human ? data.regionOf[human.work_item_id] : null) ?? data.defaultRegion,
+        spotlight: "queue",
+      },
+      {
+        title: "De ce a decis agentul așa",
+        text: "Scorul, intervalul, factorii, cazul asemănător și regula, până la predicția și versiunea modelului.",
+        selected: top?.work_item_id ?? data.defaultSelected,
+        region: (top ? data.regionOf[top.work_item_id] : null) ?? data.defaultRegion,
+        spotlight: "peek",
+      },
       { title: "Echipa ajunge înainte de furtună", text: "Unde vine furtuna, echipa e trimisă din timp, înainte de fereastra de risc.", region: stormRegion, selected: storm?.work_item_id ?? null, spotlight: "map" },
-      { title: "Ziua echipelor", text: "Traseele devin ordine de lucru; dispecerul aprobă lista pentru mâine.", spotlight: "feeders" },
+      { title: "Ziua echipelor", text: "Traseele devin ordine de lucru; dispecerul aprobă lista pentru mâine.", region: data.defaultRegion, selected: data.defaultSelected, spotlight: "feeders" },
     ];
   }, [data]);
 
@@ -60,7 +72,9 @@ export function DemoStage({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLElement && /input|textarea|select/i.test(e.target.tagName)) return;
+      if (e.defaultPrevented) return;
+      const el = e.target instanceof HTMLElement ? e.target : null;
+      if (el && (/^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/i.test(el.tagName) || el.closest('[role="button"]'))) return;
       setAutoOn(false); // orice tastă oprește derularea automată
       if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
         e.preventDefault();
@@ -119,7 +133,7 @@ export function DemoStage({
       </header>
       <Readouts summary={data.summary} planDate={data.planDate} shift={data.shift} generatedAt={generatedAt} crewsTotal={data.crews.length} />
       <div className="relative flex min-h-0 flex-1 flex-col">
-        <PlanScreen data={data} geo={geo} initialSelected={scenes[index].selected ?? data.defaultSelected} postsInfo={postsInfo} theme="dark" scene={sceneProp} />
+        <PlanScreen key={data.planId} data={data} geo={geo} initialSelected={scenes[index].selected ?? data.defaultSelected} postsInfo={postsInfo} theme="dark" scene={sceneProp} />
         <div
           key={index}
           className="pointer-events-none absolute bottom-[326px] left-4 z-20 w-[min(720px,52%)] animate-in fade-in slide-in-from-bottom-2 rounded-[6px] border border-rule bg-panel/95 px-5 py-3.5 duration-500"

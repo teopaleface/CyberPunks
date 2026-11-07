@@ -104,12 +104,40 @@ export function workItemShapeProblem(value: Record<string, unknown>): string | n
   if (!isRecord(loc) || !Number.isFinite(loc.lat) || !Number.isFinite(loc.lon)) {
     return "location.lat/lon lipsesc sau nu sunt numere";
   }
+  if (typeof loc.zone_id !== "string") return "location.zone_id lipsește";
+  if (typeof value.asset_id !== "string" || typeof value.asset_type !== "string") return "lipsesc asset_id sau asset_type";
   const prediction = value.prediction;
   if (!isRecord(prediction) || !Number.isFinite(prediction.score)) return "prediction.score lipsește";
-  if (!isRecord(value.impact) || !isRecord(value.effort) || !isRecord(value.explanation)) {
-    return "lipsesc impact, effort sau explanation";
+  if (typeof prediction.prediction_id !== "string" || typeof prediction.model_version !== "string") {
+    return "lipsesc prediction_id sau model_version (urmărirea până la model)";
+  }
+  if (typeof prediction.label !== "string" || typeof prediction.confidence !== "string") return "lipsesc prediction.label sau confidence";
+  const impact = value.impact;
+  const effort = value.effort;
+  const explanation = value.explanation;
+  if (!isRecord(impact) || !isRecord(effort) || !isRecord(explanation)) return "lipsesc impact, effort sau explanation";
+  if (!Number.isFinite(impact.expected_value_lei)) return "impact.expected_value_lei lipsește";
+  if (!Number.isFinite(effort.duration_min) || typeof effort.crew_skill !== "string") return "lipsesc effort.duration_min sau crew_skill";
+  if (!Array.isArray(explanation.top_factors) || typeof explanation.summary_ro !== "string") {
+    return "lipsesc explanation.top_factors sau summary_ro";
+  }
+  const dq = value.data_quality;
+  if (!isRecord(dq) || typeof dq.synthetic !== "boolean" || !Array.isArray(dq.data_sources)) {
+    return "lipsește data_quality (synthetic, data_sources)";
   }
   return null;
+}
+
+/** Valori implicite pentru listele opționale, ca afișarea să nu depindă de prezența lor. */
+function normalizeWorkItem(record: Record<string, unknown>): WorkItem {
+  const explanation = record.explanation as Record<string, unknown>;
+  const dq = record.data_quality as Record<string, unknown>;
+  return {
+    ...record,
+    explanation: { ...explanation, similar_cases: Array.isArray(explanation.similar_cases) ? explanation.similar_cases : [] },
+    data_quality: { ...dq, input_issues: Array.isArray(dq.input_issues) ? dq.input_issues : [] },
+    extra: isRecord(record.extra) ? record.extra : {},
+  } as unknown as WorkItem;
 }
 
 /** Împarte înregistrările în lucrări folosibile și probleme (cu numărul de ordine al liniei). */
@@ -126,7 +154,7 @@ export function splitWorkItems(records: Record<string, unknown>[], file: string)
         raw: clip(JSON.stringify(record)),
       });
     } else {
-      items.push(record as unknown as WorkItem);
+      items.push(normalizeWorkItem(record));
     }
   });
   return { records: items, errors };

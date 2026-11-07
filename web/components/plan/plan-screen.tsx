@@ -1,13 +1,14 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { cn } from "cn";
 import type { WorkItem } from "@/lib/contracts";
 import { DECISION_LABEL_RO } from "@/lib/data/labels";
 import type { PostSummary } from "@/lib/data/types";
-import { fmtDec, fmtInt, hhmm, minutesOfDay } from "@/lib/format";
+import { fmtDec, fmtInt, hhmm, minutesOfPlanDay } from "@/lib/format";
 import { markerKind, markerSvg } from "@/lib/marker-svg";
 import { loadWorkItemDetail } from "@/lib/data/actions";
 import { RE_BOUNDS, isSlim, itemTitle, type PlanScreenData } from "@/lib/plan-screen";
@@ -66,12 +67,12 @@ export function PlanScreen({
     const m = new Map<string, { crewId: string; seq: number; start: number; end: number }>();
     for (const r of data.routes) {
       for (const s of r.stops) {
-        const start = minutesOfDay(s.eta);
+        const start = minutesOfPlanDay(s.eta, data.planDate);
         m.set(s.work_item_id, { crewId: r.crew_id, seq: s.seq, start, end: start + s.duration_min });
       }
     }
     return m;
-  }, [data.routes]);
+  }, [data.routes, data.planDate]);
 
   const [selected, setSelected] = useState<string | null>(initialSelected);
   const [region, setRegionState] = useState<string>(() => {
@@ -188,20 +189,36 @@ export function PlanScreen({
   );
   // detaliile lucrării selectate (factori, cazuri similare) se încarcă la cerere și rămân în cache
   const [details, setDetails] = useState<Record<string, WorkItem>>({});
+  const [detailErrors, setDetailErrors] = useState<Record<string, string>>({});
+  const [retry, setRetry] = useState(0);
   const [, startDetail] = useTransition();
   const selectedBase = selected ? itemsById[selected] : undefined;
-  const needsDetail = Boolean(selected && selectedBase && isSlim(selectedBase) && !details[selected]);
+  const needsDetail = Boolean(selected && selectedBase && isSlim(selectedBase) && !details[selected] && !detailErrors[selected]);
   useEffect(() => {
     if (!needsDetail || !selected) return;
     let cancelled = false;
     startDetail(async () => {
-      const r = await loadWorkItemDetail(selected, data.scenario);
-      if (!cancelled && r.ok) setDetails((d) => ({ ...d, [selected]: r.workItem }));
+      try {
+        const r = await loadWorkItemDetail(selected, data.scenario);
+        if (cancelled) return;
+        if (r.ok) setDetails((d) => ({ ...d, [selected]: r.workItem }));
+        else setDetailErrors((e) => ({ ...e, [selected]: r.error }));
+      } catch {
+        if (!cancelled) setDetailErrors((e) => ({ ...e, [selected]: "Consola nu a putut cere detaliile (serverul nu răspunde)." }));
+      }
     });
     return () => {
       cancelled = true;
     };
-  }, [needsDetail, selected, data.scenario]);
+  }, [needsDetail, selected, data.scenario, retry]);
+  const retryDetail = useCallback((id: string) => {
+    setDetailErrors((e) => {
+      const next = { ...e };
+      delete next[id];
+      return next;
+    });
+    setRetry((n) => n + 1);
+  }, []);
   const selItem = selected ? (details[selected] ?? itemsById[selected] ?? null) : null;
   const selStop = selected ? stopInfo.get(selected) : undefined;
 
@@ -249,6 +266,8 @@ export function PlanScreen({
           <AlertsPanel alerts={data.alerts} onSelect={select} />
           <WorkItemPeek
             highlight={spotlight === "peek"}
+            detailError={selected ? (detailErrors[selected] ?? null) : null}
+            onRetry={selected ? () => retryDetail(selected) : undefined}
             w={selItem}
             decision={selected ? (data.decisions[selected] ?? null) : null}
             crewInfo={selStop ? { crewId: selStop.crewId, seq: selStop.seq, start: hhmm(selStop.start), end: hhmm(selStop.end) } : null}
@@ -269,6 +288,7 @@ export function PlanScreen({
         onSelect={select}
         scenario={data.scenario}
         planId={data.planId}
+        planDate={data.planDate}
         approval={approval ?? null}
       />
     </>
@@ -324,14 +344,14 @@ function Legend() {
     [markerSvg({ source: "B", kind: "pending", r: 9 }), "Amânată"],
   ];
   return (
-    <div className="absolute bottom-7 left-4 flex items-center gap-4 rounded-[4px] border border-rule bg-panel/95 px-3 py-1.5 text-[13.5px]">
+    <div className="absolute bottom-7 left-4 flex items-center gap-4 rounded-[4px] border border-rule bg-panel/95 px-3 py-1.5 text-[13.5px] max-[1500px]:gap-2.5 max-[1500px]:text-[13px]">
       {items.map(([html, label]) => (
         <span key={label} className="flex items-center gap-1.5 whitespace-nowrap">
           {sm(html)}
           {label}
         </span>
       ))}
-      <span className="flex items-center gap-1.5 whitespace-nowrap text-muted-foreground">
+      <span className="flex items-center gap-1.5 whitespace-nowrap text-muted-foreground max-[1500px]:hidden">
         <svg width="22" height="10" viewBox="0 0 26 12" aria-hidden="true">
           <path d="M1 9 Q13 0 25 9" fill="none" style={{ stroke: "var(--ink)" }} strokeWidth="2.2" />
         </svg>
@@ -362,7 +382,7 @@ function Locator({
   const label = region === ALL ? "Toată zona Rețele Electrice" : `Harta arată: ${data.regions.find((r) => r.id === region)?.label ?? region}`;
   const items = Object.values(itemsById);
   return (
-    <div className="absolute top-4 right-4 w-[292px] rounded-[4px] border border-rule bg-panel/95">
+    <div className="absolute top-4 right-4 w-[292px] rounded-[4px] border border-rule bg-panel/95 max-[1500px]:hidden">
       <div className="flex items-baseline justify-between border-b border-rule px-3 pt-2 pb-1.5 text-[14px]">
         <b className="font-[600]">Zona Rețele Electrice</b>
         <span className="text-muted-foreground">{label.replace("Harta arată: ", "")}</span>
@@ -452,6 +472,9 @@ function PostsLegend({ derived, note }: { derived: boolean; note: string | null 
         <span className="flex items-center gap-1.5">{dot("#c8321e")}peste 600</span>
         <span className="flex items-center gap-1.5">{dot("#9aa4a9")}necunoscut</span>
         <span className="text-muted-foreground">cercul mai mare, pierdere mai mare; clic pe un post pentru pagina lui</span>
+        <Link href="/posturi" className="font-[560] underline decoration-rule underline-offset-4 hover:decoration-ink">
+          Lista posturilor
+        </Link>
       </div>
       <p className="mt-1 text-[12.5px] text-muted-foreground">
         {derived

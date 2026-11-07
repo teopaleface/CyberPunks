@@ -25,7 +25,7 @@ export function Readouts({
         <>
           <b>lucrări intrate</b>
           <br />
-          {fmtInt(summary.items_valid)} valide, {fmtInt(summary.items_invalid)} în carantină
+          <span className="sec">{fmtInt(summary.items_valid)} valide, {fmtInt(summary.items_invalid)} în carantină</span>
         </>
       ),
     },
@@ -35,7 +35,7 @@ export function Readouts({
         <>
           <b>în trasee</b>
           <br />
-          {fmtInt(summary.crews_used)} din {fmtInt(crewsTotal)} echipe
+          <span className="sec">{fmtInt(summary.crews_used)} din {fmtInt(crewsTotal)} echipe</span>
         </>
       ),
     },
@@ -46,7 +46,7 @@ export function Readouts({
         <>
           <b>la om</b>
           <br />
-          decide dispecerul
+          <span className="sec">decide dispecerul</span>
         </>
       ),
     },
@@ -56,7 +56,7 @@ export function Readouts({
         <>
           <b>fără echipă</b>
           <br />
-          {fmtInt(summary.notifications)} mesaje, {fmtInt(summary.remote_actions)} la distanță
+          <span className="sec">{fmtInt(summary.notifications)} mesaje, {fmtInt(summary.remote_actions)} la distanță</span>
         </>
       ),
     },
@@ -71,7 +71,7 @@ export function Readouts({
         <>
           <b>valoare</b>
           <br />
-          așteptată
+          <span className="sec">așteptată</span>
         </>
       ),
     },
@@ -86,18 +86,18 @@ export function Readouts({
         <>
           <b>de parcurs</b>
           <br />
-          pe trasee
+          <span className="sec">pe trasee</span>
         </>
       ),
     },
   ];
   return (
-    <section aria-label="Cifrele zilei" className="flex h-[88px] shrink-0 border-b border-rule bg-canvas">
-      <div className="flex shrink-0 flex-col justify-center border-r border-rule bg-panel pr-7 pl-7">
-        <h1 className="text-[21px] leading-tight font-[650] tracking-[-0.005em] whitespace-nowrap">
+    <section aria-label="Cifrele zilei" className="flex h-[88px] shrink-0 border-b border-rule bg-canvas [@media(max-height:950px)]:h-[76px]">
+      <div className="flex shrink-0 flex-col justify-center border-r border-rule bg-panel pr-7 pl-7 max-[1600px]:pr-5 max-[1600px]:pl-5">
+        <h1 className="text-[21px] leading-tight font-[650] tracking-[-0.005em] whitespace-nowrap max-[1600px]:text-[18px]">
           {fmtDateLong(planDate)}
         </h1>
-        <p className="text-[14px] leading-snug whitespace-nowrap text-muted-foreground">
+        <p className="text-[14px] leading-snug whitespace-nowrap text-muted-foreground max-[1600px]:text-[13px]">
           {shift ? `tura ${shift.start}–${shift.end}` : "tura de zi"}
           <br />
           plan generat {fmtMoment(generatedAt)}
@@ -105,16 +105,16 @@ export function Readouts({
       </div>
       <dl className="flex min-w-0 flex-1">
         {cells.map((c, i) => (
-          <div key={i} className="flex min-w-0 flex-auto items-center gap-3 border-l border-rule px-5 first:border-l-0 min-[1700px]:px-6">
+          <div key={i} className="flex min-w-0 flex-auto items-center gap-3 border-l border-rule px-5 first:border-l-0 min-[1700px]:px-6 max-[1680px]:flex-col max-[1680px]:items-start max-[1680px]:justify-center max-[1680px]:gap-1 max-[1680px]:px-4">
             <dd
               className={
-                "num-wide order-1 text-[clamp(28px,2.1vw,40px)] whitespace-nowrap [&_small]:ml-1.5 [&_small]:text-[0.46em] [&_small]:font-[520] [&_small]:tracking-normal [&_small]:text-muted-foreground " +
+                "num-wide order-1 text-[clamp(26px,2.1vw,40px)] whitespace-nowrap max-[1680px]:text-[clamp(24px,2vw,32px)] [&_small]:ml-1.5 [&_small]:text-[0.46em] [&_small]:font-[520] [&_small]:tracking-normal [&_small]:text-muted-foreground " +
                 (c.attention ? "text-att" : "")
               }
             >
               {c.value}
             </dd>
-            <dt className="order-2 text-[14px] leading-[1.3] whitespace-nowrap text-muted-foreground [&_b]:font-[560] [&_b]:text-ink">
+            <dt className="order-2 text-[14px] leading-[1.3] whitespace-nowrap text-muted-foreground [&_b]:font-[560] [&_b]:text-ink max-[1680px]:text-[13px] max-[1680px]:[&_br]:hidden max-[1680px]:[&_b]:mr-1 max-[1400px]:[&_.sec]:hidden">
               {c.label}
             </dt>
           </div>

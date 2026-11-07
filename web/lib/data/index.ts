@@ -394,6 +394,12 @@ export async function getPlanView(scenario: string, options: ResolveOptions = {}
       : Promise.resolve(null),
   ]);
 
+  // API-ul a căzut între citiri: refacem tot setul din sursa de rezervă, ca planul, lucrările și jurnalul să se potrivească
+  if ((itemsResult.source !== planResult.source || auditResult.source !== planResult.source) && !options.startAt) {
+    const lower = itemsResult.source !== planResult.source ? itemsResult.source : auditResult.source;
+    return getPlanView(scenario, { ...options, startAt: lower });
+  }
+
   const workItems = itemsResult.data;
   const workItemsById: Record<string, WorkItem> = {};
   for (const item of workItems) workItemsById[item.work_item_id] = item;

@@ -47,16 +47,19 @@ export function Provenance({
       <TooltipTrigger asChild>
         <button
           type="button"
-          className="flex h-10 items-center gap-3 rounded-[4px] border border-ink px-3 text-[15px] font-[520] whitespace-nowrap"
+          className="flex h-10 items-center gap-3 rounded-[4px] border border-ink px-3 text-[15px] font-[520] whitespace-nowrap max-[1600px]:gap-2 max-[1600px]:text-[14.5px]"
         >
           <span className="flex items-center gap-2">
             <SyntheticGlyph />
-            {allSynthetic || totalItems === 0 ? "Date sintetice" : `Date sintetice în ${syntheticItems} din ${totalItems}`}
+            <span className="max-[1600px]:hidden">
+              {allSynthetic || totalItems === 0 ? "Date sintetice" : `Date sintetice în ${syntheticItems} din ${totalItems}`}
+            </span>
+            <span className="hidden max-[1600px]:inline">Date sintetice</span>
           </span>
           <span className="h-5 w-px bg-rule" aria-hidden="true" />
           <span className="flex items-center gap-2 text-muted-foreground">
             <span className={`size-2 rounded-full ${DOT[source]}`} aria-hidden="true" />
-            {PROVENANCE_SHORT_RO[source]}
+            <span className="max-[1500px]:sr-only">{PROVENANCE_SHORT_RO[source]}</span>
           </span>
         </button>
       </TooltipTrigger>

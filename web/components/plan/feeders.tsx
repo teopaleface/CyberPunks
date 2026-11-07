@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Decision, WorkItem } from "@/lib/contracts";
 import type { Crew, Depot, ResolvedRoute } from "@/lib/data/types";
-import { fmtDec, hhmm, parseHHMM } from "@/lib/format";
+import { fmtDec, hhmm, hhmmDay, parseHHMM } from "@/lib/format";
 import { markerSvg } from "@/lib/marker-svg";
 import { crewTimeline, timelineRange, workItemWindow, type CrewTimeline } from "@/lib/plan-derive";
 import type { QuarantineEntry } from "@/lib/plan-screen";
@@ -40,10 +40,12 @@ export function Feeders({
   onSelect,
   scenario,
   planId,
+  planDate,
   approval,
   highlight = false,
 }: {
   highlight?: boolean;
+  planDate: string;
   scenario: string;
   planId: string;
   approval: { at: string; local: boolean } | null;
@@ -68,7 +70,7 @@ export function Feeders({
   }, []);
 
   const model = useMemo(() => {
-    const timelines = routes.map((r) => ({ route: r, tl: crewTimeline(r, shift?.start ?? "08:00") }));
+    const timelines = routes.map((r) => ({ route: r, tl: crewTimeline(r, shift?.start ?? "08:00", planDate) }));
     // axa acoperă tura și orele echipelor; ferestrele mai lungi se taie la margine
     const windows: { start: number; end: number }[] = timelines.map(({ tl }) => ({ start: tl.depart, end: tl.back }));
     const range = timelineRange(shift, windows);
@@ -83,7 +85,7 @@ export function Feeders({
       groups.set(t.route.depot_id, g);
     }
     return { range, groups: [...groups.entries()] };
-  }, [routes, shift, depots]);
+  }, [routes, shift, depots, planDate]);
 
   const { range, groups } = model;
   const x = (m: number) => +(LEFT + ((m - range.start) / (range.end - range.start)) * (width - LEFT - RIGHT_PAD)).toFixed(1);
@@ -119,7 +121,7 @@ export function Feeders({
 
   return (
     <section aria-label="Ziua echipelor" className={"flex shrink-0 flex-col border-t border-rule bg-panel" + (highlight ? " spot" : "")}>
-      <div ref={boxRef} className="max-h-[244px] overflow-y-auto">
+      <div ref={boxRef} className="max-h-[244px] overflow-y-auto [@media(max-height:950px)]:max-h-[184px]">
         {routes.length === 0 ? (
           <p className="px-7 py-6 text-[15px] text-muted-foreground">
             Nicio echipă nu are lucrări mâine. Dacă există lucrări, sunt amânate sau așteaptă un om.
@@ -149,6 +151,7 @@ export function Feeders({
                 {groupRows.map(({ route, tl, cy }) => (
                   <CrewRow
                     scenario={scenario}
+                    planDate={planDate}
                     key={route.crew_id}
                     route={route}
                     tl={tl}
@@ -200,7 +203,7 @@ export function Feeders({
           </>
         ) : null}
         <span className="flex-1" />
-        <ApproveList scenario={scenario} planId={planId} approvedAt={approval?.at ?? null} approvedLocal={approval?.local ?? false} />
+        <ApproveList key={planId} scenario={scenario} planId={planId} approvedAt={approval?.at ?? null} approvedLocal={approval?.local ?? false} />
       </div>
     </section>
   );
@@ -208,6 +211,7 @@ export function Feeders({
 
 function CrewRow({
   scenario,
+  planDate,
   route,
   tl,
   cy,
@@ -219,6 +223,7 @@ function CrewRow({
   onSelect,
 }: {
   scenario: string;
+  planDate: string;
   route: ResolvedRoute;
   tl: CrewTimeline;
   cy: number;
@@ -237,10 +242,10 @@ function CrewRow({
       {/* ferestrele lucrărilor, în spatele rândului */}
       {tl.blocks.map((b) => {
         const w = itemsById[b.workItemId];
-        const win = w ? workItemWindow(w) : null;
+        const win = w ? workItemWindow(w, planDate) : null;
         if (!w || !win) return null;
         const storm = w.source === "B";
-        const label = storm ? `furtuna ${hhmm(win.start)}–${hhmm(win.end)}` : w.source === "C" ? `fereastra de tensiune ${hhmm(win.start)}–${hhmm(win.end)}` : `fereastra ${hhmm(win.start)}–${hhmm(win.end)}`;
+        const label = storm ? `furtuna ${hhmm(win.start)}–${hhmmDay(win.end)}` : w.source === "C" ? `fereastra de tensiune ${hhmm(win.start)}–${hhmm(win.end)}` : `fereastra ${hhmm(win.start)}–${hhmmDay(win.end)}`;
         return (
           <g key={`win-${b.workItemId}`}>
             <rect
@@ -300,7 +305,7 @@ function CrewRow({
       </text>
       <rect x={x(tl.back) - 5} y={cy - 5} width={10} height={10} style={{ fill: "var(--panel)", stroke: "var(--ink)" }} strokeWidth={2} />
       <text x={x(tl.back) + 10} y={cy + 23} fontSize={12.5} style={{ fill: "var(--muted-foreground)" }}>
-        {tl.backApprox ? "cca " : ""}revine {hhmm(tl.back)}
+        {tl.backApprox ? "cca " : ""}revine {hhmmDay(tl.back)}
       </text>
 
       {/* lucrul */}
