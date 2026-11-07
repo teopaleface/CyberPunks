@@ -105,7 +105,7 @@ def fuse(items: list[WorkItem], scenario: str, date: str | Date) -> list[WorkIte
         if approx:
             # contorul nu e în registrul de posturi: legătura după poziție nu e o dovadă, scorul rămâne cel al lui A
             comb, log_lr = a, 0.0
-        comb = round(comb, 4)
+        comb = round(min(comb, 0.99), 4)  # nicio probabilitate afișată nu e 100%
         if approx:
             note = f"Contorul nu e legat în bază de un post din registru; cel mai apropiat post e {pid}, dar fără legătură sigură bilanțul nu schimbă scorul."
         elif log_lr > 0.5:

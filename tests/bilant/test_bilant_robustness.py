@@ -130,3 +130,15 @@ def test_martor_rule():
     out = apply_martor_rule(win, dec)
     assert out["label"].tolist() == ["contor_bilant_setat", "furt_inainte_contor", "contor_bilant_setat", "furt_inainte_contor"]
     assert out["martor_rule"].tolist() == ["diferenta_peste_clasa", "contor_balanta_confirmat", "fara_martor", "in_clasa"]
+
+
+def test_display_cap_and_safety_rule():
+    from cyberpunks.a_bilant.predict import pfmt, safety
+
+    assert pfmt(1.0) == "peste 99%" and pfmt(0.995) == "peste 99%" and pfmt(0.87) == "87%"
+    r = pd.Series({"p_label": 0.97, "r_mean_kwh": 30.0, "night_excess_share": 0.3})
+    assert safety("furt_inainte_contor", r, False, None)[0]
+    assert not safety("furt_inainte_contor", r.copy().replace({30.0: 4.0}), False, None)[0]  # pierdere mică
+    assert not safety("furt_inainte_contor", r, True, None)[0]  # „nu sunt sigur”: fără marcaj de siguranță
+    assert not safety("contor_client", r, False, None)[0]  # o pierdere mare nu e, singură, un risc pentru oameni
+    assert safety("pierdere_tehnica", r, False, 3.4)[0] and not safety("pierdere_tehnica", r, False, 2.0)[0]
