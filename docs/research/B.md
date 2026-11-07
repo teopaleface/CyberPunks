@@ -1,6 +1,6 @@
 # Cercetare, firul B: furtună, risc de avarii, echipe trimise din timp
 
-Faza 0, 7 nov. 2026, 12:47-13:45. Am lucrat cu patru subagenți în paralel, apoi am verificat direct sursele critice: API-ul figshare, arhiva Open-Meteo și headerele de cost. Ce n-am putut confirma e marcat „neverificat”.
+Faza 0, 7 nov. 2026, 12:47-13:02. Am lucrat cu patru subagenți în paralel, apoi am verificat direct sursele critice: API-ul figshare, arhiva Open-Meteo și headerele de cost. Ce n-am putut confirma e marcat „neverificat”.
 
 ## 1. EAGLE-I (ORNL): clienți fără curent pe comitat, la 15 minute
 

@@ -1,0 +1,338 @@
+"""Aplică modelul B pe zonele Rețele Electrice și scrie lucrările pentru planificator.
+
+    uv run python -m cyberpunks.b_furtuna.predict --scenario demo-vara
+    uv run python -m cyberpunks.b_furtuna.predict --scenario maine
+    uv run python -m cyberpunks.b_furtuna.predict --scenario demo-vara --date 2025-07-07
+
+Scrie `outputs/work_items/<scenariu>/B.jsonl` (un WorkItem pe zonă) și `outputs/series/<scenariu>/<id>.json`
+(rafalele pe ore). Funcția importabilă: `run(scenario, date) -> Path`.
+
+Reguli (în cod, nu în LLM):
+- `preposition_crew` dacă P(vârf ≥ 1% din clienți) ≥ pragul ales pe validare (cel mai bun F1 pe OOF);
+- `human_review` (abstain) dacă lipsește vremea, dacă zona iese din ce a văzut modelul la antrenare sau dacă
+  sursele meteo nu se pun de acord și decizia s-ar schimba;
+- `no_action` altfel.
+Modelul e validat pe date externe (SUA); trebuie calibrat pe istoricul de avarii Rețele Electrice.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import uuid
+from datetime import date, datetime, time, timedelta
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+import numpy as np
+import pandas as pd
+
+from cyberpunks.b_furtuna import explain, openmeteo, romania
+from cyberpunks.b_furtuna.features import FEATURES, make_features
+from cyberpunks.b_furtuna.model import MODEL_ID, MODEL_PATH, BModel
+from cyberpunks.common import config
+from cyberpunks.common.contracts import (
+    DataQuality,
+    Effort,
+    Explanation,
+    Impact,
+    Location,
+    Prediction,
+    Series,
+    SeriesAnnotation,
+    SeriesPoint,
+    TimeWindow,
+    WorkItem,
+)
+from cyberpunks.common.paths import OUTPUTS, work_items_path
+
+TZ = ZoneInfo("Europe/Bucharest")
+DEMO_VARA_DATE = "2025-07-08"  # aleasă de firul B (vezi docs/research/B.md, secțiunea 3)
+ONSET_GUST_KMH = 45.0
+ONSET_PRECIP_MM = 2.0
+SAFETY_GUST_KMH = 75.0  # peste această rafală, lucrul la înălțime e periculos: semnalăm planificatorului
+DISAGREE_WIDTH = 0.35  # lățimea intervalului de probabilitate de la care spunem "nu sunt sigur"
+DATA_SOURCES = [
+    "Open-Meteo (archive ERA5/IFS pentru istoric; forecast și ensemble ICON-EPS pentru mâine)",
+    "Model antrenat pe EAGLE-I (ORNL, SUA, 2023-2024), validat pe 2025 și pe state nevăzute",
+    "Clienți pe județ: Planul de dezvoltare RER 2026-2035 (31.12.2024); pe zone: aproximare din recensământul 2021",
+]
+VALIDATION_NOTE = "validat pe date externe (SUA, EAGLE-I); de calibrat pe istoricul de avarii Rețele Electrice"
+
+
+def resolve(scenario: str, day: str | None) -> tuple[date, str]:
+    scen = config.load("scenarios")["scenarios"]
+    if scenario not in scen:
+        raise SystemExit(f"Scenariu necunoscut: {scenario}. Există: {', '.join(scen)}")
+    cfg = scen[scenario]
+    mode = "historical" if cfg.get("weather") == "historical" else "forecast"
+    if day:
+        target = date.fromisoformat(day)
+    elif str(cfg.get("date")) == "auto_tomorrow":
+        target = datetime.now(TZ).date() + timedelta(days=1)
+    elif str(cfg.get("date", "")).startswith("TBD"):
+        target = date.fromisoformat(DEMO_VARA_DATE)
+    else:
+        target = date.fromisoformat(str(cfg["date"]))
+    if mode == "forecast" and target < datetime.now(TZ).date():
+        mode = "historical"
+    return target, mode
+
+
+def decision_time(target: date, mode: str) -> datetime:
+    """Când rulează agentul: seara de dinainte (18:00) pentru istoric, acum pentru prognoză."""
+    if mode == "historical":
+        return datetime.combine(target - timedelta(days=1), time(18, 0), tzinfo=TZ)
+    return datetime.now(TZ).replace(microsecond=0)
+
+
+def storm_onset(h: pd.DataFrame, target: date) -> tuple[datetime, int]:
+    """Prima oră din ziua țintă cu rafale ≥ 45 km/h sau ploaie ≥ 2 mm; altfel ora rafalei maxime."""
+    day = h[h["time"].dt.date == target].sort_values("time")
+    if day.empty:
+        return datetime.combine(target, time(14, 0), tzinfo=TZ), 14
+    hit = day[(day["wind_gusts_10m"] >= ONSET_GUST_KMH) | (day["precipitation"] >= ONSET_PRECIP_MM)]
+    t = hit["time"].iloc[0] if not hit.empty else day.loc[day["wind_gusts_10m"].idxmax(), "time"]
+    t = pd.Timestamp(t).to_pydatetime().replace(tzinfo=TZ)
+    return t, t.hour
+
+
+def uncertainty(model: BModel, zones: list[romania.Zone], feats: pd.DataFrame, target: date, mode: str) -> tuple[
+        np.ndarray, np.ndarray, str]:
+    """Intervalul probabilității din dezacordul surselor meteo.
+
+    Istoric: trei modele de prognoză (ICON, ECMWF IFS, GFS) din Historical Forecast API, plus arhiva.
+    Prognoză: membrii ICON-EPS (ensemble). Doar rafala și ploaia se schimbă; restul features rămân.
+    """
+    lats, lons = [z.lat for z in zones], [z.lon for z in zones]
+    scenarios: list[pd.DataFrame] = []
+    try:
+        if mode == "historical":
+            models = ["icon_seamless", "ecmwf_ifs025", "gfs_seamless"]
+            params = {"latitude": ",".join(map(str, lats)), "longitude": ",".join(map(str, lons)),
+                      "start_date": (target - timedelta(days=1)).isoformat(), "end_date": target.isoformat(),
+                      "daily": "wind_gusts_10m_max,wind_speed_10m_max,precipitation_sum", "models": ",".join(models),
+                      "timezone": "Europe/Bucharest"}
+            data, _ = openmeteo.get(openmeteo.HIST_FORECAST, params, n_locations=len(zones))
+            data = data if isinstance(data, list) else [data]
+            for m in models:
+                alt = feats.copy()
+                for i, p in enumerate(data):
+                    d = p["daily"]
+                    g = d.get(f"wind_gusts_10m_max_{m}", [None, None])
+                    pr = d.get(f"precipitation_sum_{m}", [None, None])
+                    if g[-1] is None:
+                        continue
+                    alt.loc[i, "gust_max"] = g[-1]
+                    alt.loc[i, "gust_prev"] = g[0] if g[0] is not None else alt.loc[i, "gust_prev"]
+                    alt.loc[i, "gust_max_2d"] = max(x for x in (g[-1], alt.loc[i, "gust_prev"]) if x is not None)
+                    if pr[-1] is not None:
+                        alt.loc[i, "precip"] = pr[-1]
+                        alt.loc[i, "precip_48h"] = pr[-1] + (pr[0] or 0.0)
+                scenarios.append(alt)
+            source = "dezacordul a trei modele de prognoză (ICON, ECMWF IFS, GFS) față de arhivă"
+        else:
+            data = openmeteo.ensemble_gusts(lats, lons, forecast_days=max((target - date.today()).days + 2, 2))
+            members = sorted({k.split("_member")[1] for k in data[0]["hourly"] if "_member" in k})
+            for mem in members[:40]:
+                alt = feats.copy()
+                for i, p in enumerate(data):
+                    h = pd.DataFrame(p["hourly"])
+                    h["time"] = pd.to_datetime(h["time"])
+                    day = h[h["time"].dt.date == target]
+                    gcol = f"wind_gusts_10m_member{mem}"
+                    pcol = f"precipitation_member{mem}"
+                    if gcol in day and day[gcol].notna().any():
+                        alt.loc[i, "gust_max"] = float(day[gcol].max())
+                        alt.loc[i, "gust_max_2d"] = max(alt.loc[i, "gust_max"], alt.loc[i, "gust_prev"])
+                    if pcol in day and day[pcol].notna().any():
+                        alt.loc[i, "precip"] = float(day[pcol].sum())
+                scenarios.append(alt)
+            source = f"{len(scenarios)} membri ICON-EPS (ensemble Open-Meteo)"
+    except (RuntimeError, openmeteo.RateLimited, KeyError, IndexError) as exc:
+        p = model.predict_proba(feats)
+        return p, p, f"incertitudine indisponibilă ({type(exc).__name__}); folosim doar prognoza principală"
+    probs = np.column_stack([model.predict_proba(feats)] + [model.predict_proba(s) for s in scenarios])
+    lo, hi = np.nanpercentile(probs, 10, axis=1), np.nanpercentile(probs, 90, axis=1)
+    if mode == "historical":
+        lo, hi = probs.min(axis=1), probs.max(axis=1)
+    return lo, hi, source
+
+
+def run(scenario: str, date: str | None = None) -> Path:
+    target, mode = resolve(scenario, date)
+    if not MODEL_PATH.exists():
+        raise SystemExit(f"Lipsește modelul {MODEL_PATH}. Rulează `uv run python -m cyberpunks.b_furtuna.evaluate`.")
+    model = BModel.load()
+    econ = config.load("economics")["storm"]
+    zones = romania.load_zones()
+    created = decision_time(target, mode)
+
+    wx, wx_issues = romania.weather_daily(zones, target, mode)
+    hourly = romania.weather_hourly(zones, target, mode)
+    zf = romania.zones_frame(zones)[["zone_id", "customers", "area_km2"]]
+    full = make_features(wx.merge(zf, on="zone_id"), group="zone_id")
+    feats = full[full["date"] == pd.Timestamp(target)].set_index("zone_id").loc[[z.zone_id for z in zones]].reset_index()
+
+    missing = feats[FEATURES].isna()
+    p = model.predict_proba(feats.fillna(feats[FEATURES].median(numeric_only=True)))
+    q = model.predict_quantiles(feats.fillna(feats[FEATURES].median(numeric_only=True)))
+    lo, hi, unc_source = uncertainty(model, zones, feats, target, mode)
+    lo, hi = np.minimum(lo, p), np.maximum(hi, p)
+    ood = model.out_of_range(feats)
+    factors = explain.top_factors(model, feats.fillna(0.0))
+    cases = explain.similar_cases(model, feats)
+    thr = model.decision_threshold
+
+    out_path = work_items_path(scenario, "B")
+    series_dir = OUTPUTS / "series" / scenario
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    series_dir.mkdir(parents=True, exist_ok=True)
+    items: list[WorkItem] = []
+    for i, z in enumerate(zones):
+        row = feats.iloc[i]
+        h = hourly[hourly["zone_id"] == z.zone_id]
+        onset, onset_h = storm_onset(h, target)
+        issues = list(wx_issues)
+        issues.append("clienții pe zonă sunt o aproximare (populația orașului + restul județului împărțit egal)")
+        if not 0.3 <= z.customers_per_capita_county <= 0.9:
+            issues.append(f"județul {z.county} are {z.customers_per_capita_county:.2f} clienți RER pe locuitor (neobișnuit):"
+                          " zonele de rețea RER nu urmează exact granițele județului; folosit ca atare")
+        miss_cols = [c for c in FEATURES if missing.iloc[i][c]]
+        abstain_reasons = []
+        if miss_cols:
+            issues.append(f"vreme lipsă pentru {', '.join(miss_cols)}: completată cu mediana zonelor")
+            if {"gust_max", "precip"} & set(miss_cols):
+                abstain_reasons.append("lipsesc rafala sau ploaia pentru ziua țintă")
+        if ood.iloc[i]:
+            issues.append(f"în afara datelor de antrenare: {', '.join(ood.iloc[i])}")
+            abstain_reasons.append("zona sau vremea iese din ce a văzut modelul la antrenare (" + ", ".join(ood.iloc[i]) + ")")
+        width = float(hi[i] - lo[i])
+        if width >= DISAGREE_WIDTH and lo[i] < thr <= hi[i]:
+            abstain_reasons.append(f"sursele meteo nu se pun de acord: riscul e între {lo[i]:.0%} și {hi[i]:.0%}")
+        abstain = bool(abstain_reasons)
+        confidence = "low" if abstain or width >= DISAGREE_WIDTH else ("medium" if width >= 0.15 or p[i] >= 0.5 else "high")
+        if abstain:
+            action = "human_review"
+        elif p[i] >= thr:
+            action = "preposition_crew"
+        else:
+            action = "no_action"
+
+        cust = np.round(q[i] * z.customers).astype(int)
+        value_if_true = float(cust[1] * econ["restoration_speedup_hours"] * econ["cost_per_customer_hour_lei"])
+        wid = f"B-{target:%Y%m%d}-{z.zone_id}"
+        series_ref = f"outputs/series/{scenario}/{wid}.json"
+        tw_start = onset - timedelta(hours=3)
+        tw_end = onset + timedelta(hours=6)
+        item = WorkItem(
+            work_item_id=wid,
+            source="B",
+            kind="storm_prepositioning",
+            asset_id=z.zone_id,
+            asset_type="zone",
+            location=Location(lat=z.lat, lon=z.lon, zone_id=z.zone_id, county=z.county, label=f"{z.label_ro} ({z.county})"),
+            target_date=target,
+            time_window=TimeWindow(start=tw_start, end=tw_end),
+            prediction=Prediction(
+                model_id=MODEL_ID,
+                model_version=model.version,
+                prediction_id=str(uuid.uuid4()),
+                label="outage_risk",
+                score=round(float(p[i]), 4),
+                interval_low=round(float(lo[i]), 4),
+                interval_high=round(float(hi[i]), 4),
+                point_estimate=float(cust[1]),
+                point_unit="clienți fără curent la vârf, dacă se produce avaria (P50)",
+                point_interval=(float(cust[0]), float(cust[2])),
+                confidence=confidence,
+                abstain=abstain,
+                abstain_reason="; ".join(abstain_reasons) if abstain else None,
+            ),
+            impact=Impact(
+                expected_value_lei=round(float(p[i]) * value_if_true, 2),
+                value_if_true_lei=round(value_if_true, 2),
+                customers_affected=int(cust[1]),
+                urgency_hours=max(round((onset - created).total_seconds() / 3600, 1), 1.0),
+                safety_flag=bool((row.get("gust_max") or 0) >= SAFETY_GUST_KMH),
+                assumptions_ref="storm",
+            ),
+            effort=Effort(duration_min=480, crew_skill="mv_grid" if cust[1] >= 2000 else "lv_grid", crew_size=3),
+            explanation=Explanation(
+                top_factors=factors[i],
+                similar_cases=cases[i],
+                summary_ro=explain.summary_ro(float(p[i]), row, onset_h, cases[i], abstain, int(cust[1])),
+            ),
+            data_quality=DataQuality(
+                missing_ratio=round(float(missing.iloc[i].mean()), 3),
+                input_issues=issues,
+                synthetic=False,
+                data_sources=DATA_SOURCES,
+            ),
+            recommended_action=action,
+            created_at=created,
+            extra={
+                "series_ref": series_ref,
+                "region": z.region,
+                "zone_customers": z.customers,
+                "storm_onset": onset.isoformat(),
+                "gust_max_kmh": None if pd.isna(row["gust_max"]) else round(float(row["gust_max"]), 1),
+                "precip_48h_mm": None if pd.isna(row["precip_48h"]) else round(float(row["precip_48h"]), 1),
+                "pct_out_p10_p50_p90": [round(float(x), 4) for x in q[i]],
+                "decision_threshold": round(thr, 3),
+                "weather_mode": mode,
+                "uncertainty_source": unc_source,
+                "validation_note": VALIDATION_NOTE,
+            },
+        )
+        items.append(item)
+        write_series(series_dir / f"{wid}.json", wid, z, h, target, onset, tw_start)
+    with open(out_path, "w", encoding="utf-8") as fh:
+        fh.writelines(it.model_dump_json() + "\n" for it in items)
+    n_pre = sum(it.recommended_action == "preposition_crew" for it in items)
+    n_hr = sum(it.recommended_action == "human_review" for it in items)
+    print(f"{scenario} {target} ({mode}): {len(items)} zone, {n_pre} echipe recomandate, {n_hr} la om -> {out_path}")
+    return out_path
+
+
+def write_series(path: Path, wid: str, z: romania.Zone, h: pd.DataFrame, target: date, onset: datetime,
+                 tw_start: datetime) -> None:
+    window = h[(h["time"] >= pd.Timestamp(target - timedelta(days=1)) + pd.Timedelta(hours=12))
+               & (h["time"] < pd.Timestamp(target + timedelta(days=1)) + pd.Timedelta(hours=6))]
+    points = []
+    for _, r in window.iterrows():
+        t = pd.Timestamp(r["time"]).to_pydatetime().replace(tzinfo=TZ)
+        g = None if pd.isna(r["wind_gusts_10m"]) else float(r["wind_gusts_10m"])
+        pr = 0.0 if pd.isna(r["precipitation"]) else float(r["precipitation"])
+        flag = f"ploaie {pr:.0f} mm" if pr >= ONSET_PRECIP_MM else None
+        points.append(SeriesPoint(t=t, value=g, flag=flag))
+    if not points:
+        points = [SeriesPoint(t=onset, value=None, flag="gol")]
+    s = Series(
+        work_item_id=wid,
+        source="B",
+        title_ro=f"Rafale de vânt pe ore, {z.label_ro} ({z.county})",
+        unit="km/h",
+        points=points,
+        thresholds={"rafala_inceput_furtuna_kmh": ONSET_GUST_KMH, "rafala_periculoasa_kmh": SAFETY_GUST_KMH},
+        annotations=[
+            SeriesAnnotation(t=tw_start, label_ro="echipa pe poziție (cu 3 ore înainte)"),
+            SeriesAnnotation(t=onset, label_ro="începutul furtunii (estimat)"),
+        ],
+        synthetic=False,
+    )
+    path.write_text(s.model_dump_json(indent=1) + "\n", encoding="utf-8")
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--scenario", default="demo-vara")
+    ap.add_argument("--date", default=None)
+    args = ap.parse_args(argv)
+    path = run(args.scenario, args.date)
+    print(json.dumps({"written": str(path)}))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
