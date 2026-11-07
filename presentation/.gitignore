@@ -20,3 +20,7 @@ assets/gen3d/*.png
 assets/3d-astra/
 assets/3d-sol/
 music/out/*_asculta.mp4
+
+# Audio: doar pe disc, în afara git-ului (regula lui Teo, 7 nov., 17:15). Se refac cu `make music`.
+music/out/*.m4a
+video/assets/audio/*.flac
