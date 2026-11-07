@@ -1,5 +1,5 @@
 # Status: Teo-planificator
-Actualizat: 2026-11-07 14:37
+Actualizat: 2026-11-07 14:38
 Milestone curent: M2 gata pe ieșirile reale din `Teo`; M3 în lucru (robustețe, revizuiri, instantaneu, documentație)
 Gata de merge: da (commit 4f9fcba, plus acest status)
 
@@ -40,7 +40,7 @@ Gata de merge: da (commit 4f9fcba, plus acest status)
 - Ordinea deciziilor în plan: întâi verificările de la distanță și corecțiile din birou, apoi lista pe echipe (`rank` după `threshold.lei_per_work_hour`), apoi restul.
 
 ## Urmează (M3)
-- Evaluarea refăcută pe ieșirile noi (rulează acum), apoi instantaneul final când A, B, C și bilanțul își fixează versiunile.
+- Instantaneul final când A, B, C și bilanțul își fixează versiunile.
 - O a treia rundă scurtă de revizuire înainte de înghețare, timpii pentru demo, scenariul `maine`.
 
 ## Blocaje
@@ -55,7 +55,7 @@ Gata de merge: da (commit 4f9fcba, plus acest status)
 ## Cifre (doar din scripturi, cu comanda)
 - `make agent-eval`, 30 de zile SINTETICE: valoare netă pe zi, agentul 35.061 lei, cea mai bună strategie simplă 23.552 (+49%); km pe zi 352 față de 511 la top-K; urgențe ratate 19,6% față de 26,8%. Robust la un model supra-încrezător și la ipotezele fără sursă (+48% … +77%). Tabelele: `reports/planner/agent_eval.md`, graficul: `reports/planner/agent_eval.png`.
 - `make solver-bench`: OR-Tools aduce cu 3-19% mai multă valoare netă decât greedy pe 100-300 de lucrări, în 1,4-9 s.
-- Ziua demo (cifrele noi vin după evaluarea care rulează acum).
+- Ziua demo, 8 iulie 2025, doar contoarele (lucrările reale A, 391, din care 274 probleme reale după `A_ground_truth.csv`; valoarea capturată e valoarea reală): agentul face 33 de vizite, toate pe probleme reale, și vizitează 29 din cele 50 de cazuri reale de siguranță, dar câștigă doar 2.529 lei net, pentru că siguranța e obligatorie și valorează puțin în lei. Fără siguranța obligatorie: 25.394 lei și 14 cazuri de siguranță. Ordinea pe valoare a lui A („primul venit”): 28.825 lei și 2 cazuri. Top-K după scor: 6.179 lei și 2 cazuri. E un compromis de politică (`global.safety_mandatory` în `config/planner.yaml`); pentru prezentare, cifra cinstită e „29 din 50 de cazuri de siguranță față de 2”, nu valoarea netă.
 
 ## Decizii (cu ora)
 - 12:53 API-ul citește: ultima rulare (`outputs/`), instantaneul `outputs/demo/`, apoi `contracts/fixtures/`; `CYBERPUNKS_API_SOURCE` poate fixa sursa (14:30).
