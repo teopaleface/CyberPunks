@@ -32,3 +32,26 @@ validate-fixtures:
 # ---- Interfață (firul Teo-ui) ----
 
 # ---- Prezentare (firul Teo-prezentare) ----
+.PHONY: presentation-assets music video-check video-preview video-preview-stop video-render
+HF := npx -y hyperframes@0.9.19
+
+presentation-assets:  ## harta de noapte NASA, granițele regiunilor, schița scenei cu agentul
+	uv run python presentation/scripts/fetch_night_lights.py
+	uv run --with shapely python presentation/scripts/build_map_overlay.py
+	uv run --with shapely python presentation/scripts/build_s5_scene.py
+
+music:                ## regenerează muzica originală a filmului (96 BPM, 30 s)
+	uv run python presentation/music/compose.py
+
+video-check:          ## verificările HyperFrames (lint, runtime, layout, contrast)
+	cd presentation/video && $(HF) check
+
+video-preview:        ## previzualizare pe portul 3720 (rămâne pornită în fundal)
+	cd presentation/video && $(HF) preview --background --port 3720 --no-open
+
+video-preview-stop:
+	cd presentation/video && $(HF) preview --stop
+
+video-render:         ## exportul final în presentation/exports/ (H.264, AAC 48 kHz, -16 LUFS)
+	bash presentation/scripts/export_video.sh
+
