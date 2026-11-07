@@ -2,7 +2,7 @@ import { readBytes } from "@/lib/server/read-file";
 import path from "node:path";
 import { connection } from "next/server";
 import { API_BASE, DEFAULT_SCENARIO } from "@/lib/data";
-import { isSafeSegment } from "@/lib/data/config";
+import { getConfig, isSafeSegment } from "@/lib/data/config";
 import { demoDir } from "@/lib/data/files";
 
 /**
@@ -24,7 +24,8 @@ export async function GET(request: Request, ctx: RouteContext<"/ordine/[crew]">)
   const scenario = requested && isSafeSegment(requested) ? requested : DEFAULT_SCENARIO;
   if (!CREW_RE.test(crew)) return new Response("Echipă necunoscută.", { status: 400 });
 
-  try {
+  // pe planul salvat (de exemplu pe Cloudflare, fără API) nu mai întrebăm API-ul
+  if (getConfig().dataSource !== "demo") try {
     const res = await fetch(`${API_BASE}/work-orders/${encodeURIComponent(crew)}.pdf?scenario=${encodeURIComponent(scenario)}`, {
       signal: AbortSignal.timeout(4000),
       cache: "no-store",
