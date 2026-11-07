@@ -1,0 +1,319 @@
+{
+  "study": "b_convectie_ani2023-2024",
+  "trials": 59,
+  "train_years": [
+    2023,
+    2024
+  ],
+  "features": [
+    "gust_max",
+    "wind_max",
+    "gust_prev",
+    "gust_max_2d",
+    "precip",
+    "precip_48h",
+    "precip_7d",
+    "precip_hours",
+    "snow",
+    "snow_3d",
+    "ice_proxy",
+    "doy_sin",
+    "doy_cos",
+    "log_customers",
+    "log_density",
+    "cape_max",
+    "cape_max_2d",
+    "li_min",
+    "tcwv_max",
+    "dew_max",
+    "blh_max"
+  ],
+  "validation": "PR-AUC out-of-fold, 5 fold-uri pe săptămâni, doar anii de antrenare",
+  "oof_pr_auc": {
+    "livrat": 0.306,
+    "gasit": 0.308
+  },
+  "params_livrat": {
+    "learning_rate": 0.02,
+    "num_leaves": 31,
+    "min_data_in_leaf": 100,
+    "feature_fraction": 0.8,
+    "bagging_fraction": 0.8,
+    "lambda_l2": 1.0,
+    "min_gain_to_split": 0.0,
+    "rounds": 300
+  },
+  "params_gasit": {
+    "learning_rate": 0.011040296076845832,
+    "num_leaves": 45,
+    "min_data_in_leaf": 23,
+    "feature_fraction": 0.4598563658558577,
+    "bagging_fraction": 0.5034084055246705,
+    "lambda_l2": 0.5012538533703322,
+    "min_gain_to_split": 0.3496943587188706,
+    "rounds": 700
+  },
+  "test_2025": {
+    "livrat": {
+      "pr_auc": 0.2865,
+      "brier": 0.0835
+    },
+    "gasit": {
+      "pr_auc": 0.2867,
+      "brier": 0.0835
+    },
+    "delta_pr_auc_ci90": [
+      -0.0031,
+      0.0033
+    ]
+  },
+  "importanta_parametrilor": {
+    "bagging_fraction": 0.481,
+    "learning_rate": 0.172,
+    "lambda_l2": 0.089,
+    "feature_fraction": 0.072,
+    "rounds": 0.071,
+    "min_data_in_leaf": 0.062,
+    "min_gain_to_split": 0.033,
+    "num_leaves": 0.021
+  },
+  "istoric": [
+    {
+      "n": 0,
+      "oof_pr_auc": 0.306
+    },
+    {
+      "n": 1,
+      "oof_pr_auc": 0.2865
+    },
+    {
+      "n": 2,
+      "oof_pr_auc": 0.2998
+    },
+    {
+      "n": 3,
+      "oof_pr_auc": 0.3063
+    },
+    {
+      "n": 4,
+      "oof_pr_auc": 0.3047
+    },
+    {
+      "n": 5,
+      "oof_pr_auc": 0.3033
+    },
+    {
+      "n": 6,
+      "oof_pr_auc": 0.3063
+    },
+    {
+      "n": 7,
+      "oof_pr_auc": 0.3021
+    },
+    {
+      "n": 8,
+      "oof_pr_auc": 0.3054
+    },
+    {
+      "n": 9,
+      "oof_pr_auc": 0.2986
+    },
+    {
+      "n": 10,
+      "oof_pr_auc": 0.3021
+    },
+    {
+      "n": 11,
+      "oof_pr_auc": 0.3007
+    },
+    {
+      "n": 12,
+      "oof_pr_auc": 0.3035
+    },
+    {
+      "n": 13,
+      "oof_pr_auc": 0.3043
+    },
+    {
+      "n": 14,
+      "oof_pr_auc": 0.3078
+    },
+    {
+      "n": 15,
+      "oof_pr_auc": 0.2914
+    },
+    {
+      "n": 16,
+      "oof_pr_auc": 0.3066
+    },
+    {
+      "n": 17,
+      "oof_pr_auc": 0.3003
+    },
+    {
+      "n": 18,
+      "oof_pr_auc": 0.3067
+    },
+    {
+      "n": 19,
+      "oof_pr_auc": 0.3052
+    },
+    {
+      "n": 20,
+      "oof_pr_auc": 0.3036
+    },
+    {
+      "n": 21,
+      "oof_pr_auc": 0.3077
+    },
+    {
+      "n": 22,
+      "oof_pr_auc": 0.3065
+    },
+    {
+      "n": 23,
+      "oof_pr_auc": 0.3063
+    },
+    {
+      "n": 24,
+      "oof_pr_auc": 0.3061
+    },
+    {
+      "n": 25,
+      "oof_pr_auc": 0.3059
+    },
+    {
+      "n": 26,
+      "oof_pr_auc": 0.3051
+    },
+    {
+      "n": 27,
+      "oof_pr_auc": 0.3065
+    },
+    {
+      "n": 28,
+      "oof_pr_auc": 0.3047
+    },
+    {
+      "n": 29,
+      "oof_pr_auc": 0.3072
+    },
+    {
+      "n": 30,
+      "oof_pr_auc": 0.3072
+    },
+    {
+      "n": 31,
+      "oof_pr_auc": 0.3073
+    },
+    {
+      "n": 32,
+      "oof_pr_auc": 0.3059
+    },
+    {
+      "n": 33,
+      "oof_pr_auc": 0.3054
+    },
+    {
+      "n": 34,
+      "oof_pr_auc": 0.3061
+    },
+    {
+      "n": 35,
+      "oof_pr_auc": 0.3066
+    },
+    {
+      "n": 36,
+      "oof_pr_auc": 0.3074
+    },
+    {
+      "n": 37,
+      "oof_pr_auc": 0.308
+    },
+    {
+      "n": 38,
+      "oof_pr_auc": 0.3025
+    },
+    {
+      "n": 39,
+      "oof_pr_auc": 0.3062
+    },
+    {
+      "n": 40,
+      "oof_pr_auc": 0.3062
+    },
+    {
+      "n": 41,
+      "oof_pr_auc": 0.3068
+    },
+    {
+      "n": 42,
+      "oof_pr_auc": 0.3053
+    },
+    {
+      "n": 43,
+      "oof_pr_auc": 0.307
+    },
+    {
+      "n": 44,
+      "oof_pr_auc": 0.3074
+    },
+    {
+      "n": 45,
+      "oof_pr_auc": 0.3074
+    },
+    {
+      "n": 46,
+      "oof_pr_auc": 0.3078
+    },
+    {
+      "n": 47,
+      "oof_pr_auc": 0.3065
+    },
+    {
+      "n": 48,
+      "oof_pr_auc": 0.3069
+    },
+    {
+      "n": 49,
+      "oof_pr_auc": 0.3028
+    },
+    {
+      "n": 50,
+      "oof_pr_auc": 0.3074
+    },
+    {
+      "n": 51,
+      "oof_pr_auc": 0.3075
+    },
+    {
+      "n": 52,
+      "oof_pr_auc": 0.3068
+    },
+    {
+      "n": 53,
+      "oof_pr_auc": 0.3068
+    },
+    {
+      "n": 54,
+      "oof_pr_auc": 0.3078
+    },
+    {
+      "n": 55,
+      "oof_pr_auc": 0.3064
+    },
+    {
+      "n": 56,
+      "oof_pr_auc": 0.3064
+    },
+    {
+      "n": 57,
+      "oof_pr_auc": 0.3057
+    },
+    {
+      "n": 58,
+      "oof_pr_auc": 0.307
+    }
+  ],
+  "note": "experiment pe ramura Eden; modelul livrat nu e schimbat"
+}
