@@ -38,6 +38,8 @@ CONTEXT_RO = {  # ANRE, aug. 2026 (documentul de research din 7 nov., memory/12-
 }
 SOURCES_ARCHIVE = "Open-Meteo Historical Weather (ERA5), CC BY 4.0"
 SOURCES_FORECAST = "Open-Meteo Forecast, CC BY 4.0"
+SOURCES_CACHED = "Open-Meteo Forecast, CC BY 4.0 (ultima copie salvată)"
+SOURCES_CLIMATE = "Clima medie a perioadei, 2023-2025 (Open-Meteo ERA5), în lipsa prognozei"
 BASE_SOURCES = [
     "SimBench 1.6.3 (ODbL): topologii JT, posturi SINTETICE",
     "OpenStreetMap (ODbL, © OpenStreetMap contributors): poziții de posturi",
@@ -63,17 +65,59 @@ def resolve_date(scenario: str, d: str | None) -> date:
     return date.fromisoformat(DEMO_VARA_FALLBACK)
 
 
+def _climatology(d: date, idx: pd.DatetimeIndex) -> pd.DataFrame:
+    """Vremea medie, oră cu oră, pentru aceeași perioadă din an (±7 zile, 2023-2025). Rezerva când lipsește prognoza."""
+    arc = weather.archive()
+    loc = arc.index.tz_convert(profiles.TZ) - pd.Timedelta(hours=1)
+    doy, target = loc.dayofyear.to_numpy(), pd.Timestamp(d).dayofyear
+    dist = np.minimum(np.abs(doy - target), 366 - np.abs(doy - target))
+    keep = (dist <= 7) & (loc.year.to_numpy() <= 2025)
+    mean = arc[keep].groupby(loc.hour.to_numpy()[keep]).mean()
+    hours = (idx.tz_convert(profiles.TZ) - pd.Timedelta(hours=1)).hour
+    out = mean.reindex(hours)
+    out.index = idx
+    return out
+
+
+def _cached_forecast(idx: pd.DatetimeIndex) -> pd.DataFrame | None:
+    """Cea mai nouă prognoză salvată care acoperă ziua cerută."""
+    files = sorted(weather.RAW.glob("openmeteo_forecast_utc_*.json"), key=lambda f: f.stat().st_mtime, reverse=True)
+    for f in files:
+        try:
+            wx = weather.read_openmeteo(f).reindex(idx)
+        except (OSError, ValueError, KeyError) as exc:  # fișier stricat: îl sărim și spunem de ce
+            print(f"prognoza salvată {f.name} nu se poate citi: {exc}")
+            wx = None
+        if wx is not None and wx["gti"].notna().mean() > 0.7:
+            return wx
+    return None
+
+
 def weather_for_day(d: date) -> tuple[pd.DataFrame, str, list[str]]:
-    """Vremea orară pentru ziua locală d (UTC, ora care se încheie), sursa și problemele găsite."""
+    """Vremea orară pentru ziua locală d (UTC, ora care se încheie), sursa și problemele găsite.
+
+    Pentru zilele viitoare: prognoza Open-Meteo; dacă nu se poate descărca, ultima prognoză salvată; dacă nici
+    aceea nu există, clima medie a perioadei (incertitudine mare, notată în date și în decizii)."""
     start = pd.Timestamp(d, tz=profiles.TZ).tz_convert("UTC") + pd.Timedelta(hours=1)
     idx = pd.date_range(start, periods=24, freq="h")
+    issues: list[str] = []
     if d <= ARCHIVE_END:
-        wx, src = weather.archive(), SOURCES_ARCHIVE
+        wx, src = weather.archive().reindex(idx), SOURCES_ARCHIVE
     else:
-        p = weather.download_forecast((d - timedelta(days=1)).isoformat(), (d + timedelta(days=1)).isoformat(), refresh=True)
-        wx, src = weather.read_openmeteo(p), SOURCES_FORECAST
-    wx = wx.reindex(idx)
-    issues = []
+        try:
+            p = weather.download_forecast((d - timedelta(days=1)).isoformat(), (d + timedelta(days=1)).isoformat(), refresh=True)
+            wx, src = weather.read_openmeteo(p).reindex(idx), SOURCES_FORECAST
+            if wx["gti"].notna().mean() < 0.7:
+                raise ValueError("prognoza nu acoperă ziua")
+        except Exception as exc:  # noqa: BLE001
+            issues.append(f"prognoza Open-Meteo nu s-a putut folosi ({type(exc).__name__})")
+            cached = _cached_forecast(idx)
+            if cached is not None:
+                wx, src = cached, SOURCES_CACHED
+                issues.append("folosită ultima prognoză salvată")
+            else:
+                wx, src = _climatology(d, idx), SOURCES_CLIMATE
+                issues.append("folosită clima medie a perioadei (2023-2025): incertitudine mare")
     for c in ("gti", "ghi", "dif", "temp", "cloud"):
         bad = wx[c].isna() | (wx[c] < (-50 if c == "temp" else 0)) | (wx[c] > (60 if c == "temp" else 1500))
         if bad.any():
@@ -130,13 +174,13 @@ def ood_reasons(r: pd.Series, ranges: dict) -> list[str]:
 # ------------------------------------------------------------------------------------------------
 
 
-def _weather_scenarios(wx: pd.DataFrame, forecast: bool) -> list[tuple[float, pd.DataFrame]]:
+def _weather_scenarios(wx: pd.DataFrame, forecast: bool, u_override: float | None = None) -> list[tuple[float, pd.DataFrame]]:
     """Pentru prognoză: trei variante de radiație (jos, mijloc, sus), ponderate 1/4, 1/2, 1/4.
     Lățimea crește cu norii (IPOTEZĂ calibrată pe MAE-ul prognozelor arhivate Open-Meteo: 38 W/m² în iulie)."""
     if not forecast:
         return [(1.0, wx)]
     noon = wx.tz_convert(profiles.TZ).between_time("10:00", "16:00")
-    u = 0.10 + 0.30 * float(noon["cloud"].mean()) / 100.0
+    u = u_override if u_override is not None else 0.10 + 0.30 * float(noon["cloud"].mean()) / 100.0
     out = []
     for w, f in ((0.25, 1 - u), (0.5, 1.0), (0.25, 1 + u)):
         v = wx.copy()
@@ -145,9 +189,9 @@ def _weather_scenarios(wx: pd.DataFrame, forecast: bool) -> list[tuple[float, pd
     return out
 
 
-def predict_day(bundle, reg: pd.DataFrame, wx: pd.DataFrame, forecast: bool) -> tuple[pd.DataFrame, dict]:
+def predict_day(bundle, reg: pd.DataFrame, wx: pd.DataFrame, forecast: bool, u_override: float | None = None) -> tuple[pd.DataFrame, dict]:
     variants = []
-    for w, v in _weather_scenarios(wx, forecast):
+    for w, v in _weather_scenarios(wx, forecast, u_override):
         hw = F.hourly_weather(v)
         X = F.daily_features(reg, hw)
         variants.append((w, X, bundle.daily.predict(X)))
@@ -208,6 +252,14 @@ def _window(series: pd.DataFrame) -> tuple[int, int]:
     return h0, max(h1, h0 + 1)
 
 
+def _window_end(d: date, h1: int) -> datetime:
+    """Sfârșitul ferestrei; ora 24 înseamnă miezul nopții de după (nu 23:59)."""
+    if h1 >= 24:
+        n = d + timedelta(days=1)
+        return datetime(n.year, n.month, n.day, 0, 0, tzinfo=TZ)
+    return datetime(d.year, d.month, d.day, h1, 0, tzinfo=TZ)
+
+
 def _confidence(p: float, width: float, abstain: bool) -> str:
     if abstain:
         return "low"
@@ -260,15 +312,16 @@ def run(scenario: str, date_str: str | None = None) -> Path:
     bundle = T.load_bundle()
     reg = registry().reset_index(drop=True)
     wx, wx_src, wx_issues = weather_for_day(d)
-    forecast = wx_src == SOURCES_FORECAST
-    X, info = predict_day(bundle, reg, wx, forecast)
+    forecast = wx_src != SOURCES_ARCHIVE
+    climate = wx_src == SOURCES_CLIMATE
+    X, info = predict_day(bundle, reg, wx, forecast, u_override=0.4 if climate else None)  # IPOTEZĂ: ±40% fără prognoză
     X = X.set_index("post_id").loc[reg["post_id"]].reset_index()
     after_tap = tap_counterfactual(bundle, reg, wx)
     contrib = explain.shap_groups(bundle.daily.quantile_models[0.5], X[bundle.daily.features])
     sim = None
     now = datetime.now(TZ).replace(microsecond=0)
     created = now if d > now.date() else datetime(d.year, d.month, d.day, 6, 0, tzinfo=TZ) - timedelta(days=1)
-    weather_uncertain = forecast and (20 <= info["cloud_noon"] <= 80 or info["cloud_std_noon"] > 25)
+    weather_uncertain = climate or (forecast and (20 <= info["cloud_noon"] <= 80 or info["cloud_std_noon"] > 25))
     out_items, counts, offers, day = [], {}, [], None
     series_dir = OUTPUTS / "series" / scenario
     series_dir.mkdir(parents=True, exist_ok=True)
@@ -314,7 +367,7 @@ def run(scenario: str, date_str: str | None = None) -> Path:
             "asset_type": "transformer_post",
             "location": {"lat": float(st["lat"]), "lon": float(st["lon"]), "zone_id": st["zone_id"], "county": st["county"], "label": st["label"]},
             "target_date": d.isoformat(),
-            "time_window": {"start": win_start.isoformat(), "end": datetime(d.year, d.month, d.day, min(h1, 23), 59 if h1 >= 24 else 0, tzinfo=TZ).isoformat()},
+            "time_window": {"start": win_start.isoformat(), "end": _window_end(d, h1).isoformat()},
             "prediction": {
                 "model_id": "c-surrogate",
                 "model_version": bundle.version,
@@ -402,7 +455,9 @@ def run(scenario: str, date_str: str | None = None) -> Path:
     out_items.sort(key=lambda it: -it["impact"]["expected_value_lei"] - 1000 * it["prediction"]["score"])
     path.write_text("".join(json.dumps(it, ensure_ascii=False) + "\n" for it in out_items), encoding="utf-8")
     month = explain.MONTHS_RO[d.month - 1]
-    reason = (f"{len(out_items)} posturi din {len(reg)} au lucrări. Radiația maximă pe panou: {info['gti_max']:.0f} W/m², "
+    reason = ("Fără prognoză meteo: estimarea folosește clima medie a perioadei, cu incertitudine mare; cazurile de lângă prag "
+              "merg la om. " if climate else "")
+    reason += (f"{len(out_items)} posturi din {len(reg)} au lucrări. Radiația maximă pe panou: {info['gti_max']:.0f} W/m², "
               f"{info['temp_noon']:.0f} °C la prânz, nori {info['cloud_noon']:.0f}%.")
     reason += " " + CONTEXT_RO["Ilfov"]
     risky = int((X["p_exceed"] >= 0.5).sum())

@@ -96,7 +96,7 @@ Ce am aflat din ele:
 
 Concluzie: calculul vectorizat dă aceleași tensiuni ca pandapower (diferențe sub 1e-7 pu) și rezolvă un an de ore în sub o zecime de secundă. Asta face posibilă simularea a sute de posturi pe aproape 4 ani de meteo orară (33.744 de ore) în câteva minute, pe 4 nuclee.
 
-**Prima rețea simulată** (`uv run python -m cyberpunks.c_prosumatori.simulate one`): post sintetic pe topologia rural3, 630 kVA, cablu torsadat TYIR 50, linii de 1,79 ori mai lungi, 52 de prosumatori cu 346 kWp, priza pe −1 (tensiune ridicată cu 2,5%). Pe 2025: tensiunea maximă 1,168 pu, 280 de zile și 1.777 de ore peste 1,10 pu, 48.411 kWh fotovoltaici pierduți prin oprirea invertoarelor (10,9% din producție). Simularea celor 8.760 de ore a durat 0,2-0,3 s. E un post extrem, ales ca test.
+**Prima rețea simulată** (`uv run python -m cyberpunks.c_prosumatori.simulate one`): post sintetic pe topologia rural3, 630 kVA, cablu torsadat TYIR 50, linii de 1,79 ori mai lungi, 52 de prosumatori cu 346 kWp, priza pe −1 (tensiune ridicată cu 2,5%). Pe 2025: tensiunea maximă 1,168 pu, 280 de zile și 1.777 de ore peste 1,10 pu, 53.064 kWh fotovoltaici pierduți prin oprirea invertoarelor (11,9% din producție; după reparația cascadei de opriri din review). Simularea celor 8.760 de ore a durat 0,2-0,3 s. E un post extrem, ales ca test.
 
 **Atenție, bug găsit la M1:** pandapower 3.x ignoră priza transformatorului dacă `tap_changer_type` nu e declarat, iar SimBench îl lasă gol. Primele cifre de mai sus (din faza 0) erau cu priza ignorată. Acum comutatorul e declarat `Ratio`, cu test (`tests/c/test_powerflow.py::test_tap_changes_lv_voltage`), iar toate simulările au fost refăcute.
 

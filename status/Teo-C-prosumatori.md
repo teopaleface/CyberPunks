@@ -1,7 +1,7 @@
 # Status: Teo-C-prosumatori
-Actualizat: 2026-11-07 14:14
+Actualizat: 2026-11-07 14:58
 Milestone curent: M3 în lucru (M2 terminat la 14:11; M3 aproape gata: analiza erorilor, investiții, racordări, teste)
-Gata de merge: da (commit adcf42c: M2 complet plus cea mai mare parte din M3; `make check` trece, 175 de teste)
+Gata de merge: da (commit 932704f + status; lanțul refăcut după review, `make check` trece, 179 de teste)
 
 ## Făcut
 - M0 (13:10): calcul de rețea vectorizat verificat față de pandapower, prima rețea simulată, `docs/research/C.md`.
@@ -29,7 +29,7 @@ Gata de merge: da (commit adcf42c: M2 complet plus cea mai mare parte din M3; `m
   - Pe 8 iulie 2025: 7 × priză, 4 × rebalansare pe faze, 2 × limită de export, 20 de mesaje, 8 urmăriri. `predict.run` durează circa 6,5 s.
 
 - 14:11 M2 complet:
-  - modelul orar are acum interval conformal: acoperire P10-P90 80,0% pe rețele nevăzute (49,8% înainte), MAE 0,0049 pu;
+  - modelul orar are acum interval conformal: acoperire P10-P90 79,7% pe rețele nevăzute (49,8% înainte), calibrat doar pe antrenare, MAE 0,0049 pu;
   - calibrare: ECE 0,003 (model) față de 0,013 (baseline); `reports/C/figures/reliability.png`;
   - modelul bate baseline-ul pe fiecare topologie, lună, tip de vreme și tip de rețea (`reports/C/error_tables.json`).
 - 14:11 M3, mare parte:
@@ -38,11 +38,20 @@ Gata de merge: da (commit adcf42c: M2 complet plus cea mai mare parte din M3; `m
   - `reports/C/investitii.md`: posturile de modernizat, ordonate după lei pierduți pe an, cu cea mai ieftină soluție din scară;
   - `reports/C/model_card.md` (ciornă completă), cifrele ANRE din 31 aug. 2026 în documentație și în rezumatul C;
   - teste noi: `tests/c/test_remedies.py`, `tests/c/test_connection.py`.
-- Ablație (în lucru): fără trăsăturile fizice din topologie, MAE pe rural2 nevăzut urcă de la 0,0061 la 0,0239 pu și pe rural3 de la 0,0064 la 0,0142 pu.
+- 14:30 Ablații: fără trăsăturile fizice din topologie MAE 0,0119 pu (de 2,2 ori mai mare) și PR-AUC 0,384 (sub baseline); fără tensiunea de pornire și priză MAE 0,0205. Modelul are nevoie de topologia din GIS și de priza fiecărui post.
+- 14:38 Interval conformal pe grupe de rețea: acoperire 82,1%, rural3 de la 73% la 80%. `reports/C/README.md`: C pe o pagină, pentru prezentare.
+- 14:20-14:39 Review independent de cod (Codex): 8 probleme reale, toate reparate în 71d74ed, cu teste:
+  - cascada de opriri ale invertoarelor era plafonată la 10 pe oră (subestima energia pierdută);
+  - energia pierdută la oprire contabilizată consecvent cu bateria (invertor hibrid, IPOTEZĂ notată);
+  - intervalul orar era calibrat și cu reziduuri din perioada de test (scurgere de informație); acum doar din antrenare;
+  - o margine conformală negativă ar fi putut încrucișa cuantilele;
+  - mesajele de grup: energia mutată se păstrează exact; bateriile: economia ține cont de limita de putere și de pierderi;
+  - fereastra care se termină la miezul nopții.
+  - 14:52 Lanțul refăcut: cifrele modelului zilnic neschimbate (tensiunea maximă nu depindea de corecturi); intervalul orar 79,7%; energia pierdută cu circa 10% mai mare (cascada fără plafon).
+- 14:55 Rezervă pentru lipsa prognozei: ultima copie salvată, apoi clima medie a perioadei (incertitudine mare, cazurile de lângă prag la om); testat cu rețeaua tăiată.
 
 ## Urmează
-- Rezultatele ablațiilor în `reports/C/error_analysis.md` și în fișa modelului.
-- O margine conformală pe tip de rețea (acoperirea variază între 73% și 88% pe topologii).
+- Corecturile din review-ul Codex.
 - M4: comenzi reproductibile verificate dintr-o clonă curată, curățenie.
 
 ## Blocaje
@@ -71,10 +80,12 @@ Gata de merge: da (commit adcf42c: M2 complet plus cea mai mare parte din M3; `m
 - Rețele nevăzute × luni nevăzute, 324.000 de zile-post (`make c-eval`):
   - MAE tensiune maximă: **0,0054 pu** (model) față de **0,0227 pu** (baseline); RMSE 0,0070 față de 0,0277.
   - Depășiri peste 1,10 pu: PR-AUC **0,951** față de **0,428**; recall 86,5% față de 25,6%; precizie 86,9% față de 60,5%; Brier 0,015 față de 0,058.
-  - Acoperirea intervalului P10-P90: **80,9%** (ținta 80%), lățime medie 0,017 pu.
+  - Acoperirea intervalului P10-P90: **82,1%** (ținta 80%), lățime medie 0,018 pu; margini conformale pe patru grupe de rețea (pe topologii 76-87%).
+  - Eroarea de calibrare (ECE): 0,003 față de 0,013 la baseline. Modelul orar: MAE 0,0049 pu, acoperire 79,7%.
+  - Ablații: fără trăsăturile fizice din topologie MAE 0,0119 și PR-AUC 0,384; fără tensiunea de pornire și priză MAE 0,0205 (`reports/C/ablation_*.json`).
   - Pe topologii, MAE model 0,0044-0,0064 pu, baseline 0,0200-0,0269.
   - Reper din literatură: BOOST-RPF (arXiv:2603.21977), aceleași 6 rețele, leave-one-grid-out, RMSE 0,0134 pu pe noduri (altă sarcină, același ordin de mărime).
-- Viteza (`uv run python -m cyberpunks.c_prosumatori.evaluate --speed-only`): 300 de posturi pe o zi în 0,07-0,09 s față de 62-87 s cu pandapower (fără să ceară modelul detaliat al rețelei).
+- Viteza (`uv run python -m cyberpunks.c_prosumatori.evaluate --speed-only`): 300 de posturi pe o zi în 0,05-0,09 s față de 62-87 s cu pandapower (fără să ceară modelul detaliat al rețelei).
 - Calcul vectorizat față de pandapower: diferență maximă 5,2e-08 pu (`make c-bench`).
 
 ## Decizii (cu ora)

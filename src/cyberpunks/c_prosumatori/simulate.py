@@ -125,11 +125,11 @@ def simulate_post(
         if len(hours):
             tripped = np.zeros((len(pv_lv), len(hours)), dtype=bool)
             Vh = Vlv[:, hours]
-            for _ in range(10):
-                new = (Vh[pv_lv] > LIMIT_PU) & ~tripped & (pv[:, hours] > 0)
+            # până la toate invertoarele: la fiecare pas se oprește cel mai expus invertor de pe fiecare oră
+            for _ in range(len(pv_lv)):
+                new = (Vh[pv_lv] > LIMIT_PU) & ~tripped & (inj_pv[:, hours] > 0)
                 if not new.any():
                     break
-                # se oprește cel mai expus invertor de pe fiecare oră, apoi se recalculează
                 vv = np.where(new, Vh[pv_lv], -np.inf)
                 worst = np.argmax(vv, axis=0)
                 cols = np.flatnonzero(new.any(axis=0))
@@ -138,7 +138,9 @@ def simulate_post(
                 Sh = A_pv @ (inj / 1000) - s_load[:, hours]
                 Vc, _ = m.solve(Sh, vm[hours])
                 Vh = np.abs(Vc[m.lv_pos])
-            lost[hours] = (pv[:, hours] * tripped).sum(axis=0)
+            # IPOTEZĂ: invertorul hibrid oprit de protecție continuă să încarce bateria; se pierde ce ar fi ajuns în casă
+            # sau în rețea (producția minus încărcarea), adică exact injecția scoasă din calculul de rețea
+            lost[hours] = (np.maximum(inj_pv[:, hours], 0.0) * tripped).sum(axis=0)
             trips[hours] = tripped.sum(axis=0)
 
     s_slack = m.slack_power_mva(V, vm)

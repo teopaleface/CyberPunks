@@ -142,6 +142,12 @@ class Baseline:
 # ------------------------------------------------------------------------------------------------
 
 
+def _conformal_q(e: np.ndarray, level: float = 0.8) -> float:
+    """Cuantila conformală (cu corecția pentru eșantion finit) a reziduurilor de neconformitate."""
+    n = len(e)
+    return float(np.quantile(e, min(1.0, np.ceil((n + 1) * level) / n))) if n else 0.0
+
+
 @dataclass
 class DailyModel:
     features: list[str]
@@ -151,6 +157,10 @@ class DailyModel:
     cqr_margin: float = 0.0  # lărgirea intervalului P10-P90 (conformal), pu
     lost_model: object = None
     monotone: bool = True
+    # conformal pe grupe (Mondrian): margini separate după cât de mult ridică panourile tensiunea (sens_pv_pu),
+    # ca intervalul să fie mai lat pe rețelele slabe și mai îngust pe cele puternice
+    cqr_edges: list = field(default_factory=list)
+    cqr_margins: list = field(default_factory=list)
 
     def fit(self, df: pd.DataFrame, calib: pd.DataFrame | None = None) -> DailyModel:
         X, y = df[self.features], df["vmax_day"].to_numpy()
@@ -167,9 +177,21 @@ class DailyModel:
         from sklearn.isotonic import IsotonicRegression
 
         self.iso = IsotonicRegression(out_of_bounds="clip", y_min=0.0, y_max=1.0).fit(oof["raw_p"], oof["exceed"])
-        e = np.maximum(oof["q10"] - oof["vmax_day"], oof["vmax_day"] - oof["q90"])
-        n = len(e)
-        self.cqr_margin = float(np.quantile(e, min(1.0, np.ceil((n + 1) * 0.8) / n)))
+        e = np.maximum(oof["q10"] - oof["vmax_day"], oof["vmax_day"] - oof["q90"]).to_numpy()
+        self.cqr_margin = _conformal_q(e)
+        if "sens_pv_pu" in oof:
+            sens = oof["sens_pv_pu"].to_numpy()
+            self.cqr_edges = [float(x) for x in np.quantile(sens, [0.25, 0.5, 0.75])]
+            g = np.searchsorted(self.cqr_edges, sens, side="right")
+            self.cqr_margins = [_conformal_q(e[g == k]) if (g == k).sum() >= 500 else self.cqr_margin for k in range(4)]
+
+    def margins(self, df: pd.DataFrame) -> np.ndarray:
+        """Lărgirea conformală pentru fiecare rând: pe grupa de sensibilitate a rețelei, altfel cea globală."""
+        edges, margins = getattr(self, "cqr_edges", []), getattr(self, "cqr_margins", [])
+        if edges and margins and "sens_pv_pu" in df:
+            g = np.searchsorted(edges, df["sens_pv_pu"].to_numpy(), side="right")
+            return np.asarray(margins)[g]
+        return np.full(len(df), self.cqr_margin)
 
     def predict(self, df: pd.DataFrame, calibrated: bool = True) -> dict[str, np.ndarray]:
         X = df[self.features]
@@ -179,7 +201,9 @@ class DailyModel:
         raw_p = self.clf.predict_proba(X)[:, 1]
         out = {"q10": q10, "q50": q50, "q90": q90, "raw_p": raw_p}
         if calibrated:
-            out["q10"], out["q90"] = q10 - self.cqr_margin, q90 + self.cqr_margin
+            m = self.margins(df)
+            # o margine negativă (interval prea larg) poate strânge intervalul, dar nu are voie să încrucișeze P50
+            out["q10"], out["q90"] = np.minimum(q10 - m, q50), np.maximum(q90 + m, q50)
             out["p_exceed"] = self.iso.predict(raw_p) if self.iso is not None else raw_p
         else:
             out["p_exceed"] = raw_p
@@ -204,6 +228,7 @@ def logo_oof(df: pd.DataFrame, features: list[str], monotone: bool = True, topol
                     "q90": qm[0.9].predict(te[features]),
                     "vmax_day": te["vmax_day"].to_numpy(),
                     "exceed": te["exceed"].to_numpy(),
+                    "sens_pv_pu": te["sens_pv_pu"].to_numpy(),
                     "topology": t,
                 }
             )
@@ -257,7 +282,8 @@ class HourlyModel:
         X = df[self.features]
         q = {a: self.models[a].predict(X) for a in QUANTILES}
         m = getattr(self, "cqr_margin", 0.0)
-        return {"q10": np.minimum(q[0.1], q[0.5]) - m, "q50": q[0.5], "q90": np.maximum(q[0.9], q[0.5]) + m}
+        q10, q50, q90 = np.minimum(q[0.1], q[0.5]), q[0.5], np.maximum(q[0.9], q[0.5])
+        return {"q10": np.minimum(q10 - m, q50), "q50": q50, "q90": np.maximum(q90 + m, q50)}
 
 
 def hourly_logo_margin(df: pd.DataFrame, feats: list[str], level: float = 0.8) -> float:

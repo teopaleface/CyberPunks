@@ -41,6 +41,13 @@ Convenții de timp: totul e în UTC, „ora care se încheie” (valoarea de la 
 6. **Populația demo** (`population.py`): 300 de posturi, 191 pe poziții OSM și 109 sintetice în jurul localităților din Ilfov. Zona: în raza de 8,5 km de centru, cel mai apropiat sector; în afară, cea mai apropiată localitate din Ilfov. Topologia după tipul zonei (urban, semiurban, rural). Parametri realiști: puțini prosumatori la blocurile din București, mulți la casele din Ilfov. Registrul e în git: `data/samples/C/posts_population.csv` (scurt) și `posts_population_full.csv` (tot ce trebuie pentru `predict.py`).
 7. **Trăsăturile** (`features.py`): ce poate ști distribuitorul (GIS, avize de racordare, prognoza meteo), fără rețeaua detaliată a fiecărei case. Lista și eticheta în română a fiecărei trăsături sunt în `features.py` (`FEATURE_LABELS_RO`).
 
+## Scara de soluții și rapoartele (după model)
+
+- **Scara de soluții** (`remedies.py`): pentru fiecare post cu P90 peste 1,10 pu, simularea fizică a postului în ziua țintă se rulează de bază și cu fiecare soluție; efectul (în pu) se aplică peste P90 al modelului. Treptele: 3 case mutate pe altă fază (dezechilibru estimat analitic, plafonat la 0,02 pu după EN 50160), o treaptă de priză, mesaje de grup (participare 10/20/30%, consumul mutat din seară, aceeași energie), baterii 5/10/15 kWh pe profilul fiecărui prosumator, limită de export, post nou. Costurile vin din `config/economics.yaml` (secțiunile `voltage` și `remedies`).
+- **Ofertele de baterii** (`reports_c.py offers`): pe profilul anual (2025) al fiecărui prosumator de pe posturile cu risc; economia = energia livrată seara × prețul de cumpărare − energia PV folosită la încărcare × valoarea ei; grantul Casa Verde Baterii 2026 din config.
+- **Investițiile** (`reports_c.py investments`): modelul pe toate zilele din 2025 pentru fiecare post, apoi scara pe cea mai însorită zi de referință.
+- **Cererile de racordare** (`connection.py`): modelul înainte și după racordare pe cele mai însorite 15 zile din sezonul 2025 și pe tot anul, plus calculul de rețea pentru limita de injecție.
+
 ## Împărțirea pentru evaluare
 
 - **Rețele nevăzute:** leave-one-topology-out pe cele 6 topologii SimBench. Fiecare topologie e prezisă de modele antrenate doar pe celelalte 5.
@@ -63,7 +70,15 @@ make c-predict      # outputs/work_items/{demo-vara,maine}/C.jsonl și seriile
 make c-eval         # reports/C/metrics.json, metrics_detail.json, figurile
 make c-test
 uv run cyberpunks validate outputs/work_items/demo-vara/C.jsonl
+uv run python -m cyberpunks.c_prosumatori.evaluate --rescore --hourly   # și modelul orar (circa 12 minute)
+uv run python -m cyberpunks.c_prosumatori.evaluate --speed-only         # viteza față de pandapower
+uv run python -m cyberpunks.c_prosumatori.evaluate --ablation fara_fizica
+uv run python -m cyberpunks.c_prosumatori.error_analysis                # reports/C/error_tables.json
+uv run python -m cyberpunks.c_prosumatori.reports_c investments         # reports/C/investitii.md
+uv run python -m cyberpunks.c_prosumatori.connection --post PT-1020 --kwp 25
 ```
+
+Dintr-o clonă curată, `predict.py` merge și fără pașii grei: modelul e în `models/release/C/`, registrul posturilor în `data/samples/C/posts.csv`, mostra pentru cazurile similare în `data/samples/C/similar_cases.parquet`; vremea se descarcă de la Open-Meteo.
 
 ## Ce iese
 
@@ -76,3 +91,5 @@ uv run cyberpunks validate outputs/work_items/demo-vara/C.jsonl
 | `reports/C/metrics_detail.json` | liber: pe topologie, zile cu soare, model necalibrat | da |
 | `reports/C/figures/*.png` | — | da |
 | `reports/C/powerflow_bench.json` | liber: verificarea față de pandapower | da |
+| `outputs/work_items/<scenariu>/C_battery_offers.csv` | liber: ofertele de baterii pe prosumator | nu |
+| `reports/C/oferte_baterii.md`, `investitii.md`, `error_analysis.md`, `model_card.md`, `README.md` | rapoarte | da |

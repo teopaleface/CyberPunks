@@ -56,12 +56,21 @@ def hourly_eval(n_estimators: int = 300) -> dict:
                                    "q90": np.maximum(q[0.9], q[0.5]), "pvk": te["pvk"].to_numpy(), "topology": t}))
         print(f"  orar {t}: {len(te)} ore de test", flush=True)
     r = pd.concat(parts, ignore_index=True)
-    # lărgirea conformală pentru fiecare topologie, din reziduurile celorlalte topologii (fără etichetele ei)
-    e = np.maximum(r.q10 - r.y, r.y - r.q90).to_numpy()
+    # lărgirea conformală pentru fiecare topologie de test: reziduuri out-of-fold DOAR din perioada de antrenare,
+    # pe celelalte topologii (fără etichete din perioada de test și fără topologia testată)
+    cal = tr_p.sample(frac=0.3, random_state=3)
+    oof_e, oof_t = [], []
+    for t in sorted(cal["topology"].unique()):
+        a, b = cal[cal.topology != t], cal[cal.topology == t]
+        lo = T.fit_quantile(a[feats], a["vmax"].to_numpy(), 0.1, n_estimators=n_estimators).predict(b[feats])
+        hi = T.fit_quantile(a[feats], a["vmax"].to_numpy(), 0.9, n_estimators=n_estimators).predict(b[feats])
+        yb = b["vmax"].to_numpy()
+        oof_e.append(np.maximum(lo - yb, yb - hi))
+        oof_t.append(np.full(len(b), t))
+    oof_e, oof_t = np.concatenate(oof_e), np.concatenate(oof_t)
     margin = np.zeros(len(r))
     for t in r.topology.unique():
-        other = e[(r.topology != t).to_numpy()]
-        margin[(r.topology == t).to_numpy()] = np.quantile(other, min(1.0, np.ceil((len(other) + 1) * 0.8) / len(other)))
+        margin[(r.topology == t).to_numpy()] = T._conformal_q(oof_e[oof_t != t])
     lo, hi = r.q10 - margin, r.q90 + margin
     day = r["pvk"] > 0.05
     out = {"test_hours": len(r), "mae_vmax_pu": float(np.mean(np.abs(r.y - r.q50))),
@@ -279,7 +288,10 @@ if __name__ == "__main__":
         det = summarize(pd.read_parquet(T.DATA_PROCESSED / "C" / "eval_predictions.parquet"), old_det.get("seconds", 0.0))
         det.update({k: old_det[k] for k in ("hourly", "speed") if k in old_det})
     else:
+        old_path = OUT / "metrics_detail.json"
+        keep = json.loads(old_path.read_text()) if old_path.exists() else {}
         det = evaluate(oof_frac=a.oof_frac, monotone=not a.no_monotone)
+        det.update({k: keep[k] for k in ("hourly",) if k in keep})  # modelul orar nu se reantrenează aici
     if a.hourly:
         det["hourly"] = hourly_eval()
     spd = det.get("speed")

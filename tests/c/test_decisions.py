@@ -86,3 +86,19 @@ def test_season_horizon_and_working_days() -> None:
     assert actions.add_working_days(date(2025, 7, 4), 2) == date(2025, 7, 8)  # vineri + 2 zile lucrătoare = marți
     assert "Ore Smart+" in actions.customer_message(date(2025, 7, 8), 10, (11, 15))
     assert "Ore Smart+" not in actions.customer_message(date(2026, 11, 9), 10, (11, 15))
+
+
+def test_missing_forecast_falls_back_to_climatology(monkeypatch) -> None:
+    """Fără prognoză (rețea căzută, fără copie salvată pentru ziua cerută): clima medie, cu motivul notat."""
+    import cyberpunks.c_prosumatori.predict as P
+    import cyberpunks.c_prosumatori.weather as W
+
+    def boom(*args, **kwargs):
+        raise ConnectionError("fără rețea")
+
+    monkeypatch.setattr(W, "download_forecast", boom)
+    monkeypatch.setattr(P, "_cached_forecast", lambda idx: None)
+    wx, src, issues = P.weather_for_day(date(2026, 12, 20))
+    assert src == P.SOURCES_CLIMATE and len(wx) == 24
+    assert any("clima medie" in x for x in issues)
+    assert wx["gti"].max() > 0 and wx["gti"].notna().all()

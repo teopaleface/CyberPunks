@@ -176,8 +176,8 @@ def investments(year: int = 2025, top: int = 30) -> str:
         "",
         f"- {int((df.days_over >= 1).sum())} posturi din {len(df)} au cel puțin o zi așteptată cu depășire pe an; {len(bad)} au cel puțin 5.",
         f"- Valoarea pierdută pe an la posturile cu probleme: {_lei(bad.value_lei_year.sum())} lei (energie și reclamații).",
-        (f"- Din primele {len(inv)} posturi, {len(inv) - n_inv} se rezolvă cu soluții ieftine (faze, priză, limită de export, baterii); "
-        f"{n_inv} au nevoie de investiție."),
+        (f"- Din primele {len(inv)} posturi, {len(inv) - n_inv} se rezolvă fără investiție în rețea (faze, priză, limită de export, baterii); "
+        f"{n_inv} au nevoie de post nou sau de cablu mai gros."),
         "",
         f"## Posturile, ordonate după valoarea pierdută pe an (primele {len(inv)})",
         "",
