@@ -1,7 +1,7 @@
 # Status: Teo-A-contoare
-Actualizat: 2026-11-07 17:17
+Actualizat: 2026-11-07 17:14
 Milestone curent: M4 gata; reproducerea cap-coadă gata (docs/REPRODUCERE.md). LIBER
-Gata de merge: da (commit d14d99e)
+Gata de merge: da (commit 518a086)
 
 ## Făcut
 - 13:30 M0: `docs/research/A.md`, date descărcate cu sume de control (SGCC, 45 de fișiere Low Carbon London).
@@ -33,7 +33,7 @@ Gata de merge: da (commit d14d99e)
 - 16:38 **Reproducerea cap-coadă a ramurii Teo dintr-o clonă curată** (commit 791c94c): tot lanțul merge în 32,5 minute (A, B, C, bilanț, `cyberpunks run`, `agent-eval`). Toate ieșirile sunt valide (A 518, bilanț 79, B 26, C 41, planul). Comenzile, duratele și ce produce fiecare pas sunt în `docs/REPRODUCERE.md`. Vremea Open-Meteo a fost copiată din cache-urile firelor, deci cota nu a fost atinsă.
 - 16:44 Reparat la A (commit 905374d): descărcarea Londra reîncearcă dacă serverul ignoră cererea pe interval (HTTP 200), iar antrenarea refuză un set incomplet (în clonă mersese pe 44 din 45 de fișiere, fără avertisment). Are 3 teste cu server simulat.
 
-- 17:17 Regula fișierelor grele (Teo): nu mai fac commit cu `models/release/A/` sau cu mostrele mari din `data/samples/A/` (pachetul demo, `similar_ref.parquet`, `meters.csv`) decât la versiunea finală și doar dacă s-au schimbat. Versiunea din git (commit 68c1d1c) e cea pe care sunt făcute toate cifrele actuale; `tests/test_repo_size.py` trece. Mărimile din `docs/REPRODUCERE.md` sunt corectate: GitHub raportează 267 MB, iar fișierele de pe `main` au 35 MB.
+- 17:13 Regula fișierelor grele (Teo): nu mai fac commit cu `models/release/A/` sau cu mostrele mari din `data/samples/A/` (pachetul demo, `similar_ref.parquet`, `meters.csv`) decât la versiunea finală și doar dacă s-au schimbat. Versiunea din git (commit 68c1d1c) e cea pe care sunt făcute toate cifrele actuale; `tests/test_repo_size.py` trece. Mărimile din `docs/REPRODUCERE.md` sunt corectate: GitHub raportează 267 MB, iar fișierele de pe `main` au 35 MB.
 
 ## Urmează
 - **Sunt liber** (M0-M4 gata). Pot ajuta la B sau la alt fir; scrieți-mi direct în thread.
