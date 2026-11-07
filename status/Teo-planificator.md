@@ -1,14 +1,32 @@
 # Status: Teo-planificator
-Actualizat: 2026-11-07 14:51
-Milestone curent: M2 gata pe ieșirile reale din `Teo`; M3 în lucru (robustețe, revizuiri, instantaneu, documentație)
-Gata de merge: da (commit 5423f97, plus instantaneul și acest status)
+Actualizat: 2026-11-07 15:56
+Milestone curent: M3 gata pe ieșirile finale; M4 în lucru (documentație, ultima revizuire independentă)
+Gata de merge: da (commit 15ee1d9, plus acest status)
+
+## Pornirea demo-ului, dintr-un singur loc (checkout-ul principal)
+- **`make demo`**: rulează planul real pentru `demo-vara` (modelele A, B, C rulează efectiv, ieșirea bilanțului pentru aceeași zi se refolosește), apoi pornește în paralel API-ul pe http://127.0.0.1:8710/api și consola pe http://localhost:3710. Ctrl-C le oprește pe amândouă. Merg toate: butonul „Rulează agentul” (~26 s: Estimate 14 s, Decide 10 s, Act 1 s), aprobarea planului, coada „nu sunt sigur” cu replanificare, verdictele.
+- **`make demo-offline`**: fără modele, API-ul servește instantaneul din git (`outputs/demo/`, planul real de la 15:35 pe ieșirile finale) și pornește consola. Doar citire: „Rulează agentul” și aprobările cer `make demo`.
+- Separat: `make api` (ultima rulare locală, altfel instantaneul), `make api-demo` (doar instantaneul), `make web` (consola).
+- Gata și folosite de interfață: `POST /api/plan/approve` (`AuditRecord`, `actor: human`, `action: plan_approved`, 409 dacă planul s-a schimbat) și `GET /api/plan/approval`; `GET /api/posts` (300 de posturi, culoare după lei pierduți pe lună din bilanț) și `GET /api/posts/{post_id}`; `posts.json` e și în instantaneu.
+
+## Răspuns la cererile orchestratorului de la 15:15 și 15:50
+- **1. Instantaneul pe ieșirile finale** (A 524, bilanț 98, B 26, C 41): 32 de lucrări în traseele a 8 echipe, 224 km, 25 la dispecer (8 zone de furtună cu cerere de întăriri, 17 cazuri de siguranță de decis azi), 13 posturi cu scara C, 28 de contoare confirmate de bilanț. Commit 654c644.
+- **2. Scara C pe lucrările reale**: 13 decizii `R-REMEDY-LADDER`, toate fezabile sub 1,10 pu, cu treptele cu echipă programate după preavizul ANRE (10.07.2025) și mesajele pentru până atunci. Explicația spune cifra pentru fiecare treaptă mai ieftină, de exemplu: „cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,175 pu; cu oferta de baterii singură (24 lei), tensiunea ajunge doar la 1,162 pu”. Mesajul de grup al lui C (`message_preview_ro`) intră în `notifications` (audiență `prosumatori`, `demo_only`), iar ofertele de baterii apar ca notificări și ca listă pentru PPC Energie în raportul zilei (8 posturi). Fuziunea cu bilanțul: 522 de rânduri `R-FUSION-BILANT` în jurnal, 40 de contoare cu scorul urcat; „confirmat de bilanț” apare în motiv doar unde bilanțul chiar confirmă.
+- **3. Scenariul `maine`** (8 noiembrie 2026, prognoza reală), cap-coadă în 27 s: A 563, B 26, C 33 de lucrări; 29 în trasee, 25 la dispecer. Alertă nouă „Contextul zilei” (și în raport), de exemplu: „Tensiune: 33 posturi cu risc din 300 (soare pe panou până la 730 W/m² la prânz, 8 °C). În noiembrie sezonul fotovoltaic e la final; mai sunt ~10 zile de soare puternic până la primăvară: o echipă pentru priză sau faze nu se mai plătește, deci agentul trimite 4 mesaje către prosumatori, pune 29 posturi la urmărire și 0 echipe.” și „Furtună: vreme liniștită în cele 26 de zone; cel mai mare risc de avarii e 6%”.
+- **Cererile B 9 și 10**: `storm.customers_helped_per_crew_shift: 500` în `config/economics.yaml` (CALCUL din furtuna din Timiș, 7-9 iulie 2025: ~40.000 de consumatori și 80 de echipe pe teren); plafonul: o echipă pe zonă (`storm.max_crews_per_zone: 1`), cel mult 3 echipe trimise din timp pe regiune (`storm.max_crews_per_region: 3`), în `config/planner.yaml`. Regula nouă `R-B-BELOW-THRESHOLD`: nu se mută echipe sub pragul modelului B (`extra.decision_threshold`, 16%), oricât de mare e zona; pe `demo-vara` nu mai pleacă echipe la Constanța (9%), Bolintin și Buftea (6%), iar pe `maine` niciuna.
+- Coada dispecerului pune acum întâi zonele de furtună care cer întăriri (urgente, vin după-amiază), apoi siguranța, apoi valoarea.
+
+## Cereri noi către orchestrator (te rog transmite)
+- **Bilanț, scenariul `maine`**: `cyberpunks.a_bilant.predict.run("maine", "2026-11-08")` cade cu `LightGBMError: The number of features in data (34) is not the same as it was in training data (25)`. Planul merge fără bilanț (sursa e opțională), dar harta posturilor de mâine nu are lei pierduți.
+- **C**: `message_preview_ro` spune „dacă 1 din 5 vecini” (20%), iar treapta are `participation_rate: 0.1`; textul ar trebui să folosească aceeași rată.
+- **A**: semnalul de siguranță a crescut din nou: pe ieșirea finală, 112 cazuri cu scor ≥ 0,7 marcate cu risc pentru oameni; 91 nu încap în turele de mâine. Propunerea rămâne: `safety_flag` doar pentru dovezi puternice de șuntare.
 
 ## Răspuns la cererile orchestratorului de la 14:20
 - `git merge Teo` făcut. Planul rulează pe ieșirile din `Teo` (A 391, bilanț 98, B 26, C 41): 40 de lucrări în traseele a 9 echipe, 430 km, 370 de verificări de la distanță și corecții în birou, **25 la om**, 18 mesaje, OR-Tools în 10 s.
 - **1. Interfața**
   - `POST /api/plan/approve` `{scenario, plan_id, approver, note}` → `AuditRecord` cu `actor: human`, `action: plan_approved`; 409 dacă `plan_id` nu mai e planul curent (s-a replanificat între timp). `GET /api/plan/approval?scenario=` → `{approved, plan_id, approver, ts, stale}`.
   - `GET /api/posts` există (de la 13:46); acum citește și `extra.lei_per_month` al bilanțului: pe 8 iulie, 22 de posturi roșii, 41 galbene, 237 verzi, toate în registrul C. `posts.json` se scrie la fiecare rulare în `outputs/plans/<s>/` și e în instantaneu (`outputs/demo/plans/demo-vara/posts.json`).
-  - **Pornirea pentru demo** (planul real, nu exemplele):
+  - Pornirea pentru demo (înlocuită de `make demo`, mai sus):
     - Recomandat, din checkout-ul principal (are datele și modelele): `uv run cyberpunks run --scenario demo-vara` apoi `make api`. API-ul servește ultima rulare (`GET /api/health` → `mode: live`).
     - Fără să ruleze modelele: `CYBERPUNKS_API_SOURCE=demo make api`. API-ul servește instantaneul din git, `outputs/demo/` (planul real din 8 iulie 2025, refăcut la 14:33), chiar dacă există o rulare locală mai veche (`mode: demo`). Butonul „Rulează agentul” cere modul live.
     - API-ul din worktree-ul meu servește acum planul real (rulat la 14:33); exemplele cu 7 lucrări erau de la un test mai vechi.
@@ -21,7 +39,7 @@ Gata de merge: da (commit 5423f97, plus instantaneul și acest status)
   - coada are o capacitate de 25 de cazuri pe zi (IPOTEZĂ: ~10 minute de dispecer pe caz), în ordinea: siguranță cu semnal puternic, întăriri pentru furtună, valoare; restul revine în planul următor (`R-HUMAN-QUEUE-FULL`, 58).
   - Rezultat, 25 de cazuri care cer un om: 12 cazuri de siguranță cu semnal puternic, de decis azi; 11 zone de furtună cu cod roșu pentru care trebuie aprobate întăriri; 2 cazuri nesigure de furtună.
 
-## Timpii pentru demo (butonul „Rulează agentul”)
+## Timpii pentru demo (istoric, 14:41)
 - Rularea completă din checkout-ul principal (`run.json` de la 14:20): Estimate 240 s, din care bilanțul 228 s (A 9 s, B 0,3 s, C 3 s); Decide 10 s; Act 2 s. Peste limita de 120 s a interfeței.
 - De la 14:41, în modul `auto`, ieșirea bilanțului pentru aceeași zi, din ultimele 12 ore, se refolosește (`config/planner.yaml`, `estimate.reuse_fresh_output: [A_bilant]`); nota apare în plan și în `GET /api/run-info`. Rularea completă ar trebui să scadă la ~25 s (A, B, C rulează efectiv).
 - Pentru demo: rulați o dată `uv run cyberpunks run --scenario demo-vara` înainte (ca bilanțul să aibă ieșirea zilei), apoi butonul din interfață merge repede.
