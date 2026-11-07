@@ -49,11 +49,11 @@ def add_precip_extra(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def run_variant(df: pd.DataFrame, spec: list[tuple[str, int]], event_col: str = "event", monotone: bool = True,
-                params_over: dict | None = None) -> dict:
+                params_over: dict | None = None, years: tuple[int, ...] | None = None) -> dict:
     feats = [f for f, _ in spec]
     params = {**bm.CLF_PARAMS, **(params_over or {})}
     params["monotone_constraints"] = [m for _, m in spec] if monotone else [0] * len(spec)
-    tr = df[df["year"].isin(train_years(df))].reset_index(drop=True)
+    tr = df[df["year"].isin(years or train_years(df))].reset_index(drop=True)
     te = df[df["year"] == TEST_YEAR].reset_index(drop=True)
     y_tr, y_te = tr[event_col].to_numpy(), te[event_col].to_numpy()
 
@@ -101,6 +101,8 @@ def experiments() -> list[tuple[str, str, Callable[[pd.DataFrame], dict]]]:
         ("cu_temperaturi", "+ temperaturile și radiația (scoase din model: trimiteau echipe la caniculă în România)",
          lambda d: run_variant(d, with_temp)),
         ("mai_putine_variabile", "fără orele de ploaie, vântul mediu și sezonul (cos)", lambda d: run_variant(d, lean)),
+        ("doar_2023_2024", "antrenare doar pe 2023-2024 (comparația cu mai mulți ani, pe același test 2025)",
+         lambda d: run_variant(d, base, years=(2023, 2024))),
     ]
 
 
