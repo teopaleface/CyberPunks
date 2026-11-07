@@ -1,0 +1,52 @@
+{
+  "additionalProperties": false,
+  "description": "Confirmarea independentă bilanț + contor, în `WorkItem.extra[\"fusion\"]` pentru lucrările A pe contoare.",
+  "properties": {
+    "post_id": {
+      "title": "Post Id",
+      "type": "string"
+    },
+    "bilant_prediction_id": {
+      "title": "Bilant Prediction Id",
+      "type": "string"
+    },
+    "post_excess_loss_kwh_day": {
+      "description": "Lipsa peste normal la post, kWh pe zi",
+      "title": "Post Excess Loss Kwh Day",
+      "type": "number"
+    },
+    "post_excess_loss_lei_month": {
+      "title": "Post Excess Loss Lei Month",
+      "type": "number"
+    },
+    "a_score": {
+      "description": "Scorul inițial al modelului A",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "A Score",
+      "type": "number"
+    },
+    "combined_score": {
+      "description": "Scorul după confirmare (devine prediction.score)",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Combined Score",
+      "type": "number"
+    },
+    "note_ro": {
+      "title": "Note Ro",
+      "type": "string"
+    }
+  },
+  "required": [
+    "post_id",
+    "bilant_prediction_id",
+    "post_excess_loss_kwh_day",
+    "post_excess_loss_lei_month",
+    "a_score",
+    "combined_score",
+    "note_ro"
+  ],
+  "title": "BilantFusion",
+  "type": "object"
+}

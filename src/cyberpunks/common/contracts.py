@@ -77,6 +77,12 @@ class RecommendedAction(str, Enum):
     adjust_tap = "adjust_tap"  # C: schimbarea prizei transformatorului (cere întrerupere planificată)
     measurement_campaign = "measurement_campaign"  # C: analizor de calitate a energiei montat la post
     notify_customers = "notify_customers"  # C: mesaj către prosumatori (PPC Energy), fără echipă
+    office_correction = "office_correction"  # bilanț: corecție în bază (client la postul greșit), fără deplasare
+    grid_inspection = "grid_inspection"  # bilanț: echipă de rețea (lv_grid) pentru pierderi tehnice, faze
+    phase_rebalance = "phase_rebalance"  # C (scara): mută câteva case pe altă fază
+    offer_battery = "offer_battery"  # C (scara): ofertă de baterii pentru prosumatori (PPC Energie)
+    export_limit = "export_limit"  # C (scara): limită de injecție pe oră
+    transformer_upgrade = "transformer_upgrade"  # C (scara): transformator nou (investiție)
     no_action = "no_action"
 
 
@@ -201,6 +207,45 @@ class WorkItem(_Strict):
         if self.prediction.abstain and self.recommended_action != RecommendedAction.human_review:
             raise ValueError("o predicție cu abstain=True trebuie să recomande human_review")
         return self
+
+
+class RemedyOption(_Strict):
+    """O treaptă din scara de soluții pentru tensiune (C), în `WorkItem.extra["remedy_options"]` (listă).
+
+    Efectul se calculează cu calculul de rețea al lui C, nu se ghicește.
+    """
+
+    action: RecommendedAction
+    cost_lei: float = Field(ge=0.0)
+    p90_after_pu: float = Field(gt=0.5, lt=1.5, description="P90 al tensiunii maxime după soluție")
+    effect_pu: float = Field(description="Cât scade P90 (pu), negativ = scade")
+    confidence: Confidence
+    duration_min: int = Field(ge=0, description="Timp de lucru; 0 pentru mesaje")
+    needs_crew: bool
+    crew_skill: CrewSkill | None = None
+    combinable: bool = Field(default=True, description="Se poate combina cu alte trepte")
+    note_ro: str
+    # Treapta 3 (mesaje țintite pe post) și treapta 4 (baterii pe profil), completări aprobate la 14:00
+    participation_rate: float | None = Field(default=None, ge=0.0, le=1.0, description="Rata de participare folosită (IPOTEZĂ)")
+    risk_hours: list[str] = Field(default_factory=list, description="Orele cu risc vizate, de exemplu ['12:00-15:00']")
+    inverter_trips_avoided: float | None = Field(default=None, ge=0.0, description="Opriri ale invertoarelor evitate")
+    message_preview_ro: str | None = Field(default=None, description="Textul de grup, pe post, fără date personale")
+    customers_targeted: int | None = Field(default=None, ge=0)
+    battery_kwh_total: float | None = Field(default=None, ge=0.0, description="kWh de baterii propuși, total pe post")
+    revenue_lei: float | None = Field(default=None, ge=0.0, description="Venit estimat pentru PPC Energie")
+    payback_years: float | None = Field(default=None, ge=0.0, description="Perioada de recuperare pentru client")
+
+
+class BilantFusion(_Strict):
+    """Confirmarea independentă bilanț + contor, în `WorkItem.extra["fusion"]` pentru lucrările A pe contoare."""
+
+    post_id: str
+    bilant_prediction_id: str
+    post_excess_loss_kwh_day: float = Field(description="Lipsa peste normal la post, kWh pe zi")
+    post_excess_loss_lei_month: float
+    a_score: float = Field(ge=0.0, le=1.0, description="Scorul inițial al modelului A")
+    combined_score: float = Field(ge=0.0, le=1.0, description="Scorul după confirmare (devine prediction.score)")
+    note_ro: str
 
 
 # --------------------------------------------------------------------------------------------
@@ -377,6 +422,8 @@ MODELS: dict[str, type[BaseModel]] = {
     "audit": AuditRecord,
     "model_report": ModelReport,
     "series": Series,
+    "remedy_option": RemedyOption,
+    "bilant_fusion": BilantFusion,
 }
 
 
