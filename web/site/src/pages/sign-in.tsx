@@ -41,7 +41,7 @@ function Field({
   const id = useId()
   return (
     <div>
-      <label htmlFor={id} className="mb-2 block font-medium">
+      <label htmlFor={id} className="mb-2 block font-medium [@media(max-height:760px)]:mb-1">
         {label}
       </label>
       <input
@@ -54,7 +54,7 @@ function Field({
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${id}-err` : hint ? `${id}-hint` : undefined}
         className={cn(
-          "h-12 w-full rounded-2xl bg-surface-2 px-4 text-foreground outline-none transition-[box-shadow] duration-150",
+          "h-12 [@media(max-height:760px)]:h-11 w-full rounded-2xl bg-surface-2 px-4 text-foreground outline-none transition-[box-shadow] duration-150",
           "placeholder:text-foreground/60 focus-visible:ring-2 focus-visible:ring-accent-ink disabled:opacity-60",
           error && "ring-2 ring-bad"
         )}
@@ -175,7 +175,7 @@ export default function SignInPage() {
   return (
     <Shell title={TITLES[view]}>
       {view !== "parola-noua" && view !== "resetare" && (
-        <div role="group" aria-label="Account access" className="mb-8 inline-flex rounded-full bg-surface-2 p-1">
+        <div role="group" aria-label="Account access" className="mb-[clamp(12px,3vh,32px)] inline-flex rounded-full bg-surface-2 p-1">
           {(["intra", "cont-nou"] as Mode[]).map((m) => (
             <button
               key={m}
@@ -183,7 +183,7 @@ export default function SignInPage() {
               aria-pressed={view === m}
               onClick={() => setMode(m)}
               className={cn(
-                "h-10 cursor-pointer rounded-full px-5 text-sm font-medium transition-colors duration-200",
+                "h-10 [@media(max-height:760px)]:h-9 cursor-pointer rounded-full px-5 text-sm font-medium transition-colors duration-200",
                 view === m ? "bg-foreground text-background" : "text-foreground/80 hover:text-foreground"
               )}
             >
@@ -194,7 +194,7 @@ export default function SignInPage() {
       )}
 
       {localPreview && (
-        <p className="mb-6 text-sm text-foreground/70">
+        <p className="mb-[clamp(10px,2vh,24px)] text-sm text-foreground/70">
           Account data in this preview is stored locally.{" "}
           <a href="https://daybreak.ghiseateodor245.workers.dev/intra" className="text-foreground underline underline-offset-4">Open live sign in</a>
         </p>
@@ -209,7 +209,7 @@ export default function SignInPage() {
       <form
         noValidate
         onSubmit={submit}
-        className="mt-2 space-y-5"
+        className="mt-2 space-y-[clamp(10px,2vh,20px)]"
       >
         {done ? (
           <Notice tone="success">{done}</Notice>
@@ -237,7 +237,7 @@ export default function SignInPage() {
 
             {view !== "parola-noua" && view !== "resetare" && (
               // Reserve the name row so shared fields and actions stay put when switching modes.
-              <div className="min-h-[5.25rem]">
+              <div className="min-h-[5.25rem] [@media(max-height:760px)]:min-h-[4.75rem] max-lg:min-h-0">
                 {view === "cont-nou" && (
                   <Field label="Name" value={name} onChange={setName} autoComplete="name" error={nameErr} disabled={busy} />
                 )}
@@ -247,7 +247,7 @@ export default function SignInPage() {
             {error && <Notice tone="error">{error}</Notice>}
 
             <div className="grid items-center justify-items-start gap-x-6 gap-y-4 pt-2 sm:flex sm:flex-wrap">
-              {view !== "resetare" && <GlassButton type="submit" size="lg" variant="signal" disabled={busy || !supabaseReady} aria-busy={busy}>
+              {view !== "resetare" && <GlassButton type="submit" size="lg" variant="signal" className="[@media(max-height:760px)]:h-12" disabled={busy || !supabaseReady} aria-busy={busy}>
                 {busy && <Loader2 className="size-4 animate-spin" aria-hidden />}
                 {view === "intra"
                   ? busy
@@ -278,7 +278,7 @@ export default function SignInPage() {
         )}
       </form>
 
-      <p className="mt-12 text-foreground/70">
+      <p className="mt-[clamp(14px,3vh,48px)] text-foreground/70 [@media(max-height:760px)]:text-sm">
         The public site explains how Daybreak works.{" "}
         <Link to="/agent" className="text-foreground underline underline-offset-4 hover:text-accent-ink">
           Explore Daybreak
@@ -291,17 +291,18 @@ export default function SignInPage() {
 
 function Shell({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <main className="container-page flex min-h-[100svh] items-start py-[clamp(172px,18vh,200px)]">
-      <div className="grid w-full items-start gap-12 lg:grid-cols-12">
-        <div className="lg:col-span-6 lg:pt-44">
+    // Fits one screen on desktop: top padding clears the fixed navbar, spacing shrinks with the viewport height.
+    <main className="container-page flex min-h-[100svh] items-center pt-[clamp(72px,12vh,120px)] pb-[clamp(16px,3vh,32px)] lg:h-[100svh]">
+      <div className="grid w-full items-center gap-[clamp(24px,4vh,48px)] lg:grid-cols-12">
+        <div className="lg:col-span-6">
           <h1 className="text-[clamp(2.2rem,min(4.2vw,7.5vh),3.9rem)] leading-[1.02] font-semibold tracking-[-0.03em]">
             Your Daybreak workspace
           </h1>
-          <p className="mt-6 max-w-[40ch] text-lg text-foreground/80">Sign in to track your cases or assigned work. Your verified account determines which connections and work you can access.</p>
+          <p className="mt-[clamp(12px,2.5vh,24px)] max-w-[40ch] text-lg text-foreground/80">Sign in to track your cases or assigned work. Your verified account determines which connections and work you can access.</p>
         </div>
         <div className="lg:col-span-6">
-          <div className="rounded-2xl bg-surface p-[clamp(24px,3vw,40px)]">
-            <h2 className="mb-6 font-sans text-2xl font-semibold tracking-[-0.01em]">{title}</h2>
+          <div className="rounded-2xl bg-surface p-[clamp(20px,min(3vw,3.5vh),40px)]">
+            <h2 className="mb-[clamp(12px,2.5vh,24px)] font-sans text-2xl font-semibold tracking-[-0.01em]">{title}</h2>
             {children}
           </div>
         </div>
