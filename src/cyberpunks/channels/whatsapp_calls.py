@@ -202,9 +202,13 @@ DEMO_LABELS = {"customer": "Demo client.", "dispatcher": "Demo dispecer.", "tech
 ROLE_QUESTION = "Ce rol alegi pentru demo: client PPC, dispecer PPC sau tehnician PPC?"
 DECLARATION = re.compile(r"\b(client|dispecer|tehnician)\b")
 DECLARATIVE_PREFIX = re.compile(
-    r"^\s*(?:(?:salut|buna(?:\s+ziua)?)[\s,.!:]+)?"
+    r"^\s*(?:(?:a+|e+|um|uh|hmm?|deci|ok|okay|bun|bine|si|iar|apoi|acum)[\s,.!:;\-]+){0,6}"
+    r"(?:(?:salut|buna(?:\s+ziua)?)[\s,.!:]+)?"
     r"(?:(?:da[\s,]+)|(?:nu[\s,]+(?=eu\s+sunt\b)))?"
-    r"(?:acum\s+(?:eu\s+)?(?:sunt\s+)?|(?:eu\s+)?sunt\s+)"
+    r"(?:(?:acum\s+(?:eu\s+)?(?:sunt\s+)?|(?:eu\s+)?sunt\s+)|"
+    r"(?:(?:aleg|selectez)\s+(?:rolul\s+(?:de\s+)?)?)|"
+    r"(?:trec\s+(?:la|pe)\s+(?:rolul\s+(?:de\s+)?)?))?"
+    r"(?:un\s+)?"
     r"(client|dispecer|tehnician)\b"
     r"(?:\s+(?:ppc|tpc|p[\s.\-]+p[\s.\-]+c|pe\s+pe\s+ce)\b)?"
 )
@@ -375,6 +379,7 @@ def create_app(*, service=None, bindings=None, config_loader=load_config, report
                 message = request.message
                 actor = base_actor
                 connection_id = None
+                role_only = False
                 if profile:
                     actors, connection_id, demo_signature = profile
                     selected_role = (
@@ -385,7 +390,15 @@ def create_app(*, service=None, bindings=None, config_loader=load_config, report
                         return {"reply": ROLE_QUESTION}
                     if declared_role:
                         selected_role = declared_role
-                        message = remainder or "Cu ce mă poți ajuta în acest rol demo?"
+                        role_only = not remainder
+                        message = (
+                            remainder
+                            or {
+                                "customer": "Spune-mi ce s-a întâmplat la locul de consum.",
+                                "dispatcher": "Câte tichete am și câte au risc de siguranță?",
+                                "technician": "Ce am de făcut astăzi? Trebuie echipament?",
+                            }[declared_role]
+                        )
                     if selected_role:
                         actor = actors[selected_role]
                 effective_signature = _fingerprint(actor.model_dump())
@@ -417,7 +430,7 @@ def create_app(*, service=None, bindings=None, config_loader=load_config, report
                     else None
                 )
                 if reply is None:
-                    result = None
+                    result = {"reply": message} if role_only and selected_role == "customer" else None
                     entry = config.get("demo_callers", {}).get(caller, {}) if selected_role else {}
 
                     def authorize_demo_actor():
