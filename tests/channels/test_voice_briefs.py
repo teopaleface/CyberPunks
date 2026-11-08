@@ -260,3 +260,10 @@ def test_completed_route_and_wrong_crew_next_stop_are_not_instructions(demo, mon
     completed = brief(demo, "technician", ROUTE)
     assert completed["provenance"]["remaining"] == 0
     assert "nu mai ai opriri" in completed["reply"]
+
+
+def test_real_asr_incident_asks_for_clarification_instead_of_guessing(demo):
+    result = brief(demo, "customer", "Sunt client TPC. A căzut astăzi de curent și vreau să, ăăă, raportez incidentul.")
+    assert result["reply"] == "Te referi la un stâlp căzut sau la o întrerupere de curent?"
+    assert result["proposal"] is None
+    assert rows(demo, "proposals") == 0 and rows(demo, "commands") == 0

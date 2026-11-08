@@ -44,7 +44,10 @@ async def verify_public_tool(origin: str, *, transport=None) -> None:
             if denied.status_code != 401:
                 raise ValueError("Call tool authentication unavailable")
     except (httpx.HTTPError, ValueError, TypeError):
-        raise ChannelError("calling_tunnel_unavailable", "The public call-tool connection is unavailable. Repair the tunnel before testing a call.") from None
+        raise ChannelError(
+            "calling_tunnel_unavailable",
+            "The public call-tool connection is unavailable. Repair the tunnel before testing a call.",
+        ) from None
 
 
 def save_config(config: dict) -> None:
@@ -63,10 +66,42 @@ def call_agent_config(voice_id: str, origin: str, secret_id: str, *, demo_enable
     config["tags"] = ["daybreak", "whatsapp-calls", "private-demo"]
     prompt = config["conversation_config"]["agent"]["prompt"]
     prompt["prompt"] = prompt["prompt"].replace("daybreak_turn", "daybreak_call_turn")
-    if demo_enabled:
-        config["conversation_config"]["agent"]["first_message"] = (
-            "Salut! Testăm Daybreak, în demo."
+    prompt["prompt"] = (
+        prompt["prompt"]
+        .replace(
+            "For every complete user utterance, immediately INVOKE",
+            "For every complete intelligible user utterance, immediately INVOKE",
         )
+        .replace(
+            "Never end a user turn with a standalone acknowledgement. When the tool requires pre-tool speech, use only\n"
+            "'Verific informațiile.' in Romanian or 'Let me check.' in English. Always emit the tool invocation in the same turn.\n"
+            "Never output that acknowledgement without invoking the tool.",
+            "Invoke the tool immediately without an acknowledgement or preamble. Never say 'Verific informațiile'.\n"
+            "Silence, punctuation-only input such as '...' or '…', and [silence]/[inaudible] are not user utterances.\n"
+            "For those inputs remain silent and do not invoke the tool. Do not re-engage a quiet user.\n"
+            "If the tool returns an empty reply string, remain silent and wait for intelligible speech.",
+        )
+    )
+    config["conversation_config"]["asr"]["keywords"] = [
+        "PPC",
+        "client",
+        "dispecer",
+        "tehnician",
+        "stâlp",
+        "stâlpul",
+        "curent",
+        "tichete",
+        "echipament",
+    ]
+    config["conversation_config"]["turn"].update(
+        turn_timeout=120,
+        silence_end_call_timeout=180,
+        retranscribe_on_turn_timeout=False,
+        turn_eagerness="normal",
+        soft_timeout_config={"timeout_seconds": -1, "message": "Aștept.", "use_llm_generated_message": False},
+    )
+    if demo_enabled:
+        config["conversation_config"]["agent"]["first_message"] = "Salut! Testăm Daybreak, în demo."
         prompt["prompt"] = prompt["prompt"].replace(
             "the Daybreak technician voice coordinator", "the Daybreak server-bound voice coordinator"
         ) + (
@@ -74,44 +109,72 @@ def call_agent_config(voice_id: str, origin: str, secret_id: str, *, demo_enable
             "Forward role declarations unchanged to the tool. Never select a role yourself, "
             "infer authorization, or add identity fields. Speak the returned demo label exactly once as returned."
         )
-    prompt["tools"] = [{
-        "type": "webhook",
-        "name": "daybreak_call_turn",
-        "description": "Call for every complete user utterance. The server verifies the real caller and returns the exact reply.",
-        "response_timeout_secs": 90,
-        "pre_tool_speech": "force",
-        "interruption_mode": "disable_during_tool_and_turn",
-        "tool_error_handling_mode": "hide",
-        "follow_redirects": False,
-        "api_schema": {
-            "url": origin.rstrip("/") + "/api/voice/turn",
-            "method": "POST",
-            "request_headers": {"Authorization": {"secret_id": secret_id}},
-            "request_body_schema": {
-                "type": "object",
-                "required": ["message", "caller_id", "conversation_id"],
-                "properties": {
-                    "message": {"type": "string", "description": "The complete original user utterance, unchanged."},
-                    "caller_id": {"type": "string", "dynamic_variable": "system__caller_id"},
-                    "conversation_id": {"type": "string", "dynamic_variable": "system__conversation_id"},
+    prompt["tools"] = [
+        {
+            "type": "webhook",
+            "name": "daybreak_call_turn",
+            "description": "Call for every complete user utterance. The server verifies the real caller and returns the exact reply.",
+            "response_timeout_secs": 90,
+            "pre_tool_speech": "off",
+            "interruption_mode": "allow",
+            "tool_error_handling_mode": "hide",
+            "follow_redirects": False,
+            "api_schema": {
+                "url": origin.rstrip("/") + "/api/voice/turn",
+                "method": "POST",
+                "request_headers": {"Authorization": {"secret_id": secret_id}},
+                "request_body_schema": {
+                    "type": "object",
+                    "required": ["message", "caller_id", "conversation_id"],
+                    "properties": {
+                        "message": {
+                            "type": "string",
+                            "description": "The complete original user utterance, unchanged.",
+                        },
+                        "caller_id": {"type": "string", "dynamic_variable": "system__caller_id"},
+                        "conversation_id": {"type": "string", "dynamic_variable": "system__conversation_id"},
+                    },
                 },
             },
-        },
-    }]
+        }
+    ]
     return config
 
 
 class CallTurn(StrictModel):
-    message: str = Field(min_length=1, max_length=4000)
+    message: str = Field(min_length=0, max_length=4000)
     caller_id: str = Field(min_length=3, max_length=150)
     conversation_id: str = Field(min_length=3, max_length=150, pattern=r"^[A-Za-z0-9_.:-]+$")
+
+
+def is_silent_transcript(message: str) -> bool:
+    text = "".join(c for c in unicodedata.normalize("NFKD", message.casefold()) if not unicodedata.combining(c)).strip()
+    if not any(char.isalnum() for char in text):
+        return True
+    return bool(
+        re.fullmatch(
+            r"[\[(<]?\s*(?:silence|inaudible|unintelligible|no speech|background noise|tacere|neinteligibil)\s*[\])>]?",
+            text,
+        )
+    )
+
+
+def is_hearing_check(message: str) -> bool:
+    text = "".join(c for c in unicodedata.normalize("NFKD", message.casefold()) if not unicodedata.combining(c)).strip()
+    return bool(re.fullmatch(r"(?:ma auzi|ma auziti|alo|se aude)[?!. ,]*", text))
 
 
 DEMO_ROLES = {"client": "customer", "dispecer": "dispatcher", "tehnician": "technician"}
 DEMO_LABELS = {"customer": "Demo client.", "dispatcher": "Demo dispecer.", "technician": "Demo tehnician."}
 ROLE_QUESTION = "Ce rol alegi pentru demo: client PPC, dispecer PPC sau tehnician PPC?"
-DECLARATION = re.compile(r"\b(?:sunt\s+)?(client|dispecer|tehnician)\s+ppc\b")
-DECLARATIVE_PREFIX = re.compile(r"^\s*(?:acum\s+(?:sunt\s+)?|sunt\s+)(client|dispecer|tehnician)\s+ppc\b")
+DECLARATION = re.compile(r"\b(client|dispecer|tehnician)\b")
+DECLARATIVE_PREFIX = re.compile(
+    r"^\s*(?:(?:salut|buna(?:\s+ziua)?)[\s,.!:]+)?"
+    r"(?:(?:da[\s,]+)|(?:nu[\s,]+(?=eu\s+sunt\b)))?"
+    r"(?:acum\s+(?:eu\s+)?(?:sunt\s+)?|(?:eu\s+)?sunt\s+)"
+    r"(client|dispecer|tehnician)\b"
+    r"(?:\s+(?:ppc|tpc|p[\s.\-]+p[\s.\-]+c|pe\s+pe\s+ce)\b)?"
+)
 
 
 def _fingerprint(value: dict) -> str:
@@ -131,14 +194,19 @@ def _role_declaration(message: str) -> tuple[str | None, str, bool]:
     prefix = DECLARATIVE_PREFIX.match(normalized)
     if len(mentions) != 1 or prefix is None:
         return None, message, True
-    tail = normalized[prefix.end():]
+    tail = normalized[prefix.end() :]
     # A question, quotation, hypothetical or immediate denial is not a declaration.
     if (
-        tail and not (tail[0].isspace() or tail[0] in ".,;:!")
-        or re.match(r"^[\s.,;:!]*(?:[?\"'«»„“”]|(?:poate|daca)\b|(?:nu|nici)\s+sunt\b|nu\s*[?.!]*$)", tail)
+        tail
+        and not (tail[0].isspace() or tail[0] in ".,;:!")
+        or re.match(
+            r"^[\s.,;:!]*(?:[?\"'«»„“”]|(?:poate|daca|sau|oare|ipotetic|sa\s+zicem)\b|"
+            r"(?:(?:dar|insa)\s+)?(?:nu|nici)\s+sunt\b|nu\s*[?.!]*$)",
+            tail,
+        )
     ):
         return None, message, True
-    remainder = message[positions[prefix.end() - 1]:].lstrip(" \t\r\n.,;:!")
+    remainder = message[positions[prefix.end() - 1] :].lstrip(" \t\r\n.,;:!")
     return DEMO_ROLES[prefix[1]], remainder, False
 
 
@@ -165,14 +233,25 @@ def _demo_profile(config: dict, caller: str, operations) -> tuple[dict[str, Acto
                 if not actor.crew_id or actor.connection_ids or actor.permissions:
                     return None
             elif (
-                actor.crew_id or actor.connection_ids or not actor.permissions
-                or not set(actor.permissions) <= {
-                    "approve_plan", "review_work_item", "create_case", "recover_commands", "view_console",
+                actor.crew_id
+                or actor.connection_ids
+                or not actor.permissions
+                or not set(actor.permissions)
+                <= {
+                    "approve_plan",
+                    "review_work_item",
+                    "create_case",
+                    "recover_commands",
+                    "view_console",
                 }
             ):
                 return None
             context = operations.context(actor, "demo-vara")
-            if context.get("actor") != actor.model_dump() or context.get("scenario") != "demo-vara" or not context.get("synthetic"):
+            if (
+                context.get("actor") != actor.model_dump()
+                or context.get("scenario") != "demo-vara"
+                or not context.get("synthetic")
+            ):
                 return None
             if role == "customer" and not set(actor.connection_ids) <= {
                 c["connection_id"] for c in context["connections"] if c.get("synthetic")
@@ -235,14 +314,22 @@ def create_app(*, service=None, bindings=None, config_loader=load_config) -> Fas
             if not re.fullmatch(r"[0-9]{5,20}", caller) or caller not in config.get("allowed_callers", []):
                 raise ChannelError("caller_forbidden", "This caller is not enabled for the private demo.", 403)
             base_actor = bindings.resolve(config["phone_number_id"], caller)
+            if is_silent_transcript(request.message):
+                return {"reply": ""}
+            if is_hearing_check(request.message):
+                return {"reply": "Te aud. Spune-mi întrebarea."}
             # Scope and binding are rechecked on every turn. Neither the model nor the request selects a role.
             service.operations.context(base_actor, "demo-vara")
             now = time.monotonic()
             for expired in [key for key, value in sessions.items() if value["expires"] < now]:
                 del sessions[expired]
-            base_signature = _fingerprint({
-                "actor": base_actor.model_dump(), "caller": caller, "destination": config["phone_number_id"],
-            })
+            base_signature = _fingerprint(
+                {
+                    "actor": base_actor.model_dump(),
+                    "caller": caller,
+                    "destination": config["phone_number_id"],
+                }
+            )
             async with limiter.acquire((base_actor.organization_id, base_actor.user_id)):
                 existing = sessions.get(request.conversation_id)
                 if existing and existing["actor"] != base_signature:
@@ -257,7 +344,9 @@ def create_app(*, service=None, bindings=None, config_loader=load_config) -> Fas
                 connection_id = None
                 if profile:
                     actors, connection_id, demo_signature = profile
-                    selected_role = existing.get("demo_role") if existing and existing.get("demo") == demo_signature else None
+                    selected_role = (
+                        existing.get("demo_role") if existing and existing.get("demo") == demo_signature else None
+                    )
                     declared_role, remainder, ambiguous = _role_declaration(message)
                     if ambiguous:
                         return {"reply": ROLE_QUESTION}
@@ -268,17 +357,25 @@ def create_app(*, service=None, bindings=None, config_loader=load_config) -> Fas
                         actor = actors[selected_role]
                 effective_signature = _fingerprint(actor.model_dump())
                 switched = bool(selected_role) and (
-                    not existing or existing.get("effective_actor") != effective_signature
-                    or existing.get("demo") != demo_signature or existing.get("demo_role") != selected_role
+                    not existing
+                    or existing.get("effective_actor") != effective_signature
+                    or existing.get("demo") != demo_signature
+                    or existing.get("demo_role") != selected_role
                 )
                 same_identity = bool(existing) and (
                     existing.get("effective_actor") == effective_signature
-                    and existing.get("demo") == demo_signature and existing.get("demo_role") == selected_role
+                    and existing.get("demo") == demo_signature
+                    and existing.get("demo_role") == selected_role
                 )
                 history = existing["history"] if same_identity else []
-                dedupe = "wa-call:" + hashlib.sha256(
-                    (request.conversation_id + "\0" + effective_signature + "\0" + actor.role + "\0" + message).encode()
-                ).hexdigest()
+                dedupe = (
+                    "wa-call:"
+                    + hashlib.sha256(
+                        (
+                            request.conversation_id + "\0" + effective_signature + "\0" + actor.role + "\0" + message
+                        ).encode()
+                    ).hexdigest()
+                )
                 replies = dict(existing.get("replies", {})) if existing else {}
                 cached = replies.get(dedupe)
                 reply = (
@@ -292,11 +389,17 @@ def create_app(*, service=None, bindings=None, config_loader=load_config) -> Fas
                         from cyberpunks.channels.voice_briefs import answer_demo
 
                         result = answer_demo(
-                            service.operations, actor, message, event_key=dedupe, connection_id=connection_id,
+                            service.operations,
+                            actor,
+                            message,
+                            event_key=dedupe,
+                            connection_id=connection_id,
                         )
                     if result is None:
                         result = await service.chat(
-                            actor, ChatRequest(message=message, history=history), event_key=dedupe,
+                            actor,
+                            ChatRequest(message=message, history=history),
+                            event_key=dedupe,
                         )
                     reply = result["reply"]
                     # Repeated reads must still see the current plan. Only prepared
@@ -304,10 +407,13 @@ def create_app(*, service=None, bindings=None, config_loader=load_config) -> Fas
                     if result.get("proposal"):
                         expires_at = datetime.fromisoformat(result["proposal"]["expires_at"])
                         replies[dedupe] = {"reply": reply, "expires_at": expires_at.isoformat()}
-                    history = (history + [
-                        {"role": "user", "content": message},
-                        {"role": "assistant", "content": reply[:4000]},
-                    ])[-12:]
+                    history = (
+                        history
+                        + [
+                            {"role": "user", "content": message},
+                            {"role": "assistant", "content": reply[:4000]},
+                        ]
+                    )[-12:]
                 sessions[request.conversation_id] = {
                     "actor": base_signature,
                     "effective_actor": effective_signature,
@@ -322,6 +428,8 @@ def create_app(*, service=None, bindings=None, config_loader=load_config) -> Fas
             return JSONResponse({"error": exc.code, "message": exc.message}, status_code=exc.status_code)
         except Exception:  # noqa: BLE001 - public boundary must not expose provider/operational details.
             # Provider and operational errors can contain private objects. Never return their raw text.
-            return JSONResponse({"error": "call_turn_unavailable", "message": "Please use text in the app."}, status_code=503)
+            return JSONResponse(
+                {"error": "call_turn_unavailable", "message": "Please use text in the app."}, status_code=503
+            )
 
     return app

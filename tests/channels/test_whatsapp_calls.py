@@ -11,6 +11,8 @@ from fastapi.testclient import TestClient
 
 from cyberpunks.channels.whatsapp_calls import call_agent_config, create_app
 
+from .conftest import intention
+
 
 @pytest.fixture(scope="session")
 def full_run(full_run, tmp_path_factory):
@@ -148,6 +150,58 @@ def provider_input(env):
     return json.loads(env["provider"].prompts[-1].split("INPUT JSON:\n")[1])
 
 
+def test_actual_call_asr_tpc_selects_customer_instead_of_technician_refusal(demo_call, env, monkeypatch):
+    # Exact reported ASR text. The provider is simulated; actor selection uses the real endpoint.
+    transcript = "Sunt client TPC. A căzut astăzi de curent și vreau să, ăăă, raportez incidentul."
+    refusal = "Contul curent este de tehnician și nu poate asista clientul."
+
+    async def scoped_reply(prompt):
+        env["provider"].prompts.append(prompt)
+        role = json.loads(prompt.split("INPUT JSON:\n")[1])["role"]
+        return intention(reply=refusal if role == "technician" else "Ce s-a întâmplat la locul de consum?"), {
+            "provider": "simulated-test-provider", "model": "test-only", "tools_enabled": False,
+        }
+
+    monkeypatch.setattr(env["provider"], "turn", scoped_reply)
+    response = demo_turn(demo_call, transcript)
+    assert response.status_code == 200
+    assert refusal not in response.json()["reply"]
+    assert provider_input(env)["role"] == "customer"
+    assert provider_input(env)["message"] == "A căzut astăzi de curent și vreau să, ăăă, raportez incidentul."
+
+
+@pytest.mark.parametrize("declaration,role", [
+    ("Eu sunt client PPC", "customer"),
+    ("Salut, eu sunt client P P C", "customer"),
+    ("Bună ziua! Sunt client P.P.C.", "customer"),
+    ("Sunt client pe pe ce", "customer"),
+    ("Sunt client", "customer"),
+    ("Nu eu sunt client TPC", "customer"),
+    ("Nu, eu sunt client", "customer"),
+    ("Da, acum eu sunt dispecer", "dispatcher"),
+    ("Acum sunt tehnician P-P-C", "technician"),
+])
+def test_natural_private_role_declarations_and_followup(demo_call, env, declaration, role):
+    response = demo_turn(demo_call, declaration + ", vreau să raportez incidentul.")
+    assert response.status_code == 200 and response.json()["reply"].startswith("Demo ")
+    assert provider_input(env)["role"] == role
+    assert provider_input(env)["message"] == "vreau să raportez incidentul."
+    assert provider_input(env)["history"] == []
+    assert demo_turn(demo_call, "Ce informații ai nevoie?").status_code == 200
+    assert provider_input(env)["role"] == role
+    assert len(provider_input(env)["history"]) == 2
+
+
+def test_role_declaration_preserves_conjunction_and_resets_fallback_history(demo_call, env):
+    assert demo_turn(demo_call, "Salut, am o problemă.").status_code == 200
+    assert provider_input(env)["role"] == "technician"
+    response = demo_turn(demo_call, "Nu, eu sunt client PPC și vreau să raportez incidentul.")
+    assert response.json()["reply"].startswith("Demo client.")
+    assert provider_input(env)["role"] == "customer"
+    assert provider_input(env)["message"] == "și vreau să raportez incidentul."
+    assert provider_input(env)["history"] == []
+
+
 def test_private_demo_three_roles_in_one_call_with_isolated_followups(demo_call, env):
     for declaration, role, label in [
         ("SÚNT CLIENT ppc, Am probleme cu tensiunea.", "customer", "Demo client."),
@@ -188,6 +242,12 @@ def test_ordinary_role_claim_does_not_enable_voice_demo_or_change_actor(call_api
     "Nu sunt dispecer PPC.", "El spune sunt tehnician PPC.", "Sunt client PPC?",
     "Sunt client PPC, nu sunt client PPC.", "Dacă sunt dispecer PPC, ce văd?",
     "«Sunt client PPC»", "Sunt dispecer PPC-fals.",
+    "Sunt client sau dispecer.", "Sunt client și sunt tehnician TPC.",
+    "Nu sunt client.", "Nu, nu sunt client PPC.", "Eu nu sunt client TPC.",
+    "Dacă eu sunt client, ce se întâmplă?", 'El a spus "Sunt client TPC".',
+    '"Sunt client"', "Sunt client?", "Aș fi client PPC.",
+    "Sunt client, poate.", "Sunt client, nu.", "Sunt client, dar nu sunt.",
+    "Sunt client PPC sau nu?", "Sunt client, să zicem.", "Sunt client ipotetic.",
 ])
 def test_ambiguous_declarations_ask_without_switch_or_provider(demo_call, env, message):
     response = demo_turn(demo_call, message)
@@ -201,6 +261,15 @@ def test_ambiguous_declaration_preserves_selected_role_and_history(demo_call, en
     assert demo_turn(demo_call, "De ce?").status_code == 200
     assert provider_input(env)["role"] == "customer"
     assert len(provider_input(env)["history"]) == 2
+
+
+@pytest.mark.parametrize("message", ["Sunt client TPC", "Eu sunt dispecer", "Nu, eu sunt client", "Sunt client sau dispecer"])
+def test_natural_role_claims_do_not_enable_demo_for_ordinary_callers(call_api, env, message):
+    client, headers = call_api
+    response = client.post("/api/voice/turn", headers=headers, json=payload(message=message))
+    assert response.status_code == 200
+    assert provider_input(env)["role"] == "technician"
+    assert not response.json()["reply"].startswith("Demo ") and "Ce rol" not in response.json()["reply"]
 
 
 @pytest.mark.parametrize("invalid", [
@@ -310,9 +379,10 @@ def test_real_demo_briefs_on_complete_reference_prepare_count_and_route(demo_cal
 
     monkeypatch.setattr(voice_briefs, "answer_demo", demo_call["real_brief"])
     env["provider"].error = RuntimeError("Unexpected LLM fallback in grounded demo intents")
-    first = demo_turn(demo_call, "Sunt client PPC. Mi-a picat curentul.")
+    first = demo_turn(demo_call, "Sunt client. Mi-a picat curentul.")
     assert first.status_code == 200 and first.json()["reply"].startswith("Demo client.")
-    duplicate = demo_turn(demo_call, "Sunt client PPC. Mi-a picat curentul.")
+    assert "sesizarea de întrerupere este pregătită" in first.json()["reply"]
+    duplicate = demo_turn(demo_call, "Sunt client. Mi-a picat curentul.")
     assert duplicate.status_code == 200
     assert not duplicate.json()["reply"].startswith("Demo ")
     dispatcher = demo_turn(demo_call, "Acum sunt dispecer PPC. Câte tichete am în coada de revizuire?")

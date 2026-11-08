@@ -26,6 +26,8 @@ QUESTIONS = {
     "demo-customer": "Sunt client PPC. Vreau să raportez că a căzut un stâlp de curent.",
     "demo-dispatcher": "Sunt dispecer PPC. Câte tichete am astăzi și câte sunt de prioritate ridicată?",
     "demo-technician": "Sunt tehnician PPC. Ce am de făcut astăzi? Trebuie echipament?",
+    "demo-asr-client": "Sunt client TPC. A căzut astăzi de curent și vreau să, ăăă, raportez incidentul.",
+    "silence": "...",
 }
 
 
@@ -46,6 +48,8 @@ def inspect_run(run: dict, question: str) -> dict:
         raise ProbeError("Expected one actual tool call and result; acknowledgement or tool-name text is insufficient.")
     call = calls[0]
     index, result = results[0]
+    if any(turn.get("role") == "agent" and (turn.get("message") or "").strip() for turn in generated[:index]):
+        raise ProbeError("The call agent spoke an unwanted pre-tool acknowledgement.")
     if (
         call.get("tool_name") != "daybreak_call_turn"
         or not call.get("tool_has_been_called")
@@ -75,6 +79,29 @@ def inspect_run(run: dict, question: str) -> dict:
     }
 
 
+def inspect_silence(run: dict, question: str) -> dict:
+    turns = run.get("agent_responses") or []
+    users = [i for i, turn in enumerate(turns) if turn.get("role") == "user"]
+    if len(users) != 1 or turns[users[0]].get("message") != question:
+        raise ProbeError("Expected exactly the fixed silence placeholder.")
+    generated = turns[users[0] + 1 :]
+    if any(turn.get("role") == "agent" and (turn.get("message") or "").strip() for turn in generated):
+        raise ProbeError("The call agent spoke while the user was silent.")
+    calls = [c for turn in generated for c in turn.get("tool_calls", [])]
+    results = [r for turn in generated for r in turn.get("tool_results", [])]
+    if calls or results:
+        if (
+            len(calls) != 1
+            or len(results) != 1
+            or not results[0].get("tool_has_been_called")
+            or results[0].get("is_error")
+        ):
+            raise ProbeError("The silence guard did not return a real quiet result.")
+        if json.loads(results[0]["result_value"]) != {"reply": ""}:
+            raise ProbeError("Silence reached an operational conversation.")
+    return {"question": question, "verified_reply": "", "agent_reply": "", "tool_seconds": None, "silent": True}
+
+
 async def probe(question_key: str, *, conversation_id: str | None = None) -> dict:
     config = load_config()
     api = ElevenLabs()
@@ -102,14 +129,19 @@ async def probe(question_key: str, *, conversation_id: str | None = None) -> dic
                 "system__conversation_id": conversation_id or "synthetic-qa-" + uuid.uuid4().hex,
             },
             "simulation_scenario": (
-                "Private synthetic role demonstration. Ask only the exact fixed question already in the history. "
+                "The user is silent; the history contains only a punctuation placeholder. Remain completely silent. "
+                "No acknowledgement or operational check is appropriate."
+                if question_key == "silence"
+                else "Private synthetic role demonstration. Ask only the exact fixed question already in the history. "
                 "Only the preparation explicitly requested in that question is allowed; never confirm, send messages, or place calls."
                 if question_key.startswith("demo-")
                 else "Synthetic technician. Ask only the fixed question already in the history. Do not ask for changes, proposals, confirmations, messages or calls."
             ),
             "simulation_max_turns": 1,
             "success_conditions": [
-                "The agent calls the real daybreak_call_turn tool and speaks its verified reply. An acknowledgement alone is a failure."
+                "The agent stays silent and does not say an acknowledgement."
+                if question_key == "silence"
+                else "The agent calls the real daybreak_call_turn tool and speaks its verified reply. An acknowledgement alone is a failure."
             ],
             "tool_mock_config": {"mocking_strategy": "none"},
         },
@@ -132,7 +164,7 @@ async def probe(question_key: str, *, conversation_id: str | None = None) -> dic
             run = invocation["test_runs"][0]
             if run["status"] not in {"pending", "running", "in_progress"}:
                 finished = True
-                result = inspect_run(run, question)
+                result = (inspect_silence if question_key == "silence" else inspect_run)(run, question)
                 result.update({"synthetic": True, "phone_call_started": False, "audio_tested": False})
                 result["total_seconds"] = round(time.monotonic() - started, 2)
                 return result

@@ -139,6 +139,9 @@ def check_agent(agent: dict, config: dict) -> None:
         and c["conversation"]["max_duration_seconds"] == 600
         and c["tts"]["model_id"] == "eleven_v4_turbo"
         and c["vad"]["background_voice_detection"]
+        and c["turn"]["turn_timeout"] == expected["conversation_config"]["turn"]["turn_timeout"]
+        and c["turn"]["retranscribe_on_turn_timeout"] is False
+        and set(expected["conversation_config"]["asr"]["keywords"]) <= set(c["asr"].get("keywords", []))
         and c["agent"]["first_message"] == expected["conversation_config"]["agent"]["first_message"]
         and prompt["prompt"] == expected["conversation_config"]["agent"]["prompt"]["prompt"]
         and not prompt.get("mcp_server_ids")
@@ -151,6 +154,8 @@ def check_agent(agent: dict, config: dict) -> None:
         and tools[0]["api_schema"]["url"] == tool["api_schema"]["url"]
         and tools[0]["api_schema"]["request_headers"] == tool["api_schema"]["request_headers"]
         and tools[0].get("follow_redirects") is False
+        and tools[0].get("pre_tool_speech") == "off"
+        and tools[0].get("interruption_mode") == "allow"
         and all(
             tools[0]["api_schema"]["request_body_schema"]["properties"][key].get("dynamic_variable") == variable
             for key, variable in [("caller_id", "system__caller_id"), ("conversation_id", "system__conversation_id")]
@@ -225,10 +230,12 @@ async def configure(origin: str) -> None:
             f"/v1/convai/agents/{config['agent_id']}",
             json={
                 "conversation_config": {
+                    "asr": desired["conversation_config"]["asr"],
+                    "turn": desired["conversation_config"]["turn"],
                     "agent": {
                         "first_message": desired["conversation_config"]["agent"]["first_message"],
                         "prompt": {"prompt": desired["conversation_config"]["agent"]["prompt"]["prompt"]},
-                    }
+                    },
                 },
             },
         )
