@@ -1,7 +1,7 @@
 # Status: Teo-ui
-Actualizat: 2026-11-08 08:05
+Actualizat: 2026-11-08 08:24
 Milestone curent: STARE FINALĂ (înghețare 10:30): designul „Noapte”, site-ul de prezentare îmbinat, publicat pe Cloudflare, conturi în Cloudflare KV
-Gata de merge: da, commit-ul `9b75dd1` (origin/Teo-ui = origin/Teo, include munca de peste noapte de pe Teo, fără conflicte)
+Gata de merge: da (commit `deaab5a`; peste origin/Teo 9b75dd1: limita de 30 s pentru POST /review și /plan/approve)
 
 ## Stare finală (2026-11-08 08:05)
 - Commit: `9b75dd1`. `git merge Teo` făcut înainte (fast-forward: Teo conținea deja tot Teo-ui; consola cu agentul conversațional a rămas neatinsă).
@@ -15,6 +15,8 @@ Gata de merge: da, commit-ul `9b75dd1` (origin/Teo-ui = origin/Teo, include munc
   - resetarea parolei pe email nu există (un cont conectat își schimbă parola; altfel cont nou);
   - un cont Supabase neconfirmat a rămas în proiectul lui Tudor (`ghiseateodor245+daybreak@gmail.com`), nefolosit;
   - D1 nu s-a putut crea (contul Cloudflare are 10/10 baze), de aceea KV.
+
+- **Reparat 08:25 (cererea prezentării), commit `deaab5a`:** `TIMEOUTS.reviewMs = 30_000` pentru `apiReview` și `apiApprovePlan` (erau 1,5 s, iar API-ul reface planul în ~5 s). Mesajul roșu „Decizia nu s-a salvat” venea din butoanele vechi „Aprobă” din „Nu sunt sigur” (build-ul de la `57c64cd`); pe Teo (`9b75dd1`) acele butoane nu mai scriu în API (aprobarea trece prin asistent, `lib/operations/gateway.ts`, cu limită de 30 s), deci nici contorul vechi nu mai există de reîmprospătat. Neverificat cu o aprobare reală pe 8710 (ar fi scris în API-ul comun, iar calea din interfață nu mai cheamă `apiReview`). `make web-smoke`: 17/17 ecrane; `bun test` 241/241; `tsc` curat.
 
 ## Făcut
 - 12:45 Citite instrucțiunile, memoria, planul, contractele; `uv sync` și `make check` trec.
