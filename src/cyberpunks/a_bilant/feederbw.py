@@ -3,7 +3,8 @@
     uv run python -m cyberpunks.a_bilant.feederbw download
     uv run python -m cyberpunks.a_bilant.feederbw prepare --workers 4
     uv run python -m cyberpunks.a_bilant.feederbw tune --trials 40 --workers 4
-    uv run python -m cyberpunks.a_bilant.feederbw evaluate-release --workers 4
+    uv run python -m cyberpunks.a_bilant.feederbw evaluate-feederbw --workers 4
+    uv run python -m cyberpunks.a_bilant.feederbw compare-v2 --workers 4
 
 FeederBW, Netze BW / KIT, CC BY 4.0, doi:10.5281/zenodo.17831177.
 Treutlein et al., Scientific Data 13, 1283 (2026), doi:10.1038/s41597-026-08152-9.
@@ -318,14 +319,14 @@ def tune(trials: int, workers: int) -> None:
 
 
 def evaluate_release(workers: int) -> None:
-    """Test suplimentar al pachetului activ pe harta simulată, separat de testul FeederBW."""
+    """Test suplimentar al pachetului experimental pe harta simulată, separat de testul FeederBW."""
     if not (DATA_PROCESSED / "bilant" / "pop" / "daily.parquet").exists():
         D.build("pop", workers)
     d = F.load_pool("pop")
-    pred = W.predict_normal(N.load_for_prediction(), d)
+    pred = W.predict_normal(N.load_feederbw(), d)
     # Pe hartă, vecinii geografici pot fi în zone diferite; calculăm împreună.
     win = W.build_windows(d, pred, "pop")
-    labels = full_decision(G.load_best(), win)["label"].to_numpy()
+    labels = full_decision(G.load_packaged(N.RELEASE_DIR), win)["label"].to_numpy()
     clean = d["clean"] & (d["hist_days"] > 0)
     result = {
         "model_version": json.loads((N.RELEASE_DIR / "release.json").read_text())["version"],
@@ -342,9 +343,38 @@ def evaluate_release(workers: int) -> None:
     print(json.dumps(result, indent=2, ensure_ascii=False), flush=True)
 
 
+def compare_v2(workers: int) -> None:
+    """Compară ambele pachete pe aceleași posturi și ferestre SINTETICE ale demo-ului."""
+    if not (DATA_PROCESSED / "bilant" / "pop" / "daily.parquet").exists():
+        D.build("pop", workers)
+    d = F.load_pool("pop")
+    clean = d["clean"] & (d["hist_days"] > 0)
+    variants = [("v2", N.load_for_prediction(), G.load_best()),
+                ("feederbw", N.load_feederbw(), G.load_packaged(N.RELEASE_DIR))]
+    result, reference = {}, None
+    for name, models, diag in variants:
+        print(f"Evaluez {name} pe harta simulată", flush=True)
+        pred = W.predict_normal(models, d)
+        win = W.build_windows(d, pred, "pop")  # vecinii geografici pot aparține unor zone diferite
+        keys = win[["post_id", "day", "true_class"]].reset_index(drop=True)
+        if reference is None:
+            reference = keys
+        elif not keys.equals(reference):
+            raise ValueError("Ferestrele sau etichetele diferă între modele")
+        labels = full_decision(diag, win)["label"].to_numpy()
+        result[name] = {"diagnosis": scores(win["true_class"].to_numpy(), labels),
+                        "normal": N.interval_metrics(d.loc[clean, "short_kwh"].to_numpy(), pred.loc[clean])}
+    result["test"] = "Aceleași 300 de posturi simulate și 13.200 de ferestre; pierderi și etichete SINTETICE."
+    result["limitations"] = ["Modelele v2 sunt reconstruite, nu sunt fișierele originale de la rularea istorică.",
+                             "Fuziunea cu scorul A nu este evaluată în această comparație."]
+    path = REPORTS / "bilant" / "comparatie_v2_feederbw.json"
+    path.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n")
+    print(json.dumps(result, indent=2, ensure_ascii=False), flush=True)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("command", choices=["download", "prepare", "tune", "evaluate-release"])
+    ap.add_argument("command", choices=["download", "prepare", "tune", "evaluate-feederbw", "compare-v2"])
     ap.add_argument("--trials", type=int, default=40)
     ap.add_argument("--workers", type=int, default=4)
     args = ap.parse_args()
@@ -358,8 +388,10 @@ def main() -> None:
         prepare(args.workers)
     elif args.command == "tune":
         tune(args.trials, args.workers)
-    else:
+    elif args.command == "evaluate-feederbw":
         evaluate_release(args.workers)
+    else:
+        compare_v2(args.workers)
 
 
 if __name__ == "__main__":

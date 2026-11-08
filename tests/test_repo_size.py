@@ -11,7 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 LIMIT = 5 * 1024 * 1024
-ALLOWED = {"models/release/C/bundle.joblib", "models/release/bilant/diagnose.txt.gz"}  # modelele finale comprimate
+ALLOWED = {"models/release/C/bundle.joblib", "models/release/bilant/diagnose.txt.gz", "models/release/bilant-v2/diagnose.txt.gz"}  # modelele finale comprimate
 ALLOWED_PREFIXES = ("presentation/exports/",)  # exportul final al filmului, sub 50 MB
 
 

@@ -15,7 +15,7 @@ import lightgbm as lgb
 import numpy as np
 import pandas as pd
 
-from cyberpunks.a_bilant.normal import MODEL_DIR, RELEASE_DIR
+from cyberpunks.a_bilant.normal import MODEL_DIR, PREVIOUS_RELEASE_DIR
 from cyberpunks.a_bilant.problems import CLASSES
 from cyberpunks.a_bilant.windows import WIN_FEATURES
 
@@ -52,14 +52,18 @@ def load(name: str = "diagnose") -> Diagnoser:
     return Diagnoser(lgb.Booster(model_file=str(MODEL_DIR / f"{name}.txt")), feats)
 
 
+def load_packaged(directory) -> Diagnoser:
+    meta = json.loads((directory / "diagnose.json").read_text())
+    if meta["classes"] != list(CLASSES):
+        raise ValueError("Clasele modelului nu corespund claselor bilanțului")
+    with gzip.open(directory / "diagnose.txt.gz", "rt") as f:
+        return Diagnoser(lgb.Booster(model_str=f.read()), meta["features"])
+
+
 def load_best() -> Diagnoser:
-    """Folosește modelul livrat; fără pachetul release, păstrează comportamentul v2/v1 anterior."""
-    if (RELEASE_DIR / "release.json").exists():
-        meta = json.loads((RELEASE_DIR / "diagnose.json").read_text())
-        if meta["classes"] != list(CLASSES):
-            raise ValueError("Clasele modelului livrat nu corespund claselor bilanțului")
-        with gzip.open(RELEASE_DIR / "diagnose.txt.gz", "rt") as f:
-            return Diagnoser(lgb.Booster(model_str=f.read()), meta["features"])
+    """Folosește v2 anterior; fără pachet, păstrează rezerva locală v2/v1."""
+    if (PREVIOUS_RELEASE_DIR / "release.json").exists():
+        return load_packaged(PREVIOUS_RELEASE_DIR)
     return load("diagnose_v2") if (MODEL_DIR / "diagnose_v2.txt").exists() else load("diagnose")
 
 

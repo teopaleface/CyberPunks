@@ -104,3 +104,7 @@ Utilizatorul a precizat că dorește modelul optimizat pe main, nu doar experime
 ### 2026-11-08 02:46 — Verificare pe harta simulată
 
 Pachetul activ FeederBW: F1 macro 0,58950 pe 13.200 ferestre, MAE pierdere normală 8,81 kWh/zi, acoperire P10–P90 0,695. Raportul vechi are rezultate mai bune, dar identitatea completă a intrărilor nu a fost verificată. Fuziunea cu noul model nu a fost evaluată separat.
+
+### 2026-11-08 02:59 — Revenire la modelul de bilanț v2
+
+Utilizatorul a aprobat revenirea. V2 a fost reconstruit din parametrii salvați și este activ; FeederBW rămâne pentru experimente. Pe aceleași 13.200 de ferestre simulate, F1 v2 0,75352 față de FeederBW 0,58950; MAE 5,398 față de 8,813 kWh/zi. V2 reproduce F1 și MAE din raportul istoric. Comparație: `reports/bilant/comparatie_v2_feederbw.json`; fuziunea nu a fost evaluată separat.

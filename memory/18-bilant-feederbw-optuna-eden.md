@@ -50,3 +50,7 @@ Lucrarea este pe ramura `Eden`, ca experimentele anterioare. Modelele livrate nu
 Pachetul activ este `models/release/bilant/`: diagnosticul LightGBM optimizat și modelele warm/cold de pierdere normală folosite în evaluare. `predict` le încarcă direct și marchează versiunea `bilant-diagnoza-lgbm@feederbw-optuna-20261108`. Predicțiile reproduc toate cele 2.795 ferestre de test (F1 0,71393); câștigul rămâne neconfirmat statistic. Metricile și fuziunea din `reports/bilant/metrics.json` sunt istorice, pentru modelul anterior. Datele de bilanț și etichetele rămân sintetice.
 
 - Verificare suplimentară pe harta simulată: F1 macro 0,58950 (13.200 ferestre), MAE 8,81 kWh/zi, acoperire P10–P90 0,695. Rezultatele istorice sunt mai bune, dar identitatea completă a intrărilor nu a fost verificată; nu susținem o comparație pereche. `reports/bilant/feederbw_release_pop.json`. Fuziunea nu a fost evaluată pentru noul model.
+
+## 2026-11-08 02:59 — Revenire la v2 și comparație pe același test
+
+La cererea utilizatorului, modelul FeederBW nu mai este încărcat implicit. V2 anterior a fost reantrenat cu parametrii salvați pe 3.000 de posturi sintetice și livrat în `models/release/bilant-v2/`, cu modelele normalului din rularea locală 6e57aaa. Pe aceleași 13.200 de ferestre ale hărții simulate: v2 F1 0,7535207, FeederBW 0,5895027; MAE normal 5,398 față de 8,813 kWh/zi. V2 reproduce F1-ul și MAE din raportul istoric. Toate etichetele și rețelele sunt SINTETICE; fuziunea cu A nu a fost comparată. Detalii: `reports/bilant/comparatie_v2_feederbw.json`.

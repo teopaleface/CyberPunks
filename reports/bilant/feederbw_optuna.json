@@ -305,7 +305,7 @@
     ]
   },
   "confirmed_gain": false,
-  "release_changed": true,
+  "release_changed": false,
   "normal_model": "parametrii existenți, antrenat numai pe plecările train; OOF 3 grupe de plecări pentru diagnosticul train",
   "limitations": [
     "Toate etichetele sunt SINTETICE, inclusiv furtul și pierderea normală.",
@@ -315,5 +315,5 @@
     "Test spațial pe plecări nevăzute, în aceeași perioadă; nu este test în viitor."
   ],
   "seconds": 390.3,
-  "release_version": "bilant-diagnoza-lgbm@feederbw-optuna-20261108"
+  "previously_promoted": true
 }
