@@ -14,8 +14,9 @@ export function conversationSuggestions(role: Role): string[] {
 export function MainConversation({
   role, messages, message, messageId, setMessage, busy, unavailable, reviewing,
   mode, setMode, onSend, onSuggestion, conversations, onNew, onSelect,
-  messageList, contextControls, review, voice, pending, notice,
+  messageList, contextControls, review, voice, pending, notice, taskResult,
 }: {
+  taskResult?: ReactNode;
   role: Role;
   messages: Message[];
   message: string;
@@ -77,6 +78,7 @@ export function MainConversation({
             </div>)}
             {busy && <p className="db-thinking" role="status">Daybreak is working…</p>}
           </div>
+          {taskResult}
           {reviewing && review}
           {notice && <p className="db-notice" role="status">{notice}</p>}
         </div>

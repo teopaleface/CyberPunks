@@ -26,7 +26,8 @@ export function allowedPath(
   if (path.some((p) => !/^[A-Za-z0-9_-]{1,160}$/.test(p))) return false;
   const p = path.join("/");
   if (kind === "conversation")
-    return method === "POST" && ["chat", "voice-session"].includes(p);
+    return (method === "POST" && (["chat", "voice-session", "tasks"].includes(p) || /^tasks\/[A-Za-z0-9_-]+\/resume$/.test(p))) ||
+      (method === "GET" && /^tasks\/[A-Za-z0-9_-]+$/.test(p));
   return (
     (method === "GET" &&
       (p === "context" ||
@@ -97,7 +98,7 @@ export async function forward(
   }
   const input = new URL(request.url);
   // Neacceptarea parametrilor arbitrari împiedică trecerea unei identități/scop alternativ.
-  if (request.method === "GET") {
+  if (request.method === "GET" || (kind === "conversation" && path[0] === "tasks")) {
     if ([...input.searchParams.keys()].some((k) => k !== "scenario"))
       return fail(422, "Unsupported query parameter.");
     const scenario = input.searchParams.get("scenario");

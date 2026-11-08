@@ -52,6 +52,7 @@ export interface Context {
   [key: string]: unknown;
 }
 export interface Turn {
+  task?: import("../agentic/client").TaskView;
   reply: string;
   proposal?: Proposal | null;
   provider: string;
