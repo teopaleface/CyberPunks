@@ -10,6 +10,8 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import sqlite3
+from contextlib import closing
 
 from cyberpunks.agentic.contracts import TaskRequest
 from cyberpunks.agentic.coordinator import AgenticCoordinator
@@ -24,6 +26,21 @@ from cyberpunks.channels.whatsapp_worker import worker
 
 SCENARIO = "demo-vara"
 GOALS = {"technician": "route_brief", "dispatcher": "analyze_queue", "customer": "case_brief"}
+
+
+def observe_voice_report(event_key, database):
+    """Passive delivery read; caller must already authorize the owning voice job."""
+    from pathlib import Path
+
+    eid = hashlib.sha256(("voice-report:" + event_key).encode()).hexdigest()
+    try:
+        with closing(sqlite3.connect(Path(database).resolve().as_uri() + "?mode=ro", uri=True, timeout=1)) as db:
+            row = db.execute(
+                "SELECT state FROM outbound WHERE event_id=? AND kind LIKE 'document:%'", (eid,)
+            ).fetchone()
+            return _result(row[0]) if row else None
+    except sqlite3.Error:
+        return None
 
 
 class _DemoBindings:

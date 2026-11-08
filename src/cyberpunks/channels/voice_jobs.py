@@ -67,6 +67,24 @@ class VoiceJobFailed(Exception):
         super().__init__(code)
 
 
+def voice_job_reply(job: dict) -> str:
+    result = job.get("result") or {}
+    status = job["status"]
+    if status == "needs_reconciliation":
+        if result.get("status") in {"unknown", "needs_reconciliation"} and result.get("reply"):
+            return result["reply"]
+        return "Nu pot confirma rezultatul cererii. Nu o repet automat, ca să evit un duplicat."
+    if status == "failed":
+        return result.get("reply") or "Cererea nu a putut fi finalizată. Nu am confirmarea executării."
+    if status == "done":
+        return result.get("reply") or "Cererea s-a încheiat fără un răspuns verificat."
+    return (
+        "Pregătesc raportul și îl trimit pe WhatsApp."
+        if job["kind"] == "report"
+        else "Analizez coada și aplic deciziile susținute de date. Poți continua să vorbești."
+    )
+
+
 class VoiceJobs:
     def __init__(self, path: str | Path, *, lease_seconds: float = 180, clock=time.time):
         if not math.isfinite(lease_seconds) or lease_seconds <= 0:
@@ -91,6 +109,10 @@ class VoiceJobs:
                 );
                 CREATE INDEX IF NOT EXISTS voice_jobs_latest
                     ON voice_jobs(actor, conversation_id, sequence DESC);
+                CREATE TABLE IF NOT EXISTS voice_job_requests (
+                    event_key TEXT PRIMARY KEY, actor TEXT NOT NULL, kind TEXT NOT NULL,
+                    payload TEXT NOT NULL, conversation_id TEXT NOT NULL, job_id TEXT NOT NULL
+                );
             """)
 
     def _connect(self):
@@ -108,7 +130,7 @@ class VoiceJobs:
             job[key] = json.loads(job[key]) if job[key] is not None else None
         return job
 
-    def submit(self, actor, kind: str, payload: dict, event_key: str) -> dict:
+    def submit(self, actor, kind: str, payload: dict, event_key: str, *, coalesce: bool = False) -> dict:
         if kind not in {"report", "dispatch"}:
             raise ValueError("Unsupported voice job kind")
         if not isinstance(event_key, str) or not event_key.strip():
@@ -122,16 +144,41 @@ class VoiceJobs:
         now = self.clock()
         with closing(self._connect()) as db, db:
             db.execute("BEGIN IMMEDIATE")
+            alias = db.execute("SELECT * FROM voice_job_requests WHERE event_key=?", (event_key,)).fetchone()
+            if alias:
+                if (alias["actor"], alias["kind"], alias["payload"]) != (snapshot, kind, encoded):
+                    raise ValueError("event_key conflicts with actor, kind or payload")
+                return self._decode(
+                    db.execute("SELECT * FROM voice_jobs WHERE job_id=?", (alias["job_id"],)).fetchone()
+                )
             row = db.execute("SELECT * FROM voice_jobs WHERE event_key=?", (event_key,)).fetchone()
             if row:
                 if (row["actor"], row["kind"], row["payload"]) != (snapshot, kind, encoded):
                     raise ValueError("event_key conflicts with actor, kind or payload")
                 return self._decode(row)
+            if coalesce:
+                comparable = {k: v for k, v in payload.items() if k != "conversation_id"}
+                active = db.execute(
+                    "SELECT * FROM voice_jobs WHERE actor=? AND kind=? AND status IN ('queued','running','needs_reconciliation') ORDER BY sequence DESC",
+                    (snapshot, kind),
+                ).fetchall()
+                for pending in active:
+                    pending_payload = json.loads(pending["payload"])
+                    if {k: v for k, v in pending_payload.items() if k != "conversation_id"} == comparable:
+                        db.execute(
+                            "INSERT INTO voice_job_requests VALUES(?,?,?,?,?,?)",
+                            (event_key, snapshot, kind, encoded, conversation, pending["job_id"]),
+                        )
+                        return self._decode(pending)
             job_id = uuid4().hex
             db.execute(
                 "INSERT INTO voice_jobs(job_id,event_key,actor,kind,payload,conversation_id,status,created,updated) "
                 "VALUES(?,?,?,?,?,?,'queued',?,?)",
                 (job_id, event_key, snapshot, kind, encoded, conversation, now, now),
+            )
+            db.execute(
+                "INSERT INTO voice_job_requests VALUES(?,?,?,?,?,?)",
+                (event_key, snapshot, kind, encoded, conversation, job_id),
             )
             return self._decode(db.execute("SELECT * FROM voice_jobs WHERE job_id=?", (job_id,)).fetchone())
 
@@ -142,12 +189,18 @@ class VoiceJobs:
                 return None
             return self._decode(row)
 
-    def latest(self, actor, conversation_id: str) -> dict | None:
+    def latest(self, actor, conversation_id: str | None = None) -> dict | None:
         with closing(self._connect()) as db:
+            if conversation_id is None:
+                return self._decode(
+                    db.execute(
+                        "SELECT * FROM voice_jobs WHERE actor=? ORDER BY sequence DESC LIMIT 1", (_actor(actor),)
+                    ).fetchone()
+                )
             return self._decode(
                 db.execute(
-                    "SELECT * FROM voice_jobs WHERE actor=? AND conversation_id=? ORDER BY sequence DESC LIMIT 1",
-                    (_actor(actor), conversation_id),
+                    "SELECT j.* FROM voice_jobs j WHERE j.actor=? AND (j.conversation_id=? OR EXISTS (SELECT 1 FROM voice_job_requests r WHERE r.job_id=j.job_id AND r.actor=j.actor AND r.conversation_id=?)) ORDER BY j.sequence DESC LIMIT 1",
+                    (_actor(actor), conversation_id, conversation_id),
                 ).fetchone()
             )
 
@@ -228,7 +281,7 @@ class VoiceJobs:
                 raise TypeError("handler must return a JSON dict")
             state = result.get("status")
             status = state if state in ("failed", "needs_reconciliation") else "done"
-            if state in ("unknown", "sending"):
+            if state in ("unknown", "sending", "queued", "running"):
                 status = "needs_reconciliation"
             self._finish(job, status, result=result)
         except asyncio.CancelledError:

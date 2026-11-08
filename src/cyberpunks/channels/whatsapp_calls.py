@@ -18,9 +18,11 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from pydantic import Field, ValidationError
 
+from cyberpunks.channels import voice_intents
 from cyberpunks.channels.elevenlabs import agent_config, runtime_root
 from cyberpunks.channels.limits import Limits
 from cyberpunks.channels.models import ChannelError, ChatRequest, StrictModel
+from cyberpunks.channels.voice_jobs import voice_job_reply
 from cyberpunks.channels.whatsapp import Bindings
 from cyberpunks.operations.models import Actor, OperationError
 
@@ -171,18 +173,11 @@ def is_silent_transcript(message: str) -> bool:
 
 
 def is_hearing_check(message: str) -> bool:
-    text = "".join(c for c in unicodedata.normalize("NFKD", message.casefold()) if not unicodedata.combining(c)).strip()
-    return bool(re.fullmatch(r"(?:(?:alo)[?!. ,]*)?(?:ma auzi|ma auziti|alo|se aude|mai esti(?: aici)?)[?!. ,]*", text))
+    return voice_intents.hearing_check(message)
 
 
 def is_report_request(message: str) -> bool:
-    text = "".join(c for c in unicodedata.normalize("NFKD", message.casefold()) if not unicodedata.combining(c))
-    if re.search(r'["„”«»`]|\b(nu|nici|daca|ipotetic|exemplu|citat)\b', text):
-        return False
-    return bool(
-        re.search(r"\b(raport(?:ul)?|pdf|fisa|traseul)\b", text)
-        and re.search(r"\b(trimite|trimiti|trimiteti|vreau|doresc)\b", text)
-    )
+    return voice_intents.report_request(message)
 
 
 def clarified_incident(message: str, history: list[dict]) -> str:
@@ -199,14 +194,8 @@ def clarified_incident(message: str, history: list[dict]) -> str:
     return message
 
 
-def is_dispatch_request(message: str) -> bool:
-    text = "".join(c for c in unicodedata.normalize("NFKD", message.casefold()) if not unicodedata.combining(c))
-    if re.search(r'["„”«»`]|\b(nu|nici|daca|ipotetic|exemplu|citat|cum)\b', text):
-        return False
-    return bool(
-        re.search(r"\b(rezolv\w*|proceseaza|gestioneaza|aplica|ocupa|decide)\b", text)
-        and re.search(r"\b(toate|tichete\w*|cazuri\w*|automat|pentru mine|pe intre mine)\b", text)
-    )
+def is_dispatch_request(message: str, *, queue_context: bool = False) -> bool:
+    return voice_intents.dispatch_request(message, queue_context=queue_context)
 
 
 DEMO_ROLES = {"client": "customer", "dispecer": "dispatcher", "tehnician": "technician"}
@@ -214,7 +203,7 @@ DEMO_LABELS = {"customer": "Demo client.", "dispatcher": "Demo dispecer.", "tech
 ROLE_QUESTION = "Ce rol alegi pentru demo: client PPC, dispecer PPC sau tehnician PPC?"
 DECLARATION = re.compile(r"\b(client|dispecer|tehnician)\b")
 DECLARATIVE_PREFIX = re.compile(
-    r"^\s*(?:(?:a+|e+|um|uh|hmm?|deci|ok|okay|bun|bine|si|iar|apoi|acum)[\s,.!:;\-]+){0,6}"
+    r"^\s*(?:(?:a+|e+|um|uh|hmm?|pai|deci|ok|okay|bun|bine|si|iar|apoi|acum|te\s+rog|hai(?:\s+sa)?|in\s+continuare)[\s,.!:;\-]+){0,6}"
     r"(?:(?:salut|buna(?:\s+ziua)?)[\s,.!:]+)?"
     r"(?:(?:acuma\s+)?(?:schimbam|schimb|schimba)\s+rolul[\s,.!:;]+)?"
     r"(?:(?:da[\s,]+)|(?:nu[\s,]+(?=eu\s+sunt\b)))?"
@@ -439,6 +428,28 @@ def create_app(
     sessions: dict[str, dict] = {}
     limiter = Limits(per_minute=40, concurrency=8, max_actors=100)
     inflight: dict[str, asyncio.Task] = {}
+    provider_slots = asyncio.Semaphore(2)
+
+    def reply_for_job(job):
+        if job["kind"] == "report" and job["status"] == "done":
+            from cyberpunks.channels.voice_reports import observe_voice_report
+
+            observed = observe_voice_report(job["event_key"], runtime_root() / "channels-whatsapp.sqlite3")
+            if observed:
+                return observed["reply"]
+        return voice_job_reply(job)
+
+    @asynccontextmanager
+    async def call_budget(key):
+        # Count requests, but do not reserve the call's slot while awaiting a
+        # provider. An interruption or a factual read must remain available.
+        async with limiter.acquire(key):
+            pass
+        yield
+
+    async def bounded_chat(actor, message, history, event_key):
+        async with provider_slots:
+            return await service.chat(actor, ChatRequest(message=message, history=history), event_key=event_key)
 
     def fast_job_turn(request, config, caller, base_actor):
         """Enqueue/read only, using a previously verified unchanged call identity.
@@ -474,7 +485,9 @@ def create_app(
                 "report"
                 if is_report_request(message) and entry.get("allow_voice_reports") is True
                 else "dispatch"
-                if role == "dispatcher" and is_dispatch_request(message) and entry.get("allow_queue_actions") is True
+                if role == "dispatcher"
+                and is_dispatch_request(message, queue_context=bool(existing.get("queue_context")))
+                and entry.get("allow_queue_actions") is True
                 else None
             )
             if kind:
@@ -503,21 +516,14 @@ def create_app(
                         "base_actor_signature": _fingerprint(base_actor.model_dump()),
                     },
                     key,
+                    coalesce=True,
                 )
-                reply = (job.get("result") or {}).get("reply") or (
-                    "Pregătesc raportul și îl trimit pe WhatsApp."
-                    if kind == "report"
-                    else "Analizez coada și aplic deciziile susținute de date. Poți continua să vorbești."
-                )
-            elif re.search(r"\b(terminat|gata|stadiu|status|cum merge|ce ai facut)\b", message.casefold()):
-                job = job_store.latest(actor, request.conversation_id)
+                reply = reply_for_job(job)
+            elif voice_intents.status_request(message):
+                job = job_store.latest(actor, request.conversation_id) or job_store.latest(actor)
                 if not job:
                     return None
-                reply = (job.get("result") or {}).get("reply") or (
-                    "Încă lucrez la cererea ta. Poți continua să vorbești."
-                    if job["status"] in {"queued", "running"}
-                    else "Operația nu este confirmată. Nu am repetat-o automat."
-                )
+                reply = reply_for_job(job)
             else:
                 return None
             switched = existing.get("demo_role") != role
@@ -526,6 +532,9 @@ def create_app(
             )
             if switched:
                 existing.update(history=[], replies={})
+            existing["queue_context"] = role == "dispatcher" and (
+                kind == "dispatch" or bool(existing.get("queue_context"))
+            )
             return {"reply": (DEMO_LABELS[role] + " " if switched else "") + reply}
         except (KeyError, TypeError, ValueError, ValidationError):
             return None
@@ -582,7 +591,7 @@ def create_app(
                     "destination": config["phone_number_id"],
                 }
             )
-            async with limiter.acquire((base_actor.organization_id, base_actor.user_id, request.conversation_id)):
+            async with call_budget((base_actor.organization_id, base_actor.user_id, request.conversation_id)):
                 existing = sessions.get(request.conversation_id)
                 if existing and existing["actor"] != base_signature:
                     raise ChannelError("call_identity_changed", "The call identity changed. Start a new call.", 403)
@@ -633,6 +642,7 @@ def create_app(
                     and existing.get("demo_role") == selected_role
                 )
                 history = existing["history"] if same_identity else []
+                queue_context = bool(same_identity and existing.get("queue_context"))
                 # Preserve verified identity before any awaited provider call. An
                 # interrupted request must not lose the role or poison the next call.
                 sessions[request.conversation_id] = {
@@ -643,6 +653,7 @@ def create_app(
                     "expires": now + 660,
                     "history": history,
                     "replies": dict(existing.get("replies", {})) if existing else {},
+                    "queue_context": queue_context,
                 }
                 dedupe = (
                     "wa-call:"
@@ -656,9 +667,18 @@ def create_app(
                 cached = replies.get(dedupe)
                 reply = (
                     cached["reply"]
-                    if cached and datetime.fromisoformat(cached["expires_at"]) > datetime.now(UTC)
+                    if cached
+                    and (
+                        cached.get("write_executed") or datetime.fromisoformat(cached["expires_at"]) > datetime.now(UTC)
+                    )
                     else None
                 )
+                if cached and not cached.get("write_executed"):
+                    current_version = service.operations.context(actor, "demo-vara")["plan"]["version"]
+                    if reply is None or cached.get("plan_version") != current_version:
+                        return {
+                            "reply": "Propunerea anterioară nu mai este valabilă. Cere o evaluare nouă înainte de confirmare."
+                        }
                 if reply is None:
                     result = {"reply": message} if role_only and selected_role == "customer" else None
                     entry = config.get("demo_callers", {}).get(caller, {}) if selected_role else {}
@@ -691,11 +711,9 @@ def create_app(
                                     "base_actor_signature": _fingerprint(base_actor.model_dump()),
                                 },
                                 dedupe,
+                                coalesce=True,
                             )
-                            result = {
-                                "reply": (job.get("result") or {}).get("reply")
-                                or "Pregătesc raportul și îl trimit pe WhatsApp."
-                            }
+                            result = {"reply": reply_for_job(job)}
                         sender = report_sender
                         if sender is None:
                             from cyberpunks.channels.voice_reports import send_voice_report
@@ -712,7 +730,7 @@ def create_app(
                             )
                     if (
                         selected_role == "dispatcher"
-                        and is_dispatch_request(message)
+                        and is_dispatch_request(message, queue_context=queue_context)
                         and entry.get("allow_queue_actions") is True
                     ) and background_jobs:
                         job = job_store.submit(
@@ -726,27 +744,13 @@ def create_app(
                                 "base_actor_signature": _fingerprint(base_actor.model_dump()),
                             },
                             dedupe,
+                            coalesce=True,
                         )
-                        result = {
-                            "reply": (job.get("result") or {}).get("reply")
-                            or "Analizez coada și aplic deciziile susținute de date. Poți continua să vorbești."
-                        }
-                    if (
-                        result is None
-                        and background_jobs
-                        and selected_role
-                        and re.search(r"\b(terminat|gata|stadiu|status|cum merge|ce ai facut)\b", message.casefold())
-                    ):
-                        latest = job_store.latest(actor, request.conversation_id)
+                        result = {"reply": reply_for_job(job)}
+                    if result is None and background_jobs and selected_role and voice_intents.status_request(message):
+                        latest = job_store.latest(actor, request.conversation_id) or job_store.latest(actor)
                         if latest:
-                            result = {
-                                "reply": (latest.get("result") or {}).get("reply")
-                                or (
-                                    "Încă lucrez la cererea ta. Poți continua să vorbești."
-                                    if latest["status"] in {"queued", "running"}
-                                    else "Operația nu este confirmată. Nu am repetat-o automat."
-                                )
-                            }
+                            result = {"reply": reply_for_job(latest)}
                     if selected_role:
                         from cyberpunks.channels.voice_briefs import answer_demo
 
@@ -763,13 +767,7 @@ def create_app(
                                 **action_options,
                             )
                     if result is None:
-                        pending = asyncio.create_task(
-                            service.chat(
-                                actor,
-                                ChatRequest(message=message, history=history),
-                                event_key=dedupe,
-                            )
-                        )
+                        pending = asyncio.create_task(bounded_chat(actor, message, history, dedupe))
                         inflight[request.conversation_id] = pending
                         try:
                             result = await asyncio.wait_for(pending, timeout=15)
@@ -777,11 +775,21 @@ def create_app(
                             if inflight.get(request.conversation_id) is pending:
                                 inflight.pop(request.conversation_id, None)
                     reply = result["reply"]
+                    queue_context = selected_role == "dispatcher" and (
+                        queue_context
+                        or bool((result.get("provenance") or {}).get("queue_scope"))
+                        or is_dispatch_request(message, queue_context=queue_context)
+                    )
                     # Repeated reads must still see the current plan. Only prepared
                     # proposals are replayed, within their actual validity window.
                     if result.get("proposal"):
                         expires_at = datetime.fromisoformat(result["proposal"]["expires_at"])
-                        replies[dedupe] = {"reply": reply, "expires_at": expires_at.isoformat()}
+                        replies[dedupe] = {
+                            "reply": reply,
+                            "expires_at": expires_at.isoformat(),
+                            "plan_version": result["proposal"].get("plan_version"),
+                            "write_executed": bool((result.get("provenance") or {}).get("write_executed")),
+                        }
                     history = (
                         history
                         + [
@@ -797,10 +805,17 @@ def create_app(
                     "expires": now + 660,
                     "history": history,
                     "replies": dict(list(replies.items())[-32:]),
+                    "queue_context": queue_context,
                 }
             return {"reply": (DEMO_LABELS[selected_role] + " " if switched else "") + reply}
         except ChannelError as exc:
+            if exc.status_code >= 500 or exc.status_code == 429:
+                return {
+                    "reply": "Nu am reușit să verific acea cerere acum. Poți cere traseul, situația tichetelor sau raportul."
+                }
             return JSONResponse({"error": exc.code, "message": exc.message}, status_code=exc.status_code)
+        except TimeoutError:
+            return {"reply": "Răspunsul durează prea mult. Poți cere direct traseul, situația tichetelor sau raportul."}
         except Exception:  # noqa: BLE001 - public boundary must not expose provider/operational details.
             # Provider and operational errors can contain private objects. Never return their raw text.
             return JSONResponse(
