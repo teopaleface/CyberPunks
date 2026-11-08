@@ -187,3 +187,7 @@ Decizii:
 - 06:35 — **LightGBM rămâne pe toate cele trei probleme.** CatBoost și XGBoost sunt la egalitate statistică sau pierd (LCL extins, furtuni 2025). Nu se schimbă nimic în `models/release/` sau în demo. Convecția la B rămâne recomandată, independent de algoritm.
 
 Detalii: `memory/20-benchmark-lightgbm-eden.md`, `reports/benchmark/RAPORT.md`.
+
+### 2026-11-08 09:36 București — evaluarea calității ML
+
+Scor neoficial pentru `origin/main` la `68d62bf`: **20/25**, cu cinci puncte posibile pentru fiecare dintre cele cinci aspecte ML enumerate de PPC. Scor estimat de până la 22/25 dacă benchmarkul local de pe `Eden` este inclus la predare. Am reprodus cifrele principale pentru contoare, furtuni și diagnosticul bilanțului. Pentru C am folosit raportul de evaluare. Toate cele 195 de teste ML au trecut. Scriptul de prezentare are încă F1 0,71 la bilanț, iar pachetul v2 verificat obține 0,75. Detalii în `memory/22-evaluare-ml-0936.md`.

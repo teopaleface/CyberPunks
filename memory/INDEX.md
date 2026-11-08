@@ -26,6 +26,7 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 | `14-agent-conversational.md` | Planul cu 80 de cazuri și implementarea locală: trei conturi, modele locale, Codex, voce reală și WhatsApp text verificat; nota vocală Meta încă neverificată |
 | `15-agent-decizii-si-canale.md` | Planul agentic după feedbackul mentorului și pachetul redus la cinci prompturi pentru implementare paralelă: coadă completă, execuție confirmată, telefon și rapoarte PNG |
 | `journal.md` | Ce s-a întâmplat și ce s-a decis, cu ora |
+| `22-evaluare-ml-0936.md` | Evaluarea calității ML pe baremul PPC, cu cifre reproduse și limitele testelor |
 
 ## Reguli
 
