@@ -12,11 +12,13 @@ from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
+from urllib.parse import quote
 
 from pydantic import ValidationError
 
 from cyberpunks.api.store import read_json
 from cyberpunks.common.paths import OUTPUTS
+from cyberpunks.operations import photos
 from cyberpunks.operations.bindings import DEMO_ORGANIZATION, demo_binding
 from cyberpunks.operations.database import Database
 from cyberpunks.operations.models import DATA_MODELS, Actor, OperationError
@@ -165,6 +167,161 @@ class OperationsService:
             fail(404, "not_found", "Work item not found in your scope.")
         return item
 
+    def authorize_photo_upload(self, actor: Actor, work_item_id: str, scenario: str = "demo-vara"):
+        self._scope(actor, scenario)
+        self._authorize_action(actor, "record_verdict")
+        with self._lock():
+            self._work_item(actor, scenario, work_item_id)
+            self.planner.writable(scenario)
+
+    def upload_photo(
+        self, actor: Actor, work_item_id: str, content: bytes, mime_type: str, scenario: str = "demo-vara"
+    ) -> dict:
+        self.authorize_photo_upload(actor, work_item_id, scenario)
+        content, width, height = photos.sanitize(content, mime_type)
+        with self._lock(), self.db.transaction() as db:
+            self._work_item(actor, scenario, work_item_id)
+            current_time = now()
+            photos.collect_expired(db, actor.organization_id, scenario, current_time)
+            count = photos.pending_count(
+                db,
+                actor.organization_id,
+                scenario,
+                actor.user_id,
+                signature(actor),
+                [w["work_item_id"] for w in self._work_items(actor, scenario)],
+                current_time,
+            )
+            if count >= photos.PENDING_QUOTA:
+                fail(409, "photo_quota", "Remove unused draft photos before uploading more. The limit is 20.")
+            pid = str(uuid.uuid4())
+            metadata = {
+                "photo_id": pid,
+                "work_item_id": work_item_id,
+                "mime_type": mime_type,
+                "width": width,
+                "height": height,
+                "size_bytes": len(content),
+                "created_at": now().isoformat(),
+                "status": "draft",
+                "url": f"/api/operations/photos/{pid}?scenario={quote(scenario, safe='')}",
+            }
+            db.execute(
+                "INSERT INTO photos VALUES (?,?,?,?,?,?,?,?,?,NULL)",
+                (
+                    pid,
+                    actor.organization_id,
+                    scenario,
+                    work_item_id,
+                    actor.user_id,
+                    signature(actor),
+                    "draft",
+                    encode(metadata),
+                    content,
+                ),
+            )
+            return metadata
+
+    def _photo_row(self, db, actor: Actor, pid: str, scenario: str):
+        self._scope(actor, scenario)
+        row = db.execute(
+            "SELECT * FROM photos WHERE photo_id=? AND organization_id=? AND scenario=?",
+            (photos.photo_id(pid), actor.organization_id, scenario),
+        ).fetchone()
+        if not row or actor.role == "customer" or photos.is_expired(db, row["photo_id"], now()):
+            fail(404, "not_found", "Photo not found in your scope.")
+        self._work_item(actor, scenario, row["work_item_id"])
+        if row["status"] == "draft" and (
+            actor.role != "technician"
+            or row["uploader_id"] != actor.user_id
+            or row["actor_signature"] != signature(actor)
+        ):
+            fail(404, "not_found", "Photo not found in your scope.")
+        return row
+
+    def photo(self, actor: Actor, pid: str, scenario: str = "demo-vara") -> tuple[dict, bytes]:
+        with self._lock(), self.db.connect() as db:
+            row = self._photo_row(db, actor, pid, scenario)
+            return json.loads(row["body"]), row["content"]
+
+    def delete_photo(self, actor: Actor, pid: str, scenario: str = "demo-vara") -> dict:
+        self._scope(actor, scenario)
+        self._authorize_action(actor, "record_verdict")
+        with self._lock(), self.db.transaction() as db:
+            row = self._photo_row(db, actor, pid, scenario)
+            if row["status"] != "draft" or row["uploader_id"] != actor.user_id:
+                photos.error()
+            refs = db.execute(
+                "SELECT p.body,c.status FROM proposal_photos pp JOIN proposals p ON p.proposal_id=pp.proposal_id "
+                "LEFT JOIN commands c ON c.command_id=p.command_id WHERE pp.photo_id=?",
+                (row["photo_id"],),
+            ).fetchall()
+            if any(
+                r["status"] == "reconciling"
+                or (r["status"] is None and datetime.fromisoformat(json.loads(r["body"])["expires_at"]) > now())
+                for r in refs
+            ):
+                fail(409, "photo_in_use", "This photo is bound to a prepared finding. Wait for expiry or confirm it.")
+            db.execute("DELETE FROM proposal_photos WHERE photo_id=?", (row["photo_id"],))
+            db.execute("DELETE FROM photos WHERE photo_id=?", (row["photo_id"],))
+            return {"photo_id": row["photo_id"], "deleted": True}
+
+    def _enrich_work_items(self, actor: Actor, scenario: str, items: list[dict]):
+        by_id = {w["work_item_id"]: w for w in items}
+        for item in items:
+            item.update(findings=[], photos=[], manual_corrections=[], latest_manual_correction=None)
+        with self.db.connect() as db:
+            for table, field in (("findings", "findings"), ("manual_corrections", "manual_corrections")):
+                for row in db.execute(
+                    f"SELECT work_item_id,body FROM {table} WHERE organization_id=? AND scenario=? ORDER BY rowid",
+                    (actor.organization_id, scenario),
+                ):
+                    if row["work_item_id"] in by_id:
+                        by_id[row["work_item_id"]][field].append(json.loads(row["body"]))
+        for item in items:
+            item["photos"] = [p for f in item["findings"] for p in f["photos"]]
+            if item["manual_corrections"]:
+                item["latest_manual_correction"] = item["manual_corrections"][-1]
+
+    def _review_snapshot(self, actor: Actor, scenario: str, item: dict) -> dict:
+        with self.db.connect() as db:
+            first = db.execute(
+                "SELECT body FROM manual_corrections WHERE organization_id=? AND scenario=? AND work_item_id=? "
+                "ORDER BY rowid LIMIT 1",
+                (actor.organization_id, scenario, item["work_item_id"]),
+            ).fetchone()
+        before = item.get("decision")
+        original, status = None, "unknown"
+        if first:
+            first = json.loads(first["body"])
+            original, status = first["original_ai_decision"], first["original_ai_decision_status"]
+        else:
+            view = self.planner.view(scenario)
+            overrides = read_json(view.plan_dir / "overrides.json") or {}
+            audit_path = view.plan_dir / "audit.jsonl"
+            try:
+                records = [json.loads(line) for line in audit_path.read_text().splitlines() if line.strip()]
+                previous_human = any(
+                    r.get("work_item_id") == item["work_item_id"] and r.get("action", "").startswith("review_")
+                    for r in records
+                )
+                proof = next((r for r in records if before and r.get("audit_id") == before.get("audit_id")), {})
+                prediction = item.get("prediction") or {}
+                if (
+                    before
+                    and item["work_item_id"] not in overrides
+                    and not previous_human
+                    and proof.get("actor") == "agent"
+                    and proof.get("work_item_id") == item["work_item_id"]
+                    and proof.get("action") == before.get("decision")
+                    and proof.get("prediction_id") == prediction.get("prediction_id")
+                    and proof.get("model_version") == prediction.get("model_version")
+                ):
+                    original, status = before, "verified"
+            except (OSError, ValueError, TypeError):
+                pass  # Missing historical evidence must never be labelled as an original AI decision.
+        return {"decision_before": before, "original_ai_decision": original, "original_ai_decision_status": status}
+
     def _cases(self, actor: Actor, scenario: str) -> list[dict]:
         with self.db.connect() as db:
             rows = db.execute(
@@ -304,6 +461,7 @@ class OperationsService:
             meta = read_json(view.plan_dir / "run.json") or {}
             connections = self._connections(actor, scenario)
             items = self._work_items(actor, scenario)
+            self._enrich_work_items(actor, scenario, items)
             cases = self._cases(actor, scenario)
             routes = plan.get("routes", [])
             if actor.role != "dispatcher":
@@ -400,10 +558,12 @@ class OperationsService:
                 )
             case_ids = {c["case_id"] for c in cases}
             if actor.role != "dispatcher":
+                work_ids = {w["work_item_id"] for w in items}
                 events = [
                     e
                     for e in events
                     if e.get("case_id") in case_ids
+                    or (actor.role == "technician" and e.get("work_item_id") in work_ids)
                     or (e["actor_id"] == actor.user_id and e["action"] == "request_human")
                 ]
             if actor.role == "customer":
@@ -464,12 +624,16 @@ class OperationsService:
         if actor.role == "dispatcher" and action in PERMISSIONS and PERMISSIONS[action] not in actor.permissions:
             fail(403, "forbidden", "An explicit operation permission is required.")
 
-    def _validate(self, actor: Actor, action: str, data: dict, scenario: str) -> dict:
-        self._authorize_action(actor, action)
+    @staticmethod
+    def _parse_data(action: str, data: dict) -> dict:
         try:
-            d = DATA_MODELS[action].model_validate(data).model_dump(exclude_none=True)
+            return DATA_MODELS[action].model_validate(data).model_dump(exclude_none=True, mode="json")
         except ValidationError:
             fail(422, "invalid_data", "Invalid operation fields. Check the action schema.")
+
+    def _validate(self, actor: Actor, action: str, data: dict, scenario: str) -> dict:
+        self._authorize_action(actor, action)
+        d = self._parse_data(action, data)
         plan = self.planner.view(scenario).plan() or {}
         if d.get("plan_version") and d["plan_version"] != self.planner.version(scenario):
             fail(409, "stale_plan", "The plan changed. Reload before preparing this operation.")
@@ -497,6 +661,8 @@ class OperationsService:
                 )
             if action == "review_work_item" and (w.get("decision") or {}).get("decision") == "rejected_invalid":
                 fail(409, "invalid_work_item", "Correct the quarantined work item at its source before review.")
+            if action == "review_work_item":
+                d.update(self._review_snapshot(actor, scenario, w))
             d["linked_case_versions"] = {c["case_id"]: c["version"] for c in linked}
         if action == "approve_plan":
             if d["plan_id"] != plan.get("plan_id"):
@@ -520,25 +686,78 @@ class OperationsService:
             self.planner.writable(scenario)
         return d
 
+    def _prepare_retry(self, actor: Actor, action: str, request_data: dict, scenario: str) -> dict | None:
+        idem = request_data.get("idempotency_key")
+        if not idem:
+            return None
+        fingerprint = hashlib.sha256(encode({"key": idem}).encode()).hexdigest()
+        with self.db.connect() as db:
+            row = db.execute(
+                "SELECT proposal_id FROM proposals WHERE user_id=? AND organization_id=? AND scenario=? AND fingerprint=?",
+                (actor.user_id, actor.organization_id, scenario, fingerprint),
+            ).fetchone()
+        if not row:
+            return None
+        p, command_id = self._load_proposal(actor, row["proposal_id"])
+        if p["action"] != action:
+            fail(409, "idempotency_conflict", "This idempotency key already belongs to another proposal.")
+        original = p.get("request_data")
+        if original is None:
+            # Older proposals have only the server-enriched payload. Never compare
+            # generated provenance/photo metadata, or versions absent from the retry.
+            original = {k: v for k, v in p["data"].items() if k in DATA_MODELS[action].model_fields}
+            for field in ("plan_version", "case_version"):
+                if field not in request_data:
+                    original.pop(field, None)
+            original = self._parse_data(action, original)
+        if original != request_data:
+            fail(409, "idempotency_conflict", "This idempotency key already belongs to another proposal.")
+        # A key identifies a request, never a grant of the historical object's rights.
+        for field, check in (
+            ("work_item_id", self._work_item),
+            ("case_id", self._case),
+            ("connection_id", self._connection),
+        ):
+            if p["data"].get(field):
+                check(actor, scenario, p["data"][field])
+        if not command_id:
+            if datetime.fromisoformat(p["expires_at"]) <= now():
+                return None  # Preserve renewal of expired, unconfirmed requests only.
+            self._check_versions(actor, p)
+        return self._public_proposal(p)
+
     def prepare(self, actor: Actor, action: str, data: dict, scenario: str = "demo-vara") -> dict:
         self._scope(actor, scenario)
         self._authorize_action(actor, action)
         with self._lock():
             self._provision(scenario)
+            request_data = self._parse_data(action, data)
+            retry = self._prepare_retry(actor, action, request_data, scenario)
+            if retry:
+                return retry
             d = self._validate(actor, action, data, scenario)
-            version = self.planner.version(scenario)
-            payload = {"action": action, "data": d, "plan_version": version}
-            idem = d.get("idempotency_key")
-            fingerprint = hashlib.sha256(encode({"key": idem} if idem else payload).encode()).hexdigest()
             with self.db.transaction() as db:
+                version = self.planner.version(scenario)
+                if action == "record_verdict":
+                    d["photos"] = photos.validate_refs(
+                        db,
+                        actor.organization_id,
+                        actor.user_id,
+                        scenario,
+                        d["work_item_id"],
+                        d["photo_ids"],
+                        signature(actor),
+                        at=now(),
+                    )
+                payload = {"action": action, "data": d, "plan_version": version}
+                idem = d.get("idempotency_key")
+                fingerprint = hashlib.sha256(encode({"key": idem} if idem else payload).encode()).hexdigest()
                 prior = db.execute(
                     "SELECT body FROM proposals WHERE user_id=? AND organization_id=? AND scenario=? AND fingerprint=?",
                     (actor.user_id, actor.organization_id, scenario, fingerprint),
                 ).fetchone()
                 if prior:
                     p = json.loads(prior["body"])
-                    if idem and (p["action"] != action or p["data"] != d):
-                        fail(409, "idempotency_conflict", "This idempotency key already belongs to another proposal.")
                     if datetime.fromisoformat(p["expires_at"]) > now() and p["actor_signature"] == signature(actor):
                         return self._public_proposal(p)
                     db.execute("DELETE FROM proposals WHERE proposal_id=? AND command_id IS NULL", (p["proposal_id"],))
@@ -549,6 +768,7 @@ class OperationsService:
                     "proposal_id": str(uuid.uuid4()),
                     "action": action,
                     "data": d,
+                    "request_data": request_data,
                     "scenario": scenario,
                     "plan_version": version,
                     "actor_signature": signature(actor),
@@ -569,6 +789,10 @@ class OperationsService:
                         encode(p),
                     ),
                 )
+                if action == "record_verdict":
+                    db.executemany(
+                        "INSERT INTO proposal_photos VALUES (?,?)", [(p["proposal_id"], pid) for pid in d["photo_ids"]]
+                    )
             return self._public_proposal(p)
 
     @staticmethod
@@ -587,7 +811,7 @@ class OperationsService:
 
     @staticmethod
     def _public_proposal(p: dict) -> dict:
-        return {k: v for k, v in p.items() if k != "actor_signature"}
+        return {k: v for k, v in p.items() if k not in {"actor_signature", "request_data"}}
 
     def _load_proposal(self, actor: Actor, pid: str) -> tuple[dict, str | None]:
         with self.db.connect() as db:
@@ -625,6 +849,23 @@ class OperationsService:
             self._work_item(actor, scenario, d["work_item_id"])
         if d.get("connection_id"):
             self._connection(actor, scenario, d["connection_id"])
+        if p["action"] == "record_verdict":
+            with self.db.connect() as db:
+                self._validate_proposal_photos(db, actor, p)
+
+    def _validate_proposal_photos(self, db, actor: Actor, p: dict, *, original_id: str | None = None):
+        d = p["data"]
+        return photos.validate_refs(
+            db,
+            actor.organization_id,
+            original_id or actor.user_id,
+            p["scenario"],
+            d["work_item_id"],
+            d.get("photo_ids", []),
+            p["actor_signature"],
+            at=now(),
+            frozen=d.get("photos", []),
+        )
 
     def _check_case_versions(self, actor: Actor, p: dict):
         scenario, d = p["scenario"], p["data"]
@@ -648,8 +889,10 @@ class OperationsService:
                 return self._resume(actor, p, cid)
             if datetime.fromisoformat(p["expires_at"]) <= now():
                 fail(409, "proposal_expired", "The proposal expired. Prepare a new proposal.")
-            self._check_versions(actor, p)
             with self.db.transaction() as db:
+                self._check_versions(actor, p)
+                if p["action"] == "record_verdict":
+                    self._validate_proposal_photos(db, actor, p)
                 if db.execute(
                     "SELECT 1 FROM commands WHERE organization_id=? AND scenario=? AND status=?",
                     (actor.organization_id, p["scenario"], "reconciling"),
@@ -790,6 +1033,9 @@ class OperationsService:
             if recovery_audit:
                 self._check_case_versions(actor, p)
             original_id = recovery_audit["confirmed_by"]["user_id"] if recovery_audit else actor.user_id
+            if p["action"] == "record_verdict":
+                with self.db.transaction() as db:
+                    self._validate_proposal_photos(db, actor, p, original_id=original_id)
             effect = (
                 self.planner.execute(cmd, p, original_id, recover_only=bool(recovery_audit))
                 if p["action"] in PLANNER_ACTIONS
@@ -829,7 +1075,18 @@ class OperationsService:
                 db.execute("UPDATE commands SET body=? WHERE command_id=?", (encode(cmd), cid))
             return cmd
 
-    def _event(self, db, actor: Actor, p: dict, cid: str, case: dict | None, status: str, *, audit: dict | None = None):
+    def _event(
+        self,
+        db,
+        actor: Actor,
+        p: dict,
+        cid: str,
+        case: dict | None,
+        status: str,
+        *,
+        audit: dict | None = None,
+        details: dict | None = None,
+    ):
         event = {
             "event_id": str(uuid.uuid4()),
             "command_id": cid,
@@ -862,6 +1119,11 @@ class OperationsService:
             event["case_version"] = case["version"]
             event["prediction_id"] = case.get("assessment", {}).get("prediction_id")
             event["model_version"] = case.get("assessment", {}).get("model_version")
+        if p["data"].get("work_item_id"):
+            event["work_item_id"] = p["data"]["work_item_id"]
+        for key in ("finding", "manual_correction"):
+            if details and key in details:
+                event[key] = details[key]
         db.execute(
             "INSERT INTO events VALUES (?,?,?,?,?,?)",
             (event["event_id"], cid, event["case_id"], actor.organization_id, p["scenario"], encode(event)),
@@ -885,6 +1147,53 @@ class OperationsService:
     def _apply(self, db, actor: Actor, p: dict, cid: str, effect: dict, *, audit: dict | None = None) -> dict:
         action, d, scenario = p["action"], p["data"], p["scenario"]
         result = {"effect": effect, "synthetic": True, "repaired": False}
+        original_actor = audit["confirmed_by"] if audit else {"user_id": actor.user_id, "role": actor.role}
+        common = {
+            "work_item_id": d.get("work_item_id"),
+            "actor_id": original_actor["user_id"],
+            "actor_role": original_actor["role"],
+            "created_at": now().isoformat(),
+            "command_id": cid,
+        }
+        if audit:
+            common.update(reconciled_by=audit["reconciled_by"], recovery_id=audit["recovery_id"])
+        if action == "record_verdict":
+            attached = self._validate_proposal_photos(db, actor, p, original_id=original_actor["user_id"])
+            attached = [{**metadata, "status": "attached"} for metadata in attached]
+            finding = {
+                **common,
+                "finding_id": cid,
+                "outcome": d["outcome"],
+                "note": d.get("note"),
+                "photos": attached,
+                "repair_confirmed": False,
+            }
+            db.execute(
+                "INSERT INTO findings VALUES (?,?,?,?,?)",
+                (cid, actor.organization_id, scenario, d["work_item_id"], encode(finding)),
+            )
+            for metadata in attached:
+                db.execute(
+                    "UPDATE photos SET status='attached',body=?,command_id=? WHERE photo_id=?",
+                    (encode(metadata), cid, metadata["photo_id"]),
+                )
+            result["finding"] = finding
+        elif action == "review_work_item":
+            correction = {
+                **common,
+                "original_ai_decision": d.get("original_ai_decision"),
+                "original_ai_decision_status": d.get("original_ai_decision_status", "unknown"),
+                "decision_before": d.get("decision_before"),
+                "decision_after": effect.get("decision_after"),
+                "requested_decision": d["decision"],
+                "reason": d.get("note"),
+                "is_correction": d.get("is_correction", False),
+            }
+            db.execute(
+                "INSERT INTO manual_corrections VALUES (?,?,?,?,?)",
+                (cid, actor.organization_id, scenario, d["work_item_id"], encode(correction)),
+            )
+            result["manual_correction"] = correction
         changed = []
         if action == "create_case":
             existing = [
@@ -962,6 +1271,9 @@ class OperationsService:
                             "command_id": cid,
                             "prediction_id": effect.get("label", {}).get("prediction_id"),
                             "repair_confirmed": False,
+                            "finding_id": cid,
+                            "note": d.get("note"),
+                            "photos": result["finding"]["photos"],
                         }
                         c["next_step"] = (
                             "Dispatcher must arrange access."
@@ -978,11 +1290,18 @@ class OperationsService:
         event_ids = []
         for case in changed:
             self._save_case(db, case)
-            event_ids.append(self._event(db, actor, p, cid, case, case["status"], audit=audit))
+            event_ids.append(self._event(db, actor, p, cid, case, case["status"], audit=audit, details=result))
         if not changed:
             event_ids.append(
                 self._event(
-                    db, actor, p, cid, None, result.get("human_request", {}).get("status", "succeeded"), audit=audit
+                    db,
+                    actor,
+                    p,
+                    cid,
+                    None,
+                    result.get("human_request", {}).get("status", "succeeded"),
+                    audit=audit,
+                    details=result,
                 )
             )
         if changed:
