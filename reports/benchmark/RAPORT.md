@@ -2,23 +2,22 @@
 
 Ramura `Eden`, 8 noiembrie 2026, 05:59–06:35, ora Bucureștiului. Cerut de Eden. Este un **experiment**: modelele
 active din `models/release/` și comportamentul demo-ului nu s-au schimbat (sumele SHA256 din `release.json` au fost
-verificate după rulare). Modelul de tensiune la prosumatori (C) nu face parte din benchmark.
+verificate după rulare). Acesta este raportul inițial A/B/bilanț. Comparațiile C, testul pe tensiuni reale și toate dovezile sunt reunite în [raportul ML comun](../ml/README.md).
 
 ## Pe scurt
 
-**Nu am găsit niciun candidat care să bată LightGBM.** Pe fiecare problemă, candidatul fie e la egalitate
-statistică (intervalul 90% al diferenței include zero), fie pierde puțin. Recomandarea: rămânem pe LightGBM peste tot.
+**Nu am găsit niciun candidat care să bată LightGBM.** Pe fiecare problemă, diferența este fie neconcludentă (intervalul 90% include zero), fie în defavoarea candidatului. Un interval care include zero nu dovedește echivalența. Recomandarea: rămânem pe LightGBM peste tot.
 
 | Problemă | Test | Candidat | Metrica principală: LightGBM → candidat | Diferența, IC 90% | Verdict |
 |---|---|---|---|---|---|
-| Bilanț (diagnostice SINTETICE) | testul v2, 13.200 de ferestre | CatBoost | F1 macro 0,7535 → 0,7575 | +0,0040 [−0,0032; +0,0129] | egalitate statistică |
-| Bilanț (profile FeederBW reale, diagnostice SINTETICE) | 8 plecări reale nevăzute | CatBoost | F1 macro 0,7139 → 0,7048 | −0,0091 [−0,0315; +0,0037] | egalitate statistică |
-| Contoare, SGCC (etichete REALE) | 20% din clienți | CatBoost | PR-AUC 0,3994 → 0,3947 | −0,0047 [−0,0170; +0,0080] | egalitate statistică |
-| Contoare, LCL de bază (probleme INJECTATE) | 265 de gospodării nevăzute | CatBoost | PR-AUC subtil 0,4057 → 0,4174 | +0,0117 [−0,0335; +0,0488] | egalitate statistică |
+| Bilanț (diagnostice SINTETICE) | testul v2, 13.200 de ferestre | CatBoost | F1 macro 0,7535 → 0,7575 | +0,0040 [−0,0032; +0,0129] | diferență neconcludentă |
+| Bilanț (profile FeederBW reale, diagnostice SINTETICE) | 8 plecări reale nevăzute | CatBoost | F1 macro 0,7139 → 0,7048 | −0,0091 [−0,0315; +0,0037] | diferență neconcludentă |
+| Contoare, SGCC (etichete REALE) | 20% din clienți | CatBoost | PR-AUC 0,3994 → 0,3947 | −0,0047 [−0,0170; +0,0080] | diferență neconcludentă |
+| Contoare, LCL de bază (probleme INJECTATE) | 265 de gospodării nevăzute | CatBoost | PR-AUC subtil 0,4057 → 0,4174 | +0,0117 [−0,0335; +0,0488] | diferență neconcludentă |
 | Contoare, LCL extins (probleme INJECTATE) | același test | CatBoost | PR-AUC subtil 0,5175 → 0,4889 | **−0,0285 [−0,0461; −0,0123]** | **CatBoost pierde** |
 | Furtuni (date REALE, SUA) | anul 2025 | XGBoost | PR-AUC 0,2777 → 0,2738 | **−0,0039 [−0,0064; −0,0012]** | **XGBoost pierde** (puțin) |
-| Furtuni, state nevăzute | 8 state, pe rând | XGBoost | PR-AUC mediu 0,2586 → 0,2550 | −0,0036 [−0,0076; +0,0002] | egalitate statistică |
-| Furtuni + convecție (experiment separat) | anul 2025 | XGBoost | PR-AUC 0,2865 → 0,2845 | −0,0021 [−0,0047; +0,0005] | egalitate statistică |
+| Furtuni, state nevăzute | 8 state, pe rând | XGBoost | PR-AUC mediu 0,2586 → 0,2550 | −0,0036 [−0,0076; +0,0002] | diferență neconcludentă |
+| Furtuni + convecție (experiment separat) | anul 2025 | XGBoost | PR-AUC 0,2865 → 0,2845 | −0,0021 [−0,0047; +0,0005] | diferență neconcludentă |
 
 Unde un scor mediu mai bun ascunde o scădere:
 - **Bilanț, testul v2:** CatBoost are F1 macro mai mare, dar **furtul înainte de contor scade** (0,7710 → 0,7641,
@@ -170,8 +169,7 @@ include regulile de după model.
 Antrenarea la contoare include calibrarea. Timpul căutării LightGBM nu a fost măsurat din nou: v2 a durat 1.272 s
 în total, inclusiv ferestrele (`reports/bilant/v2_comparison.json`). Singurul avantaj clar al candidaților este
 viteza: CatBoost prezice de 17–180 de ori mai repede, iar XGBoost se antrenează de circa 4 ori mai repede pe
-furtuni. Pentru volumele din demo, timpii LightGBM sunt deja sub o secundă la inferență, deci acest avantaj nu
-schimbă decizia.
+furtuni. Tabelul măsoară inferența pe întregul test: LCL extins durează 2,328 s, deci nu toate valorile sunt sub o secundă. Nu extrapolăm acești timpi la demo și nu schimbăm alegerea modelului numai pe baza lor.
 
 ## Comenzi de reproducere
 
@@ -239,5 +237,5 @@ Ferestrele testului v2 construite cu modelele normalului din pachetul livrat sun
   contor ușor mai slab pe ambele teste. Nu înlocuim LightGBM v2.
 - **CatBoost la contoare: respins.** Egalitate pe SGCC și LCL de bază; pierde sigur pe setul LCL extins, care este
   direcția recomandată pentru A.
-- **XGBoost la furtuni: respins.** Pierde puțin pe 2025, e la egalitate pe statele nevăzute și cu convecție. Singurul
+- **XGBoost la furtuni: respins.** Pierde puțin pe 2025, are diferențe neconcludente pe statele nevăzute și cu convecție. Singurul
   avantaj este antrenarea mai rapidă. Convecția ajută ambele modele, deci rămâne recomandată, independent de algoritm.

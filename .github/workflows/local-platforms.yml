@@ -16,7 +16,6 @@ jobs:
     timeout-minutes: 20
     env:
       PYTHONUTF8: "1"
-      DAYBREAK_OPERATIONS_TEST_DATA: data/local-runtime
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6

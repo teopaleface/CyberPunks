@@ -205,3 +205,32 @@ La cererea lui Eden, am verificat întâi că Teo a pus tot pe `main`: `origin/T
 - La cererea utilizatorului, corecția se pregătește separat de fișierele locale modificate, pe `Teo-ci-fix`, pornind din `origin/main`.
 - Testul permisiunilor 0600 se aplică doar pe sisteme POSIX; Windows nu expune aceleași permisiuni prin stat.
 - Smoke check-ul trimite întâi oprire normală launcherului, care închide sesiunile separate ale serviciilor; oprirea forțată rămâne doar după timeout. Un test de regresie verifică închiderea serviciului separat.
+
+### 2026-11-08 09:59 București — datele implicite pentru testele de integrare
+
+Utilizatorul a ales pachetul complet din repo ca sursă implicită pentru teste. Pachetul din `data/local-runtime` conține 689 de predicții pentru 8 iulie 2025, din date publice și sintetice: 532 de cazuri de contor, 98 de bilanț, 26 de zone pentru furtuni și 33 de cazuri de tensiune. Cele patru sume SHA256 corespund manifestului. Testele de agent, canale și operațiuni folosesc aceeași pregătire a planului într-un director temporar. `DAYBREAK_OPERATIONS_TEST_DATA` rămâne disponibil pentru o rulare alternativă. Cele două probe de randare PNG cer separat versiunea Chromium instalată de Playwright.
+
+Verificare pe `Eden`: toate cele 584 de teste Python au trecut cu sursa implicită, fără `DAYBREAK_OPERATIONS_TEST_DATA`, după instalarea Chromium într-un cache temporar. Ruff pe `src` și `tests` a trecut.
+
+### 2026-11-08 10:33 București — completarea tehnică ML pe Eden
+
+La cererea lui Eden, am adăugat evaluarea pe tensiuni REALE FeederBW, comparația LightGBM/CatBoost/XGBoost pentru C și sursa comună `reports/ml/README.md`. Datele și etichetele sunt separate explicit. Am reparat SIGSEGV-ul testului CatBoost prin proces separat și am verificat 208 teste.
+
+Decizia de la 10:26:53: modelul și codul bilanțului au fost fixate în commitul 3deadcc înainte de generarea unui test nou. Auditul celor 300 de posturi noi a obținut 0,77539 macro-F1 față de 0,42059 la reguli. Este același simulator, cu posturi și seed noi; nu pretindem validare în teren sau îmbunătățire pe testul vechi. Nu ajustăm modelul după rezultat.
+
+La tensiunile reale, XGBoost rămâne alegerea făcută pe validare, chiar dacă Ridge are MAE mai mic pe test. Cele 1.353 zile de test nu conțin supratensiuni peste 253 V. IC90 care include zero se numește diferență neconcludentă; nu echivalență. Detalii în `memory/23-ml-dovezi-complete.md`. Urmează verificarea dintr-o copie fără datele mari locale.
+
+### 2026-11-08 10:35 București — verificare ML din clonă curată
+
+Clona commitului 5b7aff7, fără directoarele raw/interim/processed la pornire, trece toate cele 208 teste (zero eșecuri, zero omise), inclusiv limitele fișierelor din Git. S-a reutilizat mediul Python cu dependențele bench; codul și datele au fost citite din clonă. Scorurile disponibile în Git: 28/28; local, inclusiv SGCC: 30/30. Ruff pe src și tests trece. Dovezile sunt în reports/ml/clean_checkout.json și raportul ML comun. Cele trei fișiere/directoare nelegate de cerere, deja ne urmărite, au rămas neincluse în commituri.
+
+### 8 noiembrie 2026, 10:38 (București) — ML într-un minut, pe pagina Agent
+
+- Eden prezintă partea de ML într-un minut, pe pagina Agent a site-ului. Am adăugat secțiunea „Four models, one plan” (`/agent#models`, `web/site/src/components/model-overview.tsx`): pentru contoare, furtuni, tensiune (C) și bilanț arată datele (cu eticheta reală/sintetică), modelul, testul și două metrici față de reper. Cifrele se citesc din `daybreak.json`, nu sunt scrise de mână.
+- Scriptul de un minut și răspunsurile pentru juriu: `presentation/ml-un-minut.md`.
+
+### 8 noiembrie 2026, 10:44 (București) — pagina Agent cu ML-ul și agentul actualizate
+
+- Am adus pe `Eden` actualizările agentului din `main` (rapoartele PDF, fișa de traseu pentru tehnician, reparațiile la reluarea sarcinilor). Singurul conflict a fost în jurnal; am păstrat toate notele.
+- Pe pagina Agent, cardurile modelelor arată și verificările noi din `reports/ml/README.md`: tensiuni reale FeederBW la C (0,72 V față de 0,83 V la persistență, fără supratensiuni în test) și auditul nou de bilanț (macro-F1 0,78 față de 0,42, protocol fixat în `3deadcc`). Nota de sub carduri spune 30/30 scoruri recalculate și 208 teste ML trecute. Pasul Act menționează fișa PDF trimisă pe WhatsApp.
+- Scriptul de un minut (`presentation/ml-un-minut.md`) are aceleași cifre noi.

@@ -35,9 +35,12 @@ WINDOW = 14  # zile: fereastra diagnosticului
 EVAL_EVERY = 7  # o fereastră de evaluare la 7 zile
 SEEDS = {"train": 20261107, "pop": 8112026, "train2": 20261108, "trainL": 20261109, "trainLA": 20261110}
 P_POST = {"train": 0.40, "pop": 0.25, "train2": 0.40, "trainL": 0.40, "trainLA": 0.25}
+# Audit suplimentar, fixat înainte de generare; nu este folosit pentru alegerea modelului.
+SEEDS["holdout"] = 2026110801
+P_POST["holdout"] = 0.25
 # trainL: ~3.000 de posturi (diagnosticul v2); trainLA: ~3.000 de posturi cu defectele de contor ca la A, apărute în
 # ultimele 60 de zile, ca pe harta de test (antrenarea fuziunii v2)
-N_PER_TOPOLOGY = {"train": 50, "train2": 50, "trainL": 500, "trainLA": 500}
+N_PER_TOPOLOGY = {"train": 50, "train2": 50, "trainL": 500, "trainLA": 500, "holdout": 50}
 MAX_WORKERS = 8  # ce parte din posturi au o problemă la nivel de post (IPOTEZĂ)
 
 
@@ -48,7 +51,7 @@ MAX_WORKERS = 8  # ce parte din posturi au o problemă la nivel de post (IPOTEZ�
 
 def train_specs(n_per_topology: int = 50, pool: str = "train") -> tuple[list[grids.PostSpec], pd.DataFrame]:
     rng = np.random.default_rng(SEEDS[pool])
-    prefix = {"train": "BT", "train2": "BT2", "trainL": "BTL", "trainLA": "BTLA"}[pool]
+    prefix = {"train": "BT", "train2": "BT2", "trainL": "BTL", "trainLA": "BTLA", "holdout": "BTH"}[pool]
     specs, meta = [], []
     k = 0
     for topo in grids.TOPOLOGIES:

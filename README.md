@@ -1,5 +1,8 @@
 # CyberPunks: Daybreak
 
+**Evaluarea ML:** [raportul comun — date, modele, baseline, Optuna, CatBoost/XGBoost și teste](reports/ml/README.md).
+Verificare reproductibilă: `uv sync --group bench` și `make ml-check`.
+
 Proiectul echipei CyberPunks la SmartHack XI 2026 (7-8 noiembrie, București), pe tema PPC "24h to Power PPC": un agent AI care decide unde merg mâine echipele de teren Rețele Electrice, pe baza a trei modele ML antrenate de echipă (contoare defecte sau manipulate, risc de avarii la furtună, tensiune prea mare din cauza prosumatorilor), și explică fiecare decizie.
 
 Stare: în lucru, vezi [`status/ACUM.md`](status/ACUM.md). Planul: [`docs/PLAN.md`](docs/PLAN.md). Formatele de date: [`docs/CONTRACTS.md`](docs/CONTRACTS.md). Contextul și research-ul: [`memory/`](memory/INDEX.md).

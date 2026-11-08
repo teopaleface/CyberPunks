@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { BalanceExplorer, DiagnosisBars } from "@/components/balance-explorer"
 import { Block, NextStep, PageShell } from "@/components/page"
+import { ModelOverview } from "@/components/model-overview"
 import { Reveal } from "@/components/reveal"
 import { DB, DIAGNOSIS_RO, PLAN_DATE_RO, SYNTHETIC_NOTE } from "@/data/daybreak"
 import { TO_CONFIRM, EvalTable, agentGain } from "@/sections/demo"
@@ -238,6 +239,10 @@ export function AgentPage() {
       title="How the agent plans the day"
       lead="The models estimate risk. Code applies planning rules. Uncertain cases go to a dispatcher before a crew visit."
     >
+      <Block id="models" title="Four models, one plan" intro="What each model learned from, what the agent uses it for, and how it scores on data it never saw.">
+        <ModelOverview />
+      </Block>
+
       {STEPS.map((s, i) => (
         <Block key={s.title} title={s.title} intro={s.body}>
           <div data-ui className="rounded-2xl bg-surface p-[clamp(20px,3vw,40px)]">

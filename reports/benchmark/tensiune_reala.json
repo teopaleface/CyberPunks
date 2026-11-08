@@ -1,0 +1,275 @@
+{
+  "task": "Maximul temporal al tensiunii monofazate la plecare, mâine (V); sarcină separată de C",
+  "labels": "REALE: măsurători FeederBW; agregare maxim zilnic, fără injecții",
+  "source": "https://doi.org/10.5281/zenodo.17831177",
+  "license": "CC BY 4.0",
+  "features": [
+    "v_max",
+    "v_mean",
+    "v_min",
+    "v_std",
+    "v_mean_7d",
+    "v_max_7d",
+    "month_sin",
+    "month_cos",
+    "weekday"
+  ],
+  "split": {
+    "train": {
+      "rows": 9869,
+      "feeders": [
+        1,
+        4,
+        7,
+        9,
+        10,
+        11,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        27,
+        28,
+        30,
+        31,
+        32,
+        33,
+        37,
+        38,
+        39,
+        40
+      ],
+      "first_target": "2023-04-08 00:00:00+00:00",
+      "last_target": "2024-06-30 00:00:00+00:00"
+    },
+    "validation": {
+      "rows": 736,
+      "feeders": [
+        3,
+        5,
+        13,
+        14,
+        15,
+        16,
+        29,
+        35
+      ],
+      "first_target": "2024-07-01 00:00:00+00:00",
+      "last_target": "2024-09-30 00:00:00+00:00"
+    },
+    "test": {
+      "rows": 1353,
+      "feeders": [
+        2,
+        6,
+        8,
+        12,
+        25,
+        26,
+        34,
+        36
+      ],
+      "first_target": "2024-10-01 00:00:00+00:00",
+      "last_target": "2025-03-30 00:00:00+00:00"
+    }
+  },
+  "protocol": "Plecări disjuncte și timp separat; istoricul local până ieri este disponibil inclusiv pe plecări noi. 300 arbori/model, setări fixe, zero tuning; alegere pe MAE validare.",
+  "selected_on_validation": "xgboost",
+  "validation_mae_volts": {
+    "persistence": 0.8401646018028259,
+    "mean_7d": 0.7200317264343643,
+    "ridge": 0.6748346414530212,
+    "lightgbm": 0.6721641173899984,
+    "catboost": 0.6736217582611755,
+    "xgboost": 0.6686092019081116
+  },
+  "test": {
+    "persistence": {
+      "mae_volts": 0.82481449842453,
+      "rmse_volts": 1.113237738609314,
+      "p95_absolute_error_volts": 2.366598606109619,
+      "delta_mae_vs_persistence_by_feeder": {
+        "delta": 0.0,
+        "ci90": [
+          0.0,
+          0.0
+        ],
+        "includes_zero": true,
+        "share_positive": 0.0,
+        "groups": 8,
+        "n_boot": 1000
+      },
+      "by_feeder_mae": {
+        "2": 0.98848557472229,
+        "6": 0.6053376793861389,
+        "8": 0.7313697338104248,
+        "12": 1.0459831953048706,
+        "25": 0.6220991611480713,
+        "26": 1.0703710317611694,
+        "34": 1.0475186109542847,
+        "36": 0.5667626261711121
+      }
+    },
+    "mean_7d": {
+      "mae_volts": 0.7318111222719973,
+      "rmse_volts": 0.9654865884918375,
+      "p95_absolute_error_volts": 1.9815730503627231,
+      "delta_mae_vs_persistence_by_feeder": {
+        "delta": -0.093,
+        "ci90": [
+          -0.12356,
+          -0.06362
+        ],
+        "includes_zero": false,
+        "share_positive": 0.0,
+        "groups": 8,
+        "n_boot": 1000
+      },
+      "by_feeder_mae": {
+        "2": 0.905188050906114,
+        "6": 0.5949110890714414,
+        "8": 0.6393214760488175,
+        "12": 0.8960290681497262,
+        "25": 0.5392590668565949,
+        "26": 0.896522503907792,
+        "34": 0.9357724242157988,
+        "36": 0.5195271914270597
+      }
+    },
+    "ridge": {
+      "mae_volts": 0.6883259038972311,
+      "rmse_volts": 0.9188011894697123,
+      "p95_absolute_error_volts": 1.8461828842801593,
+      "delta_mae_vs_persistence_by_feeder": {
+        "delta": -0.13649,
+        "ci90": [
+          -0.16624,
+          -0.10655
+        ],
+        "includes_zero": false,
+        "share_positive": 0.0,
+        "groups": 8,
+        "n_boot": 1000
+      },
+      "by_feeder_mae": {
+        "2": 0.8233419169821434,
+        "6": 0.5583289157286732,
+        "8": 0.6114375397335885,
+        "12": 0.8457003409987168,
+        "25": 0.5121868440536774,
+        "26": 0.8841296669752372,
+        "34": 0.8754162417518624,
+        "36": 0.46252686165594986
+      }
+    },
+    "lightgbm": {
+      "mae_volts": 0.707200704715951,
+      "rmse_volts": 0.9488883198684492,
+      "p95_absolute_error_volts": 1.8957122155217452,
+      "delta_mae_vs_persistence_by_feeder": {
+        "delta": -0.11761,
+        "ci90": [
+          -0.15853,
+          -0.07857
+        ],
+        "includes_zero": false,
+        "share_positive": 0.0,
+        "groups": 8,
+        "n_boot": 1000
+      },
+      "by_feeder_mae": {
+        "2": 0.8025157281518344,
+        "6": 0.5969723094994334,
+        "8": 0.6782839079905782,
+        "12": 0.8765315048055176,
+        "25": 0.5537473739752121,
+        "26": 0.8724786610377964,
+        "34": 0.9093211204666893,
+        "36": 0.4439837850137866
+      }
+    },
+    "catboost": {
+      "mae_volts": 0.7150483834060315,
+      "rmse_volts": 0.9568090902717931,
+      "p95_absolute_error_volts": 2.006677612079617,
+      "delta_mae_vs_persistence_by_feeder": {
+        "delta": -0.10977,
+        "ci90": [
+          -0.15732,
+          -0.06591
+        ],
+        "includes_zero": false,
+        "share_positive": 0.0,
+        "groups": 8,
+        "n_boot": 1000
+      },
+      "by_feeder_mae": {
+        "2": 0.788569803125425,
+        "6": 0.592560328428224,
+        "8": 0.7454428894553522,
+        "12": 0.8616372183338535,
+        "25": 0.5421078568611288,
+        "26": 0.8727791202604329,
+        "34": 0.9597709812026728,
+        "36": 0.4534160563949034
+      }
+    },
+    "xgboost": {
+      "mae_volts": 0.7242854833602905,
+      "rmse_volts": 0.9685986042022705,
+      "p95_absolute_error_volts": 1.955621361732483,
+      "delta_mae_vs_persistence_by_feeder": {
+        "delta": -0.10053,
+        "ci90": [
+          -0.15656,
+          -0.04697
+        ],
+        "includes_zero": false,
+        "share_positive": 0.003,
+        "groups": 8,
+        "n_boot": 1000
+      },
+      "by_feeder_mae": {
+        "2": 0.809622585773468,
+        "6": 0.6093432903289795,
+        "8": 0.8105474710464478,
+        "12": 0.8931550979614258,
+        "25": 0.5380198955535889,
+        "26": 0.8548303246498108,
+        "34": 0.9304527640342712,
+        "36": 0.4295404851436615
+      }
+    }
+  },
+  "test_days_above_253V": 0,
+  "test_rows": 1353,
+  "limits": [
+    "Nu măsoară maximul spațial în rețea și nu validează direct modelul C.",
+    "Maximul din minutele disponibile poate rata vârfuri în minutele lipsă (≤5%).",
+    "Pragul 253 V este descriptiv; nu este un diagnostic de conformitate normativă.",
+    "Intervale exploratorii pe puține plecări; fără corecție pentru comparații multiple."
+  ],
+  "data_sha256": "58a7ce927f8ecbfacbb922040de2038a7736dbc5ad82c3a2eb084c6f82c1e0a7",
+  "timing_seconds": {
+    "ridge": 0.017,
+    "lightgbm": 0.216,
+    "catboost": 0.238,
+    "xgboost": 0.163
+  },
+  "environment": {
+    "git": "9966578",
+    "python": "3.12.14",
+    "machine": "arm64",
+    "system": "Darwin",
+    "cpu_count": 15,
+    "lightgbm": "4.7.0",
+    "catboost": "1.2.10",
+    "xgboost": "3.4.1",
+    "scikit_learn": "1.9.1",
+    "created_at": "2026-11-08T10:18:58+02:00"
+  }
+}

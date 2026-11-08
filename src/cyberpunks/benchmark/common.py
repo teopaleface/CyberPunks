@@ -14,6 +14,7 @@ import time
 from collections.abc import Callable
 from contextlib import contextmanager
 from datetime import datetime
+from importlib.metadata import version
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -37,6 +38,8 @@ def ci90(fn: Callable[[np.ndarray], float], groups: np.ndarray, n: int = N_BOOT,
     întoarce NaN dacă eșantionul nu permite calculul (se sare).
     """
     groups = np.asarray(groups)
+    if groups.ndim != 1 or len(groups) == 0 or n < 1:
+        raise ValueError("Bootstrap cere grupuri nenule și cel puțin o reeșantionare")
     uniq, inv = np.unique(groups, return_inverse=True)
     members = [np.flatnonzero(inv == g) for g in range(len(uniq))]
     rng = np.random.default_rng(seed)
@@ -46,6 +49,8 @@ def ci90(fn: Callable[[np.ndarray], float], groups: np.ndarray, n: int = N_BOOT,
         v = fn(np.concatenate([members[g] for g in pick]))
         if np.isfinite(v):
             vals.append(v)
+    if not vals:
+        raise ValueError("Nicio statistică finită în bootstrap; date insuficiente pentru interval")
     lo, hi = np.percentile(vals, [5, 95])
     point = fn(np.arange(len(groups)))
     return {"delta": r(point), "ci90": [r(lo), r(hi)], "includes_zero": bool(lo <= 0 <= hi),
@@ -64,18 +69,13 @@ def timer(store: dict, key: str):
 
 
 def environment() -> dict:
-    import catboost
-    import lightgbm
-    import sklearn
-    import xgboost
-
     try:
         sha = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, text=True).strip()
     except (OSError, subprocess.CalledProcessError):
         sha = "nogit"
     return {"git": sha, "python": platform.python_version(), "machine": platform.machine(), "system": platform.system(),
-            "cpu_count": os.cpu_count(), "lightgbm": lightgbm.__version__,
-            "catboost": catboost.__version__, "xgboost": xgboost.__version__, "scikit_learn": sklearn.__version__,
+            "cpu_count": os.cpu_count(), "lightgbm": version("lightgbm"),
+            "catboost": version("catboost"), "xgboost": version("xgboost"), "scikit_learn": version("scikit-learn"),
             "created_at": datetime.now(TZ).replace(microsecond=0).isoformat()}
 
 
