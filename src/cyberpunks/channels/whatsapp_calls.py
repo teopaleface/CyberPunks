@@ -183,6 +183,20 @@ def is_report_request(message: str) -> bool:
     )
 
 
+def clarified_incident(message: str, history: list[dict]) -> str:
+    if not history or history[-1] != {
+        "role": "assistant",
+        "content": "Te referi la un stâlp căzut sau la o întrerupere de curent?",
+    }:
+        return message
+    plain = "".join(c for c in unicodedata.normalize("NFKD", message.casefold()) if not unicodedata.combining(c))
+    if re.fullmatch(r"\s*(?:un\s+)?stalp(?:ul|u)?(?:\s+cazut)?[.!, ]*", plain):
+        return "Raportez că a căzut un stâlp de curent."
+    if re.fullmatch(r"\s*(?:o\s+)?intrerupere(?:\s+de\s+curent)?[.!, ]*", plain):
+        return "Am rămas fără curent."
+    return message
+
+
 DEMO_ROLES = {"client": "customer", "dispecer": "dispatcher", "tehnician": "technician"}
 DEMO_LABELS = {"customer": "Demo client.", "dispatcher": "Demo dispecer.", "technician": "Demo tehnician."}
 ROLE_QUESTION = "Ce rol alegi pentru demo: client PPC, dispecer PPC sau tehnician PPC?"
@@ -445,7 +459,7 @@ def create_app(*, service=None, bindings=None, config_loader=load_config, report
                             result = answer_demo(
                                 service.operations,
                                 actor,
-                                message,
+                                clarified_incident(message, history) if selected_role == "customer" else message,
                                 event_key=dedupe,
                                 connection_id=connection_id,
                                 **action_options,

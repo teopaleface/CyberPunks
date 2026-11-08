@@ -2,8 +2,10 @@
 
 import asyncio
 import hashlib
+import os
 import shutil
 import time
+from html import escape
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -18,8 +20,8 @@ from cyberpunks.planner import feedback
 
 
 @pytest.fixture
-def demo(tmp_path, monkeypatch):
-    source = Path("/tmp/daybreak-call-repair-reference-20261108-113625")
+def demo(tmp_path, monkeypatch, full_run):
+    source = Path(os.environ.get("DAYBREAK_OPERATIONS_TEST_DATA", full_run))
     target = tmp_path / "synthetic-full-copy"
     shutil.copytree(source, target)
     operations = OperationsService(target, tmp_path / "synthetic.sqlite3")
@@ -170,6 +172,48 @@ def test_customer_without_case_explains_without_send(demo):
     assert not context["cases"]
     assert demo.send("customer")["status"] == "no_case"
     assert not demo.posts
+
+
+def test_customer_report_selects_latest_owned_persisted_case(demo):
+    from cyberpunks.channels.voice_briefs import answer_demo
+
+    actor = demo.actors["customer"]
+    connection = actor.connection_ids[0]
+    for event in ("synthetic-first-incident", "synthetic-latest-incident"):
+        result = answer_demo(
+            demo.operations,
+            actor,
+            "Am rămas fără curent.",
+            event_key=event,
+            connection_id=connection,
+            execute_incident=True,
+        )
+        assert result["command"]["status"] == "succeeded"
+    demo.receipt()
+    assert demo.send("customer")["status"] == "accepted"
+    assert len(demo.posts) == 2 and len(demo.renders) == 1
+    latest = result["command"]["result"]["case"]["case_id"]
+    assert latest in "".join(demo.renders[0])
+
+
+def test_technician_pdf_matches_remaining_stops_and_includes_verified_place(demo):
+    actor = demo.actors["technician"]
+    before = demo.operations.context(actor)
+    first = before["next_stop"]["work_item_id"]
+    proposal = demo.operations.prepare(actor, "record_verdict", {"work_item_id": first, "outcome": "not_found"})
+    demo.operations.confirm(actor, proposal["proposal_id"])
+    current = demo.operations.context(actor)
+    next_id = current["next_stop"]["work_item_id"]
+    item = next(item for item in current["work_items"] if item["work_item_id"] == next_id)
+    label = item["location"].get("address") or item["location"]["label"]
+    demo.receipt()
+    assert demo.send("technician")["status"] == "accepted"
+    html = "".join(demo.renders[0])
+    assert escape(label, quote=True) in html
+    from cyberpunks.channels.voice_briefs import trusted_next_stop
+
+    _, remaining, _, _ = trusted_next_stop(current, actor)
+    assert f"{len(remaining)} opriri" in html
 
 
 def test_window_expires_during_upload_no_post_or_fresh_receipt_reuse(demo, monkeypatch):

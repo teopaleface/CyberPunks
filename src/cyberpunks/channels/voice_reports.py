@@ -117,8 +117,13 @@ async def send_voice_report(
             context = operations.context(actor, SCENARIO)
             if actor.role == "customer" and not context.get("cases"):
                 return {"status": "no_case", "reply": "Nu ai o sesizare disponibilă pentru raport. Nu am trimis nimic."}
+            case_id = None
+            if actor.role == "customer":
+                # A generic spoken request refers to the latest owned case.
+                latest = max(context["cases"], key=lambda case: (case.get("created_at", ""), case["case_id"]))
+                case_id = latest["case_id"]
             task = AgenticCoordinator(operations, TaskStore(operations.db_path.with_name("agentic-tasks.sqlite3"))).run(
-                actor, TaskRequest(goal=GOALS[actor.role], request_key="voice-report:" + eid)
+                actor, TaskRequest(goal=GOALS[actor.role], case_id=case_id, request_key="voice-report:" + eid)
             )
             if task.status != "completed":
                 return {
@@ -130,7 +135,22 @@ async def send_voice_report(
                 raise ChannelError("report_stale", "The plan changed.", 409)
             cases = {c["case_id"]: c.get("version") for c in task.result.get("cases", [])}
             if actor.role == "technician":
-                context = {**context, "plan": {**context["plan"], "routes": task.result["routes"]}}
+                from cyberpunks.channels.voice_briefs import trusted_next_stop
+
+                _, remaining, _, by_id = trusted_next_stop(context, actor)
+                remaining_ids = {stop["work_item_id"] for stop in remaining}
+                routes = []
+                for route in task.result["routes"]:
+                    stops = []
+                    for stop in route["stops"]:
+                        if stop["work_item_id"] not in remaining_ids:
+                            continue
+                        location = by_id[stop["work_item_id"]].get("location") or {}
+                        stops.append(
+                            {**stop, "title": location.get("address") or location.get("label") or stop["title"]}
+                        )
+                    routes.append({**route, "stops": stops})
+                context = {**context, "plan": {**context["plan"], "routes": routes}}
             if actor.role == "customer":
                 context = {**context, "cases": task.result["cases"]}
             data = build_report_data(context, task.result if actor.role == "dispatcher" else None, "ro")

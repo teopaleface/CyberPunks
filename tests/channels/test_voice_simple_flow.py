@@ -3,7 +3,7 @@
 import pytest
 
 from cyberpunks.channels.models import ChannelError
-from cyberpunks.channels.whatsapp_calls import create_app, is_report_request
+from cyberpunks.channels.whatsapp_calls import clarified_incident, create_app, is_report_request
 
 from .test_whatsapp_calls import demo_call, demo_turn  # noqa: F401
 
@@ -16,6 +16,15 @@ def test_explicit_report_request(message):
 @pytest.mark.parametrize("message", ['A spus "trimite raportul"', "Nu trimite raportul", "Dacă vreau raportul?", "da"])
 def test_non_requests_cannot_send(message):
     assert not is_report_request(message)
+
+
+def test_incident_clarification_requires_the_server_question_and_specific_answer():
+    history = [{"role": "assistant", "content": "Te referi la un stâlp căzut sau la o întrerupere de curent?"}]
+    assert clarified_incident("Un stâlp căzut.", history) == "Raportez că a căzut un stâlp de curent."
+    assert clarified_incident("Întrerupere de curent", history) == "Am rămas fără curent."
+    for message in ("da", "Nu, stâlpul", '"stâlpul"', "Poate un stâlp"):
+        assert clarified_incident(message, history) == message
+    assert clarified_incident("Un stâlp căzut.", []) == "Un stâlp căzut."
 
 
 def test_report_uses_selected_verified_actor_and_rechecks_revocation(demo_call, env):  # noqa: F811

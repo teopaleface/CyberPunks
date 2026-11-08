@@ -15,8 +15,8 @@ OUTAGE = "Am rămas fără curent."
 
 
 @pytest.fixture
-def demo(tmp_path):
-    source = Path(os.environ["DAYBREAK_OPERATIONS_TEST_DATA"])
+def demo(tmp_path, full_run):
+    source = Path(os.environ.get("DAYBREAK_OPERATIONS_TEST_DATA", full_run))
     assert (source / "plans/demo-vara/inputs").is_dir()
     target = tmp_path / "synthetic-complete-copy"
     shutil.copytree(source, target)
