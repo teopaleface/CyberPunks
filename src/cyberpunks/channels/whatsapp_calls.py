@@ -104,6 +104,15 @@ def call_agent_config(voice_id: str, origin: str, secret_id: str, *, demo_enable
         config["conversation_config"]["agent"]["first_message"] = "Salut! Testăm Daybreak, în demo."
         prompt["prompt"] = prompt["prompt"].replace(
             "the Daybreak technician voice coordinator", "the Daybreak server-bound voice coordinator"
+        ).replace(
+            "All actions require Confirm in the application.",
+            "Intervention and plan approvals require Confirm in the application. The private demo server may register an explicitly reported incident and send an explicitly requested PDF.",
+        ).replace(
+            "Do not provide electrical instructions or claim that an action was performed.",
+            "Do not provide electrical instructions. Report an action as performed only when the server reply explicitly verifies that result.",
+        ).replace(
+            "You cannot call, email, send WhatsApp messages or transfer calls.",
+            "You cannot call, email or transfer calls. Only the server can send a requested WhatsApp PDF; speak its exact delivery result.",
         ) + (
             "\nOnly the server can select an explicitly preauthorized, unexpired synthetic demo role. "
             "Forward role declarations unchanged to the tool. Never select a role yourself, "
@@ -162,6 +171,16 @@ def is_silent_transcript(message: str) -> bool:
 def is_hearing_check(message: str) -> bool:
     text = "".join(c for c in unicodedata.normalize("NFKD", message.casefold()) if not unicodedata.combining(c)).strip()
     return bool(re.fullmatch(r"(?:ma auzi|ma auziti|alo|se aude)[?!. ,]*", text))
+
+
+def is_report_request(message: str) -> bool:
+    text = "".join(c for c in unicodedata.normalize("NFKD", message.casefold()) if not unicodedata.combining(c))
+    if re.search(r'["„”«»`]|\b(nu|nici|daca|ipotetic|exemplu|citat)\b', text):
+        return False
+    return bool(
+        re.search(r"\b(raport(?:ul)?|pdf|fisa|traseul)\b", text)
+        and re.search(r"\b(trimite|trimiti|trimiteti|vreau|doresc)\b", text)
+    )
 
 
 DEMO_ROLES = {"client": "customer", "dispecer": "dispatcher", "tehnician": "technician"}
@@ -266,7 +285,7 @@ def _demo_profile(config: dict, caller: str, operations) -> tuple[dict[str, Acto
         return None
 
 
-def create_app(*, service=None, bindings=None, config_loader=load_config) -> FastAPI:
+def create_app(*, service=None, bindings=None, config_loader=load_config, report_sender=None) -> FastAPI:
     if service is None:
         # Import operations only after selecting the existing complete isolated runtime data.
         path = runtime_root() / "daybreak.env"
@@ -385,16 +404,52 @@ def create_app(*, service=None, bindings=None, config_loader=load_config) -> Fas
                 )
                 if reply is None:
                     result = None
+                    entry = config.get("demo_callers", {}).get(caller, {}) if selected_role else {}
+
+                    def authorize_demo_actor():
+                        current_config = config_loader()
+                        rebound = bindings.resolve(current_config["phone_number_id"], caller)
+                        if _fingerprint(rebound.model_dump()) != _fingerprint(base_actor.model_dump()):
+                            raise ChannelError("sender_binding_changed", "The verified caller changed.", 403)
+                        current_profile = _demo_profile(current_config, caller, service.operations)
+                        if (
+                            not current_profile
+                            or current_profile[2] != demo_signature
+                            or not current_config["demo_callers"][caller].get("allow_voice_reports")
+                            or current_profile[0][selected_role] != actor
+                        ):
+                            raise ChannelError("demo_expired", "The private report session expired.", 403)
+                        return actor
+
+                    if selected_role and is_report_request(message) and entry.get("allow_voice_reports") is True:
+                        sender = report_sender
+                        if sender is None:
+                            from cyberpunks.channels.voice_reports import send_voice_report
+
+                            sender = send_voice_report
+                        result = await sender(
+                            service.operations,
+                            actor,
+                            caller=caller,
+                            destination=config["phone_number_id"],
+                            event_key=dedupe,
+                            authorize_actor=authorize_demo_actor,
+                        )
                     if selected_role:
                         from cyberpunks.channels.voice_briefs import answer_demo
 
-                        result = answer_demo(
-                            service.operations,
-                            actor,
-                            message,
-                            event_key=dedupe,
-                            connection_id=connection_id,
-                        )
+                        if result is None:
+                            action_options = (
+                                {"execute_incident": True} if entry.get("allow_incident_actions") is True else {}
+                            )
+                            result = answer_demo(
+                                service.operations,
+                                actor,
+                                message,
+                                event_key=dedupe,
+                                connection_id=connection_id,
+                                **action_options,
+                            )
                     if result is None:
                         result = await service.chat(
                             actor,
