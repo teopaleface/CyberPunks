@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import getpass
 import json
 import os
 import secrets
@@ -42,7 +43,7 @@ def environment() -> dict[str, str]:
     return values
 
 
-def prepare(*, new_run: bool = False) -> None:
+def prepare(*, new_run: bool = False, named_accounts: bool = False) -> None:
     RUNTIME.mkdir(parents=True, exist_ok=True, mode=0o700)
     RUNTIME.chmod(0o700)
     values = read_private_env()
@@ -66,7 +67,7 @@ def prepare(*, new_run: bool = False) -> None:
         for name in ("work_items", "series", "plans"):
             source = ROOT / "outputs" / name
             if not source.is_dir():
-                raise SystemExit(f"Missing complete local source: {source}. Run the standard models first.")
+                raise SystemExit(f"Missing complete local source: {source}. Run `uv run cyberpunks run --scenario demo-vara` first.")
             shutil.copytree(source, target / name)
             manifest[name] = sum(p.is_file() for p in (target / name).rglob("*"))
         (run_root / "source.json").write_text(json.dumps({
@@ -78,6 +79,18 @@ def prepare(*, new_run: bool = False) -> None:
         }, indent=2) + "\n")
         values["DAYBREAK_OPERATIONS_OUTPUTS"] = str(target)
         values["DAYBREAK_OPERATIONS_DB"] = str(run_root / "operations.sqlite3")
+    if named_accounts:
+        emails = {"CUSTOMER": "client@daybreak.ro", "TECHNICIAN": "tehnician@daybreak.ro", "DISPATCHER": "dispecer@daybreak.ro"}
+        if any(values.get(f"DAYBREAK_DEMO_{role}_EMAIL", email) != email for role, email in emails.items()):
+            raise SystemExit("Existing account identities are preserved. Use the existing private credentials for this runtime.")
+        if any(not values.get(f"DAYBREAK_DEMO_{role}_PASSWORD") for role in emails):
+            password = getpass.getpass("Local synthetic demo password (at least 4 characters; never sent to GitHub): ")
+            if len(password) < 4 or any(c in password for c in "\r\n"):
+                raise SystemExit("Use at least four characters without line breaks.")
+            for role in emails:
+                values.setdefault(f"DAYBREAK_DEMO_{role}_PASSWORD", password)
+        for role, email in emails.items():
+            values.setdefault(f"DAYBREAK_DEMO_{role}_EMAIL", email)
     values.setdefault("DAYBREAK_INTERNAL_TOKEN", secrets.token_urlsafe(48))
     for role in ("CUSTOMER", "TECHNICIAN", "DISPATCHER"):
         values.setdefault(f"DAYBREAK_DEMO_{role}_PASSWORD", secrets.token_urlsafe(24))
@@ -134,6 +147,8 @@ def start() -> None:
         prepare()
     check_ports((8720, 3870))
     env = environment()
+    # A clean clone has no generated public/landing directory. Build it before serving auth pages.
+    subprocess.run(["bun", "run", "landing"], cwd=ROOT / "web", env=env, check=True)
     specs = [
         (["uv", "run", "uvicorn", "cyberpunks.runtime:create_app", "--factory", "--host", "127.0.0.1", "--port", "8720"], ROOT),
         (["bun", "x", "next", "dev", "--hostname", "127.0.0.1", "--port", "3870"], ROOT / "web"),
@@ -153,7 +168,7 @@ def start() -> None:
     try:
         for command, cwd in specs:
             children.append(subprocess.Popen(command, cwd=cwd, env=env, start_new_session=True))
-        print("Daybreak workspace: http://127.0.0.1:3870/workspace", flush=True)
+        print("Daybreak app with local accounts: http://127.0.0.1:3870/app", flush=True)
         print("Existing servers on 3710 and 8710 are unchanged.", flush=True)
         while all(child.poll() is None for child in children):
             time.sleep(0.5)
@@ -178,6 +193,7 @@ def main() -> None:
     sub = parser.add_subparsers(dest="command", required=True)
     prep = sub.add_parser("prepare", help="Create an isolated full-data runtime and private credentials")
     prep.add_argument("--new-run", action="store_true", help="Create another run without removing previous data")
+    prep.add_argument("--named-accounts", action="store_true", help="Prepare the three named synthetic accounts; prompt privately for their local password")
     prediction = sub.add_parser("infer", help="Run the actual local ML models in the isolated data directory")
     prediction.add_argument("--scenario", default="demo-vara", choices=["demo-vara", "maine"])
     sub.add_parser("start", help="Start private API 8720 and web 3870; Ctrl-C stops only these children")
@@ -185,7 +201,7 @@ def main() -> None:
     sub.add_parser("check", help="Check configuration and output presence without printing credentials")
     args = parser.parse_args()
     if args.command == "prepare":
-        prepare(new_run=args.new_run)
+        prepare(new_run=args.new_run, named_accounts=args.named_accounts)
     elif args.command == "infer":
         infer(args.scenario)
     elif args.command == "start":

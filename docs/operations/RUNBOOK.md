@@ -2,6 +2,32 @@
 
 Implementarea locală acoperă clientul, tehnicianul și dispecerul din planul conversațional. Catalogul complet are 80 de cazuri și situații; extensiile P1/P2 din plan nu sunt toate implementate. Interfața este în engleză, iar conversația răspunde în română sau engleză.
 
+## Pornire pe alt laptop, din `main`
+
+`git pull` transferă sursa și instantaneul complet `outputs/demo`, nu conturile locale, sesiunile, baza SQLite sau fișierele private. Nu copiați parole ori tokenuri în Git.
+
+```sh
+git switch main
+git pull --ff-only origin main
+uv sync
+(cd web && bun install)
+uv run cyberpunks run --scenario demo-vara
+python3 scripts/daybreak_runtime.py prepare --named-accounts
+python3 scripts/daybreak_runtime.py start
+```
+
+`prepare` cere parola demonstrativă în terminal, fără afișare, pentru `client@daybreak.ro`, `tehnician@daybreak.ro` și `dispecer@daybreak.ro`. Fiecare laptop își păstrează configurația privată; aceeași parolă pe două laptopuri se introduce separat pe fiecare. Un runtime existent este păstrat, nu resetat. Comanda `cyberpunks run` generează intrările complete și planul. Folosește modelele publicate în repo și construiește local componentele bilanțului care lipsesc; prima pornire poate dura câteva minute. `prepare` copiază apoi rularea completă într-un director izolat; nu folosește graficele parțiale din instantaneul landingului. Datele demonstrative sunt istorice și includ intrări sintetice etichetate.
+
+După pornire, într-un al doilea terminal din rădăcina proiectului:
+
+```sh
+python3 scripts/daybreak_runtime.py accounts
+```
+
+Deschideți **http://127.0.0.1:3870/app**. Acesta este runtime-ul cu conturi și baza operațională; API-ul este pe 8720. `3736` a fost o copie temporară pentru verificarea designului, iar `3730` aparține landingului vechi. Nu folosiți aceste porturi pentru verificarea conturilor. Pe desktop, landingul trece între secțiuni cu câte un gest; pe ecran tactil sau cu mișcarea redusă activată păstrează derularea accesibilă.
+
+Dacă parola ori apartenența unui cont local existent diferă, provisionarea refuză suprascrierea. Nu folosiți `--new-run` pentru a remedia automat o demonstrație activă. Codex, ElevenLabs și WhatsApp cer configurarea privată separată descrisă mai jos; clonarea repo-ului nu transferă autentificările lor.
+
 ## Pornire
 
 ```sh
