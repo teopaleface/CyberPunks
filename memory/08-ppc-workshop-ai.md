@@ -24,19 +24,7 @@ Din prezentarea `PPC_AI_awareness.pptx` (33 de slideuri), primită la SmartHack 
 
 ## Portofoliul AI al PPC România (9 proiecte)
 
-PROD = în producție, DEV = în dezvoltare.
-
-| # | Proiect | Stare | Ce face | La ce folosește |
-|---|---|---|---|---|
-| 01 | Smart Sentry | PROD | ML pentru predicția defectelor, analiza tendințelor, detectarea anomaliilor (uzura cutiei de viteze la turbine, degradarea panourilor solare) | Mentenanță proactivă, semnalarea automată a comportamentului neașteptat |
-| 02 | Energy Anomaly Detection | PROD | Găsește tipare de consum neregulate sau suspecte, din istoric și abateri de comportament | Estimează energia recuperabilă și consumul fraudulos, raportare |
-| 03 | LegalRoute | PROD | OCR plus LLM extrag și clasifică informații din documente scanate (juridice) | Trimite documentul direct la persoana potrivită din firmă, fără citire și redirecționare manuală |
-| 04 | Inverter Smart Extractor | PROD | Extrage automat date din PDF-uri nestructurate în tabele standard | Mai puțină muncă manuală, date gata de analiză |
-| 05 | Short Term Energy Demand Forecast | PROD | Prognoza consumului la 15 minute pentru ziua următoare, din istoric și tot mai multe variabile | Mai puțin risc de a cumpăra prea mult sau prea puțin, decizii de trading mai bune, costuri mai mici |
-| 06 | AI Claims Agent | DEV | Agent vocal care sună clienții cu facturi restante, le amintește să plătească, află de ce nu plătesc și, după regulile interne, propune eșalonări | Mai puțină muncă manuală, recuperare mai rapidă, tratament consecvent |
-| 07 | ReClassAI | PROD | NLP care reclasifică reclamațiile de pe site-ul Rețele Electrice când clientul a ales categoria greșită | Mai puține verificări manuale, răspuns mai rapid la reparațiile critice, respectarea termenelor (SLA) |
-| 08 | Short Term Energy Production Forecast | DEV | Prognoza producției parcurilor eoliene, la nivel de parc, la 15 minute pentru ziua următoare | Mai puține costuri de dezechilibru, trading mai bun |
-| 09 | AgentHub | DEV | Platformă centrală pentru toți agenții AI din PPC, cu chatbot intern pe documentele departamentelor | Un singur loc unde fiecare angajat lucrează cu agenți, cu fiecare interacțiune urmărită și stocată sigur |
+Tabelul cu proiectele a fost scos din repo înainte de publicare, pentru că venea din slideuri marcate "Internal". Originalul e în `materiale/` (local).
 
 Ce înseamnă pentru noi: dacă facem ceva ce au deja în producție (prognoza consumului, frauda, reclasificarea reclamațiilor), juriul ne compară cu soluția lor. Mai bine luăm ce au spus că urmează (contoare defecte) sau un pas pe care ei nu-l acoperă (decizia și acțiunea de după model).
 
