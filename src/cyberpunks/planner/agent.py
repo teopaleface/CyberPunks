@@ -28,7 +28,7 @@ from typing import Any, Literal
 from pydantic import ValidationError
 
 from cyberpunks.common.contracts import Alert, AuditRecord, BilantFusion, Plan, Source, WorkItem
-from cyberpunks.common.paths import CONTRACTS, OUTPUTS
+from cyberpunks.common.paths import CONTRACTS, MODELS, OUTPUTS
 from cyberpunks.planner import planner_version
 from cyberpunks.planner.actions import build_plan, finalize, quarantine_rows, write_json, write_jsonl
 from cyberpunks.planner.decide import Context, Override, decide
@@ -85,11 +85,38 @@ def _fixture_date() -> Date | None:
     return infer_plan_date(list(FIXTURES.values()))
 
 
-def _fresh_output(path: Path, plan_date: Date | None, max_age_hours: float) -> bool:
-    """O ieșire existentă e refolosibilă dacă e pentru aceeași zi și nu e mai veche de `max_age_hours`."""
+def _newest_code_mtime(module: str | None) -> float:
+    """Cea mai nouă modificare din codul unui model (pachetul lui) și din artefactele lui (models/<pachet fără prefix>/)."""
+    if not module:
+        return 0.0
+    try:
+        spec = importlib.util.find_spec(module)
+    except (ImportError, ValueError):
+        return 0.0
+    if spec is None or not spec.origin:
+        return 0.0
+    package = Path(spec.origin).parent
+    folders = [package]
+    short = package.name.split("_", 1)[-1]  # a_bilant -> bilant
+    folders += [MODELS / short, MODELS / "release" / short]
+    newest = 0.0
+    for folder in folders:
+        if folder.is_dir():
+            for f in folder.rglob("*"):
+                if f.is_file() and f.suffix not in (".pyc",):
+                    newest = max(newest, f.stat().st_mtime)
+    return newest
+
+
+def _fresh_output(path: Path, plan_date: Date | None, max_age_hours: float, module: str | None = None) -> bool:
+    """O ieșire existentă e refolosibilă dacă e pentru aceeași zi, nu e mai veche de `max_age_hours` și nici codul
+    sau modelul care a produs-o nu s-au schimbat după ea (altfel planul ar folosi ieșirea unui model vechi)."""
     if plan_date is None or not path.exists():
         return False
-    if time.time() - path.stat().st_mtime > max_age_hours * 3600:
+    mtime = path.stat().st_mtime
+    if time.time() - mtime > max_age_hours * 3600:
+        return False
+    if _newest_code_mtime(module) > mtime:
         return False
     return infer_plan_date([path]) == plan_date
 
@@ -107,7 +134,7 @@ def estimate(scenario: str, plan_date: Date | None, mode: Mode, out_root: Path, 
         t0 = time.perf_counter()
         note = ""
         historical = sc_fixed_date and plan_date is not None  # zi istorică: aceleași intrări, ieșirea nu se învechește
-        if mode == "auto" and src in slow and _fresh_output(existing, plan_date, float("inf") if historical else max_age):
+        if mode == "auto" and src in slow and _fresh_output(existing, plan_date, float("inf") if historical else max_age, module):
             # Model lent (de exemplu bilanțul, ~4 minute): ieșirea lui pentru aceeași zi, din ultimele ore, se refolosește.
             ran_at = datetime.fromtimestamp(existing.stat().st_mtime, TZ).strftime("%H:%M")
             picks[src] = SourcePick(existing, "model", f"ieșirea modelului {src} pentru aceeași zi, rulată la {ran_at} (model lent, refolosit)",
