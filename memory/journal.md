@@ -126,3 +126,7 @@ Utilizatorul a aprobat revenirea. V2 a fost reconstruit din parametrii salvați 
 ### 2026-11-08 05:11 București — probă video pentru traseul unui tichet
 
 Scenariu HyperFrames de 36 s pentru demonstrație: clientul raportează un stâlp căzut în Banat, dispecerul primește tichetul #DB-010 într-o coadă cu nouă tichete, verifică riscul estimat și confirmă repartizarea, iar tehnicianul primește lucrarea. Am folosit interfețe simplificate în română, date sintetice marcate și un clip fără sunet pentru prezentare live. Sursa editabilă și exportul 1080p/30 fps sunt în copia locală `materiale/daybreak-flux/`. Verificările HyperFrames de rulare, layout, mișcare și contrast au trecut. Compoziția este separată de aplicația Daybreak.
+
+### 2026-11-08 05:27 București — animație cu ecranele Daybreak reale
+
+Am actualizat proba de 36 s la cererea utilizatorului. Portul 3710 servea o versiune mai veche, cu Plan pe ecranul principal. Capturile pentru film au fost făcute pe 3713 într-o copie izolată a versiunii locale actuale: Assistant și My cases pentru client, Service cases și aprobarea în Assistant pentru dispecer, Assigned work și Work details pentru tehnician. Conturile, cele zece tichete, evaluarea de risc și repartizarea sunt sintetice; răspunsurile și confirmările au fost simulate în browser. Notificarea de tichet nou, cursorul și marcajele sunt adăugate în HyperFrames. Aplicația activă pe 3710 nu a fost modificată. Verificat exportul H.264 1080p/30 fps, 36 s, în `materiale/daybreak-flux/daybreak-flux.mp4`.
