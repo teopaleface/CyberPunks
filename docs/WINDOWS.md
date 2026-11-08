@@ -38,16 +38,12 @@ Vocea, apelurile și WhatsApp cer propriile acreditări și configurări externe
 
 ## Verificare și limite
 
+Într-o clonă curată, testele operaționale folosesc intrările complete incluse în repo:
+
 ```powershell
+$env:DAYBREAK_OPERATIONS_TEST_DATA = "data/local-runtime"
 uv run pytest tests/test_local_platform.py tests/operations tests/runtime tests/channels/test_provider.py
 bun run --cwd web build
 ```
 
-Într-o clonă curată, testele operaționale folosesc instantaneul complet:
-
-```powershell
-$env:DAYBREAK_OPERATIONS_TEST_DATA = "outputs/demo"
-uv run pytest tests/test_local_platform.py tests/operations tests/runtime tests/channels/test_provider.py
-```
-
-Fluxul GitHub Actions `Local Windows and Linux` verifică dependențele blocate, blocarea concurentă a fișierelor, oprirea proceselor proprii, operațiile, pregătirea datelor și build-ul web pe ambele sisteme. Adăugarea fluxului nu dovedește o execuție Windows reușită; rezultatul lui trebuie verificat. Verificările locale pe macOS nu confirmă microfonul, apelurile, Codex autentificat sau afișarea pe PC-ul colegului.
+Fluxul GitHub Actions `Local Windows and Linux` verifică dependențele blocate, blocarea concurentă a fișierelor, oprirea proceselor proprii, operațiile, pregătirea datelor build-ul web, pornirea efectivă a API-ului și a paginii de autentificare și crearea conturilor sintetice pe ambele sisteme. Pe 8 noiembrie 2026, toate etapele funcționale Windows au trecut: instalare, build, pregătire, pornire HTTP, conturi și 107 teste. Șase teste ale configurării WhatsApp au fost omise explicit, fiind pentru permisiuni Unix. Pe Linux au trecut toate cele 113 teste. [Dovada Windows](https://github.com/teopaleface/CyberPunks/actions/runs/42439361553/job/128605062645) arată etapele reușite; rularea generală apare anulată deoarece agentul a cerut oprirea în timpul curățării de după teste, când rezultatul nu se actualizase încă. Verificările locale pe macOS nu confirmă microfonul, apelurile, Codex autentificat sau afișarea pe PC-ul colegului.
