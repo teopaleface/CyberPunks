@@ -11,29 +11,55 @@ inspect_run, ProbeError = probe["inspect_run"], probe["ProbeError"]
 QUESTION = "Care este următoarea mea oprire și de ce?"
 
 
-@pytest.mark.parametrize("answer", [
-    "Verific informațiile.",
-    'daybreak_call_turn{"message":"Care este următoarea mea oprire și de ce?"} Următoarea oprire este în Sectorul 6.',
-])
+@pytest.mark.parametrize(
+    "answer",
+    [
+        "Verific informațiile.",
+        'daybreak_call_turn{"message":"Care este următoarea mea oprire și de ce?"} Următoarea oprire este în Sectorul 6.',
+    ],
+)
 def test_provider_pass_does_not_replace_real_tool_execution(answer):
     with pytest.raises(ProbeError, match="actual tool"):
-        inspect_run({"status": "passed", "agent_responses": [
-            {"role": "user", "message": QUESTION}, {"role": "agent", "message": answer},
-        ]}, QUESTION)
+        inspect_run(
+            {
+                "status": "passed",
+                "agent_responses": [
+                    {"role": "user", "message": QUESTION},
+                    {"role": "agent", "message": answer},
+                ],
+            },
+            QUESTION,
+        )
 
 
 @pytest.mark.parametrize("executed", [False, True])
 def test_probe_distinguishes_testing_placeholder_from_real_reply(executed):
     turns = [
         {"role": "user", "message": QUESTION},
-        {"role": "agent", "tool_calls": [{
-            "request_id": "synthetic-call", "tool_name": "daybreak_call_turn",
-            "tool_has_been_called": executed, "params_as_json": json.dumps({"message": QUESTION}),
-        }]},
-        {"role": "agent", "tool_results": [{
-            "request_id": "synthetic-call", "tool_has_been_called": executed, "is_error": False,
-            "result_value": json.dumps({"reply": "Oprirea este în Sectorul 6."}) if executed else '{"reason":"Skipping tool call in test mode"}',
-        }]},
+        {
+            "role": "agent",
+            "tool_calls": [
+                {
+                    "request_id": "synthetic-call",
+                    "tool_name": "daybreak_call_turn",
+                    "tool_has_been_called": executed,
+                    "params_as_json": json.dumps({"message": QUESTION}),
+                }
+            ],
+        },
+        {
+            "role": "agent",
+            "tool_results": [
+                {
+                    "request_id": "synthetic-call",
+                    "tool_has_been_called": executed,
+                    "is_error": False,
+                    "result_value": json.dumps({"reply": "Oprirea este în Sectorul 6."})
+                    if executed
+                    else '{"reason":"Skipping tool call in test mode"}',
+                }
+            ],
+        },
         {"role": "agent", "message": "Oprirea este în Sectorul șase."},
     ]
     if executed:
@@ -41,3 +67,12 @@ def test_probe_distinguishes_testing_placeholder_from_real_reply(executed):
     else:
         with pytest.raises(ProbeError, match="HTTP tool"):
             inspect_run({"agent_responses": turns}, QUESTION)
+
+
+def test_silence_cannot_pass_when_the_agent_says_its_old_preamble():
+    inspect_silence = probe["inspect_silence"]
+    quiet = {"agent_responses": [{"role": "user", "message": "..."}]}
+    assert inspect_silence(quiet, "...")["silent"] is True
+    quiet["agent_responses"].append({"role": "agent", "message": "Verific informațiile."})
+    with pytest.raises(ProbeError, match="spoke while"):
+        inspect_silence(quiet, "...")

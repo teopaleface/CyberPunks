@@ -44,6 +44,8 @@ def _reported_incident(text):
         return None
     if re.search(r"\b(mi[ -]a picat curentul|a cazut curentul|s[ -]a intrerupt curentul|am ramas fara curent)\b", text):
         return "outage"
+    if re.search(r"\b(raportez|semnalez)\b", text) and re.search(r"\b(incident(?:ul)?|curent(?:ul)?)\b", text):
+        return "ambiguous"
     return None
 
 
@@ -138,6 +140,8 @@ def answer_demo(
         incident = _reported_incident(text)
         if incident is None:
             return None
+        if incident == "ambiguous":
+            return answer("Te referi la un stâlp căzut sau la o întrerupere de curent?", clarification_required=True)
         connections = [c for c in context.get("connections", []) if c.get("connection_id") == connection_id]
         if not connection_id or len(connections) != 1 or connection_id not in actor.connection_ids:
             question = "Pentru ce loc de consum asociat contului raportezi incidentul?"
