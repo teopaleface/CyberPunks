@@ -130,3 +130,7 @@ Scenariu HyperFrames de 36 s pentru demonstrație: clientul raportează un stâl
 ### 2026-11-08 05:27 București — animație cu ecranele Daybreak reale
 
 Am actualizat proba de 36 s la cererea utilizatorului. Portul 3710 servea o versiune mai veche, cu Plan pe ecranul principal. Capturile pentru film au fost făcute pe 3713 într-o copie izolată a versiunii locale actuale: Assistant și My cases pentru client, Service cases și aprobarea în Assistant pentru dispecer, Assigned work și Work details pentru tehnician. Conturile, cele zece tichete, evaluarea de risc și repartizarea sunt sintetice; răspunsurile și confirmările au fost simulate în browser. Notificarea de tichet nou, cursorul și marcajele sunt adăugate în HyperFrames. Aplicația activă pe 3710 nu a fost modificată. Verificat exportul H.264 1080p/30 fps, 36 s, în `materiale/daybreak-flux/daybreak-flux.mp4`.
+
+### 2026-11-08 05:44 București — videoclipul Daybreak pe main
+
+La cererea utilizatorului, am urcat exportul Daybreak de 36 s în `presentation/daybreak-flux.mp4` pe `origin/main`, commit `cfc097a`. Commitul publicat conține doar videoclipul.
