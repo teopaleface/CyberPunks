@@ -174,3 +174,16 @@ La cererea lui Eden, integrată ramura `origin/Teo` la `7e30868` în ramura loca
 ### 2026-11-08 05:53 București — LangSmith pe Eden
 
 La cererea lui Eden, conversațiile care ajung la serviciul comun sunt instrumentate pentru LangSmith, cu activare din mediul privat și fără chei în Git. Trasarea conține întrebarea, rolul, canalul aproximativ și răspunsul; nu include ca metadate istoricul, identitatea sau contextul operațional complet. Proba folosește date sintetice și SDK simulat la transport, fără cont sau trimitere reală către LangSmith. Replicile ElevenLabs fără apel la serviciul Daybreak și livrarea în timpul întreruperilor rămân în afara garanției. Configurare și limite: `docs/operations/RUNBOOK.md`. Fără pornirea serviciilor sau deploy.
+
+### 2026-11-08 06:35 București — benchmark CatBoost/XGBoost față de LightGBM (Eden)
+
+La cererea lui Eden, am comparat CatBoost cu LightGBM la bilanț (testul v2 și FeederBW) și la contoare (SGCC, LCL de bază și LCL extins), apoi XGBoost cu LightGBM la furtuni (2025, state nevăzute și convecție, separat). Am folosit aceleași date, trăsături, teste, reguli după model și calibrare, cu buget de căutare comparabil și bootstrap 90% pe grupuri. Referințele LightGBM au fost refăcute exact.
+
+Decizii:
+- 05:58 — Lucrul se face pe ramura `Eden`, nu pe `Teo` cum spunea textul inițial: Eden a cerut explicit „totul pe branch-ul meu, Eden”.
+- 06:00 — CatBoost și XGBoost intră într-un grup separat de dependențe (`bench`), ca mediul implicit și demo-ul să nu se schimbe.
+- 06:05 — Contoare: nicio căutare pentru niciun model; LightGBM păstrează setările livrate, iar CatBoost primește setări echivalente, fixate înainte de test. Furtuni: XGBoost primește o grilă de 24 de configurații, ca LightGBM.
+- 06:10 — Predicțiile SGCC rămân locale, din cauza licenței; celelalte predicții intră în Git.
+- 06:35 — **LightGBM rămâne pe toate cele trei probleme.** CatBoost și XGBoost sunt la egalitate statistică sau pierd (LCL extins, furtuni 2025). Nu se schimbă nimic în `models/release/` sau în demo. Convecția la B rămâne recomandată, independent de algoritm.
+
+Detalii: `memory/20-benchmark-lightgbm-eden.md`, `reports/benchmark/RAPORT.md`.

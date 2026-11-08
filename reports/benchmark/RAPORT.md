@@ -1,6 +1,6 @@
 # Putem bate LightGBM? Benchmark pe bilanț, contoare și furtuni
 
-Ramura `Eden`, 8 noiembrie 2026, 06:00–06:45, ora Bucureștiului. Cerut de Eden. Este un **experiment**: modelele
+Ramura `Eden`, 8 noiembrie 2026, 05:59–06:35, ora Bucureștiului. Cerut de Eden. Este un **experiment**: modelele
 active din `models/release/` și comportamentul demo-ului nu s-au schimbat (sumele SHA256 din `release.json` au fost
 verificate după rulare). Modelul de tensiune la prosumatori (C) nu face parte din benchmark.
 
