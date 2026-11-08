@@ -1,7 +1,7 @@
 # Status: Teo-A-contoare
-Actualizat: 2026-11-07 18:01
+Actualizat: 2026-11-08 08:36
 Milestone curent: M4 gata; reproducerea cap-coadă gata (docs/REPRODUCERE.md). LIBER
-Gata de merge: da (commit feacd0f)
+Gata de merge: da (commit 4c8ef25); make check nu e verde: 6 teste din tests/operations pică, vezi Cereri
 
 ## Făcut
 - 13:30 M0: `docs/research/A.md`, date descărcate cu sume de control (SGCC, 45 de fișiere Low Carbon London).
@@ -40,6 +40,9 @@ Gata de merge: da (commit feacd0f)
   2. Adnotarea de pe grafic: „consumul scade sub normal” cade acum pe prima zi a căderii, prin fereastră înainte, nu înapoi. Pentru `A-20250708-MTR-005889`, 11.06 (înainte 08.06). Are test.
   3. Riscul de siguranță: vezi mai jos, la „Cereri către orchestrator”.
 
+- 08:36 **Textul de abținere (cererea de la 08:30): nu mai era nimic de reparat, n-am schimbat cod.** Formularea „pragul pentru normal (0.30) și cel pentru problemă (0.12)” a dispărut pe 7 nov., în commit-ul f77f935. Acum `predict.py:330` scrie „sub 11% contorul ar fi sigur normal, peste 33% sigur o problemă”. Verificat: formularea veche nu mai e în cod, nici în lucrările din checkout-ul principal de la 08:26, iar în toate cele 80 de cazuri din zona gri (`demo-vara` și `maine`) pragul mic e cel pentru „sigur normal”, cu scorul între praguri. Cifrele vechi nu erau greșite (un contor mai poate fi normal până la 0,30 și poate fi problemă de la 0,12), dar se citeau invers.
+- 08:36 `git merge Teo` a fost fast-forward: codul e identic cu `Teo` (4c8ef25). `make check`: ruff curat; cu `DAYBREAK_OPERATIONS_TEST_DATA=/Users/teo/Projects/CyberPunks/outputs`, 564 de teste trec și 6 pică, niciunul în `tests/a`. Fără variabilă: 386 trec și 184 de erori, pentru că acele teste cer o rulare completă pe care worktree-ul meu nu o are.
+
 ## Urmează
 - **Sunt liber** (M0-M4 gata). Pot ajuta la B sau la alt fir; scrieți-mi direct în thread.
 - La cerere: reparații pe A dacă planificatorul sau interfața au nevoie de ceva în lucrări sau în serii.
@@ -52,6 +55,8 @@ Gata de merge: da (commit feacd0f)
 - Niciunul.
 
 ## Cereri către orchestrator
+- **Nota din `status/Teo-planificator.md:131` (textul de abținere) poate fi închisă:** textul e reparat din 7 nov. (commit f77f935).
+- **`make check` nu e verde, pentru firul care deține `tests/operations`:** 6 teste din `test_operations.py` pică pe rularea din checkout-ul principal de la 08:26: `test_model_absence_or_mismatch_never_creates_a_probability` (4 variante), `test_voltage_assessment_matches_authorized_post_and_model`, `test_same_post_does_not_conflate_voltage_case_with_meter_verdict`. Cauza: `demo_binding` alege contorul `A-20250708-MTR-001630` de pe `PT-1033`, iar `PT-1033` nu are lucrare C; testele presupun că postul legăturii are una (rândurile 331, 350, 390). Testele depind deci de postul ales la rulare. Soluție posibilă: testele să aleagă un post cu lucrare C. Am reprodus cu același cod (4c8ef25) și aceleași intrări, dar nu am rulat în checkout-ul principal. Raportul vostru de 570 de teste trecute venea probabil dintr-o rulare anterioară (neverificat). Nu am atins aceste teste.
 - **Pentru planificator (riscul de siguranță, QA 17:55):** în instantaneul demo erau 194 de lucrări cu `safety_flag`, toate cu sursa A. 175 veneau de la modelul A (`a-lgbm`), cu regula veche: orice furt cu scor de cel puțin 0,5. Din ele, 84 erau manipulări de date (profil aplatizat sau inversat), fără risc de incendiu, și doar 2 ocoliri reale. Celelalte 19 vin de la bilanț (`bilant-diagnoza-lgbm`), după regula firului bilanț. **Regula nouă la A:** `safety_flag` doar la ocolirea fizică, cu risc de incendiu, la un furt cu scor de cel puțin 0,8: în medie cel puțin 3 ore pe zi de zero exact la aceleași ore (punte sau comutator improvizat), sau ocolire parțială sigură (nivel scăzut brusc, forma zilei păstrată). Rezultat: **40 pe 8 iulie** (38 ocoliri cu comutator, 2 parțiale) și 26 pe `maine`, toate furturi reale. Tiparul e în `extra.tamper_pattern` și `extra.tamper_pattern_ro`; urgența la siguranță e 48 de ore. După merge, rulați din nou `cyberpunks run`, ca instantaneul să ia lucrările noi.
 - **Din reproducerea cap-coadă** (detalii în `docs/REPRODUCERE.md`, secțiunea „Probleme găsite”):
   1. **Firul C:** 9 teste cer internet (`tests/c/test_connection.py` ×5, `test_decisions.py` ×1, `test_remedies.py` ×3). Fără `data/raw/C`, `weather.archive()` descarcă vremea de la Open-Meteo, deci `make check` pică într-o clonă curată fără internet, iar cu internet consumă cotă. Soluție: o mostră mică de vreme în `data/samples/C/`, sau testele sărite când lipsesc datele.
