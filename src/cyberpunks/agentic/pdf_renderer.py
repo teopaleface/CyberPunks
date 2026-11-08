@@ -56,7 +56,7 @@ def _fold(pages: list[str]) -> str:
     return (
         '<!doctype html><html lang="ro"><head>'
         + head.group(1)
-        + f"<title>{TITLE}</title>"
+        + ("<title>Daybreak · Fișa de traseu</title>" if "DAYBREAK / FIȘĂ DE TEREN" in pages[0] else f"<title>{TITLE}</title>")
         + _PRINT_CSS
         + "</head><body>"
         + "".join(sections)
@@ -91,7 +91,8 @@ def render_pdf(html_pages) -> dict:
                 print_background=True,
                 display_header_footer=True,
                 header_template=_NO_HEADER,
-                footer_template=_FOOTER,
+                footer_template=_FOOTER.replace(CONFIRMATION, "Planificarea nu confirmă efectuarea lucrărilor.")
+                if "DAYBREAK / FIȘĂ DE TEREN" in document else _FOOTER,
             )
         finally:
             browser.close()
