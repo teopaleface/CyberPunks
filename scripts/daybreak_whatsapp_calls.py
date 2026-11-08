@@ -10,6 +10,7 @@ import secrets
 import socket
 import sqlite3
 import ssl
+from datetime import UTC, datetime, timedelta
 from urllib.parse import urlparse
 
 import httpx
@@ -19,9 +20,86 @@ from cyberpunks.channels.elevenlabs import ElevenLabs, get_config, runtime_root
 from cyberpunks.channels.models import ChannelError
 from cyberpunks.channels.whatsapp import Bindings
 from cyberpunks.channels.whatsapp_calls import call_agent_config, load_config, save_config, verify_public_tool
+from cyberpunks.operations.models import Actor
 
 NUMBER = "+15551545755"
 LABEL = "Daybreak WhatsApp incoming demo"
+
+
+def enable_demo_roles(base: str = "http://127.0.0.1:3870", *, hours: int = 3) -> None:
+    """Explicit operator action: authorize existing synthetic accounts for the one verified caller."""
+    from daybreak_runtime import read_private_env
+
+    url = urlparse(base)
+    if (
+        url.scheme != "http"
+        or url.hostname not in {"127.0.0.1", "localhost", "::1"}
+        or url.username
+        or url.password
+        or url.path.rstrip("/")
+        or url.query
+        or url.fragment
+        or not 1 <= hours <= 6
+    ):
+        raise ChannelError(
+            "demo_origin_invalid", "Use the local authenticated workspace and a demo window of 1–6 hours."
+        )
+    config = load_config()
+    callers = config.get("allowed_callers", [])
+    if len(callers) != 1:
+        raise ChannelError("calling_sender_ambiguous", "Exactly one verified private caller is required.")
+    caller = callers[0]
+    Bindings(runtime_root() / "whatsapp-bindings.json").resolve(config["phone_number_id"], caller)
+    credentials = read_private_env()
+    actors, connection_id = {}, None
+    with httpx.Client(
+        base_url=base.rstrip("/"), headers={"origin": base.rstrip("/")}, timeout=30, follow_redirects=False
+    ) as client:
+        for role in ("customer", "dispatcher", "technician"):
+            response = client.post(
+                "/api/cont/intrare",
+                json={
+                    "email": credentials[f"DAYBREAK_DEMO_{role.upper()}_EMAIL"],
+                    "password": credentials[f"DAYBREAK_DEMO_{role.upper()}_PASSWORD"],
+                },
+            )
+            if response.status_code != 200:
+                raise ChannelError("demo_account_unavailable", "An existing local demo account could not be verified.")
+            response = client.get("/api/operations/context?scenario=demo-vara")
+            if response.status_code != 200:
+                raise ChannelError("demo_context_unavailable", "The complete local demo context is unavailable.")
+            context = response.json()
+            actor = Actor.model_validate(context["actor"])
+            if actor.role != role or actor.organization_id != "daybreak-demo" or context["scenario"] != "demo-vara":
+                raise ChannelError("demo_scope_invalid", "The verified account has an unexpected scope.")
+            actors[role] = actor.model_dump(mode="json")
+            if role == "customer":
+                connection_id = next(
+                    (c["connection_id"] for c in context["connections"] if c["connection_id"] in actor.connection_ids),
+                    None,
+                )
+    if not connection_id:
+        raise ChannelError("demo_connection_missing", "The customer needs an existing authorized demo connection.")
+    config["demo_callers"] = {
+        caller: {
+            "expires_at": (datetime.now(UTC) + timedelta(hours=hours)).isoformat(),
+            "actors": actors,
+            "customer_connection_id": connection_id,
+        }
+    }
+    save_config(config)
+    # Re-read the private file. Do not print phone numbers, account IDs or configuration.
+    assert load_config()["demo_callers"] == config["demo_callers"]
+    print("Three existing synthetic roles enabled for the one verified caller, for a bounded demo window.")
+
+
+def desired_agent(config: dict) -> dict:
+    return call_agent_config(
+        get_config()["voice_id"],
+        config["public_origin"],
+        config["secret_id"],
+        demo_enabled=bool(config.get("demo_callers")),
+    )
 
 
 def prepare() -> None:
@@ -38,7 +116,9 @@ def prepare() -> None:
         if actor.role == "technician" and re.fullmatch(r"[0-9]{5,20}", sender):
             allowed.append(sender)
     if len(allowed) != 1:
-        raise ChannelError("calling_sender_ambiguous", "The private call demo needs the one existing verified technician.")
+        raise ChannelError(
+            "calling_sender_ambiguous", "The private call demo needs the one existing verified technician."
+        )
     config["phone_number_id"] = PHONE_ID
     config["allowed_callers"] = allowed
     config.setdefault("tool_token", secrets.token_urlsafe(48))
@@ -50,7 +130,7 @@ def check_agent(agent: dict, config: dict) -> None:
     c = agent["conversation_config"]
     prompt = c["agent"]["prompt"]
     tools = prompt.get("tools", [])
-    expected = call_agent_config(get_config()["voice_id"], config["public_origin"], config["secret_id"])
+    expected = desired_agent(config)
     tool = expected["conversation_config"]["agent"]["prompt"]["tools"][0]
     if not (
         agent.get("name") == "Daybreak WhatsApp calls"
@@ -59,9 +139,14 @@ def check_agent(agent: dict, config: dict) -> None:
         and c["conversation"]["max_duration_seconds"] == 600
         and c["tts"]["model_id"] == "eleven_v4_turbo"
         and c["vad"]["background_voice_detection"]
-        and not prompt.get("mcp_server_ids") and not prompt.get("knowledge_base")
-        and not prompt.get("native_mcp_server_ids") and not any(prompt.get("built_in_tools", {}).values())
-        and len(tools) == 1 and tools[0]["type"] == "webhook"
+        and c["agent"]["first_message"] == expected["conversation_config"]["agent"]["first_message"]
+        and prompt["prompt"] == expected["conversation_config"]["agent"]["prompt"]["prompt"]
+        and not prompt.get("mcp_server_ids")
+        and not prompt.get("knowledge_base")
+        and not prompt.get("native_mcp_server_ids")
+        and not any(prompt.get("built_in_tools", {}).values())
+        and len(tools) == 1
+        and tools[0]["type"] == "webhook"
         and tools[0]["name"] == tool["name"]
         and tools[0]["api_schema"]["url"] == tool["api_schema"]["url"]
         and tools[0]["api_schema"]["request_headers"] == tool["api_schema"]["request_headers"]
@@ -77,8 +162,11 @@ def check_agent(agent: dict, config: dict) -> None:
 async def configure(origin: str) -> None:
     url = urlparse(origin)
     if not (
-        url.scheme == "https" and url.hostname and url.hostname.endswith(".trycloudflare.com")
-        and url.port in (None, 443) and not any((url.username, url.password, url.path.rstrip("/"), url.query, url.fragment))
+        url.scheme == "https"
+        and url.hostname
+        and url.hostname.endswith(".trycloudflare.com")
+        and url.port in (None, 443)
+        and not any((url.username, url.password, url.path.rstrip("/"), url.query, url.fragment))
     ):
         raise ChannelError("calling_origin_invalid", "Use the HTTPS origin of the dedicated call-tool tunnel.")
     config = load_config()
@@ -93,14 +181,20 @@ async def configure(origin: str) -> None:
             raise ChannelError("calling_creation_unknown", "Inspect the previous call-secret creation before retrying.")
         config["secret_creation_attempted"] = True
         save_config(config)
-        result = await api.request("POST", "/v1/convai/secrets", json={
-            "type": "new", "name": "Daybreak WhatsApp calls authorization", "value": "Bearer " + config["tool_token"],
-        })
+        result = await api.request(
+            "POST",
+            "/v1/convai/secrets",
+            json={
+                "type": "new",
+                "name": "Daybreak WhatsApp calls authorization",
+                "value": "Bearer " + config["tool_token"],
+            },
+        )
         config["secret_id"] = result.get("secret_id") or result.get("id")
         if not config["secret_id"]:
             raise ChannelError("calling_creation_unknown", "The call secret returned no identifier; no retry was made.")
         save_config(config)
-    desired = call_agent_config(get_config()["voice_id"], config["public_origin"], config["secret_id"])
+    desired = desired_agent(config)
     if not config.get("agent_id"):
         if config.get("agent_creation_attempted"):
             raise ChannelError("calling_creation_unknown", "Inspect the previous call-agent creation before retrying.")
@@ -119,9 +213,25 @@ async def configure(origin: str) -> None:
         ids = current["conversation_config"]["agent"]["prompt"].get("tool_ids", [])
         if len(ids) != 1:
             raise ChannelError("calling_agent_mismatch", "The call agent has unexpected tools.")
-        await api.request("PATCH", f"/v1/convai/tools/{ids[0]}", json={
-            "tool_config": desired["conversation_config"]["agent"]["prompt"]["tools"][0],
-        })
+        await api.request(
+            "PATCH",
+            f"/v1/convai/tools/{ids[0]}",
+            json={
+                "tool_config": desired["conversation_config"]["agent"]["prompt"]["tools"][0],
+            },
+        )
+        await api.request(
+            "PATCH",
+            f"/v1/convai/agents/{config['agent_id']}",
+            json={
+                "conversation_config": {
+                    "agent": {
+                        "first_message": desired["conversation_config"]["agent"]["first_message"],
+                        "prompt": {"prompt": desired["conversation_config"]["agent"]["prompt"]["prompt"]},
+                    }
+                },
+            },
+        )
     check_agent(await api.request("GET", f"/v1/convai/agents/{config['agent_id']}"), config)
     if not config.get("elevenlabs_phone_id"):
         phones = await api.request("GET", "/v1/convai/phone-numbers")
@@ -132,27 +242,43 @@ async def configure(origin: str) -> None:
             config["elevenlabs_phone_id"] = existing[0]["phone_number_id"]
         else:
             if config.get("phone_creation_attempted"):
-                raise ChannelError("calling_creation_unknown", "Inspect the previous SIP-number creation before retrying.")
+                raise ChannelError(
+                    "calling_creation_unknown", "Inspect the previous SIP-number creation before retrying."
+                )
             password = config["meta_settings"]["calling"]["sip"]["servers"][0]["sip_user_password"]
             config["phone_creation_attempted"] = True
             save_config(config)
-            result = await api.request("POST", "/v1/convai/phone-numbers", json={
-                "provider": "sip_trunk", "phone_number": NUMBER, "label": LABEL,
-                "agent_id": config["agent_id"], "supports_inbound": True, "supports_outbound": False,
-                "inbound_trunk_config": {
-                    "media_encryption": "required", "allowed_addresses": ["0.0.0.0/0", "::/0"],
-                    "allowed_numbers": ["+" + caller for caller in config["allowed_callers"]],
-                    "credentials": {"username": NUMBER.removeprefix("+"), "password": password},
-                    "remote_domains": ["wa.meta.vc"],
+            result = await api.request(
+                "POST",
+                "/v1/convai/phone-numbers",
+                json={
+                    "provider": "sip_trunk",
+                    "phone_number": NUMBER,
+                    "label": LABEL,
+                    "agent_id": config["agent_id"],
+                    "supports_inbound": True,
+                    "supports_outbound": False,
+                    "inbound_trunk_config": {
+                        "media_encryption": "required",
+                        "allowed_addresses": ["0.0.0.0/0", "::/0"],
+                        "allowed_numbers": ["+" + caller for caller in config["allowed_callers"]],
+                        "credentials": {"username": NUMBER.removeprefix("+"), "password": password},
+                        "remote_domains": ["wa.meta.vc"],
+                    },
                 },
-            })
+            )
             config["elevenlabs_phone_id"] = result.get("phone_number_id")
         if not config.get("elevenlabs_phone_id"):
             raise ChannelError("calling_creation_unknown", "The SIP number returned no identifier; no retry was made.")
         save_config(config)
-    await api.request("PATCH", f"/v1/convai/phone-numbers/{config['elevenlabs_phone_id']}", json={
-        "agent_id": config["agent_id"], "store_sip_messages": False,
-    })
+    await api.request(
+        "PATCH",
+        f"/v1/convai/phone-numbers/{config['elevenlabs_phone_id']}",
+        json={
+            "agent_id": config["agent_id"],
+            "store_sip_messages": False,
+        },
+    )
     await verify()
 
 
@@ -184,9 +310,11 @@ async def verify() -> None:
     sip = calling.get("sip", {})
     servers = sip.get("servers", [])
     if not (
-        calling.get("status") == "ENABLED" and sip.get("status") == "ENABLED"
+        calling.get("status") == "ENABLED"
+        and sip.get("status") == "ENABLED"
         and calling.get("srtp_key_exchange_protocol") == "SDES"
-        and len(servers) == 1 and servers[0].get("hostname") == "sip.rtc.elevenlabs.io"
+        and len(servers) == 1
+        and servers[0].get("hostname") == "sip.rtc.elevenlabs.io"
         and int(servers[0].get("port", 5061)) == 5061
         and {"PCMA", "PCMU"}.issubset(calling.get("audio", {}).get("additional_codecs", []))
     ):
@@ -210,7 +338,9 @@ def show_button() -> None:
     with httpx.Client(timeout=25, follow_redirects=False) as client:
         url = "https://graph.facebook.com/" + values["DAYBREAK_META_GRAPH_VERSION"] + "/" + PHONE_ID + "/settings"
         headers = {"Authorization": "Bearer " + values["DAYBREAK_META_ACCESS_TOKEN"]}
-        result = client.post(url, headers=headers, json={"calling": {"status": "ENABLED", "call_icon_visibility": "DEFAULT"}})
+        result = client.post(
+            url, headers=headers, json={"calling": {"status": "ENABLED", "call_icon_visibility": "DEFAULT"}}
+        )
         if not result.is_success or result.json().get("success") is not True:
             raise ChannelError("calling_button_unconfirmed", "Meta did not confirm the call-button setting.")
         calling = client.get(url, headers=headers).json().get("calling", {})
@@ -221,12 +351,15 @@ def show_button() -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("mode", choices=["prepare", "configure", "verify", "show-call-button"])
+    parser.add_argument("mode", choices=["prepare", "configure", "verify", "show-call-button", "demo-roles"])
     parser.add_argument("--public-origin")
+    parser.add_argument("--base", default="http://127.0.0.1:3870")
     args = parser.parse_args()
     try:
         if args.mode == "prepare":
             prepare()
+        elif args.mode == "demo-roles":
+            enable_demo_roles(args.base)
         elif args.mode == "configure":
             if not args.public_origin:
                 parser.error("--public-origin is required")
