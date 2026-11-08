@@ -213,3 +213,7 @@ La cererea lui Eden, am adăugat evaluarea pe tensiuni REALE FeederBW, comparaț
 Decizia de la 10:26:53: modelul și codul bilanțului au fost fixate în commitul 3deadcc înainte de generarea unui test nou. Auditul celor 300 de posturi noi a obținut 0,77539 macro-F1 față de 0,42059 la reguli. Este același simulator, cu posturi și seed noi; nu pretindem validare în teren sau îmbunătățire pe testul vechi. Nu ajustăm modelul după rezultat.
 
 La tensiunile reale, XGBoost rămâne alegerea făcută pe validare, chiar dacă Ridge are MAE mai mic pe test. Cele 1.353 zile de test nu conțin supratensiuni peste 253 V. IC90 care include zero se numește diferență neconcludentă; nu echivalență. Detalii în `memory/23-ml-dovezi-complete.md`. Urmează verificarea dintr-o copie fără datele mari locale.
+
+### 2026-11-08 10:35 București — verificare ML din clonă curată
+
+Clona commitului 5b7aff7, fără directoarele raw/interim/processed la pornire, trece toate cele 208 teste (zero eșecuri, zero omise), inclusiv limitele fișierelor din Git. S-a reutilizat mediul Python cu dependențele bench; codul și datele au fost citite din clonă. Scorurile disponibile în Git: 28/28; local, inclusiv SGCC: 30/30. Ruff pe src și tests trece. Dovezile sunt în reports/ml/clean_checkout.json și raportul ML comun. Cele trei fișiere/directoare nelegate de cerere, deja ne urmărite, au rămas neincluse în commituri.

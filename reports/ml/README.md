@@ -5,8 +5,8 @@ Generat prin `make ml-report`. `evidence.json` reunește integral toate rapoarte
 ## Verificare
 
 - Scoruri recalculate din predicții: **30/30**.
-- Teste pe codul curent: **NU / rulare necesară**.
-- Ultima rulare: 2026-11-08T10:30:55.052037+02:00; rezultat {'tests': 208, 'failures': 0, 'errors': 0, 'skipped': 0}; cod ieșire 0.
+- Teste pe codul curent: **DA**.
+- Ultima rulare: 2026-11-08T10:34:26.206739+02:00; rezultat {'tests': 208, 'failures': 0, 'errors': 0, 'skipped': 0}; cod ieșire 0.
 
 ```sh
 uv sync --group bench

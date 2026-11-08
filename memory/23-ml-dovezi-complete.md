@@ -41,5 +41,8 @@ rapoartele JSON și sumele SHA256. `make ml-check` execută testele ML și recal
 - Modelele din `models/release/` rămân cele existente. Rezultatele suplimentare sunt dovezi, nu o promovare
   automată bazată pe consultarea testelor. Nu putem garanta punctajul juriului sau fabrica etichete reale lipsă.
 
-La 10:30 au trecut 208 teste ML + protecția de mărime. Verificarea din copie fără datele mari locale este
-consemnată în jurnal și în raportul generat după terminarea ei.
+La 10:34 au trecut **208 teste, zero eșecuri, zero omise**, din clona curată a commitului `5b7aff7`,
+fără `data/raw`, `data/interim`, `data/processed` la început. Mediul Python cu dependențe bench a fost reutilizat;
+codul și datele vin din clonă. Proba: `reports/ml/clean_checkout.json`, inclusă și în rezultatul testelor.
+Scoruri verificate: **30/30 local**, **28/28 în clonă**; cele două SGCC cer predicțiile locale. Ruff pe `src` și
+`tests` trece. Raportul nu susține că toate experimentele istorice au fost reantrenate în această verificare.

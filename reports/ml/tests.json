@@ -1,6 +1,6 @@
 {
   "command": "uv run --group bench pytest tests/a tests/b tests/c tests/bilant tests/benchmark tests/test_repo_size.py",
-  "created_at": "2026-11-08T10:30:55.052037+02:00",
+  "created_at": "2026-11-08T10:34:26.206739+02:00",
   "exit_code": 0,
   "counts": {
     "tests": 208,
@@ -109,11 +109,11 @@
     "src/cyberpunks/benchmark/bilant_holdout.py": "d64046b3370b18eb6b2fda4687219f918396a632f636b077df5b7d7b57e7e2e4",
     "src/cyberpunks/benchmark/common.py": "82e62c4d9a6deadf55966974ddc533626b8d8120b1bd9c84a5ad0caeb60db982",
     "src/cyberpunks/benchmark/contoare.py": "9ad05caf4c3f2028475a12c78fdd1f8ef025865b00724aad97291c95d4a08868",
-    "src/cyberpunks/benchmark/evidence.py": "8449be4796471d0d715462a82490218a41f21e43d632734f0659472697cb7263",
+    "src/cyberpunks/benchmark/evidence.py": "5a82a123e7f46fb7063febbe08c624795cbc17e4b51e43fced59a2e71147ba94",
     "src/cyberpunks/benchmark/furtuni.py": "46cc20a2e4e27fd383a24843ce483de0a90777d7d4cc3cd3af45dc3359981739",
     "src/cyberpunks/benchmark/report.py": "9721cd55734bb3622ee6b4d476913a3e2d90e301b127b4245166fb186ccf37c1",
     "src/cyberpunks/benchmark/tensiune.py": "893960e637bc548caba93e0ca2ab344889c0439929b71f7b97fd04659bbb44bb",
-    "src/cyberpunks/benchmark/tensiune_reala.py": "891c05b745e9ed9be847846b106fbc74f0af629863814d532ae3a077d1299362",
+    "src/cyberpunks/benchmark/tensiune_reala.py": "4ffe4fb1cd5c02dca6661b32145f4ed2e668eb31fd342ad96ae6aa88287e8eed",
     "src/cyberpunks/c_prosumatori/__init__.py": "8e5367d335d351104bad22d28520d9dc51feed576164d3950a2ed422be6aefab",
     "src/cyberpunks/c_prosumatori/actions.py": "9be7002c672e9ce2fb9036e35894d5be9a70058568be85c4222b320892561959",
     "src/cyberpunks/c_prosumatori/connection.py": "e036e97c4eddb81624feb31728f07bcf998738147a41f5d31e67fd62c165ccdb",
@@ -268,5 +268,22 @@
     "tests/test_repo_size.py": "5853c37ed918dd7b34adb996f8ef0b3ab3e0ae0ab6eb0528a63fe7bff9a31a95"
   },
   "code_unchanged_during_run": true,
-  "scope": "Teste de cod ML; nu reprezintă reantrenarea tuturor experimentelor istorice."
+  "scope": "Teste de cod ML; nu reprezintă reantrenarea tuturor experimentelor istorice. Executat într-o clonă Git fără data/raw, data/interim și data/processed; mediul Python existent, cu dependențele bench.",
+  "clean_checkout": {
+    "commit": "5b7aff7ab9e49a070f5be14781ec63845dbd8966",
+    "local_data_absent_before_run": {
+      "raw": true,
+      "interim": true,
+      "processed": true
+    },
+    "exit_code": 0,
+    "python_environment": "Mediul uv cu dependențe bench al worktree-ului; codul și datele citite din clona curată.",
+    "counts": {
+      "tests": 208,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "created_at": "2026-11-08T10:34:26.206739+02:00"
+  }
 }
