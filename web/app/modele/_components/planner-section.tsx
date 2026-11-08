@@ -66,7 +66,7 @@ function NetChart({ rows, days }: { rows: Strategy[]; days: number | null }) {
   const plot = { left: LABEL_COL + 16, right: 0 };
 
   return (
-    <figure aria-labelledby="net-title">
+    <div className="max-w-full overflow-x-auto"><figure className="min-w-[720px]" aria-labelledby="net-title">
       <figcaption>
         <h3 id="net-title" className="text-[17px] font-[650]">
           Net gain per day
@@ -159,7 +159,7 @@ function NetChart({ rows, days }: { rows: Strategy[]; days: number | null }) {
       </div>
       <p className="mt-1 text-right text-[13px] text-muted-foreground">lei per day</p>
       {min < 0 ? <p className="mt-1 text-[13.5px] text-muted-foreground">Some strategies lose money on average; their bars are hidden.</p> : null}
-    </figure>
+    </figure></div>
   );
 }
 
@@ -190,7 +190,7 @@ function KpiTable({ rows, days }: { rows: Strategy[]; days: number | null }) {
         Totals across {days ? plural(days, "day", "days") : "the full simulation"}; km per day is an average. &quot;Of&quot; shows the total available cases.
       </p>
       <div className="mt-3 overflow-x-auto">
-        <table className="w-full border-collapse text-[15px]">
+        <table className="w-full min-w-[900px] border-collapse text-[15px]">
           <thead>
             <tr className="text-[13.5px] text-muted-foreground">
               <th scope="col" className="py-1.5 pr-3 text-left font-[500]">
@@ -325,7 +325,7 @@ function Robustness({ planner, main }: { planner: Obj; main: Strategy[] }) {
 export function PlannerSection({ planner }: { planner: Record<string, unknown> | null }) {
   if (!planner) {
     return (
-      <section aria-labelledby="planner-title" className="mt-12 border-t border-rule pt-6">
+      <section aria-labelledby="planner-title" className="min-w-0">
         <h2 id="planner-title" className="text-[24px] font-[650]">
           Agent vs. simple strategies
         </h2>
@@ -359,7 +359,7 @@ export function PlannerSection({ planner }: { planner: Record<string, unknown> |
   const synthetic = planner.synthetic !== false;
 
   return (
-    <section aria-labelledby="planner-title" className="mt-12 border-t border-rule pt-6">
+    <section aria-labelledby="planner-title" className="min-w-0">
       <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
         <h2 id="planner-title" className="text-[24px] font-[650]">
           Agent vs. simple strategies

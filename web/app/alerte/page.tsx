@@ -14,7 +14,7 @@ import { MessageList } from "./_components/message-list";
 import { AlertsBoard } from "./_components/board";
 import { getRemedies } from "@/lib/data/remedies";
 
-const WRAP = "mx-auto w-full max-w-[1520px] px-8 pt-7 pb-14 max-md:px-4";
+const WRAP = "mx-auto w-full max-w-[1440px] px-8 pt-7 pb-14 max-md:px-4";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 

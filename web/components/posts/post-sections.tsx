@@ -54,12 +54,12 @@ export function PostSections({ sections, stare, initial }: { sections: SectionDe
   return (
     <>
       <Chips label="Page sections" items={CHIPS} value={section} onChange={choose} className="mt-5" />
-      <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)_minmax(0,1fr)]">
+      <div className="mt-5 grid grid-cols-[minmax(0,1fr)] items-start gap-4 xl:grid-cols-2">
         <div className={cn("contents", section !== "toate" && section !== "bilant" && "hidden")}>{stare}</div>
         {sections.map((s) => {
           const show = section === "toate" || section === s.id || s.also?.includes(section as never);
           return (
-            <div key={s.id} className={cn("min-w-0", s.className, !show && "hidden")}>
+            <div key={s.id} className={cn("min-w-0", s.className, section !== "toate" && "xl:col-span-2", !show && "hidden")}>
               {s.node}
             </div>
           );

@@ -109,3 +109,12 @@ Interogările complete au găsit și refuzarea incorectă a procentului 97,76% f
 Proba audio a folosit agentul tehnicianului din browser, cu aceleași setări de recunoaștere și final de vorbire ca agentul SIP, dar cu unealta client a browserului. Întrebarea sintetică a fost amestecată cu zgomot Gaussian filtrat, raport voce/zgomot 12 dB, continuat 40 secunde după sfârșitul vorbirii. Transcrierea a păstrat întrebarea exactă; unealta a fost cerută după 1,695 secunde, iar răspunsul audio a început după 15,389 secunde, în timp ce zgomotul continua. Contextul operațional nu s-a schimbat. Aceasta nu verifică vocile mulțimii, ecoul, microfonul/difuzorul fizic sau zgomotul unui apel WhatsApp în sală. Audio nu a fost ascultat manual.
 
 126 teste de canale, lint și verificarea diferențelor au trecut. Serviciul de apeluri 8722 a fost repornit izolat pentru codul numeric; tunelul, SIP, ingressul Meta și workerul au fost păstrate. Restartul 8720 aparține firului separat pentru fotografii/corecții. Proba repetabilă scripts/daybreak_whatsapp_call_probe.py creează un test temporar cu o întrebare fixă doar de citire, cere execuție HTTP reală și șterge testul la final. Conturile și asocierile demonstrative rămân sintetice; identificatorul real al apelantului nu se copiază în memorie.
+
+
+## Fotografii de teren și corecții umane, 8 noiembrie 2026
+
+Fotografiile tehnicianului sunt private, pe lucrarea atribuită: JPEG/PNG/WebP, maximum 5 MiB fiecare și șase per constatare. Serverul decodează și reencodează imaginea fără EXIF; baza SQLite păstrează conținutul. Draftul devine dovadă atașată numai la Confirm. Tehnicianul autorizat și dispecerul autorizat pot vedea dovada; proiecțiile clientului exclud fotografiile. Închiderea formularului încearcă ștergerea încărcărilor abandonate; serverul protejează referințele din propuneri/comenzi și fotografiile atașate.
+
+Corecția manuală folosește operația existentă de revizuire și planificatorul real. Motivul este obligatoriu. Proveniența originalului AI este verificată sau marcată necunoscută; browserul nu o poate furniza ca adevăr. Istoricul păstrează decizia anterioară, cererea omului, rezultatul efectiv, autorul, ora și comanda. Predicția ML nu este rescrisă și această corecție nu înseamnă reantrenare.
+
+Proba reală din browser pe copia izolată a trecut upload → Review → Confirm → fotografie persistentă, citire de dispecer, refuz 403 pentru client, Defer cu R-HUMAN-DEFER și istoric după reîncărcare. Fixture-ul fotografic este explicit sintetic. Nu s-au trimis mesaje sau apeluri externe în aceste probe.

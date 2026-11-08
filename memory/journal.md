@@ -96,3 +96,7 @@ Cronologic. Fiecare intrare: ora (București), ce s-a întâmplat, ce s-a decis.
 - Corectată verificarea conversiei exacte 0.9776 în 97,76%, inclusiv score din assessment, cu blocarea evaluărilor indisponibile păstrată. Probele reale verifică oprirea, incertitudinea predicției, rolul și Confirm; regresia cu două ture consecutive a executat două cereri HTTP reușite.
 - Audio sintetic prin agentul tehnicianului din browser: zgomot continuu la 12 dB, 40 secunde după vorbire, transcriere exactă, 1,695 secunde până la cererea de date și 15,389 până la audio, zgomotul continuând. Nu este probă a sălii sau a zgomotului pe SIP; microfonul/difuzorul și ascultarea manuală nu sunt verificate.
 - 126 teste de canale și lint trec. Probe numai de citire, fără apeluri WhatsApp inițiate sau confirmări operaționale. Repornit numai serviciul 8722; 8720 a fost eliberat pentru restartul separat al firului de fotografii/corecții.
+
+### 08 November 2026, 03:26 — Fotografii la constatări și corecții AI
+
+Teo cere poze pentru tehnician, corectarea manuală vizibilă a deciziilor AI și o nouă curățare UI/UX pe toată aplicația. Implementarea păstrează agentul principal și cele 14 ecrane PPC, adaugă fotografii private cu Confirm și istoric de decizii cu motiv și autor. Probele cu scrieri sunt pe copia completă izolată; camera fizică și live-ul rămân separate.

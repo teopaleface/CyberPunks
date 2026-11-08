@@ -345,7 +345,7 @@ async function Post({ params, searchParams }: Pick<PageProps<"/posturi/[id]">, "
 
   return (
     <AppShell info={info}>
-      <div className="mx-auto w-full max-w-[1520px] px-8 pt-7 pb-14 max-md:px-4">
+      <div className="mx-auto w-full max-w-[1440px] px-8 pt-7 pb-14 max-md:px-4">
         <PageTitle
           icon={UtilityPole}
           title={`Substation ${post.post_id}${place ? ` ${place}` : ""}${post.synthetic !== false ? " (synthetic)" : ""}`}

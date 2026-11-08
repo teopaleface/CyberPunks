@@ -32,10 +32,14 @@ export function ErrorAnalysis({ source, md }: { source: Source; md: string }) {
   const findings = FINDINGS[source];
   return (
     <section id={`erori-${source}`} aria-labelledby={`erori-${source}-title`} className="scroll-mt-6">
-      <h3 id={`erori-${source}-title`} className="text-[16px] font-[600]">{findings.title}</h3>
-      <ul className="mt-2 list-disc space-y-2 pl-5 text-[14.5px] leading-relaxed text-ink-soft">
-        {findings.points.map((point) => <li key={point}>{point}</li>)}
-      </ul>
+      <h3 id={`erori-${source}-title`} className="sr-only">{findings.title}</h3>
+      <p className="text-[14px] leading-relaxed text-ink-soft">{findings.points[0]}</p>
+      <details className="mt-3 border-t border-rule pt-3">
+        <summary className="cursor-pointer rounded text-[14px] font-[550] focus-visible:outline-2 focus-visible:outline-ring">Failure cases and safeguards</summary>
+        <ul className="mt-3 list-disc space-y-2 pl-5 text-[14px] leading-relaxed text-ink-soft">
+          {findings.points.slice(1).map((point) => <li key={point}>{point}</li>)}
+        </ul>
+      </details>
       <p className="mt-3 text-[12.5px] text-muted-foreground">Source: <code>reports/{source}/error_analysis.md</code></p>
       <a
         href={`data:text/markdown;charset=utf-8,${encodeURIComponent(md)}`}

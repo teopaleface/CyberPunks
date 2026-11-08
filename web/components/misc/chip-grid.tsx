@@ -11,6 +11,8 @@ export interface GridCard {
   tags: string[];
   /** Clasele de lățime în grilă, de exemplu `lg:col-span-3`. */
   span: string;
+  /** Optional width when a filter narrows the grid. */
+  filteredSpan?: string;
   node: ReactNode;
 }
 
@@ -32,17 +34,17 @@ export function ChipGrid({
     <>
       <Chips label={label} items={[{ id: "all", label: "All" }, ...chips]} value={value} onChange={setValue} className="mt-5" />
       <p role="status" className="sr-only">
-        {shown.length}  cards shown
+        {shown.length} cards shown
       </p>
-      <div className={cn("mt-5 grid grid-cols-1 gap-5", columns)}>
+      <div className={cn("mt-5 grid grid-cols-1 items-start gap-5", columns)}>
         {shown.length ? (
           shown.map((c) => (
-            <div key={c.id} className={cn("flex min-w-0 flex-col [&>*]:flex-1", c.span)}>
+            <div key={c.id} className={cn("flex min-w-0 flex-col [&>*]:flex-1", shown.length === 1 ? "col-span-full" : value === "all" ? c.span : c.filteredSpan ?? c.span)}>
               {c.node}
             </div>
           ))
         ) : (
-          <p className="text-[16px] text-ink-soft lg:col-span-6">No results for this filter and scenario.</p>
+          <p className="text-[16px] text-ink-soft col-span-full">No results for this filter and scenario.</p>
         )}
       </div>
     </>

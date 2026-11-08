@@ -43,3 +43,12 @@ Au trecut build-ul OpenNext/Cloudflare și 81 de teste. Pe live, aceleași ID ș
 8 noiembrie. După publicare, /lucrari a produs 1102 la 3 din 6 probe; tail a confirmat exceededCpu. Corecția pregătește la build datele publice necesare ordinelor pentru cele două scenarii complete, în loc să citească, parseze și reconstruiască întregul plan la fiecare cerere. Ramura rapidă este activă numai cu DATA_ASSETS=1 și DATA_SOURCE=demo; serverul local/API și verificarea drepturilor existentă din Teo sunt păstrate. Query-urile de echipă și oprire rămân dinamice. Testele compară toate ordinele generate cu rezultatul anterior din datele complete.
 
 Live: sursa release 61827d8, Worker57197559-af34-4c16-9641-1785d4239ebf. Au trecut buildCF, lint pe fișierele schimbate și 83 teste. Au trecut 63 de cereri live cu scenarii, echipe și opriri diferite, fără 1102, plus navigarea Next între echipe și sesiunea existentă. Tail a capturat 49 evenimente fără exceededCpu în acea probă. Aceste rezultate nu sunt o garanție pentru trafic arbitrar sau celelalte pagini; nu s-a schimbat abonamentul/configurația ori conturile. Datele, selecțiile și designul rămân aceleași. Modificarea este și pe Teo, 6e57aaa.
+
+
+## Fotografii, corecții și revizia consolei, 8 noiembrie 2026
+
+Teo cere fotografii la constatările tehnicianului, corectarea explicită a unei decizii AI și un nou audit al întregii aplicații. Identitatea PPC și cele 14 ecrane rămân; /app continuă să fie conversația principală. Modelele au carduri individuale cu baseline și unități, rapoartele lungi se deschid pe lățime, iar simularea economică este secundară și etichetată. Planul, alertele, jurnalul și lista posturilor au o ierarhie mai compactă; lista posturilor este paginată.
+
+Constatarea are patru rezultate explicite, note și fotografii cu previzualizare; nu se selectează implicit confirmarea problemei. Corecția umană are motiv obligatoriu și comparație între starea anterioară, alegerea cerută și rezultatul real al planificatorului. Istoricul arată autorul și data, iar predicția modelului rămâne păstrată. Fotografii și corecții se salvează numai după Confirm.
+
+Verificarea în Helium a acoperit 26 de pagini pe cele trei roluri la 1440×1100 și 390×844, fără depășiri orizontale, plus filtre, paginare, Light/Dark și încărcarea efectivă a hărții. Fluxurile cu scrieri au folosit o copie completă izolată cu 689 de lucrări. Camera fizică și publicarea pe live nu sunt verificate de această probă.

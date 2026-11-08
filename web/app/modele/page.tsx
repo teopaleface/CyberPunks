@@ -18,7 +18,7 @@ import { BalanceEvaluation } from "./_components/balance-evaluation";
 import { ModelColumn } from "./_components/model-column";
 import { PlannerSection } from "./_components/planner-section";
 
-const WRAP = "mx-auto w-full max-w-[1520px] px-8 pt-7 pb-14 max-md:px-4";
+const WRAP = "mx-auto w-full max-w-[1440px] px-8 pt-7 pb-14 max-md:px-4";
 
 export default function ModelsPage({ searchParams }: PageProps<"/modele">) {
   return (
@@ -56,8 +56,7 @@ async function Models({ searchParams }: { searchParams: PageProps<"/modele">["se
           title="Model evaluation"
           subtitle="Measured performance against simple rules on the same test data."
         />
-        <ModelsBoard bundle={bundle} planner={bundle.planner} analysisBy={analysisBy} />
-        <BalanceEvaluation report={bundle.bilant ?? null} />
+        <ModelsBoard bundle={bundle} planner={bundle.planner} analysisBy={analysisBy} balance={<BalanceEvaluation report={bundle.bilant ?? null} />} />
 
         <p className="mt-5 text-[13.5px] text-muted-foreground">
           {published.length === 3 && bundle.bilant
@@ -70,15 +69,11 @@ async function Models({ searchParams }: { searchParams: PageProps<"/modele">["se
         </p>
 
         <div className="mt-6">
-          <Disclosure title="Model details" hint="Test data, baseline, metrics and sources">
-            <div className="grid grid-cols-1 gap-y-10 xl:grid-cols-3 xl:gap-x-0 xl:divide-x xl:divide-rule">
-              {SOURCE_ORDER.map((s, i) => (
-                <div key={s} className={i === 0 ? "min-w-0 xl:pr-9" : i === 2 ? "min-w-0 xl:pl-9" : "min-w-0 xl:px-9"}>
-                  <ModelColumn source={s} report={bundle[s]} hasAnalysis={Boolean(analysisBy[s])} />
-                </div>
-              ))}
-            </div>
-          </Disclosure>
+          {SOURCE_ORDER.map((source) => (
+            <Disclosure key={source} title={`Model ${source}: full report`} hint="Test data, all metrics, baselines and reproduction">
+              <ModelColumn source={source} report={bundle[source]} hasAnalysis={Boolean(analysisBy[source])} errorAnalysis={analysisBy[source]} />
+            </Disclosure>
+          ))}
           <Disclosure title="Agent evaluation details" hint="Strategies, robustness and assumptions">
             <PlannerSection planner={bundle.planner} />
           </Disclosure>
