@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import os
 import re
@@ -129,8 +130,11 @@ class MetaTransport:
         audio: bytes | None = None,
         image: bytes | None = None,
         image_key: str | None = None,
+        document: bytes | None = None,
+        document_key: str | None = None,
+        document_name: str | None = None,
     ) -> str:
-        if sum(x is not None for x in (text, audio, image)) != 1:
+        if sum(x is not None for x in (text, audio, image, document)) != 1:
             raise ChannelError("outbound_invalid", "A reply must contain exactly one supported message type.", 422)
         if text is not None and not 1 <= len(text) <= 4096:
             raise ChannelError("outbound_invalid", "The text reply exceeds its supported limit.", 422)
@@ -145,16 +149,56 @@ class MetaTransport:
             or not re.fullmatch(r"[A-Za-z0-9_-]{1,160}", image_key)
         ):
             raise ChannelError("outbound_invalid", "A bounded PNG and stable page identifier are required.", 422)
+        if document is not None and (
+            len(document) > 8_000_000
+            or not document.startswith(b"%PDF-")
+            or b"%%EOF" not in document[-1100:]
+            or not document_key
+            or not re.fullmatch(r"[A-Za-z0-9_-]{1,160}", document_key)
+            or not document_name
+            or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,100}\.pdf", document_name)
+        ):
+            raise ChannelError(
+                "outbound_invalid", "A bounded PDF, stable document identifier and safe filename are required.", 422
+            )
         config = self.authorize(inbound, audio=audio is not None)
         version = config["DAYBREAK_META_GRAPH_VERSION"] or "v25.0"
         if not re.fullmatch(r"v\d{2}\.0", version):
             raise ChannelError("whatsapp_unconfigured", "The configured Meta Graph version is invalid.")
-        if image is not None:
+        if document is not None:
+            manifest = self.ledger.report_manifest(inbound["event_id"])
+            # A document is deliverable only as the frozen PDF of a prepared report.
+            if not manifest or (
+                manifest.get("sha256") != hashlib.sha256(document).hexdigest()
+                or manifest.get("filename") != document_name
+                or manifest.get("mime") != "application/pdf"
+                or manifest.get("part_kind") != "document:" + document_key
+            ):
+                raise ChannelError("outbound_conflict", "The PDF no longer matches its report manifest.", 409)
+        if image is not None or document is not None:
             self.check_report_source(inbound)
         base = "https://graph.facebook.com/" + version + "/" + inbound["destination"]
-        kind = "image" if image is not None else "audio" if audio is not None else "text"
-        content = image if image is not None else audio if audio is not None else text.encode()
-        part_kind = "image:" + image_key if image is not None else kind
+        kind = (
+            "document"
+            if document is not None
+            else "image"
+            if image is not None
+            else "audio"
+            if audio is not None
+            else "text"
+        )
+        content = (
+            document
+            if document is not None
+            else image
+            if image is not None
+            else audio
+            if audio is not None
+            else text.encode()
+        )
+        part_kind = (
+            "document:" + document_key if document is not None else "image:" + image_key if image is not None else kind
+        )
         row = self.ledger.prepare(inbound["event_id"], inbound["destination"], inbound["sender"], part_kind, content)
         if row["state"] in {"accepted", "delivered", "read"}:
             return row["state"]
@@ -165,7 +209,7 @@ class MetaTransport:
 
         async def deliver(client):
             media_id = row["media_id"]
-            if (audio is not None or image is not None) and not media_id:
+            if (audio is not None or image is not None or document is not None) and not media_id:
                 # Uploading again cannot send a user message. Only the message POST is at-most-once.
                 try:
                     status, data = await _json_response(
@@ -175,10 +219,16 @@ class MetaTransport:
                         headers=headers,
                         data={
                             "messaging_product": "whatsapp",
-                            "type": "image/png" if image is not None else "audio/ogg",
+                            "type": "application/pdf"
+                            if document is not None
+                            else "image/png"
+                            if image is not None
+                            else "audio/ogg",
                         },
                         files={
-                            "file": ("daybreak-report.png", image, "image/png")
+                            "file": (document_name, document, "application/pdf")
+                            if document is not None
+                            else ("daybreak-report.png", image, "image/png")
                             if image is not None
                             else ("daybreak-reply.ogg", audio, "audio/ogg")
                         },
@@ -191,7 +241,7 @@ class MetaTransport:
                 self.ledger.outbound_state(row["part_id"], "prepared", media_id=media_id)
             # Recheck flags, sender mapping and scope immediately before the irreversible network POST.
             self.authorize(inbound, audio=audio is not None)
-            if image is not None:
+            if image is not None or document is not None:
                 self.check_report_source(inbound)
             if not self.ledger.begin_send(row["part_id"]):
                 return "unknown"
@@ -205,6 +255,8 @@ class MetaTransport:
             }
             if text is not None:
                 payload["text"] = {"preview_url": False, "body": text}
+            elif document is not None:
+                payload["document"] = {"id": media_id, "filename": document_name}
             elif image is not None:
                 payload["image"] = {"id": media_id}
             else:

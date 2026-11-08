@@ -70,7 +70,7 @@ def create_router(operations, store):
 
         def observe():
             task = read(actor, task_id, scenario)
-            if task.status == "awaiting_confirmation" and task.proposal:
+            if task.status in {"awaiting_confirmation", "needs_reconciliation"} and task.proposal:
                 from .effects import observe_effect
 
                 effect = observe_effect(operations, actor, task.proposal["proposal_id"], scenario)
@@ -79,6 +79,7 @@ def create_router(operations, store):
                     "succeeded": "completed",
                     "completed": "completed",
                     "failed": "failed",
+                    "expired": "failed",
                     "cancelled": "cancelled",
                     "reconciling": "needs_reconciliation",
                 }.get(state, "awaiting_confirmation")
@@ -88,11 +89,20 @@ def create_router(operations, store):
                     "cancelled": "The operation was cancelled.",
                     "needs_reconciliation": "The effect needs review. No recovery was performed.",
                 }.get(status, "Awaiting confirmation in the application. No operation was executed.")
+                if state == "expired":
+                    reply = "The proposal expired without confirmation. Prepare a new request."
                 if status == task.status:
                     return task.model_copy(update={"reply": reply})
-                return store.update(
-                    actor, task_id, status=status, result={**task.result, "effect": effect}, reply=reply
-                )
+                try:
+                    return store.update(
+                        actor, task_id, status=status, result={**task.result, "effect": effect}, reply=reply
+                    )
+                except ValueError:
+                    # A concurrent observer may have saved this exact terminal effect.
+                    saved = store.get(actor, task_id)
+                    if saved.status == status and saved.proposal == task.proposal:
+                        return saved
+                    raise
             if task.status in ("running", "queued"):
                 request = store.request(actor, task_id)
                 return AgenticCoordinator(operations, store).run(actor, request, task_id=task_id)
