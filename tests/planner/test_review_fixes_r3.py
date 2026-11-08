@@ -21,7 +21,8 @@ D = datetime(2026, 11, 9, tzinfo=TZ)
 def test_r3_1_combined_remedy_keeps_every_crew_step(out_root: Path) -> None:
     from cyberpunks.planner import workorders
 
-    opts = [_opt("phase_rebalance", 350.0, -0.015, crew=True), dict(_opt("adjust_tap", 450.0, -0.015, crew=True), crew_skill="mv_grid")]
+    # Ambele trepte de joasă tensiune: aceeași echipă JT le face pe amândouă (regula tipurilor de echipe, 8 nov.).
+    opts = [_opt("phase_rebalance", 350.0, -0.015, crew=True), _opt("adjust_tap", 450.0, -0.015, crew=True)]
     it = _c_with_ladder("PT-R301", opts)
     write_items(out_root, "C", [it])
     res = agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root, as_of=EARLY)

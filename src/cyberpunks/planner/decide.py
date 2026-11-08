@@ -1191,7 +1191,16 @@ def check_crews(ctx: Context, p: Proposal) -> Proposal:
     if crews:
         return p
     skill = " + ".join(SKILL_RO.get(s, s) for s in sorted(required))
-    reason = f"Nicio echipă cu abilitatea {skill} și cel puțin {size} oameni."
+    types = sorted({t for t in (ctx.settings.crew_type_of(s) for s in required) if t})
+    if len(types) > 1:
+        # Regula tipurilor de echipe: o echipă IT/MT nu face lucrări JT și invers; lucrarea trebuie împărțită.
+        labels = " și ".join(ctx.settings.crew_type_label(t) for t in types)
+        reason = (f"Lucrarea cere abilități de la două tipuri de echipe ({labels}): fiecare echipă ia doar lucrările "
+                  "specializării ei, deci trebuie împărțită în două lucrări; decide dispecerul.")
+    elif types:
+        reason = f"Nicio echipă de {ctx.settings.crew_type_label(types[0])} ({skill}) cu cel puțin {size} oameni."
+    else:
+        reason = f"Nicio echipă cu abilitatea {skill} și cel puțin {size} oameni."
     alerts = [AlertSpec("warning", f"Fără echipă potrivită: {_label(wi)}", reason)]
     if p.fallback is not None:
         p.fallback.alerts += alerts

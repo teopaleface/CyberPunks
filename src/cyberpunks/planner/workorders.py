@@ -370,7 +370,8 @@ def _render(
     depot = settings.depots.get(route.depot_id)
     skills = ", ".join(SKILL_RO.get(s, s) for s in sorted(crew.skills)) if crew else "—"
     pdf.kv("Echipa:", f"{route.crew_id} · depou {depot.label_ro if depot else route.depot_id}")
-    pdf.kv("Competențe:", f"{skills} · {crew.size if crew else '—'} persoane")
+    kind = f"echipă de {settings.crew_type_label(crew.crew_type)} · " if crew and crew.crew_type else ""
+    pdf.kv("Competențe:", f"{kind}{skills} · {crew.size if crew else '—'} persoane")
     pdf.kv("Tura:", f"{settings.shift_start:%H:%M}–{settings.shift_end:%H:%M}")
     pdf.kv("Emitent:", "propus de agentul Daybreak, aprobat de dispecer: ____________")
     pdf.kv("Șef de lucrare:", f"{BLANK}     grupa: ___")

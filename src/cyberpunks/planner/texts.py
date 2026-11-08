@@ -48,4 +48,4 @@ ACTION_RO = {
     "transformer_upgrade": "transformator nou",
     "remedy": "treptele alese",
 }
-SKILL_RO = {"metering": "contorizare", "lv_grid": "joasă tensiune", "mv_grid": "medie tensiune"}
+SKILL_RO = {"metering": "contorizare", "lv_grid": "joasă tensiune", "mv_grid": "medie tensiune", "hv_grid": "înaltă tensiune"}

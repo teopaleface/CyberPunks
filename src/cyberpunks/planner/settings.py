@@ -47,6 +47,31 @@ class Crew:
     depot_id: str
     skills: frozenset[str]
     size: int
+    crew_type: str = ""  # it_mt (înaltă și medie tensiune) | jt (joasă tensiune); abilitățile vin din tip
+
+
+def load_crews(crews_cfg: dict[str, Any]) -> tuple[list[Crew], dict[str, dict[str, Any]]]:
+    """Echipele din config/crews.yaml. Regula: două tipuri de echipe (crew_types), fiecare cu abilitățile specializării ei;
+    o echipă ia doar lucrările tipului ei, deci nu are voie să-și scrie singură abilitățile."""
+    types: dict[str, dict[str, Any]] = crews_cfg.get("crew_types") or {}
+    seen: dict[str, str] = {}
+    for tid, t in types.items():
+        for skill in t.get("skills", []):
+            if skill in seen:
+                raise ValueError(f"config/crews.yaml: abilitatea {skill} e și la {seen[skill]}, și la {tid}; un tip de lucrare are un singur tip de echipă")
+            seen[skill] = tid
+    crews = []
+    for c in crews_cfg.get("crews", []):
+        if not types:  # config vechi, fără tipuri
+            crews.append(Crew(c["crew_id"], c["depot_id"], frozenset(c.get("skills", [])), int(c.get("size", 2))))
+            continue
+        if "skills" in c:
+            raise ValueError(f"config/crews.yaml: echipa {c['crew_id']} are `skills`; abilitățile vin din `type` ({', '.join(types)})")
+        ctype = c.get("type")
+        if ctype not in types:
+            raise ValueError(f"config/crews.yaml: echipa {c['crew_id']} are tipul {ctype!r}; tipurile sunt {', '.join(types)}")
+        crews.append(Crew(c["crew_id"], c["depot_id"], frozenset(types[ctype].get("skills", [])), int(c.get("size", 2)), ctype))
+    return crews, types
 
 
 @dataclass(frozen=True)
@@ -81,6 +106,7 @@ class Settings:
     regions: dict[str, dict[str, Any]]
     scenarios: dict[str, Scenario]
     area: dict[str, Any] = field(default_factory=dict)
+    crew_types: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     @classmethod
     def load(cls, config_dir: Path | None = None) -> Settings:
@@ -93,10 +119,7 @@ class Settings:
             d["depot_id"]: Depot(d["depot_id"], d.get("label_ro", d["depot_id"]), float(d["lat"]), float(d["lon"]), d.get("region", ""))
             for d in area.get("depots", [])
         }
-        crews = [
-            Crew(c["crew_id"], c["depot_id"], frozenset(c.get("skills", [])), int(c.get("size", 2)))
-            for c in crews_cfg.get("crews", [])
-        ]
+        crews, crew_types = load_crews(crews_cfg)
         shift = crews_cfg.get("shift", {"start": "08:00", "end": "16:00"})
         scenarios = {
             sid: Scenario(sid, s.get("label_ro", sid), None if s.get("date") is None else str(s.get("date")), s.get("weather"))
@@ -112,9 +135,17 @@ class Settings:
             regions=area.get("regions", {}),
             scenarios=scenarios,
             area=area,
+            crew_types=crew_types,
         )
 
     # ---- acces comod, cu valori implicite documentate ----
+
+    def crew_type_of(self, skill: str) -> str | None:
+        """Tipul de echipă care face lucrările cu abilitatea dată (it_mt / jt), sau None."""
+        return next((tid for tid, t in self.crew_types.items() if skill in t.get("skills", [])), None)
+
+    def crew_type_label(self, tid: str | None) -> str:
+        return str((self.crew_types.get(tid or "") or {}).get("label_ro", tid or "?"))
 
     def econ(self, section: str, key: str, default: float | None = None) -> float:
         value = (self.economics.get(section) or {}).get(key, default)

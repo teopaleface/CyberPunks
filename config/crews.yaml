@@ -1,15 +1,28 @@
 # Echipele de teren (SIMULATE). Proprietar: firul Teo-planificator.
 shift: {start: "08:00", end: "16:00"}
+
+# Regula (Tudor, 8 nov. 2026): există două tipuri de echipe, iar fiecare ia doar lucrările specializării ei.
+# Abilitățile unei echipe vin din tipul ei; nu se mai scriu pe echipă (Settings.load refuză o echipă cu `skills`).
+crew_types:
+  it_mt:
+    label_ro: "înaltă și medie tensiune"
+    skills: [hv_grid, mv_grid]      # linii și stații IT/MT; furtunile pe zone mari (B: mv_grid de la 2.000 de clienți)
+  jt:
+    label_ro: "joasă tensiune"
+    skills: [lv_grid, metering]     # rețeaua JT, posturile pe partea JT, contoarele clienților (A, bilanț, C)
+
 crews:
-  - {crew_id: "E-BV-1", depot_id: "D-BUC-V", skills: [metering], size: 2}
-  - {crew_id: "E-BV-2", depot_id: "D-BUC-V", skills: [metering, lv_grid], size: 2}
-  - {crew_id: "E-BV-3", depot_id: "D-BUC-V", skills: [lv_grid, mv_grid], size: 3}
-  - {crew_id: "E-BE-1", depot_id: "D-BUC-E", skills: [metering], size: 2}
-  - {crew_id: "E-BE-2", depot_id: "D-BUC-E", skills: [lv_grid, mv_grid], size: 3}
-  - {crew_id: "E-CT-1", depot_id: "D-CTA", skills: [lv_grid, mv_grid], size: 3}
-  - {crew_id: "E-CT-2", depot_id: "D-CTA", skills: [metering, lv_grid], size: 2}
-  - {crew_id: "E-TM-1", depot_id: "D-TM", skills: [lv_grid, mv_grid], size: 3}
+  - {crew_id: "E-BV-1", depot_id: "D-BUC-V", type: jt, size: 2}
+  - {crew_id: "E-BV-2", depot_id: "D-BUC-V", type: jt, size: 2}
+  - {crew_id: "E-BV-3", depot_id: "D-BUC-V", type: it_mt, size: 3}
+  - {crew_id: "E-BE-1", depot_id: "D-BUC-E", type: jt, size: 2}
+  # JT cu 3 oameni: schimbarea prizei și mutarea pe altă fază (C) cer 3 oameni de joasă tensiune în București.
+  - {crew_id: "E-BE-2", depot_id: "D-BUC-E", type: jt, size: 3}
+  - {crew_id: "E-CT-1", depot_id: "D-CTA", type: it_mt, size: 3}
+  - {crew_id: "E-CT-2", depot_id: "D-CTA", type: jt, size: 2}
+  - {crew_id: "E-TM-1", depot_id: "D-TM", type: it_mt, size: 3}
   # Adăugate 13:25 la cererea firului B: furtuna din scenariul demo-vara (8 iulie 2025) e în Banat.
-  - {crew_id: "E-AR-1", depot_id: "D-ARD", skills: [lv_grid, mv_grid], size: 3}
-  - {crew_id: "E-RS-1", depot_id: "D-RES", skills: [lv_grid, mv_grid], size: 3}
-  - {crew_id: "E-DV-1", depot_id: "D-DEV", skills: [metering, lv_grid, mv_grid], size: 3}
+  - {crew_id: "E-AR-1", depot_id: "D-ARD", type: it_mt, size: 3}
+  - {crew_id: "E-RS-1", depot_id: "D-RES", type: it_mt, size: 3}
+  # JT: Banatul are nevoie și de o echipă de joasă tensiune (furtunile pe zone mici, contoare).
+  - {crew_id: "E-DV-1", depot_id: "D-DEV", type: jt, size: 3}

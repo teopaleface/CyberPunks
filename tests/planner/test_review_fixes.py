@@ -41,14 +41,15 @@ def test_1_meter_access_window_is_respected(out_root: Path) -> None:
 
 
 def test_2_combined_remedy_needs_all_skills(out_root: Path) -> None:
+    # Regula tipurilor de echipe (8 nov.): o treaptă JT și una MT nu le face aceeași echipă; combinația nu intră în traseu.
     opts = [_opt("phase_rebalance", 350.0, -0.015, crew=True), dict(_opt("adjust_tap", 450.0, -0.015, crew=True), crew_skill="mv_grid")]
     it = _c_with_ladder("PT-L010", opts)  # 1,125: fiecare singură ajunge la 1,110; împreună 1,095
     write_items(out_root, "C", [it])
     res = agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root, as_of=EARLY)
     d = _decisions(res)[it["work_item_id"]]
-    assert d.decision.value == "assigned" and d.threshold["remedy_steps"] == 2
-    crew = next(c for c in Settings.load().crews if c.crew_id == d.crew_id)
-    assert {"lv_grid", "mv_grid"} <= crew.skills
+    assert d.decision.value != "assigned" and d.crew_id is None
+    assert "două tipuri de echipe" in d.reason_ro
+    assert all(not ({"lv_grid", "mv_grid"} <= c.skills) for c in Settings.load().crews)
 
 
 def test_3_greedy_never_puts_a_storm_crew_after_the_shift(out_root: Path) -> None:
