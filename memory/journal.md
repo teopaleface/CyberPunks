@@ -217,3 +217,8 @@ La tensiunile reale, XGBoost rămâne alegerea făcută pe validare, chiar dacă
 ### 2026-11-08 10:35 București — verificare ML din clonă curată
 
 Clona commitului 5b7aff7, fără directoarele raw/interim/processed la pornire, trece toate cele 208 teste (zero eșecuri, zero omise), inclusiv limitele fișierelor din Git. S-a reutilizat mediul Python cu dependențele bench; codul și datele au fost citite din clonă. Scorurile disponibile în Git: 28/28; local, inclusiv SGCC: 30/30. Ruff pe src și tests trece. Dovezile sunt în reports/ml/clean_checkout.json și raportul ML comun. Cele trei fișiere/directoare nelegate de cerere, deja ne urmărite, au rămas neincluse în commituri.
+
+### 8 noiembrie 2026, 10:38 (București) — ML într-un minut, pe pagina Agent
+
+- Eden prezintă partea de ML într-un minut, pe pagina Agent a site-ului. Am adăugat secțiunea „Four models, one plan” (`/agent#models`, `web/site/src/components/model-overview.tsx`): pentru contoare, furtuni, tensiune (C) și bilanț arată datele (cu eticheta reală/sintetică), modelul, testul și două metrici față de reper. Cifrele se citesc din `daybreak.json`, nu sunt scrise de mână.
+- Scriptul de un minut și răspunsurile pentru juriu: `presentation/ml-un-minut.md`.
