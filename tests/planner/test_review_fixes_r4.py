@@ -181,3 +181,20 @@ def test_snapshot_can_keep_only_the_charts_of_the_plan(out_root: Path, tmp_path:
     wanted = {st.work_item_id for r in res.plan.routes for st in r.stops} | {
         d.work_item_id for d in res.plan.decisions if d.decision.value == "human_review"}
     assert kept == wanted and len(kept) < len(res.plan.decisions)
+
+
+def test_cached_slow_output_is_not_reused_after_the_model_changed(tmp_path: Path, monkeypatch) -> None:
+    """8 noiembrie: planul pentru 8 iulie refolosea ieșirea bilanțului de ieri, deși modelul bilanțului se schimbase."""
+    import os
+    import time as _t
+
+    write_items(tmp_path, "A_bilant", fixture_items("A")[:1])
+    out = tmp_path / "work_items" / SCENARIO / "A_bilant.jsonl"
+    old = _t.time() - 3600
+    os.utime(out, (old, old))
+    from datetime import date as _date
+    day = _date.fromisoformat(DATE)
+    monkeypatch.setattr(agent, "_newest_code_mtime", lambda module: old - 60)  # codul e mai vechi decât ieșirea
+    assert agent._fresh_output(out, day, float("inf"), "cyberpunks.a_bilant.predict")
+    monkeypatch.setattr(agent, "_newest_code_mtime", lambda module: old + 60)  # codul s-a schimbat după ieșire
+    assert not agent._fresh_output(out, day, float("inf"), "cyberpunks.a_bilant.predict")

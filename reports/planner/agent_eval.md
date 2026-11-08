@@ -1,6 +1,6 @@
 # Evaluarea agentului: cifrele (generat de script)
 
-Generat automat de `uv run python -m cyberpunks.planner.evaluate --days 30 --seed 7 --meters 120` la 2026-11-07T18:15:44+02:00 (`planner@0.1.0+cddf997`). Lume SINTETICĂ, 30 de zile, 120 de lucrări A pe zi. Metoda: `reports/planner/README.md`.
+Generat automat de `uv run python -m cyberpunks.planner.evaluate --days 30 --seed 7 --meters 120` la 2026-11-08T08:03:51+02:00 (`planner@0.1.0+7675c21`). Lume SINTETICĂ, 30 de zile, 120 de lucrări A pe zi. Metoda: `reports/planner/README.md`.
 
 | Strategie | Valoare netă pe zi (lei) | Km pe zi | Vizite fără problemă reală | Urgențe ratate | Furtuni reale acoperite |
 |---|---|---|---|---|---|
@@ -48,13 +48,13 @@ Agentul a mai trimis 1410 citiri la distanță (din care 749 pe probleme reale) 
 
 | Strategie | Valoare netă (lei) | Vizite | Probleme reale găsite | Vizite fără problemă | Cazuri reale de siguranță vizitate | Km |
 |---|---|---|---|---|---|---|
-| Agentul (reguli + OR-Tools) | 11.962 | 22 | 22 | 0 | 14 din 159 | 153 |
-| Agentul fără siguranța obligatorie (ablație) | 27.495 | 24 | 24 | 0 | 6 din 159 | 127 |
-| Top-K după scor | 4.208 | 22 | 22 | 0 | 2 din 159 | 249 |
-| Primul venit | 29.335 | 24 | 24 | 0 | 1 din 159 | 172 |
-| Aleator | 1.871 | 27 | 23 | 4 | 10 din 159 | 228 |
+| Agentul (reguli + OR-Tools) | 17.487 | 23 | 23 | 0 | 13 din 40 | 178 |
+| Agentul fără siguranța obligatorie (ablație) | 27.206 | 25 | 25 | 0 | 5 din 40 | 129 |
+| Top-K după scor | 4.208 | 22 | 22 | 0 | 0 din 40 | 249 |
+| Primul venit | 29.335 | 24 | 24 | 0 | 0 din 40 | 172 |
+| Aleator | 1.871 | 27 | 23 | 4 | 2 din 40 | 228 |
 
-Agentul a trimis în plus 407 citiri la distanță (din care 319 pe probleme reale) și 13 cazuri la om (din care 5 reale). „Primul venit” urmează aici ordinea din fișierul modelului A, care e deja clasamentul lui după valoare. Agentul trimite întâi toate cazurile cu risc pentru oameni (regula R-SAFETY), chiar dacă valorează puțin în lei; ablația arată cât costă regula și câte cazuri de siguranță ar rămâne nevizitate fără ea.
+Agentul a trimis în plus 389 citiri la distanță (din care 301 pe probleme reale) și 13 cazuri la om (din care 5 reale). „Primul venit” urmează aici ordinea din fișierul modelului A, care e deja clasamentul lui după valoare. Agentul trimite întâi toate cazurile cu risc pentru oameni (regula R-SAFETY), chiar dacă valorează puțin în lei; ablația arată cât costă regula și câte cazuri de siguranță ar rămâne nevizitate fără ea.
 
 ## Sensibilitate la ipotezele fără sursă
 
