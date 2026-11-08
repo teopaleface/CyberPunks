@@ -1,7 +1,22 @@
 # Status: Teo-planificator
-Actualizat: 2026-11-07 18:31
-Milestone curent: M4 gata; cele trei probleme din QA-ul de la 17:55 reparate; după 20:00 doar reparații de bug-uri
-Gata de merge: da (commit dc33d17, plus acest status)
+Actualizat: 2026-11-08 08:10
+Milestone curent: M4 gata, starea finală (8 nov.); de acum doar reparații de bug-uri, înghețarea la 10:30
+Gata de merge: da (commit 589addd, plus acest status)
+
+## Starea finală (8 nov., 08:10)
+
+- **`git merge Teo`** (127 de commit-uri de peste noapte; în fișierele mele doar `/api/metrics` cu bilanțul și ținta `bilant-v2`), apoi **`make check`: 569 de teste trec**. După cele două commit-uri de mai jos, testele planificatorului trec toate.
+- **O reparație** (commit 7675c21): planul pentru 8 iulie refolosea ieșirea bilanțului de ieri, 15:16, deși bilanțul v2 și regula lui de siguranță au intrat după. Acum o ieșire salvată a unui model lent nu se mai refolosește dacă codul sau modelul lui s-au schimbat după ea. Test: `test_cached_slow_output_is_not_reused_after_the_model_changed`.
+- **Evaluarea agentului, pe codul final** (commit 589addd). Comanda: `make agent-eval` (= `uv run python -m cyberpunks.planner.evaluate --days 30 --seed 7 --meters 120`, ~1 min); tabelele în `reports/planner/agent_eval.md`.
+  - 30 de zile SINTETICE: agentul 35.060 lei valoare netă pe zi; cea mai bună strategie simplă („primul venit”) 23.552 lei (+49%); top-K după scor 23.255 lei. Km pe zi: 350 față de 511 la top-K. Urgențe ratate: 25,0% față de 26,8%.
+  - Model prea încrezător (10 zile): agentul 19.449 lei pe zi, top-K 14.011 lei. Ipotezele fără sursă variate: agentul rămâne în față cu 48-77%.
+  - Ziua demo (8 iulie 2025, lucrările reale A și adevărul injectat de firul A): 23 de vizite, toate pe probleme reale; 13 din cele 40 de cazuri reale de siguranță vizitate, față de 0 la „primul venit” și la top-K; 17.487 lei net (primul venit: 29.335 lei, dar niciun caz de siguranță).
+- **Planurile reale pe codul final** (ies la fel și dintr-un folder gol, deci se refac cu comanda):
+  - `demo-vara` (8 iulie 2025): 25 de lucrări în traseele a 8 echipe, 300,4 km, valoare așteptată 81.050 lei. 9 cazuri de siguranță (A marchează acum doar ocolirea fizică, iar bilanțul doar riscul real), toate în trasee. Trei echipe de furtună lângă baze (Timișoara, Arad, Oravița); Ineu (58%, model nesigur) la dispecer, cu alertă. 25 de cazuri la dispecer, 424 de verificări de la distanță, 48 de mesaje.
+  - `maine` (acum 9 noiembrie 2026, prognoza reală): A 584, bilanț 57 (merge din nou), B 26, C 13 lucrări. 19 lucrări în traseele a 5 echipe, 280,8 km, 56.223 lei. 10 cazuri de siguranță. Vreme liniștită, nicio echipă trimisă din timp. Niciun exemplu de test.
+- **Instantaneul demo**: în git e cel din 7 nov., 18:25 (cu ieșirile vechi ale lui A și ale bilanțului: 20 de lucrări, 24 de cazuri de siguranță). Cel final, cu cifrele de mai sus, e gata local, făcut dintr-o rulare curată, fără decizii umane. **Îl salvez în git o singură dată, imediat după înghețarea de la 10:30 (regula lui Teo), sau mai devreme, dacă îmi ceri.** Până atunci, prezentarea poate folosi cifrele de mai sus: sunt exact cele din el.
+- Observație: la 08:04, cineva a aprobat zona Ineu din consolă, prin API-ul meu de pe 8710, iar planul s-a recalculat (a patra echipă de furtună). Fluxul agent → om → agent merge live. Starea aceea nu e în instantaneu.
+- Pornirea demo-ului rămâne `make demo` (secțiunea de mai jos).
 
 ## Răspuns la QA-ul orchestratorului, 17:55 (toate trei reparate, instantaneul final în git: commit dc33d17)
 
@@ -129,7 +144,7 @@ Pe scurt: două schimbări intenționate explică scăderea, iar trei defecte g�
 ## Pentru README-ul principal (text propus, orchestratorul îl poate copia)
 > **Agentul (planificatorul).** `uv run cyberpunks run --scenario demo-vara` trece automat prin cei patru pași: *Perceive* (configurația, scenariul, ce date și modele există), *Estimate* (modelele A, bilanț, B, C), *Decide* (validare și carantină, reguli cu nume și praguri justificate de cost, trasee OR-Tools cu ferestre de timp, abilități și baze multiple, întâi cazurile obligatorii de siguranță, cu rezervă greedy; același plan la fiecare rulare) și *Act* (planul, jurnalul de decizii, alertele, mesajele demo, ordinele de lucru PDF pe echipă, raportul zilei). Fiecare decizie are o regulă (`rule_id`), pragurile folosite, motivul în română și o linie în jurnal cu ID-ul predicției, versiunea modelului și amprenta intrării. Ce nu e sigur merge la dispecer, într-o coadă de cel mult 25 de cazuri pe zi; dispecerul aprobă, respinge sau amână, iar planul se recalculează. Pragurile: `config/planner.yaml`; costurile, cu sursa fiecăruia: `config/economics.yaml`; cercetarea: `docs/research/planificator.md`.
 >
-> **Evaluarea agentului.** `make agent-eval` (~1 min) compară agentul cu strategii simple (top-K după scor, primul venit, aleator, o singură sursă) pe aceleași echipe și restricții: pe 30 de zile sintetice, +49% valoare netă față de cea mai bună strategie simplă, cu mai puțini km și mai puține urgențe ratate; pe ziua demo, cu lucrările reale A și adevărul injectat, toate cele 22 de vizite ale agentului sunt probleme reale, iar 14 sunt cazuri reale de siguranță, față de 1 la ordinea pe valoare și 2 la top-K după scor. Metoda și limitele: `reports/planner/README.md`; tabelele: `reports/planner/agent_eval.md`.
+> **Evaluarea agentului.** `make agent-eval` (~1 min) compară agentul cu strategii simple (top-K după scor, primul venit, aleator, o singură sursă) pe aceleași echipe și restricții: pe 30 de zile sintetice, +49% valoare netă față de cea mai bună strategie simplă, cu mai puțini km și mai puține urgențe ratate; pe ziua demo, cu lucrările reale A și adevărul injectat, toate cele 23 de vizite ale agentului sunt probleme reale, iar 13 sunt cazuri reale de siguranță (din 40), față de 0 la ordinea pe valoare și la top-K după scor. Metoda și limitele: `reports/planner/README.md`; tabelele: `reports/planner/agent_eval.md`.
 >
 > **Demo.** `make demo` rulează planul real pentru ziua demo (8 iulie 2025), apoi pornește API-ul și consola dispecerului: http://localhost:3710. `make demo-offline` pornește aceleași două servere pe planul salvat în git, fără să ruleze modelele.
 >
@@ -153,10 +168,11 @@ Pe scurt: două schimbări intenționate explică scăderea, iar trei defecte g�
 - `make agent-eval` (~1 min), `make solver-bench` (~6 min), `make demo-snapshot`
 
 ## Cifre (doar din scripturi, cu comanda)
-- `make agent-eval` (18:13), 30 de zile SINTETICE: valoare netă pe zi, agentul 35.060 lei, cea mai bună strategie simplă 23.552 (+49%); km pe zi 350 față de 511 la top-K; urgențe ratate 25,0% față de 26,8%. Robust la un model supra-încrezător și la ipotezele fără sursă (+48% … +77%). Tabelele: `reports/planner/agent_eval.md`, graficul: `reports/planner/agent_eval.png`.
-- `make solver-bench`: OR-Tools aduce cu 3-19% mai multă valoare netă decât greedy pe 100-300 de lucrări, în 1,4-9 s.
-- Ziua demo, 8 iulie 2025, doar contoarele (`make agent-eval`, 18:13; lucrările reale A, 532, din care 404 probleme reale după `A_ground_truth.csv`; valoarea capturată e valoarea reală): agentul face 22 de vizite, toate pe probleme reale, din care 14 cazuri reale de siguranță (din 159), și câștigă 11.962 lei net. Fără siguranța obligatorie: 27.495 lei și 6 cazuri de siguranță. Ordinea pe valoare a lui A („primul venit”): 29.335 lei și 1 caz. Top-K după scor: 4.208 lei și 2 cazuri. E un compromis de politică (`global.safety_mandatory` și cota `global.safety_max_mandatory_per_day: 12` în `config/planner.yaml`); pentru prezentare, cifra cinstită e „14 cazuri reale de siguranță vizitate, față de 1-2”, nu valoarea netă.
-- Planul `demo-vara` (instantaneul din 16:33): 20 de lucrări în traseele a 8 echipe, 291,8 km, valoare așteptată 71.803 lei, 25 la dispecer, 504 verificări de la distanță; OR-Tools 7,6 s, același plan la fiecare rulare. Comanda: `uv run cyberpunks run --scenario demo-vara`.
+- `make agent-eval` (8 nov., 08:03, `planner@0.1.0+7675c21`), 30 de zile SINTETICE: valoare netă pe zi, agentul 35.060 lei, cea mai bună strategie simplă 23.552 (+49%); km pe zi 350 față de 511 la top-K; urgențe ratate 25,0% față de 26,8%. Robust la un model supra-încrezător (19.449 față de 14.011 lei pe zi la top-K) și la ipotezele fără sursă (+48% … +77%). Tabelele: `reports/planner/agent_eval.md`, graficul: `reports/planner/agent_eval.png`.
+- `make solver-bench` (7 nov., 16:39, setările finale): OR-Tools aduce cu 2,9-12,5% mai multă valoare netă decât greedy pe 100-300 de lucrări, în 0,5-2,2 s.
+- Ziua demo, 8 iulie 2025, doar contoarele (`make agent-eval`, 8 nov., 08:03; lucrările reale A, 532, din care 404 probleme reale după `A_ground_truth.csv`; semnalul de siguranță al lui A e acum doar ocolirea fizică: 40 de cazuri reale; valoarea capturată e valoarea reală): agentul face 23 de vizite, toate pe probleme reale, din care 13 cazuri reale de siguranță (din 40), și câștigă 17.487 lei net. Fără siguranța obligatorie: 27.206 lei și 5 cazuri de siguranță. Ordinea pe valoare a lui A („primul venit”): 29.335 lei și 0 cazuri. Top-K după scor: 4.208 lei și 0 cazuri. E un compromis de politică (`global.safety_mandatory` și cota `global.safety_max_mandatory_per_day: 12` în `config/planner.yaml`); pentru prezentare, cifra cinstită e „13 din 40 de cazuri reale de siguranță vizitate, față de 0 la strategiile simple”, nu valoarea netă.
+- Planul `demo-vara` pe codul final (8 nov., 08:05, același dintr-un folder gol): 25 de lucrări în traseele a 8 echipe, 300,4 km, valoare așteptată 81.050 lei; 9 cazuri de siguranță; 25 la dispecer; 424 de verificări de la distanță; 48 de mesaje; OR-Tools 5,4 s. Comanda: `uv run cyberpunks run --scenario demo-vara`.
+- Planul `maine` (9 noiembrie 2026, prognoza reală): 19 lucrări, 5 echipe, 280,8 km, 56.223 lei; 10 cazuri de siguranță; vreme liniștită. Comanda: `uv run cyberpunks run --scenario maine`.
 
 ## Decizii (cu ora)
 - 12:53 API-ul citește: ultima rulare (`outputs/`), instantaneul `outputs/demo/`, apoi `contracts/fixtures/`; `CYBERPUNKS_API_SOURCE` poate fixa sursa (14:30).
