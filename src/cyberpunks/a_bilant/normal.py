@@ -25,6 +25,7 @@ from cyberpunks.common.paths import MODELS
 QUANTILES = (0.1, 0.5, 0.9)
 MODEL_DIR = MODELS / "bilant"
 RELEASE_DIR = MODELS / "release" / "bilant"
+PREVIOUS_RELEASE_DIR = MODELS / "release" / "bilant-v2"
 PARAMS = {"n_estimators": 500, "learning_rate": 0.04, "num_leaves": 31, "min_child_samples": 40, "subsample": 0.8, "subsample_freq": 1, "colsample_bytree": 0.8, "verbose": -1, "n_jobs": 4}
 
 
@@ -62,10 +63,15 @@ def load(name: str = "normal", directory=MODEL_DIR) -> NormalModel:
 
 
 def load_for_prediction() -> dict[str, NormalModel]:
-    """Folosește perechea livrată cu diagnosticul, inclusiv într-o clonă curată."""
-    if (RELEASE_DIR / "release.json").exists():
-        return {name: load(f"feederbw_normal_{name}", RELEASE_DIR) for name in ("warm", "cold")}
+    """Folosește modelele v2 anterioare, inclusiv într-o clonă curată."""
+    if (PREVIOUS_RELEASE_DIR / "release.json").exists():
+        return {"warm": load("normal", PREVIOUS_RELEASE_DIR), "cold": load("normal_cold", PREVIOUS_RELEASE_DIR)}
     return {"warm": load("normal"), "cold": load("normal_cold")}
+
+
+def load_feederbw() -> dict[str, NormalModel]:
+    """Perechea experimentală, păstrată numai pentru comparații."""
+    return {name: load(f"feederbw_normal_{name}", RELEASE_DIR) for name in ("warm", "cold")}
 
 
 def drop_history(df: pd.DataFrame) -> pd.DataFrame:

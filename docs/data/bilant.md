@@ -142,19 +142,23 @@ Aceste rezultate nu măsoară performanța pe pierderi reale sau pe date PPC.
 
 Rezultatul celor 40 de încercări: F1 macro test **0,70858 → 0,71393**; diferență +0,00535,
 interval bootstrap 90% **[-0,00618; +0,01769]** pe plecări reale. Câștigul nu este confirmat statistic;
-modelul a fost inclus în livrare la cererea explicită a utilizatorului. Rezumat: `reports/bilant/feederbw_optuna.md`.
+modelul FeederBW a fost retras din rularea implicită la cererea utilizatorului și rămâne disponibil pentru comparații.
+Rezumat: `reports/bilant/feederbw_optuna.md`.
 
-Pachetul activ este `models/release/bilant/`: diagnosticul comprimat și cele șase modele P10/P50/P90,
-warm/cold, folosite împreună în experiment. `predict` le încarcă direct inclusiv într-o clonă curată,
-înaintea vechilor modele locale. Versiunea înscrisă în predicții este
-`bilant-diagnoza-lgbm@feederbw-optuna-20261108`. Pachetul este verificabil prin SHA256 în `release.json`.
-Evaluarea din `reports/bilant/metrics.json` și cifrele fuziunii sunt **istorice**, pentru modelul anterior;
-fuziunea cu noul model nu a fost validată separat. Datele și etichetele de bilanț folosite la test rămân sintetice.
+Pachetul activ este `models/release/bilant-v2/`: diagnosticul v2 anterior, refăcut din setările salvate,
+și modelele P10/P50/P90 warm/cold corespunzătoare. `predict` le încarcă direct și într-o clonă curată.
+Pachetul FeederBW rămâne în `models/release/bilant/` doar pentru comparații, nu este încărcat la predicție.
+Ambele pachete au sume SHA256 în `release.json`. Cifrele din `reports/bilant/metrics.json` sunt din
+evaluarea istorică; v2 reconstruit reproduce F1 și eroarea pierderii normale din acea evaluare.
+Fuziunea cu modelul FeederBW nu a fost validată separat. Datele și etichetele de bilanț rămân sintetice.
 
-Verificare suplimentară a modelului activ pe harta simulată: F1 macro **0,58950** pe 13.200 de ferestre,
-eroare medie a pierderii normale **8,81 kWh/zi**, acoperire P10–P90 **0,695**. Nu s-a verificat identitatea
-completă a intrărilor față de raportul istoric. Rezultat și reproducere: `reports/bilant/feederbw_release_pop.json`,
-`uv run python -m cyberpunks.a_bilant.feederbw evaluate-release`.
+Verificare suplimentară a candidatului FeederBW pe harta simulată: F1 macro **0,58950** pe 13.200 de ferestre,
+eroare medie a pierderii normale **8,81 kWh/zi**, acoperire P10–P90 **0,695**. Pe aceleași 13.200 de ferestre,
+v2 reconstruit obține F1 **0,75352**, MAE **5,40 kWh/zi** și acoperire **0,881**. Comparația pereche, cu etichete
+sintetice, este în `reports/bilant/comparatie_v2_feederbw.json`; reproducere:
+`uv run python -m cyberpunks.a_bilant.feederbw compare-v2`. Rezultatul separat FeederBW:
+`reports/bilant/feederbw_release_pop.json`,
+`uv run python -m cyberpunks.a_bilant.feederbw evaluate-feederbw`.
 
 ## Adaptarea pe date PPC
 

@@ -121,6 +121,10 @@ Pachetul activ FeederBW: F1 macro 0,58950 pe 13.200 ferestre, MAE pierdere norma
 
 - 02:56: Teo a cerut integrarea versiunii salvate pe Teo în main. Păstrate schimbările existente ale echipei; modificările locale încă nesalvate rămân în lucru. Fără deploy.
 
+### 2026-11-08 02:59 — Revenire la modelul de bilanț v2
+
+Utilizatorul a aprobat revenirea. V2 a fost reconstruit din parametrii salvați și este activ; FeederBW rămâne pentru experimente. Pe aceleași 13.200 de ferestre simulate, F1 v2 0,75352 față de FeederBW 0,58950; MAE 5,398 față de 8,813 kWh/zi. V2 reproduce F1 și MAE din raportul istoric. Comparație: `reports/bilant/comparatie_v2_feederbw.json`; fuziunea nu a fost evaluată separat.
+
 ### 2026-11-08 03:40 — Tudor: tura de zonă în planificator
 
 - După mentorul PPC, agentul nu mai trimite echipa a doua zi la orice. Vizitele obișnuite la contoare și posturi așteaptă tura de zonă de vineri. Pleacă mai devreme doar dacă: se apropie termenul legal (contor defect, 10 zile lucrătoare, cu o zi de rezervă), au rămas de la tura trecută, așteptarea pierde mai mult decât economisește tura, zona umple o tură sau o echipă trece oricum pe lângă. Siguranța, furtunile și tensiunea nu se amână. Pe 4 săptămâni sintetice: −20% km, −24% zile-echipă, 0 termene depășite; drumul economisit e cam cât costă așteptarea, câștigul net vine din zilele-echipă eliberate. Detalii în `19-tura-de-zona.md`. Decizie: amânarea e pornită implicit (`dispatch.weekly_batching: true`).

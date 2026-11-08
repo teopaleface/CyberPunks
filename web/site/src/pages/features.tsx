@@ -57,7 +57,7 @@ export function BilantPage() {
         <BalanceExplorer full />
       </Block>
 
-      <Block title="Previous model results against baselines" intro="Historical held-out test data for the previous balance model. The active FeederBW model has a separate evaluation with synthetic fault labels.">
+      <Block title="Model results against baselines" intro="Held-out simulated test data for the earlier v2 balance model. Baselines use a physical formula for normal loss and a rule table for the cause.">
         <dl className="tabular grid gap-6 md:grid-cols-3">
           <div data-ui className="rounded-2xl bg-surface p-6">
             <dd className="text-4xl font-semibold">
@@ -187,7 +187,7 @@ export function DiagnosticPage() {
                       </div>
                       <div>
                         <dd className="text-2xl font-semibold">{fmt(f1[`diagnoza_f1_${d.key}`] ?? 0, 2)}</dd>
-                        <dt className="text-sm text-foreground/60">Previous model test F1</dt>
+                        <dt className="text-sm text-foreground/60">v2 test F1</dt>
                       </div>
                     </div>
                   </dl>

@@ -1,0 +1,18 @@
+{
+  "version": "bilant-diagnoza-lgbm@v2-reconstruit-20261108",
+  "training": "v2 reantrenat pe 3000 de rețele și etichete SINTETICE; parametrii originali din reports/bilant/v2_params.json",
+  "normal_models": "modele anterioare antrenate pe lotul train, copiate din rularea locală 6e57aaa",
+  "model_sha256": {
+    "diagnose.json": "8b85cec38a7a71ffacf0bf2008c7de60820bf81c9790fadd8a18805ab4b2a11b",
+    "diagnose.txt.gz": "8412b9b439d43a5b6f04b4db8617d83a84a664b598eb68f14094befefe1350ff",
+    "fusion_sigma.json": "16ba7a2c86819d517cb5bc84e7a23891a3453380145004ab3948cc1f9d463c83",
+    "normal_cold_conformal.json": "949c24648891b14c400b5e5853157c2bd2eefe96ec803ed51ce015db4ca3212e",
+    "normal_cold_q10.txt": "9cc309660b79e7591cfe9293ad737888f265144c54df961b7defc8208db45180",
+    "normal_cold_q50.txt": "4b9f0685cdcf32f66dd1aa90e114aca8429f2b57b7ae341d8d3df6bb5b9f01a4",
+    "normal_cold_q90.txt": "3f8c92ed41163e00501cd31f0294084bca9870dc94988a75116a1f07a7a8b9ca",
+    "normal_conformal.json": "70e452f31931b40ef8a97b2e8905cea40f336accdcca74250dcfbd313612759b",
+    "normal_q10.txt": "a5c03b41202c72c57dbc89bf558925727331adc7a53d358c612729612bed561c",
+    "normal_q50.txt": "bbe6305dd828842b7be235d54073e441316088de57cf4c3b4349b5e91c8a8600",
+    "normal_q90.txt": "869df173fd04779ca99148a76b19c38c14de3bd7972e40005a78136d2af890ca"
+  }
+}

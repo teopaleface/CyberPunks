@@ -997,7 +997,6 @@ function ModelPanel({ k, card }: { k: "A" | "B" | "C" | "bilant"; card: ModelCar
         <span className="text-sm text-white/55">{card.version}</span>
       </div>
       <p className="mt-1 text-white/80">{MODEL_LINES[k].what}</p>
-      {k === "bilant" && <p className="mt-1 text-white/70">Rezultatele afișate sunt pentru modelul anterior; modelul FeederBW activ are evaluare separată, cu etichete sintetice.</p>}
       <table data-ui className="tabular mt-4 w-full text-left text-[15px]">
         <thead>
           <tr className="text-sm text-white/60">

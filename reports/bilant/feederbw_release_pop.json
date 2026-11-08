@@ -73,8 +73,7 @@
     "pinball_mean": 2.638739834227876
   },
   "limitations": [
-    "Acest test este diferit de testul FeederBW.",
-    "Nu s-a verificat identitatea completă a datelor față de raportul vechi.",
-    "Fuziunea cu scorul A nu a fost evaluată pentru noul model."
+    "Pe aceleași intrări, comparația cu v2 reconstruit se află în comparatie_v2_feederbw.json.",
+    "Fuziunea cu scorul A nu a fost evaluată pentru modelul FeederBW."
   ]
 }
