@@ -39,6 +39,10 @@ dependencies = [
 cyberpunks = "cyberpunks.cli:app"
 
 [dependency-groups]
+bench = [
+    "catboost>=1.2.10",
+    "xgboost>=3.4.1",
+]
 dev = ["pytest>=8.3", "ruff>=0.6"]
 
 [build-system]
