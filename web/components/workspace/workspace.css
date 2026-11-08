@@ -709,10 +709,7 @@
   overflow: hidden;
   background: var(--canvas);
 }
-.db-assistant-main:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: -2px;
-}
+.db-assistant-main:focus-visible { outline:none; }
 .db-main-header {
   display: flex;
   flex-shrink: 0;
@@ -831,7 +828,7 @@
 .db-main-context .db-filter { max-width: 420px; }
 .db-main .db-assistant-review { flex: none; overflow: visible; padding: 24px 0 0; }
 .db-main .db-assistant-review > .db-panel { background: transparent; border-radius: 0; padding: 20px 0; }
-.db-main .db-assistant-review .db-form { max-width: 600px; }
+.db-main .db-assistant-review .db-form { max-width: 820px; }
 .db-main .db-assistant-review h2 { font-size: 22px; }
 .db-main .db-assistant-review dl { margin-block: 20px; }
 .db-main .db-details { margin-block: 16px; font-size: 12px; color: var(--ink-soft); }
@@ -863,3 +860,9 @@
   .db-main-body.is-empty .db-main-input-area { padding-block: 16px; }
   .db-main-welcome { margin-bottom: 18px; }
 }
+
+.db-saved-finding { margin-block:18px; }
+.db-saved-finding > h3 { font-size:16px; margin-bottom:8px; }
+.db-saved-finding > p { font-size:13px; line-height:1.6; white-space:pre-wrap; margin-bottom:14px; }
+.db-proposal > .dc-comparison,.db-result > .dc-comparison { margin-block:18px; }
+.db-workspace.db-main:focus { outline:none; }

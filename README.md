@@ -12,6 +12,8 @@ Ghidul pentru echipă, cu pornirea demo-ului într-o singură comandă (`make de
 
 Pentru cele trei conturi, conversația prin Codex, vocea ElevenLabs și WhatsApp: [`docs/operations/RUNBOOK.md`](docs/operations/RUNBOOK.md). Această integrare rulează separat, local, fără publicarea site-ului.
 
+Pe Windows, urmează [pornirea în PowerShell](docs/WINDOWS.md), fără `make`. Pentru voce și WhatsApp cu fișiere private, ghidul indică WSL2.
+
 ## Pornire rapidă
 
 ```bash

@@ -7,6 +7,8 @@ import { loadLinkedProposal } from "@/lib/operations/linked-proposal";
 import { proposalSignInPath } from "@/lib/operations/proposal-link";
 import { conversationHistory } from "@/lib/operations/history";
 import { activeConversation, conversationScope, emptyConversations, newConversation, readConversations, rememberReadOnlyTurn, saveConversations, selectConversation, type ConversationStore } from "@/lib/operations/conversation-store";
+import { TaskPanel } from "@/components/agentic/task-panel";
+import { getTask, resumeTask, type TaskView } from "@/lib/agentic/client";
 import { MainConversation } from "./main-conversation";
 import {
   label,
@@ -23,7 +25,9 @@ import {
 import { DraftRequests } from "./draft-requests";
 import { PendingCommands } from "./pending-commands";
 import { recoveryControl } from "@/lib/operations/recovery";
-import { ACTION_NAMES, ProposalForm } from "./proposal-form";
+import { ACTION_NAMES, FIELD_LABELS, fieldValueLabel, ProposalForm } from "./proposal-form";
+import { FindingPhotoGallery, findingPhotos } from "@/components/operations/finding-photos";
+import { DecisionComparison } from "@/components/operations/decision-correction";
 import { RoleOverview } from "./role-overview";
 import {
   assertProposalScenario,
@@ -106,6 +110,15 @@ function WorkspaceContent({
     Boolean(linkedProposalId),
   );
   const [expired, setExpired] = useState(false);
+  const [task, setTask] = useState<TaskView | null>(null);
+  const taskOutdated = Boolean(task && context && (
+    text(context.plan.version ?? context.plan.plan_version) !== task.plan_version ||
+    (Array.isArray(task.result.cases) && task.result.cases.some((value) => {
+      const saved = value as Row;
+      const current = context.cases.find((item) => item.case_id === saved.case_id);
+      return !current || current.version !== saved.version;
+    }))
+  ));
   const [messages, setMessages] = useState<Message[]>([]);
   const history = useRef<Message[]>([]);
   const conversationKey = conversationScope(account, scenario);
@@ -147,6 +160,7 @@ function WorkspaceContent({
       setExpired(true);
       setContext(null);
       setValidated(null);
+      setTask(null);
       setMessages([]);
       history.current = [];
       setProposal(null);
@@ -201,6 +215,22 @@ function WorkspaceContent({
         block: "center",
       });
   }, [proposal?.proposal_id]);
+  useEffect(() => {
+    const controller = new AbortController();
+    let taskId: string | null = null;
+    try { taskId = window.sessionStorage.getItem(`agentic-task:${conversationKey}`); } catch { /* Optional storage. */ }
+    if (taskId) {
+      getTask(taskId, scenario, controller.signal).then((saved) => {
+        if (!controller.signal.aborted && sessionCurrent.current) setTask(saved);
+      }).catch(() => { /* A stale or revoked task is never restored as current evidence. */ });
+    }
+    return () => controller.abort();
+  }, [conversationKey, scenario]);
+  useEffect(() => {
+    if (task) {
+      try { window.sessionStorage.setItem(`agentic-task:${conversationKey}`, task.task_id); } catch { /* Optional storage. */ }
+    }
+  }, [task, conversationKey]);
   const loadScope = useCallback(async () => {
     if (!account.membership.organization_id)
       throw new Error("Your account is not linked to operational data.");
@@ -423,6 +453,7 @@ function WorkspaceContent({
         updateConversations(rememberReadOnlyTurn(conversationsRef.current, input, answer));
       }
 
+      if (answer.task) setTask(answer.task);
       if (answer.proposal) {
         setProposal(assertProposalScenario(answer.proposal, scenario));
         setForm(null);
@@ -436,6 +467,18 @@ function WorkspaceContent({
       inFlight.current = false;
       setBusy(false);
     }
+  }
+  async function continueTask(taskId: string) {
+    if (expired || inFlight.current) return;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30000);
+    try {
+      setBusy(true);
+      inFlight.current = true;
+      const result = await resumeTask(taskId, scenario, controller.signal);
+      if (alive.current && sessionCurrent.current) setTask(result);
+    } catch (issue) { onError(issue); }
+    finally { clearTimeout(timer); inFlight.current = false; setBusy(false); }
   }
   async function openDraft(proposalId: string) {
     if (expired || inFlight.current) return;
@@ -607,12 +650,14 @@ function WorkspaceContent({
                   </section>}
                   {proposal && !selectionPending && <section className="db-panel db-proposal" ref={proposalCard} aria-label="Action proposal">
                     <p className="db-eyebrow">Review before saving</p>
-                    <h2>{ACTION_NAMES[proposal.action]}</h2>
+                    <h2>{proposal.action === "review_work_item" && proposal.data.is_correction === true ? "Review your correction" : ACTION_NAMES[proposal.action]}</h2>
                     <p>{proposal.summary}</p>
-                    <dl>{Object.entries(proposal.data).filter(([key]) => key !== "idempotency_key").map(([key, value]) => <div key={key}>
-                      <dt>{label(key)}</dt>
+                    <dl>{Object.entries(proposal.data).filter(([key]) => !["idempotency_key", "plan_version", "case_version", "linked_case_versions", "photo_ids", "photos", "decision_before", "original_ai_decision", "original_ai_decision_status", "is_correction"].includes(key) && !(proposal.action === "review_work_item" && ["decision", "note"].includes(key))).map(([key, value]) => <div key={key}>
+                      <dt>{FIELD_LABELS[key] ?? label(key)}</dt>
                       <dd>{proposalField(context, key, value)}</dd>
                     </div>)}</dl>
+                    {proposal.action === "record_verdict" ? <FindingPhotoGallery photos={findingPhotos(proposal.data.photos)} scenario={scenario} /> : null}
+                    {proposal.action === "review_work_item" ? <DecisionComparison data={proposal.data} /> : null}
                     <p className="db-muted">Expires {readableDate(proposal.expires_at)}. No change has been saved yet.</p>
                     {proposal.action === "record_verdict" && <p className="db-muted">This records a finding. It does not confirm a repair or close the case.</p>}
                     <div className="db-actions">
@@ -626,6 +671,8 @@ function WorkspaceContent({
                     <p>{command.status === "succeeded" ? "Your request was saved." : command.status === "cancelled" ? "This request was cancelled." : command.status === "failed" ? "The request could not complete. Review its details before trying again." : "This request is awaiting verification. Check its result before starting another."}</p>
                     <p className="db-muted">Request {command.command_id.slice(0, 8)} · {label(command.status)}{text(command.completed_at) ? ` · ${readableDate(command.completed_at)}` : ""}</p>
                     {command.result?.case && typeof command.result.case === "object" ? <p>Case status: {label((command.result.case as Row).status)}</p> : null}
+                    {command.status === "succeeded" && command.result?.finding && typeof command.result.finding === "object" ? <div className="db-saved-finding"><h3>{fieldValueLabel("outcome", (command.result.finding as Row).outcome)}</h3><p>{text((command.result.finding as Row).note)}</p><FindingPhotoGallery photos={findingPhotos((command.result.finding as Row).photos)} scenario={scenario} /><p className="db-muted">Finding saved. Repair and case closure are not confirmed.</p></div> : null}
+                    {command.status === "succeeded" && command.result?.manual_correction && typeof command.result.manual_correction === "object" ? <DecisionComparison data={command.result.manual_correction as Row} saved /> : null}
                     <details className="db-details">
                       <summary>Request receipt</summary>
                       <p>Reference: {command.command_id}</p>
@@ -645,6 +692,8 @@ function WorkspaceContent({
                 </div>
               </details>;
   function selectChat(id?: string) {
+    setTask(null);
+    try { window.sessionStorage.removeItem(`agentic-task:${conversationKey}`); } catch { /* Optional storage. */ }
     if (busy || unavailable || reviewing || mode === "voice") return;
     const next = id ? selectConversation(conversationsRef.current, id) : newConversation(conversationsRef.current);
     updateConversations(next);
@@ -699,7 +748,7 @@ function WorkspaceContent({
         : <>
           {error && <div className="db-alert" role="alert">{error}<button className="db-button" onClick={() => setError("")}>Dismiss</button></div>}
           {selectionError && <div className="db-alert" role="alert">{selectionError}<button className="db-button" disabled={busy} onClick={() => { setClearedSelection({ value: initialSelection }); backToChat(); setError(""); }}>Clear selection</button></div>}
-          <MainConversation role={role} messages={messages} message={message} messageId={messageId} setMessage={setMessage} busy={busy} unavailable={unavailable} reviewing={reviewing} mode={mode} setMode={setMode} onSend={sendMessage} onSuggestion={suggest} conversations={conversations} onNew={() => selectChat()} onSelect={selectChat} messageList={messageList} contextControls={contextControls} review={reviewContent} voice={<Voice scenario={scenario} turn={turn} onError={onError} disabled={unavailable} />} pending={pendingControls} notice={notice} />
+          <MainConversation taskResult={task ? <TaskPanel task={taskOutdated ? {...task, result: {...task.result, snapshot_outdated: true}} : task} onReview={(work_item_id) => open("review_work_item", {work_item_id})} onResume={continueTask} /> : null} role={role} messages={messages} message={message} messageId={messageId} setMessage={setMessage} busy={busy} unavailable={unavailable} reviewing={reviewing} mode={mode} setMode={setMode} onSend={sendMessage} onSuggestion={suggest} conversations={conversations} onNew={() => selectChat()} onSelect={selectChat} messageList={messageList} contextControls={contextControls} review={reviewContent} voice={<Voice scenario={scenario} turn={turn} onError={onError} disabled={unavailable} />} pending={pendingControls} notice={notice} />
         </>}
     </div>;
   }
@@ -834,5 +883,5 @@ function proposalField(context: Context | null, key: string, value: unknown): st
   const item = items?.find((row) => row[key] === value);
   if (item) return itemTitle(item, key === "case_id" ? "Service case" : key === "work_item_id" ? "Assigned visit" : "Service connection");
   if (["start", "end", "planned_start", "planned_end"].includes(key)) return readableDate(value);
-  return typeof value === "object" ? JSON.stringify(value) : text(value);
+  return typeof value === "object" ? JSON.stringify(value) : fieldValueLabel(key, value);
 }

@@ -96,3 +96,25 @@ Implementat și verificat local pe datele complete: 223 teste web, typecheck, li
 ## Prima probă WhatsApp pe telefon confirmată
 
 Teo a confirmat explicit că agentul răspunde la apel și îl aude. ElevenLabs confirmă un apel SIP încheiat cu succes, 23 de secunde și cinci mesaje în conversație. Aceasta verifică legătura vocală reală de pe telefon. Răspunsurile observate au fost salutul, confirmarea de verificare și întrebarea de prezență; nu a fost confirmat un răspuns operațional pe datele Daybreak în acest apel. Proba în zgomotul sălii rămâne separată și neverificată. Înregistrarea audio nu a fost activată.
+
+
+## Interogare reală a agentului și zgomot sintetic, 8 noiembrie
+
+La cererea lui Teo, agentul privat de apeluri a fost interogat automat prin API-ul ElevenLabs, cu utilizator simulat și unealta HTTP reală, fără apeluri WhatsApp inițiate și fără confirmări operaționale. Verificările compară evenimentele de unealtă și răspunsurile HTTP, nu doar verdictul evaluatorului ElevenLabs. Evaluatorul a acceptat inclusiv o probă cu numele uneltei scris în text, fără execuție; aceasta este acum respinsă de proba proprie. Endpointul vechi simulate-conversation răspunde cu 410, fiind retras pe 31 octombrie; folosim agent-testing/create și run-tests.
+
+Problema reprodusă: gpt-4o-mini încheia frecvent răspunsul la „Verific informațiile”, fără apelul uneltei. În 12 verificări de alegere a uneltei, configurația inițială nu a apelat-o deloc. Instrucțiunile au fost corectate, iar coordonatorul vocal este acum gemini-3.5-flash; configurația actuală a trecut 12/12 probe, cu mesajul original păstrat exact. Actualizate și recitite toate cele patru configurații vocale existente; celelalte setări de conversație, autentificare și confidențialitate au rămas identice.
+
+Interogările complete au găsit și refuzarea incorectă a procentului 97,76% față de scorul verificat 0.9776. Verificarea acceptă acum numai conversia exactă în procente a frunzelor prediction/score și assessment/score, fără rotunjire; evaluările indisponibile rămân blocate. Întrebările doar despre reguli de confirmare sunt separate de citirile de date operaționale în instrucțiunile conversației. Probele reale au verificat oprirea din Sectorul 6, predicția cu incertitudine explicită, refuzul extinderii rolului și necesitatea butonului Confirm. Regresia finală cu două ture consecutive a avut două apeluri HTTP reale și două răspunsuri reușite, în 11,48 și 10,27 secunde pentru unealtă.
+
+Proba audio a folosit agentul tehnicianului din browser, cu aceleași setări de recunoaștere și final de vorbire ca agentul SIP, dar cu unealta client a browserului. Întrebarea sintetică a fost amestecată cu zgomot Gaussian filtrat, raport voce/zgomot 12 dB, continuat 40 secunde după sfârșitul vorbirii. Transcrierea a păstrat întrebarea exactă; unealta a fost cerută după 1,695 secunde, iar răspunsul audio a început după 15,389 secunde, în timp ce zgomotul continua. Contextul operațional nu s-a schimbat. Aceasta nu verifică vocile mulțimii, ecoul, microfonul/difuzorul fizic sau zgomotul unui apel WhatsApp în sală. Audio nu a fost ascultat manual.
+
+126 teste de canale, lint și verificarea diferențelor au trecut. Serviciul de apeluri 8722 a fost repornit izolat pentru codul numeric; tunelul, SIP, ingressul Meta și workerul au fost păstrate. Restartul 8720 aparține firului separat pentru fotografii/corecții. Proba repetabilă scripts/daybreak_whatsapp_call_probe.py creează un test temporar cu o întrebare fixă doar de citire, cere execuție HTTP reală și șterge testul la final. Conturile și asocierile demonstrative rămân sintetice; identificatorul real al apelantului nu se copiază în memorie.
+
+
+## Fotografii de teren și corecții umane, 8 noiembrie 2026
+
+Fotografiile tehnicianului sunt private, pe lucrarea atribuită: JPEG/PNG/WebP, maximum 5 MiB fiecare și șase per constatare. Serverul decodează și reencodează imaginea fără EXIF; baza SQLite păstrează conținutul. Draftul devine dovadă atașată numai la Confirm. Tehnicianul autorizat și dispecerul autorizat pot vedea dovada; proiecțiile clientului exclud fotografiile. Închiderea formularului încearcă ștergerea încărcărilor abandonate; serverul protejează referințele din propuneri/comenzi și fotografiile atașate.
+
+Corecția manuală folosește operația existentă de revizuire și planificatorul real. Motivul este obligatoriu. Proveniența originalului AI este verificată sau marcată necunoscută; browserul nu o poate furniza ca adevăr. Istoricul păstrează decizia anterioară, cererea omului, rezultatul efectiv, autorul, ora și comanda. Predicția ML nu este rescrisă și această corecție nu înseamnă reantrenare.
+
+Proba reală din browser pe copia izolată a trecut upload → Review → Confirm → fotografie persistentă, citire de dispecer, refuz 403 pentru client, Defer cu R-HUMAN-DEFER și istoric după reîncărcare. Fixture-ul fotografic este explicit sintetic. Nu s-au trimis mesaje sau apeluri externe în aceste probe.

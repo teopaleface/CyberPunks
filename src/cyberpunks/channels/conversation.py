@@ -4,12 +4,17 @@ from __future__ import annotations
 
 import json
 import re
+from decimal import Decimal
 from typing import Any
 
 from cyberpunks.channels.codex import CodexProvider
 from cyberpunks.channels.models import ChannelError, ChatRequest, Intention
 
-SYSTEM = """You are Daybreak, the energy operations conversation assistant. Respond naturally and briefly in
+SYSTEM = """For requests to analyze the complete review queue, prepare a complete route brief, or produce a case report,
+return kind=task, task_goal=analyze_queue|route_brief|case_brief respectively, action=null and all data fields null.
+The server will execute bounded authorized analysis on the full source and provide verified results.
+For all other kinds task_goal must be null. A task never confirms an intervention or changes a plan.
+You are Daybreak, the energy operations conversation assistant. Respond naturally and briefly in
 Romanian or English, matching the latest user's language. Default to 1-2 short sentences, at most 40 words.
 Speak naturally as a helpful colleague. Technical details and identifiers belong in the app cards; do not read
 internal IDs aloud unless the user explicitly requests identifiers or detailed evidence. Put one question at a time.
@@ -25,6 +30,10 @@ containing the exact JSON at each pointer. Prefer leaf fields and the fewest poi
 do not copy whole work items or route objects into evidence. Usually one to three short values suffice.
 Paths are relative to scoped_context, e.g. /next_stop/eta, not /scoped_context/next_stop/eta.
 Every number or time spoken in the reply must also appear in the referenced evidence values.
+For probability percentages, cite the exact prediction/score leaf. Its verified decimal may be multiplied
+by 100 and followed by % without rounding; do not change other numbers or invent precision.
+For pure questions about capabilities, permission rules or how confirmation works, use kind=clarify
+with no operational claims; evidence may be empty. These policy answers are not operational data reads.
 For missing or ambiguous targets, ask ONE short question with kind=clarify. Selection is only a hint and confers
 no rights. If multiple cases/connections/jobs match and none is explicitly selected, clarify rather than guess.
 For requested writes return kind=prepare and one of the six actions below, with typed data; never claim any
@@ -81,7 +90,9 @@ def checked_evidence(intention: Intention, context: dict) -> list[dict]:
             item = context.get("work_items", [])[int(match[1])]
             subpath = match[2] or ""
             if (item.get("assessment") or {}).get("status") != "available" and (
-                not subpath or subpath.split("/")[0] in {"prediction", "explanation", "impact"}
+                not subpath
+                or subpath.split("/")[0] in {"prediction", "explanation", "impact"}
+                or subpath == "assessment/score"
             ):
                 raise ChannelError(
                     "assessment_unavailable",
@@ -102,8 +113,26 @@ def checked_evidence(intention: Intention, context: dict) -> list[dict]:
     if intention.kind != "prepare":
         # Every numerical claim and common operational ID must occur in checked evidence.
         source = json.dumps(result, ensure_ascii=False)
-        tokens = re.findall(r"\d+(?:[.,]\d+)?|\b[ABC]-\d{8}-[\w.-]+", intention.reply)
-        if any(t not in source and t.replace(",", ".") not in source for t in tokens):
+        # A probability's exact percentage is the same checked value in different units.
+        # Only available, explicitly cited score leaves qualify; arbitrary numbers and rounding do not.
+        percentages = set()
+        for item in result:
+            if re.fullmatch(r"/work_items/\d+/(?:prediction|assessment)/score", item["path"]) and type(
+                item["value"]
+            ) in {int, float}:
+                score = Decimal(str(item["value"]))
+                if score.is_finite() and 0 <= score <= 1:
+                    percentages.add(score * 100)
+        for match in re.finditer(r"\d+(?:[.,]\d+)?|\b[ABC]-\d{8}-[\w.-]+", intention.reply):
+            token = match.group()
+            if token in source or token.replace(",", ".") in source:
+                continue
+            if (
+                re.fullmatch(r"\d+(?:[.,]\d+)?", token)
+                and re.match(r"\s*%", intention.reply[match.end() :])
+                and Decimal(token.replace(",", ".")) in percentages
+            ):
+                continue
             raise ChannelError("ungrounded_reply", "The reply included an unverified number or identifier.")
         if re.search(
             r"\b(I (?:have )?(?:saved|sent|confirmed|approved|recorded|dispatched|called|resolved)|"
@@ -295,7 +324,9 @@ def scoped_projection(context: dict, request: ChatRequest | None = None) -> dict
         "work_items_total": len(items),
         "work_items_included": len(details),
         "work_items_complete": len(details) == len(items),
-        "detail_selection": "approved_next_stop" if next_stop_selected else "explicit_selection_or_message_id"
+        "detail_selection": "approved_next_stop"
+        if next_stop_selected
+        else "explicit_selection_or_message_id"
         if any(w.get("work_item_id") in wanted for w in details)
         else "highest_priority_first_six",
         "counts_by_source": dict(Counter(w.get("source", "unknown") for w in items)),
@@ -352,6 +383,46 @@ class ConversationService:
         intention, metadata = await self.provider.turn(
             SYSTEM + "\nINPUT JSON:\n" + json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
         )
+        if intention.kind == "task":
+            if (
+                not intention.task_goal
+                or intention.action is not None
+                or any(v is not None for v in intention.data.model_dump().values())
+            ):
+                raise ChannelError("invalid_intention", "Invalid task request.")
+            from cyberpunks.agentic.contracts import TaskRequest
+            from cyberpunks.agentic.coordinator import AgenticCoordinator
+            from cyberpunks.agentic.task_store import TaskStore
+
+            store = TaskStore(self.operations.db_path.with_name("agentic-tasks.sqlite3"))
+            task_request = TaskRequest(
+                goal=intention.task_goal,
+                scenario=request.scenario,
+                language=intention.language,
+                work_item_id=request.selection.work_item_id if request.selection else None,
+                case_id=request.selection.case_id if request.selection else None,
+                request_key=event_key,
+            )
+            task = AgenticCoordinator(self.operations, store).run(actor, task_request)
+            if hasattr(task, "__await__"):
+                task = await task
+            result = task.model_dump(mode="json") if hasattr(task, "model_dump") else task
+            return {
+                "reply": result["reply"],
+                "proposal": result.get("proposal"),
+                "task": result,
+                "provider": metadata["provider"],
+                "language": intention.language,
+                "provenance": {
+                    **metadata,
+                    "write_executed": False,
+                    "scenario": request.scenario,
+                    "task_id": result["task_id"],
+                    "plan_version": result["plan_version"],
+                },
+            }
+        if intention.task_goal is not None:
+            raise ChannelError("invalid_intention", "A task goal requires a task intention.")
         evidence = checked_evidence(intention, context)
         proposal = None
         reply = intention.reply

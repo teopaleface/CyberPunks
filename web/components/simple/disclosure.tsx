@@ -32,19 +32,21 @@ export function Disclosure({
           aria-expanded={open}
           aria-controls={id}
           onClick={() => setOpen((v) => !v)}
-          className="group flex w-full items-center gap-3 py-4 text-left transition-colors duration-150 hover:text-ink"
+          className="group flex w-full items-start gap-3 py-4 text-left transition-colors duration-150 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <svg
             width="14"
             height="14"
             viewBox="0 0 14 14"
             aria-hidden="true"
-            className={cn("shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none", open && "rotate-90")}
+            className={cn("mt-1.5 shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none", open && "rotate-90")}
           >
             <path d="M5 2.5 9.5 7 5 11.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span className="text-[19px] font-[620]">{title}</span>
-          {hint ? <span className="text-[16px] text-muted-foreground">{hint}</span> : null}
+          <span className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-4 gap-y-1">
+            <span className="text-[17px] leading-snug font-[620]">{title}</span>
+            {hint ? <span className="text-[14px] leading-relaxed text-muted-foreground">{hint}</span> : null}
+          </span>
         </button>
       </h2>
       <div

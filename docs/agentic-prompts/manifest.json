@@ -1,0 +1,403 @@
+{
+  "version": "agentic-promptpack-v1",
+  "status": "superseded",
+  "implementation_authorized": false,
+  "max_concurrent_children": 3,
+  "common": "COMMON.md",
+  "interfaces": "INTERFACES.md",
+  "tasks": [
+    {
+      "id": "00",
+      "title": "Coordonare și integrare",
+      "kind": "coordination",
+      "prompt": "00-coordonare.md",
+      "start_after": [],
+      "integrate_after": [
+        "01",
+        "02",
+        "03",
+        "04",
+        "05",
+        "06",
+        "07",
+        "08",
+        "09",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "17",
+        "18"
+      ],
+      "writes": [
+        "src/cyberpunks/channels/conversation.py",
+        "src/cyberpunks/channels/models.py",
+        "src/cyberpunks/channels/codex.py",
+        "src/cyberpunks/channels/router.py",
+        "src/cyberpunks/channels/whatsapp.py",
+        "src/cyberpunks/channels/whatsapp_worker.py",
+        "src/cyberpunks/channels/whatsapp_transport.py",
+        "src/cyberpunks/channels/whatsapp_store.py",
+        "src/cyberpunks/channels/whatsapp_calls.py",
+        "src/cyberpunks/channels/elevenlabs.py",
+        "src/cyberpunks/operations/service.py",
+        "src/cyberpunks/operations/router.py",
+        "src/cyberpunks/operations/database.py",
+        "src/cyberpunks/operations/planner.py",
+        "src/cyberpunks/runtime.py",
+        "src/cyberpunks/api/app.py",
+        "web/components/workspace/workspace.tsx",
+        "web/components/workspace/main-conversation.tsx",
+        "web/components/workspace/voice.tsx",
+        "web/components/workspace/workspace.css",
+        "web/lib/operations/client.ts",
+        "web/lib/operations/types.ts",
+        "web/lib/operations/gateway.ts",
+        "web/app/api/conversation/[...path]/route.ts",
+        "web/app/api/operations/[...path]/route.ts",
+        "pyproject.toml",
+        "uv.lock",
+        "web/package.json",
+        "web/bun.lock",
+        "docs/operations/BACKEND.md",
+        "docs/operations/CHANNELS.md",
+        "docs/operations/RUNBOOK.md",
+        "memory/INDEX.md",
+        "memory/journal.md",
+        "memory/15-agent-decizii-si-canale.md"
+      ]
+    },
+    {
+      "id": "01",
+      "title": "Contracte și date de test",
+      "kind": "implementation",
+      "prompt": "01-contracte.md",
+      "start_after": [],
+      "integrate_after": [],
+      "writes": [
+        "src/cyberpunks/agentic/__init__.py",
+        "src/cyberpunks/agentic/contracts.py",
+        "src/cyberpunks/agentic/ports.py",
+        "contracts/agentic/v1.schema.json",
+        "contracts/agentic/examples/**",
+        "web/lib/agentic/contracts.ts",
+        "tests/agentic/__init__.py",
+        "tests/agentic/conftest.py",
+        "tests/agentic/test_contracts.py",
+        "docs/agentic-prompts/INTERFACES.md"
+      ]
+    },
+    {
+      "id": "02",
+      "title": "Date autorizate și proveniență",
+      "kind": "implementation",
+      "prompt": "02-date-autorizate.md",
+      "start_after": [
+        "01"
+      ],
+      "integrate_after": [
+        "01"
+      ],
+      "writes": [
+        "src/cyberpunks/agentic/snapshots.py",
+        "tests/agentic/test_snapshots.py"
+      ]
+    },
+    {
+      "id": "03",
+      "title": "Analiza întregii cozi",
+      "kind": "implementation",
+      "prompt": "03-analiza-coada.md",
+      "start_after": [
+        "01"
+      ],
+      "integrate_after": [
+        "02"
+      ],
+      "writes": [
+        "src/cyberpunks/agentic/queue_analysis.py",
+        "tests/agentic/test_queue_analysis.py"
+      ]
+    },
+    {
+      "id": "04",
+      "title": "Sarcini persistente",
+      "kind": "implementation",
+      "prompt": "04-sarcini-persistente.md",
+      "start_after": [
+        "01"
+      ],
+      "integrate_after": [
+        "01"
+      ],
+      "writes": [
+        "src/cyberpunks/agentic/task_store.py",
+        "tests/agentic/test_task_store.py"
+      ]
+    },
+    {
+      "id": "05",
+      "title": "Coordonatorul agentic",
+      "kind": "implementation",
+      "prompt": "05-coordonator.md",
+      "start_after": [
+        "01"
+      ],
+      "integrate_after": [
+        "02",
+        "03",
+        "04",
+        "17",
+        "18"
+      ],
+      "writes": [
+        "src/cyberpunks/agentic/coordinator.py",
+        "tests/agentic/test_coordinator.py"
+      ]
+    },
+    {
+      "id": "06",
+      "title": "Datele rapoartelor pe rol",
+      "kind": "implementation",
+      "prompt": "06-date-rapoarte.md",
+      "start_after": [
+        "01"
+      ],
+      "integrate_after": [
+        "02",
+        "03",
+        "17"
+      ],
+      "writes": [
+        "src/cyberpunks/agentic/report_data.py",
+        "tests/agentic/test_report_data.py"
+      ]
+    },
+    {
+      "id": "07",
+      "title": "Șabloanele HTML",
+      "kind": "implementation",
+      "prompt": "07-sabloane-html.md",
+      "start_after": [
+        "01"
+      ],
+      "integrate_after": [
+        "06"
+      ],
+      "writes": [
+        "src/cyberpunks/agentic/report_templates.py",
+        "src/cyberpunks/agentic/templates/**",
+        "tests/agentic/test_report_templates.py"
+      ]
+    },
+    {
+      "id": "08",
+      "title": "Transformarea HTML în PNG",
+      "kind": "implementation",
+      "prompt": "08-randare-png.md",
+      "start_after": [
+        "01"
+      ],
+      "integrate_after": [
+        "07"
+      ],
+      "writes": [
+        "src/cyberpunks/agentic/png_renderer.py",
+        "tests/agentic/test_png_renderer.py"
+      ]
+    },
+    {
+      "id": "09",
+      "title": "Livrarea imaginii pe WhatsApp",
+      "kind": "implementation",
+      "prompt": "09-livrare-whatsapp.md",
+      "start_after": [
+        "01"
+      ],
+      "integrate_after": [
+        "04",
+        "08"
+      ],
+      "writes": [
+        "src/cyberpunks/agentic/image_delivery.py",
+        "tests/agentic/test_image_delivery.py"
+      ]
+    },
+    {
+      "id": "10",
+      "title": "Telefonul și continuarea între canale",
+      "kind": "implementation",
+      "prompt": "10-telefon-si-canale.md",
+      "start_after": [
+        "01"
+      ],
+      "integrate_after": [
+        "04",
+        "05",
+        "09"
+      ],
+      "writes": [
+        "src/cyberpunks/agentic/channel_bridge.py",
+        "tests/agentic/test_channel_bridge.py"
+      ]
+    },
+    {
+      "id": "11",
+      "title": "Interfața sarcinilor în conversație",
+      "kind": "implementation",
+      "prompt": "11-interfata-sarcini.md",
+      "start_after": [
+        "01"
+      ],
+      "integrate_after": [
+        "05",
+        "06",
+        "12"
+      ],
+      "writes": [
+        "web/components/agentic/**",
+        "web/lib/agentic/use-task.ts",
+        "web/lib/agentic/use-task.test.tsx"
+      ]
+    },
+    {
+      "id": "12",
+      "title": "Accesul HTTP autentificat",
+      "kind": "implementation",
+      "prompt": "12-api.md",
+      "start_after": [
+        "01"
+      ],
+      "integrate_after": [
+        "04",
+        "05",
+        "08"
+      ],
+      "writes": [
+        "src/cyberpunks/agentic/router.py",
+        "tests/agentic/test_router.py",
+        "web/lib/agentic/client.ts",
+        "web/lib/agentic/client.test.ts",
+        "web/lib/agentic/report-gateway.ts",
+        "web/lib/agentic/report-gateway.test.ts",
+        "web/app/api/agentic/reports/[reportId]/pages/[page]/route.ts"
+      ]
+    },
+    {
+      "id": "13",
+      "title": "Probe de securitate și reluare",
+      "kind": "verification",
+      "prompt": "13-verificare-securitate.md",
+      "start_after": [
+        "01"
+      ],
+      "integrate_after": [
+        "02",
+        "03",
+        "04",
+        "05",
+        "06",
+        "07",
+        "08",
+        "09",
+        "10",
+        "11",
+        "12",
+        "17",
+        "18"
+      ],
+      "writes": [
+        "tests/agentic/test_security_regressions.py",
+        "tests/agentic/test_recovery_regressions.py"
+      ]
+    },
+    {
+      "id": "14",
+      "title": "Acceptanță și demo",
+      "kind": "verification",
+      "prompt": "14-acceptanta-demo.md",
+      "start_after": [
+        "01"
+      ],
+      "integrate_after": [
+        "02",
+        "03",
+        "04",
+        "05",
+        "06",
+        "07",
+        "08",
+        "09",
+        "10",
+        "11",
+        "12",
+        "13",
+        "17",
+        "18"
+      ],
+      "writes": [
+        "tests/agentic/test_acceptance.py",
+        "scripts/daybreak_agentic_acceptance.py",
+        "docs/operations/AGENTIC-ACCEPTANCE.md"
+      ]
+    },
+    {
+      "id": "15",
+      "title": "Revizie după standarde",
+      "kind": "review",
+      "prompt": "15-review-standarde.md",
+      "start_after": [
+        "14"
+      ],
+      "integrate_after": [],
+      "writes": []
+    },
+    {
+      "id": "16",
+      "title": "Revizie după cerințe",
+      "kind": "review",
+      "prompt": "16-review-specificatie.md",
+      "start_after": [
+        "14"
+      ],
+      "integrate_after": [],
+      "writes": []
+    },
+    {
+      "id": "17",
+      "title": "Verificarea dovezilor și cifrelor",
+      "kind": "implementation",
+      "prompt": "17-verificare-dovezi.md",
+      "start_after": [
+        "01"
+      ],
+      "integrate_after": [
+        "02",
+        "03"
+      ],
+      "writes": [
+        "src/cyberpunks/agentic/evidence.py",
+        "tests/agentic/test_evidence.py"
+      ]
+    },
+    {
+      "id": "18",
+      "title": "Legătura dintre propunere și efect",
+      "kind": "implementation",
+      "prompt": "18-propunere-si-efect.md",
+      "start_after": [
+        "01"
+      ],
+      "integrate_after": [
+        "02",
+        "04"
+      ],
+      "writes": [
+        "src/cyberpunks/agentic/effects.py",
+        "tests/agentic/test_effects.py"
+      ]
+    }
+  ],
+  "superseded_by": "compact/manifest.json"
+}

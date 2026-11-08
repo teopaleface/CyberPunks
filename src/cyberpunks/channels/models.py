@@ -58,7 +58,8 @@ class Evidence(StrictModel):
 
 
 class Intention(StrictModel):
-    kind: Literal["read", "clarify", "prepare", "refuse"]
+    kind: Literal["read", "clarify", "prepare", "refuse", "task"]
+    task_goal: Literal["analyze_queue", "route_brief", "case_brief"] | None = None
     language: Literal["ro", "en"]
     reply: str = Field(min_length=1, max_length=2400)
     action: (

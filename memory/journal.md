@@ -134,3 +134,39 @@ Am actualizat proba de 36 s la cererea utilizatorului. Portul 3710 servea o vers
 ### 2026-11-08 05:44 București — videoclipul Daybreak pe main
 
 La cererea utilizatorului, am urcat exportul Daybreak de 36 s în `presentation/daybreak-flux.mp4` pe `origin/main`, commit `cfc097a`. Commitul publicat conține doar videoclipul.
+
+
+### 2026-11-08 03:25 București — interogare API și corectarea agentului vocal
+
+- Teo a cerut interogarea automată a agentului. Reprodus răspunsul blocat la „Verific informațiile”; corectate instrucțiunile și trecut coordonatorul la gemini-3.5-flash în cele patru configurații existente. Configurația actuală trece 12/12 probe de apelare a uneltei, cu mesajul original neschimbat.
+- Corectată verificarea conversiei exacte 0.9776 în 97,76%, inclusiv score din assessment, cu blocarea evaluărilor indisponibile păstrată. Probele reale verifică oprirea, incertitudinea predicției, rolul și Confirm; regresia cu două ture consecutive a executat două cereri HTTP reușite.
+- Audio sintetic prin agentul tehnicianului din browser: zgomot continuu la 12 dB, 40 secunde după vorbire, transcriere exactă, 1,695 secunde până la cererea de date și 15,389 până la audio, zgomotul continuând. Nu este probă a sălii sau a zgomotului pe SIP; microfonul/difuzorul și ascultarea manuală nu sunt verificate.
+- 126 teste de canale și lint trec. Probe numai de citire, fără apeluri WhatsApp inițiate sau confirmări operaționale. Repornit numai serviciul 8722; 8720 a fost eliberat pentru restartul separat al firului de fotografii/corecții.
+
+### 08 November 2026, 03:26 — Fotografii la constatări și corecții AI
+
+Teo cere poze pentru tehnician, corectarea manuală vizibilă a deciziilor AI și o nouă curățare UI/UX pe toată aplicația. Implementarea păstrează agentul principal și cele 14 ecrane PPC, adaugă fotografii private cu Confirm și istoric de decizii cu motiv și autor. Probele cu scrieri sunt pe copia completă izolată; camera fizică și live-ul rămân separate.
+
+
+### 2026-11-08 04:14 București: plan pentru agentul care decide și execută
+
+Teo relatează feedback pozitiv de la un mentor de business și cere un plan pentru decizii, apeluri în funcție de cont și rapoarte WhatsApp generate din HTML ca imagini. Redactat docs/PLAN-AGENTIC.md, cu analiza întregii cozi, coordonare prin funcții autorizate, confirmare pentru schimbări operaționale, rezultate verificate și etape separate pentru celelalte identități telefonice. Estimarea de 4–7,5 ore este orientativă. Planul completează catalogul inițial; nu este o aprobare a implementării sau a publicării. Feedbackul mentorului nu este tratat drept confirmare a regulamentului. Detalii în memory/15-agent-decizii-si-canale.md. Nu s-au schimbat codul aplicației, conturile sau serviciile externe.
+
+
+### 2026-11-08 04:22 București: predare pentru brainstorming
+
+Teo cere actualizarea memoriei conform firului principal și push pe main pentru un coleg care va explora mai multe idei. Completat memory/15-agent-decizii-si-canale.md cu contextul, întrebările pentru coleg și separarea dintre propuneri și funcții verificate. Firul principal cere și prompturi de implementare în paralel, încă neconfirmate ca finalizate. Publicarea cerută privește documentația, fără deploy sau includerea schimbărilor UI în lucru.
+
+
+### 2026-11-08 04:29 București: pornire locală pe Windows
+
+Teo cere verificarea și corectarea rulării locale pe Windows. Înlocuite blocările Unix cu portalocker, adăugate oprirea proceselor proprii pe Windows, tzdata și lansarea portabilă a construirii site-ului. Adăugat setul complet de intrări publice/sintetice din rularea locală, cu proveniență, pentru pregătirea unei clone curate fără conturi sau chei live. Ghid în docs/WINDOWS.md și verificări automate Windows/Linux. Probele locale sunt pe macOS; integrarea vocală/WhatsApp cu fișiere private rămâne pe WSL2, iar un flux CI adăugat nu dovedește singur succesul pe Windows.
+
+
+### 2026-11-08 04:50 București: Windows verificat și predare pe main
+
+Instalarea Python/Bun, build-ul web, pregătirea din setul complet inclus, pornirea API-ului și a paginii de autentificare, protecția API și provisionarea conturilor sintetice au trecut pe runner Windows nativ. 107 teste trec, 6 teste de configurare WhatsApp bazate pe permisiuni Unix sunt omise explicit; canalele externe cu fișiere private rămân documentate pentru WSL2. Linux: 113 teste și aceleași probe trec. Dovadă: GitHub Actions run 42439361553, job Windows 128605062645. Statusul general este cancelled: agentul a cerut oprirea pentru diagnostic când testele se terminaseră, iar curățarea încă rula; toate etapele funcționale au status success. Nu este probă a microfonului, a contului Codex al colegului sau a apelurilor pe PC-ul lui. Ghidul docs/WINDOWS.md folosește PowerShell, fără make; fișierele de predicții păstrează LF și pe Windows pentru proveniență stabilă. Integrarea main păstrează opțiunea existentă de conturi nominale și lucrul necomis al celorlalte fire. Fără deploy.
+
+### 2026-11-08 05:46 București — integrare Teo în Eden
+
+La cererea lui Eden, integrată ramura `origin/Teo` la `7e30868` în ramura locală `Eden`. Rezolvate conflictele din ghid, jurnal, pornirea runtime și afișarea evaluării bilanțului, păstrând alegerea bilanț v2 și suportul Windows. `origin/main` la `cfc097a` conține versiunea anterioară a agentului conversațional, fotografii și corecții, dar nu include încă modulele agentice noi de pe Teo; conține și videoclipul demo, într-un commit separat. Integrarea este locală, fără publicare sau repornire de servicii.

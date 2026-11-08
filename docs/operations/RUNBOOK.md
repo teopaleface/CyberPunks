@@ -28,6 +28,8 @@ Deschideți **http://127.0.0.1:3870/app**. Acesta este runtime-ul cu conturi și
 
 Dacă parola ori apartenența unui cont local existent diferă, provisionarea refuză suprascrierea. Nu folosiți `--new-run` pentru a remedia automat o demonstrație activă. Codex, ElevenLabs și WhatsApp cer configurarea privată separată descrisă mai jos; clonarea repo-ului nu transferă autentificările lor.
 
+Pe Windows: [pașii PowerShell și limitele canalelor externe](../WINDOWS.md). Comenzile de mai jos cu `python3` sau `.venv/bin/python` sunt pentru macOS/Linux ori WSL2.
+
 ## Pornire
 
 ```sh
@@ -148,3 +150,10 @@ Surse: [Meta SIP](https://developers.facebook.com/documentation/business-messagi
 `daybreak_runtime.py start` supraveghează API-ul și frontendul împreună și le oprește pe ambele dacă unul se închide. Grupurile de procese diferite nu le fac independente. Pentru QA cu restart numai de frontend, porniți API-ul și frontendul ca procese independente, cu mediul întors de `daybreak_runtime.environment()`, fără rescrierea fișierelor private. Înainte de orice pornire verificați listenerul portului, ca să nu dublați API-ul. Pe 8 noiembrie s-a verificat recuperarea separată a API-ului 8720 după acest comportament; workerul Meta și serviciul de apeluri 8722 au rămas active.
 
 Recuperarea consolei complete a fost verificată în toate vederile dispecerului și în paginile filtrate ale celorlalte roluri. Inventar: `web/design/CONSOLE-RECOVERY.md`. În această etapă au fost verificate și New chat, istoricul real și redeschiderea conversației după refresh. Fără publicarea pe live a interfeței recuperate.
+
+
+## Agentul cu sarcini și rapoarte PNG
+
+Codul local nou și limitele verificării sunt în [AGENTIC-ACCEPTANCE.md](AGENTIC-ACCEPTANCE.md). Routerul privat adaugă POST /api/conversation/tasks, GET /api/conversation/tasks/{id} și POST /api/conversation/tasks/{id}/resume, prin același cont verificat. Niciunul nu confirmă operații. Sarcinile private stau lângă baza operațională, în agentic-tasks.sqlite3.
+
+Workerul păstrează paginile PNG și manifestul lor în registrul Meta existent, fără un al doilea registru. Cereți explicit raportul într-un mesaj pentru a folosi fereastra de mesagerie verificată; apelul singur nu o deschide. Codul nou nu a fost încărcat prin restart în serviciile existente în această etapă. Păstrați separată activarea de verificarea locală.

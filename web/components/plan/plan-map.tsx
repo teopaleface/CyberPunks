@@ -509,7 +509,8 @@ function ThemedPlanMap({
 
   return (
     <div className={className}>
-      <div ref={containerRef} className="plan-map h-full w-full" aria-label="Plan map" role="region" />
+      <div ref={containerRef} className="plan-map h-full w-full" aria-label="Plan map" role="region" aria-busy={!ready && !failed} />
+      {!ready && !failed ? <div role="status" className="pointer-events-none absolute inset-0 grid place-items-center bg-panel/80 text-sm text-ink-soft"><span className="animate-pulse">Loading map…</span></div> : null}
       {failed ? (
         <div role="alert" className="absolute inset-0 grid place-items-center bg-canvas/80 p-8 text-center text-[15px]">
           <p>

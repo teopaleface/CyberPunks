@@ -12,7 +12,7 @@ const out = path.join(web, "public", "landing");
 const stamp = path.join(out, ".built-from");
 
 // Include plan/report changes even when none of the site's source files changed.
-const extraction = spawnSync("python3", ["-I", path.join(site, "scripts", "extract-daybreak.py"), path.resolve(web, "../outputs/demo"), path.join(site, "src/data/daybreak.json"), path.resolve(web, "../reports")], { cwd: site, stdio: "inherit" });
+const extraction = spawnSync("uv", ["run", "python", "-I", path.join(site, "scripts", "extract-daybreak.py"), path.resolve(web, "../outputs/demo"), path.join(site, "src/data/daybreak.json"), path.resolve(web, "../reports")], { cwd: site, stdio: "inherit" });
 if (extraction.status !== 0) process.exit(extraction.status ?? 1);
 
 function newest(dir: string): number {
@@ -37,6 +37,6 @@ const run = (cmd: string, args: string[]) => {
   if (r.status !== 0) process.exit(r.status ?? 1);
 };
 if (!existsSync(path.join(site, "node_modules", "vite"))) run("bun", ["install", "--no-save"]);
-run("bunx", ["vite", "build", "--config", "vite.console.config.ts", "--logLevel", "warn"]);
+run("bun", ["x", "vite", "build", "--config", "vite.console.config.ts", "--logLevel", "warn"]);
 writeFileSync(stamp, sourceTime);
 console.log("site-ul de prezentare construit în public/landing/");

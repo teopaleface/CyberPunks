@@ -49,6 +49,7 @@ export function PostsScreen({
   const [region, setRegionState] = useState(regions.some((r) => r.id === initial.region) ? initial.region : "toate");
   const [status, setStatusState] = useState<StatusFilter>(initial.status);
   const [q, setQState] = useState(initial.q);
+  const [page, setPage] = useState(0);
   const [sort, setSort] = useState<{ key: "post" | "loss"; dir: "asc" | "desc" }>({ key: "loss", dir: "desc" });
 
   const persist = useCallback((next: { region: string; status: StatusFilter; q: string }) => {
@@ -59,13 +60,14 @@ export function PostsScreen({
     set("q", next.q.trim(), "");
     window.history.replaceState(window.history.state, "", url);
   }, []);
-  const setRegion = (v: string) => (setRegionState(v), persist({ region: v, status, q }));
-  const setStatus = (v: StatusFilter) => (setStatusState(v), persist({ region, status: v, q }));
-  const setQ = (v: string) => (setQState(v), persist({ region, status, q: v }));
+  const setRegion = (v: string) => (setRegionState(v), setPage(0), persist({ region: v, status, q }));
+  const setStatus = (v: StatusFilter) => (setStatusState(v), setPage(0), persist({ region, status: v, q }));
+  const setQ = (v: string) => (setQState(v), setPage(0), persist({ region, status, q: v }));
 
   const regionLabel = useMemo(() => new Map(regions.map((r) => [r.id, r.label])), [regions]);
   const filtered = useMemo(() => filterRows(rows, { region, status, q }), [rows, region, status, q]);
   const sorted = useMemo(() => sortRows(filtered, sort.key, sort.dir), [filtered, sort]);
+  const currentPage = Math.min(page, Math.max(0, Math.ceil(sorted.length / 8) - 1));
   const href = useCallback((id: string) => `/posturi/${encodeURIComponent(id)}?scenariu=${encodeURIComponent(scenario)}`, [scenario]);
 
   // cifrele de jos urmăresc filtrele, ca lista și harta
@@ -139,8 +141,8 @@ export function PostsScreen({
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
-        <Card title="Estimated losses by location (RON/month)" icon={MapIcon} iconTone="violet" className="flex min-h-[340px] flex-col xl:h-[460px]" bodyClassName="relative min-h-0 flex-1 !p-0 px-0">
+      <div className="mt-5 grid grid-cols-[minmax(0,1fr)] items-start gap-4 2xl:grid-cols-[minmax(0,.9fr)_minmax(0,1.4fr)]">
+        <Card title="Estimated losses by location (RON/month)" icon={MapIcon} iconTone="violet" className="flex min-h-[340px] flex-col" bodyClassName="relative min-h-0 flex-1 !p-0 px-0">
           <div className="relative mx-5 mt-0 mb-5 h-[calc(100%-1.25rem)] min-h-[280px] overflow-hidden rounded-[10px] border border-rule max-xl:h-[300px]">
             <PlanMap
               items={[]}
@@ -171,7 +173,7 @@ export function PostsScreen({
           title="Substation list"
           icon={ListFilter}
           iconTone="blue"
-          className="flex min-h-[340px] flex-col xl:h-[460px]"
+          className="flex min-h-[340px] flex-col"
           bodyClassName="flex min-h-0 flex-1 flex-col"
           action={<span className="text-[14.5px] font-[400] text-ink-soft tabular-nums">{plural(filtered.length, "substation", "substations")}</span>}
         >
@@ -186,7 +188,7 @@ export function PostsScreen({
               type="search"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search substations (e.g. PT-1269, Afumați)…"
+              placeholder="Search by substation or locality…"
               autoComplete="off"
               spellCheck={false}
               className="h-11 w-full rounded-[10px] border border-rule bg-surface-2 pr-10 pl-11 text-[14.5px] text-ink placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring [&::-webkit-search-cancel-button]:hidden"
@@ -197,8 +199,8 @@ export function PostsScreen({
               </button>
             ) : null}
           </div>
-          <div className="mt-3 min-h-0 flex-1 overflow-auto rounded-[10px] max-xl:max-h-[420px]">
-            <table className="w-full min-w-[480px] border-collapse text-[14px] whitespace-nowrap">
+          <div className="mt-3 min-h-0 overflow-x-auto rounded-[10px]">
+            <table className="w-full min-w-[600px] border-collapse text-[14px] whitespace-nowrap">
               <thead className="sticky top-0 z-10 bg-panel text-left text-[13px] text-ink-soft">
                 <tr className="border-b border-rule">
                   <th scope="col" aria-sort={ariaSort("post")} className="py-2 pr-2 font-[500]">
@@ -219,7 +221,7 @@ export function PostsScreen({
                 </tr>
               </thead>
               <tbody>
-                {sorted.map((r) => {
+                {sorted.slice(currentPage * 8, (currentPage + 1) * 8).map((r) => {
                   const rec = RECOMMENDATION[r.color];
                   return (
                     <tr key={r.id} className="border-b border-rule/60 hover:bg-surface-2" style={{ contentVisibility: "auto", containIntrinsicSize: "auto 40px" }}>
@@ -250,6 +252,7 @@ export function PostsScreen({
               </tbody>
             </table>
           </div>
+          <nav className="mt-4 flex items-center justify-between gap-3 border-t border-rule pt-3 text-sm text-ink-soft" aria-label="Substation pages"><span>{sorted.length ? `${currentPage * 8 + 1}–${Math.min(sorted.length, (currentPage + 1) * 8)} of ${sorted.length}` : "No results"}</span><div className="flex gap-2"><button type="button" className="min-h-9 rounded-lg border border-rule px-3 disabled:opacity-40" disabled={currentPage === 0} onClick={() => setPage(Math.max(0, currentPage - 1))}>Previous</button><button type="button" className="min-h-9 rounded-lg border border-rule px-3 disabled:opacity-40" disabled={currentPage >= Math.ceil(sorted.length / 8) - 1} onClick={() => setPage(Math.min(currentPage + 1, Math.ceil(sorted.length / 8) - 1))}>Next</button></div></nav>
         </Card>
       </div>
 

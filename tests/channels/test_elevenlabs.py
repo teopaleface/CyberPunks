@@ -110,6 +110,16 @@ def test_provider_rejection_never_echoes_secret(tmp_path, monkeypatch):
     asyncio.run(run())
 
 
+def test_provider_test_cleanup_accepts_empty_success(monkeypatch):
+    monkeypatch.setenv("ELEVENLABS_API_KEY", "synthetic-secret")
+
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.MockTransport(lambda request: httpx.Response(204))) as client:
+            assert await ElevenLabs(client).request("DELETE", "/v1/convai/agent-testing/synthetic-test") == {}
+
+    asyncio.run(run())
+
+
 def test_key_file_requires_private_permissions(tmp_path, monkeypatch):
     monkeypatch.delenv("ELEVENLABS_API_KEY", raising=False)
     monkeypatch.setenv("DAYBREAK_CHANNELS_RUNTIME", str(tmp_path))
