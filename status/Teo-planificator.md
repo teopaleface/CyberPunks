@@ -1,11 +1,11 @@
 # Status: Teo-planificator
-Actualizat: 2026-11-08 08:10
+Actualizat: 2026-11-08 08:14
 Milestone curent: M4 gata, starea finală (8 nov.); de acum doar reparații de bug-uri, înghețarea la 10:30
-Gata de merge: da (commit 589addd, plus acest status)
+Gata de merge: da (commit a0c7e08 și acest status; codul: 589addd)
 
 ## Starea finală (8 nov., 08:10)
 
-- **`git merge Teo`** (127 de commit-uri de peste noapte; în fișierele mele doar `/api/metrics` cu bilanțul și ținta `bilant-v2`), apoi **`make check`: 569 de teste trec**. După cele două commit-uri de mai jos, testele planificatorului trec toate.
+- **`git merge Teo`** (127 de commit-uri de peste noapte; în fișierele mele doar `/api/metrics` cu bilanțul și ținta `bilant-v2`), apoi **`make check`: 569 de teste trec**; după cele două commit-uri de mai jos, **570 de teste trec** (08:13).
 - **O reparație** (commit 7675c21): planul pentru 8 iulie refolosea ieșirea bilanțului de ieri, 15:16, deși bilanțul v2 și regula lui de siguranță au intrat după. Acum o ieșire salvată a unui model lent nu se mai refolosește dacă codul sau modelul lui s-au schimbat după ea. Test: `test_cached_slow_output_is_not_reused_after_the_model_changed`.
 - **Evaluarea agentului, pe codul final** (commit 589addd). Comanda: `make agent-eval` (= `uv run python -m cyberpunks.planner.evaluate --days 30 --seed 7 --meters 120`, ~1 min); tabelele în `reports/planner/agent_eval.md`.
   - 30 de zile SINTETICE: agentul 35.060 lei valoare netă pe zi; cea mai bună strategie simplă („primul venit”) 23.552 lei (+49%); top-K după scor 23.255 lei. Km pe zi: 350 față de 511 la top-K. Urgențe ratate: 25,0% față de 26,8%.
