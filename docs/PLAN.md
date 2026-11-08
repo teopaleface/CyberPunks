@@ -62,8 +62,7 @@ Fiecare fir are și fișierul lui de stare, `status/<branch>.md`, și secțiunea
 | Duminică 01:00 | Interfața are modul de prezentare pentru înregistrări |
 | 03:00 | M3: robustețe, explicabilitate, analiza erorilor, evaluarea agentului, interfața completă, video v1 |
 | 08:00 | M4: model cards, README reproductibil, test dintr-o clonă curată, slideuri, video final, înregistrarea de rezervă |
-| 20:00 (sâmbătă, decizie nouă) | Înghețarea părții tehnice: modele, planificator, interfață, bilanț. După ea doar reparații |
-| 10:30 | Înghețarea finală: doar reparații |
+| 10:30 | Înghețarea codului: după ea doar reparații |
 | 11:00 | Orchestratorul: test final dintr-o clonă curată, merge final pe `Teo`. Teo decide merge în `main`, curățarea istoricului și repo-ul public |
 | 12:00 | Predare. Demo live de la 13:00: 5 minute plus 2 minute de întrebări |
 

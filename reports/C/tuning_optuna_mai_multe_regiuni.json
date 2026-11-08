@@ -1,0 +1,263 @@
+{
+  "variant": "mai_multe_regiuni",
+  "trials": 29,
+  "train_rows": 4559520,
+  "validation": "MAE pe P50, 3 fold-uri de câte 2 topologii nevăzute, perioada de antrenare (< 2025), eșantion de zile",
+  "val_mae_pu": {
+    "livrat": 0.005322,
+    "gasit": 0.005205
+  },
+  "params_livrat": {
+    "n_estimators": 500,
+    "learning_rate": 0.05,
+    "num_leaves": 63,
+    "min_child_samples": 200,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "reg_lambda": 1.0
+  },
+  "params_gasit": {
+    "n_estimators": 300,
+    "learning_rate": 0.05596220378774595,
+    "num_leaves": 23,
+    "min_child_samples": 85,
+    "subsample": 0.8817259255323926,
+    "colsample_bytree": 0.7377587166061669,
+    "reg_lambda": 3.305973263285576
+  },
+  "test_2025": {
+    "livrat": {
+      "bucuresti_2025": {
+        "mae_vmax_pu": 0.00533,
+        "coverage_p10_p90": 0.82549,
+        "brier": 0.01488,
+        "recall_exceed": 0.8645,
+        "precision_exceed": 0.87189,
+        "exceed_rate": 0.0812,
+        "pr_auc_exceed": 0.95044,
+        "test_rows": 324000
+      },
+      "timisoara_2025": {
+        "mae_vmax_pu": 0.00534,
+        "coverage_p10_p90": 0.82533,
+        "brier": 0.01526,
+        "recall_exceed": 0.86523,
+        "precision_exceed": 0.87038,
+        "exceed_rate": 0.0829,
+        "pr_auc_exceed": 0.94995,
+        "test_rows": 324000
+      },
+      "cluj_2025": {
+        "mae_vmax_pu": 0.00533,
+        "coverage_p10_p90": 0.82665,
+        "brier": 0.01449,
+        "recall_exceed": 0.86862,
+        "precision_exceed": 0.87065,
+        "exceed_rate": 0.07931,
+        "pr_auc_exceed": 0.95025,
+        "test_rows": 324000
+      },
+      "iasi_2025": {
+        "mae_vmax_pu": 0.00528,
+        "coverage_p10_p90": 0.82987,
+        "brier": 0.0139,
+        "recall_exceed": 0.87123,
+        "precision_exceed": 0.87298,
+        "exceed_rate": 0.07677,
+        "pr_auc_exceed": 0.95081,
+        "test_rows": 324000
+      },
+      "constanta_2025": {
+        "mae_vmax_pu": 0.00538,
+        "coverage_p10_p90": 0.82101,
+        "brier": 0.01516,
+        "recall_exceed": 0.8743,
+        "precision_exceed": 0.87373,
+        "exceed_rate": 0.08577,
+        "pr_auc_exceed": 0.95366,
+        "test_rows": 324000
+      }
+    },
+    "gasit": {
+      "bucuresti_2025": {
+        "mae_vmax_pu": 0.00527,
+        "coverage_p10_p90": 0.81776,
+        "brier": 0.01463,
+        "recall_exceed": 0.86164,
+        "precision_exceed": 0.87596,
+        "exceed_rate": 0.0812,
+        "pr_auc_exceed": 0.95163,
+        "test_rows": 324000
+      },
+      "timisoara_2025": {
+        "mae_vmax_pu": 0.00528,
+        "coverage_p10_p90": 0.81573,
+        "brier": 0.01501,
+        "recall_exceed": 0.86039,
+        "precision_exceed": 0.8736,
+        "exceed_rate": 0.0829,
+        "pr_auc_exceed": 0.95084,
+        "test_rows": 324000
+      },
+      "cluj_2025": {
+        "mae_vmax_pu": 0.00528,
+        "coverage_p10_p90": 0.81727,
+        "brier": 0.01414,
+        "recall_exceed": 0.86422,
+        "precision_exceed": 0.87608,
+        "exceed_rate": 0.07931,
+        "pr_auc_exceed": 0.95215,
+        "test_rows": 324000
+      },
+      "iasi_2025": {
+        "mae_vmax_pu": 0.00524,
+        "coverage_p10_p90": 0.82082,
+        "brier": 0.01363,
+        "recall_exceed": 0.86688,
+        "precision_exceed": 0.87622,
+        "exceed_rate": 0.07677,
+        "pr_auc_exceed": 0.95239,
+        "test_rows": 324000
+      },
+      "constanta_2025": {
+        "mae_vmax_pu": 0.00533,
+        "coverage_p10_p90": 0.81459,
+        "brier": 0.01491,
+        "recall_exceed": 0.87045,
+        "precision_exceed": 0.87803,
+        "exceed_rate": 0.08577,
+        "pr_auc_exceed": 0.95476,
+        "test_rows": 324000
+      }
+    }
+  },
+  "importanta_parametrilor": {
+    "subsample": 0.583,
+    "min_child_samples": 0.162,
+    "num_leaves": 0.13,
+    "colsample_bytree": 0.063,
+    "learning_rate": 0.041,
+    "n_estimators": 0.013,
+    "reg_lambda": 0.008
+  },
+  "istoric": [
+    {
+      "n": 0,
+      "val_mae": 0.005322
+    },
+    {
+      "n": 1,
+      "val_mae": 0.006532
+    },
+    {
+      "n": 2,
+      "val_mae": 0.005428
+    },
+    {
+      "n": 3,
+      "val_mae": 0.005468
+    },
+    {
+      "n": 4,
+      "val_mae": 0.005787
+    },
+    {
+      "n": 5,
+      "val_mae": 0.005362
+    },
+    {
+      "n": 6,
+      "val_mae": 0.00547
+    },
+    {
+      "n": 7,
+      "val_mae": 0.005332
+    },
+    {
+      "n": 8,
+      "val_mae": 0.005534
+    },
+    {
+      "n": 9,
+      "val_mae": 0.005718
+    },
+    {
+      "n": 10,
+      "val_mae": 0.005411
+    },
+    {
+      "n": 11,
+      "val_mae": 0.005511
+    },
+    {
+      "n": 12,
+      "val_mae": 0.005262
+    },
+    {
+      "n": 13,
+      "val_mae": 0.005205
+    },
+    {
+      "n": 14,
+      "val_mae": 0.005241
+    },
+    {
+      "n": 15,
+      "val_mae": 0.005251
+    },
+    {
+      "n": 16,
+      "val_mae": 0.005286
+    },
+    {
+      "n": 17,
+      "val_mae": 0.005296
+    },
+    {
+      "n": 18,
+      "val_mae": 0.005336
+    },
+    {
+      "n": 19,
+      "val_mae": 0.005282
+    },
+    {
+      "n": 20,
+      "val_mae": 0.005263
+    },
+    {
+      "n": 21,
+      "val_mae": 0.005298
+    },
+    {
+      "n": 22,
+      "val_mae": 0.005343
+    },
+    {
+      "n": 23,
+      "val_mae": 0.005332
+    },
+    {
+      "n": 24,
+      "val_mae": 0.005346
+    },
+    {
+      "n": 25,
+      "val_mae": 0.005306
+    },
+    {
+      "n": 26,
+      "val_mae": 0.005233
+    },
+    {
+      "n": 27,
+      "val_mae": 0.005246
+    },
+    {
+      "n": 28,
+      "val_mae": 0.005343
+    }
+  ],
+  "etichete": "simulare fizică pe rețele SINTETICE",
+  "note": "experiment pe ramura Eden"
+}
