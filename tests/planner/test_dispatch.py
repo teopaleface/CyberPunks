@@ -33,7 +33,8 @@ def _settings(**dispatch: Any) -> Settings:
 
 def _meter(asset: str, plan: date, registered: date | None = None, lat: float = 44.4512, lon: float = 26.1287, **changes: Any) -> Item:
     base = fixture_items("A")[1]  # contor defect
-    changes = {"prediction.confidence": "high", "prediction.score": 0.9, **changes}
+    # Un contor obișnuit: ~720 lei valoare așteptată, ~8 lei pierdere pe zi de așteptare (sub pragul de așteptare scumpă).
+    changes = {"prediction.confidence": "high", "prediction.score": 0.9, "impact.value_if_true_lei": 800.0, **changes}
     raw = variant(base, asset, **changes)
     raw["target_date"] = plan.isoformat()
     raw["work_item_id"] = f"A-{plan:%Y%m%d}-{asset}"
@@ -82,6 +83,20 @@ def test_on_tour_day_the_meter_goes_out() -> None:
     p = props["A-20261113-MTR-D0002"]
     assert p.route and p.rule_id == "R-A-VISIT" and p.threshold["dispatch_weekly_tour"] == 1.0
     assert not p.mandatory
+
+
+def test_left_over_from_last_friday_does_not_wait_another_week() -> None:
+    # Semnalat miercuri 4 nov.: tura lui era vineri 6 nov.; dacă n-a încăput, luni 9 nov. pleacă.
+    _, props = _decide([_meter("MTR-D0006", MONDAY, registered=date(2026, 11, 4))], MONDAY)
+    p = props["A-20261109-MTR-D0006"]
+    assert p.route and p.rule_id == "R-A-VISIT" and "Nu a încăput în tura de zonă din vineri 06.11.2026" in p.reason_ro
+
+
+def test_costly_wait_goes_now() -> None:
+    # ~2.700 lei valoare așteptată: ~30 lei pe zi, ~120 lei până vineri, peste cât economisește tura pe o vizită
+    _, props = _decide([_meter("MTR-D0007", MONDAY, **{"impact.value_if_true_lei": 3000.0})], MONDAY)
+    p = props["A-20261109-MTR-D0007"]
+    assert p.route and p.threshold["dispatch_wait_costly"] == 1.0 and "mai mult decât economisește" in p.reason_ro
 
 
 def test_legal_deadline_forces_the_visit_today() -> None:
@@ -151,7 +166,8 @@ def test_switch_off_restores_next_day_routing() -> None:
 
 def test_end_to_end_plan_records_the_dispatch_summary(out_root: Path) -> None:
     a = fixture_items("A")
-    rows = [variant(a[1], f"MTR-73{i:04d}", **{"prediction.confidence": "high", "prediction.score": 0.9}) for i in range(2)]
+    rows = [variant(a[1], f"MTR-73{i:04d}", **{"prediction.confidence": "high", "prediction.score": 0.9,
+                                               "impact.value_if_true_lei": 800.0}) for i in range(2)]
     write_items(out_root, "A", rows)
     res = agent.run(SCENARIO, date=DATE, mode="existing", out_root=out_root)  # luni
     decisions = {d.work_item_id: d for d in res.plan.decisions}

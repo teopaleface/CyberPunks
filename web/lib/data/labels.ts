@@ -143,6 +143,13 @@ const RULE_RO: Record<string, string> = {
   "R-ABSTAIN-WATCH": "model is uncertain but value is low, continue monitoring",
   "R-HUMAN-QUEUE-FULL": "dispatcher's queue is full, carry over to the next plan",
   "R-B-BELOW-THRESHOLD": "storm below model threshold, no crew moved",
+  "R-WEEKLY-BATCH": "not urgent, waits for the end-of-week zone tour, before the legal deadline",
+  "R-WEEKLY-TOUR": "end-of-week zone tour, collected jobs done together",
+  "R-ZONE-FULL": "zone already fills a shift, leaves before Friday",
+  "R-ON-THE-WAY": "next to a job leaving today, taken on the way if the detour pays",
+  "R-WAIT-COSTLY": "waiting would lose more than the zone tour saves, leaves now",
+  "R-LEGAL-DEADLINE": "last safe day before the legal deadline, mandatory today",
+  "R-LEGAL-DEADLINE-NO-CREW": "legal deadline at risk and no free crew, dispatcher alerted",
 };
 
 export function ruleRo(ruleId: string | null | undefined): string | null {

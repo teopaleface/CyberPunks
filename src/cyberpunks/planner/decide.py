@@ -1479,7 +1479,8 @@ RULE_CATALOG: dict[str, str] = {
     "R-WEEKLY-BATCH": "Nu e urgent (nu e risc de incendiu sau pentru oameni): așteaptă tura de zonă de la sfârșitul săptămânii, "
                       "dar nu după ultima zi sigură înainte de termenul legal.",
     "R-WEEKLY-TOUR": "Ziua turei de zonă: lucrările neurgente adunate în săptămână se fac împreună.",
-    "R-ZONE-FULL": "Zona are deja destule lucrări neurgente pentru o tură: pleacă acum, drumul se împarte.",
+    "R-WAIT-COSTLY": "Așteptarea până la tura de zonă ar pierde mai mult decât economisește tura: pleacă acum.",
+    "R-ZONE-FULL":"Zona are deja destule lucrări neurgente pentru o tură: pleacă acum, drumul se împarte.",
     "R-ON-THE-WAY": "O lucrare neurgentă lângă o lucrare care pleacă oricum azi: intră opțional, dacă ocolul merită.",
     "R-LEGAL-DEADLINE": "Ultima zi sigură înainte de termenul legal (contor defect: 10 zile lucrătoare de la sesizare): obligatoriu azi.",
     "R-LEGAL-DEADLINE-NO-CREW": "Termen legal în pericol și nicio echipă liberă: alertă critică, întăriri, primul în planul următor.",

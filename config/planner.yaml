@@ -58,7 +58,8 @@ dispatch:                           # ziua plecării (planner/dispatch.py): urge
       large_customer_kw: 100
       source_ro: "standardul de performanță ANRE, după Rețele Electrice"
   internal_max_working_days: 10     # IPOTEZĂ: fără termen legal cunoscut (de exemplu manipulare, pierdere la post), aceeași limită ca la contorul defect
-  zone_cell_km: 5                   # IPOTEZĂ: celula unei ture de zonă (~5 × 5 km), în interiorul zonei operative
+  max_waiting_cost_lei: 55          # CALCUL (lume sintetică, reports/planner/weekly_batching.md): cât economisește tura pe o vizită (drum + zile-echipă); peste, așteptarea nu merită
+  zone_cell_km: 5                  # IPOTEZĂ: celula unei ture de zonă (~5 × 5 km), în interiorul zonei operative
   zone_full_share: 0.75             # zona pleacă înainte de vineri dacă lucrările ei umplu 75% dintr-o tură
   zone_local_travel_min: 15         # IPOTEZĂ: drumul mediu între două opriri din aceeași celulă
   piggyback_km: 3                   # o lucrare neurgentă la cel mult 3 km de una care pleacă azi intră opțional (solverul decide dacă ocolul merită)

@@ -10,6 +10,9 @@ Pentru fiecare candidat de traseu care se poate amâna (`dispatch.batchable_rule
    azi și e obligatorie (R-LEGAL-DEADLINE). Rezerva de o zi lucrătoare acoperă o echipă care nu termină la timp.
 2. Ziua turei de zonă (`tour_weekdays`, implicit vineri; dacă e sărbătoare, ultima zi lucrătoare dinainte): intră azi
    (R-WEEKLY-TOUR).
+   O lucrare care nu a încăput într-o tură trecută pleacă la prima ocazie, nu mai așteaptă încă o săptămână.
+   Așteptarea scumpă: dacă pierderea până la tură depășește `max_waiting_cost_lei` (cât economisește în medie tura pe
+   o vizită), lucrarea pleacă acum (R-WAIT-COSTLY).
 3. Zona e plină: lucrările amânabile din aceeași celulă de `zone_cell_km` umplu o tură (`zone_full_share` din timpul
    de lucru); drumul se împarte deja, nu mai are rost să aștepte (R-ZONE-FULL).
 4. Pe drum: o lucrare care oricum pleacă azi, cu aceeași abilitate, e la cel mult `piggyback_km`; lucrarea intră azi ca
@@ -84,7 +87,8 @@ class Timing:
     source_ro: str
     deadline: date  # până când trebuie făcută lucrarea
     last_safe: date  # ultima zi în care o planificăm (termenul minus rezerva)
-    tour: date  # ziua turei de zonă
+    first_tour: date  # prima tură de zonă de după sesizare (dacă a trecut, lucrarea n-a încăput în ea)
+    tour: date  # tura de zonă la care merge lucrarea, de la ziua planului încolo
     due: date  # ziua plecării dacă nu o grăbește nimic: min(tour, last_safe), cel puțin ziua planului
 
 
@@ -122,9 +126,11 @@ def timing(ctx: Context, wi: WorkItem) -> Timing:
     buffer = int(ctx.settings.rule("dispatch", "deadline_buffer_working_days", default=1))
     deadline = add_working_days(reg, days)
     last_safe = sub_working_days(deadline, buffer) if buffer > 0 else deadline
-    tour = tour_day(ctx.plan_date, ctx.settings.rule("dispatch", "tour_weekdays", default=[4]))
+    weekdays = ctx.settings.rule("dispatch", "tour_weekdays", default=[4])
+    first_tour = tour_day(reg + timedelta(days=1), weekdays)
+    tour = tour_day(max(ctx.plan_date, reg + timedelta(days=1)), weekdays)
     due = max(ctx.plan_date, min(tour, last_safe))
-    return Timing(reg, days, legal, source, deadline, last_safe, tour, due)
+    return Timing(reg, days, legal, source, deadline, last_safe, first_tour, tour, due)
 
 
 def waiting_cost_lei(ctx: Context, wi: WorkItem, days: int) -> float:
@@ -169,13 +175,20 @@ def schedule_dispatch(ctx: Context, proposals: list[Proposal]) -> dict[str, Any]
     timings = {i: timing(ctx, proposals[i].wi) for i in batch}
     today: dict[int, str] = {}
 
-    # 1. termenul legal și 2. ziua turei
+    # 1. termenul legal și 2. ziua turei (sau o tură trecută la care lucrarea nu a încăput: nu mai așteaptă încă o săptămână)
+    max_wait_cost = float(ctx.settings.rule("dispatch", "max_waiting_cost_lei", default=float("inf")))
+    missed: dict[int, date] = {}
     for i in batch:
         tm = timings[i]
+        first_tour = tm.first_tour
         if tm.last_safe <= ctx.plan_date:
             today[i] = "R-LEGAL-DEADLINE"
-        elif tm.tour <= ctx.plan_date:
+        elif first_tour <= ctx.plan_date:
             today[i] = "R-WEEKLY-TOUR"
+            if first_tour < ctx.plan_date:
+                missed[i] = first_tour
+        elif waiting_cost_lei(ctx, proposals[i].wi, (tm.due - ctx.plan_date).days) > max_wait_cost:
+            today[i] = "R-WAIT-COSTLY"
 
     # 3. zona plină: lucrările amânabile din aceeași celulă umplu o tură
     start, end = ctx.shift()
@@ -227,8 +240,15 @@ def schedule_dispatch(ctx: Context, proposals: list[Proposal]) -> dict[str, Any]
             p.reason_ro = (f"{p.reason_ro} Nu e urgentă ca risc, dar {term}: azi e ultima zi planificată cu rezervă, "
                            "deci intră obligatoriu în traseu.")
             p.rule_id = "R-LEGAL-DEADLINE"
+        elif rule == "R-WEEKLY-TOUR" and i in missed:
+            p.reason_ro = (f"{p.reason_ro} Nu a încăput în tura de zonă din {zi(missed[i])}: pleacă acum, nu mai așteaptă "
+                           f"încă o săptămână; {term}.")
         elif rule == "R-WEEKLY-TOUR":
             p.reason_ro = f"{p.reason_ro} Azi e tura de zonă a săptămânii: lucrările adunate se fac împreună; {term}."
+        elif rule == "R-WAIT-COSTLY":
+            wait = (tm.due - ctx.plan_date).days
+            p.reason_ro = (f"{p.reason_ro} Până la tura de zonă din {zi(tm.due)} s-ar pierde ~{lei(waiting_cost_lei(ctx, p.wi, wait))} "
+                           f"(energie), mai mult decât economisește în medie tura pe o vizită ({lei(max_wait_cost)}): pleacă acum; {term}.")
         elif rule == "R-ZONE-FULL":
             p.reason_ro = (f"{p.reason_ro} Zona are deja lucrări pentru o tură (~{num(zone_load[i] / 60, 1)} ore din "
                            f"{num(shift_min / 60, 1)}): drumul se împarte, nu mai are rost să aștepte; {term}.")
