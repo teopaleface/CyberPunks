@@ -103,6 +103,7 @@ function WorkspaceContent({
   const selectionPending = validated?.key !== currentKey;
   const appliedRequests = useRef(new Set<string>());
   const scopeSequence = useRef(0);
+  const scopeRead = useRef<Promise<Context> | null>(null);
   const previousSelectionKey = useRef(currentKey);
   const [context, setContext] = useState<Context | null>(null);
   const [error, setError] = useState(initialError ?? "");
@@ -231,21 +232,29 @@ function WorkspaceContent({
       try { window.sessionStorage.setItem(`agentic-task:${conversationKey}`, task.task_id); } catch { /* Optional storage. */ }
     }
   }, [task, conversationKey]);
-  const loadScope = useCallback(async () => {
+  const loadScope = useCallback(async (): Promise<Context> => {
     if (!account.membership.organization_id)
       throw new Error("Your account is not linked to operational data.");
-    const sequence = ++scopeSequence.current;
-    const next = assertScope(
-      await api<Context>(
-        `operations/context?scenario=${encodeURIComponent(scenario)}`,
-      ),
-      account,
-      scenario,
-    );
-    if (conversationScope({ ...account, membership: next.actor }, scenario) !== conversationKey)
-      throw new SessionExpired("Your operational access changed. Reopen the console.");
-    if (alive.current && sessionCurrent.current && sequence === scopeSequence.current) setContext(next);
-    return next;
+    // Polls and selection checks share one authenticated read. Starting a new
+    // read every two seconds used to invalidate every slower response.
+    if (scopeRead.current) return scopeRead.current;
+    const pending = (async () => {
+      const sequence = ++scopeSequence.current;
+      const next = assertScope(
+        await api<Context>(
+          `operations/context?scenario=${encodeURIComponent(scenario)}`,
+        ),
+        account,
+        scenario,
+      );
+      if (conversationScope({ ...account, membership: next.actor }, scenario) !== conversationKey)
+        throw new SessionExpired("Your operational access changed. Reopen the console.");
+      if (alive.current && sessionCurrent.current && sequence === scopeSequence.current) setContext(next);
+      return next;
+    })();
+    scopeRead.current = pending;
+    try { return await pending; }
+    finally { if (scopeRead.current === pending) scopeRead.current = null; }
   }, [account, scenario, conversationKey]);
   const refresh = useCallback(async (): Promise<Context | null> => {
     if (!account.membership.organization_id || expired) return null;
