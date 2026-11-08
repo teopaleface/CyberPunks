@@ -205,3 +205,11 @@ La cererea lui Eden, am verificat întâi că Teo a pus tot pe `main`: `origin/T
 Utilizatorul a ales pachetul complet din repo ca sursă implicită pentru teste. Pachetul din `data/local-runtime` conține 689 de predicții pentru 8 iulie 2025, din date publice și sintetice: 532 de cazuri de contor, 98 de bilanț, 26 de zone pentru furtuni și 33 de cazuri de tensiune. Cele patru sume SHA256 corespund manifestului. Testele de agent, canale și operațiuni folosesc aceeași pregătire a planului într-un director temporar. `DAYBREAK_OPERATIONS_TEST_DATA` rămâne disponibil pentru o rulare alternativă. Cele două probe de randare PNG cer separat versiunea Chromium instalată de Playwright.
 
 Verificare pe `Eden`: toate cele 584 de teste Python au trecut cu sursa implicită, fără `DAYBREAK_OPERATIONS_TEST_DATA`, după instalarea Chromium într-un cache temporar. Ruff pe `src` și `tests` a trecut.
+
+### 2026-11-08 10:33 București — completarea tehnică ML pe Eden
+
+La cererea lui Eden, am adăugat evaluarea pe tensiuni REALE FeederBW, comparația LightGBM/CatBoost/XGBoost pentru C și sursa comună `reports/ml/README.md`. Datele și etichetele sunt separate explicit. Am reparat SIGSEGV-ul testului CatBoost prin proces separat și am verificat 208 teste.
+
+Decizia de la 10:26:53: modelul și codul bilanțului au fost fixate în commitul 3deadcc înainte de generarea unui test nou. Auditul celor 300 de posturi noi a obținut 0,77539 macro-F1 față de 0,42059 la reguli. Este același simulator, cu posturi și seed noi; nu pretindem validare în teren sau îmbunătățire pe testul vechi. Nu ajustăm modelul după rezultat.
+
+La tensiunile reale, XGBoost rămâne alegerea făcută pe validare, chiar dacă Ridge are MAE mai mic pe test. Cele 1.353 zile de test nu conțin supratensiuni peste 253 V. IC90 care include zero se numește diferență neconcludentă; nu echivalență. Detalii în `memory/23-ml-dovezi-complete.md`. Urmează verificarea dintr-o copie fără datele mari locale.

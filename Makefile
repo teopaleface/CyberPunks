@@ -191,7 +191,7 @@ web-smoke:        ## încarcă toate ecranele pe consola pornită (make web) și
 # ---- Prezentare (firul Teo-prezentare) ----
 
 # ---- Benchmark: putem bate LightGBM? (ramura Eden; cere grupul bench: uv sync --group bench) ----
-.PHONY: bench-bilant bench-contoare bench-furtuni bench-test bench-all
+.PHONY: bench-bilant bench-contoare bench-furtuni bench-test bench-all bench-tensiune bench-tensiune-reala bench-bilant-holdout ml-check ml-report
 bench-bilant:     ## Benchmark bilanț: CatBoost vs LightGBM v2, testul v2 (~40 min) și FeederBW (~10 min); etichete SINTETICE
 	uv run --group bench python -m cyberpunks.benchmark.bilant v2 --trials 40
 	uv run --group bench python -m cyberpunks.benchmark.bilant feederbw --trials 40
@@ -201,4 +201,15 @@ bench-furtuni:    ## Benchmark furtuni: XGBoost vs LightGBM, test 2025, state ne
 	uv run --group bench python -m cyberpunks.benchmark.furtuni
 bench-test:       ## testele benchmarkului
 	uv run --group bench pytest tests/benchmark -q
-bench-all: bench-bilant bench-contoare bench-furtuni  ## tot benchmarkul; rezultatele în reports/benchmark/
+bench-tensiune:   ## C: LightGBM/CatBoost/XGBoost, același buget, topologii și timp separate
+	uv run --group bench python -m cyberpunks.benchmark.tensiune
+bench-tensiune-reala: ## FeederBW: prognoză zilnică pe tensiuni REALE (agregate incluse în Git)
+	uv run --group bench python -m cyberpunks.benchmark.tensiune_reala
+bench-bilant-holdout: ## Bilanț: lot nou sintetic, model și protocol fixate înainte de generare
+	uv run --group bench python -m cyberpunks.benchmark.bilant_holdout
+ml-check:        ## Teste ML + scoruri recalculate din predicții + raportul unic; fără descărcări
+	uv run --group bench python -m cyberpunks.benchmark.evidence --tests
+ml-report:       ## Raport unic din toate dovezile existente; verifică scorurile, fără reantrenare
+	uv run --group bench python -m cyberpunks.benchmark.evidence
+bench-all: bench-bilant bench-contoare bench-furtuni bench-tensiune bench-tensiune-reala bench-bilant-holdout ## toate comparațiile
+	$(MAKE) ml-check

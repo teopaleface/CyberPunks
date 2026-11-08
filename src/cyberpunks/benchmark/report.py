@@ -4,7 +4,7 @@
 
 Verdictul automat: candidatul „bate” LightGBM doar dacă intervalul 90% al diferenței pe metrica principală e peste
 zero ȘI nicio clasă importantă (furtul la bilanț; manipulările la contoare; clienții acoperiți la furtuni) nu are
-intervalul sub zero. „Pierde” dacă intervalul e sub zero. Altfel „la egalitate statistică”.
+intervalul sub zero. „Pierde” dacă intervalul e sub zero. Altfel „diferență neconcludentă”, nu echivalență.
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ def verdict(main: dict, guards: list[dict]) -> str:
         return "bate"
     if main["ci90"][0] > 0:
         return "câștig mediu, dar scade pe o clasă importantă"
-    return "la egalitate statistică"
+    return "diferență neconcludentă"
 
 
 def bilant_table(d: dict, base: str, cand: str, delta_key: str, title: str) -> list[str]:
@@ -135,7 +135,8 @@ def furtuni_rows(block: dict, title: str) -> list[str]:
 def main() -> int:
     lines = ["# Tabelele benchmarkului (generate)", "",
              ("Generat de `python -m cyberpunks.benchmark.report` din `reports/benchmark/*.json`. Diferențele sunt "
-             "candidat − LightGBM, cu interval bootstrap 90% pe grupuri. „(include 0)” = diferența nu e sigură."), ""]
+             "candidat − LightGBM, cu interval bootstrap 90% pe grupuri. „(include 0)” = diferență neconcludentă, "
+             "nu echivalență demonstrată. Analiză exploratorie, fără corecție pentru comparații multiple."), ""]
     b = load("bilant_v2")
     if b:
         lines += ["## 1. Bilanț pe post (diagnostice SINTETICE)", ""]
