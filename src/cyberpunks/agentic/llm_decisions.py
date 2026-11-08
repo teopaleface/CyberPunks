@@ -110,6 +110,9 @@ def _checked(context, row, path):
             evidence=row.evidence,
         ),
         context,
+        # A non-actionable abstention may explain the exact recorded inputs that
+        # failed validation. Numerical grounding and false-effect checks still run.
+        explain_abstention=row.suggested_decision is None,
     )
     if re.search(
         r"\b(?:(?:was|has been|is already)\s+(?:saved|sent|confirmed|approved|recorded|dispatched|called|resolved|repaired|deleted)|"
