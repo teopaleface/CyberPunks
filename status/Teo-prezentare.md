@@ -1,6 +1,6 @@
 # Status: Teo-prezentare
-Actualizat: 2026-11-08 08:05
-Milestone curent: PREDAREA (12:00). Filmul, slideurile și scriptul demo-ului sunt gata și urcate; înregistrarea de rezervă e în lucru (gata pe la 10:00).
+Actualizat: 2026-11-08 08:14
+Milestone curent: PREDAREA (12:00). Toate livrabilele prezentării sunt gata: filmul, slideurile, scriptul demo-ului și înregistrarea de rezervă.
 Gata de merge: NU se face merge din acest branch (istoria cu fișierele 3D); fișierele de predare se aduc în `Teo` individual (comanda de mai jos).
 
 ## Starea finală (8 nov., 08:05)
@@ -11,7 +11,7 @@ Gata de merge: NU se face merge din acest branch (istoria cu fișierele 3D); fi�
 | Filmul pentru sală | GATA: aceeași imagine, cu „POWER” (-14,0 LUFS). Doar local, ignorat de git | `presentation/exports/local/daybreak-film-power.mp4` | 39,2 MB |
 | Slideurile | GATA: 16 pagini (11 principale, 5 anexă), în română, cifrele citite din `reports/` de `presentation/scripts/build_slides.py` (scriptul tipărește tabelul cifrelor cu fișierul și cheia) | `presentation/exports/daybreak-slides.pdf` | 1,5 MB |
 | Scriptul demo-ului | GATA: cronometrul pe 5 minute, cifrele de pe slideuri, planul B, întrebările probabile | `presentation/demo-script.md` | mic |
-| Înregistrarea de rezervă a consolei | ÎN LUCRU (agent separat, consola reală pe 3710 cu API-ul de pe 8710), gata pe la 10:00. Doar local | `presentation/exports/local/daybreak-demo-rezerva.mp4` | — |
+| Înregistrarea de rezervă a consolei | GATA (08:15): 2:08, fără sunet, consola reală (planul, rularea agentului, detaliul unei lucrări cu contor, coada „Nu sunt sigur” cu Aprobă, alertele). Doar local, ignorată de git | `presentation/exports/local/daybreak-demo-rezerva.mp4` | 7,5 MB |
 | README și credite | GATA, cu livrabilele finale, vocea Kokoro (Apache-2.0), imaginile AI, muzica doar local | `presentation/README.md`, `presentation/CREDITS.md` | mici |
 
 Verificat: `tests/test_repo_size.py` trece. La 08:00 am scos din urmărire fișierele grele urcate peste noapte în acest branch (58 de planșe QA mărite, 522 MB; o scenă Blender de 11 MB; două foi de 5,6 MB; încercările planșelor; audio-ul m4a/flac). Rămân pe disc. Sunt însă în istoria de pe GitHub (commiturile din 7 nov., 18:51 și 19:33): de adăugat la curățarea pe care o decide Teo.
@@ -75,6 +75,11 @@ Opțional, pentru reproducere: `presentation/scripts/build_slides.py` și `prese
 - Niciunul.
 
 ## Cereri către orchestrator
+- URGENT, înainte de înghețarea de la 10:30 (găsit la înregistrarea de rezervă, vizibil pentru juriu):
+  1. Interfață: după „Aprobă” în „Nu sunt sigur” apare un mesaj roșu: „Decizia nu s-a salvat. API-ul nu a răspuns la timp.” Decizia se salvează totuși (jurnalul arată aprobarea și planul refăcut). Cauza probabilă: `postReview` din `web/lib/data/api.ts` folosește timpul de așteptare implicit de 1.500 ms (`web/lib/data/config.ts`), iar API-ul reface planul în circa 5 s. De mărit timpul de așteptare pe `POST /review`. Mesajul apare și în înregistrarea de rezervă (1:22-1:30); dacă se repară până la 10:30, refac înregistrarea.
+  2. Interfață: contorul „Nu sunt sigur” rămâne la 25 după aprobare (lista se reface abia după recalculare).
+  3. API: înregistrarea a rulat agentul de 3 ori și a aprobat de 2 ori un element B pe API-ul de pe 8710, deci planul `demo-vara` nu mai e cel inițial. Înainte de demo (13:00), API-ul trebuie repornit sau resetat la starea curată.
+  4. De știut: planul nu iese identic între rulări (de exemplu 291,8 față de 366,1 km), deci la demo citim cifrele de pe ecran. Etichetele „Perceive/Estimate/Decide/Act” sunt în engleză, restul interfeței în română.
 - JURNAL (17:20): în `memory/journal.md` din worktree-ul meu sunt două rânduri scrise de firul lateral și necomise (16:15, cadrele Codex respinse și varianta 2; 17:05, Teo alege stilul „lume în miniatură” în 3D adevărat). Eu nu scriu în `memory/`; vă rog să le treceți în jurnalul din `Teo`.
 - (rezolvat 16:10) NUME NOU (15:30): Teo a schimbat numele produsului în **Daybreak** (în locul lui "Tura de mâine"). De schimbat: interfața (titlul paginii, antetul, `web/public/brand/`), README-ul și slideurile (pe ale mele le schimb eu); decizia intră în `memory/journal.md`. Atenție: logoul cu soarele peste traseu e respins, cu toate variantele lui. Logoul nou îl alege Teo dintre conceptele din `presentation/brand-lab/r2/logos/` (firul lateral), așa că în `web/public/brand/` deocamdată se schimbă doar numele.
 - (rezolvat 16:10) Pentru jurnal (n-am voie în `memory/`): la 14:46 agentul de muzică a compus varianta de 120 BPM (`presentation/music/compose_kinetic.py`, CC0, 30,000 s, -16,0 LUFS); de la 15:10 filmul folosește "POWER" local, iar varianta de 120 BPM rămâne de rezervă.

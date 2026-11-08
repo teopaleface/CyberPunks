@@ -39,6 +39,12 @@ Varianta finală, 8 nov. 2026, 08:03. Produsul: **Daybreak**. Prezintă Teo (T);
 - Bilanțul pe post: F1 la diagnosticul cauzei 0,71 față de 0,48.
 - Atenție: filmul spune „556 problems” (consola de ieri); planul de azi pentru 8 iulie are alt număr de lucrări. Live spunem doar ce e pe ecran („sute de lucrări”).
 
+## De știut despre consolă (găsit la înregistrarea de rezervă, 08:15)
+
+- API-ul se repornește sau se resetează înainte de demo: înregistrarea a rulat agentul și a aprobat lucrări pe el.
+- Planul nu iese identic de la o rulare la alta: citim cifrele de pe ecran, nu din memorie.
+- Dacă după „Aprobă” apare mesajul roșu „Decizia nu s-a salvat”, decizia s-a salvat totuși (se vede în jurnal); spunem „planul se reface în câteva secunde” și mergem mai departe. Contorul „Nu sunt sigur” se actualizează abia după recalculare.
+
 ## Planul B
 
 - Pică API-ul: consola merge pe instantaneul salvat din `outputs/demo/`; spunem „rulăm pe instantaneul salvat al aceleiași zile”.
