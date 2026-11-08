@@ -140,7 +140,7 @@ export function Feeders({
   }, [selectedCy]);
 
   return (
-    <section aria-label="Crew schedule" className={"flex shrink-0 flex-col border-t border-rule bg-panel" + (highlight ? " spot" : "")}>
+    <section aria-label="Crew schedule" className={"flex min-w-0 overflow-x-auto shrink-0 flex-col border-t border-rule bg-panel" + (highlight ? " spot" : "")}>
       <div ref={boxRef} className="max-h-[244px] overflow-y-auto [@media(max-height:950px)]:max-h-[184px]">
         {routes.length === 0 ? (
           <p className="px-7 py-6 text-[15px] text-muted-foreground">

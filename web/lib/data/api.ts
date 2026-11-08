@@ -101,11 +101,19 @@ async function request<T>(
   const url = apiUrl(pathname, options.query);
   const timeoutMs = options.timeoutMs ?? TIMEOUTS.getMs;
   const hasBody = options.body !== undefined;
+  let actorHeaders: Record<string, string> = {};
+  if (process.env.DAYBREAK_WORKSPACE_ORIGIN) {
+    const { currentUser } = await import("../server/accounts");
+    const { actorOf } = await import("../operations/policy");
+    const user = await currentUser();
+    if (user) actorHeaders = { "x-daybreak-actor": JSON.stringify(actorOf(user)) };
+  }
   let res: Response;
   try {
     res = await fetch(url, {
       method,
-      headers: { accept: "application/json", ...(hasBody ? { "content-type": "application/json" } : {}), ...(process.env.DAYBREAK_INTERNAL_TOKEN ? { authorization: `Bearer ${process.env.DAYBREAK_INTERNAL_TOKEN}` } : {}) },
+      redirect: "manual",
+      headers: { ...actorHeaders, accept: "application/json", ...(hasBody ? { "content-type": "application/json" } : {}), ...(process.env.DAYBREAK_INTERNAL_TOKEN ? { authorization: `Bearer ${process.env.DAYBREAK_INTERNAL_TOKEN}` } : {}) },
       body: hasBody ? JSON.stringify(options.body) : undefined,
       signal: AbortSignal.timeout(timeoutMs),
       cache: "no-store",

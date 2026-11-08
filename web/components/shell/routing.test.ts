@@ -148,7 +148,8 @@ test("actual server routes gate global reads and serialize shell metadata only f
         reads = 0;
         const authorized = role === "dispatcher" && organization_id === "daybreak-demo" && permissions.includes("view_console");
         const result: any = await render({case_id:"CASE-1"});
-        assert.equal(reads,authorized ? 1 : 0);
+        assert.equal(reads,0,"Opening the assistant must not load the global plan");
+        assert.equal(result.props.info,undefined);
         assert.equal(result.props.children.props.presentation,"main");
         assert.equal(result.props.fit,true);
         assert.equal(result.props.children.props.account.membership.role,role);
@@ -165,7 +166,7 @@ test("actual server routes gate global reads and serialize shell metadata only f
         } else {
           await requireConsole();
           await render({},PlanPage);
-          assert.equal(reads,2);
+          assert.equal(reads,1);
           await assert.rejects(() => render({filtru:"echipe"}), (error: any) => Boolean(error.digest?.includes("/planificare?scenariu=demo-vara&filtru=echipe")));
         }
         const beforeShell = reads;

@@ -746,7 +746,7 @@ function WorkspaceContent({
       {expired ? <div className="db-alert" role="alert">{error || "Your session ended."} <a href={proposalSignInPath(linkedProposalId)}>Sign in again</a></div>
         : !account.membership.organization_id ? <section className="db-panel"><h2>Your connection is not linked yet.</h2><p>Ask your administrator to verify your service connection.</p></section>
         : <>
-          {error && <div className="db-alert" role="alert">{error}<button className="db-button" onClick={() => setError("")}>Dismiss</button></div>}
+          {error && <div className="db-alert" role="alert">{error}{!context && <button className="db-button" disabled={busy} onClick={() => { setError(""); void refresh(); }}>Retry loading access</button>}<button className="db-button" onClick={() => setError("")}>Dismiss</button></div>}
           {selectionError && <div className="db-alert" role="alert">{selectionError}<button className="db-button" disabled={busy} onClick={() => { setClearedSelection({ value: initialSelection }); backToChat(); setError(""); }}>Clear selection</button></div>}
           <MainConversation taskResult={task ? <TaskPanel task={taskOutdated ? {...task, result: {...task.result, snapshot_outdated: true}} : task} onReview={(work_item_id) => open("review_work_item", {work_item_id})} onResume={continueTask} /> : null} role={role} messages={messages} message={message} messageId={messageId} setMessage={setMessage} busy={busy} unavailable={unavailable} reviewing={reviewing} mode={mode} setMode={setMode} onSend={sendMessage} onSuggestion={suggest} conversations={conversations} onNew={() => selectChat()} onSelect={selectChat} messageList={messageList} contextControls={contextControls} review={reviewContent} voice={<Voice scenario={scenario} turn={turn} onError={onError} disabled={unavailable} />} pending={pendingControls} notice={notice} />
         </>}
@@ -775,7 +775,7 @@ function WorkspaceContent({
         </section>
       ) : (
         <>
-          {error && <div className="db-alert" role="alert">{error}<button className="db-button" onClick={() => setError("")}>Dismiss</button></div>}
+          {error && <div className="db-alert" role="alert">{error}{!context && <button className="db-button" disabled={busy} onClick={() => { setError(""); void refresh(); }}>Retry loading access</button>}<button className="db-button" onClick={() => setError("")}>Dismiss</button></div>}
           {presentation !== "assistant" && <RoleOverview context={context} role={role} onRefresh={() => void refresh()} assistant={assistant} />}
           {presentation !== "role" && (
             <div className="db-assistant-content">

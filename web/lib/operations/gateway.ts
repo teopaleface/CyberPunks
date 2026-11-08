@@ -6,9 +6,10 @@ export interface GatewayUser {
 }
 export interface GatewayDependencies {
   user: () => Promise<GatewayUser | null>;
-  fetch: typeof fetch;
+  fetch: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
   base: string;
   token?: string;
+  trustedOrigin?: string;
 }
 const PRIVATE = {
   "cache-control": "private, no-store",
@@ -41,15 +42,18 @@ export function allowedPath(
         /^commands\/[A-Za-z0-9_-]+\/recover$/.test(p)))
   );
 }
-export function backendUrl(base: string, path: string): URL {
+export function backendUrl(base: string, path: string, trustedOrigin?: string): URL {
   const url = new URL(base.replace(/\/+$/, "") + path);
-  if (
-    url.protocol !== "http:" ||
-    !["127.0.0.1", "localhost", "[::1]"].includes(url.hostname) ||
-    url.username ||
-    url.password
-  )
-    throw new Error("Loopback backend required");
+  const loopback = url.protocol === "http:" && ["127.0.0.1", "localhost", "[::1]"].includes(url.hostname);
+  let trusted = false;
+  if (trustedOrigin) {
+    const origin = new URL(trustedOrigin);
+    trusted = origin.protocol === "https:" && origin.origin === trustedOrigin &&
+      !origin.username && !origin.password && url.origin === origin.origin &&
+      !["127.0.0.1", "localhost", "[::1]"].includes(origin.hostname);
+  }
+  if ((!loopback && !trusted) || url.username || url.password || url.hash ||
+      !url.pathname.startsWith("/api/")) throw new Error("Configured private backend required");
   return url;
 }
 export async function forward(
@@ -92,7 +96,7 @@ export async function forward(
     );
   let target: URL;
   try {
-    target = backendUrl(deps.base, `/${kind}/${path.join("/")}`);
+    target = backendUrl(deps.base, `/${kind}/${path.join("/")}`, deps.trustedOrigin);
   } catch {
     return fail(503, "The operations service is not configured.");
   }
@@ -152,7 +156,7 @@ export async function forward(
     const response = await deps.fetch(target, {
       method: request.method,
       cache: "no-store",
-      redirect: "error",
+      redirect: "manual",
       signal: AbortSignal.timeout(kind === "conversation" ? 125000 : 30000),
       headers: {
         "content-type": "application/json",
@@ -162,7 +166,6 @@ export async function forward(
       },
       body,
     });
-    const payload: unknown = await response.json();
     // Erorile interne, inclusiv excepțiile Python și datele de validare, nu ies către browser.
     if (!response.ok) {
       const messages: Record<number, string> = {
@@ -186,7 +189,13 @@ export async function forward(
           "The service could not complete the request.",
       );
     }
-    return Response.json(payload, { headers: PRIVATE });
+    if (!response.headers.get("content-type")?.includes("application/json")) {
+      await response.body?.cancel();
+      return fail(503, "The service returned an invalid result.");
+    }
+    // The authenticated backend already scopes this JSON. Stream it without
+    // parsing and serializing the full operational context again at the edge.
+    return new Response(response.body, { headers: { ...PRIVATE, "content-type": "application/json" } });
   } catch {
     return fail(
       503,

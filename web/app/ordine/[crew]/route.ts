@@ -1,3 +1,5 @@
+import { currentUser } from "@/lib/server/accounts";
+import { actorOf } from "@/lib/operations/policy";
 import { consoleDenied } from "@/lib/server/operations";
 import { readBytes } from "@/lib/server/read-file";
 import path from "node:path";
@@ -27,11 +29,12 @@ export async function GET(request: Request, ctx: RouteContext<"/ordine/[crew]">)
   const scenario = requested && isSafeSegment(requested) ? requested : DEFAULT_SCENARIO;
   if (!CREW_RE.test(crew)) return new Response("Echipă necunoscută.", { status: 400 });
 
+  const user = await currentUser();
   // pe planul salvat (de exemplu pe Cloudflare, fără API) nu mai întrebăm API-ul
   if (getConfig().dataSource !== "demo") try {
     const res = await fetch(`${API_BASE}/work-orders/${encodeURIComponent(crew)}.pdf?scenario=${encodeURIComponent(scenario)}`, {
       signal: AbortSignal.timeout(4000),
-      headers: process.env.DAYBREAK_INTERNAL_TOKEN ? { authorization: `Bearer ${process.env.DAYBREAK_INTERNAL_TOKEN}` } : {},
+      headers: process.env.DAYBREAK_INTERNAL_TOKEN && user ? { authorization: `Bearer ${process.env.DAYBREAK_INTERNAL_TOKEN}`, "x-daybreak-actor": JSON.stringify(actorOf(user)) } : {},
       cache: "no-store",
     });
     if (res.ok && res.headers.get("content-type")?.includes("pdf")) {

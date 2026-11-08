@@ -163,6 +163,8 @@ class WhatsAppWorker:
             current_cases = {case["case_id"]: case.get("version") for case in context.get("cases", [])}
             if any(current_cases.get(key) != version for key, version in case_versions.items()):
                 raise ChannelError("report_stale", "The case changed.", 409)
+            if actor.role == "technician":
+                context = {**context, "plan": {**context["plan"], "routes": task["result"].get("routes", [])}}
             if actor.role == "customer":
                 context = {**context, "cases": task["result"].get("cases", [])}
             data = build_report_data(

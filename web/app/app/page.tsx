@@ -4,7 +4,7 @@ import { connection } from "next/server";
 import { currentUser, toMembership } from "@/lib/server/accounts";
 import { mayReadConsole } from "@/lib/operations/policy";
 import { parseProposalId, proposalSignInPath } from "@/lib/operations/proposal-link";
-import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
+import { resolveScenario } from "@/lib/server/queries";
 import { AppShell } from "@/components/shell/app-shell";
 import { DashboardAssistant } from "@/components/shell/agent-dock";
 
@@ -29,7 +29,6 @@ async function Agent({ searchParams }: { searchParams: PageProps<"/app">["search
     for (const key of ["harta", "zona", "lucrare"]) if (typeof params[key] === "string") next.set(key, params[key]);
     redirect(`/harta?${next}`);
   }
-  const info = consoleAllowed ? (await loadShellInfo(scenario)).info : undefined;
   const account = { id: user.id, email: user.email, name: user.full_name, membership: toMembership(user) };
-  return <AppShell info={info} scenario={scenario} fit><DashboardAssistant account={account} scenario={scenario} presentation="main" /></AppShell>;
+  return <AppShell scenario={scenario} fit><DashboardAssistant account={account} scenario={scenario} presentation="main" /></AppShell>;
 }
