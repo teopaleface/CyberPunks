@@ -195,3 +195,7 @@ Detalii: `memory/20-benchmark-lightgbm-eden.md`, `reports/benchmark/RAPORT.md`.
 ### 2026-11-08 09:36 București — evaluarea calității ML
 
 Scor neoficial pentru `origin/main` la `68d62bf`: **20/25**, cu cinci puncte posibile pentru fiecare dintre cele cinci aspecte ML enumerate de PPC. Scor estimat de până la 22/25 dacă benchmarkul local de pe `Eden` este inclus la predare. Am reprodus cifrele principale pentru contoare, furtuni și diagnosticul bilanțului. Pentru C am folosit raportul de evaluare. Toate cele 195 de teste ML au trecut. Scriptul de prezentare are încă F1 0,71 la bilanț, iar pachetul v2 verificat obține 0,75. Detalii în `memory/22-evaluare-ml-0936.md`.
+
+### 2026-11-08 09:43 București — Eden pe main
+
+La cererea lui Eden, am verificat întâi că Teo a pus tot pe `main`: `origin/Teo` (ultimul commit 09:22) este inclus integral în `origin/main` la `68d62bf`. Apoi am îmbinat toată ramura `Eden` în `main` (commit `087bfa9`): benchmarkul CatBoost/XGBoost față de LightGBM, trasarea LangSmith (oprită implicit, fără cheie) și evaluarea ML. Conflictele au fost mici, doar în text și ordine: jurnal, memoria 15, RUNBOOK cu ambele părți păstrate; în `scripts/daybreak_runtime.py` un singur apel `bun run worker`. Verificări pe copia îmbinată: ruff curat; testele de pornire, platforme, mărimea repo-ului și benchmark trec; suita completă nu are eșecuri, iar 184 de teste nu pornesc în copia temporară pentru că lipsește rularea locală a modelelor (`outputs/plans/demo-vara`). Fără deploy și fără repornirea serviciilor.
