@@ -21,6 +21,7 @@ Pe Windows, urmează [pornirea în PowerShell](docs/WINDOWS.md), fără `make`. 
 
 ```bash
 uv sync          # Python 3.12, toate dependențele
+uv run cyberpunks run --scenario demo-vara  # circa 4 minute; testele cu datele complete au nevoie de această rulare
 make check       # lint și teste
 make validate-fixtures
 ```
