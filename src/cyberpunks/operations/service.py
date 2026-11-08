@@ -891,6 +891,12 @@ class OperationsService:
                 fail(409, "proposal_expired", "The proposal expired. Prepare a new proposal.")
             with self.db.transaction() as db:
                 self._check_versions(actor, p)
+                if p["action"] == "review_work_item" and "decision_before" not in p["data"]:
+                    # Pre-photo proposals have no provenance snapshot. The version
+                    # check proves the current decision is still the reviewed one.
+                    item = self._work_item(actor, p["scenario"], p["data"]["work_item_id"])
+                    p["data"].update(self._review_snapshot(actor, p["scenario"], item))
+                    db.execute("UPDATE proposals SET body=? WHERE proposal_id=?", (encode(p), proposal_id))
                 if p["action"] == "record_verdict":
                     self._validate_proposal_photos(db, actor, p)
                 if db.execute(

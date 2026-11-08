@@ -216,3 +216,39 @@ def test_same_key_retry_returns_original_after_confirm_without_mutable_revalidat
         with pytest.raises(OperationError) as err:
             s.prepare(actor, action, data)
         assert err.value.status_code == 404
+
+
+def test_pre_photo_legacy_review_freezes_missing_provenance_before_execution(env):
+    s, dispatcher = env["service"], env["dispatcher"]
+    wid = env["binding"]["work_item_id"]
+    before = work(s.context(dispatcher), wid)["decision"]
+    p = propose(env, "review_work_item", {"work_item_id": wid, "decision": "defer"}, dispatcher)
+    assert p["data"]["original_ai_decision_status"] == "verified"
+    with s.db.transaction() as db:
+        stored = json.loads(
+            db.execute("SELECT body FROM proposals WHERE proposal_id=?", (p["proposal_id"],)).fetchone()["body"]
+        )
+        stored.pop("request_data", None)
+        for field in ("decision_before", "original_ai_decision", "original_ai_decision_status", "is_correction"):
+            stored["data"].pop(field, None)
+        db.execute("UPDATE proposals SET body=? WHERE proposal_id=?", (json.dumps(stored), p["proposal_id"]))
+    result = confirm(env, p, dispatcher)
+    assert result["status"] == "succeeded", result
+    history = result["result"]["manual_correction"]
+    assert history["decision_before"] == before
+    assert history["original_ai_decision"] == before
+    assert history["original_ai_decision_status"] == "verified"
+    assert history["is_correction"] is False
+    with s.db.connect() as db:
+        saved = json.loads(
+            db.execute("SELECT body FROM proposals WHERE proposal_id=?", (p["proposal_id"],)).fetchone()["body"]
+        )
+    assert saved["data"]["decision_before"] == before
+    following = propose(
+        env,
+        "review_work_item",
+        {"work_item_id": wid, "decision": "reject", "is_correction": True, "note": "Synthetic correction"},
+        dispatcher,
+    )
+    assert following["data"]["original_ai_decision"] == before
+    assert following["data"]["original_ai_decision_status"] == "verified"
