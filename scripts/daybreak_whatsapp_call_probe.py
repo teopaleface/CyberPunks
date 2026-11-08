@@ -1,6 +1,6 @@
 """Opt-in, real-provider interrogation of the WhatsApp call agent. Never starts a phone call.
 
-The simulated user asks one fixed read-only question. Tools are NOT mocked. A provider
+The simulated user asks one fixed question, with preparation only when explicitly requested. Tools are NOT mocked. A provider
 evaluation marked 'passed' is insufficient: require an actual HTTP tool result and
 a subsequent agent answer. The temporary provider test is deleted after execution.
 """
@@ -38,7 +38,7 @@ def inspect_run(run: dict, question: str) -> dict:
     turns = run.get("agent_responses") or []
     users = [i for i, turn in enumerate(turns) if turn.get("role") == "user"]
     if len(users) != 1 or turns[users[0]].get("message") != question:
-        raise ProbeError("The probe did not produce exactly the fixed read-only user question.")
+        raise ProbeError("The probe did not produce exactly the fixed user question.")
     generated = turns[users[0] + 1 :]
     calls = [call for turn in generated for call in turn.get("tool_calls", [])]
     results = [(i, result) for i, turn in enumerate(generated) for result in turn.get("tool_results", [])]
@@ -123,7 +123,7 @@ async def probe(question_key: str, *, conversation_id: str | None = None) -> dic
             "POST",
             f"/v1/convai/agents/{config['agent_id']}/run-tests",
             json={
-                "name": "Daybreak fixed read-only API interrogation",
+                "name": "Daybreak fixed scoped API interrogation",
                 "tests": [{"test_id": test_id}],
             },
         )
