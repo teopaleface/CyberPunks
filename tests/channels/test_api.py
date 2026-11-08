@@ -118,6 +118,36 @@ def test_input_wrapper_cannot_bypass_unavailable_prediction_check():
         checked_evidence(proof, context)
 
 
+@pytest.mark.parametrize("reply", ["Probabilitatea este 97,76%.", "The probability is 97.76%."])
+@pytest.mark.parametrize("branch", ["prediction", "assessment"])
+def test_exact_probability_percentage_is_grounded_in_the_verified_score(reply, branch):
+    context = {"work_items": [{"assessment": {"status": "available", "score": 0.9776}, "prediction": {"score": 0.9776}}]}
+    proof = intention(kind="read", reply=reply, evidence=[
+        {"path": f"/scoped_context/work_items/0/{branch}/score", "value_json": "0.9776"},
+    ])
+    assert checked_evidence(proof, context)[0]["value"] == 0.9776
+
+
+@pytest.mark.parametrize("reply", ["The probability is 97.77%.", "The value is 97.76."])
+def test_percentage_support_does_not_accept_inexact_or_unlabelled_numbers(reply):
+    context = {"work_items": [{"assessment": {"status": "available"}, "prediction": {"score": 0.9776}}]}
+    proof = intention(kind="read", reply=reply, evidence=[
+        {"path": "/work_items/0/prediction/score", "value_json": "0.9776"},
+    ])
+    with pytest.raises(ChannelError, match="unverified number"):
+        checked_evidence(proof, context)
+
+
+def test_unavailable_assessment_cannot_supply_a_percentage():
+    context = {"work_items": [{"assessment": {"status": "unavailable", "score": 0.9776}}]}
+    proof = intention(kind="read", reply="The score is 97.76%.", evidence=[
+        {"path": "/scoped_context/work_items/0/assessment/score", "value_json": "0.9776"},
+    ])
+    with pytest.raises(ChannelError) as error:
+        checked_evidence(proof, context)
+    assert error.value.code == "assessment_unavailable"
+
+
 def test_foreign_organization_never_reaches_provider(env):
     foreign = env["actors"]["customer"].model_copy(update={"organization_id": "another-org"})
     r = env["client"].post(

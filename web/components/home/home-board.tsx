@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, ChevronDown, SlidersHorizontal } from "lucide-react";
+import { ArrowRight, ChevronDown, ListFilter } from "lucide-react";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { cn } from "cn";
@@ -66,26 +66,25 @@ export function HomeBoard({
 
   return (
     <div className="flex flex-col">
-      <div className="order-2 mt-6 md:order-1">{kpis}</div>
-      <div className="order-1 mt-6 grid items-start md:order-2 gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,1fr)]">
-        <section aria-label="Next decision" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-6 sm:p-7">
+      <div className="order-2 mt-5 md:order-1">{kpis}</div>
+      <div className="order-1 mt-5 grid items-start md:order-2 gap-5 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,1fr)]">
+        <section aria-label="Next decision" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-5 sm:p-6">
           {question.default}
         </section>
-        <section aria-label="Proposed plan" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-6 sm:p-7">
+        <section aria-label="Proposed plan" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-5 sm:p-6">
           {plan}
         </section>
       </div>
 
-      <details id="detalii-plan" open className="group order-3 mt-7 scroll-mt-24 rounded-2xl border border-rule bg-panel">
-        <summary className="flex cursor-pointer list-none items-center gap-3 rounded-2xl p-5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring sm:p-6 [&::-webkit-details-marker]:hidden">
-          <SlidersHorizontal aria-hidden="true" size={20} className="shrink-0 text-ink-soft" />
+      <details id="detalii-plan" open className="group order-3 mt-5 min-w-0 scroll-mt-6 rounded-2xl border border-rule bg-panel">
+        <summary className="flex cursor-pointer list-none items-center gap-3 rounded-2xl px-5 py-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring sm:px-6 [&::-webkit-details-marker]:hidden">
+          <ListFilter aria-hidden="true" size={20} className="shrink-0 text-ink-soft" />
           <span className="min-w-0 flex-1">
-            <span className="block text-[17px] font-[550]">Plan details</span>
-            <span className="mt-1 block text-[14px] leading-relaxed text-ink-soft">Review work, crews, routes, substations and alerts.</span>
+            <span className="block text-[17px] font-[550]">Routes and plan details</span>
           </span>
           <ChevronDown aria-hidden="true" size={20} className="shrink-0 text-ink-soft transition-transform group-open:rotate-180" />
         </summary>
-        <div className="border-t border-rule p-5 sm:p-6">
+        <div className="min-w-0 border-t border-rule p-5 sm:p-6">
           <div role="group" aria-label="Filter plan details" className="flex flex-wrap gap-2">
             {ITEMS.map((i) => (
               <button
@@ -103,14 +102,14 @@ export function HomeBoard({
             ))}
           </div>
 
-          <div className="mt-6 grid items-start gap-5 lg:grid-cols-2">
+          <div className="mt-5 grid items-start gap-5 lg:grid-cols-2">
             {shown.has("figures") ? <div className="min-w-0 lg:col-span-2">{figures}</div> : null}
             {shown.has("map") ? <div className="min-w-0">{map}</div> : null}
             {shown.has("crews") ? <div className="min-w-0">{crews}</div> : null}
+            {shown.has("gantt") ? <div className="min-w-0 lg:col-span-2">{gantt}</div> : null}
             {shown.has("alerts") ? <div className="min-w-0 lg:col-span-2">{alerts}</div> : null}
             {shown.has("question") ? <section aria-label="Case to review" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-6">{body}</section> : null}
             {shown.has("meter") && meter ? <div className="min-w-0">{meter}</div> : null}
-            {shown.has("gantt") ? <div className="min-w-0 lg:col-span-2">{gantt}</div> : null}
           </div>
 
           {more ? (

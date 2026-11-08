@@ -141,7 +141,11 @@ class Planner:
                 from cyberpunks.planner.review import apply_review
 
                 record = apply_review(scenario, d["work_item_id"], d["decision"], note, actor_id, out_root=stage)
-                effect = {"audit": record.model_dump(mode="json")}
+                applied_plan = read_json(target / "plan.json") or {}
+                after = next(
+                    (v for v in applied_plan.get("decisions", []) if v["work_item_id"] == d["work_item_id"]), None
+                )
+                effect = {"audit": record.model_dump(mode="json"), "decision_after": after}
             changes = []
             for p in sorted(target.rglob("*")):
                 if p.is_file():

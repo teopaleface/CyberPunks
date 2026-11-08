@@ -131,7 +131,7 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
 
   return (
     <AppShell info={info}>
-      <div className="mx-auto w-full max-w-[1520px] px-8 pt-7 pb-14 max-md:px-4">
+      <div className="mx-auto w-full max-w-[1440px] px-8 pt-7 pb-14 max-md:px-4">
         <PageTitle
           title="Review queue"
           subtitle="Review the reason, then approve, reject or defer the case."
@@ -141,9 +141,9 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
           <Card className="mt-6" bodyClassName="py-6">
             <p className="text-[18px] font-[620]">No plan yet for &quot;{scenario}&quot;.</p>
             <p className="mt-1.5 text-[15.5px] text-ink-soft">
-              {englishText(view.degradedReason ?? "The agent has not run for this scenario yet.")} Start it from{" "}
-              <Link href={`/rulare?scenariu=${encodeURIComponent(scenario)}`} className="underline underline-offset-4">
-                Run agent
+              {englishText(view.degradedReason ?? "The agent has not run for this scenario yet.")} Ask about it in{" "}
+              <Link href={`/app?scenariu=${encodeURIComponent(scenario)}#assistant`} className="underline underline-offset-4">
+                the Daybreak assistant
               </Link>
               .
             </p>
@@ -172,11 +172,12 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
               {selected ? <Approval key={selected.w.work_item_id} sel={selected} scenario={scenario} series={series} /> : null}
 
               <Card
+                className="min-w-0"
                 title={`Cases (${list.length})`}
                 action={<span className="text-[14.5px] font-[450] text-ink-soft">Page {page} of {pages}</span>}
                 bodyClassName="pt-4"
               >
-                <table className="w-full border-collapse sm:table-fixed text-[15px]">
+                <div className="max-w-full overflow-x-auto"><table className="w-full min-w-[480px] table-fixed border-collapse text-[15px]">
                   <caption className="sr-only">Cases awaiting a decision, with reason, model score and expected value</caption>
                   <thead>
                     <tr className="border-b border-rule text-left text-[14px] text-ink-soft">
@@ -202,13 +203,13 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
                               className="flex items-center gap-2 after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-ring"
                             >
                               <Dot tone={CAT_TONE[x.cat.tone]} className="size-2 sm:hidden" />
-                              <span className="truncate max-sm:max-w-[110px]" translate="no" title={placeOf(x.w)}>{placeOf(x.w)}</span>
+                              <span className="min-w-0 whitespace-normal break-words" translate="no" title={placeOf(x.w)}>{placeOf(x.w)}</span>
                             </CaseLink>
                           </td>
                           <td className="py-2.5 pr-2 max-sm:hidden">
-                            <Pill tone={CAT_TONE[x.cat.tone]} size="sm" className="max-w-full border-transparent bg-transparent px-0 text-ink">
+                            <Pill tone={CAT_TONE[x.cat.tone]} size="sm" className="max-w-full border-transparent bg-transparent px-0 whitespace-normal text-ink">
                               <Dot tone={CAT_TONE[x.cat.tone]} className="size-2" />
-                              <span className="truncate">{englishText(x.cat.label)}</span>
+                              <span className="whitespace-normal">{englishText(x.cat.label)}</span>
                             </Pill>
                           </td>
                           <td className="py-2.5 pl-2 text-right font-[560] whitespace-nowrap tabular-nums max-[1600px]:hidden">{probability === null ? "Unavailable" : roundPct(probability)}</td>
@@ -222,7 +223,7 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
                       );
                     })}
                   </tbody>
-                </table>
+                </table></div>
 
                 {pages > 1 ? (
                   <nav aria-label="Case list pages" className="mt-6 flex flex-wrap items-center justify-between gap-3">

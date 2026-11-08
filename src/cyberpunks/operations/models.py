@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from typing import Any, Literal
+from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class Actor(BaseModel):
@@ -53,11 +54,26 @@ class CreateCase(Data):
 class Verdict(Data):
     work_item_id: str = Field(min_length=1, max_length=120)
     outcome: Literal["confirmed", "not_found", "other_problem", "no_access"]
+    photo_ids: list[UUID] = Field(default_factory=list, max_length=6)
+
+    @field_validator("photo_ids")
+    @classmethod
+    def unique_photos(cls, value):
+        if len(set(value)) != len(value):
+            raise ValueError("Photo IDs must be unique")
+        return value
 
 
 class Review(Data):
     work_item_id: str = Field(min_length=1, max_length=120)
     decision: Literal["approve", "reject", "defer"]
+    is_correction: bool = False
+
+    @model_validator(mode="after")
+    def correction_reason(self):
+        if self.is_correction and len(self.note or "") < 3:
+            raise ValueError("A correction requires a reason of at least three characters")
+        return self
 
 
 class Approval(Data):

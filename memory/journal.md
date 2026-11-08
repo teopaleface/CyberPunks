@@ -125,6 +125,17 @@ Pachetul activ FeederBW: F1 macro 0,58950 pe 13.200 ferestre, MAE pierdere norma
 
 Utilizatorul a aprobat revenirea. V2 a fost reconstruit din parametrii salvați și este activ; FeederBW rămâne pentru experimente. Pe aceleași 13.200 de ferestre simulate, F1 v2 0,75352 față de FeederBW 0,58950; MAE 5,398 față de 8,813 kWh/zi. V2 reproduce F1 și MAE din raportul istoric. Comparație: `reports/bilant/comparatie_v2_feederbw.json`; fuziunea nu a fost evaluată separat.
 
+### 2026-11-08 03:25 București — interogare API și corectarea agentului vocal
+
+- Teo a cerut interogarea automată a agentului. Reprodus răspunsul blocat la „Verific informațiile”; corectate instrucțiunile și trecut coordonatorul la gemini-3.5-flash în cele patru configurații existente. Configurația actuală trece 12/12 probe de apelare a uneltei, cu mesajul original neschimbat.
+- Corectată verificarea conversiei exacte 0.9776 în 97,76%, inclusiv score din assessment, cu blocarea evaluărilor indisponibile păstrată. Probele reale verifică oprirea, incertitudinea predicției, rolul și Confirm; regresia cu două ture consecutive a executat două cereri HTTP reușite.
+- Audio sintetic prin agentul tehnicianului din browser: zgomot continuu la 12 dB, 40 secunde după vorbire, transcriere exactă, 1,695 secunde până la cererea de date și 15,389 până la audio, zgomotul continuând. Nu este probă a sălii sau a zgomotului pe SIP; microfonul/difuzorul și ascultarea manuală nu sunt verificate.
+- 126 teste de canale și lint trec. Probe numai de citire, fără apeluri WhatsApp inițiate sau confirmări operaționale. Repornit numai serviciul 8722; 8720 a fost eliberat pentru restartul separat al firului de fotografii/corecții.
+
+### 08 November 2026, 03:26 — Fotografii la constatări și corecții AI
+
+Teo cere poze pentru tehnician, corectarea manuală vizibilă a deciziilor AI și o nouă curățare UI/UX pe toată aplicația. Implementarea păstrează agentul principal și cele 14 ecrane PPC, adaugă fotografii private cu Confirm și istoric de decizii cu motiv și autor. Probele cu scrieri sunt pe copia completă izolată; camera fizică și live-ul rămân separate.
+
 ### 2026-11-08 03:40 — Tudor: tura de zonă în planificator
 
 - După mentorul PPC, agentul nu mai trimite echipa a doua zi la orice. Vizitele obișnuite la contoare și posturi așteaptă tura de zonă de vineri. Pleacă mai devreme doar dacă: se apropie termenul legal (contor defect, 10 zile lucrătoare, cu o zi de rezervă), au rămas de la tura trecută, așteptarea pierde mai mult decât economisește tura, zona umple o tură sau o echipă trece oricum pe lângă. Siguranța, furtunile și tensiunea nu se amână. Pe 4 săptămâni sintetice: −20% km, −24% zile-echipă, 0 termene depășite; drumul economisit e cam cât costă așteptarea, câștigul net vine din zilele-echipă eliberate. Detalii în `19-tura-de-zona.md`. Decizie: amânarea e pornită implicit (`dispatch.weekly_batching: true`).

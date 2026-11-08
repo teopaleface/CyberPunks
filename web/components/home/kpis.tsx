@@ -9,11 +9,11 @@ export function KpiRow({ s }: { s: PlanSummary }) {
     { value: fmtInt(Math.round(s.expected_value_lei)), unit: "RON", label: "Expected plan value" },
   ];
   return (
-    <dl aria-label="Plan summary" className="grid gap-5 rounded-2xl border border-rule bg-panel p-6 sm:grid-cols-3 sm:gap-6">
+    <dl aria-label="Plan summary" className="grid gap-4 rounded-2xl border border-rule bg-panel px-5 py-4 sm:grid-cols-3 sm:gap-6">
       {figures.map((f) => (
         <div key={f.label} className="min-w-0">
           <dt className="text-[14px] leading-relaxed text-ink-soft">{f.label}</dt>
-          <dd className="mt-2 text-[32px] leading-tight font-[650] tracking-[-0.03em] tabular-nums sm:text-[36px]">
+          <dd className="mt-2 text-[32px] leading-tight font-[650] tracking-[-0.03em] tabular-nums sm:text-[32px]">
             {f.value}
             {f.unit ? <span className="ml-2 text-[18px] font-[450] text-ink-soft">{f.unit}</span> : null}
           </dd>
@@ -25,7 +25,7 @@ export function KpiRow({ s }: { s: PlanSummary }) {
 
 export function PlanFigures({ s }: { s: PlanSummary }) {
   return (
-    <dl aria-label="Other plan figures" className="grid gap-5 rounded-2xl border border-rule bg-panel p-6 sm:grid-cols-3">
+    <dl aria-label="Other plan figures" className="grid gap-4 rounded-xl border border-rule bg-surface-2 px-4 py-3 sm:grid-cols-3">
       {[
         { value: plural(s.items_in, "work item received", "work items received"), label: "Data reviewed by the agent" },
         { value: plural(s.remote_actions, "remote check", "remote checks"), label: "No crew visit" },
@@ -33,7 +33,7 @@ export function PlanFigures({ s }: { s: PlanSummary }) {
       ].map((f) => (
         <div key={f.label} className="min-w-0">
           <dt className="text-[14px] text-ink-soft">{f.label}</dt>
-          <dd className="mt-2 text-[18px] font-[550] tabular-nums">{f.value}</dd>
+          <dd className="mt-1 text-[17px] font-[550] tabular-nums">{f.value}</dd>
         </div>
       ))}
     </dl>

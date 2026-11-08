@@ -1,3 +1,4 @@
+import { WorkEvidence } from "@/components/operations/work-evidence";
 import { requireConsole } from "@/lib/server/operations";
 import { englishText } from "@/lib/english";
 import Link from "next/link";
@@ -17,7 +18,7 @@ import { isBilantPost } from "@/lib/extras";
 import { localityOf, parseTag, postOf, stopFor, type Tag } from "@/lib/item-data";
 import { loadPlanView, loadShellInfo, resolveScenario } from "@/lib/server/queries";
 
-const PAGE = "mx-auto w-full max-w-[1520px] px-8 pt-7 pb-14 max-md:px-4";
+const PAGE = "mx-auto w-full max-w-[1440px] px-8 pt-7 pb-14 max-md:px-4";
 
 function safeDecode(value: string): string {
   try {
@@ -139,6 +140,7 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
         <div className="mt-5">
           <ItemChips id={w.work_item_id} scenario={scenario} active={active} tags={tags} />
         </div>
+        <WorkEvidence workItemId={w.work_item_id} scenario={scenario} />
         <CardGrid cards={visible} />
         <p className="mt-6 text-[13px] text-ink-soft">
           Work item <span translate="no">{w.work_item_id}</span>. Data source: {englishText(SOURCE_LABEL_RO[result.source])}

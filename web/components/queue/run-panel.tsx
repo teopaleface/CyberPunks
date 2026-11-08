@@ -1,67 +1,19 @@
 "use client";
 
+import Link from "next/link";
+import { MessageSquare, SlidersHorizontal } from "lucide-react";
 import { englishText } from "@/lib/english";
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
-import { Play, SlidersHorizontal } from "lucide-react";
-import { toast } from "sonner";
 import { btn } from "@/components/ds";
+import { assistantDashboardPath } from "@/components/shell/assistant-handoff";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { runAgent } from "@/lib/data/actions";
-import type { RunTimings } from "@/lib/data/types";
-import { fmtSeconds } from "@/lib/format";
 
-const STEPS: { key: keyof RunTimings; name: string }[] = [
-  { key: "perceive", name: "Perceive" },
-  { key: "estimate", name: "Estimate" },
-  { key: "decide", name: "Decide" },
-  { key: "act", name: "Act" },
-];
-
-type State = { kind: "idle" } | { kind: "done"; planId: string; timings: RunTimings } | { kind: "error"; message: string };
-
-/** „Rulează agentul”: cheamă acțiunea reală și arată timpii măsurați la fiecare pas. */
+/** Saved run results remain read-only; operational requests go through the assistant. */
 export function RunButton({ scenario }: { scenario: string }) {
-  const router = useRouter();
-  const [state, setState] = useState<State>({ kind: "idle" });
-  const [pending, startTransition] = useTransition();
-  const start = () => {
-    startTransition(async () => {
-      const r = await runAgent(scenario);
-      if (r.ok) {
-        setState({ kind: "done", planId: r.plan_id, timings: r.timings });
-        toast.success("Tomorrow's plan updated", { description: `New plan: ${r.plan_id}` });
-        router.refresh();
-      } else {
-        setState({ kind: "error", message: englishText(r.error) });
-      }
-    });
-  };
-  const total = state.kind === "done" ? STEPS.reduce((s, x) => s + (Number(state.timings[x.key]) || 0), 0) : 0;
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-      <button type="button" onClick={start} disabled={pending} className={btn("primary", "md")}>
-        <Play aria-hidden="true" size={17} strokeWidth={2} fill="currentColor" />
-        {pending ? "Running…" : "Run agent"}
-      </button>
-      <div aria-live="polite" className="text-[14.5px] text-ink-soft">
-        {pending ? "The agent is running through the four steps…" : null}
-        {state.kind === "done" ? (
-          <>
-
-            Completed in <b className="text-ink tabular-nums">{fmtSeconds(total)}</b>:{" "}
-            {STEPS.map((s, i) => (
-              <span key={s.key}>
-                {i ? ", " : ""}
-                {s.name.toLowerCase()} <span className="tabular-nums">{fmtSeconds(Number(state.timings[s.key]) || 0)}</span>
-              </span>
-            ))}
-            .
-          </>
-        ) : null}
-        {state.kind === "error" ? <span role="alert" className="text-att-ink">Agent did not run: {state.message}</span> : null}
-      </div>
-    </div>
+    <Link href={assistantDashboardPath(scenario)} className={btn("outline", "md")}>
+      <MessageSquare aria-hidden="true" size={17} />
+      Ask about this plan
+    </Link>
   );
 }
 
@@ -82,7 +34,7 @@ export function ParamsButton({ rows }: { rows: ParamRow[] }) {
           Parameters
         </button>
       </DialogTrigger>
-      <DialogContent className="max-w-[640px] gap-4 rounded-[14px] border-rule bg-panel p-7">
+      <DialogContent className="max-h-[85dvh] overflow-y-auto sm:max-w-[640px] gap-4 rounded-[14px] border-rule bg-panel p-7">
         <DialogHeader>
           <DialogTitle className="text-[22px] font-[650]">Agent parameters</DialogTitle>
           <DialogDescription className="text-[15px]">

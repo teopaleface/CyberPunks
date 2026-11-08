@@ -23,7 +23,9 @@ import {
 import { DraftRequests } from "./draft-requests";
 import { PendingCommands } from "./pending-commands";
 import { recoveryControl } from "@/lib/operations/recovery";
-import { ACTION_NAMES, ProposalForm } from "./proposal-form";
+import { ACTION_NAMES, FIELD_LABELS, fieldValueLabel, ProposalForm } from "./proposal-form";
+import { FindingPhotoGallery, findingPhotos } from "@/components/operations/finding-photos";
+import { DecisionComparison } from "@/components/operations/decision-correction";
 import { RoleOverview } from "./role-overview";
 import {
   assertProposalScenario,
@@ -607,12 +609,14 @@ function WorkspaceContent({
                   </section>}
                   {proposal && !selectionPending && <section className="db-panel db-proposal" ref={proposalCard} aria-label="Action proposal">
                     <p className="db-eyebrow">Review before saving</p>
-                    <h2>{ACTION_NAMES[proposal.action]}</h2>
+                    <h2>{proposal.action === "review_work_item" && proposal.data.is_correction === true ? "Review your correction" : ACTION_NAMES[proposal.action]}</h2>
                     <p>{proposal.summary}</p>
-                    <dl>{Object.entries(proposal.data).filter(([key]) => key !== "idempotency_key").map(([key, value]) => <div key={key}>
-                      <dt>{label(key)}</dt>
+                    <dl>{Object.entries(proposal.data).filter(([key]) => !["idempotency_key", "plan_version", "case_version", "linked_case_versions", "photo_ids", "photos", "decision_before", "original_ai_decision", "original_ai_decision_status", "is_correction"].includes(key) && !(proposal.action === "review_work_item" && ["decision", "note"].includes(key))).map(([key, value]) => <div key={key}>
+                      <dt>{FIELD_LABELS[key] ?? label(key)}</dt>
                       <dd>{proposalField(context, key, value)}</dd>
                     </div>)}</dl>
+                    {proposal.action === "record_verdict" ? <FindingPhotoGallery photos={findingPhotos(proposal.data.photos)} scenario={scenario} /> : null}
+                    {proposal.action === "review_work_item" ? <DecisionComparison data={proposal.data} /> : null}
                     <p className="db-muted">Expires {readableDate(proposal.expires_at)}. No change has been saved yet.</p>
                     {proposal.action === "record_verdict" && <p className="db-muted">This records a finding. It does not confirm a repair or close the case.</p>}
                     <div className="db-actions">
@@ -626,6 +630,8 @@ function WorkspaceContent({
                     <p>{command.status === "succeeded" ? "Your request was saved." : command.status === "cancelled" ? "This request was cancelled." : command.status === "failed" ? "The request could not complete. Review its details before trying again." : "This request is awaiting verification. Check its result before starting another."}</p>
                     <p className="db-muted">Request {command.command_id.slice(0, 8)} · {label(command.status)}{text(command.completed_at) ? ` · ${readableDate(command.completed_at)}` : ""}</p>
                     {command.result?.case && typeof command.result.case === "object" ? <p>Case status: {label((command.result.case as Row).status)}</p> : null}
+                    {command.status === "succeeded" && command.result?.finding && typeof command.result.finding === "object" ? <div className="db-saved-finding"><h3>{fieldValueLabel("outcome", (command.result.finding as Row).outcome)}</h3><p>{text((command.result.finding as Row).note)}</p><FindingPhotoGallery photos={findingPhotos((command.result.finding as Row).photos)} scenario={scenario} /><p className="db-muted">Finding saved. Repair and case closure are not confirmed.</p></div> : null}
+                    {command.status === "succeeded" && command.result?.manual_correction && typeof command.result.manual_correction === "object" ? <DecisionComparison data={command.result.manual_correction as Row} saved /> : null}
                     <details className="db-details">
                       <summary>Request receipt</summary>
                       <p>Reference: {command.command_id}</p>
@@ -834,5 +840,5 @@ function proposalField(context: Context | null, key: string, value: unknown): st
   const item = items?.find((row) => row[key] === value);
   if (item) return itemTitle(item, key === "case_id" ? "Service case" : key === "work_item_id" ? "Assigned visit" : "Service connection");
   if (["start", "end", "planned_start", "planned_end"].includes(key)) return readableDate(value);
-  return typeof value === "object" ? JSON.stringify(value) : text(value);
+  return typeof value === "object" ? JSON.stringify(value) : fieldValueLabel(key, value);
 }
