@@ -1,0 +1,129 @@
+{
+  "version": "compact-v1",
+  "status": "implemented_local_verified",
+  "max_concurrent_children": 3,
+  "coordinator": "05",
+  "tasks": [
+    {
+      "id": "01",
+      "title": "Analiza cozii și deciziile agentului",
+      "prompt": "01-analiza-si-decizii.md",
+      "writes": [
+        "src/cyberpunks/agentic/snapshots.py",
+        "tests/agentic/test_snapshots.py",
+        "src/cyberpunks/agentic/queue_analysis.py",
+        "tests/agentic/test_queue_analysis.py",
+        "src/cyberpunks/agentic/coordinator.py",
+        "tests/agentic/test_coordinator.py",
+        "src/cyberpunks/agentic/evidence.py",
+        "tests/agentic/test_evidence.py"
+      ]
+    },
+    {
+      "id": "02",
+      "title": "Sarcini persistente, confirmări și recuperare",
+      "prompt": "02-persistenta-si-confirmari.md",
+      "writes": [
+        "src/cyberpunks/agentic/task_store.py",
+        "tests/agentic/test_task_store.py",
+        "src/cyberpunks/agentic/effects.py",
+        "tests/agentic/test_effects.py"
+      ]
+    },
+    {
+      "id": "03",
+      "title": "Rapoarte vizuale și WhatsApp",
+      "prompt": "03-rapoarte-si-whatsapp.md",
+      "writes": [
+        "src/cyberpunks/agentic/report_data.py",
+        "tests/agentic/test_report_data.py",
+        "src/cyberpunks/agentic/report_templates.py",
+        "src/cyberpunks/agentic/templates/**",
+        "tests/agentic/test_report_templates.py",
+        "src/cyberpunks/agentic/png_renderer.py",
+        "tests/agentic/test_png_renderer.py",
+        "src/cyberpunks/agentic/image_delivery.py",
+        "tests/agentic/test_image_delivery.py"
+      ]
+    },
+    {
+      "id": "04",
+      "title": "Interfața și legătura cu telefonul",
+      "prompt": "04-interfata-si-telefon.md",
+      "writes": [
+        "src/cyberpunks/agentic/channel_bridge.py",
+        "tests/agentic/test_channel_bridge.py",
+        "web/components/agentic/**",
+        "web/lib/agentic/use-task.ts",
+        "web/lib/agentic/use-task.test.tsx",
+        "src/cyberpunks/agentic/router.py",
+        "tests/agentic/test_router.py",
+        "web/lib/agentic/client.ts",
+        "web/lib/agentic/client.test.ts",
+        "web/lib/agentic/report-gateway.ts",
+        "web/lib/agentic/report-gateway.test.ts",
+        "web/app/api/agentic/reports/[reportId]/pages/[page]/route.ts"
+      ]
+    },
+    {
+      "id": "05",
+      "title": "Integrare și verificare finală",
+      "prompt": "05-integrare-si-verificare.md",
+      "writes": [
+        "src/cyberpunks/channels/conversation.py",
+        "src/cyberpunks/channels/models.py",
+        "src/cyberpunks/channels/codex.py",
+        "src/cyberpunks/channels/router.py",
+        "src/cyberpunks/channels/whatsapp.py",
+        "src/cyberpunks/channels/whatsapp_worker.py",
+        "src/cyberpunks/channels/whatsapp_transport.py",
+        "src/cyberpunks/channels/whatsapp_store.py",
+        "src/cyberpunks/channels/whatsapp_calls.py",
+        "src/cyberpunks/channels/elevenlabs.py",
+        "src/cyberpunks/operations/service.py",
+        "src/cyberpunks/operations/router.py",
+        "src/cyberpunks/operations/database.py",
+        "src/cyberpunks/operations/planner.py",
+        "src/cyberpunks/runtime.py",
+        "src/cyberpunks/api/app.py",
+        "web/components/workspace/workspace.tsx",
+        "web/components/workspace/main-conversation.tsx",
+        "web/components/workspace/voice.tsx",
+        "web/components/workspace/workspace.css",
+        "web/lib/operations/client.ts",
+        "web/lib/operations/types.ts",
+        "web/lib/operations/gateway.ts",
+        "web/app/api/conversation/[...path]/route.ts",
+        "web/app/api/operations/[...path]/route.ts",
+        "pyproject.toml",
+        "uv.lock",
+        "web/package.json",
+        "web/bun.lock",
+        "docs/operations/BACKEND.md",
+        "docs/operations/CHANNELS.md",
+        "docs/operations/RUNBOOK.md",
+        "memory/INDEX.md",
+        "memory/journal.md",
+        "memory/15-agent-decizii-si-canale.md",
+        "src/cyberpunks/agentic/__init__.py",
+        "src/cyberpunks/agentic/contracts.py",
+        "src/cyberpunks/agentic/ports.py",
+        "contracts/agentic/v1.schema.json",
+        "contracts/agentic/examples/**",
+        "web/lib/agentic/contracts.ts",
+        "tests/agentic/__init__.py",
+        "tests/agentic/conftest.py",
+        "tests/agentic/test_contracts.py",
+        "docs/agentic-prompts/INTERFACES.md",
+        "tests/agentic/test_security_regressions.py",
+        "tests/agentic/test_recovery_regressions.py",
+        "tests/agentic/test_acceptance.py",
+        "scripts/daybreak_agentic_acceptance.py",
+        "docs/operations/AGENTIC-ACCEPTANCE.md",
+        "tests/channels/test_agentic_images.py"
+      ]
+    }
+  ],
+  "implementation_authorized": true,
+  "external_activation": "not_performed"
+}

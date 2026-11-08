@@ -124,3 +124,10 @@ Surse: [Meta SIP](https://developers.facebook.com/documentation/business-messagi
 `daybreak_runtime.py start` supraveghează API-ul și frontendul împreună și le oprește pe ambele dacă unul se închide. Grupurile de procese diferite nu le fac independente. Pentru QA cu restart numai de frontend, porniți API-ul și frontendul ca procese independente, cu mediul întors de `daybreak_runtime.environment()`, fără rescrierea fișierelor private. Înainte de orice pornire verificați listenerul portului, ca să nu dublați API-ul. Pe 8 noiembrie s-a verificat recuperarea separată a API-ului 8720 după acest comportament; workerul Meta și serviciul de apeluri 8722 au rămas active.
 
 Recuperarea consolei complete a fost verificată în toate vederile dispecerului și în paginile filtrate ale celorlalte roluri. Inventar: `web/design/CONSOLE-RECOVERY.md`. În această etapă au fost verificate și New chat, istoricul real și redeschiderea conversației după refresh. Fără publicarea pe live a interfeței recuperate.
+
+
+## Agentul cu sarcini și rapoarte PNG
+
+Codul local nou și limitele verificării sunt în [AGENTIC-ACCEPTANCE.md](AGENTIC-ACCEPTANCE.md). Routerul privat adaugă POST /api/conversation/tasks, GET /api/conversation/tasks/{id} și POST /api/conversation/tasks/{id}/resume, prin același cont verificat. Niciunul nu confirmă operații. Sarcinile private stau lângă baza operațională, în agentic-tasks.sqlite3.
+
+Workerul păstrează paginile PNG și manifestul lor în registrul Meta existent, fără un al doilea registru. Cereți explicit raportul într-un mesaj pentru a folosi fereastra de mesagerie verificată; apelul singur nu o deschide. Codul nou nu a fost încărcat prin restart în serviciile existente în această etapă. Păstrați separată activarea de verificarea locală.

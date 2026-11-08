@@ -8,6 +8,10 @@ Beneficiul urmărit este ca dispecerul să revizuiască o propunere pentru într
 
 Acest plan completează [catalogul celor trei conturi](PLAN-AGENT-CONVERSATIONAL.md). Pentru noul comportament, ordinea livrării și canalele externe, propunerea de față înlocuiește etapele vechi care nu mai corespund implementării. Interfața rămâne în engleză, iar conversația răspunde în limba utilizatorului. Documentația rămâne în română.
 
+Pentru execuție este pregătit [pachetul redus la cinci prompturi](agentic-prompts/README.md), cu deținere separată a fișierelor și un singur integrator. Pregătirea pachetului nu pornește implementarea.
+
+Actualizare de implementare: prima versiune locală și verificările sunt descrise în [acceptanța locală](operations/AGENTIC-ACCEPTANCE.md). Activarea în serviciile de demo și proba nouă pe telefon rămân separate.
+
 ## 1. Ce există și ce condiționează livrarea
 
 Codul actual are trei roluri, drepturi verificate pe server, modele locale, planificator, propuneri cu confirmare și un istoric al operațiilor. Există fotografii private la constatări și corecții umane care păstrează predicția originală. Aceste componente se reutilizează.
