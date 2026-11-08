@@ -27,6 +27,7 @@ QUESTIONS = {
     "demo-dispatcher": "Sunt dispecer PPC. Câte tichete am astăzi și câte sunt de prioritate ridicată?",
     "demo-technician": "Sunt tehnician PPC. Ce am de făcut astăzi? Trebuie echipament?",
     "demo-asr-client": "Sunt client TPC. A căzut astăzi de curent și vreau să, ăăă, raportez incidentul.",
+    "demo-report-technician": "Sunt tehnician PPC. Trimite-mi raportul pe WhatsApp.",
     "silence": "...",
 }
 
@@ -133,7 +134,8 @@ async def probe(question_key: str, *, conversation_id: str | None = None) -> dic
                 "No acknowledgement or operational check is appropriate."
                 if question_key == "silence"
                 else "Private synthetic role demonstration. Ask only the exact fixed question already in the history. "
-                "Only the preparation explicitly requested in that question is allowed; never confirm, send messages, or place calls."
+                "The server may perform only the incident registration or report delivery explicitly requested in that fixed question, "
+                "when the operator enabled that private demo capability. Never request additional effects or place calls."
                 if question_key.startswith("demo-")
                 else "Synthetic technician. Ask only the fixed question already in the history. Do not ask for changes, proposals, confirmations, messages or calls."
             ),

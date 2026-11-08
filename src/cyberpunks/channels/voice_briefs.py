@@ -1,6 +1,7 @@
 """Fast grounded speech, ONLY after the private verified three-role demo wrapper.
 
-This module never establishes identity, changes roles or confirms an operation.
+This module never establishes identity or changes roles. Only an explicitly
+enabled customer incident may confirm its own create_case/request_human proposal.
 The caller supplies its server-verified Actor and connection selection.
 Safety wording verified by the coordinator against DSU's guide, page 2:
 https://app.dsu.mai.gov.ro/uploads/GHID_SIGURANTA_final_logo_nou_3e032274bd.pdf
@@ -109,12 +110,19 @@ def spoken_location(label):
 
 
 def answer_demo(
-    operations: OperationsService, actor: Actor, message: str, *, event_key: str, connection_id: str | None = None
+    operations: OperationsService,
+    actor: Actor,
+    message: str,
+    *,
+    event_key: str,
+    connection_id: str | None = None,
+    execute_incident: bool = False,
 ) -> dict | None:
     """Read full authorized context, answer bounded intents or defer to the actual LLM.
 
     Caller MUST have verified the private demo allowlist before invoking this.
-    prepare() persists only a real proposal; no confirm/send/dispatch is called.
+    By default prepare() persists only a proposal. The verified caller may enable
+    execution of clear customer incidents only; this never dispatches a crew.
     """
     context = operations.context(actor, SCENARIO)
     plan = context["plan"]
@@ -142,6 +150,8 @@ def answer_demo(
             return None
         if incident == "ambiguous":
             return answer("Te referi la un stâlp căzut sau la o întrerupere de curent?", clarification_required=True)
+        if execute_incident and "?" in text:
+            return None
         connections = [c for c in context.get("connections", []) if c.get("connection_id") == connection_id]
         if not connection_id or len(connections) != 1 or connection_id not in actor.connection_ids:
             question = "Pentru ce loc de consum asociat contului raportezi incidentul?"
@@ -164,6 +174,43 @@ def answer_demo(
             data.update(symptom=message, symptom_type="outage")
             reply = "În scenariul demo, sesizarea de întrerupere este pregătită pentru Confirm în aplicație; încă nu este salvată."
         proposal = operations.prepare(actor, action, data, SCENARIO)
+        if execute_incident:
+            # Confirm only this event's allowlisted operation, under the same
+            # customer authority. Existing service idempotency owns retries.
+            if proposal.get("action") != action or action not in {"create_case", "request_human"}:
+                raise ValueError("Unexpected demo incident proposal action")
+            command = operations.confirm(actor, proposal["proposal_id"])
+            saved = operations.observe_effect(actor, proposal["proposal_id"], SCENARIO)
+            persisted = saved.get("command") or {}
+            succeeded = (
+                command.get("status") == "succeeded"
+                and saved.get("status") == "succeeded"
+                and persisted.get("command_id") == command.get("command_id")
+                and bool(persisted.get("command_id"))
+                and persisted.get("action") == action
+                and bool(persisted.get("result"))
+            )
+            if succeeded:
+                reply = (
+                    f"{SAFETY} Am înregistrat cererea urgentă către operator în demo."
+                    if incident == "fallen_pole"
+                    else "Am înregistrat sesizarea de întrerupere în demo."
+                )
+            else:
+                reply = "Înregistrarea nu este confirmată în demo."
+                if incident == "fallen_pole":
+                    reply = f"{SAFETY} {reply}"
+            result = answer(
+                reply,
+                proposal,
+                incident=incident,
+                proposal_prepared=True,
+                write_executed=succeeded,
+                command_status=persisted.get("status", command.get("status")),
+                snapshot={"plan_version": version, "connection": deepcopy(connections[0]), "message": message},
+            )
+            result["command"] = persisted or command
+            return result
         return answer(
             reply,
             proposal,

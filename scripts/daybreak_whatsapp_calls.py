@@ -26,7 +26,9 @@ NUMBER = "+15551545755"
 LABEL = "Daybreak WhatsApp incoming demo"
 
 
-def enable_demo_roles(base: str = "http://127.0.0.1:3870", *, hours: int = 3) -> None:
+def enable_demo_roles(
+    base: str = "http://127.0.0.1:3870", *, hours: int = 3, incident_actions: bool = False, voice_reports: bool = False
+) -> None:
     """Explicit operator action: authorize existing synthetic accounts for the one verified caller."""
     from daybreak_runtime import read_private_env
 
@@ -85,6 +87,8 @@ def enable_demo_roles(base: str = "http://127.0.0.1:3870", *, hours: int = 3) ->
             "expires_at": (datetime.now(UTC) + timedelta(hours=hours)).isoformat(),
             "actors": actors,
             "customer_connection_id": connection_id,
+            "allow_incident_actions": incident_actions,
+            "allow_voice_reports": voice_reports,
         }
     }
     save_config(config)
@@ -361,12 +365,18 @@ if __name__ == "__main__":
     parser.add_argument("mode", choices=["prepare", "configure", "verify", "show-call-button", "demo-roles"])
     parser.add_argument("--public-origin")
     parser.add_argument("--base", default="http://127.0.0.1:3870")
+    parser.add_argument(
+        "--incident-actions", action="store_true", help="Register explicitly reported synthetic incidents."
+    )
+    parser.add_argument(
+        "--voice-reports", action="store_true", help="Send explicitly requested PDFs to the verified caller."
+    )
     args = parser.parse_args()
     try:
         if args.mode == "prepare":
             prepare()
         elif args.mode == "demo-roles":
-            enable_demo_roles(args.base)
+            enable_demo_roles(args.base, incident_actions=args.incident_actions, voice_reports=args.voice_reports)
         elif args.mode == "configure":
             if not args.public_origin:
                 parser.error("--public-origin is required")
