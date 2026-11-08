@@ -1,5 +1,6 @@
 """The field sheet keeps every stop and verified values in human-readable form."""
 
+import shutil
 import subprocess
 
 from cyberpunks.agentic.pdf_renderer import render_pdf
@@ -33,9 +34,10 @@ def test_field_sheet_has_every_stop_readable_times_and_no_internal_filename(tmp_
     assert result["page_count"] == 1
     path = tmp_path / "sheet.pdf"
     path.write_bytes(result["pdf"])
-    text = subprocess.check_output(["pdftotext", str(path), "-"]).decode()
-    assert all(f"MTR-{i:06d}" in text for i in range(6))
-    assert "Pagina 1 din 1" in text and "30 min" in text
+    if shutil.which("pdftotext"):
+        text = subprocess.check_output(["pdftotext", str(path), "-"]).decode()
+        assert all(f"MTR-{i:06d}" in text for i in range(6))
+        assert "Pagina 1 din 1" in text and "30 min" in text
     data["rows"][0]["title"] = "<script>alert(1)</script>"
     assert "&lt;script&gt;" in pdf_pages(data)[0]
 
