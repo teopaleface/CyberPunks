@@ -241,7 +241,10 @@ def answer_demo(
         )
 
     if actor.role == "technician":
-        if not re.search(r"\b(ce am de facut|urmatoarea oprire|urmatoarea interventie|traseu|echipament)\b", text):
+        if not re.search(
+            r"\b(ce am de facut|ce trebuie sa fac|ce urmeaza sa fac|ce lucrari am|ce sarcini am|program(?:ul)?|urmatoarea oprire|urmatoarea interventie|traseu|echipament)\b",
+            text,
+        ):
             return None
         routes, remaining, stop, by_id = trusted_next_stop(context, actor)
         if not routes:

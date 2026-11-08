@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import hmac
 import json
@@ -9,6 +10,7 @@ import os
 import re
 import time
 import unicodedata
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 
 import httpx
@@ -97,7 +99,7 @@ def call_agent_config(voice_id: str, origin: str, secret_id: str, *, demo_enable
         turn_timeout=120,
         silence_end_call_timeout=180,
         retranscribe_on_turn_timeout=False,
-        turn_eagerness="normal",
+        turn_eagerness="eager",
         soft_timeout_config={"timeout_seconds": -1, "message": "Aștept.", "use_llm_generated_message": False},
     )
     if demo_enabled:
@@ -106,7 +108,7 @@ def call_agent_config(voice_id: str, origin: str, secret_id: str, *, demo_enable
             "the Daybreak technician voice coordinator", "the Daybreak server-bound voice coordinator"
         ).replace(
             "All actions require Confirm in the application.",
-            "Intervention and plan approvals require Confirm in the application. The private demo server may register an explicitly reported incident and send an explicitly requested PDF.",
+            "The private demo server may execute an explicitly requested, preauthorized workflow, register an incident and send a requested PDF. Only its verified result establishes whether an action happened.",
         ).replace(
             "Do not provide electrical instructions or claim that an action was performed.",
             "Do not provide electrical instructions. Report an action as performed only when the server reply explicitly verifies that result.",
@@ -170,7 +172,7 @@ def is_silent_transcript(message: str) -> bool:
 
 def is_hearing_check(message: str) -> bool:
     text = "".join(c for c in unicodedata.normalize("NFKD", message.casefold()) if not unicodedata.combining(c)).strip()
-    return bool(re.fullmatch(r"(?:ma auzi|ma auziti|alo|se aude)[?!. ,]*", text))
+    return bool(re.fullmatch(r"(?:(?:alo)[?!. ,]*)?(?:ma auzi|ma auziti|alo|se aude|mai esti(?: aici)?)[?!. ,]*", text))
 
 
 def is_report_request(message: str) -> bool:
@@ -197,6 +199,16 @@ def clarified_incident(message: str, history: list[dict]) -> str:
     return message
 
 
+def is_dispatch_request(message: str) -> bool:
+    text = "".join(c for c in unicodedata.normalize("NFKD", message.casefold()) if not unicodedata.combining(c))
+    if re.search(r'["„”«»`]|\b(nu|nici|daca|ipotetic|exemplu|citat|cum)\b', text):
+        return False
+    return bool(
+        re.search(r"\b(rezolv\w*|proceseaza|gestioneaza|aplica|ocupa|decide)\b", text)
+        and re.search(r"\b(toate|tichete\w*|cazuri\w*|automat|pentru mine|pe intre mine)\b", text)
+    )
+
+
 DEMO_ROLES = {"client": "customer", "dispecer": "dispatcher", "tehnician": "technician"}
 DEMO_LABELS = {"customer": "Demo client.", "dispatcher": "Demo dispecer.", "technician": "Demo tehnician."}
 ROLE_QUESTION = "Ce rol alegi pentru demo: client PPC, dispecer PPC sau tehnician PPC?"
@@ -204,6 +216,7 @@ DECLARATION = re.compile(r"\b(client|dispecer|tehnician)\b")
 DECLARATIVE_PREFIX = re.compile(
     r"^\s*(?:(?:a+|e+|um|uh|hmm?|deci|ok|okay|bun|bine|si|iar|apoi|acum)[\s,.!:;\-]+){0,6}"
     r"(?:(?:salut|buna(?:\s+ziua)?)[\s,.!:]+)?"
+    r"(?:(?:acuma\s+)?(?:schimbam|schimb|schimba)\s+rolul[\s,.!:;]+)?"
     r"(?:(?:da[\s,]+)|(?:nu[\s,]+(?=eu\s+sunt\b)))?"
     r"(?:(?:acum\s+(?:eu\s+)?(?:sunt\s+)?|(?:eu\s+)?sunt\s+)|"
     r"(?:(?:aleg|selectez)\s+(?:rolul\s+(?:de\s+)?)?)|"
@@ -303,7 +316,10 @@ def _demo_profile(config: dict, caller: str, operations) -> tuple[dict[str, Acto
         return None
 
 
-def create_app(*, service=None, bindings=None, config_loader=load_config, report_sender=None) -> FastAPI:
+def create_app(
+    *, service=None, bindings=None, config_loader=load_config, report_sender=None, background_jobs=None, job_store=None
+) -> FastAPI:
+    background_jobs = service is None if background_jobs is None else background_jobs
     if service is None:
         # Import operations only after selecting the existing complete isolated runtime data.
         path = runtime_root() / "daybreak.env"
@@ -318,9 +334,111 @@ def create_app(*, service=None, bindings=None, config_loader=load_config, report
 
         service = ConversationService(get_service())
     bindings = bindings or Bindings(runtime_root() / "whatsapp-bindings.json")
-    app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+    if background_jobs and job_store is None:
+        from cyberpunks.channels.voice_jobs import VoiceJobs
+
+        job_store = VoiceJobs(service.operations.db_path.with_name("voice-jobs.sqlite3"))
+
+    def authorize_job(job):
+        payload = job["payload"]
+        current = config_loader()
+        caller = payload["caller"]
+        if caller not in current.get("allowed_callers", []) or current["phone_number_id"] != payload["destination"]:
+            raise ChannelError("caller_forbidden", "The caller authorization changed.", 403)
+        rebound = bindings.resolve(payload["destination"], caller)
+        profile = _demo_profile(current, caller, service.operations)
+        actor = Actor.model_validate(job["verifiedActor"])
+        permission = "allow_voice_reports" if job["kind"] == "report" else "allow_queue_actions"
+        if (
+            not profile
+            or profile[2] != payload["demo_signature"]
+            or _fingerprint(rebound.model_dump()) != payload["base_actor_signature"]
+            or profile[0].get(actor.role) != actor
+            or current["demo_callers"][caller].get(permission) is not True
+        ):
+            raise ChannelError("demo_expired", "The private job authorization changed.", 403)
+        return actor
+
+    async def handle_job(job):
+        actor = authorize_job(job)
+        if job["kind"] == "report":
+            from cyberpunks.channels.voice_reports import send_voice_report
+
+            sender = report_sender or send_voice_report
+            result = await sender(
+                service.operations,
+                actor,
+                caller=job["payload"]["caller"],
+                destination=job["payload"]["destination"],
+                event_key=job["event_key"],
+                authorize_actor=lambda: authorize_job(job),
+            )
+            return {**result, "status": "failed"} if result.get("status") == "error" else result
+        from cyberpunks.channels.voice_dispatch import run_dispatch
+
+        def execute():
+            result = asyncio.run(
+                run_dispatch(
+                    service.operations,
+                    actor,
+                    event_key=job["event_key"],
+                    authorize_actor=lambda requested_actor: authorize_job(job),
+                )
+            )
+            if result.get("status") == "completed" and result.get("applied", 0) and "approve_plan" in actor.permissions:
+                authorize_job(job)
+                plan = service.operations.context(actor, "demo-vara")["plan"]
+                proposal = service.operations.prepare(
+                    actor,
+                    "approve_plan",
+                    {
+                        "plan_id": plan["plan_id"],
+                        "plan_version": plan["version"],
+                        "idempotency_key": "voice-plan:" + hashlib.sha256(job["event_key"].encode()).hexdigest(),
+                    },
+                    "demo-vara",
+                )
+                authorize_job(job)
+                command = service.operations.confirm(actor, proposal["proposal_id"])
+                observed = service.operations.observe_effect(actor, proposal["proposal_id"], "demo-vara")
+                if command.get("status") == "succeeded" and (observed.get("command") or {}).get(
+                    "command_id"
+                ) == command.get("command_id"):
+                    result["plan_approval"] = command
+                    result["reply"] += " Planul rezultat este aprobat pentru echipe."
+                else:
+                    result.update(
+                        status="needs_reconciliation", reply=result["reply"] + " Aprobarea planului nu este confirmată."
+                    )
+            return result
+
+        return await asyncio.to_thread(execute)
+
+    @asynccontextmanager
+    async def lifespan(app):
+        async def drain():
+            while True:
+                try:
+                    claimed = await job_store.drain_one(handle_job)
+                except Exception:  # noqa: BLE001 - private job data must not enter public logs.
+                    claimed = None
+                if claimed is None:
+                    await asyncio.sleep(0.2)
+
+        worker = asyncio.create_task(drain()) if background_jobs else None
+        try:
+            yield
+        finally:
+            if worker:
+                worker.cancel()
+                await asyncio.gather(worker, return_exceptions=True)
+
+    app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
+    app.state.voice_jobs = job_store
+    app.state.voice_job_handler = handle_job
     sessions: dict[str, dict] = {}
-    limiter = Limits(per_minute=16, concurrency=1, max_actors=100)
+    limiter = Limits(per_minute=40, concurrency=8, max_actors=100)
+    inflight: dict[str, asyncio.Task] = {}
 
     @app.middleware("http")
     async def authorize(request: Request, call_next):
@@ -355,6 +473,10 @@ def create_app(*, service=None, bindings=None, config_loader=load_config, report
                 return {"reply": ""}
             if is_hearing_check(request.message):
                 return {"reply": "Te aud. Spune-mi întrebarea."}
+            previous = inflight.get(request.conversation_id)
+            if previous and not previous.done():
+                previous.cancel()
+                await asyncio.gather(previous, return_exceptions=True)
             # Scope and binding are rechecked on every turn. Neither the model nor the request selects a role.
             service.operations.context(base_actor, "demo-vara")
             now = time.monotonic()
@@ -367,7 +489,7 @@ def create_app(*, service=None, bindings=None, config_loader=load_config, report
                     "destination": config["phone_number_id"],
                 }
             )
-            async with limiter.acquire((base_actor.organization_id, base_actor.user_id)):
+            async with limiter.acquire((base_actor.organization_id, base_actor.user_id, request.conversation_id)):
                 existing = sessions.get(request.conversation_id)
                 if existing and existing["actor"] != base_signature:
                     raise ChannelError("call_identity_changed", "The call identity changed. Start a new call.", 403)
@@ -383,7 +505,11 @@ def create_app(*, service=None, bindings=None, config_loader=load_config, report
                 if profile:
                     actors, connection_id, demo_signature = profile
                     selected_role = (
-                        existing.get("demo_role") if existing and existing.get("demo") == demo_signature else None
+                        existing.get("demo_role")
+                        if existing and existing.get("demo") == demo_signature
+                        else base_actor.role
+                        if base_actor.role in actors
+                        else None
                     )
                     declared_role, remainder, ambiguous = _role_declaration(message)
                     if ambiguous:
@@ -414,6 +540,17 @@ def create_app(*, service=None, bindings=None, config_loader=load_config, report
                     and existing.get("demo_role") == selected_role
                 )
                 history = existing["history"] if same_identity else []
+                # Preserve verified identity before any awaited provider call. An
+                # interrupted request must not lose the role or poison the next call.
+                sessions[request.conversation_id] = {
+                    "actor": base_signature,
+                    "effective_actor": effective_signature,
+                    "demo": demo_signature,
+                    "demo_role": selected_role,
+                    "expires": now + 660,
+                    "history": history,
+                    "replies": dict(existing.get("replies", {})) if existing else {},
+                }
                 dedupe = (
                     "wa-call:"
                     + hashlib.sha256(
@@ -449,19 +586,74 @@ def create_app(*, service=None, bindings=None, config_loader=load_config, report
                         return actor
 
                     if selected_role and is_report_request(message) and entry.get("allow_voice_reports") is True:
+                        if background_jobs:
+                            job = job_store.submit(
+                                actor,
+                                "report",
+                                {
+                                    "conversation_id": request.conversation_id,
+                                    "caller": caller,
+                                    "destination": config["phone_number_id"],
+                                    "demo_signature": demo_signature,
+                                    "base_actor_signature": _fingerprint(base_actor.model_dump()),
+                                },
+                                dedupe,
+                            )
+                            result = {
+                                "reply": (job.get("result") or {}).get("reply")
+                                or "Pregătesc raportul și îl trimit pe WhatsApp."
+                            }
                         sender = report_sender
                         if sender is None:
                             from cyberpunks.channels.voice_reports import send_voice_report
 
                             sender = send_voice_report
-                        result = await sender(
-                            service.operations,
+                        if result is None:
+                            result = await sender(
+                                service.operations,
+                                actor,
+                                caller=caller,
+                                destination=config["phone_number_id"],
+                                event_key=dedupe,
+                                authorize_actor=authorize_demo_actor,
+                            )
+                    if (
+                        selected_role == "dispatcher"
+                        and is_dispatch_request(message)
+                        and entry.get("allow_queue_actions") is True
+                    ) and background_jobs:
+                        job = job_store.submit(
                             actor,
-                            caller=caller,
-                            destination=config["phone_number_id"],
-                            event_key=dedupe,
-                            authorize_actor=authorize_demo_actor,
+                            "dispatch",
+                            {
+                                "conversation_id": request.conversation_id,
+                                "caller": caller,
+                                "destination": config["phone_number_id"],
+                                "demo_signature": demo_signature,
+                                "base_actor_signature": _fingerprint(base_actor.model_dump()),
+                            },
+                            dedupe,
                         )
+                        result = {
+                            "reply": (job.get("result") or {}).get("reply")
+                            or "Analizez coada și aplic deciziile susținute de date. Poți continua să vorbești."
+                        }
+                    if (
+                        result is None
+                        and background_jobs
+                        and selected_role
+                        and re.search(r"\b(terminat|gata|stadiu|status|cum merge|ce ai facut)\b", message.casefold())
+                    ):
+                        latest = job_store.latest(actor, request.conversation_id)
+                        if latest:
+                            result = {
+                                "reply": (latest.get("result") or {}).get("reply")
+                                or (
+                                    "Încă lucrez la cererea ta. Poți continua să vorbești."
+                                    if latest["status"] in {"queued", "running"}
+                                    else "Operația nu este confirmată. Nu am repetat-o automat."
+                                )
+                            }
                     if selected_role:
                         from cyberpunks.channels.voice_briefs import answer_demo
 
@@ -478,11 +670,19 @@ def create_app(*, service=None, bindings=None, config_loader=load_config, report
                                 **action_options,
                             )
                     if result is None:
-                        result = await service.chat(
-                            actor,
-                            ChatRequest(message=message, history=history),
-                            event_key=dedupe,
+                        pending = asyncio.create_task(
+                            service.chat(
+                                actor,
+                                ChatRequest(message=message, history=history),
+                                event_key=dedupe,
+                            )
                         )
+                        inflight[request.conversation_id] = pending
+                        try:
+                            result = await asyncio.wait_for(pending, timeout=15)
+                        finally:
+                            if inflight.get(request.conversation_id) is pending:
+                                inflight.pop(request.conversation_id, None)
                     reply = result["reply"]
                     # Repeated reads must still see the current plan. Only prepared
                     # proposals are replayed, within their actual validity window.

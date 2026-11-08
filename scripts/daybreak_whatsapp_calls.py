@@ -27,7 +27,12 @@ LABEL = "Daybreak WhatsApp incoming demo"
 
 
 def enable_demo_roles(
-    base: str = "http://127.0.0.1:3870", *, hours: int = 3, incident_actions: bool = False, voice_reports: bool = False
+    base: str = "http://127.0.0.1:3870",
+    *,
+    hours: int = 3,
+    incident_actions: bool = False,
+    voice_reports: bool = False,
+    queue_actions: bool = False,
 ) -> None:
     """Explicit operator action: authorize existing synthetic accounts for the one verified caller."""
     from daybreak_runtime import read_private_env
@@ -89,6 +94,7 @@ def enable_demo_roles(
             "customer_connection_id": connection_id,
             "allow_incident_actions": incident_actions,
             "allow_voice_reports": voice_reports,
+            "allow_queue_actions": queue_actions,
         }
     }
     save_config(config)
@@ -371,12 +377,20 @@ if __name__ == "__main__":
     parser.add_argument(
         "--voice-reports", action="store_true", help="Send explicitly requested PDFs to the verified caller."
     )
+    parser.add_argument(
+        "--queue-actions", action="store_true", help="Apply explicitly requested validated dispatcher decisions."
+    )
     args = parser.parse_args()
     try:
         if args.mode == "prepare":
             prepare()
         elif args.mode == "demo-roles":
-            enable_demo_roles(args.base, incident_actions=args.incident_actions, voice_reports=args.voice_reports)
+            enable_demo_roles(
+                args.base,
+                incident_actions=args.incident_actions,
+                voice_reports=args.voice_reports,
+                queue_actions=args.queue_actions,
+            )
         elif args.mode == "configure":
             if not args.public_origin:
                 parser.error("--public-origin is required")
