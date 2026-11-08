@@ -1,8 +1,8 @@
 {
   "description": "Agentul față de strategii simple, pe o lume SINTETICĂ cu adevărul cunoscut (scoruri calibrate prin construcție).",
   "reproduce_cmd": "uv run python -m cyberpunks.planner.evaluate --days 30 --seed 7 --meters 120",
-  "planner_version": "planner@0.1.0+cddf997",
-  "created_at": "2026-11-07T18:15:44+02:00",
+  "planner_version": "planner@0.1.0+7675c21",
+  "created_at": "2026-11-08T08:03:51+02:00",
   "synthetic": true,
   "main": {
     "days": 30,
@@ -46,7 +46,7 @@
           "B": 30,
           "C": 15
         },
-        "solve_seconds_mean": 0.169
+        "solve_seconds_mean": 0.158
       },
       "top_k_scor": {
         "net_value_lei_total": 697651.53,
@@ -712,7 +712,7 @@
           "B": 11,
           "C": 7
         },
-        "solve_seconds_mean": 0.153
+        "solve_seconds_mean": 0.143
       },
       "top_k_scor": {
         "net_value_lei_total": 140112.88,
@@ -867,7 +867,7 @@
           "B": 0,
           "C": 0
         },
-        "solve_seconds_mean": 0.003,
+        "solve_seconds_mean": 0.002,
         "agent_minus_strategy_net_lei": 163386.49
       }
     },
@@ -1074,7 +1074,7 @@
         "B": 30,
         "C": 15
       },
-      "solve_seconds_mean": 0.3
+      "solve_seconds_mean": 0.276
     },
     "greedy_in_loc_de_ortools": {
       "label_ro": "Aceleași reguli, trasee făcute greedy în loc de OR-Tools",
@@ -1169,33 +1169,33 @@
     "truth_source": "outputs/work_items/demo-vara/A_ground_truth.csv",
     "strategies": {
       "agent": {
-        "net_value_lei_total": 11961.5,
-        "net_value_lei_per_day": 11961.5,
+        "net_value_lei_total": 17487.46,
+        "net_value_lei_per_day": 17487.46,
         "net_value_lei_per_day_std": 0.0,
-        "value_captured_lei_total": 19226.53,
-        "costs_lei_total": 7265.03,
-        "km_total": 152.73,
-        "km_per_day": 152.73,
-        "visits_total": 22,
+        "value_captured_lei_total": 25105.96,
+        "costs_lei_total": 7618.5,
+        "km_total": 177.93,
+        "km_per_day": 177.93,
+        "visits_total": 23,
         "useless_visits_total": 0,
         "useless_visit_rate": 0.0,
-        "urgent_total": 159,
-        "urgent_missed_total": 145,
-        "urgent_missed_rate": 0.9119,
+        "urgent_total": 40,
+        "urgent_missed_total": 27,
+        "urgent_missed_rate": 0.675,
         "storms_true_total": 0,
         "storms_covered_total": 0,
-        "remote_readings_total": 407,
-        "remote_readings_true": 319,
+        "remote_readings_total": 389,
+        "remote_readings_true": 301,
         "human_review_total": 13,
         "human_review_true": 5,
         "notifications_total": 0,
         "value_by_source_lei": {
-          "A": 19226.53,
+          "A": 25105.96,
           "B": 0.0,
           "C": 0.0
         },
         "visits_by_source": {
-          "A": 22,
+          "A": 23,
           "B": 0,
           "C": 0
         },
@@ -1204,7 +1204,7 @@
           "B": 0,
           "C": 0
         },
-        "solve_seconds_mean": 3.004
+        "solve_seconds_mean": 2.893
       },
       "top_k_scor": {
         "net_value_lei_total": 4207.72,
@@ -1217,9 +1217,9 @@
         "visits_total": 22,
         "useless_visits_total": 0,
         "useless_visit_rate": 0.0,
-        "urgent_total": 159,
-        "urgent_missed_total": 157,
-        "urgent_missed_rate": 0.9874,
+        "urgent_total": 40,
+        "urgent_missed_total": 40,
+        "urgent_missed_rate": 1.0,
         "storms_true_total": 0,
         "storms_covered_total": 0,
         "remote_readings_total": 0,
@@ -1242,7 +1242,7 @@
           "B": 0,
           "C": 0
         },
-        "solve_seconds_mean": 0.018
+        "solve_seconds_mean": 0.017
       },
       "primul_venit": {
         "net_value_lei_total": 29334.9,
@@ -1255,9 +1255,9 @@
         "visits_total": 24,
         "useless_visits_total": 0,
         "useless_visit_rate": 0.0,
-        "urgent_total": 159,
-        "urgent_missed_total": 158,
-        "urgent_missed_rate": 0.9937,
+        "urgent_total": 40,
+        "urgent_missed_total": 40,
+        "urgent_missed_rate": 1.0,
         "storms_true_total": 0,
         "storms_covered_total": 0,
         "remote_readings_total": 0,
@@ -1293,9 +1293,9 @@
         "visits_total": 27,
         "useless_visits_total": 4,
         "useless_visit_rate": 0.1481,
-        "urgent_total": 159,
-        "urgent_missed_total": 149,
-        "urgent_missed_rate": 0.9371,
+        "urgent_total": 40,
+        "urgent_missed_total": 38,
+        "urgent_missed_rate": 0.95,
         "storms_true_total": 0,
         "storms_covered_total": 0,
         "remote_readings_total": 0,
@@ -1318,36 +1318,36 @@
           "B": 0,
           "C": 0
         },
-        "solve_seconds_mean": 0.023
+        "solve_seconds_mean": 0.025
       },
       "agent_fara_siguranta_obligatorie": {
-        "net_value_lei_total": 27495.48,
-        "net_value_lei_per_day": 27495.48,
+        "net_value_lei_total": 27206.12,
+        "net_value_lei_per_day": 27206.12,
         "net_value_lei_per_day_std": 0.0,
-        "value_captured_lei_total": 35022.2,
-        "costs_lei_total": 7526.72,
-        "km_total": 126.91,
-        "km_per_day": 126.91,
-        "visits_total": 24,
+        "value_captured_lei_total": 35025.94,
+        "costs_lei_total": 7819.82,
+        "km_total": 128.88,
+        "km_per_day": 128.88,
+        "visits_total": 25,
         "useless_visits_total": 0,
         "useless_visit_rate": 0.0,
-        "urgent_total": 159,
-        "urgent_missed_total": 153,
-        "urgent_missed_rate": 0.9623,
+        "urgent_total": 40,
+        "urgent_missed_total": 35,
+        "urgent_missed_rate": 0.875,
         "storms_true_total": 0,
         "storms_covered_total": 0,
-        "remote_readings_total": 362,
-        "remote_readings_true": 274,
+        "remote_readings_total": 373,
+        "remote_readings_true": 285,
         "human_review_total": 13,
         "human_review_true": 5,
         "notifications_total": 0,
         "value_by_source_lei": {
-          "A": 35022.2,
+          "A": 35025.94,
           "B": 0.0,
           "C": 0.0
         },
         "visits_by_source": {
-          "A": 24,
+          "A": 25,
           "B": 0,
           "C": 0
         },
@@ -1356,9 +1356,9 @@
           "B": 0,
           "C": 0
         },
-        "solve_seconds_mean": 1.499
+        "solve_seconds_mean": 1.489
       }
     }
   },
-  "runtime_s": 57.1
+  "runtime_s": 54.4
 }
