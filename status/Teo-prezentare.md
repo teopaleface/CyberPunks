@@ -1,21 +1,34 @@
 # Status: Teo-prezentare
-Actualizat: 2026-11-08 08:08
-Milestone curent: PREDAREA (12:00). Filmul există ca draft complet; slideurile, scriptul final și înregistrarea de rezervă se fac acum (termene mai jos).
-Gata de merge: NU se face merge din acest branch (istoria cu fișierele 3D); fișierele de predare se aduc în `Teo` individual (lista de mai jos).
+Actualizat: 2026-11-08 08:42
+Milestone curent: PREDAREA (12:00). Filmul, slideurile și scriptul demo-ului sunt gata și urcate; înregistrarea de rezervă e în lucru (gata pe la 10:00).
+Gata de merge: NU se face merge din acest branch (istoria cu fișierele 3D); fișierele de predare se aduc în `Teo` individual (comanda de mai jos).
 
-## Starea finală (8 nov., 08:08): ce e gata și ce nu
+## Starea finală (8 nov., 08:42)
 
 | Ce | Stare | Unde | Mărime |
 |---|---|---|---|
-| Filmul cu „POWER” (pentru sală) | GATA ca draft complet (firul lateral, 7 nov. 19:42): 52,9 s, 1920×1080, 30 fps, -14,0 LUFS, vocea Kokoro (af_heart). Doar local: are piesa comercială | `presentation/frames-3d/threejs/film_v3/renders/local/daybreak_v3_draft.mp4` | 39,2 MB |
-| Filmul versionat (fără „POWER”: voce + efecte) | ÎN LUCRU, gata la ~08:45 | `presentation/exports/daybreak-film.mp4` | țintă < 50 MB |
-| Slideurile (PDF) | NU SUNT GATA (există doar planul `presentation/slides/OUTLINE.md`). În lucru acum, cu cifrele citite din `reports/`, gata la ~10:00 | `presentation/exports/daybreak-slides.pdf` | țintă < 5 MB |
-| Scriptul demo-ului | Schiță veche (7 nov., 13:40: numele vechi, filmul de 30 s). Îl actualizez acum, gata la ~09:45 | `presentation/demo-script.md` | mic |
-| Înregistrarea de rezervă a consolei | NU EXISTĂ. O fac acum din consola reală (API-ul pe 8710 merge; pornesc interfața pe 3710), gata la ~10:15. Doar local (peste 5 MB) | `presentation/exports/local/daybreak-demo-rezerva.mp4` | — |
+| Filmul final, exportul versionat (cel predat) | GATA: 52,9 s, 1920×1080, 30 fps, H.264, AAC 48 kHz, -14,0 LUFS, vârf -1,8 dBTP, faststart. Imaginea filmului v3 („lume în miniatură”), cu vocea (Kokoro, af_heart) și efectele, FĂRĂ „POWER” | `presentation/exports/daybreak-film.mp4` | 38,7 MB |
+| Filmul pentru sală | GATA: aceeași imagine, cu „POWER” (-14,0 LUFS). Doar local, ignorat de git | `presentation/exports/local/daybreak-film-power.mp4` | 39,2 MB |
+| Slideurile | GATA: 16 pagini (11 principale, 5 anexă), în română, cifrele citite din `reports/` de `presentation/scripts/build_slides.py` (scriptul tipărește tabelul cifrelor cu fișierul și cheia) | `presentation/exports/daybreak-slides.pdf` | 1,5 MB |
+| Scriptul demo-ului | GATA: cronometrul pe 5 minute, cifrele de pe slideuri, planul B, întrebările probabile | `presentation/demo-script.md` | mic |
+| Înregistrarea de rezervă a consolei | ÎN LUCRU (agent separat, consola reală pe 3710 cu API-ul de pe 8710), gata pe la 10:00. Doar local | `presentation/exports/local/daybreak-demo-rezerva.mp4` | — |
+| README și credite | GATA, cu livrabilele finale, vocea Kokoro (Apache-2.0), imaginile AI, muzica doar local | `presentation/README.md`, `presentation/CREDITS.md` | mici |
 
-Cifrele din vocea filmului, verificate în `reports/planner/agent_eval.json` (30 de zile, simulare): „30% less driving” = 10.565 km față de 15.439 km la „primul venit” (-31,6%); „fewer wasted trips” = 37% vizite inutile față de 63%; „eleven crews” = `config/crews.yaml` (11 echipe). De știut la demo: „556 problems” vine din consola de ieri; planul de azi pentru 8 iulie are 697 de lucrări la intrare (`outputs/demo/plans/demo-vara/plan.json`), deci la demo nu dăm alt număr de lucrări decât cel de pe ecran.
+Verificat: `tests/test_repo_size.py` trece. La 08:20 am scos din urmărire fișierele grele urcate peste noapte în acest branch (58 de planșe QA mărite, 522 MB; o scenă Blender de 11 MB; două foi de 5,6 MB; încercările planșelor; audio-ul m4a/flac). Rămân pe disc. Sunt însă în istoria de pe GitHub (commiturile din 7 nov., 18:51 și 19:33): de adăugat la curățarea pe care o decide Teo.
 
-Fișierele mici de adus în `Teo` pentru predare (lista finală o confirm la ~10:15, după exporturi): `presentation/exports/daybreak-film.mp4`, `presentation/exports/daybreak-slides.pdf`, `presentation/demo-script.md`, `presentation/CREDITS.md`, `presentation/README.md`. Comanda, din `Teo`: `git checkout origin/Teo-prezentare -- <căile>`, apoi commit.
+Cifrele din film și de pe slideuri, din `reports/`: +49% valoare netă, 10.565 față de 15.439 km (-31,6%, în film „30% less driving”), 37% față de 63% vizite degeaba (simulare de 30 de zile, față de „primul venit, primul servit”); A 0,62/0,02 (subtile) și 0,80/0,11 (SGCC); B PR-AUC 0,28/0,15; C 0,0054/0,0227 pu; bilanț F1 0,71/0,48. De știut: filmul spune „556 problems” (consola de ieri); planul de azi are alt număr de lucrări, deci live spunem doar ce e pe ecran.
+
+### Fișierele de adus în `Teo` pentru predare
+
+Din `Teo` (toate sub 5 MB, în afară de film, care e singurul export, sub 50 MB):
+
+```bash
+git fetch origin
+git checkout origin/Teo-prezentare -- presentation/exports/daybreak-film.mp4 presentation/exports/daybreak-slides.pdf presentation/demo-script.md presentation/CREDITS.md presentation/README.md
+git commit -m "Predare: filmul Daybreak, slideurile și scriptul demo-ului (din Teo-prezentare)"
+```
+
+Opțional, pentru reproducere: `presentation/scripts/build_slides.py` și `presentation/scripts/export_film_public.sh`. Atenție: au nevoie de activele care sunt doar în `Teo-prezentare` (fonturile din `presentation/video/assets/fonts/`, planșele din `presentation/frames-3d/plates_v3/raw_jpg/`, vocea și efectele locale), deci în `Teo` nu rulează singure. Copia pentru sală și înregistrarea de rezervă rămân doar pe laptopul lui Teo.
 
 ## Făcut
 - 12:50 Citite instrucțiunile, memoria, planul și contractele. `uv sync` și `make check` trec.
