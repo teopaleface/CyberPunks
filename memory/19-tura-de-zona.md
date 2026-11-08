@@ -64,6 +64,14 @@ lucrări urgente. Le socotim la 950 lei pe zi-echipă (8 h × 2 oameni × 59,4 l
 oricum cel mult ~5 zile lucrătoare de așteptare față de un termen de 10. Testul `test_waiting_never_passes_the_deadline`
 încearcă toate combinațiile de zi a sesizării și zi a planului.
 
+## Actualizare după regula tipurilor de echipe (8 nov., ~04:15)
+
+Cu echipele împărțite în IT/MT și JT (`20-tipuri-de-echipe.md`), aceeași simulare dă: km −21% (2.403 → 1.891), zile-echipă
+34 → 28 (−18%), 0 termene depășite, net ~5.510 lei în 4 săptămâni. Așteptarea maximă a urcat la 9 zile lucrătoare.
+Cauza: vinerea, cele 4 echipe JT din București fac ~20–22 de vizite, iar săptămâna aduce ~29. O lucrare din 10 nov. nu a
+încăput nici pe 13, nici pe 20 nov. și a plecat obligatoriu pe 23 nov., în ultima zi sigură. Garda termenului a funcționat,
+dar o singură zi de tură pe săptămână e la limita capacității. De încercat `tour_weekdays: [3, 4]` (joi și vineri).
+
 ## Limite și ce mai e de făcut
 
 - Cifrele vin dintr-o lume sintetică: arată ordinul de mărime, nu date PPC.

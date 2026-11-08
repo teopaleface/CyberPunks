@@ -124,3 +124,7 @@ Pachetul activ FeederBW: F1 macro 0,58950 pe 13.200 ferestre, MAE pierdere norma
 ### 2026-11-08 03:40 — Tudor: tura de zonă în planificator
 
 - După mentorul PPC, agentul nu mai trimite echipa a doua zi la orice. Vizitele obișnuite la contoare și posturi așteaptă tura de zonă de vineri. Pleacă mai devreme doar dacă: se apropie termenul legal (contor defect, 10 zile lucrătoare, cu o zi de rezervă), au rămas de la tura trecută, așteptarea pierde mai mult decât economisește tura, zona umple o tură sau o echipă trece oricum pe lângă. Siguranța, furtunile și tensiunea nu se amână. Pe 4 săptămâni sintetice: −20% km, −24% zile-echipă, 0 termene depășite; drumul economisit e cam cât costă așteptarea, câștigul net vine din zilele-echipă eliberate. Detalii în `19-tura-de-zona.md`. Decizie: amânarea e pornită implicit (`dispatch.weekly_batching: true`).
+
+### 2026-11-08 04:10 — Tudor: două tipuri de echipe
+
+- Regulă nouă de la Tudor: echipele sunt fie de înaltă și medie tensiune (IT/MT), fie de joasă tensiune (JT), iar fiecare ia doar lucrările specializării ei. În `config/crews.yaml`, abilitățile vin din tip (`crew_types`), iar echipele mixte nu mai sunt permise. E-BE-2 și E-DV-1 au devenit JT (trebuia să existe o echipă JT cu 3 oameni în București și una JT în Banat); celelalte echipe cu MT au devenit IT/MT. O combinație care cere ambele tipuri nu mai intră la o singură echipă. Detalii în `20-tipuri-de-echipe.md`.

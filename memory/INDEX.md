@@ -26,6 +26,7 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 | `10-raspunsuri-mentor.md` | Răspunsurile mentorului PPC: contoare la 5 minute, echipele așteaptă sfârșitul săptămânii dacă nu e urgent |
 | `13-regresie-logistica-vs-lightgbm.md` | Regresia logistică în loc de LightGBM nu ajută: cifre, metrica de decizie, ce spunem la prezentare |
 | `19-tura-de-zona.md` | **Tura de zonă**: urgent azi, restul vineri, fără să treacă termenul legal; cum merge și ce economisește (−20% km, −24% zile-echipă, sintetic) |
+| `20-tipuri-de-echipe.md` | **Două tipuri de echipe**: IT/MT și JT, fiecare doar cu lucrările specializării ei; cine ce face și alegerile de confirmat |
 | `journal.md` | Ce s-a întâmplat și ce s-a decis, cu ora |
 
 ## Reguli
