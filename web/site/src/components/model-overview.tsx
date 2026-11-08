@@ -12,6 +12,19 @@ import { cn, fmt } from "@/lib/utils"
 type Key = "A" | "B" | "C" | "bilant"
 const M = DB.modelCards
 
+/**
+ * Checks added after the shipped model cards, copied from reports/ml/README.md (`make ml-report`).
+ * They are extra evidence, not new scores of the shipped models.
+ */
+const NEW_CHECKS = {
+  /** FeederBW measured voltages, next-day max at the feeder head; 40 real feeders, unseen feeders and months. */
+  feederbwVoltage: { modelV: 0.724, persistenceV: 0.825 },
+  /** 300 new synthetic transformers; protocol and model hashes fixed in 3deadcc before the batch was generated. */
+  bilantFreshAudit: { model: 0.77539, rules: 0.42059 },
+  testsPassed: 208,
+  scoresRecomputed: 30,
+}
+
 interface Metric {
   label: string
   model: number
@@ -30,6 +43,8 @@ interface Row {
   model: string
   test: string
   metrics: Metric[]
+  /** A later check on other data, shown under the bars. */
+  check?: string
 }
 
 const ROWS: Row[] = [
@@ -71,6 +86,7 @@ const ROWS: Row[] = [
       { label: "Mean error of max voltage (pu)", model: M.C.metrics.mae_vmax_pu, base: M.C.baseline.mae_vmax_pu, baseLabel: "linear model", digits: 4, lowerIsBetter: true },
       { label: "PR-AUC, voltage above 1.10 pu", model: M.C.metrics.pr_auc_exceed, base: M.C.baseline.pr_auc_exceed, baseLabel: "linear model", digits: 2 },
     ],
+    check: `On real measured voltages (FeederBW, 40 feeders): next-day peak error ${fmt(NEW_CHECKS.feederbwVoltage.modelV, 2)}\u00a0V vs ${fmt(NEW_CHECKS.feederbwVoltage.persistenceV, 2)}\u00a0V for "same as last day". That test has no overvoltages.`,
   },
   {
     key: "bilant",
@@ -84,6 +100,7 @@ const ROWS: Row[] = [
       { label: "Macro F1, cause of the loss", model: M.bilant.metrics.diagnoza_macro_f1, base: M.bilant.baseline.diagnoza_macro_f1, baseLabel: "rule table", digits: 2 },
       { label: "Normal-loss error (kWh/day)", model: M.bilant.metrics.normal_mae_kwh_day, base: M.bilant.baseline.normal_mae_kwh_day, baseLabel: "I²R formula", digits: 1, lowerIsBetter: true },
     ],
+    check: `Fresh audit, rules locked before the data was generated: 300 new transformers, macro F1 ${fmt(NEW_CHECKS.bilantFreshAudit.model, 2)} vs ${fmt(NEW_CHECKS.bilantFreshAudit.rules, 2)} for the rule table.`,
   },
 ]
 
@@ -163,13 +180,23 @@ export function ModelOverview() {
               {r.metrics.map((m) => (
                 <Bars key={m.label} m={m} color={r.color} />
               ))}
+              {r.check && (
+                <p className="flex gap-2 text-sm text-foreground/75">
+                  <span aria-hidden className="mt-[0.45em] size-1.5 shrink-0 rounded-full" style={{ background: r.color }} />
+                  <span>
+                    <span className="font-medium text-foreground">New check. </span>
+                    {r.check}
+                  </span>
+                </p>
+              )}
             </div>
           </li>
         ))}
       </ul>
       <p className="max-w-[80ch] text-sm text-foreground/70">
         Every metric is measured on held-out data, next to a simple baseline on the same split. CatBoost and XGBoost were tested
-        on the same splits and did not beat LightGBM. Synthetic labels are marked as synthetic.
+        on the same splits and none beat LightGBM. {NEW_CHECKS.scoresRecomputed} of {NEW_CHECKS.scoresRecomputed} scores are recomputed from the saved predictions,
+        and all {NEW_CHECKS.testsPassed} ML tests pass from a clean clone. Synthetic labels are marked as synthetic.
       </p>
     </div>
   )

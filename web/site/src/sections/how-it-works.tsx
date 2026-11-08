@@ -217,7 +217,7 @@ export const STEPS: Step[] = [
   },
   {
     title: "Act",
-    body: "Assigns jobs within crew capacity, creates routes, work orders, alerts and notifications, and records every action in the audit log.",
+    body: "Assigns jobs within crew capacity, creates routes and work orders, sends each technician a PDF route sheet on WhatsApp, issues alerts, and records every action in the audit log.",
     visual: <ActVisual compact />,
   },
 ]

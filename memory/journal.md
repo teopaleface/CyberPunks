@@ -228,3 +228,9 @@ Clona commitului 5b7aff7, fără directoarele raw/interim/processed la pornire, 
 
 - Eden prezintă partea de ML într-un minut, pe pagina Agent a site-ului. Am adăugat secțiunea „Four models, one plan” (`/agent#models`, `web/site/src/components/model-overview.tsx`): pentru contoare, furtuni, tensiune (C) și bilanț arată datele (cu eticheta reală/sintetică), modelul, testul și două metrici față de reper. Cifrele se citesc din `daybreak.json`, nu sunt scrise de mână.
 - Scriptul de un minut și răspunsurile pentru juriu: `presentation/ml-un-minut.md`.
+
+### 8 noiembrie 2026, 10:44 (București) — pagina Agent cu ML-ul și agentul actualizate
+
+- Am adus pe `Eden` actualizările agentului din `main` (rapoartele PDF, fișa de traseu pentru tehnician, reparațiile la reluarea sarcinilor). Singurul conflict a fost în jurnal; am păstrat toate notele.
+- Pe pagina Agent, cardurile modelelor arată și verificările noi din `reports/ml/README.md`: tensiuni reale FeederBW la C (0,72 V față de 0,83 V la persistență, fără supratensiuni în test) și auditul nou de bilanț (macro-F1 0,78 față de 0,42, protocol fixat în `3deadcc`). Nota de sub carduri spune 30/30 scoruri recalculate și 208 teste ML trecute. Pasul Act menționează fișa PDF trimisă pe WhatsApp.
+- Scriptul de un minut (`presentation/ml-un-minut.md`) are aceleași cifre noi.
