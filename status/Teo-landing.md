@@ -1,7 +1,7 @@
 # Status: Teo-landing
-Actualizat: 2026-11-07 18:25
-Milestone curent: M1 (22:00) gata devreme: toate secțiunile pe date reale, în engleză, stil Apple (cererea lui Teo, 17:55), animațiile de bază. Urmează M2 (03:00): review web-design-guidelines, contrast, reduced motion.
-Gata de merge: da (commit f3771f1)
+Actualizat: 2026-11-08 08:05
+Milestone curent: final. Landing-ul din git merge (export static, de pe disc, mobil), dar Teo NU i-a aprobat aspectul („arată vibe-coded”). A ales stilul machetei Codex 02 și a cerut să nu implementez încă; machetele sunt în git.
+Gata de merge: da (commit 06772b0) — aduce doar machetele (landing/design/mockups/, WebP, 1,6 MB) și statusul; codul landing-ului e deja în Teo.
 
 ## Făcut
 - 17:16 Citite instrucțiunile, memoria, statusurile, rapoartele, cadrele filmului.
@@ -23,6 +23,10 @@ Gata de merge: da (commit f3771f1)
 - 18:20 `git merge Teo` (planul demo nou, bilanțul nou): pagina preia singură cifrele noi; exemplele alese există în continuare.
 - Capturi: `landing/design/captures/` (hero 1920 și mobil, How it works, modele, scara, omul în buclă, explicația, rezultatele).
 
+- 18:35 Teo: varianta Apple „arată oribil, vibe-coded”. La cererea lui, doar machete, fără implementare: Codex (image) a generat 4 machete de landing în stilul celor 10 site-uri; Teo a ales **02** (galerie de componente).
+- 18:45 Tot la cererea lui Teo: Codex a generat toate cele 14 ecrane ale consolei în stilul 02 (`landing/design/mockups/app/`). Au câteva cifre inventate (posturi, praguri, regiunile din prezentare), notate pentru implementare.
+- 08:00 `git merge Teo`; machetele convertite în WebP (18 fișiere, 1,6 MB în total); landing-ul se construiește, `eslint`, `tsc`, `ruff` și testul de mărime trec.
+
 ## Urmează
 - Review `web-design-guidelines` pe fișierele mele și reparațiile; contrast verificat pe toate textele; `prefers-reduced-motion` și `prefers-reduced-transparency`.
 - Verificarea surselor pentru cifrele publice (ANRE, planurile RER) direct în documentele primare, unde se poate.
@@ -30,9 +34,12 @@ Gata de merge: da (commit f3771f1)
 - 08:00: capturi finale pentru prezentare, cererea pentru legătura din README.
 
 ## Blocaje
-- niciunul
+- Implementarea în stilul machetei 02 așteaptă „da”-ul lui Teo (a cerut explicit să nu încep). După înghețarea de la 10:30 rămâne varianta actuală.
+- `make check` în worktree-ul meu: 385 de teste trec, 184 de erori de pregătire în suitele noi din Teo (`tests/agentic`, `tests/channels`, `tests/operations`): „Tests require the complete local model run, not sample fixtures”. Cer rularea completă a modelelor pe mașină; nu țin de landing (nu ating `src/` sau `tests/`).
 
 ## Cereri către orchestrator
+- (08:05) Pentru README: **nu există link public** (n-am publicat nimic online, fără acordul lui Teo). Comanda locală: `cd landing && bun install && bun dev` → http://localhost:3730 ; sau export static: `cd landing && bun run build`, apoi `open landing/out/index.html` (merge fără server). Notă: aspectul actual nu e aprobat de Teo; machetele alese sunt în `landing/design/mockups/02-desktop-components.webp` și `landing/design/mockups/app/`.
+- (08:05) Consola (`web/`, firul Interfață): Teo a cerut machetele tuturor ecranelor în stilul 02. Dacă decide să refacă consola după ele, cererea e pentru firul Interfață, nu pentru mine.
 - (18:25) **Limba s-a schimbat**: Teo a cerut la 17:55 ca landing-ul să fie **în engleză** (tot textul), ca filmul. Titlurile sunt cele din film unde se potrivesc („Tomorrow’s crews, planned tonight.”, „Fallen poles. Stolen power. Too much sun.”, „Not sure? It asks you.”, „+49% more value. Same crews.”).
 - (18:25) JURNAL, pentru `memory/journal.md` (eu nu scriu în `memory/`): „17:55 Teo, despre landing: totul în engleză, mai wow, mai premium, mai minimalist, stil Apple. Refăcut: hero centrat cu harta României din puncte înclinată ca un peisaj în zori, fontul sistemului (SF Pro), secțiuni cu o idee fiecare, povestea pe derulare, cifrele modelelor doar din reports/. Port 3730.”
 - (18:25) Pentru README, când vreți: o legătură la landing, de exemplu „Pagina de prezentare: `cd landing && bun install && bun run build`, apoi `open landing/out/index.html` (merge și fără server)”. Nu am publicat nimic online.
