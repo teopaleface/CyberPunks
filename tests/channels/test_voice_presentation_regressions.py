@@ -1,5 +1,6 @@
 """Presentation regressions on a complete reference copy; all effects are local/simulated."""
 
+import os
 import shutil
 from pathlib import Path
 
@@ -11,11 +12,8 @@ from .test_whatsapp_calls import demo_call  # noqa: F401
 
 
 @pytest.fixture(scope="session")
-def full_run(tmp_path_factory):
-    pointer = Path("/tmp/daybreak-presentation-reference.txt")
-    if not pointer.is_file():
-        pointer = Path("/tmp/daybreak-voice-current-reference.txt")
-    source = Path(pointer.read_text().strip())
+def full_run(full_run, tmp_path_factory):
+    source = Path(os.environ.get("DAYBREAK_OPERATIONS_TEST_DATA", full_run))
     assert (source / "plans/demo-vara/inputs").is_dir()
     target = tmp_path_factory.mktemp("presentation-complete-reference") / "data"
     shutil.copytree(source, target)

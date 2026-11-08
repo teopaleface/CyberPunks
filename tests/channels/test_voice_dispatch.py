@@ -17,9 +17,8 @@ from cyberpunks.operations.service import OperationsService
 
 
 @pytest.fixture
-def dispatch_env(tmp_path):
-    pointer = Path("/tmp/daybreak-voice-current-reference.txt")
-    source = Path(os.environ.get("DAYBREAK_OPERATIONS_TEST_DATA") or pointer.read_text().strip())
+def dispatch_env(tmp_path, full_run):
+    source = Path(os.environ.get("DAYBREAK_OPERATIONS_TEST_DATA", full_run))
     assert (source / "plans/demo-vara/inputs").is_dir()
     target = tmp_path / "synthetic-full-copy"
     shutil.copytree(source, target)
