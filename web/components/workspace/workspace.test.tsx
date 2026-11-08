@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { Context, WorkspaceAccount } from "@/lib/operations/types";
 import { RoleList, RoleOverview } from "./role-overview";
-import { Workspace } from "./workspace";
+import { commandHeading, defaultAssistantSelection, Workspace } from "./workspace";
 const account: WorkspaceAccount = {
   id: "synthetic-user",
   email: "synthetic@example.test",
@@ -35,7 +35,7 @@ const context: Context = {
   ],
   work_items: [],
 };
-test("assistant renders functional text and consented voice without page chrome or role data", () => {
+test("assistant defaults to text with a compact voice choice and no consent wall", () => {
   const html = renderToStaticMarkup(
     <Workspace
       account={account}
@@ -44,8 +44,12 @@ test("assistant renders functional text and consented voice without page chrome 
     />,
   );
   expect(html).toContain("Message Daybreak");
-  expect(html).toContain("Talk to Daybreak");
-  expect(html).toContain("I agree to send");
+  expect(html).toContain("Conversation mode");
+  expect(html).toContain(">Text</button>");
+  expect(html).toContain(">Voice</button>");
+  expect(html).toContain('aria-pressed="true"');
+  expect(html).not.toContain("Talk to Daybreak");
+  expect(html).not.toContain("I agree to send");
   expect(html).toContain("press Confirm");
   for (const forbidden of [
     "<main",
@@ -64,9 +68,9 @@ test("role presentation renders the console title and scoped lists without chat 
   const html = renderToStaticMarkup(
     <Workspace account={account} presentation="role" />,
   );
-  expect(html).toContain("Your service");
+  expect(html).toContain("Service dashboard");
   expect(html).toContain("Your connections");
-  expect(html).toContain("Your cases");
+  expect(html).toContain("Recent cases");
   for (const forbidden of [
     "Message Daybreak",
     "Talk to Daybreak",
@@ -113,9 +117,9 @@ test("large work queues are paginated and searchable, with distinct human work l
   );
   expect(html).toContain("Search by description or reference");
   expect(html).toContain("Meter inspection · MTR-0");
-  expect(html).toContain("Meter inspection · MTR-7");
-  expect(html).not.toContain("MTR-8");
-  expect(html).toContain("1 of 3");
+  expect(html).toContain("Meter inspection · MTR-3");
+  expect(html).not.toContain("MTR-4");
+  expect(html).toContain("1 of 5");
   expect(html).toContain("Next");
 });
 test("rendering an incoming action never confirms or posts a proposal", () => {
@@ -160,4 +164,30 @@ test("assigned work keeps the planned arrival from the role-scoped route", () =>
   expect(html).toContain("Planned 8 Jul 2025");
   expect(html).toContain("Record finding");
   expect(html).not.toContain("Review work");
+});
+
+test("role workspace passes exactly the supplied inline assistant slot", () => {
+  const html = renderToStaticMarkup(<Workspace account={account} presentation="role" assistant={<section id="synthetic-assistant-slot">Inline assistant slot</section>} />);
+  expect(html.match(/id="synthetic-assistant-slot"/g)).toHaveLength(1);
+  expect(html).toContain("Inline assistant slot");
+});
+
+test("request states use human labels and never treat an uncertain result as saved", () => {
+  expect(commandHeading("succeeded")).toBe("Saved");
+  expect(commandHeading("processing")).toBe("Processing");
+  expect(commandHeading("pending")).toBe("Processing");
+  for (const status of ["reconciling", "failed", "unknown", ""]) expect(commandHeading(status)).toBe("Needs review");
+  expect(commandHeading("cancelled")).toBe("Cancelled");
+});
+
+test("default context uses only the latest own case or the approved in-scope next visit", () => {
+  expect(defaultAssistantSelection({ ...context, cases: [
+    { case_id: "synthetic-old", created_at: "2025-07-07T10:00:00Z" },
+    { case_id: "synthetic-latest", created_at: "2025-07-08T10:00:00Z" },
+  ] })).toEqual({ case_id: "synthetic-latest" });
+  const tech: Context = { ...context, actor: { ...context.actor, role: "technician" }, next_stop: { work_item_id: "synthetic-visit" }, next_stop_status: "approved_plan", work_items: [{ work_item_id: "synthetic-visit" }] };
+  expect(defaultAssistantSelection(tech)).toEqual({ work_item_id: "synthetic-visit" });
+  expect(defaultAssistantSelection({ ...tech, next_stop_status: "awaiting_approval" })).toBeUndefined();
+  expect(defaultAssistantSelection({ ...tech, work_items: [] })).toBeUndefined();
+  expect(defaultAssistantSelection({ ...context, actor: { ...context.actor, role: "dispatcher" } })).toBeUndefined();
 });

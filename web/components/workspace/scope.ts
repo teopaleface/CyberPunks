@@ -178,7 +178,9 @@ export function itemTitle(row: Row, fallback = "Service connection"): string {
     row.title ?? row.symptom ?? row.summary ?? row.label ?? row.address,
   );
   if (title)
-    return title.replace(/^Synthetic acceptance test [a-f0-9]+:\s*/i, "");
+    return title
+      .replace(/^Synthetic acceptance test [a-f0-9]+:\s*/i, "")
+      .replace(/^Synthetic UI validation:\s*/i, "");
   if (row.work_item_id || row.asset_id) {
     const kind =
       row.asset_type === "meter" || row.source === "A"

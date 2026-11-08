@@ -182,6 +182,7 @@ test("work titles distinguish actual work shapes and strip only known synthetic 
       "Synthetic acceptance test abc123: The meter display has stopped changing.",
   };
   expect(itemTitle(item)).toBe("The meter display has stopped changing.");
+  expect(itemTitle({ symptom: "Synthetic UI validation: The meter display has stopped changing." })).toBe("The meter display has stopped changing.");
   expect(item.symptom).toStartWith("Synthetic acceptance test");
   expect(
     itemTitle({ symptom: "Synthetic acceptance test for the meter" }),

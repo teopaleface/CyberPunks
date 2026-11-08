@@ -25,13 +25,16 @@ export async function AppShell({ info, scenario, fit = false, children }: { info
         Skip to content
       </a>
       <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-rule bg-canvas/90 px-4 backdrop-blur-xl md:hidden">
-        <a href="/" aria-label="Daybreak home" className="rounded-md"><Wordmark /></a>
+        <a href="/app" aria-label="Daybreak dashboard" className="rounded-md"><Wordmark /></a>
         <MobileMenu info={consoleInfo} consoleAllowed={consoleAllowed} account={account} />
       </header>
       <div className={fit ? "flex min-h-0 flex-1" : "flex flex-1"}>
         <aside className="sticky top-0 flex h-dvh w-[248px] shrink-0 flex-col justify-between gap-8 overflow-y-auto border-r border-rule px-4 py-6 max-md:hidden">
           <div className="space-y-7">
-            <a href="/" aria-label="Daybreak home" className="inline-flex min-h-10 items-center rounded-md px-3"><Wordmark /></a>
+            <div>
+              <a href="/app" aria-label="Daybreak dashboard" className="inline-flex min-h-10 items-center rounded-md px-3"><Wordmark /></a>
+              {account ? <p className="mt-2 px-3 text-[11px] font-medium tracking-[0.12em] text-ink-soft uppercase">{account.membership.role === "dispatcher" ? "Dispatch operations" : account.membership.role === "technician" ? "Field technician" : "Customer service"}</p> : null}
+            </div>
             <SideNav consoleAllowed={consoleAllowed} role={account?.membership.role} counts={consoleInfo ? { review: consoleInfo.counts.review, alerts: consoleInfo.counts.alerts + consoleInfo.counts.notifications } : undefined} />
           </div>
           <div className="space-y-3 border-t border-rule px-1 pt-5">

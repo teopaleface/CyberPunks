@@ -36,6 +36,8 @@ export function Voice({
   const [starting, setStarting] = useState(false);
   const [consent, setConsent] = useState(false);
   const alive = useRef(true);
+  const generation = useRef(0);
+  const blocked = useRef(disabled);
   const limit = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const active = status === "connecting" || status === "connected";
   useConversationClientTool("daybreak_turn", async ({ message }) => {
@@ -62,28 +64,37 @@ export function Voice({
     alive.current = true;
     return () => {
       alive.current = false;
+      generation.current += 1;
       endSession();
       clearTimeout(limit.current);
     };
   }, [endSession]);
   useEffect(() => {
-    if (disabled) endSession();
+    blocked.current = disabled;
+    if (disabled) {
+      generation.current += 1;
+      endSession();
+      clearTimeout(limit.current);
+    }
   }, [disabled, endSession]);
   useEffect(() => {
     if (status === "error")
       onError(new Error("Voice is unavailable. Continue by typing below."));
   }, [status, onError]);
   async function start() {
+    if (!consent || disabled || starting || active) return;
+    const attempt = ++generation.current;
+    const current = () => alive.current && !blocked.current && generation.current === attempt;
     setStarting(true);
     try {
       // Explicit consent precedes microphone capture and creation of a paid voice session.
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach((track) => track.stop());
-      if (!alive.current) return;
+      if (!current()) return;
       const session = await api<SessionInfo>("conversation/voice-session", {
         scenario,
       });
-      if (!alive.current) return;
+      if (!current()) return;
       const signedUrl = session.signed_url ?? session.signedUrl;
       const conversationToken =
         session.conversation_token ?? session.conversationToken;
@@ -95,15 +106,19 @@ export function Voice({
         throw new Error(
           "A private voice session could not be created. Continue by typing.",
         );
+      if (!current()) {
+        endSession();
+        return;
+      }
       clearTimeout(limit.current);
       limit.current = setTimeout(
         endSession,
         Math.min(session.max_duration_seconds ?? 600, 600) * 1000,
       );
     } catch (error) {
-      onError(error);
+      if (current()) onError(error);
     } finally {
-      setStarting(false);
+      if (alive.current) setStarting(false);
     }
   }
   return (
@@ -113,10 +128,10 @@ export function Voice({
           <input
             type="checkbox"
             checked={consent}
+            disabled={starting}
             onChange={(e) => setConsent(e.target.checked)}
           />{" "}
-          I agree to send this synthetic demo conversation and audio to
-          ElevenLabs. Use voice only when safely stopped.
+          I agree to send my voice and this conversation to ElevenLabs.
         </label>
       )}
       <div className="db-voice-controls">
@@ -126,6 +141,7 @@ export function Voice({
           disabled={disabled || starting || (!active && !consent)}
           onClick={() => {
             if (active) {
+              generation.current += 1;
               endSession();
               clearTimeout(limit.current);
             } else void start();
@@ -156,7 +172,7 @@ export function Voice({
                 : isMuted
                   ? "Microphone is muted"
                 : "Listening"
-            : "Type instead, any time"}
+            : "Start when safely stopped. Switch to Text any time."}
         </span>
       </div>
     </div>

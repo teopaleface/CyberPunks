@@ -3,6 +3,7 @@ import { mayReadConsole } from "@/lib/operations/policy";
 import { parseProposalId, proposalSignInPath } from "@/lib/operations/proposal-link";
 import { Workspace } from "@/components/workspace/workspace";
 import { routeSelection } from "@/components/shell/assistant-context";
+import { DashboardAssistant } from "@/components/shell/agent-dock";
 import { englishText } from "@/lib/english";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -54,6 +55,7 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchP
   if (!user) redirect(proposalSignInPath(parseProposalId(entry.proposal)));
   await connection();
   const scenario = await resolveScenario(searchParams);
+  const account = { id: user.id, email: user.email, name: user.full_name, membership: toMembership(user) };
   if (!mayReadConsole(user)) {
     const query = new URLSearchParams();
     for (const [key, value] of Object.entries(entry)) {
@@ -62,10 +64,11 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchP
     return (
       <AppShell scenario={scenario}>
         <Workspace
-          account={{ id: user.id, email: user.email, name: user.full_name, membership: toMembership(user) }}
+          account={account}
           presentation="role"
           scenario={scenario}
           initialSelection={routeSelection("/app", query)}
+          assistant={<DashboardAssistant account={account} scenario={scenario} />}
         />
       </AppShell>
     );
@@ -83,8 +86,9 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchP
   if (!view.data || (view.source === "fixtures" && scenario !== DEFAULT_SCENARIO)) {
     const label = info.scenarios.find((s) => s.id === scenario)?.label ?? scenario;
     return (
-      <AppShell info={info}>
-        <div className="mx-auto max-w-[680px] px-7 py-20">
+      <AppShell info={info} scenario={scenario}>
+        <div className="mx-auto grid max-w-[1440px] items-start gap-8 px-8 py-8 max-md:px-4 xl:grid-cols-[minmax(0,1fr)_400px]">
+          <section className="rounded-2xl border border-rule bg-panel p-7">
           <h1 className="text-[30px] font-[620]">No plan yet for &quot;{englishText(label)}&quot;</h1>
           <p className="mt-3 text-[18px] leading-relaxed text-muted-foreground">
             No plan is available for this scenario{view.degradedReason ? ` (${englishText(view.degradedReason)})` : ""}. Select another scenario in the menu, or ask Daybreak about the current status.
@@ -92,6 +96,8 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchP
           <div className="mt-6">
             <RunAgentButton scenario={scenario} scenarioLabel={englishText(label)} />
           </div>
+          </section>
+          <DashboardAssistant account={account} scenario={scenario} />
         </div>
       </AppShell>
     );
@@ -153,14 +159,15 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/app">["searchP
   );
 
   return (
-    <AppShell info={info}>
+    <AppShell info={info} scenario={scenario}>
       <div className="mx-auto w-full max-w-[1440px] px-8 pt-7 pb-14 max-md:px-4">
         {banner ? <AlertBanner key={banner.id} id={`${scenario}:${banner.id}`} lead={banner.lead} text={banner.text} /> : null}
-        <PageTitle title="Plan" subtitle={`${dateLong}.${info.provenance.syntheticItems ? " Includes synthetic data." : ""}`} />
+        <PageTitle title="Operations dashboard" subtitle={`${dateLong}.${info.provenance.syntheticItems ? " Includes synthetic data." : ""}`} />
         <HomeBoard
           key={`${scenario}:${data.planId}`}
           initial={initial}
           suffix={suffix}
+          assistant={<DashboardAssistant account={account} scenario={scenario} />}
           kpis={<KpiRow s={data.summary} />}
           figures={<PlanFigures s={data.summary} />}
           plan={
