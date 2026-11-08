@@ -13,7 +13,7 @@ Tot ce apare în materialele de prezentare, cu sursa și licența. Ce e generat 
 | Efectele sonore | Procedurale, generate în cod (`frames-3d/audio/tools/build.py`) |
 | Muzica | Exportul versionat (`exports/daybreak-film.mp4`) nu are muzică. Doar copia pentru sală, care rămâne locală și nu e distribuită, folosește instrumentalul „POWER” (Kanye West); piesa nu e în git |
 | Interfața din film | Ilustrativă, în stilul consolei Daybreak; consola reală se arată live la demo |
-| Cifrele din film | „30% less driving” (10.565 față de 15.439 km) și „fewer wasted trips” (37% față de 63%): `reports/planner/agent_eval.json`, simulare de 30 de zile, față de „primul venit, primul servit”. „Eleven crews”: `config/crews.yaml`. „556 problems”: consola, scenariul sintetic `demo-vara`, 7 nov. |
+| Cifrele din film | „30% less driving” (10.515 față de 15.439 km, -31,9%) și „fewer wasted trips” (37% față de 63%): `reports/planner/agent_eval.json`, simulare de 30 de zile, față de „primul venit, primul servit”. „Eleven crews”: `config/crews.yaml`. „556 problems”: consola, scenariul sintetic `demo-vara`, 7 nov. |
 | Slideurile | Imaginile de pe slideurile 1 și 16 sunt planșe generate cu AI (etichetat pe slide); cifrele vin din `reports/` prin `scripts/build_slides.py` |
 
 ## Unelte

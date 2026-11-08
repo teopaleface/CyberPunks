@@ -44,3 +44,4 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 - Tema: un agent AI bazat pe un model ML antrenat de noi, care decide și acționează pe o problemă reală de energie (Perceive, Estimate, Decide, Act). Doar date publice sau sintetice.
 - Jurizare PPC: 25 relevanță, 25 calitate ML, 25 agent, 10 robustețe, 10 explicabilitate, 5 demo și repo.
 - Predare: repo GitHub **public**, cu commit-uri pe parcursul celor 24 de ore, până duminică, 8 nov., la 12:00. Demo live de la 13:00: 5 minute plus 2 minute de întrebări.
+- `22-erori-github-actions.md` — cauzele și corecția verificărilor CI pe Windows și Linux.

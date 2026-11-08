@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import sqlite3
 import time
 from pathlib import Path
@@ -33,7 +34,7 @@ class DeliveryStore:
                     state TEXT NOT NULL, created REAL NOT NULL, retry_at REAL NOT NULL,
                     attempts INTEGER NOT NULL DEFAULT 0, error_code TEXT
                 );
-                CREATE TABLE IF NOT EXISTS outbound_reports (event_id TEXT PRIMARY KEY, report_id TEXT NOT NULL, plan_version TEXT NOT NULL, page_count INTEGER NOT NULL, case_versions TEXT NOT NULL DEFAULT '{}');
+                CREATE TABLE IF NOT EXISTS outbound_reports (event_id TEXT PRIMARY KEY, report_id TEXT NOT NULL, plan_version TEXT NOT NULL, page_count INTEGER NOT NULL, case_versions TEXT NOT NULL DEFAULT '{}', format TEXT NOT NULL DEFAULT 'png', manifest TEXT);
                 CREATE TABLE IF NOT EXISTS outbound_media (part_id TEXT PRIMARY KEY, payload BLOB NOT NULL);
                 CREATE TABLE IF NOT EXISTS outbound (
                     part_id TEXT PRIMARY KEY, event_id TEXT NOT NULL, destination TEXT NOT NULL,
@@ -43,8 +44,13 @@ class DeliveryStore:
                 );
             """)
 
-            if "case_versions" not in {row[1] for row in db.execute("PRAGMA table_info(outbound_reports)")}:
+            columns = {row[1] for row in db.execute("PRAGMA table_info(outbound_reports)")}
+            if "case_versions" not in columns:
                 db.execute("ALTER TABLE outbound_reports ADD COLUMN case_versions TEXT NOT NULL DEFAULT '{}'")
+            if "format" not in columns:
+                db.execute("ALTER TABLE outbound_reports ADD COLUMN format TEXT NOT NULL DEFAULT 'png'")
+            if "manifest" not in columns:
+                db.execute("ALTER TABLE outbound_reports ADD COLUMN manifest TEXT")
 
     def connect(self):
         db = sqlite3.connect(self.path, timeout=5)
@@ -150,7 +156,7 @@ class DeliveryStore:
                 raise ChannelError(
                     "outbound_conflict", "The durable reply no longer matches this inbound message.", 409
                 )
-            if kind.startswith("image:"):
+            if kind.startswith(("image:", "document:")):
                 db.execute("INSERT OR IGNORE INTO outbound_media VALUES (?,?)", (part, payload))
         return dict(row)
 
@@ -170,7 +176,11 @@ class DeliveryStore:
             db.execute("BEGIN IMMEDIATE")
             previous = db.execute("SELECT * FROM outbound_reports WHERE event_id=?", (eid,)).fetchone()
             if previous:
-                if previous["report_id"] != report_id or previous["plan_version"] != version:
+                if (
+                    previous["report_id"] != report_id
+                    or previous["plan_version"] != version
+                    or previous["format"] != "png"
+                ):
                     raise ChannelError("outbound_conflict", "The report source changed.", 409)
                 return
             for page in pages:
@@ -188,6 +198,87 @@ class DeliveryStore:
                 "INSERT INTO outbound_reports(event_id,report_id,plan_version,page_count,case_versions) VALUES(?,?,?,?,?)",
                 (eid, report_id, version, len(pages), json.dumps(case_versions or {})),
             )
+
+    def prepare_report_pdf(
+        self,
+        eid: str,
+        destination: str,
+        sender: str,
+        report_id: str,
+        version: str,
+        pdf: bytes,
+        *,
+        sha256: str,
+        page_count: int,
+        source_pages: int | None = None,
+        case_versions: dict | None = None,
+        filename: str | None = None,
+    ) -> dict:
+        """Freeze the exact PDF bytes, their hash and the report manifest in one transaction.
+
+        The outbound row, media blob and manifest commit together or not at all, so a restart can
+        never find a manifest without its bytes, or deliverable bytes without a manifest.
+        """
+        pdf = bytes(pdf)
+        digest = hashlib.sha256(pdf).hexdigest()
+        if digest != sha256 or not pdf.startswith(b"%PDF-") or b"%%EOF" not in pdf[-1100:]:
+            raise ChannelError("outbound_conflict", "Report integrity check failed.", 409)
+        if not re.fullmatch(r"[A-Za-z0-9_-]{1,120}", report_id) or not isinstance(page_count, int) or page_count < 1:
+            raise ChannelError("outbound_invalid", "A stable report identifier is required.", 422)
+        if filename and not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,100}\.pdf", filename):
+            raise ChannelError("outbound_invalid", "Invalid report filename.", 422)
+        recipient = hashlib.sha256(sender.encode()).hexdigest()
+        kind = "document:" + report_id + "_pdf"
+        manifest = {
+            "format": "pdf",
+            "mime": "application/pdf",
+            "filename": filename or f"daybreak-raport-{report_id[:60]}-{digest[:8]}.pdf",
+            "sha256": digest,
+            "bytes": len(pdf),
+            "page_count": page_count,
+            "source_pages": source_pages if source_pages is not None else page_count,
+            "report_id": report_id,
+            "plan_version": version,
+            "part_kind": kind,
+        }
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            previous = db.execute("SELECT * FROM outbound_reports WHERE event_id=?", (eid,)).fetchone()
+            if previous:
+                if (
+                    previous["report_id"] != report_id
+                    or previous["plan_version"] != version
+                    or previous["format"] != "pdf"
+                    or not previous["manifest"]
+                ):
+                    raise ChannelError("outbound_conflict", "The report source changed.", 409)
+                return json.loads(previous["manifest"])
+            part = hashlib.sha256((eid + ":" + kind).encode()).hexdigest()
+            db.execute(
+                "INSERT INTO outbound(part_id,event_id,destination,recipient_hash,kind,payload_hash,state,updated) VALUES(?,?,?,?,?,?,'prepared',?)",
+                (part, eid, destination, recipient, kind, digest, time.time()),
+            )
+            db.execute("INSERT INTO outbound_media VALUES(?,?)", (part, pdf))
+            db.execute(
+                "INSERT INTO outbound_reports(event_id,report_id,plan_version,page_count,case_versions,format,manifest) "
+                "VALUES(?,?,?,?,?,'pdf',?)",
+                (eid, report_id, version, page_count, json.dumps(case_versions or {}), json.dumps(manifest)),
+            )
+        return manifest
+
+    def report_manifest(self, eid: str) -> dict | None:
+        with self.connect() as db:
+            row = db.execute("SELECT manifest FROM outbound_reports WHERE event_id=?", (eid,)).fetchone()
+        return json.loads(row[0]) if row and row[0] else None
+
+    def prepared_documents(self, eid: str) -> list[dict]:
+        with self.connect() as db:
+            rows = db.execute(
+                "SELECT o.*,m.payload FROM outbound o JOIN outbound_media m USING(part_id) "
+                "WHERE event_id=? AND kind LIKE 'document:%' ORDER BY kind",
+                (eid,),
+            ).fetchall()
+        return [dict(row) for row in rows]
 
     def report_cases(self, eid: str) -> dict:
         with self.connect() as db:

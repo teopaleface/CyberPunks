@@ -109,6 +109,14 @@ class AgenticCoordinator:
                         else "Your approved route is in the report; times are planned."
                     )
                 )
+                if not stop:
+                    reply = (
+                        "Nu există o oprire următoare neverificată în traseul aprobat. Consultă constatările și planul."
+                        if actor.role == "technician" and ro else
+                        "There is no remaining unvisited approved stop. Review the findings and plan."
+                        if actor.role == "technician" else
+                        "Traseele aprobate sunt în raport." if ro else "The approved routes are in the report."
+                    )
             else:
                 cases = context.get("cases", [])
                 if request.case_id:

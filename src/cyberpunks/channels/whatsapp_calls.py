@@ -9,6 +9,7 @@ import os
 import re
 import time
 
+import httpx
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from pydantic import Field
@@ -27,6 +28,20 @@ def load_config() -> dict:
         return json.loads(path.read_text())
     except (OSError, ValueError):
         raise ChannelError("calling_unconfigured", "WhatsApp calling is not configured.") from None
+
+
+async def verify_public_tool(origin: str, *, transport=None) -> None:
+    """Verify the actual public tool path, not just saved SIP configuration."""
+    try:
+        async with httpx.AsyncClient(timeout=15, follow_redirects=False, transport=transport) as client:
+            health = await client.get(origin.rstrip("/") + "/healthz")
+            if health.status_code != 200 or health.json().get("service") != "daybreak-whatsapp-call-tool":
+                raise ValueError("Unexpected call service")
+            denied = await client.post(origin.rstrip("/") + "/api/voice/turn", json={})
+            if denied.status_code != 401:
+                raise ValueError("Call tool authentication unavailable")
+    except (httpx.HTTPError, ValueError, TypeError):
+        raise ChannelError("calling_tunnel_unavailable", "The public call-tool connection is unavailable. Repair the tunnel before testing a call.") from None
 
 
 def save_config(config: dict) -> None:

@@ -85,3 +85,23 @@ Proba vizuală finală în Helium, pe publicarea finală: 25 de rezultate în co
 Site-ul este publicat, dar calculele și canalele rulează încă pe calculatorul lui Teo. Calculatorul și tunelurile trebuie să rămână pornite. Aceasta nu este o migrare a backendului pe găzduire permanentă. O publicare viitoare din configurația implicită `web/wrangler.jsonc` ar reveni la datele demo: păstrați configurația de release privată, cu `DATA_SOURCE=api`, `API_BASE` și originea HTTPS exactă din `outputs/runtime/workspace-origin.txt`, plus secretul Workerului. Nu copiați acreditarea în Git.
 
 Apelul fizic, întreruperea prin voce și microfonul/difuzorul din sală așteaptă proba lui Teo, cerută în conversație. Nu este raportată primirea pe telefon numai din acceptarea Meta; pentru cele două PNG-uri există separat callbackul de livrare.
+
+
+## Apelul fizic, PDF și regresii agentice, 8 noiembrie 10:19
+
+Apelul fizic al lui Teo a ajuns la ElevenLabs, dar ambele cereri HTTP spre Daybreak au primit 530. Serviciul local 8722 răspundea, iar originea temporară publică nu mai era accesibilă. Tunelul a fost înlocuit și adresa uneltei recitită. Proba reală repetată a apelat unealta și a rostit răspunsul operațional în 21,57 secunde total. Teo nu poate retesta momentan telefonul; întreruperea și sunetul fizic nu sunt reconfirmate. Comanda verify verifică acum și sănătatea originii publice plus refuzul 401 al endpointului neautentificat; testul 530 nu mai poate trece numai pe baza configurației SIP.
+
+Au fost refăcute și legătura workspace-ului și callbackul Meta, acesta din urmă după restaurarea unicului ingress/worker. Setările Workerului au fost actualizate păstrând celelalte bindings. Acceptanța live pentru cele trei roluri, coada completă de 25, accesul la task și traseul aprobat a trecut din nou. Legăturile rămân temporare și depind de procesele locale, nu reprezintă găzduire permanentă.
+
+Rapoartele WhatsApp sunt implicit un singur PDF A4. Cererea explicită de imagine/PNG păstrează PNG-ul. PDF-ul folosește HTML fix verificat, Chromium offline fără scripturi, numere de pagină fizice și text de confirmare; octeții, hash-ul și manifestul se persistă atomic. Manifestul este obligatoriu înainte de transport. Actorul, fereastra și versiunile se reverifică. Un rezultat necunoscut nu este retrimis. Proba reală a PDF-ului tehnicianului are două pagini, hash egal cu octeții salvați și callback Meta delivered. Este un follow-up de test autorizat, legat de un mesaj real anterior cu timestampul original, nu un mesaj de intrare inventat.
+
+Auditul a identificat cinci defecte, acum corectate: observarea concurentă returna 409 după un efect reușit; needs_reconciliation nu mai putea observa ulterior succesul; propunerea expirată era încă descrisă ca așteptând Confirm; următoarea oprire putea avea deja constatare; raportul tehnicianului omitea locul. Cele 45 de probe noi de regresie trec fără xfail. Testele de PDF acoperă paginare fizică la text lung, toate rândurile în ordine, manifest atomic, timeout fără dubluri și reluare fără rerandare. Probele afectate agentic/canale au trecut după integrare; lint și diff-check trec.
+
+
+### PDF de teren revizuit, 8 noiembrie 10:31
+
+Teo a cerut un aspect și un limbaj mai uman pentru PDF-ul primit, inclusiv denumirea fișierului. Fișa tehnicianului are acum titlul „Fișa de traseu”, ore HH:MM, durate în ore/minute, distanțe cu virgulă, număr de opriri și timpul total la intervenții calculat în cod. Formulele de cost și scorurile sunt înlocuite în fișa de teren cu explicații scurte, obținute determinist din tiparele verificate; motivul necunoscut este păstrat exact, iar riscul meteo nu este reformulat drept problemă de bilanț. Cazurile de siguranță rămân vizibile. Datele istorice și sintetice sunt etichetate.
+
+PDF-ul real cu șase opriri încape pe o pagină și a fost inspectat după randare. Numele transmis prin Meta este Daybreak-Traseu-8-iulie-2025.pdf, fără identificator de task ori hash. Octeții și hash-ul persistă în registrul privat. Testele afectate de randare/transport și cele două probe noi de prezentare trec; lint și verificarea diferențelor trec. Meta a acceptat documentul nou; livrarea nu este încă reconfirmată.
+
+Ingressul Meta și workerul rulează separat, câte un proces. Verificarea porturilor din vechiul supervisor putea refuza repornirea după oprire din cauza portului încă rezervat temporar; pornirea independentă a fost verificată prin listener și mesajul de singleton al workerului. Nu s-au schimbat conturile sau asocierile.
