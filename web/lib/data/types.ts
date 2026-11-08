@@ -104,6 +104,9 @@ export interface Crew {
   depot_id: string;
   skills: string[];
   size: number;
+  /** it_mt (înaltă și medie tensiune) | jt (joasă tensiune) */
+  crew_type?: string;
+  crew_type_label?: string;
 }
 
 export interface AreaConfig {

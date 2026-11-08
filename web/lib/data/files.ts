@@ -560,14 +560,20 @@ export async function readCrewsConfig(): Promise<CrewsConfig> {
   const raw = await readYaml("config/crews.yaml");
   if (raw === null) throw new FileFormatError("config/crews.yaml", "fișierul lipsește");
   const doc = isRecord(raw) ? raw : {};
+  // Două tipuri de echipe (it_mt, jt); abilitățile unei echipe vin din tipul ei (config/crews.yaml, crew_types).
+  const types = isRecord(doc.crew_types) ? doc.crew_types : {};
   const crews: Crew[] = (Array.isArray(doc.crews) ? doc.crews : []).flatMap((c): Crew[] => {
     if (!isRecord(c) || typeof c.crew_id !== "string" || typeof c.depot_id !== "string") return [];
+    const type = typeof c.type === "string" && isRecord(types[c.type]) ? (types[c.type] as Record<string, unknown>) : null;
+    const skills = type && Array.isArray(type.skills) ? type.skills : Array.isArray(c.skills) ? c.skills : [];
     return [
       {
         crew_id: c.crew_id,
         depot_id: c.depot_id,
-        skills: Array.isArray(c.skills) ? c.skills.map(String) : [],
+        skills: skills.map(String),
         size: toNumber(c.size) ?? 2,
+        ...(typeof c.type === "string" ? { crew_type: c.type } : {}),
+        ...(type && typeof type.label_ro === "string" ? { crew_type_label: type.label_ro } : {}),
       },
     ];
   });
