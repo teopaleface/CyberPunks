@@ -10,6 +10,7 @@
       "E-BV-1",
       "E-BV-2",
       "E-BE-1",
+      "E-BE-2",
       "E-CT-2",
       "E-DV-1"
     ],
@@ -35,43 +36,43 @@
     {
       "policy": "tura de zonă (vineri)",
       "visits": 116,
-      "crew_days": 26,
-      "stops_per_crew_day": 4.46,
-      "km": 1923.0,
-      "km_per_visit": 16.58,
-      "travel_cost_lei": 10638.18,
-      "travel_cost_per_visit_lei": 91.71,
-      "crew_day_cost_lei": 24710.4,
-      "waiting_cost_lei": 4263.41,
-      "wait_working_days_mean": 3.17,
-      "wait_working_days_max": 6,
+      "crew_days": 28,
+      "stops_per_crew_day": 4.14,
+      "km": 1891.0,
+      "km_per_visit": 16.3,
+      "travel_cost_lei": 11067.3,
+      "travel_cost_per_visit_lei": 95.41,
+      "crew_day_cost_lei": 26611.2,
+      "waiting_cost_lei": 3997.11,
+      "wait_working_days_mean": 3.1,
+      "wait_working_days_max": 9,
       "deadline_breaches": 0,
       "left_over": 0
     }
   ],
   "delta_weekly_minus_daily": {
     "visits": 0,
-    "crew_days": -8,
-    "stops_per_crew_day": 1.05,
-    "km": -479.8,
-    "km_per_visit": -4.13,
-    "travel_cost_lei": -2224.8,
-    "travel_cost_per_visit_lei": -19.18,
-    "crew_day_cost_lei": -7603.2,
-    "waiting_cost_lei": 2256.88,
-    "wait_working_days_mean": 2.17,
-    "wait_working_days_max": 5,
+    "crew_days": -6,
+    "stops_per_crew_day": 0.73,
+    "km": -511.8,
+    "km_per_visit": -4.41,
+    "travel_cost_lei": -1795.68,
+    "travel_cost_per_visit_lei": -15.48,
+    "crew_day_cost_lei": -5702.4,
+    "waiting_cost_lei": 1990.58,
+    "wait_working_days_mean": 2.1,
+    "wait_working_days_max": 8,
     "deadline_breaches": 0,
     "left_over": 0
   },
   "saved": {
-    "km": 479.8,
-    "km_pct": 20.0,
-    "travel_cost_lei": 2224.8,
-    "crew_days": 8,
-    "crew_day_cost_lei": 7603.2,
-    "extra_waiting_cost_lei": 2256.88,
-    "net_lei": 7571.12
+    "km": 511.8,
+    "km_pct": 21.3,
+    "travel_cost_lei": 1795.68,
+    "crew_days": 6,
+    "crew_day_cost_lei": 5702.4,
+    "extra_waiting_cost_lei": 1990.58,
+    "net_lei": 5507.5
   },
   "by_day": {
     "a doua zi": [
@@ -240,9 +241,9 @@
       },
       {
         "date": "2026-11-06",
-        "routes": 3,
+        "routes": 4,
         "visits": 16,
-        "km": 229.2,
+        "km": 211.4,
         "pending_after": 0
       },
       {
@@ -275,51 +276,51 @@
       },
       {
         "date": "2026-11-13",
-        "routes": 3,
-        "visits": 17,
-        "km": 217.5,
-        "pending_after": 4
+        "routes": 4,
+        "visits": 20,
+        "km": 304.6,
+        "pending_after": 1
       },
       {
         "date": "2026-11-16",
         "routes": 2,
-        "visits": 6,
-        "km": 138.8,
-        "pending_after": 12
+        "visits": 2,
+        "km": 51.5,
+        "pending_after": 13
       },
       {
         "date": "2026-11-17",
         "routes": 0,
         "visits": 0,
         "km": 0.0,
-        "pending_after": 20
+        "pending_after": 21
       },
       {
         "date": "2026-11-18",
         "routes": 0,
         "visits": 0,
         "km": 0.0,
-        "pending_after": 21
+        "pending_after": 22
       },
       {
         "date": "2026-11-19",
         "routes": 1,
         "visits": 1,
         "km": 65.6,
-        "pending_after": 24
+        "pending_after": 25
       },
       {
         "date": "2026-11-20",
-        "routes": 3,
-        "visits": 16,
-        "km": 274.4,
-        "pending_after": 9
+        "routes": 4,
+        "visits": 21,
+        "km": 336.3,
+        "pending_after": 5
       },
       {
         "date": "2026-11-23",
-        "routes": 3,
-        "visits": 15,
-        "km": 249.3,
+        "routes": 2,
+        "visits": 11,
+        "km": 188.5,
         "pending_after": 7
       },
       {
@@ -345,16 +346,16 @@
       },
       {
         "date": "2026-11-27",
-        "routes": 3,
-        "visits": 17,
-        "km": 240.5,
-        "pending_after": 5
+        "routes": 4,
+        "visits": 22,
+        "km": 311.9,
+        "pending_after": 0
       },
       {
         "date": "2026-12-02",
-        "routes": 1,
-        "visits": 5,
-        "km": 86.3,
+        "routes": 0,
+        "visits": 0,
+        "km": 0.0,
         "pending_after": 17
       },
       {
