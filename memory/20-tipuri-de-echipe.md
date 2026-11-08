@@ -31,7 +31,7 @@ Fiecare tip ia **doar** lucrările specializării lui.
 | JT | E-BV-1, E-BV-2, E-BE-1, **E-BE-2** (3 oameni), E-CT-2, **E-DV-1** (3 oameni) |
 | IT/MT | E-BV-3, E-CT-1, E-TM-1, E-AR-1, E-RS-1 |
 
-Două alegeri ale mele, de confirmat:
+Două alegeri ale mele. Tudor a confirmat (8 nov., ~04:30) că rămân așa deocamdată și vrea să-i amintim de ele mai târziu:
 
 - **E-BE-2** era JT + MT. A devenit JT: treptele C (priza, fazele) cer 3 oameni de joasă tensiune, iar în București toate
   celelalte echipe JT au 2 oameni.
