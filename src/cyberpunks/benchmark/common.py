@@ -28,7 +28,6 @@ PRED_LOCAL = DATA_PROCESSED / "benchmark"  # predicții care nu se pot publica (
 TZ = ZoneInfo("Europe/Bucharest")
 N_BOOT = 1000
 SEED = 20261108
-THREADS = 12  # din 15 nuclee; ambele modele primesc același număr de fire
 
 
 def ci90(fn: Callable[[np.ndarray], float], groups: np.ndarray, n: int = N_BOOT, seed: int = SEED) -> dict:
@@ -75,7 +74,7 @@ def environment() -> dict:
     except (OSError, subprocess.CalledProcessError):
         sha = "nogit"
     return {"git": sha, "python": platform.python_version(), "machine": platform.machine(), "system": platform.system(),
-            "cpu_count": os.cpu_count(), "threads_per_model": THREADS, "lightgbm": lightgbm.__version__,
+            "cpu_count": os.cpu_count(), "lightgbm": lightgbm.__version__,
             "catboost": catboost.__version__, "xgboost": xgboost.__version__, "scikit_learn": sklearn.__version__,
             "created_at": datetime.now(TZ).replace(microsecond=0).isoformat()}
 
