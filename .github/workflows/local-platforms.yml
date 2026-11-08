@@ -13,6 +13,7 @@ jobs:
       matrix:
         os: [windows-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     env:
       PYTHONUTF8: "1"
       DAYBREAK_OPERATIONS_TEST_DATA: data/local-runtime
@@ -27,6 +28,7 @@ jobs:
         working-directory: web
       - run: bun run build
         working-directory: web
-      - run: uv run pytest tests/operations tests/runtime tests/channels/test_provider.py tests/test_local_platform.py
       - run: uv run python scripts/daybreak_runtime.py prepare
       - run: uv run python scripts/daybreak_runtime.py check
+      - run: uv run python scripts/check_local_start.py
+      - run: uv run pytest tests/operations tests/runtime tests/channels/test_provider.py tests/test_local_platform.py
