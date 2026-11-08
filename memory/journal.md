@@ -122,3 +122,19 @@ Pachetul activ FeederBW: F1 macro 0,58950 pe 13.200 ferestre, MAE pierdere norma
 ### 2026-11-08 02:59 — Revenire la modelul de bilanț v2
 
 Utilizatorul a aprobat revenirea. V2 a fost reconstruit din parametrii salvați și este activ; FeederBW rămâne pentru experimente. Pe aceleași 13.200 de ferestre simulate, F1 v2 0,75352 față de FeederBW 0,58950; MAE 5,398 față de 8,813 kWh/zi. V2 reproduce F1 și MAE din raportul istoric. Comparație: `reports/bilant/comparatie_v2_feederbw.json`; fuziunea nu a fost evaluată separat.
+
+
+### 2026-11-08 03:25 București — interogare API și corectarea agentului vocal
+
+- Teo a cerut interogarea automată a agentului. Reprodus răspunsul blocat la „Verific informațiile”; corectate instrucțiunile și trecut coordonatorul la gemini-3.5-flash în cele patru configurații existente. Configurația actuală trece 12/12 probe de apelare a uneltei, cu mesajul original neschimbat.
+- Corectată verificarea conversiei exacte 0.9776 în 97,76%, inclusiv score din assessment, cu blocarea evaluărilor indisponibile păstrată. Probele reale verifică oprirea, incertitudinea predicției, rolul și Confirm; regresia cu două ture consecutive a executat două cereri HTTP reușite.
+- Audio sintetic prin agentul tehnicianului din browser: zgomot continuu la 12 dB, 40 secunde după vorbire, transcriere exactă, 1,695 secunde până la cererea de date și 15,389 până la audio, zgomotul continuând. Nu este probă a sălii sau a zgomotului pe SIP; microfonul/difuzorul și ascultarea manuală nu sunt verificate.
+- 126 teste de canale și lint trec. Probe numai de citire, fără apeluri WhatsApp inițiate sau confirmări operaționale. Repornit numai serviciul 8722; 8720 a fost eliberat pentru restartul separat al firului de fotografii/corecții.
+
+### 08 November 2026, 03:26 — Fotografii la constatări și corecții AI
+
+Teo cere poze pentru tehnician, corectarea manuală vizibilă a deciziilor AI și o nouă curățare UI/UX pe toată aplicația. Implementarea păstrează agentul principal și cele 14 ecrane PPC, adaugă fotografii private cu Confirm și istoric de decizii cu motiv și autor. Probele cu scrieri sunt pe copia completă izolată; camera fizică și live-ul rămân separate.
+
+- 04:16: Teo cere publicarea pe main a versiunii comise, inclusiv fotografii, corecții manuale și noua interfață. Integrare separată peste main-ul actual, cu revenirea colegilor la modelul bilanț v2 păstrată și ambele istorii din jurnal. Modificările necomise din checkout-ul Teo rămân neatinse. Fără deploy.
+
+- 04:19: Integrarea main trece 237 teste web, 221 teste Python pentru operații/canale/runtime/bilanț, TypeScript, ESLint și build Next. Șapte teste web runtime opționale sunt omise. Verificarea folosește copia completă izolată a datelor; fără deploy sau modificarea serviciilor active.

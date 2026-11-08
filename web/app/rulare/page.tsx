@@ -5,20 +5,20 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense, type ComponentType } from "react";
 import { cn } from "cn";
-import { BookOpen, Bot, ChartColumn, CircleCheck, Clock, Eye, Layers, ClipboardList, Network, Radio, UserRound, Waypoints, Zap, CircleAlert, Route } from "lucide-react";
-import { Card, Donut, Kpi, Pill, SOURCE_TONE, btn, type Tone } from "@/components/ds";
+import { BookOpen, ChartColumn, CircleCheck, Clock, Eye, Layers, ClipboardList, Network, Radio, UserRound, Waypoints, Zap, CircleAlert, Route } from "lucide-react";
+import { Card, Donut, Kpi, PageTitle, Pill, SOURCE_TONE, btn, type Tone } from "@/components/ds";
 import { ParamsButton, RunButton } from "@/components/queue/run-panel";
 import { AppShell } from "@/components/shell/app-shell";
 import type { Source } from "@/lib/contracts";
 import { getMetrics } from "@/lib/data";
 import { readDemoRun } from "@/lib/data/files";
 import { auditActionRo, ruleRo } from "@/lib/data/labels";
-import { fmtDec, fmtInt, fmtSeconds, fmtTime, sentence } from "@/lib/format";
+import { fmtDec, fmtInt, fmtMoment, fmtSeconds, fmtTime, sentence } from "@/lib/format";
 import { stageCounts, totalOf, fmtMetric, type BySource } from "@/lib/queue-run";
 import { loadShellInfo, resolveScenario } from "@/lib/server/queries";
 import { readPlannerParams } from "./params";
 
-export const metadata: Metadata = { title: "Run agent" };
+export const metadata: Metadata = { title: "Run history" };
 
 export default function RunPage({ searchParams }: PageProps<"/rulare">) {
   return (
@@ -122,7 +122,7 @@ async function Run({ searchParams }: { searchParams: PageProps<"/rulare">["searc
         { name: "Perceive", what: "Read work items and their supporting data.", icon: Eye, tone: "text-src-a", counts: counts.perceive, time: stepTime("perceive") },
         { name: "Estimate", what: "Models A, B and C estimate risk for valid work items.", icon: Layers, tone: "text-violet", counts: counts.estimate, time: stepTime("estimate") },
         { name: "Decide", what: "Rules assign a route, remote check, monitoring or human review.", icon: Network, tone: "text-src-c", counts: counts.decide, time: stepTime("decide") },
-        { name: "Act", what: "Produce routes, remote reads and messages, with a decision history.", icon: Zap, tone: "text-ok-ink", counts: counts.act, time: stepTime("act") },
+        { name: "Act", what: "Prepare routes, remote actions and message drafts with a decision history.", icon: Zap, tone: "text-ok-ink", counts: counts.act, time: stepTime("act") },
       ]
     : [];
 
@@ -149,19 +149,13 @@ async function Run({ searchParams }: { searchParams: PageProps<"/rulare">["searc
 
   return (
     <AppShell info={info}>
-      <div className="mx-auto w-full max-w-[1520px] px-8 pt-7 pb-14 max-md:px-4">
-        <div className="flex items-start gap-4">
-          <Bot aria-hidden="true" size={44} strokeWidth={1.4} className="mt-1 shrink-0 text-violet" />
-          <div className="min-w-0">
-            <h1 className="text-[34px] leading-[1.12] font-[750] tracking-[-0.025em] max-md:text-[28px]">Run agent</h1>
-            <p className="mt-1 max-w-[90ch] text-[17px] text-ink-soft">Latest run and decisions.</p>
-          </div>
-        </div>
+      <div className="mx-auto w-full max-w-[1440px] px-8 pt-7 pb-14 max-md:px-4">
+        <PageTitle title="Run history" subtitle="Saved plan results and recorded stage timings. Opening this page does not run the models." />
 
         {!plan || !counts || !s ? (
           <Card className="mt-6" bodyClassName="py-6">
             <p className="text-[18px] font-[620]">No plan yet for &quot;{englishText(label)}&quot;.</p>
-            <p className="mt-1.5 mb-4 text-[15.5px] text-ink-soft">{englishText(view.degradedReason ?? "The agent has not run for this scenario yet.")} Run it now.</p>
+            <p className="mt-1.5 mb-4 text-[15.5px] text-ink-soft">{englishText(view.degradedReason ?? "The agent has not run for this scenario yet.")} Ask Daybreak about the available data.</p>
             <RunButton scenario={scenario} />
           </Card>
         ) : (
@@ -188,10 +182,11 @@ async function Run({ searchParams }: { searchParams: PageProps<"/rulare">["searc
               <Kpi icon={Route} tone="violet" value={fmtInt(s.assigned)} label="On routes" />
               <Kpi icon={Radio} tone="blue" value={fmtInt(s.remote_actions)} label="Remote" />
               <Kpi icon={UserRound} tone="orange" value={fmtInt(s.human_review)} label="Human review" />
-              <Kpi icon={Clock} tone="grey" value={totalTime != null ? fmtSeconds(totalTime) : "—"} label="Processing time" className="max-xl:col-span-1" />
+              <Kpi icon={Clock} tone="grey" value={totalTime != null ? fmtSeconds(totalTime) : "—"} label="Recorded processing time" className="max-xl:col-span-1" />
             </div>
 
-            <Card title="Run stages" className="mt-4" bodyClassName="pt-2">
+            <Card title="Recorded run stages" className="mt-4" bodyClassName="pt-2">
+              <p className="mb-2 text-[14px] text-ink-soft">Plan generated {fmtMoment(plan.plan.generated_at)}, Bucharest time. Timings come from the available run report and are not a new measurement.</p>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[560px] border-separate border-spacing-y-2 text-[16px]">
                   <thead>
@@ -245,7 +240,7 @@ async function Run({ searchParams }: { searchParams: PageProps<"/rulare">["searc
               </div>
             </Card>
 
-            <div className="mt-4 grid grid-cols-[1fr_1fr_1.15fr] items-start gap-4 max-xl:grid-cols-2 max-md:grid-cols-1">
+            <div className="mt-4 grid grid-cols-[1fr_1fr_1.15fr] items-start gap-4 max-2xl:grid-cols-2 max-lg:grid-cols-1">
               <Card title="Work distribution" icon={ChartColumn}>
                 <div className="flex items-center gap-5 max-sm:flex-wrap">
                   <Donut
@@ -276,9 +271,9 @@ async function Run({ searchParams }: { searchParams: PageProps<"/rulare">["searc
                 </ul>
               </Card>
 
-              <Card title="Model scores" icon={Layers}>
+              <Card title="Model evaluation" icon={Layers}>
                 {scoreRows.length ? (
-                  <table className="w-full text-[15px]">
+                  <div className="max-w-full overflow-x-auto"><table className="w-full min-w-[350px] text-[15px]">
                     <thead>
                       <tr className="text-left text-[14px] text-ink-soft">
                         <th scope="col" className="pb-2 font-[450]">Metric</th>
@@ -299,7 +294,7 @@ async function Run({ searchParams }: { searchParams: PageProps<"/rulare">["searc
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </table></div>
                 ) : (
                   <p className="text-[15px] text-ink-soft">No evaluation reports yet.</p>
                 )}

@@ -10,14 +10,12 @@ import {
   CheckIcon,
   ChevronDownIcon,
   ClockIcon,
-  CpuIcon,
   DownloadIcon,
   FileTextIcon,
   GavelIcon,
   LayersIcon,
   RotateCcwIcon,
   SearchIcon,
-  TargetIcon,
   TrendingUpIcon,
   UserRoundIcon,
 } from "lucide-react";
@@ -35,7 +33,7 @@ import type { ActionOption, JournalRow } from "./types";
 type ActorFilter = "all" | "agent" | "human";
 type SourceFilter = "all" | Source;
 
-const COLS = 9;
+const COLS = 7;
 /** Câte rânduri se arată deodată: jurnalul unei zile are sute de decizii. */
 const PAGE = 60;
 const SRC_TONE: Record<Source, SolidTone> = { A: "blue", B: "violet", C: "amber" };
@@ -225,9 +223,18 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-5">
+      <div className="flex flex-wrap items-center gap-3 text-[14px]" role="group" aria-label="Decision authors">
+        <button type="button" aria-pressed={actor === "human"} onClick={() => setActor(actor === "human" ? "all" : "human")} className={cn(btn("outline", "sm"), actor === "human" && "border-action bg-action text-on-action")}>
+          <UserRoundIcon size={16} aria-hidden="true" /> Human actions {fmtInt(decisions.filter((r) => r.actor === "human").length)}
+        </button>
+        <button type="button" aria-pressed={actor === "agent"} onClick={() => setActor(actor === "agent" ? "all" : "agent")} className={cn(btn("outline", "sm"), actor === "agent" && "border-action bg-action text-on-action")}>
+          <BotIcon size={16} aria-hidden="true" /> Agent decisions {fmtInt(decisions.filter((r) => r.actor === "agent").length)}
+        </button>
+        <p className="text-ink-soft">Open a record for thresholds, model version and the full reason.</p>
+      </div>
       <Card as="section" className="rounded-[18px]" bodyClassName="p-5">
         <div className="flex flex-wrap items-end gap-x-5 gap-y-4" role="search" aria-label="History filters">
-          <div className="grid min-w-0 flex-1 basis-[560px] grid-cols-2 gap-x-4 gap-y-4 md:grid-cols-4">
+          <div className="grid min-w-0 flex-1 basis-[560px] grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 xl:grid-cols-4">
             <Field label="Source" icon={LayersIcon}>
               <Select value={source} onValueChange={(v) => setSource(v as SourceFilter)}>
                 <SelectTrigger aria-label="Work source" className={TRIGGER}>
@@ -237,7 +244,7 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
                   <SelectItem value="all">All sources</SelectItem>
                   {SOURCE_ORDER.map((s) => (
                     <SelectItem key={s} value={s}>
-                      {s} {SOURCES[s].name}
+                      {s} {englishText(SOURCES[s].name)}
                       <span className="ml-1 text-muted-foreground tabular-nums">{fmtInt(decisions.filter((r) => r.source === s).length)}</span>
                     </SelectItem>
                   ))}
@@ -307,20 +314,18 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
 
       <Card as="section" className="min-w-0 max-w-full overflow-hidden rounded-[18px]" bodyClassName="min-w-0 p-0">
         <div className="relative overflow-x-auto">
-          <table className="w-full min-w-[1010px] table-fixed border-separate border-spacing-0 text-[15.5px]">
+          <table className="w-full min-w-[980px] table-fixed border-separate border-spacing-0 text-[15.5px]">
             <caption className="sr-only">
               Decision history, newest first ({active ? `${fmtInt(shown)} of ${plural(decisions.length, "decision", "decisions")}` : plural(decisions.length, "decision", "decisions")})
             </caption>
             <colgroup>
-              <col className="w-[70px]" />
-              <col className="w-[104px]" />
-              <col className="w-[132px]" />
-              <col className="w-[150px]" />
-              <col className="w-[160px]" />
-              <col className="w-[140px]" />
+              <col className="w-[82px]" />
               <col className="w-[108px]" />
+              <col className="w-[156px]" />
+              <col className="w-[160px]" />
               <col />
-              <col className="w-[40px]" />
+              <col className="w-[126px]" />
+              <col className="w-[52px]" />
             </colgroup>
             <thead>
               <tr>
@@ -330,10 +335,8 @@ export function JournalTable({ rows, options, scenario }: { rows: JournalRow[]; 
                 <TH icon={UserRoundIcon}>Actor</TH>
                 <TH icon={GavelIcon}>Decision</TH>
                 <TH icon={LayersIcon}>Work item</TH>
-                <TH icon={FileTextIcon}>Rule</TH>
-                <TH icon={TargetIcon}>Threshold</TH>
+                <TH icon={FileTextIcon}>Rule and reason</TH>
                 <TH icon={TrendingUpIcon}>Prediction</TH>
-                <TH icon={CpuIcon}>Model version</TH>
                 <th scope="col" className={cn(th, "pr-4")}>
                   <span className="sr-only">Full record</span>
                 </th>
@@ -399,9 +402,10 @@ function RunRow({ r }: { r: JournalRow }) {
             </>
           ) : null}
           {r.note ? (
-            <span className="min-w-0 truncate text-[13.5px] text-muted-foreground md:ml-auto md:pl-6" title={englishText(r.note)}>
-              {englishText(r.note)}
-            </span>
+            <details className="w-full text-[13.5px] text-muted-foreground">
+              <summary className="cursor-pointer">Run metadata</summary>
+              <p className="mt-2 break-words">{englishText(r.note)}</p>
+            </details>
           ) : null}
         </div>
       </td>
@@ -430,14 +434,14 @@ function DecisionRowImpl({
 
   return (
     <>
-      <tr style={expanded ? undefined : { contentVisibility: "auto", containIntrinsicSize: "auto 56px" }}>
+      <tr className={human ? "bg-action/5" : undefined} style={expanded ? undefined : { contentVisibility: "auto", containIntrinsicSize: "auto 64px" }}>
         <td className={cn(td, "pl-4")}>
           <time dateTime={r.ts} title={r.moment} className="text-[16px] tabular-nums">
             {r.time}
           </time>
         </td>
         <td className={td}>
-          <span className="flex items-center gap-2.5">
+          <span className={cn("flex items-center gap-2.5", human && "font-[650]")}>
             {human ? <UserRoundIcon size={20} aria-hidden="true" className="text-ink-soft" /> : <BotIcon size={20} aria-hidden="true" className="text-ink-soft" />}
             {human ? "Human" : "Agent"}
           </span>
@@ -462,11 +466,11 @@ function DecisionRowImpl({
         <td className={td}>
           {r.ruleId ? (
             <div className="min-w-0 leading-snug">
-              <span translate="no" className="block truncate text-[14.5px] font-[560]" title={r.ruleId}>
+              <span translate="no" className="block break-words text-[14.5px] font-[560]" title={r.ruleId}>
                 {r.ruleId}
               </span>
               {r.ruleText ? (
-                <span className="line-clamp-1 text-[13px] text-muted-foreground" title={journalText(r.ruleText)}>
+                <span className="line-clamp-2 text-[13px] text-muted-foreground" title={journalText(r.ruleText)}>
                   {journalText(r.ruleText)}
                 </span>
               ) : null}
@@ -474,9 +478,6 @@ function DecisionRowImpl({
           ) : (
             <Dash />
           )}
-        </td>
-        <td className={cn(td, "tabular-nums")}>
-          {r.mainThreshold ? <span className="text-[14.5px]">{journalText(r.mainThreshold)}</span> : <Dash />}
         </td>
         <td className={td}>
           {r.score !== null && r.source ? (
@@ -490,7 +491,6 @@ function DecisionRowImpl({
             <Dash />
           )}
         </td>
-        <td className={td}>{r.modelVersion ? <CopyChip text={r.modelVersion} label={`Copy model version ${r.modelVersion}`} /> : <Dash />}</td>
         <td className={cn(td, "pr-4 text-right")}>
           <button
             type="button"
@@ -528,10 +528,14 @@ function DecisionRowImpl({
                 <dl className="mt-1.5 grid grid-cols-[132px_minmax(0,1fr)] gap-x-4 text-[14.5px] [&>dd]:border-t [&>dd]:border-rule [&>dd]:py-1 [&>dt]:border-t [&>dt]:border-rule [&>dt]:py-1 [&>dt]:text-ink-soft">
                   <dt>Decision ID</dt>
                   <dd translate="no" className="font-[560] break-all">{r.id}</dd>
+                  <dt>Model score</dt>
+                  <dd>{r.score !== null ? roundPct(r.score) : "Unavailable"}{r.source ? `, model ${r.source}` : ""}</dd>
+                  <dt>Main threshold</dt>
+                  <dd>{r.mainThreshold ? journalText(r.mainThreshold) : "No numeric threshold"}</dd>
                   <dt>Prediction ID</dt>
                   <dd translate="no" className="font-[560] break-all">{r.predictionId ?? "–"}</dd>
                   <dt>Model version</dt>
-                  <dd translate="no" className="font-[560] break-all">{r.modelVersion ?? "–"}</dd>
+                  <dd translate="no" className="min-w-0 font-[560] break-all">{r.modelVersion ? <CopyChip text={r.modelVersion} label={`Copy model version ${r.modelVersion}`} /> : "Unavailable"}</dd>
                   <dt>Input fingerprint</dt>
                   <dd translate="no" className="font-[560] break-all">{r.inputsSha ?? "–"}</dd>
                   <dt>Timestamp</dt>

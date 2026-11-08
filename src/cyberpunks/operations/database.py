@@ -29,6 +29,25 @@ CREATE TABLE IF NOT EXISTS command_recoveries (
  recovery_id TEXT PRIMARY KEY, command_id TEXT NOT NULL, organization_id TEXT NOT NULL,
  scenario TEXT NOT NULL, body TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS photos (
+ photo_id TEXT PRIMARY KEY, organization_id TEXT NOT NULL, scenario TEXT NOT NULL,
+ work_item_id TEXT NOT NULL, uploader_id TEXT NOT NULL, actor_signature TEXT NOT NULL,
+ status TEXT NOT NULL CHECK(status IN ('draft','attached')), body TEXT NOT NULL,
+ content BLOB NOT NULL, command_id TEXT
+);
+CREATE INDEX IF NOT EXISTS photos_pending ON photos(organization_id, scenario, uploader_id, status);
+CREATE TABLE IF NOT EXISTS proposal_photos (
+ proposal_id TEXT NOT NULL REFERENCES proposals(proposal_id) ON DELETE CASCADE,
+ photo_id TEXT NOT NULL REFERENCES photos(photo_id), PRIMARY KEY(proposal_id, photo_id)
+);
+CREATE TABLE IF NOT EXISTS findings (
+ command_id TEXT PRIMARY KEY REFERENCES commands(command_id), organization_id TEXT NOT NULL,
+ scenario TEXT NOT NULL, work_item_id TEXT NOT NULL, body TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS manual_corrections (
+ command_id TEXT PRIMARY KEY REFERENCES commands(command_id), organization_id TEXT NOT NULL,
+ scenario TEXT NOT NULL, work_item_id TEXT NOT NULL, body TEXT NOT NULL
+);
 """
 
 

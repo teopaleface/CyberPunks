@@ -28,7 +28,7 @@ const PROBLEM: Record<Source, string> = {
 const SYNTHETIC_WORD = /SINTETIC/i;
 
 /** Un model: antetul, comparația cu baseline-ul, setul de test, toate metricile și comanda. */
-export function ModelColumn({ source, report, hasAnalysis }: { source: Source; report: ModelReport | null; hasAnalysis: boolean }) {
+export function ModelColumn({ source, report, hasAnalysis, errorAnalysis }: { source: Source; report: ModelReport | null; hasAnalysis: boolean; errorAnalysis?: string | null }) {
   const meta = SOURCES[source];
   return (
     <section aria-labelledby={`model-${source}`} className="min-w-0">
@@ -41,7 +41,7 @@ export function ModelColumn({ source, report, hasAnalysis }: { source: Source; r
           <p className="text-[15px] text-muted-foreground">{PROBLEM[source]}</p>
         </div>
       </header>
-      {report ? <ReportBody source={source} report={report} hasAnalysis={hasAnalysis} /> : <MissingReport source={source} />}
+      {report ? <ReportBody source={source} report={report} hasAnalysis={hasAnalysis} errorAnalysis={errorAnalysis} /> : <MissingReport source={source} />}
     </section>
   );
 }
@@ -61,7 +61,7 @@ function SgccLine({ metrics, baseline }: { metrics: Record<string, number>; base
   );
 }
 
-function ReportBody({ source, report: r, hasAnalysis }: { source: Source; report: ModelReport; hasAnalysis: boolean }) {
+function ReportBody({ source, report: r, hasAnalysis, errorAnalysis }: { source: Source; report: ModelReport; hasAnalysis: boolean; errorAnalysis?: string | null }) {
   const external = r.dataset.filter((d) => EXTERNAL_DATASET.test(d)).map((d) => splitCitation(englishReportText(d)).name);
   const baseline = splitBaseline(r.baseline_id);
   const baselineId = r.baseline_id.split(/\s*\(/, 1)[0];
@@ -133,19 +133,20 @@ function ReportBody({ source, report: r, hasAnalysis }: { source: Source; report
 
       <h3 className="mt-5 text-[16px] font-[650]">All metrics vs. baseline</h3>
       {source === "A" ? <p className="mt-2 text-[14px] text-muted-foreground">Overall London precision is inflated by obvious injected defects filling the top K. The primary comparison excludes those defects. The zero-consumption / consumption-drop rule and the full VEE rule are different baselines; each is reported separately.</p> : null}
-      <table className="mt-1.5 w-full border-collapse text-[14.5px]">
+      <div className="mt-2 max-w-full overflow-x-auto">
+      <table className="w-full min-w-[600px] border-collapse text-[14.5px]">
         <thead>
           <tr className="text-[13.5px] text-muted-foreground">
-            <th scope="col" className="py-1.5 pr-2 text-left font-[500]">
+            <th scope="col" className="py-2.5 pr-2 text-left font-[500]">
               Metric
             </th>
-            <th scope="col" className="px-2 py-1.5 text-right font-[500]">
+            <th scope="col" className="px-2 py-2.5 text-right font-[500]">
               Model
             </th>
-            <th scope="col" className="px-2 py-1.5 text-right font-[500]">
+            <th scope="col" className="px-2 py-2.5 text-right font-[500]">
               Baseline
             </th>
-            <th scope="col" className="py-1.5 pl-2 text-right font-[500]">
+            <th scope="col" className="py-2.5 pl-2 text-right font-[500]">
               Difference
             </th>
           </tr>
@@ -159,15 +160,15 @@ function ReportBody({ source, report: r, hasAnalysis }: { source: Source; report
             const diff = m - b;
             return (
               <tr key={k} className="border-t border-rule align-baseline">
-                <th scope="row" className="py-1.5 pr-2 text-left font-[450]" title={k}>
+                <th scope="row" className="py-2.5 pr-2 text-left font-[450]" title={k}>
                   {meta.label}
                   {k === key ? <span className="text-muted-foreground">, primary</span> : null}
                 </th>
-                <td className={cn("px-2 py-1.5 text-right whitespace-nowrap tabular-nums", c === 1 && "font-[700]")}>{fmtMetric(k, m)}</td>
-                <td className={cn("px-2 py-1.5 text-right whitespace-nowrap tabular-nums", c === -1 ? "font-[700]" : "text-muted-foreground")}>
+                <td className={cn("px-2 py-2.5 text-right whitespace-nowrap tabular-nums", c === 1 && "font-[700]")}>{fmtMetric(k, m)}</td>
+                <td className={cn("px-2 py-2.5 text-right whitespace-nowrap tabular-nums", c === -1 ? "font-[700]" : "text-muted-foreground")}>
                   {fmtMetric(k, b)}
                 </td>
-                <td className="py-1.5 pl-2 text-right whitespace-nowrap text-muted-foreground tabular-nums">
+                <td className="py-2.5 pl-2 text-right whitespace-nowrap text-muted-foreground tabular-nums">
                   {diff === 0 ? "0" : `${diff > 0 ? "+" : "−"}${fmtMetric(k, Math.abs(diff))}`}
                 </td>
               </tr>
@@ -175,6 +176,7 @@ function ReportBody({ source, report: r, hasAnalysis }: { source: Source; report
           })}
         </tbody>
       </table>
+      </div>
       <p className="mt-1.5 text-[13.5px] text-muted-foreground">Bold marks the better value. Difference is model minus baseline.</p>
 
       {only.length ? (
@@ -185,7 +187,7 @@ function ReportBody({ source, report: r, hasAnalysis }: { source: Source; report
             </span>
             {only.length === 1 ? "One additional metric without a baseline" : `Additional ${plural(only.length, "metric", "metrics")} without a baseline`}
           </summary>
-          <dl className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 pb-2 text-[14.5px] [&>dd]:border-t [&>dd]:border-rule [&>dd]:py-1.5 [&>dd]:text-right [&>dd]:tabular-nums [&>dt]:border-t [&>dt]:border-rule [&>dt]:py-1.5">
+          <dl className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 pb-2 text-[14.5px] [&>dd]:border-t [&>dd]:border-rule [&>dd]:py-2.5 [&>dd]:text-right [&>dd]:tabular-nums [&>dt]:border-t [&>dt]:border-rule [&>dt]:py-2.5">
             {only.map((k) => (
               <div key={k} className="contents">
                 <dt title={k}>{metricMeta(k).label}</dt>
@@ -219,23 +221,23 @@ function ReportBody({ source, report: r, hasAnalysis }: { source: Source; report
       <div className="mt-1.5">
         <CopyCommand cmd={r.reproduce_cmd} />
       </div>
-      <p className="mt-3 text-[14.5px]">
-        {hasAnalysis ? (
+      <div className="mt-4 flex flex-wrap gap-4 text-[14.5px]">
+        <a download={`model-${source}-evaluation.json`} href={`data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(r, null, 2))}`} className="font-[560] underline decoration-rule underline-offset-4 hover:decoration-ink">Download full evaluation JSON</a>
+        {errorAnalysis ? (
+          <a download={`model-${source}-error-analysis.ro.md`} href={`data:text/markdown;charset=utf-8,${encodeURIComponent(errorAnalysis)}`} className="font-[560] underline decoration-rule underline-offset-4 hover:decoration-ink">Download error report, Romanian</a>
+        ) : hasAnalysis ? (
           <a href={`#erori-${source}`} className="font-[560] underline decoration-rule underline-offset-4 hover:decoration-ink">
-            Error analysis below
+            Error analysis and source report
           </a>
         ) : (
           <span className="text-muted-foreground">
             Error analysis not published yet (<span className="dense">reports/{source}/error_analysis.md</span>).
           </span>
         )}
-      </p>
+      </div>
     </>
   );
 }
-
-const LABEL_COL = 128;
-const VALUE_COL = 150;
 
 /** Două bare pe aceeași axă de la zero: modelul (închis) și baseline-ul (gri), cu valorile scrise. */
 function HeroBars({
@@ -262,11 +264,11 @@ function HeroBars({
     { name: "Model", id: modelId, v: model, color: "var(--ink)" },
     { name: "Baseline", id: baselineId, v: baseline, color: "var(--idle)" },
   ];
-  const grid = { gridTemplateColumns: `${LABEL_COL}px minmax(0,1fr) ${VALUE_COL}px` };
-  const plot = { left: LABEL_COL + 12, right: VALUE_COL + 12 };
+  const grid = { gridTemplateColumns: "128px minmax(0,1fr) 150px" };
+  const plot = { left: 140, right: 162 };
 
   return (
-    <figure className="mt-3" aria-label={`${metricMeta(metric).label}: model ${fmtMetric(metric, model)}, baseline ${fmtMetric(metric, baseline)}`}>
+    <div className="max-w-full overflow-x-auto"><figure className="mt-3 min-w-[480px]" aria-label={`${metricMeta(metric).label}: model ${fmtMetric(metric, model)}, baseline ${fmtMetric(metric, baseline)}`}>
       <div className="relative">
         <div className="pointer-events-none absolute inset-y-0" style={plot} aria-hidden="true">
           {ticks.map((t) => (
@@ -278,7 +280,7 @@ function HeroBars({
         </div>
         <ul className="relative">
           {rows.map((row) => (
-            <li key={row.name} className="grid items-center gap-x-3 py-1.5" style={grid} title={`${row.name} ${row.id}: ${fmtMetric(metric, row.v)}`}>
+            <li key={row.name} className="grid items-center gap-x-3 py-2.5" style={grid} title={`${row.name} ${row.id}: ${fmtMetric(metric, row.v)}`}>
               <span className="min-w-0">
                 <span className="block text-[15px] leading-tight font-[600]">{row.name}</span>
                 <span className="dense block truncate text-[13px] text-muted-foreground">{row.id}</span>
@@ -310,7 +312,7 @@ function HeroBars({
           Dotted line shows random ordering, equal to prevalence ({fmtMetric("prevalence", prevalence)}).
         </figcaption>
       ) : null}
-    </figure>
+    </figure></div>
   );
 }
 

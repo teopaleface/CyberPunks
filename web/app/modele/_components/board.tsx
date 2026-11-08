@@ -1,355 +1,156 @@
-import {
-  BotIcon,
-  FileSearchIcon,
-  FlaskConicalIcon,
-  Layers2Icon,
-} from "lucide-react";
-import { Card, Pill, TONE, type Tone } from "@/components/ds";
+import type { ReactNode } from "react";
+import { BotIcon, FileSearchIcon, Layers2Icon } from "lucide-react";
+import { Card, Pill, type Tone } from "@/components/ds";
 import { ChipGrid, type GridCard } from "@/components/misc/chip-grid";
+import { Disclosure } from "@/components/simple/disclosure";
 import { SyntheticGlyph } from "@/components/shell/provenance";
 import type { ModelReport, Source } from "@/lib/contracts";
-import { fmtDec, fmtInt, fmtLei, plural } from "@/lib/format";
+import { fmtDec, fmtLei, plural } from "@/lib/format";
 import { SOURCE_ORDER } from "@/lib/sources";
 import { ErrorAnalysis } from "./error-analysis";
-import { fmtMetric } from "./metric-labels";
+import { compare, fmtMetric } from "./metric-labels";
 import { englishMetricMeta as metricMeta } from "./report-english";
 
 const TONE_OF: Record<Source, Tone> = { A: "blue", B: "violet", C: "amber" };
+const NAME: Record<Source, string> = { A: "Meter anomalies", B: "Storm outages", C: "Maximum voltage" };
+const CONTEXT: Record<Source, string> = {
+  A: "London anomalies have synthetic labels. The primary subtle-anomaly test excludes obvious defects.",
+  B: "Outage ranking on held-out test data. PR-AUC measures ranking across thresholds, not individual outage probability.",
+  C: "Synthetic grid data with real weather. 1 pu is nominal voltage; the overvoltage limit is 1.10 pu.",
+};
 
-/** Procente pentru precizie și recall („62,5%”), formatul metricii pentru restul. */
-function fmtVal(key: string, v: number): string {
-  if (/precision|recall/.test(key)) {
-    if (v >= 0.995) return "over 99%";
-    const p = Math.round(v * 1000) / 10;
-    return `${Number.isInteger(p) ? fmtInt(p) : fmtDec(p, 1)}%`;
-  }
-  return fmtMetric(key, v);
-}
-
-interface Row {
-  id: string;
-  source: Source;
-  key: string;
-  label: string;
-  model: number;
-  base: number;
-  better: "higher" | "lower";
-}
-
-/** Rândurile reale: metrica principală a fiecărui raport și, la A, precizia pe furturi reale (SGCC), cu valoarea baseline-ului. */
-function rowsOf(bundle: Record<Source, ModelReport | null>): Row[] {
-  const out: Row[] = [];
-  for (const s of SOURCE_ORDER) {
-    const r = bundle[s];
-    if (!r) continue;
-    const key = r.primary_metric;
-    const m = r.metrics[key];
-    const b = r.baseline_metrics[key];
-    const meta = metricMeta(key);
-    if (typeof m === "number" && typeof b === "number" && meta.better !== "none" && meta.better !== "target") {
-      out.push({ id: `${s}-${key}`, source: s, key, label: meta.label, model: m, base: b, better: meta.better });
-    }
-    if (s === "A" && key !== "sgcc_precision_at_k") {
-      const sm = r.metrics.sgcc_precision_at_k;
-      const sb = r.baseline_metrics.sgcc_precision_at_k;
-      if (typeof sm === "number" && typeof sb === "number") {
-        out.push({ id: "A-sgcc", source: "A", key: "sgcc_precision_at_k", label: metricMeta("sgcc_precision_at_k").label, model: sm, base: sb, better: "higher" });
-      }
-    }
-  }
-  return out;
+function fmtVal(key: string, value: number): string {
+  if (/precision|recall/.test(key)) return `${fmtDec(value * 100, 1)}%`;
+  if (/auc/.test(key)) return fmtDec(value, 3);
+  return fmtMetric(key, value);
 }
 
 type Obj = Record<string, unknown>;
-const obj = (v: unknown): Obj | null => (v && typeof v === "object" && !Array.isArray(v) ? (v as Obj) : null);
+const obj = (v: unknown): Obj | null => (v && typeof v === "object" && !Array.isArray(v) ? v as Obj : null);
 const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
-
-interface Strat {
-  key: string;
-  s: Obj;
-  net: number;
-}
-
-function strategies(planner: Obj | null): Strat[] {
-  const all = obj(obj(planner?.main)?.strategies);
-  if (!all) return [];
-  return Object.entries(all)
-    .map(([key, v]) => ({ key, s: obj(v) ?? {}, net: num(obj(v)?.net_value_lei_per_day) ?? NaN }))
-    .filter((x) => Number.isFinite(x.net))
-    .sort((a, b) => b.net - a.net);
-}
-
 const STRATEGY_NAME: Record<string, string> = {
-  agent: "Agent",
-  top_k_scor: "top K by score",
-  primul_venit: "first come, first served",
-  aleator: "random",
-  doar_contoare: "meters only",
+  agent: "Agent", top_k_scor: "Top K by score", primul_venit: "First come, first served", aleator: "Random", doar_contoare: "Meters only",
 };
-const strategyName = (k: string) => STRATEGY_NAME[k] ?? k.replaceAll("_", " ");
+const strategyName = (key: string) => STRATEGY_NAME[key] ?? key.replaceAll("_", " ");
 
-function SourcePill({ s, children }: { s: Source; children: React.ReactNode }) {
+function ModelComparison({ source, report }: { source: Source; report: ModelReport | null }) {
+  const key = report?.primary_metric ?? "";
+  const meta = metricMeta(key);
+  const model = num(report?.metrics[key]);
+  const baseline = num(report?.baseline_metrics[key]);
+  const sgcc = source === "A" && key !== "sgcc_precision_at_k" ? num(report?.metrics.sgcc_precision_at_k) : null;
+  const sgccBase = num(report?.baseline_metrics.sgcc_precision_at_k);
   return (
-    <Pill tone={TONE_OF[s]} size="md" className="min-w-[64px] justify-center">
-      {children}
-    </Pill>
-  );
-}
-
-function Pale({ children }: { children?: React.ReactNode }) {
-  return (
-    <span className="inline-flex min-w-[84px] justify-center rounded-full border border-rule bg-surface-2 whitespace-nowrap px-2.5 py-1 text-[14px] text-ink-soft">{children ?? "—"}</span>
-  );
-}
-
-function ValPill({ tone, children }: { tone: Tone; children: React.ReactNode }) {
-  const t = TONE[tone];
-  return <span className={`inline-flex min-w-[84px] justify-center rounded-full border px-2.5 py-1 text-[14.5px] whitespace-nowrap font-[560] tabular-nums ${t.text} ${t.bg} ${t.border}`}>{children}</span>;
-}
-
-export function ModelsBoard({
-  bundle,
-  planner,
-  analysisBy,
-}: {
-  bundle: Record<Source, ModelReport | null>;
-  planner: Record<string, unknown> | null;
-  analysisBy: Record<Source, string | null>;
-}) {
-  const rows = rowsOf(bundle);
-  const strat = strategies(planner);
-  const agent = strat.find((x) => x.key === "agent");
-  const best = strat.find((x) => x.key !== "agent");
-  const gainPct = agent && best && best.net > 0 ? ((agent.net - best.net) / best.net) * 100 : null;
-  const days = num(obj(planner?.main)?.days);
-  const synthetic = planner?.synthetic !== false;
-  const cards: GridCard[] = [];
-  const cardClass = "rounded-[18px]";
-
-  // 1. Performanță
-  if (rows.length) {
-    cards.push({
-      id: "performanta",
-      tags: ["A", "B", "C", "reguli"],
-      span: "lg:col-span-6",
-      node: (
-        <Card title="Models vs. simple rules" icon={Layers2Icon} className={cardClass}>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[520px] border-separate border-spacing-y-1.5 text-[15px]">
-              <caption className="sr-only">Primary metric on the same test set</caption>
-              <thead>
-                <tr>
-                  <th scope="col" className="pr-3 pb-1 text-left text-[14.5px] font-[600]">
-                    Metric
-                  </th>
-                  {SOURCE_ORDER.map((s) => (
-                    <th key={s} scope="col" className="px-1 pb-1 text-center">
-                      <SourcePill s={s}>
-                        <span translate="no">{s}</span>
-                      </SourcePill>
-                    </th>
-                  ))}
-                  <th scope="col" className="px-1 pb-1 text-center">
-                    <Pill tone="grey" className="min-w-[64px] justify-center">
-                      Rules
-                    </Pill>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => (
-                  <tr key={r.id}>
-                    <th scope="row" className="pr-3 text-left text-[14.5px] leading-snug font-[450]" title={r.key}>
-                      {r.label}
-                    </th>
-                    {SOURCE_ORDER.map((s) => (
-                      <td key={s} className="px-1 text-center">
-                        {s === r.source ? <ValPill tone={TONE_OF[s]}>{fmtVal(r.key, r.model)}</ValPill> : <Pale />}
-                      </td>
-                    ))}
-                    <td className="px-1 text-center">
-                      <Pale>{fmtVal(r.key, r.base)}</Pale>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="mt-3 text-[13.5px] text-ink-soft">
-            Rules are each model&apos;s baseline on the same test data. A dash means the metric is unavailable.
+    <Card title={NAME[source]} icon={Layers2Icon} iconTone="grey" action={<Pill tone={TONE_OF[source]}>Model {source}</Pill>} className="h-full">
+      {report ? (
+        <>
+          <h3 className="min-h-12 text-[15px] leading-relaxed text-ink-soft">{meta.label}</h3>
+          <dl className="mt-3 grid grid-cols-2 gap-3">
+            <div className="min-w-0 rounded-xl border border-rule bg-surface-2 p-3">
+              <dt className="text-[13px] text-ink-soft">Model</dt>
+              <dd className="mt-1 text-[clamp(1.25rem,2vw,1.875rem)] leading-tight font-[650] tabular-nums">{model !== null ? fmtVal(key, model) : "Unavailable"}</dd>
+            </div>
+            <div className="min-w-0 p-3">
+              <dt className="text-[13px] text-ink-soft">Simple baseline</dt>
+              <dd className="mt-1 text-[clamp(1.25rem,2vw,1.875rem)] leading-tight font-[550] tabular-nums">{baseline !== null ? fmtVal(key, baseline) : "Unavailable"}</dd>
+            </div>
+          </dl>
+          <p className="mt-3 text-[14px] font-[550]">
+            {meta.better === "higher" ? "Higher is better." : meta.better === "lower" ? "Lower is better." : "See the metric definition in the report."} {model !== null && baseline !== null ? compare(meta, model, baseline) === 1 ? "Model performs better." : compare(meta, model, baseline) === -1 ? "Baseline performs better." : "No measured advantage." : ""}
           </p>
-        </Card>
-      ),
-    });
-  }
-
-  // 2. Agentul: câștig net
-  if (agent && best) {
-    cards.push({
-      id: "agent",
-      tags: ["agent"],
-      span: "lg:col-span-3",
-      node: (
-        <Card title="Agent net gain" icon={BotIcon} className={cardClass} bodyClassName="flex h-full flex-col px-5 pt-3 pb-5">
-          {gainPct !== null ? (
-            <p className="mt-2 text-center text-[44px] leading-none font-[750] tracking-[-0.03em] text-ok-ink tabular-nums">
-              {gainPct >= 0 ? "+" : "−"}
-              {fmtDec(Math.abs(gainPct), 0)}% <span className="text-[30px]">net/day</span>
+          {sgcc !== null && sgccBase !== null ? (
+            <p className="mt-3 border-t border-rule pt-3 text-[14px] leading-relaxed">
+              <span className="font-[600]">SGCC real theft labels</span>: {fmtVal("sgcc_precision_at_k", sgcc)} vs. {fmtVal("sgcc_precision_at_k", sgccBase)} baseline. A separately trained model.
             </p>
           ) : null}
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-            <span className="rounded-[12px] border border-ok/60 bg-ok/10 text-ok-ink px-4 py-2 text-[20px] font-[650] tabular-nums">{fmtLei(agent.net)}/day</span>
-            <span className="text-[14px] text-ink-soft">vs.</span>
-            <span className="rounded-[12px] border border-rule px-4 py-2 text-[20px] font-[650] tabular-nums">{fmtLei(best.net)}/day</span>
-          </div>
-          <p className="mt-4 text-center text-[14.5px] leading-snug text-ink-soft">
-            Agent vs. the best simple strategy ({strategyName(best.key)}).
-          </p>
-          <p className="mt-4 flex items-center justify-center gap-2 text-center text-[14.5px] text-ink-soft">
-            {synthetic ? <SyntheticGlyph size={14} /> : null}
-            Simulation: {days ? plural(days, "day", "days") : "multiple days"}, {synthetic ? "synthetic world" : "real data"}
-          </p>
-        </Card>
-      ),
-    });
-  } else {
-    cards.push({
-      id: "agent",
-      tags: ["agent"],
-      span: "lg:col-span-3",
-      node: (
-        <Card title="Agent net gain" icon={BotIcon} className={cardClass}>
-          <p className="text-[15.5px] leading-relaxed text-ink-soft">
-            Agent evaluation not published yet (<span translate="no">reports/planner/agent_eval.json</span>).
-          </p>
-        </Card>
-      ),
-    });
-  }
+          <p className="mt-3 text-[13px] leading-relaxed text-ink-soft">{CONTEXT[source]}</p>
+        </>
+      ) : <p className="text-[15px] text-ink-soft">Evaluation report unavailable. No result is assumed.</p>}
+    </Card>
+  );
+}
 
-  // 5. Analiza erorilor
-  const withAnalysis = SOURCE_ORDER.filter((s) => analysisBy[s]);
+export function ModelsBoard({ bundle, planner, analysisBy, balance }: {
+  bundle: Record<Source, ModelReport | null>;
+  planner: Obj | null;
+  analysisBy: Record<Source, string | null>;
+  balance: ReactNode;
+}) {
+  const all = obj(obj(planner?.main)?.strategies);
+  const strategies = Object.entries(all ?? {})
+    .map(([key, value]) => ({ key, data: obj(value), net: num(obj(value)?.net_value_lei_per_day) }))
+    .filter((s): s is typeof s & { net: number } => s.net !== null)
+    .sort((a, b) => b.net - a.net);
+  const agent = strategies.find((s) => s.key === "agent");
+  const best = strategies.find((s) => s.key !== "agent");
+  const days = num(obj(planner?.main)?.days);
+  const synthetic = planner?.synthetic !== false;
+  const cards: GridCard[] = SOURCE_ORDER.map((source) => ({
+    id: `model-${source}`, tags: [source, "reguli"], span: "lg:col-span-4", filteredSpan: "lg:col-span-6",
+    node: <ModelComparison source={source} report={bundle[source]} />,
+  }));
+
   cards.push({
-    id: "erori",
-    tags: ["erori", ...withAnalysis],
-    span: "lg:col-span-7",
+    id: "agent", tags: ["agent"], span: "lg:col-span-12", filteredSpan: "lg:col-span-12",
     node: (
-      <Card title="Error analysis" icon={FileSearchIcon} className={cardClass}>
-        {withAnalysis.length ? (
-          <div className="flex max-h-[430px] flex-col gap-6 overflow-y-auto pr-1" tabIndex={0} role="region" aria-label="Error analysis by model">
-            {withAnalysis.map((s) => (
-              <ErrorAnalysis key={s} source={s} md={analysisBy[s]!} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-[15px] text-ink-soft">
-            No error analysis published yet (<span translate="no">reports/&lt;A|B|C&gt;/error_analysis.md</span>).
-          </p>
-        )}
+      <Card title="Agent strategy comparison" icon={BotIcon} iconTone="grey" action={<Pill tone="grey">Simulation</Pill>}>
+        {agent && best ? (
+          <>
+            <div className="grid gap-5 md:grid-cols-[1fr_1fr_1.2fr]">
+              <dl>
+                <dt className="text-[14px] text-ink-soft">Agent, simulated net value per day</dt>
+                <dd className="mt-2 text-[28px] leading-tight font-[650] tabular-nums">{fmtLei(agent.net)}</dd>
+              </dl>
+              <dl>
+                <dt className="text-[14px] text-ink-soft">Best simple strategy, per day</dt>
+                <dd className="mt-2 text-[28px] leading-tight font-[550] tabular-nums">{fmtLei(best.net)}</dd>
+                <dd className="mt-1 text-[14px] text-ink-soft">{strategyName(best.key)}</dd>
+              </dl>
+              <p className="text-[14px] leading-relaxed text-ink-soft">
+                {synthetic ? <SyntheticGlyph size={14} /> : null}{" "}
+                {days ? plural(days, "simulated day", "simulated days") : "Simulation"}. {synthetic ? "Synthetic world with known outcomes." : "Evaluation on the report's data."} These values are simulated, not realised savings or revenue.
+              </p>
+            </div>
+            <Disclosure title="Simulation outcomes" hint="All strategies, visits, urgency and distance" className="mt-5">
+              <div className="max-w-full overflow-x-auto">
+                <table className="w-full min-w-[680px] text-left text-[14px]">
+                  <caption className="mb-3 text-left text-ink-soft">Net value and distance are per day. Unnecessary visits and missed urgent cases are totals over the simulation.</caption>
+                  <thead><tr className="border-b border-rule"><th scope="col" className="py-3 pr-4">Strategy</th><th scope="col" className="px-3 text-right">Net value, RON/day</th><th scope="col" className="px-3 text-right">Unnecessary visits</th><th scope="col" className="px-3 text-right">Missed urgent cases</th><th scope="col" className="pl-3 text-right">Km/day</th></tr></thead>
+                  <tbody>{strategies.map((s) => (
+                    <tr key={s.key} className="border-b border-rule last:border-0">
+                      <th scope="row" className="py-3 pr-4 font-[550]">{strategyName(s.key)}</th>
+                      <td className="px-3 text-right tabular-nums">{fmtLei(s.net)}</td>
+                      {(["useless_visits_total", "urgent_missed_total", "km_per_day"] as const).map((k) => <td key={k} className="px-3 text-right tabular-nums">{num(s.data?.[k]) !== null ? fmtDec(num(s.data?.[k])!, k === "km_per_day" ? 1 : 0) : "Unavailable"}</td>)}
+                    </tr>
+                  ))}</tbody>
+                </table>
+              </div>
+              <div className="mt-4 max-w-full overflow-x-auto">
+                <table className="w-full min-w-[480px] text-left text-[14px]">
+                  <caption className="mb-2 text-left text-ink-soft">Simulated gross value recovered by source over the full evaluation period. Separate from daily net value above.</caption>
+                  <thead><tr><th scope="col" className="py-2">Strategy</th>{SOURCE_ORDER.map((s) => <th scope="col" key={s} className="px-3 text-right">Source {s}</th>)}</tr></thead>
+                  <tbody>{[agent, best].map((s) => <tr key={s.key} className="border-t border-rule"><th scope="row" className="py-3 font-[500]">{strategyName(s.key)}</th>{SOURCE_ORDER.map((source) => { const n = num(obj(s.data?.value_by_source_lei)?.[source]); return <td key={source} className="px-3 text-right tabular-nums">{n !== null ? fmtLei(n) : "Unavailable"}</td>; })}</tr>)}</tbody>
+                </table>
+              </div>
+            </Disclosure>
+          </>
+        ) : <p className="text-[15px] text-ink-soft">Agent evaluation not published yet. No economic outcome is assumed.</p>}
       </Card>
     ),
   });
-
-  // 6. Simulare
-  if (agent && best) {
-    const bySrc = (s: Obj) => obj(s.value_by_source_lei);
-    const av = bySrc(agent.s);
-    const bv = bySrc(best.s);
-    const total = (v: Obj | null) => (v ? Object.values(v).reduce<number>((t, x) => t + (num(x) ?? 0), 0) : null);
-    const stat = (label: string, a: number | null, b: number | null, f: (n: number) => string) =>
-      a !== null && b !== null ? { label, a: f(a), b: f(b) } : null;
-    const lines = [
-      stat("Net gain per day", agent.net, best.net, (n) => fmtLei(n)),
-      stat("Unnecessary visits", num(agent.s.useless_visits_total), num(best.s.useless_visits_total), fmtInt),
-      stat("Missed urgent cases", num(agent.s.urgent_missed_total), num(best.s.urgent_missed_total), fmtInt),
-      stat("Km per day", num(agent.s.km_per_day), num(best.s.km_per_day), fmtInt),
-    ].filter((x): x is { label: string; a: string; b: string } => x !== null);
+  for (const source of SOURCE_ORDER) {
     cards.push({
-      id: "simulare",
-      tags: ["agent"],
-      span: "lg:col-span-6",
+      id: `errors-${source}`, tags: [source, "erori"], span: "lg:col-span-4", filteredSpan: "lg:col-span-6",
       node: (
-        <Card title={`Simulation summary for ${days ? plural(days, "day", "days") : "multiple days"}`} icon={FlaskConicalIcon} className={cardClass}>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[480px] border-separate border-spacing-y-1.5 text-[15px]">
-              <caption className="sr-only">Agent and best simple strategy by work source</caption>
-              <thead>
-                <tr>
-                  <th scope="col" className="pr-3 pb-1 text-left text-[14.5px] font-[600]">
-                    Value recovered
-                  </th>
-                  {SOURCE_ORDER.map((s) => (
-                    <th key={s} scope="col" className="px-1 pb-1 text-center">
-                      <SourcePill s={s}>
-                        <span translate="no">{s}</span>
-                      </SourcePill>
-                    </th>
-                  ))}
-                  <th scope="col" className="px-1 pb-1 text-center">
-                    <Pill tone="grey" className="min-w-[64px] justify-center">
-                      Total
-                    </Pill>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { name: "Agent", v: av, bold: true },
-                  { name: `Rules: ${strategyName(best.key)}`, v: bv, bold: false },
-                ].map((r) => (
-                  <tr key={r.name}>
-                    <th scope="row" className={`pr-3 text-left text-[14.5px] ${r.bold ? "font-[650]" : "font-[450]"}`}>
-                      {r.name}
-                    </th>
-                    {SOURCE_ORDER.map((s) => {
-                      const v = num(r.v?.[s]);
-                      return (
-                        <td key={s} className="px-1 text-center">
-                          {v === null ? <Pale /> : <ValPill tone={TONE_OF[s]}>{fmtLei(v)}</ValPill>}
-                        </td>
-                      );
-                    })}
-                    <td className="px-1 text-center">{total(r.v) === null ? <Pale /> : <Pale>{fmtLei(total(r.v) ?? 0)}</Pale>}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {lines.length ? (
-            <dl className="mt-3 grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-5 text-[14.5px]">
-              <dt className="sr-only">Indicator</dt>
-              <dd className="sr-only">Agent / simple rule</dd>
-              {lines.map((l) => (
-                <div key={l.label} className="col-span-3 grid grid-cols-subgrid items-center border-t border-rule py-2">
-                  <dt className="text-ink-soft">{l.label}</dt>
-                  <dd className="font-[650] tabular-nums">{l.a}</dd>
-                  <dd className="text-ink-soft tabular-nums">vs. {l.b}</dd>
-                </div>
-              ))}
-            </dl>
-          ) : null}
-          <p className="mt-2 flex items-center gap-2 text-[13.5px] text-ink-soft">
-            {synthetic ? <SyntheticGlyph size={14} /> : null}
-            {synthetic ? "Synthetic data from a simulated world with known outcomes." : "Real data."}
-          </p>
+        <Card title={`Model ${source}: known limits`} icon={FileSearchIcon} iconTone="grey">
+          {analysisBy[source] ? <ErrorAnalysis source={source} md={analysisBy[source]!} /> : <p className="text-[14px] text-ink-soft">Error analysis not published yet.</p>}
         </Card>
       ),
     });
   }
-
-  return (
-    <ChipGrid
-      label="Filter cards"
-      columns="lg:grid-cols-12"
-      chips={[
-        { id: "A", label: "Model A", tone: "blue" },
-        { id: "B", label: "Model B", tone: "violet" },
-        { id: "C", label: "Model C", tone: "amber" },
-        { id: "reguli", label: "Simple rules" },
-        { id: "agent", label: "Agent" },
-        { id: "erori", label: "Error analysis" },
-      ]}
-      cards={cards}
-    />
-  );
+  cards.push({ id: "balance", tags: ["A", "reguli", "erori"], span: "lg:col-span-12", filteredSpan: "lg:col-span-12", node: balance });
+  return <ChipGrid label="Filter model evaluation" columns="lg:grid-cols-12" chips={[
+    { id: "A", label: "Model A", tone: "blue" }, { id: "B", label: "Model B", tone: "violet" }, { id: "C", label: "Model C", tone: "amber" },
+    { id: "reguli", label: "Simple rules" }, { id: "agent", label: "Agent" }, { id: "erori", label: "Error analysis" },
+  ]} cards={cards} />;
 }

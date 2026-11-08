@@ -57,15 +57,11 @@ function DraftPill({ size = "md" }: { size?: "sm" | "md" }) {
   );
 }
 
-function Stat({ icon: Icon, tone, value, label }: { icon: typeof ZapIcon; tone: Tone; value: ReactNode; label: string }) {
-  const color = { blue: "text-src-a", violet: "text-src-b", amber: "text-src-c-ink", green: "text-ok-ink", orange: "text-att-ink", red: "text-red-700 dark:text-red-300", grey: "text-ink-soft" }[tone];
+function Stat({ value, label }: { icon: typeof ZapIcon; tone: Tone; value: ReactNode; label: string }) {
   return (
-    <div className="flex min-w-0 items-center gap-3 border-l border-rule pl-4 first:border-l-0 first:pl-0">
-      <Icon size={28} strokeWidth={1.6} aria-hidden="true" className={`shrink-0 ${color}`} />
-      <div className="min-w-0">
-        <p className="text-[24px] leading-tight font-[700] tracking-[-0.02em] whitespace-nowrap tabular-nums">{value}</p>
-        <p className="text-[14.5px] text-ink-soft">{label}</p>
-      </div>
+    <div className="min-w-0 rounded-xl border border-rule bg-surface-2 p-3">
+      <p className="text-[21px] leading-tight font-[650] tracking-[-0.02em] tabular-nums">{value}</p>
+      <p className="mt-1 text-[14px] text-ink-soft">{label}</p>
     </div>
   );
 }
@@ -120,8 +116,9 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
       id: "furtuna",
       tags: ["alerte", ...(waiting ? ["decizii"] : [])],
       span: "lg:col-span-3",
+      filteredSpan: "lg:col-span-3",
       node: (
-        <Card className="rounded-[18px]" bodyClassName="flex h-full flex-col gap-3 p-5">
+        <Card className="@container rounded-[18px]" bodyClassName="flex h-full flex-col gap-3 p-5">
           <Eyebrow icon={CloudLightningIcon} tone="blue">
             Weather alert
           </Eyebrow>
@@ -144,7 +141,7 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
                 </Pill>
               ) : stormDecision ? (
                 <Pill tone="green" size="lg">
-                  Decision: {DECISION_LABEL_RO[stormDecision.decision]}
+                  Decision: {englishText(DECISION_LABEL_RO[stormDecision.decision])}
                 </Pill>
               ) : null}
             </div>
@@ -169,8 +166,9 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
       id: "mesaj",
       tags: ["mesaje", "trimiteri"],
       span: "lg:col-span-3",
+      filteredSpan: "lg:col-span-3",
       node: (
-        <Card className="rounded-[18px]" bodyClassName="flex h-full flex-col gap-3 p-5">
+        <Card className="@container rounded-[18px]" bodyClassName="flex h-full flex-col gap-3 p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <Eyebrow icon={MessageSquareIcon} tone="violet">
               Targeted group message
@@ -180,9 +178,12 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
           <h2 className="text-[26px] leading-tight font-[700] tracking-[-0.02em]">
             To prosumers at <span translate="no">{msg.asset_id}</span>
           </h2>
-          <p className="text-[16px] leading-relaxed text-ink-soft">{englishText(msg.message_ro)}</p>
-          <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-3 pt-1">
-            <span className="flex items-center gap-2.5 text-[17px] font-[600]">
+          <details className="rounded-xl border border-rule bg-surface-2 px-4 py-3">
+            <summary className="cursor-pointer text-[15px] font-[550]">Read message draft</summary>
+            <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">{englishText(msg.message_ro)}</p>
+          </details>
+          <div className="mt-auto grid grid-cols-2 gap-3 pt-1 @min-[560px]:grid-cols-3">
+            <span className="col-span-full flex items-center gap-2.5 text-[16px] font-[600]">
               <MapPinIcon size={20} aria-hidden="true" className="text-src-a" />
               <span translate="no">{msg.asset_id}</span>
             </span>
@@ -211,8 +212,9 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
       id: "oferte",
       tags: ["oferte", "trimiteri"],
       span: "lg:col-span-3",
+      filteredSpan: "lg:col-span-3",
       node: (
-        <Card className="rounded-[18px]" bodyClassName="flex h-full flex-col gap-3 p-5">
+        <Card className="@container rounded-[18px]" bodyClassName="flex h-full flex-col gap-3 p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <Eyebrow icon={GiftIcon} tone="amber">
               Battery offers
@@ -222,7 +224,7 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
           <p className="text-[16px] text-ink-soft">
             For prosumers at {offers.length === 1 ? "1 substation" : `${fmtInt(offers.length)} substations`} where batteries reduce midday voltage.
           </p>
-          <div className="grid grid-cols-1 gap-4 pt-1 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 pt-1 @min-[360px]:grid-cols-2 @min-[560px]:grid-cols-3">
             <Stat icon={UsersIcon} tone="blue" value={fmtInt(tot.c)} label="prosumers" />
             <Stat icon={ChartColumnIcon} tone="green" value={`${fmtInt(tot.kwh)} kWh`} label="batteries in total" />
             <Stat icon={CoinsIcon} tone="amber" value={fmtLei(tot.lei)} label="estimated revenue" />
@@ -278,8 +280,9 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
       id: "trimiteri",
       tags: ["trimiteri", "mesaje"],
       span: "lg:col-span-3",
+      filteredSpan: "lg:col-span-3",
       node: (
-        <Card title="Delivery status" icon={FileTextIcon} className="rounded-[18px]">
+        <Card title="Draft and alert status" icon={FileTextIcon} className="rounded-[18px]">
           <ul className="flex flex-col gap-2.5">
             {statusRows.map((r) => (
               <li key={r.key} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-[12px] border border-rule bg-surface-2 px-4 py-3">
@@ -301,7 +304,7 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
     cards.push({
       id: "decizii",
       tags: ["decizii"],
-      span: "lg:col-span-2",
+      span: "lg:col-span-6",
       node: (
         <Card
           title="Decisions needed"
@@ -343,7 +346,7 @@ export function AlertsBoard({ alerts, notifications, workItemsById, decisionsByW
         { id: "mesaje", label: "Messages", tone: "violet" },
         { id: "oferte", label: "Offers", tone: "amber" },
         { id: "decizii", label: "Human decisions", tone: "orange" },
-        { id: "trimiteri", label: "Deliveries", tone: "blue" },
+        { id: "trimiteri", label: "Status", tone: "blue" },
       ]}
       cards={cards}
     />

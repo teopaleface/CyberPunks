@@ -15,7 +15,7 @@ import { JournalTable } from "./_components/journal-table";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
-const WRAP = "mx-auto w-full max-w-[1520px] px-8 pt-7 pb-14 max-md:px-4";
+const WRAP = "mx-auto w-full max-w-[1440px] px-8 pt-7 pb-14 max-md:px-4";
 
 export default function JournalPage({ searchParams }: { searchParams: SearchParams }) {
   return (

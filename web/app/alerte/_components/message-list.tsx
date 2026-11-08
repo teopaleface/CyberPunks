@@ -72,8 +72,8 @@ function MessageItem({
   const d = wid ? decisionsByWorkItemId[wid] : undefined;
   const toCustomers = n.audience !== "echipa";
   return (
-    <li className="px-7 py-4">
-      <div className="flex max-w-[780px] items-start justify-between gap-4">
+    <li className="px-5 py-4">
+      <div className="flex max-w-[780px] flex-wrap items-start justify-between gap-3">
         <p className="pt-0.5 text-[16px] leading-snug font-[620]">{englishText(recipient(n, w, d))}</p>
         {n.demo_only !== false || toCustomers ? <DemoStamp /> : null}
       </div>
@@ -82,7 +82,7 @@ function MessageItem({
       </blockquote>
       <div className="mt-2.5 flex flex-wrap items-center gap-x-6 gap-y-2 text-[14.5px] text-muted-foreground">
         <span>
-          Scheduled for{" "}
+          Planned for{" "}
           <time dateTime={n.scheduled_for} className="text-ink">
             {safeMoment(n.scheduled_for)}
           </time>
@@ -136,7 +136,7 @@ export function MessageList({
           <h2 id="mesaje-titlu" className="flex items-center gap-2.5 text-[21px] font-[650] tracking-[-0.005em]">
             Messages <CountPill n={notifications.length} />
           </h2>
-          <p className="mt-0.5 text-[15px] text-muted-foreground">Prepared by the agent. No messages are sent in demo mode.</p>
+          <p className="mt-0.5 text-[15px] text-muted-foreground">Prepared message drafts. A planned time is not confirmation of delivery.</p>
         </div>
         {summary ? <p className="text-[15px] text-muted-foreground">{summary}</p> : null}
       </div>

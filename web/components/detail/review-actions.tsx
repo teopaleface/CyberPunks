@@ -16,7 +16,7 @@ export function ReviewActions({workItemId, scenario, layout="default"}: {workIte
       <div className="space-y-4">
         <Button variant="outline" onClick={() => requestAssistantContext(workItemId, scenario)}>Ask about this work</Button>
         <span id={itemId} className="sr-only">
-          lucrarea {workItemId}
+          Work {workItemId}
         </span>
         <div>
           <label htmlFor={noteId} className="mb-2 flex items-center gap-2.5 text-[15.5px] text-ink">
@@ -56,7 +56,7 @@ export function ReviewActions({workItemId, scenario, layout="default"}: {workIte
     <div className="space-y-4">
         <Button variant="outline" onClick={() => requestAssistantContext(workItemId, scenario)}>Ask about this work</Button>
       <span id={itemId} className="sr-only">
-        lucrarea {workItemId}
+        Work {workItemId}
       </span>
       <div className="flex flex-wrap items-center gap-3">
         <Button size="panel" className="min-w-[116px] text-[17px]" onClick={() => act("approve")} aria-describedby={itemId}>

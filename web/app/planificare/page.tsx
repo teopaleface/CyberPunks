@@ -150,17 +150,17 @@ async function Plan({ searchParams }: PlanPageProps) {
           figures={<PlanFigures s={data.summary} />}
           plan={
             <>
-              <h2 className="text-[23px] leading-[1.3] font-[550] tracking-[-0.02em]">Crew assignments</h2>
+              <h2 className="text-[21px] leading-[1.3] font-[550] tracking-[-0.02em]">Crew assignments</h2>
               <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">
-                {data.routes.filter((r) => r.stops.length > 0).length} crew routes ready. Approval covers crew assignments only; review cases separately.
+                {data.routes.filter((r) => r.stops.length > 0).length} crew routes. Review cases separately from crew approval.
               </p>
-              <div className="mt-5 flex flex-wrap gap-3">
+              <div className="mt-4 flex flex-wrap gap-3">
                 <Link href={`/harta${suffix}`} className="inline-flex min-h-11 items-center gap-2 rounded-[10px] border border-rule bg-surface-2 px-4 py-2.5 text-[14px] text-ink hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
                   Review routes
                   <ArrowRight aria-hidden="true" size={16} />
                 </Link>
               </div>
-              <div className="mt-5 border-t border-rule pt-5">
+              <div className="mt-4 border-t border-rule pt-4">
                 <ApproveButton scenario={scenario} planId={data.planId} approvedAt={approval?.at ?? null} approvedLocal={approval?.local ?? false} />
               </div>
 

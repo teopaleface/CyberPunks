@@ -85,7 +85,7 @@ function AlertItem({ a, ...lookups }: { a: Alert } & Lookups) {
   const ids = a.work_item_ids ?? [];
   const outcome = alertOutcomeRo(ids, lookups.decisionsByWorkItemId);
   return (
-    <li className={cn("grid grid-cols-[152px_minmax(0,1fr)] gap-x-5 py-4 pr-7 pl-7", BAR[a.severity])}>
+    <li className={cn("grid grid-cols-1 gap-x-5 gap-y-3 px-5 py-4 @min-[620px]:grid-cols-[132px_minmax(0,1fr)]", BAR[a.severity])}>
       <div className="text-[14.5px] leading-snug">
         <span className={cn("flex items-center gap-2 text-[16px] font-[650]", TONE[a.severity])}>
           <SeverityIcon severity={a.severity} />
@@ -123,7 +123,7 @@ export function AlertList({ alerts, ...lookups }: { alerts: Alert[] } & Lookups)
   const groups = GROUPS.map((g) => ({ ...g, items: alerts.filter((a) => a.severity === g.severity) })).filter((g) => g.items.length);
 
   return (
-    <section aria-labelledby="alerte-titlu" className="min-w-0">
+    <section aria-labelledby="alerte-titlu" className="@container min-w-0">
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2 px-7 pt-6 pb-3">
         <div>
           <h2 id="alerte-titlu" className="flex items-center gap-2.5 text-[21px] font-[650] tracking-[-0.005em]">

@@ -165,14 +165,14 @@ function MessageCard({ ctx }: { ctx: ItemCtx }) {
   const note = ctx.notifications.find((n) => n.work_item_id === ctx.w.work_item_id && n.message_ro === msg);
   return (
     <Card
-      title="Alerts and messages"
+      title="Customer message draft"
       icon={TriangleAlert}
       iconTone="amber"
-      className="w-full border-att/50 bg-att-surface"
+      className="w-full"
     >
       {msg ? (
         <>
-          <p className="text-[19px] leading-snug font-[650] tracking-[-0.01em]">{englishText(msg)}</p>
+          <Pill tone="grey" size="sm">Draft · Not sent</Pill><details className="mt-3 text-[14px]"><summary className="cursor-pointer py-2 font-medium">Read the proposed message</summary><p className="mt-2 whitespace-pre-wrap leading-relaxed text-ink-soft">{englishText(msg)}</p></details>
           <p className="mt-3 text-[14px] text-ink-soft">
             {note ? `To ${note.audience === "prosumatori" ? "solar customers" : note.audience === "echipa" ? "crew" : "customers in the area"}` : "Preview"}
             {note?.demo_only ? ", demo: nothing is sent externally" : ""}.
