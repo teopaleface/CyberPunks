@@ -1,7 +1,6 @@
 import { requireConsole } from "@/lib/server/operations";
 import { englishText } from "@/lib/english";
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { Wordmark } from "@/components/brand/logo";
@@ -60,7 +59,7 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/harta">["searc
     requested && slimData.items.some((w) => w.work_item_id === requested) ? requested : slimData.defaultSelected;
   // lucrarea selectată la început vine întreagă (fără așteptare); restul se încarcă la cerere
   const data = initialSelected ? toPlanScreenData(view.data, [initialSelected]) : slimData;
-  // aprobarea listei: din jurnal (API) sau, dacă API-ul n-o are încă, din cookie-ul acestui browser
+  // Only the authoritative human audit can mark crew assignments as approved.
   const fromAudit = view.data.audit.find(
     (a) =>
       a.actor === "human" &&
@@ -68,13 +67,9 @@ async function Plan({ searchParams }: { searchParams: PageProps<"/harta">["searc
       /aprob|approv/i.test(a.action) &&
       Date.parse(a.ts) >= Date.parse(view.data!.plan.generated_at),
   );
-  const cookie = (await cookies()).get(`aprobat_${scenario}`)?.value;
-  const [cookiePlan, cookieAt] = cookie ? cookie.split("|") : [];
   const approval = fromAudit
     ? { at: fromAudit.ts, local: false }
-    : cookiePlan === data.planId && cookieAt
-      ? { at: cookieAt, local: true }
-      : null;
+    : null;
 
   return (
     <AppShell info={info} fit>

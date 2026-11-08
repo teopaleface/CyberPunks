@@ -31,6 +31,7 @@ export function MobileMenu({ info, consoleAllowed = false, account }: { info?: S
       </SheetTrigger>
       <SheetContent side="right" className="w-[88%] max-w-[360px] gap-5 overflow-y-auto border-rule bg-panel p-5 text-ink">
         <SheetTitle>Menu</SheetTitle>
+        {account ? <p className="text-[13px] text-ink-soft">{account.membership.role === "dispatcher" ? "Dispatch operations" : account.membership.role === "technician" ? "Field technician" : "Customer"}</p> : null}
         <SheetDescription className="sr-only">Workspace navigation, scenario and data sources.</SheetDescription>
         <nav aria-label="Workspace navigation" className="flex flex-col gap-1">
           {links.map((l) => (

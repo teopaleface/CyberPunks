@@ -18,22 +18,24 @@ export async function AppShell({ info, scenario, fit = false, children }: { info
   const consoleAllowed = Boolean(user && mayReadConsole(user));
   // Never serialize global scenario metadata or counts into a restricted role's client props.
   const consoleInfo = consoleAllowed ? info : undefined;
+  const activeScenario = consoleInfo?.scenario ?? scenario;
+  const assistantHref = activeScenario ? `/app?scenariu=${encodeURIComponent(activeScenario)}` : "/app";
   const account = user ? { id: user.id, email: user.email, name: user.full_name, membership: toMembership(user) } : null;
   return (
-    <div className={fit ? "flex h-dvh min-h-[640px] flex-col overflow-hidden" : "flex min-h-dvh flex-col"}>
+    <div className={fit ? "flex h-dvh min-h-0 flex-col overflow-hidden max-md:pb-[calc(4rem+env(safe-area-inset-bottom))]" : "flex min-h-dvh flex-col"}>
       <a href="#continut" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-panel focus:px-3 focus:py-2">
         Skip to content
       </a>
       <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-rule bg-canvas/90 px-4 backdrop-blur-xl md:hidden">
-        <a href="/app" aria-label="Daybreak dashboard" className="rounded-md"><Wordmark /></a>
+        <a href={assistantHref} aria-label="Daybreak Assistant" className="rounded-md"><Wordmark /></a>
         <MobileMenu info={consoleInfo} consoleAllowed={consoleAllowed} account={account} />
       </header>
       <div className={fit ? "flex min-h-0 flex-1" : "flex flex-1"}>
         <aside className="sticky top-0 flex h-dvh w-[248px] shrink-0 flex-col justify-between gap-8 overflow-y-auto border-r border-rule px-4 py-6 max-md:hidden">
           <div className="space-y-7">
             <div>
-              <a href="/app" aria-label="Daybreak dashboard" className="inline-flex min-h-10 items-center rounded-md px-3"><Wordmark /></a>
-              {account ? <p className="mt-2 px-3 text-[11px] font-medium tracking-[0.12em] text-ink-soft uppercase">{account.membership.role === "dispatcher" ? "Dispatch operations" : account.membership.role === "technician" ? "Field technician" : "Customer service"}</p> : null}
+              <a href={assistantHref} aria-label="Daybreak Assistant" className="inline-flex min-h-10 items-center rounded-md px-3"><Wordmark /></a>
+              {account ? <p className="mt-2 px-3 text-[11px] font-medium tracking-[0.12em] text-ink-soft uppercase">{account.membership.role === "dispatcher" ? "Dispatch operations" : account.membership.role === "technician" ? "Field technician" : "Customer"}</p> : null}
             </div>
             <SideNav consoleAllowed={consoleAllowed} role={account?.membership.role} counts={consoleInfo ? { review: consoleInfo.counts.review, alerts: consoleInfo.counts.alerts + consoleInfo.counts.notifications } : undefined} />
           </div>
@@ -46,7 +48,7 @@ export async function AppShell({ info, scenario, fit = false, children }: { info
             {account ? <AccountControls name={account.name || account.email} /> : <a href="/intra" className="block px-3 py-2 text-ink-soft">Sign in</a>}
           </div>
         </aside>
-        <main id="continut" tabIndex={-1} className={(fit ? "flex min-h-0 min-w-0 flex-1 flex-col" : "min-w-0 flex-1 max-md:pb-20") + " outline-none"}>
+        <main id="continut" tabIndex={-1} className={(fit ? "flex min-h-0 min-w-0 flex-1 flex-col" : "min-w-0 flex-1 max-md:pb-[calc(5rem+env(safe-area-inset-bottom))]") + " outline-none"}>
           {children}
         </main>
       </div>

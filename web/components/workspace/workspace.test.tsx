@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import type { Context, WorkspaceAccount } from "@/lib/operations/types";
 import { RoleList, RoleOverview } from "./role-overview";
 import { commandHeading, defaultAssistantSelection, Workspace } from "./workspace";
+import { conversationSuggestions } from "./main-conversation";
 const account: WorkspaceAccount = {
   id: "synthetic-user",
   email: "synthetic@example.test",
@@ -190,4 +191,32 @@ test("default context uses only the latest own case or the approved in-scope nex
   expect(defaultAssistantSelection({ ...tech, next_stop_status: "awaiting_approval" })).toBeUndefined();
   expect(defaultAssistantSelection({ ...tech, work_items: [] })).toBeUndefined();
   expect(defaultAssistantSelection({ ...context, actor: { ...context.actor, role: "dispatcher" } })).toBeUndefined();
+});
+
+test("main presentation contains only the conversation, with honest history and voice opt-in", () => {
+  const html = renderToStaticMarkup(<Workspace account={account} presentation="main" scenario="synthetic-scenario" />);
+  expect(html).toContain("What can I help you with?");
+  expect(html).toContain("New chat");
+  expect(html).toContain("No saved conversations yet.");
+  expect(html).toContain('aria-label="Start voice"');
+  expect(html).toContain("Report a problem");
+  expect(html).toContain("press Confirm");
+  for (const forbidden of ["Service dashboard", "Your connections", "Recent cases", "Model evidence", "Conversation mode", "Choose a case", "I agree to send", "Talk to Daybreak", "db-assistant-card", "db-role-view"]) expect(html).not.toContain(forbidden);
+});
+
+test("main role prompts stay relevant to each verified role", () => {
+  expect(conversationSuggestions("customer")).toEqual(["Case update", "Report a problem", "Get help"]);
+  expect(conversationSuggestions("technician")).toEqual(["Next visit", "Why this visit?", "Record a finding"]);
+  expect(conversationSuggestions("dispatcher")).toEqual(["Review pending decisions", "Explain the plan", "Find a work item"]);
+});
+
+test("main proposal links and incoming forms remain idle until live scope and explicit review", () => {
+  const html = renderToStaticMarkup(<Workspace account={account} presentation="main"
+    linkedProposalId="11111111-1111-4111-8111-111111111111"
+    requestedAction={{ action: "create_case", data: { connection_id: "synthetic-connection" }, requestId: "synthetic-request" }} />);
+  expect(html).toContain("Loading your draft for review");
+  expect(html).toContain("Back to chat");
+  expect(html).not.toContain('aria-label="Action proposal"');
+  expect(html).not.toContain(">Confirm</button>");
+  expect(html).not.toContain("Review proposal</button>");
 });
