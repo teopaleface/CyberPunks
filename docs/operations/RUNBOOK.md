@@ -85,3 +85,7 @@ Verificare locală a dashboardului: trei conturi la 1440×1100, 1024×900 și 39
 Dacă Meta întoarce 190/463, tokenul temporar a expirat. Generează un token nou în aplicația Meta existentă, apoi rulează `python3 scripts/daybreak_whatsapp_setup.py refresh-token`. Introducerea este ascunsă, iar tokenul se salvează numai după verificarea aplicației, a dreptului de mesagerie și a numărului. Nu îl pune în chat sau în argumentele comenzii. Serviciul îl preia fără restart. Starea confirmată pe 8 noiembrie la 01:54: token expirat, callback activ și verificat, fără probă WhatsApp nouă.
 
 Răspunsul conversațional local măsurat după actualizare este circa 12 secunde; viteza și zgomotul din sala reală rămân de verificat. O notă vocală WhatsApp nu testează detectarea sfârșitului de vorbire din conversația live.
+
+### Token Meta reînnoit și verificat
+
+Pe 8 noiembrie, tokenul temporar expirat a fost regenerat în aplicația Meta existentă și schimbat prin API cu unul cu durată lungă. Expirare confirmată prin Debug Token: 6 ianuarie 2027, 23:15:30 București. Tokenul privat recitit are dreptul de mesagerie, API-ul confirmă numărul existent, subscrierea este activă și challenge-ul public trece. Nu este necesar restartul serviciului; testul WhatsApp al lui Teo poate începe. Nu s-au trimis mesaje de test în această verificare.

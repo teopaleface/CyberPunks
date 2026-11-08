@@ -66,3 +66,11 @@ Blocaj actual WhatsApp: tokenul temporar Meta a expirat pe 8 noiembrie la 01:00 
 ## Clarificarea finală: agentul este pagina principală
 
 Teo a precizat că dashboardul principal trebuie să conțină numai agentul, cu o conversație mare și simplă, asemănătoare ChatGPT. Istoricul poate rămâne discret în stânga, iar textul și vocea sunt în același loc. Cazurile și confirmările apar la nevoie în conversație. Nu se păstrează rezumatul cu cifre și tabele lângă un card de chat. A cerut o generare vizuală înaintea noii implementări; macheta este o propunere, nu interfață deja modificată. Această clarificare înlocuiește structura cu rezumat, card principal și asistent inline.
+
+## Acces Meta refăcut, 8 noiembrie
+
+Blocajul tokenului expirat este rezolvat. La cererea lui Teo, tokenul a fost regenerat în sesiunea Helium existentă, pentru aceeași aplicație și același număr de test. Apoi schimbul API către token cu durată lungă a reușit. Debug Token confirmă is_valid=true, tip USER, drepturile whatsapp_business_management și whatsapp_business_messaging și expirarea pe 6 ianuarie 2027, la 23:15:30 București. Tokenul propriu-zis este numai în fișierul privat ignorat, cu permisiuni 0600.
+
+Verificare independentă după salvare: tokenul recitit este valid, API-ul confirmă numărul existent, subscrierea este activă și neschimbată, iar callbackul public trece challenge-ul. Nu s-au trimis mesaje și nu s-a pornit niciun apel. Serviciul recitește tokenul fără restart; runtime-ul aplicației a rămas stabil pentru QA-ul paralel. Teo poate trimite acum singura notă vocală de test. O notă vocală nu verifică zgomotul și detectarea finalului de vorbire din conversația live.
+
+Pentru refaceri viitoare: în interfața Meta actuală, Use cases → Connect on WhatsApp → Basic setup → Step 1. Try it out → Generate token. După obținerea unui token valid, schimbul API poate prelungi valabilitatea; tokenul deja expirat a fost refuzat anterior cu 190/463. Jev trebuie să urmărească fereastra OAuth proprie și să revină în tabul aplicației după închiderea ei; snapshot-ul popupului cere activarea acelui target. Nu modificați profilul Helium sau celelalte taburi.
