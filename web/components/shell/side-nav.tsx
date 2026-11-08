@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useSyncExternalStore } from "react";
-import { ChevronDown, Bell, BookOpen, CircleHelp, Layers, LayoutGrid, Play, UtilityPole, Wrench, MessagesSquare, Route, PlugZap, type LucideIcon } from "lucide-react";
+import { Bell, BookOpen, CalendarDays, CircleHelp, ClipboardList, Layers, Map, MessagesSquare, Play, PlugZap, Presentation, Route, UtilityPole, Wrench, type LucideIcon } from "lucide-react";
 import { cn } from "cn";
 import type { Role } from "@/lib/operations/policy";
 
@@ -14,27 +13,55 @@ interface NavItem {
   icon: LucideIcon;
   match: (path: string) => boolean;
   count?: "review" | "alerts";
+  secondary?: boolean;
 }
+
+const at = (href: string) => (path: string) => {
+  const pathname = path.split(/[?#]/, 1)[0];
+  return pathname === href || pathname.startsWith(`${href}/`);
+};
+const assistant: NavItem = { href: "/app", label: "Assistant", short: "Assistant", icon: MessagesSquare, match: at("/app") };
+const activity: NavItem = { href: "/activitate", label: "Activity", short: "Activity", icon: BookOpen, match: at("/activitate") };
+const cases = (label: string): NavItem => ({ href: "/cazuri", label, short: "Cases", icon: CircleHelp, match: at("/cazuri") });
+
 export const NAV: NavItem[] = [
-  { href: "/app", label: "Dashboard", short: "Dashboard", icon: LayoutGrid, match: (p: string) => p === "/app" || p.startsWith("/harta") },
-  { href: "/coada", label: "Needs review", short: "Needs review", icon: CircleHelp, match: (p: string) => p.startsWith("/coada"), count: "review" as const },
-  { href: "/posturi", label: "Substations", short: "Substations", icon: UtilityPole, match: (p: string) => p.startsWith("/posturi") },
-  { href: "/lucrari", label: "Work orders", short: "Work orders", icon: Wrench, match: (p: string) => p.startsWith("/lucrari") || p.startsWith("/ordine") },
-  { href: "/jurnal", label: "Activity", short: "Activity", icon: BookOpen, match: (p: string) => p.startsWith("/jurnal") },
-  { href: "/alerte", label: "Alerts", short: "Alerts", icon: Bell, match: (p: string) => p.startsWith("/alerte") },
-  { href: "/modele", label: "Models", short: "Models", icon: Layers, match: (p: string) => p.startsWith("/modele") },
-  { href: "/rulare", label: "Run agent", short: "Agent", icon: Play, match: (p: string) => p.startsWith("/rulare") },
-  { href: "/app#assistant", label: "Daybreak assistant", short: "Assistant", icon: MessagesSquare, match: (p: string) => p === "/app#assistant" },
+  assistant,
+  { href: "/planificare", label: "Daily plan", short: "Plan", icon: CalendarDays, match: at("/planificare") },
+  { href: "/coada", label: "Needs review", short: "Review", icon: CircleHelp, match: at("/coada"), count: "review" },
+  { href: "/harta", label: "Map & crews", short: "Map", icon: Map, match: at("/harta") },
+  { href: "/lucrari", label: "Work orders", short: "Work orders", icon: Wrench, match: (p) => at("/lucrari")(p) || at("/ordine")(p) },
+  cases("Service cases"),
+  { href: "/posturi", label: "Substations", short: "Substations", icon: UtilityPole, match: at("/posturi") },
+  { href: "/jurnal", label: "Decision history", short: "History", icon: BookOpen, match: at("/jurnal"), secondary: true },
+  { href: "/alerte", label: "Alerts", short: "Alerts", icon: Bell, match: at("/alerte"), count: "alerts", secondary: true },
+  { href: "/modele", label: "Models", short: "Models", icon: Layers, match: at("/modele"), secondary: true },
+  { href: "/rulare", label: "Run history", short: "Runs", icon: Play, match: at("/rulare"), secondary: true },
+  { href: "/demo", label: "Presentation", short: "Presentation", icon: Presentation, match: at("/demo"), secondary: true },
 ];
 
 export function availableNav(consoleAllowed: boolean, role?: Role): NavItem[] {
-  if (consoleAllowed) return NAV;
-  const anchor = (hash: string, label: string, icon: typeof LayoutGrid, short = label) => ({ href: `/app#${hash}`, label, short, icon, match: (p: string) => p === `/app#${hash}` });
-  return [
-    { ...NAV[0], match: (p: string) => p === "/app" },
-    ...(role === "technician" ? [anchor("route", "My route", Route), anchor("work", "Assigned work", Wrench, "Work"), anchor("cases", "Shared cases", CircleHelp, "Cases")] : [anchor("cases", "My requests", CircleHelp, "Requests"), anchor("connection", "My connection", PlugZap, "Connection")]),
-    anchor("assistant", "Daybreak assistant", MessagesSquare, "Assistant"),
+  if (consoleAllowed && role === "dispatcher") return NAV;
+  if (role === "technician") return [
+    assistant,
+    { href: "/traseu", label: "My route", short: "Route", icon: Route, match: at("/traseu") },
+    { href: "/sarcini", label: "Assigned work", short: "Work", icon: ClipboardList, match: at("/sarcini") },
+    cases("Shared cases"),
+    activity,
   ];
+  if (role === "dispatcher") return [assistant, cases("Shared cases"), activity];
+  return [
+    assistant,
+    cases("My cases"),
+    { href: "/conexiuni", label: "My connections", short: "Connections", icon: PlugZap, match: at("/conexiuni") },
+    activity,
+  ];
+}
+
+export function mobileNav(consoleAllowed: boolean, role?: Role): NavItem[] {
+  const links = availableNav(consoleAllowed, role);
+  if (consoleAllowed && role === "dispatcher") return links.filter((n) => ["/app", "/planificare", "/coada", "/harta"].includes(n.href));
+  if (role === "technician") return links.filter((n) => n.href !== "/cazuri");
+  return links;
 }
 
 export function navigationHref(path: string, scenario: string | null) {
@@ -44,27 +71,16 @@ export function navigationHref(path: string, scenario: string | null) {
   query.set("scenariu", scenario);
   return `${base.split("?", 1)[0]}?${query.toString()}${hash ? `#${hash}` : ""}`;
 }
-const subscribeHash = (listener: () => void) => {
-  window.addEventListener("hashchange", listener);
-  window.addEventListener("popstate", listener);
-  return () => { window.removeEventListener("hashchange", listener); window.removeEventListener("popstate", listener); };
-};
 function useNav() {
   const pathname = usePathname();
   const scenario = useSearchParams().get("scenariu");
-  const hash = useSyncExternalStore(subscribeHash, () => window.location.hash, () => "");
-  const href = (h: string) => navigationHref(h, scenario);
-  return { pathname: pathname + hash, href };
+  return { pathname, href: (path: string) => navigationHref(path, scenario) };
 }
-
-const OPERATIONS = [0, 1, 2, 3, 5, 8];
-const AGENT_TOOLS = [4, 6, 7];
 
 export function SideNav({ counts, consoleAllowed = false, role }: { counts?: { review: number; alerts: number }; consoleAllowed?: boolean; role?: Role }) {
   const { pathname, href } = useNav();
   const links = availableNav(consoleAllowed, role);
-  const renderLink = (index: number) => {
-    const n = links[index];
+  const renderLink = (n: NavItem) => {
     const active = n.match(pathname);
     const count = consoleAllowed && n.count ? counts?.[n.count] ?? 0 : 0;
     const Icon = n.icon;
@@ -84,36 +100,27 @@ export function SideNav({ counts, consoleAllowed = false, role }: { counts?: { r
       </Link>
     );
   };
+  const secondary = links.filter((n) => n.secondary);
   return (
-    <nav aria-label="Workspace navigation" className="space-y-6">
-      <div className="space-y-1">{(consoleAllowed ? OPERATIONS : links.map((_, index) => index)).map(renderLink)}</div>
-      {consoleAllowed ? <details open={AGENT_TOOLS.some((i) => NAV[i].match(pathname))} className="group/nav border-t border-rule pt-4">
-        <summary className="mb-2 flex min-h-10 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-[14px] text-ink-soft hover:text-ink [&::-webkit-details-marker]:hidden">
-          Agent tools <ChevronDown aria-hidden="true" size={15} className="transition-transform group-open/nav:rotate-180" />
-        </summary>
-        <div className="space-y-1">{AGENT_TOOLS.map(renderLink)}</div>
-      </details> : null}
+    <nav aria-label="Workspace navigation" className="space-y-4">
+      <div className="space-y-1">{links.filter((n) => !n.secondary).map(renderLink)}</div>
+      {secondary.length ? <div className="space-y-1 border-t border-rule pt-4">{secondary.map(renderLink)}</div> : null}
     </nav>
   );
 }
 
-/** Pe telefon, patru destinații frecvente. Meniul din antet include toate ecranele. */
+/** Four frequent destinations. The header menu includes every available page. */
 export function MobileBottomNav({ consoleAllowed = false, role }: { consoleAllowed?: boolean; role?: Role }) {
   const { pathname, href } = useNav();
-  const available = availableNav(consoleAllowed, role);
-  const links = consoleAllowed ? [NAV[0], NAV[1], NAV[3], NAV[8]] : available.filter((n) => role !== "technician" || n.href !== "/app#cases");
+  const links = mobileNav(consoleAllowed, role);
   return (
-    <nav aria-label="Main navigation" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-rule bg-canvas/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+    <nav aria-label="Main navigation" className={cn("fixed inset-x-0 bottom-0 z-40 grid border-t border-rule bg-canvas/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden", links.length === 3 ? "grid-cols-3" : "grid-cols-4")}>
       {links.map((n) => {
         const active = n.match(pathname);
         const Icon = n.icon;
         return (
-          <Link
-            key={n.href}
-            href={href(n.href)}
-            aria-current={active ? "page" : undefined}
-            className={cn("flex min-h-16 flex-col items-center justify-center gap-1 px-1 py-2.5 text-center text-[12px] leading-tight", active ? "bg-action/8 font-semibold text-action" : "text-ink-soft")}
-          >
+          <Link key={n.href} href={href(n.href)} aria-current={active ? "page" : undefined}
+            className={cn("flex h-16 flex-col items-center justify-center gap-1 px-1 py-2.5 text-center text-[12px] leading-tight", active ? "bg-action/8 font-semibold text-action" : "text-ink-soft")}>
             <Icon aria-hidden="true" size={22} strokeWidth={1.6} />
             {n.short}
           </Link>

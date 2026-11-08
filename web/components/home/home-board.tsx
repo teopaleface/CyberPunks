@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { cn } from "cn";
 import { ITEMS, type HomeFilter } from "./filters";
-import "./home-dashboard.css";
 
 /** Filtrele se aplică detaliilor; propunerea și decizia următoare rămân vizibile. */
 const SHOW: Record<HomeFilter, string[]> = {
@@ -39,7 +38,6 @@ export function HomeBoard({
   meter,
   gantt,
   alerts,
-  assistant,
 }: {
   initial: HomeFilter;
   suffix: string;
@@ -52,7 +50,6 @@ export function HomeBoard({
   meter: ReactNode;
   gantt: ReactNode;
   alerts: ReactNode;
-  assistant?: ReactNode;
 }) {
   const [filter, setFilter] = useState<HomeFilter>(initial === "trasee" ? "echipe" : initial);
   const shown = new Set(SHOW[filter]);
@@ -69,18 +66,17 @@ export function HomeBoard({
 
   return (
     <div className="flex flex-col">
-      <div className="order-1 mt-6">{kpis}</div>
-      <div className={assistant ? "home-dashboard-grid order-2 mt-6" : "order-2 mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,1fr)]"}>
-        <section aria-label="Next decision" className={cn(assistant && "home-dashboard-decision", "@container min-w-0 rounded-2xl border border-rule bg-panel p-6 sm:p-7")}>
+      <div className="order-2 mt-6 md:order-1">{kpis}</div>
+      <div className="order-1 mt-6 grid items-start md:order-2 gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,1fr)]">
+        <section aria-label="Next decision" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-6 sm:p-7">
           {question.default}
         </section>
-        {assistant ? <div className="home-dashboard-assistant min-w-0">{assistant}</div> : null}
-        <section aria-label="Proposed plan" className={cn(assistant && "home-dashboard-plan", "@container min-w-0 rounded-2xl border border-rule bg-panel p-6 sm:p-7")}>
+        <section aria-label="Proposed plan" className="@container min-w-0 rounded-2xl border border-rule bg-panel p-6 sm:p-7">
           {plan}
         </section>
       </div>
 
-      <details id="detalii-plan" open={initial !== "toate"} className="group order-3 mt-7 scroll-mt-24 rounded-2xl border border-rule bg-panel">
+      <details id="detalii-plan" open className="group order-3 mt-7 scroll-mt-24 rounded-2xl border border-rule bg-panel">
         <summary className="flex cursor-pointer list-none items-center gap-3 rounded-2xl p-5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring sm:p-6 [&::-webkit-details-marker]:hidden">
           <SlidersHorizontal aria-hidden="true" size={20} className="shrink-0 text-ink-soft" />
           <span className="min-w-0 flex-1">
@@ -99,7 +95,7 @@ export function HomeBoard({
                 onClick={() => pick(i.id)}
                 className={cn(
                   "min-h-10 rounded-lg border px-4 py-2 text-[14px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-                  filter === i.id ? "border-[#ffc502] bg-[#ffc502] text-black" : "border-rule bg-surface-2 text-ink-soft hover:bg-white/10 hover:text-ink",
+                  filter === i.id ? "border-action bg-action text-primary-foreground" : "border-rule bg-surface-2 text-ink-soft hover:bg-white/10 hover:text-ink",
                 )}
               >
                 {i.label}

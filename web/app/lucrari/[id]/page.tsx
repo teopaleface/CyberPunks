@@ -62,7 +62,7 @@ async function Detail({ params, searchParams }: Pick<PageProps<"/lucrari/[id]">,
       <AppShell info={info}>
         <div className={PAGE}>
           <div className="mx-auto max-w-[680px] py-14">
-            <Link href={`/app?scenariu=${encodeURIComponent(scenario)}`} className="text-[15px] underline decoration-rule underline-offset-4 hover:text-ink">
+            <Link href={`/planificare?scenariu=${encodeURIComponent(scenario)}`} className="text-[15px] underline decoration-rule underline-offset-4 hover:text-ink">
               Back to tomorrow&apos;s plan
             </Link>
             <h1 className="mt-6 text-[28px] font-[700] tracking-[-0.02em]">

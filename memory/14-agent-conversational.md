@@ -62,3 +62,37 @@ WhatsApp direct Meta folosește acum Scribe v2 și Eleven v4 pentru note vocale.
 Interfața vocală locală are control de microfon, stare de pregătire și transmite coordonatorului doar răspunsul verificat. Typecheck, lint și probele locale relevante trec; microfonul fizic, boxele, zgomotul sălii și conversația live completă după aceste modificări rămân neverificate. Fără deploy.
 
 Blocaj actual WhatsApp: tokenul temporar Meta a expirat pe 8 noiembrie la 01:00 București. Debug Token confirmă is_valid=false, accesul la număr și schimbul de token răspund cu 190/463. Subscrierea rămâne activă și callbackul public răspunde corect la verificare. Nu au fost trimise mesaje de test. Comanda refresh-token din daybreak_whatsapp_setup.py cere tokenul ascuns, verifică aplicația, dreptul de mesagerie și numărul înainte de salvarea privată; serviciul recitește tokenul fără restart. Teo va testa o singură notă vocală după înlocuire.
+
+## Clarificarea finală: agentul este pagina principală
+
+Teo a precizat că dashboardul principal trebuie să conțină numai agentul, cu o conversație mare și simplă, asemănătoare ChatGPT. Istoricul poate rămâne discret în stânga, iar textul și vocea sunt în același loc. Cazurile și confirmările apar la nevoie în conversație. Nu se păstrează rezumatul cu cifre și tabele lângă un card de chat. A cerut o generare vizuală înaintea noii implementări; macheta este o propunere, nu interfață deja modificată. Această clarificare înlocuiește structura cu rezumat, card principal și asistent inline.
+
+## Acces Meta refăcut, 8 noiembrie
+
+Blocajul tokenului expirat este rezolvat. La cererea lui Teo, tokenul a fost regenerat în sesiunea Helium existentă, pentru aceeași aplicație și același număr de test. Apoi schimbul API către token cu durată lungă a reușit. Debug Token confirmă is_valid=true, tip USER, drepturile whatsapp_business_management și whatsapp_business_messaging și expirarea pe 6 ianuarie 2027, la 23:15:30 București. Tokenul propriu-zis este numai în fișierul privat ignorat, cu permisiuni 0600.
+
+Verificare independentă după salvare: tokenul recitit este valid, API-ul confirmă numărul existent, subscrierea este activă și neschimbată, iar callbackul public trece challenge-ul. Nu s-au trimis mesaje și nu s-a pornit niciun apel. Serviciul recitește tokenul fără restart; runtime-ul aplicației a rămas stabil pentru QA-ul paralel. Teo poate trimite acum singura notă vocală de test. O notă vocală nu verifică zgomotul și detectarea finalului de vorbire din conversația live.
+
+Pentru refaceri viitoare: în interfața Meta actuală, Use cases → Connect on WhatsApp → Basic setup → Step 1. Try it out → Generate token. După obținerea unui token valid, schimbul API poate prelungi valabilitatea; tokenul deja expirat a fost refuzat anterior cu 190/463. Jev trebuie să urmărească fereastra OAuth proprie și să revină în tabul aplicației după închiderea ei; snapshot-ul popupului cere activarea acelui target. Nu modificați profilul Helium sau celelalte taburi.
+
+## Apeluri WhatsApp configurate, 8 noiembrie
+
+La cererea explicită a lui Teo, apelurile primite sunt activate pe numărul Meta de test existent. Meta a confirmat prin API atât calling=ENABLED și vizibilitatea butonului DEFAULT, cât și ruta SIP criptată spre ElevenLabs. Importul WhatsApp nativ ElevenLabs este exclus pentru WABA de dezvoltator; folosim SIP și păstrăm separat integrarea existentă de mesaje/note vocale.
+
+Există un agent privat suplimentar pentru apeluri și un serviciu restrâns pe 8722, cu tunel HTTPS propriu. Apelurile și accesul la date sunt limitate la apelantul verificat existent, în rolul său de tehnician. Identitatea este injectată din variabilele de sistem ElevenLabs, verificată pe server și recitită din asocierile existente la fiecare tură. Nicio confirmare de operație nu se execută în apel. SIP și audio sunt criptate, parola SIP și acreditările HTTP sunt numai în configurarea privată ignorată. Înregistrarea audio și jurnalele SIP sunt dezactivate; nu există rută de apeluri inițiate de agent.
+
+Setările sunt recitite independent la Meta și ElevenLabs; TLS SIP este verificat. Serviciul public a refuzat accesul fără acreditare cu 401 și a răspuns prin Codex real în 11,23 secunde, folosind datele autorizate. 184 teste Python trec. Nu a fost pornit automat niciun apel și nu s-au trimis mesaje. Teo a primit solicitarea pentru un singur apel de probă; conversația audio completă și sala zgomotoasă rămân neverificate până la acea probă. Procesele noi de pe 8722 și tunelul trebuie să rămână pornite, iar runtime-ul consolei și al mesajelor a rămas neschimbat. Ghid în docs/operations/RUNBOOK.md, secțiunea Apeluri WhatsApp primite.
+
+### Separarea supravegherii runtime
+
+În timpul QA-ului UI ulterior, oprirea frontendului a făcut ca procesul comun pornit de daybreak_runtime.start să oprească și API-ul 8720. Procesele aveau grupuri diferite, dar aceeași supraveghere, iar aceasta apela stop pentru toate componentele când una ieșea. API-ul a fost repornit separat, cu același mediu privat; frontendul a pornit separat cu propriul director Next. Verificările ulterioare au confirmat un singur API pe 8720 și serviciul de apeluri pe 8722, ambele cu HTTP 200. Nu s-au modificat fișiere de configurare sau date în această recuperare. Pentru un restart numai de frontend, verificați întregul lanț de părinți și supravegherea, nu doar grupul de procese sau PID-ul next-server.
+
+## Agent principal și recuperarea întregii console
+
+Teo a cerut explicit recuperarea designului celor 14 vederi originale și folosirea lui unde este potrivit fiecărui cont. Cerințele se completează: /app rămâne numai conversația principală, iar operațiunile sunt pagini distincte în același meniu. Planul dispecerului este la /planificare; harta, coada, substațiile, lucrările A/B/C, istoricul, modelele, ordinele și prezentarea sunt păstrate. Clientul are cazuri, conexiuni și activitate proprii. Tehnicianul are traseul cu hartă, lucrările și cazurile echipei, dovezi și constatări. Accesul este verificat pe server și în contextul API; nu se relaxează protecția consolei globale.
+
+Implementat și verificat local pe datele complete: 223 teste web, typecheck, lint și build izolat. Toate vederile dispecerului și paginile pe roluri au fost deschise în Helium; conversația reală, istoricul, mobilul și transferul unei revizuiri fără salvare automată au trecut. Corectată și aprobarea falsă bazată pe cookie din hartă. Datele din machetele istorice nu sunt sursă pentru valorile afișate. Fără deploy sau retestarea hardware-ului audio. Inventar în web/design/CONSOLE-RECOVERY.md.
+
+## Prima probă WhatsApp pe telefon confirmată
+
+Teo a confirmat explicit că agentul răspunde la apel și îl aude. ElevenLabs confirmă un apel SIP încheiat cu succes, 23 de secunde și cinci mesaje în conversație. Aceasta verifică legătura vocală reală de pe telefon. Răspunsurile observate au fost salutul, confirmarea de verificare și întrebarea de prezență; nu a fost confirmat un răspuns operațional pe datele Daybreak în acest apel. Proba în zgomotul sălii rămâne separată și neverificată. Înregistrarea audio nu a fost activată.

@@ -6,6 +6,8 @@ import { api, SessionExpired } from "@/lib/operations/client";
 import { loadLinkedProposal } from "@/lib/operations/linked-proposal";
 import { proposalSignInPath } from "@/lib/operations/proposal-link";
 import { conversationHistory } from "@/lib/operations/history";
+import { activeConversation, conversationScope, emptyConversations, newConversation, readConversations, rememberReadOnlyTurn, saveConversations, selectConversation, type ConversationStore } from "@/lib/operations/conversation-store";
+import { MainConversation } from "./main-conversation";
 import {
   label,
   text,
@@ -42,7 +44,7 @@ export type { WorkspaceAccount } from "@/lib/operations/types";
 export type { WorkspaceRequestedAction, WorkspaceSelection } from "./scope";
 export interface WorkspaceProps {
   account: WorkspaceAccount;
-  presentation?: "page" | "assistant" | "role";
+  presentation?: "page" | "assistant" | "role" | "main";
   initialSelection?: WorkspaceSelection;
   requestedAction?: WorkspaceRequestedAction;
   scenario?: string;
@@ -106,6 +108,13 @@ function WorkspaceContent({
   const [expired, setExpired] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const history = useRef<Message[]>([]);
+  const conversationKey = conversationScope(account, scenario);
+  const [conversations, setConversations] = useState(() => emptyConversations(conversationKey));
+  const conversationsRef = useRef(conversations);
+  const conversationsLoaded = useRef(false);
+  const [conversationsReady, setConversationsReady] = useState(false);
+  const alive = useRef(true);
+  const sessionCurrent = useRef(true);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(Boolean(linkedProposalId));
   const inFlight = useRef(Boolean(linkedProposalId));
@@ -117,6 +126,15 @@ function WorkspaceContent({
   const [notice, setNotice] = useState("");
   const messageList = useRef<HTMLDivElement>(null);
   const proposalCard = useRef<HTMLElement>(null);
+  useEffect(() => {
+    alive.current = true;
+    return () => { alive.current = false; };
+  }, []);
+  const updateConversations = useCallback((next: ConversationStore) => {
+    conversationsRef.current = next;
+    setConversations(next);
+    try { saveConversations(window.sessionStorage, next); } catch { /* Optional session storage. */ }
+  }, []);
   const open = useCallback((action: Action, data: Row = {}) => {
     setForm({ action, data });
     setProposal(null);
@@ -125,6 +143,7 @@ function WorkspaceContent({
   }, []);
   const onError = useCallback((issue: unknown) => {
     if (issue instanceof SessionExpired) {
+      sessionCurrent.current = false;
       setExpired(true);
       setContext(null);
       setValidated(null);
@@ -178,7 +197,7 @@ function WorkspaceContent({
   useEffect(() => {
     if (proposal?.proposal_id)
       proposalCard.current?.scrollIntoView({
-        behavior: "smooth",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
         block: "center",
       });
   }, [proposal?.proposal_id]);
@@ -193,9 +212,11 @@ function WorkspaceContent({
       account,
       scenario,
     );
-    if (sequence === scopeSequence.current) setContext(next);
+    if (conversationScope({ ...account, membership: next.actor }, scenario) !== conversationKey)
+      throw new SessionExpired("Your operational access changed. Reopen the console.");
+    if (alive.current && sessionCurrent.current && sequence === scopeSequence.current) setContext(next);
     return next;
-  }, [account, scenario]);
+  }, [account, scenario, conversationKey]);
   const refresh = useCallback(async (): Promise<Context | null> => {
     if (!account.membership.organization_id || expired) return null;
     try {
@@ -207,6 +228,7 @@ function WorkspaceContent({
       return null;
     }
   }, [account.membership.organization_id, expired, loadScope, onError]);
+  const scopeVerified = Boolean(context);
   useEffect(() => {
     if (expired || !account.membership.organization_id) return;
     let active = true;
@@ -267,6 +289,7 @@ function WorkspaceContent({
   useEffect(() => {
     if (
       !requestedAction ||
+      Boolean(linkedProposalId) ||
       presentation === "role" ||
       expired ||
       busy ||
@@ -304,6 +327,7 @@ function WorkspaceContent({
     };
   }, [
     requestedAction,
+    linkedProposalId,
     presentation,
     expired,
     busy,
@@ -325,6 +349,26 @@ function WorkspaceContent({
       clearInterval(interval);
     };
   }, [refresh]);
+  useEffect(() => {
+    // Never read a previous chat until this account's scope has been checked live.
+    if (presentation !== "main" || !scopeVerified || expired || conversationsLoaded.current) return;
+    let restored = emptyConversations(conversationKey);
+    try { restored = readConversations(window.sessionStorage, conversationKey); } catch { /* Private browsing can deny storage. */ }
+    const timer = setTimeout(() => {
+      conversationsLoaded.current = true;
+      setConversationsReady(true);
+      conversationsRef.current = restored;
+      setConversations(restored);
+      // A proposal or explicit action link always opens its own review, ahead of saved chat.
+      if (!linkedProposalId && !requestedAction && !initialSelection && !initialError) {
+        history.current = activeConversation(restored)?.messages ?? [];
+        setMessages([...history.current]);
+      } else {
+        updateConversations(newConversation(restored));
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [presentation, scopeVerified, expired, conversationKey, linkedProposalId, requestedAction, initialSelection, initialError, updateConversations]);
   useEffect(() => {
     const list = messageList.current;
     if (list) list.scrollTop = list.scrollHeight;
@@ -363,6 +407,7 @@ function WorkspaceContent({
     append([{ role: "user", content: input }]);
     try {
       const fresh = await loadScope();
+      if (!alive.current || !sessionCurrent.current) throw new SessionExpired("Your session changed. Reopen the console.");
       resolveSelection(fresh, validated?.selection);
       const answer = await api<Turn>("conversation/chat", {
         message: input,
@@ -370,9 +415,13 @@ function WorkspaceContent({
         scenario,
         ...(validated?.selection ? { selection: validated.selection } : {}),
       });
+      if (!alive.current || !sessionCurrent.current) throw new SessionExpired("Your session changed. Reopen the console.");
       if (typeof answer.reply !== "string")
         throw new Error("The conversation service did not return a reply.");
       append([{ role: "assistant", content: answer.reply }]);
+      if (presentation === "main" && conversationsLoaded.current) {
+        updateConversations(rememberReadOnlyTurn(conversationsRef.current, input, answer));
+      }
 
       if (answer.proposal) {
         setProposal(assertProposalScenario(answer.proposal, scenario));
@@ -398,6 +447,7 @@ function WorkspaceContent({
       const saved = await loadLinkedProposal(proposalId, (path) =>
         api<Proposal>(path),
       );
+      if (!alive.current || !sessionCurrent.current) return;
       setProposal(assertProposalScenario(saved, scenario));
       setForm(null);
       setCommand(null);
@@ -421,6 +471,7 @@ function WorkspaceContent({
     setNotice("");
     try {
       const fresh = await loadScope();
+      if (!alive.current || !sessionCurrent.current) throw new SessionExpired("Your session changed. Reopen the console.");
       resolveSelection(fresh, validated?.selection);
       validateRequestedAction(fresh, {
         action,
@@ -465,6 +516,7 @@ function WorkspaceContent({
     try {
       assertProposalScenario(proposal, scenario);
       const fresh = await loadScope();
+      if (!alive.current || !sessionCurrent.current) throw new SessionExpired("Your session changed. Reopen the console.");
       validateRequestedAction(fresh, {
         action: proposal.action,
         data: proposal.data,
@@ -544,8 +596,113 @@ function WorkspaceContent({
     setMode("text");
   }
   const reviewing = Boolean(form || proposal || proposalLoading || command);
-  const unavailable = expired || !context || selectionPending || Boolean(selectionError);
+  const unavailable = expired || !context || selectionPending || Boolean(selectionError) || (presentation === "main" && !conversationsReady);
   const pendingCount = (context?.pending_proposals?.length ?? 0) + (context?.pending_commands?.length ?? 0);
+  const reviewContent = (
+<div className="db-assistant-review">
+                  <button type="button" className="db-button db-back-chat" disabled={busy} onClick={backToChat}><ArrowLeft size={14} />Back to chat</button>
+                  {proposalLoading && <p role="status">Loading your draft for review…</p>}
+                  {form && !selectionPending && <section className="db-panel">
+                    <ProposalForm key={`${form.action}-${JSON.stringify(form.data)}`} action={form.action} initial={form.data} context={context ?? undefined} onSubmit={prepare} onCancel={backToChat} busy={busy} />
+                  </section>}
+                  {proposal && !selectionPending && <section className="db-panel db-proposal" ref={proposalCard} aria-label="Action proposal">
+                    <p className="db-eyebrow">Review before saving</p>
+                    <h2>{ACTION_NAMES[proposal.action]}</h2>
+                    <p>{proposal.summary}</p>
+                    <dl>{Object.entries(proposal.data).filter(([key]) => key !== "idempotency_key").map(([key, value]) => <div key={key}>
+                      <dt>{label(key)}</dt>
+                      <dd>{proposalField(context, key, value)}</dd>
+                    </div>)}</dl>
+                    <p className="db-muted">Expires {readableDate(proposal.expires_at)}. No change has been saved yet.</p>
+                    {proposal.action === "record_verdict" && <p className="db-muted">This records a finding. It does not confirm a repair or close the case.</p>}
+                    <div className="db-actions">
+                      <button className="db-primary" disabled={busy || unavailable} onClick={() => void confirm()}><Check size={17} />Confirm</button>
+                      <button className="db-button" disabled={busy || unavailable} onClick={() => { setForm({ action: proposal.action, data: proposal.data }); setProposal(null); }}>Edit</button>
+                      <button className="db-button" disabled={busy || unavailable} onClick={() => { setProposal(null); setNotice("Proposal cancelled. No change was saved."); }}>Cancel</button>
+                    </div>
+                  </section>}
+                  {command && <section className="db-panel db-result" aria-label="Request result">
+                    <h2>{commandHeading(command.status)}</h2>
+                    <p>{command.status === "succeeded" ? "Your request was saved." : command.status === "cancelled" ? "This request was cancelled." : command.status === "failed" ? "The request could not complete. Review its details before trying again." : "This request is awaiting verification. Check its result before starting another."}</p>
+                    <p className="db-muted">Request {command.command_id.slice(0, 8)} · {label(command.status)}{text(command.completed_at) ? ` · ${readableDate(command.completed_at)}` : ""}</p>
+                    {command.result?.case && typeof command.result.case === "object" ? <p>Case status: {label((command.result.case as Row).status)}</p> : null}
+                    <details className="db-details">
+                      <summary>Request receipt</summary>
+                      <p>Reference: {command.command_id}</p>
+                      <dl>{Object.entries(command.result ?? {}).filter(([, value]) => typeof value === "string" || typeof value === "number").map(([key, value]) => <div key={key}><dt>{label(key)}</dt><dd>{text(value)}</dd></div>)}</dl>
+                    </details>
+                    <button className="db-button" disabled={busy} onClick={() => {
+                      void api<Command>(`operations/commands/${encodeURIComponent(command.command_id)}`).then(setCommand).catch(onError);
+                    }}>Check request status</button>
+                  </section>}
+                </div>
+  );
+  const pendingControls = pendingCount > 0 && <details className="db-assistant-requests">
+                <summary>Drafts and pending requests <span className="db-count">{pendingCount}</span></summary>
+                <div>
+                  <DraftRequests proposals={context?.pending_proposals ?? []} busy={busy} onOpen={(id) => void openDraft(id)} />
+                  <PendingCommands commands={context?.pending_commands ?? []} actor={context?.actor ?? account.membership} busy={busy} onRetrieve={(id) => recoverCommand(id)} onCancel={(id, reason) => recoverCommand(id, reason)} />
+                </div>
+              </details>;
+  function selectChat(id?: string) {
+    if (busy || unavailable || reviewing || mode === "voice") return;
+    const next = id ? selectConversation(conversationsRef.current, id) : newConversation(conversationsRef.current);
+    updateConversations(next);
+    history.current = activeConversation(next)?.messages ?? [];
+    setMessages([...history.current]);
+    setMessage("");
+    setNotice("");
+    setError("");
+    // Thread navigation never mutates drafts, commands or confirmations.
+  }
+  function sendMessage() {
+    if (!message.trim() || busy || unavailable || mode === "voice") return;
+    const input = message.trim();
+    setMessage("");
+    void turn(input).catch(() => {});
+  }
+  function suggest(index: number) {
+    if (!context || busy || unavailable) return;
+    if (role === "customer" && index > 0) {
+      const action = index === 1 ? "create_case" : "request_human";
+      if (!canPrepare(context, action)) return;
+      const connectionId = current?.connection_id ?? (context.connections.length === 1 ? context.connections[0].connection_id : undefined);
+      open(action, { ...(connectionId ? { connection_id: connectionId } : {}), ...(action === "request_human" && current?.case_id ? { case_id: current.case_id } : {}) });
+      return;
+    }
+    if (role === "technician" && index === 2) {
+      if (canPrepare(context, "record_verdict")) open("record_verdict", current?.work_item_id ? { work_item_id: current.work_item_id } : {});
+      return;
+    }
+    const prompts = role === "dispatcher" ? ["What decisions are waiting for my review?", "Explain the current plan and why these visits were chosen.", "Help me find a work item."] : role === "technician" ? ["What is my next approved visit?", "Why was this visit chosen?"] : ["What is the current status of my case?"];
+    if (prompts[index]) void turn(prompts[index]).catch(() => {});
+  }
+  if (presentation === "main") {
+    const showContext = Boolean(initialSelection && Object.keys(initialSelection).length) || messages.length > 0;
+    const contextControls = showContext && current && !reviewing ? <details className="db-main-context">
+      <summary>About {itemTitle(current, current.case_id ? "this case" : current.work_item_id ? "this visit" : "this connection")}</summary>
+      <div>
+        {context && context.cases.length > 1 && Boolean(current.case_id) && <label className="db-filter">Discuss another case<select value={text(current?.case_id)} disabled={busy} onChange={(event) => {
+          window.dispatchEvent(new CustomEvent("daybreak:assistant", { detail: { selection: { case_id: event.target.value }, scenario } }));
+        }}>{context.cases.map((item) => <option key={text(item.case_id)} value={text(item.case_id)}>{itemTitle(item, "Service case")}</option>)}</select></label>}
+        <div className="db-actions">
+          {Boolean(current.case_id) && context && canPrepare(context, "set_availability") && <button className="db-button" disabled={busy || unavailable} onClick={() => open("set_availability", { case_id: current.case_id })}>Share availability</button>}
+          {Boolean(current.work_item_id) && context && canPrepare(context, "record_verdict") && <button className="db-button" disabled={busy || unavailable} onClick={() => open("record_verdict", { work_item_id: current.work_item_id })}>Record a finding</button>}
+          {Boolean(current.work_item_id) && context && canPrepare(context, "review_work_item") && <button className="db-button" disabled={busy || unavailable} onClick={() => open("review_work_item", { work_item_id: current.work_item_id })}>Review this work</button>}
+          <button type="button" className="db-button" disabled={busy || unavailable} onClick={() => { setClearedSelection({ value: initialSelection }); backToChat(); setError(""); }}>Clear selection</button>
+        </div>
+      </div>
+    </details> : null;
+    return <div className="db-workspace db-main">
+      {expired ? <div className="db-alert" role="alert">{error || "Your session ended."} <a href={proposalSignInPath(linkedProposalId)}>Sign in again</a></div>
+        : !account.membership.organization_id ? <section className="db-panel"><h2>Your connection is not linked yet.</h2><p>Ask your administrator to verify your service connection.</p></section>
+        : <>
+          {error && <div className="db-alert" role="alert">{error}<button className="db-button" onClick={() => setError("")}>Dismiss</button></div>}
+          {selectionError && <div className="db-alert" role="alert">{selectionError}<button className="db-button" disabled={busy} onClick={() => { setClearedSelection({ value: initialSelection }); backToChat(); setError(""); }}>Clear selection</button></div>}
+          <MainConversation role={role} messages={messages} message={message} messageId={messageId} setMessage={setMessage} busy={busy} unavailable={unavailable} reviewing={reviewing} mode={mode} setMode={setMode} onSend={sendMessage} onSuggestion={suggest} conversations={conversations} onNew={() => selectChat()} onSelect={selectChat} messageList={messageList} contextControls={contextControls} review={reviewContent} voice={<Voice scenario={scenario} turn={turn} onError={onError} disabled={unavailable} />} pending={pendingControls} notice={notice} />
+        </>}
+    </div>;
+  }
   return (
     <div className={`db-workspace db-${presentation}`}>
       {presentation !== "role" && (
@@ -643,53 +800,9 @@ function WorkspaceContent({
                   </form>
                   <p className="db-provider">Changes stay as drafts until you press Confirm.</p>
                 </section>
-              ) : (
-                <div className="db-assistant-review">
-                  <button type="button" className="db-button db-back-chat" disabled={busy} onClick={backToChat}><ArrowLeft size={14} />Back to chat</button>
-                  {proposalLoading && <p role="status">Loading your draft for review…</p>}
-                  {form && !selectionPending && <section className="db-panel">
-                    <ProposalForm key={`${form.action}-${JSON.stringify(form.data)}`} action={form.action} initial={form.data} context={context ?? undefined} onSubmit={prepare} onCancel={backToChat} busy={busy} />
-                  </section>}
-                  {proposal && !selectionPending && <section className="db-panel db-proposal" ref={proposalCard} aria-label="Action proposal">
-                    <p className="db-eyebrow">Review before saving</p>
-                    <h2>{ACTION_NAMES[proposal.action]}</h2>
-                    <p>{proposal.summary}</p>
-                    <dl>{Object.entries(proposal.data).filter(([key]) => key !== "idempotency_key").map(([key, value]) => <div key={key}>
-                      <dt>{label(key)}</dt>
-                      <dd>{proposalField(context, key, value)}</dd>
-                    </div>)}</dl>
-                    <p className="db-muted">Expires {readableDate(proposal.expires_at)}. No change has been saved yet.</p>
-                    {proposal.action === "record_verdict" && <p className="db-muted">This records a finding. It does not confirm a repair or close the case.</p>}
-                    <div className="db-actions">
-                      <button className="db-primary" disabled={busy || unavailable} onClick={() => void confirm()}><Check size={17} />Confirm</button>
-                      <button className="db-button" disabled={busy || unavailable} onClick={() => { setForm({ action: proposal.action, data: proposal.data }); setProposal(null); }}>Edit</button>
-                      <button className="db-button" disabled={busy || unavailable} onClick={() => { setProposal(null); setNotice("Proposal cancelled. No change was saved."); }}>Cancel</button>
-                    </div>
-                  </section>}
-                  {command && <section className="db-panel db-result" aria-label="Request result">
-                    <h2>{commandHeading(command.status)}</h2>
-                    <p>{command.status === "succeeded" ? "Your request was saved." : command.status === "cancelled" ? "This request was cancelled." : command.status === "failed" ? "The request could not complete. Review its details before trying again." : "This request is awaiting verification. Check its result before starting another."}</p>
-                    <p className="db-muted">Request {command.command_id.slice(0, 8)} · {label(command.status)}{text(command.completed_at) ? ` · ${readableDate(command.completed_at)}` : ""}</p>
-                    {command.result?.case && typeof command.result.case === "object" ? <p>Case status: {label((command.result.case as Row).status)}</p> : null}
-                    <details className="db-details">
-                      <summary>Request receipt</summary>
-                      <p>Reference: {command.command_id}</p>
-                      <dl>{Object.entries(command.result ?? {}).filter(([, value]) => typeof value === "string" || typeof value === "number").map(([key, value]) => <div key={key}><dt>{label(key)}</dt><dd>{text(value)}</dd></div>)}</dl>
-                    </details>
-                    <button className="db-button" disabled={busy} onClick={() => {
-                      void api<Command>(`operations/commands/${encodeURIComponent(command.command_id)}`).then(setCommand).catch(onError);
-                    }}>Check request status</button>
-                  </section>}
-                </div>
-              )}
+              ) : reviewContent}
               {notice && <p className="db-notice" role="status">{notice}</p>}
-              {pendingCount > 0 && <details className="db-assistant-requests">
-                <summary>Drafts and pending requests <span className="db-count">{pendingCount}</span></summary>
-                <div>
-                  <DraftRequests proposals={context?.pending_proposals ?? []} busy={busy} onOpen={(id) => void openDraft(id)} />
-                  <PendingCommands commands={context?.pending_commands ?? []} actor={context?.actor ?? account.membership} busy={busy} onRetrieve={(id) => recoverCommand(id)} onCancel={(id, reason) => recoverCommand(id, reason)} />
-                </div>
-              </details>}
+              {pendingControls}
               {presentation === "page" && <p className="db-muted">Synthetic demo · Current scope updated {updated || "when the service is ready"}.</p>}
             </div>
           )}
