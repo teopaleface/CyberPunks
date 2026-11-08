@@ -1,0 +1,376 @@
+{
+  "synthetic": true,
+  "note_ro": "Lume SINTETICĂ (generatorul din planner/simulate.py); cifrele arată ordinul de mărime, nu date PPC.",
+  "params": {
+    "start": "2026-11-02",
+    "weeks": 4,
+    "per_day": 40,
+    "seed": 11,
+    "crews": [
+      "E-BV-1",
+      "E-BV-2",
+      "E-BE-1",
+      "E-CT-2",
+      "E-DV-1"
+    ],
+    "crew_day_cost_lei": 950.4
+  },
+  "policies": [
+    {
+      "policy": "a doua zi",
+      "visits": 116,
+      "crew_days": 34,
+      "stops_per_crew_day": 3.41,
+      "km": 2402.8,
+      "km_per_visit": 20.71,
+      "travel_cost_lei": 12862.98,
+      "travel_cost_per_visit_lei": 110.89,
+      "crew_day_cost_lei": 32313.6,
+      "waiting_cost_lei": 2006.53,
+      "wait_working_days_mean": 1.0,
+      "wait_working_days_max": 1,
+      "deadline_breaches": 0,
+      "left_over": 0
+    },
+    {
+      "policy": "tura de zonă (vineri)",
+      "visits": 116,
+      "crew_days": 26,
+      "stops_per_crew_day": 4.46,
+      "km": 1923.0,
+      "km_per_visit": 16.58,
+      "travel_cost_lei": 10638.18,
+      "travel_cost_per_visit_lei": 91.71,
+      "crew_day_cost_lei": 24710.4,
+      "waiting_cost_lei": 4263.41,
+      "wait_working_days_mean": 3.17,
+      "wait_working_days_max": 6,
+      "deadline_breaches": 0,
+      "left_over": 0
+    }
+  ],
+  "delta_weekly_minus_daily": {
+    "visits": 0,
+    "crew_days": -8,
+    "stops_per_crew_day": 1.05,
+    "km": -479.8,
+    "km_per_visit": -4.13,
+    "travel_cost_lei": -2224.8,
+    "travel_cost_per_visit_lei": -19.18,
+    "crew_day_cost_lei": -7603.2,
+    "waiting_cost_lei": 2256.88,
+    "wait_working_days_mean": 2.17,
+    "wait_working_days_max": 5,
+    "deadline_breaches": 0,
+    "left_over": 0
+  },
+  "saved": {
+    "km": 479.8,
+    "km_pct": 20.0,
+    "travel_cost_lei": 2224.8,
+    "crew_days": 8,
+    "crew_day_cost_lei": 7603.2,
+    "extra_waiting_cost_lei": 2256.88,
+    "net_lei": 7571.12
+  },
+  "by_day": {
+    "a doua zi": [
+      {
+        "date": "2026-11-03",
+        "routes": 2,
+        "visits": 3,
+        "km": 91.6,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-11-04",
+        "routes": 1,
+        "visits": 4,
+        "km": 59.4,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-11-05",
+        "routes": 2,
+        "visits": 5,
+        "km": 96.2,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-11-06",
+        "routes": 1,
+        "visits": 4,
+        "km": 92.3,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-11-09",
+        "routes": 3,
+        "visits": 14,
+        "km": 285.7,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-11-10",
+        "routes": 1,
+        "visits": 4,
+        "km": 114.0,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-11-11",
+        "routes": 0,
+        "visits": 0,
+        "km": 0.0,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-11-12",
+        "routes": 2,
+        "visits": 6,
+        "km": 143.5,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-11-13",
+        "routes": 2,
+        "visits": 3,
+        "km": 61.9,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-11-16",
+        "routes": 3,
+        "visits": 14,
+        "km": 256.4,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-11-17",
+        "routes": 2,
+        "visits": 8,
+        "km": 160.4,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-11-18",
+        "routes": 1,
+        "visits": 1,
+        "km": 47.5,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-11-19",
+        "routes": 2,
+        "visits": 4,
+        "km": 115.0,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-11-20",
+        "routes": 1,
+        "visits": 1,
+        "km": 44.5,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-11-23",
+        "routes": 3,
+        "visits": 13,
+        "km": 252.7,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-11-24",
+        "routes": 1,
+        "visits": 2,
+        "km": 89.7,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-11-25",
+        "routes": 1,
+        "visits": 3,
+        "km": 85.0,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-11-26",
+        "routes": 2,
+        "visits": 7,
+        "km": 128.7,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-11-27",
+        "routes": 1,
+        "visits": 3,
+        "km": 98.5,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-12-02",
+        "routes": 3,
+        "visits": 17,
+        "km": 179.8,
+        "pending_after": 0
+      }
+    ],
+    "tura de zonă": [
+      {
+        "date": "2026-11-03",
+        "routes": 0,
+        "visits": 0,
+        "km": 0.0,
+        "pending_after": 3
+      },
+      {
+        "date": "2026-11-04",
+        "routes": 0,
+        "visits": 0,
+        "km": 0.0,
+        "pending_after": 7
+      },
+      {
+        "date": "2026-11-05",
+        "routes": 0,
+        "visits": 0,
+        "km": 0.0,
+        "pending_after": 12
+      },
+      {
+        "date": "2026-11-06",
+        "routes": 3,
+        "visits": 16,
+        "km": 229.2,
+        "pending_after": 0
+      },
+      {
+        "date": "2026-11-09",
+        "routes": 2,
+        "visits": 4,
+        "km": 164.2,
+        "pending_after": 10
+      },
+      {
+        "date": "2026-11-10",
+        "routes": 1,
+        "visits": 1,
+        "km": 39.7,
+        "pending_after": 13
+      },
+      {
+        "date": "2026-11-11",
+        "routes": 0,
+        "visits": 0,
+        "km": 0.0,
+        "pending_after": 13
+      },
+      {
+        "date": "2026-11-12",
+        "routes": 1,
+        "visits": 1,
+        "km": 37.6,
+        "pending_after": 18
+      },
+      {
+        "date": "2026-11-13",
+        "routes": 3,
+        "visits": 17,
+        "km": 217.5,
+        "pending_after": 4
+      },
+      {
+        "date": "2026-11-16",
+        "routes": 2,
+        "visits": 6,
+        "km": 138.8,
+        "pending_after": 12
+      },
+      {
+        "date": "2026-11-17",
+        "routes": 0,
+        "visits": 0,
+        "km": 0.0,
+        "pending_after": 20
+      },
+      {
+        "date": "2026-11-18",
+        "routes": 0,
+        "visits": 0,
+        "km": 0.0,
+        "pending_after": 21
+      },
+      {
+        "date": "2026-11-19",
+        "routes": 1,
+        "visits": 1,
+        "km": 65.6,
+        "pending_after": 24
+      },
+      {
+        "date": "2026-11-20",
+        "routes": 3,
+        "visits": 16,
+        "km": 274.4,
+        "pending_after": 9
+      },
+      {
+        "date": "2026-11-23",
+        "routes": 3,
+        "visits": 15,
+        "km": 249.3,
+        "pending_after": 7
+      },
+      {
+        "date": "2026-11-24",
+        "routes": 0,
+        "visits": 0,
+        "km": 0.0,
+        "pending_after": 9
+      },
+      {
+        "date": "2026-11-25",
+        "routes": 0,
+        "visits": 0,
+        "km": 0.0,
+        "pending_after": 12
+      },
+      {
+        "date": "2026-11-26",
+        "routes": 0,
+        "visits": 0,
+        "km": 0.0,
+        "pending_after": 19
+      },
+      {
+        "date": "2026-11-27",
+        "routes": 3,
+        "visits": 17,
+        "km": 240.5,
+        "pending_after": 5
+      },
+      {
+        "date": "2026-12-02",
+        "routes": 1,
+        "visits": 5,
+        "km": 86.3,
+        "pending_after": 17
+      },
+      {
+        "date": "2026-12-03",
+        "routes": 0,
+        "visits": 0,
+        "km": 0.0,
+        "pending_after": 17
+      },
+      {
+        "date": "2026-12-04",
+        "routes": 3,
+        "visits": 17,
+        "km": 179.8,
+        "pending_after": 0
+      }
+    ]
+  }
+}
