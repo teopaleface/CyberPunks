@@ -1,7 +1,20 @@
 # Status: Teo-ui
-Actualizat: 2026-11-07 20:15
-Milestone curent: designul „Noapte” aplicat; site-ul de prezentare îmbinat; consola publicată pe Cloudflare
-Gata de merge: da (ultimul commit pe origin/Teo-ui; include web/site de la Tudor, consola la /app)
+Actualizat: 2026-11-08 08:05
+Milestone curent: STARE FINALĂ (înghețare 10:30): designul „Noapte”, site-ul de prezentare îmbinat, publicat pe Cloudflare, conturi în Cloudflare KV
+Gata de merge: da, commit-ul `9b75dd1` (origin/Teo-ui = origin/Teo, include munca de peste noapte de pe Teo, fără conflicte)
+
+## Stare finală (2026-11-08 08:05)
+- Commit: `9b75dd1`. `git merge Teo` făcut înainte (fast-forward: Teo conținea deja tot Teo-ui; consola cu agentul conversațional a rămas neatinsă).
+- Verificări pe `9b75dd1`: `bunx tsc --noEmit` curat (după `bun install`, pentru `@elevenlabs/react` adus de Teo), `bun run lint` curat, `bun test` 241/241.
+- **Merge:** site-ul de prezentare la `/` (de la Tudor, designul lui păstrat), consola la `/app` și ecranele ei (Planul de mâine, Nu sunt sigur, Posturile, Lucrări, Jurnal, Alerte, Modele, Ordin de lucru PDF, Prezentare `/demo`, mobil); conturile site-ului (`/intra`) în Cloudflare KV `daybreak-conturi`, fără Supabase și fără confirmare pe email; aprobările per cont.
+- **Publicat:** https://daybreak.ghiseateodor245.workers.dev (versiunea de la `57c64cd`, 2026-11-07 20:25). La 08:05 toate rutele răspund 200, inclusiv /alerte și /rulare (de 3 ori la rând). Cont demo: `demo@daybreak.ro` (parola e la Teo și pe grupul Smarthack, nu în repo).
+- **Nu e publicat:** munca de peste noapte de pe Teo (consola cu agentul conversațional). Pentru publicare: `cd web && bun run cf:build && bun run cf:deploy` (cere `bun install` întâi).
+- **Ce nu merge / bug-uri cunoscute:**
+  - planul gratuit Workers are 10 ms de procesor pe cerere: /alerte, /rulare și uneori /jurnal pot da eroarea 1102 la încărcare grea (azi au mers); soluția sigură e Workers Paid (decizia lui Teo);
+  - pe Cloudflare datele sunt instantaneul demo din git (`DATA_SOURCE=demo`): fără „Rulează agentul” și fără scriere în API-ul live; Aprobă/Respinge din consolă nu ajung la planificator acolo;
+  - resetarea parolei pe email nu există (un cont conectat își schimbă parola; altfel cont nou);
+  - un cont Supabase neconfirmat a rămas în proiectul lui Tudor (`ghiseateodor245+daybreak@gmail.com`), nefolosit;
+  - D1 nu s-a putut crea (contul Cloudflare are 10/10 baze), de aceea KV.
 
 ## Făcut
 - 12:45 Citite instrucțiunile, memoria, planul, contractele; `uv sync` și `make check` trec.
