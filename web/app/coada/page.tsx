@@ -151,7 +151,7 @@ async function Queue({ searchParams }: { searchParams: PageProps<"/coada">["sear
         ) : !waiting.length ? (
           <Card className="mt-6" bodyClassName="py-7">
             <p className="text-[20px] font-[620]">No cases need human review.</p>
-            <Link href={`/app?scenariu=${encodeURIComponent(scenario)}`} className={cn(btn("outline"), "mt-4")}>
+            <Link href={`/planificare?scenariu=${encodeURIComponent(scenario)}`} className={cn(btn("outline"), "mt-4")}>
               Back to tomorrow&apos;s plan
             </Link>
           </Card>

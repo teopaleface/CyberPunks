@@ -8,7 +8,7 @@ import { proposalFromSearch } from "@/lib/operations/proposal-link";
 import { assistantIntent, assistantScenarioMatches, routeSelection, type AssistantRequest, type AssistantSelection } from "./assistant-context";
 import { assistantDashboardPath, consumeAssistantIntent, storeAssistantIntent } from "./assistant-handoff";
 
-type AssistantProps = { account: WorkspaceAccount; scenario: string };
+type AssistantProps = { account: WorkspaceAccount; scenario: string; presentation?: "assistant" | "main" };
 
 /** Other console pages only transfer an intent. There is no launcher or drawer. */
 export function AgentDock({ account, scenario }: AssistantProps) {
@@ -56,7 +56,7 @@ export function DashboardAssistant(props: AssistantProps) {
   return <DashboardAssistantContent key={JSON.stringify([props.account.id, props.account.membership, props.scenario])} {...props} />;
 }
 
-function DashboardAssistantContent({ account, scenario }: AssistantProps) {
+function DashboardAssistantContent({ account, scenario, presentation = "assistant" }: AssistantProps) {
   const router = useRouter();
   const query = useSearchParams().toString();
   const params = new URLSearchParams(query);
@@ -115,7 +115,7 @@ function DashboardAssistantContent({ account, scenario }: AssistantProps) {
   }, [router, scenario]);
 
   return (
-    <section id="assistant" className="db-assistant-card" aria-label="Daybreak assistant" tabIndex={-1} ref={panel}>
+    <section id="assistant" className={presentation === "main" ? "db-assistant-main" : "db-assistant-card"} aria-label="Daybreak assistant" tabIndex={-1} ref={panel}>
       {scopeError ? <div className="db-workspace db-assistant-error">
         <h2>Daybreak assistant</h2>
         <p role="alert" className="db-alert">{scopeError}</p>
@@ -124,7 +124,7 @@ function DashboardAssistantContent({ account, scenario }: AssistantProps) {
         key={proposalKey}
         account={account}
         scenario={scenario}
-        presentation="assistant"
+        presentation={presentation}
         initialSelection={selection}
         requestedAction={requestedAction}
         linkedProposalId={linkedProposalId}

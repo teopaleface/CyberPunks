@@ -104,3 +104,16 @@ Utilizatorul a precizat că dorește modelul optimizat pe main, nu doar experime
 ### 2026-11-08 02:46 — Verificare pe harta simulată
 
 Pachetul activ FeederBW: F1 macro 0,58950 pe 13.200 ferestre, MAE pierdere normală 8,81 kWh/zi, acoperire P10–P90 0,695. Raportul vechi are rezultate mai bune, dar identitatea completă a intrărilor nu a fost verificată. Fuziunea cu noul model nu a fost evaluată separat.
+- 02:17: Teo a clarificat că /app trebuie să fie numai agentul, ca o conversație ChatGPT, cu istoric discret și text/voce împreună. A cerut o machetă generată pentru direcția vizuală; generată o singură propunere negru/alb/galben PPC. Nu s-a modificat încă interfața după această clarificare.
+
+- 02:18 (8 noiembrie, București): la cererea lui Teo, refăcut accesul WhatsApp în contul Meta existent și prelungit tokenul prin API până la 6 ianuarie 2027, 23:15:30 București. Tokenul salvat privat este recitit și validat; numărul, subscrierea și callbackul public sunt verificate. Fără mesaje de test, apeluri sau restart al runtime-ului. Teo poate testa o singură notă vocală.
+
+- 02:37 (8 noiembrie, București): Teo a cerut să poată suna agentul prin WhatsApp. Activată ruta SIP Meta către un agent ElevenLabs privat suplimentar, numai pentru apelantul deja verificat și rolul de tehnician. Serviciu restrâns pe 8722 cu tunel separat, identitate verificată și Confirm exclusiv în aplicație; mesageria și consola nu au fost repornite. Setări Meta/ElevenLabs și TLS recitite, probă publică Codex în 11,23 secunde, 184 teste trec. Proba audio completă de pe telefon rămâne de făcut de Teo; nu s-au inițiat automat apeluri sau mesaje.
+
+- 02:40 (8 noiembrie, București): coordonare QA UI: procesul comun al vechiului runtime a oprit și API-ul la închiderea frontendului. API-ul a fost recuperat separat, cu același mediu privat, și verificat HTTP 200; frontendul nou este independent. Serviciul de apeluri 8722 și workerul Meta au rămas active. Fără rescriere de configurări sau date; consemnată verificarea lanțului de supraveghere înainte de restarturi parțiale.
+
+- 02:43: la cererea lui Teo, recuperate cele 14 vederi originale ale consolei și integrate cu agentul principal pe /app. Planul complet este la /planificare; meniul dispecerului păstrează toate operațiunile, iar clientul și tehnicianul au pagini filtrate pentru propriile cazuri/conexiuni/trasee/lucrări. Agentul ocupă pagina, cu istoric real și confirmări explicite. Verificate în Helium toate vederile, cele trei roluri, mobilul, hărțile încărcate, conversația și istoricul; 223 teste web, typecheck, lint și build izolat trecute. Cache-ul frontend vechi a fost reconstruit; runtime stabil, fără deploy.
+
+- 02:45 (8 noiembrie, București): Teo confirmă că apelul WhatsApp răspunde și agentul îl aude. ElevenLabs confirmă un apel SIP reușit de 23 secunde. Legătura vocală de pe telefon este verificată; răspunsul operațional pe date și zgomotul sălii nu sunt încă validate prin acest apel.
+
+- 02:56: Teo a cerut integrarea versiunii salvate pe Teo în main. Păstrate schimbările existente ale echipei; modificările locale încă nesalvate rămân în lucru. Fără deploy.
