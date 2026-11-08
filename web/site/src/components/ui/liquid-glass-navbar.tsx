@@ -1,4 +1,4 @@
-import { animate, motion, useMotionValue, useSpring, useTransform } from "motion/react"
+import { motion, useMotionValue, useSpring, useTransform } from "motion/react"
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useReduced } from "@/lib/motion"
 import { cn } from "@/lib/utils"
@@ -18,8 +18,8 @@ interface LiquidNavbarProps {
  * Liquid glass navbar, in the spirit of 21st.dev/@gughigug/liquid-glass-navbar:
  * a glass bar whose active marker is a drop of liquid. When it moves, a
  * fast "head" and a slow "tail" drop are pulled apart and joined by a goo
- * filter, so the drop stretches, splits into droplets and merges back with
- * a ripple. Hover shows a faint meniscus under the pointer.
+ * filter, so the drop stretches, splits into droplets and merges back.
+ * Hover shows a faint meniscus under the pointer.
  * The options never change from page to page; only the marker moves.
  */
 export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className }: LiquidNavbarProps) {
@@ -64,9 +64,6 @@ export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className
   const midW = useTransform<number, number>([headW, tailW], ([h, t]) => Math.min(h, t) * 0.55)
   const midOffset = useTransform<number, number>([headW, tailW, midW], ([h, t, m]) => (h + t) / 4 - m / 2)
 
-  const ripple = useMotionValue(0)
-  const rippleOpacity = useTransform(ripple, [0, 0.15, 1], [0, 0.55, 0])
-  const rippleScale = useTransform(ripple, [0, 1], [0.6, 1.6])
   const lastIndex = useRef<number>(-1)
 
   useEffect(() => {
@@ -90,15 +87,8 @@ export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className
     }
     if (reduce) visible.jump(1)
     else visible.set(1)
-    if (!reduce && lastIndex.current !== activeIndex) {
-      const t = setTimeout(() => {
-        ripple.set(0)
-        animate(ripple, 1, { duration: 0.9, ease: [0.22, 1, 0.36, 1] })
-      }, first ? 0 : 260)
-      lastIndex.current = activeIndex
-      return () => clearTimeout(t)
-    }
-  }, [reduce, activeIndex, rects, tx, tw, headX, headW, tailX, tailW, visible, ripple])
+    lastIndex.current = activeIndex
+  }, [reduce, activeIndex, rects, tx, tw, headX, headW, tailX, tailW, visible])
 
   const hoverRect = hover !== null ? rects[hover] : null
 
@@ -168,11 +158,6 @@ export function LiquidNavbar({ items, logo, cta, activeId, onNavigate, className
           aria-hidden
           className="pointer-events-none absolute inset-y-0 rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,.75),inset_0_-6px_14px_rgba(255,197,2,.35)]"
           style={{ x: headX, width: headW, opacity: visible, scale: dropScale }}
-        />
-        <motion.span
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 rounded-full ring-2 ring-[var(--ember-soft)]"
-          style={{ x: headX, width: headW, opacity: rippleOpacity, scale: rippleScale }}
         />
 
         {items.map((item, i) => {
