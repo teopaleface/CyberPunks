@@ -27,6 +27,7 @@ python3 scripts/daybreak_runtime.py accounts
 Deschideți **http://127.0.0.1:3870/app**. Acesta este runtime-ul cu conturi și baza operațională; API-ul este pe 8720. `3736` a fost o copie temporară pentru verificarea designului, iar `3730` aparține landingului vechi. Nu folosiți aceste porturi pentru verificarea conturilor. Pe desktop, landingul trece între secțiuni cu câte un gest; pe ecran tactil sau cu mișcarea redusă activată păstrează derularea accesibilă.
 
 Dacă parola ori apartenența unui cont local existent diferă, provisionarea refuză suprascrierea. Nu folosiți `--new-run` pentru a remedia automat o demonstrație activă. Codex, ElevenLabs și WhatsApp cer configurarea privată separată descrisă mai jos; clonarea repo-ului nu transferă autentificările lor.
+Pe Windows: [pașii PowerShell și limitele canalelor externe](../WINDOWS.md). Comenzile de mai jos cu `python3` sau `.venv/bin/python` sunt pentru macOS/Linux ori WSL2.
 
 ## Pornire
 

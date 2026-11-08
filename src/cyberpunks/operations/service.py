@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import fcntl
 import hashlib
 import json
 import os
@@ -14,6 +13,7 @@ from functools import lru_cache
 from pathlib import Path
 from urllib.parse import quote
 
+import portalocker
 from pydantic import ValidationError
 
 from cyberpunks.api.store import read_json
@@ -64,11 +64,11 @@ class OperationsService:
     def _lock(self):
         # All workers using this database serialize complete planner effects and SQLite commits.
         with self.db_path.with_suffix(".lock").open("a") as lock:
-            fcntl.flock(lock, fcntl.LOCK_EX)
+            portalocker.lock(lock, portalocker.LOCK_EX)
             try:
                 yield
             finally:
-                fcntl.flock(lock, fcntl.LOCK_UN)
+                portalocker.unlock(lock)
 
     def _scope(self, actor: Actor, scenario: str):
         if actor.organization_id != DEMO_ORGANIZATION or scenario != "demo-vara":

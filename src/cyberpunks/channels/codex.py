@@ -6,13 +6,13 @@ import asyncio
 import json
 import os
 import shutil
-import signal
 import tempfile
 from pathlib import Path
 
 from pydantic import ValidationError
 
 from cyberpunks.channels.models import ChannelError, Intention
+from cyberpunks.common.processes import session_options, stop_tree
 
 PROVIDER = "codex-cli-chatgpt"
 # Explicit switches, in addition to a clean CODEX_HOME and empty workspace.
@@ -147,14 +147,27 @@ class CodexProvider:
             schema = root / "intention-schema.json"
             schema.write_text(json.dumps(Intention.model_json_schema()))
             env = {
-                "PATH": os.environ.get("PATH", "/opt/homebrew/bin:/usr/bin:/bin"),
+                "PATH": os.environ.get("PATH", os.defpath),
                 "HOME": str(root),
                 "CODEX_HOME": str(private),
                 "TMPDIR": str(root),
                 "LANG": "en_US.UTF-8",
                 "TERM": "dumb",
             }
+            # Windows needs these OS locations even with an isolated application environment.
+            if os.name == "nt":
+                for key in ("SYSTEMROOT", "WINDIR", "COMSPEC"):
+                    if key in os.environ:
+                        env[key] = os.environ[key]
+                env.update({"USERPROFILE": str(root), "TEMP": str(root), "TMP": str(root)})
             args = command(binary, cwd, schema, self.model)
+            # npm's Windows shim cannot be executed directly by CreateProcess.
+            if os.name == "nt" and binary.lower().endswith((".cmd", ".bat")):
+                cli = Path(binary).parent / "node_modules/@openai/codex/bin/codex.js"
+                node = shutil.which("node")
+                if not node or not cli.is_file():
+                    raise ChannelError("provider_unavailable", "Install the official Codex CLI with npm on this machine.")
+                args = [node, str(cli), *args[1:]]
             proc = await asyncio.create_subprocess_exec(
                 *args,
                 cwd=cwd,
@@ -162,7 +175,7 @@ class CodexProvider:
                 stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
-                start_new_session=True,
+                **session_options(),
             )
             try:
                 async with asyncio.timeout(self.timeout):
@@ -193,7 +206,7 @@ class CodexProvider:
             finally:
                 if proc.returncode is None:
                     try:
-                        os.killpg(proc.pid, signal.SIGKILL)
+                        stop_tree(proc.pid, force=True)
                     except ProcessLookupError:
                         pass
                     await proc.wait()

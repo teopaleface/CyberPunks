@@ -18,6 +18,8 @@ from urllib.parse import urlparse
 
 import httpx
 
+from cyberpunks.common.processes import session_options, stop_tree
+
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME = ROOT / "outputs/runtime"
 CONFIG = RUNTIME / "meta-whatsapp.env"
@@ -204,7 +206,7 @@ def serve() -> None:
         for child in children:
             if child.poll() is None:
                 try:
-                    os.killpg(child.pid, signal.SIGTERM)
+                    stop_tree(child.pid)
                 except ProcessLookupError:
                     pass
 
@@ -212,7 +214,7 @@ def serve() -> None:
     signal.signal(signal.SIGINT, stop)
     try:
         for command in commands:
-            children.append(subprocess.Popen(command, cwd=ROOT, env=env, start_new_session=True))
+            children.append(subprocess.Popen(command, cwd=ROOT, env=env, **session_options()))
         print("Meta-only ingress on 127.0.0.1:8721 and one durable reply worker started.", flush=True)
         while all(child.poll() is None for child in children):
             time.sleep(0.5)
@@ -222,7 +224,7 @@ def serve() -> None:
             try:
                 child.wait(timeout=10)
             except subprocess.TimeoutExpired:
-                os.killpg(child.pid, signal.SIGKILL)
+                stop_tree(child.pid, force=True)
                 child.wait()
 
 
