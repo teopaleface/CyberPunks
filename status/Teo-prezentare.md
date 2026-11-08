@@ -1,7 +1,21 @@
 # Status: Teo-prezentare
-Actualizat: 2026-11-07 17:22
-Milestone curent: filmul e OPRIT (decizia lui Teo): doar cadre statice, până le aprobă. Produsul se numește Daybreak, textele din film sunt în engleză. Aspectul (logo, culori, imagini) se reface în firul lateral; eu țin structura filmului.
-Gata de merge: nu (doar `presentation/`, Makefile și status; nu atinge codul comun)
+Actualizat: 2026-11-08 08:08
+Milestone curent: PREDAREA (12:00). Filmul există ca draft complet; slideurile, scriptul final și înregistrarea de rezervă se fac acum (termene mai jos).
+Gata de merge: NU se face merge din acest branch (istoria cu fișierele 3D); fișierele de predare se aduc în `Teo` individual (lista de mai jos).
+
+## Starea finală (8 nov., 08:08): ce e gata și ce nu
+
+| Ce | Stare | Unde | Mărime |
+|---|---|---|---|
+| Filmul cu „POWER” (pentru sală) | GATA ca draft complet (firul lateral, 7 nov. 19:42): 52,9 s, 1920×1080, 30 fps, -14,0 LUFS, vocea Kokoro (af_heart). Doar local: are piesa comercială | `presentation/frames-3d/threejs/film_v3/renders/local/daybreak_v3_draft.mp4` | 39,2 MB |
+| Filmul versionat (fără „POWER”: voce + efecte) | ÎN LUCRU, gata la ~08:45 | `presentation/exports/daybreak-film.mp4` | țintă < 50 MB |
+| Slideurile (PDF) | NU SUNT GATA (există doar planul `presentation/slides/OUTLINE.md`). În lucru acum, cu cifrele citite din `reports/`, gata la ~10:00 | `presentation/exports/daybreak-slides.pdf` | țintă < 5 MB |
+| Scriptul demo-ului | Schiță veche (7 nov., 13:40: numele vechi, filmul de 30 s). Îl actualizez acum, gata la ~09:45 | `presentation/demo-script.md` | mic |
+| Înregistrarea de rezervă a consolei | NU EXISTĂ. O fac acum din consola reală (API-ul pe 8710 merge; pornesc interfața pe 3710), gata la ~10:15. Doar local (peste 5 MB) | `presentation/exports/local/daybreak-demo-rezerva.mp4` | — |
+
+Cifrele din vocea filmului, verificate în `reports/planner/agent_eval.json` (30 de zile, simulare): „30% less driving” = 10.565 km față de 15.439 km la „primul venit” (-31,6%); „fewer wasted trips” = 37% vizite inutile față de 63%; „eleven crews” = `config/crews.yaml` (11 echipe). De știut la demo: „556 problems” vine din consola de ieri; planul de azi pentru 8 iulie are 697 de lucrări la intrare (`outputs/demo/plans/demo-vara/plan.json`), deci la demo nu dăm alt număr de lucrări decât cel de pe ecran.
+
+Fișierele mici de adus în `Teo` pentru predare (lista finală o confirm la ~10:15, după exporturi): `presentation/exports/daybreak-film.mp4`, `presentation/exports/daybreak-slides.pdf`, `presentation/demo-script.md`, `presentation/CREDITS.md`, `presentation/README.md`. Comanda, din `Teo`: `git checkout origin/Teo-prezentare -- <căile>`, apoi commit.
 
 ## Făcut
 - 12:50 Citite instrucțiunile, memoria, planul și contractele. `uv sync` și `make check` trec.
