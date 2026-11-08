@@ -21,3 +21,6 @@ Actualizat: 2026-11-07 12:43
 - 13:20: data reală în scenarios.yaml a făcut ca modul fixtures să respingă exemplele (dată diferită). Reparat în agent.py: în modul fixtures, data vine din exemple.
 ## Contracte
 - 13:20: Route.depart_at/return_at (opționale), exemple de serii pentru A, B, C, plan de exemplu cu decizie pentru fiecare lucrare și totaluri consistente (cererile interfeței).
+
+## 8 nov., 08:30
+Merge în `Teo`: starea finală de la planificator, interfață, landing. 570 de teste trec, `demo-vara` merge cap-coadă. README: linkul consolei și pornirea landing-ului (landing-ul nu e publicat). Trimis interfeței: mesajul roșu fals la aprobare și contorul cozii. De făcut înainte de 13:00: API-ul repornit pe starea curată a planului.
