@@ -67,3 +67,25 @@ def write_items(out_root: Path, source: str, rows: list[Any], scenario: str = SC
 @pytest.fixture()
 def out_root(tmp_path: Path) -> Path:
     return tmp_path / "outputs"
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    config.addinivalue_line("markers", "weekly_batching: rulează cu amânarea până la tura de zonă de la sfârșitul săptămânii")
+
+
+@pytest.fixture(autouse=True)
+def _daily_dispatch_by_default(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Testele mai vechi verifică traseele în ziua planului (reguli, solver, aprobări). Amânarea până la tura de zonă
+    (planner/dispatch.py) are testele ei, marcate cu `weekly_batching`; în rest e oprită, ca lucrările să ajungă în trasee."""
+    if request.node.get_closest_marker("weekly_batching"):
+        return
+    from cyberpunks.planner.settings import Settings
+
+    original = Settings.load.__func__
+
+    def load(cls: type[Settings], config_dir: Path | None = None) -> Settings:
+        s = original(cls, config_dir)
+        s.planner.setdefault("dispatch", {})["weekly_batching"] = False
+        return s
+
+    monkeypatch.setattr(Settings, "load", classmethod(load))

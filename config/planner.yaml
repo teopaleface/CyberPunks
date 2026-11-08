@@ -45,6 +45,24 @@ remedy:                             # scara de soluții pentru tensiune (C)
   max_combination: 3                # câte trepte se combină cel mult (efectele se adună: P90 = P90 inițial + suma efectelor)
   crew_steps_need_notice: [adjust_tap, phase_rebalance]   # trepte cu întrerupere planificată: preaviz ANRE
 
+dispatch:                           # ziua plecării (planner/dispatch.py): urgent azi, restul în tura de zonă de la sfârșitul săptămânii
+  weekly_batching: true             # SURSĂ: mentorul PPC (7 nov.): dacă nu e risc de incendiu, lucrarea așteaptă sfârșitul săptămânii
+  tour_weekdays: [4]                # 0 = luni ... 4 = vineri; dacă vinerea e sărbătoare, tura se face în ultima zi lucrătoare dinainte
+  batchable_rules: [R-A-VISIT, R-A-VISIT-MEDIUM, R-A-VISIT-NO-REMOTE, R-BILANT-VISIT, R-BILANT-GRID]
+                                    # se amână doar vizitele obișnuite; siguranța, furtunile, tensiunea și aprobările unui om pleacă la data lor
+  deadline_buffer_working_days: 1   # IPOTEZĂ: lucrarea se planifică cel târziu cu o zi lucrătoare înainte de termen (rezervă dacă echipa nu termină)
+  legal_deadlines:
+    meter_faulty:                   # contor defect: verificat și înlocuit
+      days: 10                      # SURSĂ: Rețele Electrice / PPC, standardul de performanță ANRE: 10 zile lucrătoare de la sesizare (≤ 100 kW)
+      large_customer_days: 5        # SURSĂ: idem, 5 zile lucrătoare peste 100 kW putere aprobată (extra.approved_power_kw)
+      large_customer_kw: 100
+      source_ro: "standardul de performanță ANRE, după Rețele Electrice"
+  internal_max_working_days: 10     # IPOTEZĂ: fără termen legal cunoscut (de exemplu manipulare, pierdere la post), aceeași limită ca la contorul defect
+  zone_cell_km: 5                   # IPOTEZĂ: celula unei ture de zonă (~5 × 5 km), în interiorul zonei operative
+  zone_full_share: 0.75             # zona pleacă înainte de vineri dacă lucrările ei umplu 75% dintr-o tură
+  zone_local_travel_min: 15         # IPOTEZĂ: drumul mediu între două opriri din aceeași celulă
+  piggyback_km: 3                   # o lucrare neurgentă la cel mult 3 km de una care pleacă azi intră opțional (solverul decide dacă ocolul merită)
+
 posts:                              # harta posturilor din interfață, după lei pierduți pe lună (bilanț)
   yellow_lei_month: 200             # IPOTEZĂ: de aici postul e galben
   red_lei_month: 600                # exemplul din conceptul lui Teo ("aproximativ 600 lei pe lună"): de aici postul e roșu

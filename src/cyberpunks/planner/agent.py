@@ -377,6 +377,7 @@ def _decide_and_act(
                        "objective_lei": rr.objective_lei, "tasks": len(pb.tasks), "crews": len(pb.vehicles)},
             "overrides": len(overrides),
             "fusion": fusion_meta,
+            "dispatch": ctx.dispatch,
             "remedies": [p.ladder for p in outcome.final.values() if p.ladder],
         }
     )

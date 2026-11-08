@@ -136,6 +136,7 @@ class Context:
     as_of: datetime  # momentul deciziei (seara dinainte, pentru scenariile istorice)
     travel: TravelModel
     overrides: dict[str, Override] = field(default_factory=dict)
+    dispatch: dict[str, Any] = field(default_factory=dict)  # rezumatul pasului „ziua plecării” (dispatch.py)
 
     @classmethod
     def build(cls, settings: Settings, plan_date: date, as_of: datetime | None = None, overrides: dict | None = None) -> Context:
@@ -1374,6 +1375,9 @@ def decide(ctx: Context, items: list[Item]) -> list[Proposal]:
     cap_storm_per_region(ctx, proposals)
     cap_human_queue(ctx, proposals)
     cap_mandatory_safety(ctx, proposals)
+    from cyberpunks.planner.dispatch import schedule_dispatch  # aici, nu sus: dispatch.py importă din decide.py
+
+    ctx.dispatch = schedule_dispatch(ctx, proposals)  # urgent azi sau tura de zonă de la sfârșitul săptămânii
     return proposals
 
 
@@ -1472,4 +1476,11 @@ RULE_CATALOG: dict[str, str] = {
     "R-ABSTAIN-DATA": "Modelul s-a abținut din cauza datelor de intrare: corectare în biroul de date, nu decizie de dispecer.",
     "R-ABSTAIN-WATCH": "Modelul s-a abținut, dar valoarea e sub pragul pentru timpul unui om: urmărire.",
     "R-HUMAN-QUEUE-FULL": "Coada dispecerului are o capacitate pe zi; cazurile cu valoare mai mică revin în planul următor.",
+    "R-WEEKLY-BATCH": "Nu e urgent (nu e risc de incendiu sau pentru oameni): așteaptă tura de zonă de la sfârșitul săptămânii, "
+                      "dar nu după ultima zi sigură înainte de termenul legal.",
+    "R-WEEKLY-TOUR": "Ziua turei de zonă: lucrările neurgente adunate în săptămână se fac împreună.",
+    "R-ZONE-FULL": "Zona are deja destule lucrări neurgente pentru o tură: pleacă acum, drumul se împarte.",
+    "R-ON-THE-WAY": "O lucrare neurgentă lângă o lucrare care pleacă oricum azi: intră opțional, dacă ocolul merită.",
+    "R-LEGAL-DEADLINE": "Ultima zi sigură înainte de termenul legal (contor defect: 10 zile lucrătoare de la sesizare): obligatoriu azi.",
+    "R-LEGAL-DEADLINE-NO-CREW": "Termen legal în pericol și nicio echipă liberă: alertă critică, întăriri, primul în planul următor.",
 }

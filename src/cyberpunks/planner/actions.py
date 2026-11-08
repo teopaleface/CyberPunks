@@ -109,6 +109,16 @@ def finalize(
             final[p.id] = p
             continue
         why = routing.dropped.get(p.id, "capacity")
+        if p.mandatory and p.rule_id == "R-LEGAL-DEADLINE":
+            # Termenul legal nu se negociază: dispecerul primește o alertă critică (întăriri sau ore suplimentare).
+            alert = AlertSpec("critical", f"Termen legal în pericol: {p.wi.location.label or p.wi.asset_id}",
+                              f"{p.reason_ro} Nicio echipă potrivită nu are loc: e nevoie de întăriri sau de ore suplimentare.")
+            final[p.id] = _final(
+                p.item, DecisionType.deferred, "R-LEGAL-DEADLINE-NO-CREW",
+                f"{p.reason_ro} Nicio echipă potrivită nu are loc în ziua planului: dispecerul primește alerta critică; "
+                "primul în planul următor.", p.action, p.threshold, alerts=p.alerts + [alert], priority=p.priority,
+            )
+            continue
         if p.mandatory:
             # Obligatorie, dar nu încape: verificare de la distanță acum (la contoare și posturi), prima în planul următor,
             # și o singură alertă critică de întăriri pentru dispecer (nu câte o decizie pe fiecare caz).
