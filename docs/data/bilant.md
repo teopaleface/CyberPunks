@@ -104,6 +104,42 @@ Contorul de post lipsă trece postul pe planul B. Orele dublate se curăță. Un
 
 ## Ce se schimbă pe date PPC
 
+### Experiment separat cu date reale FeederBW (ramura Eden, 8 nov. 2026)
+
+Sursa: **Netze BW și KIT, FeederBW**, [Zenodo, versiunea fixată 1.0](https://zenodo.org/records/17831177),
+CC BY 4.0. Citare: Treutlein et al., *Scientific Data* 13, 1283 (2026),
+[doi:10.1038/s41597-026-08152-9](https://doi.org/10.1038/s41597-026-08152-9).
+Datasetul complet conține 200 de plecări JT din Germania, aprilie 2023–martie 2025, la un minut.
+Experimentul folosește primul lot oficial, plecările 1–40 (~1,7 GB comprimat).
+
+**Reală este numai forma importului orar.** Puterea netă măsurată se agregă la oră (minimum 45 de minute
+valide), exportul se taie la zero, iar forma se normalizează și se scalează la clienții simulatorului.
+Golurile se completează numai din trecut: aceeași oră din săptămâna precedentă, apoi ultima valoare.
+Rețelele, clienții, scara energiei, PV, pierderile și toate etichetele rămân **SINTETICE**.
+Vremea este cea din București; nu pretindem sincronizare cu vremea germană. FeederBW nu oferă perechea
+contor de balanță / total complet al contoarelor clienților sau verdicte reale de furt și defect.
+
+```bash
+uv run python -m cyberpunks.a_bilant.feederbw download
+uv run python -m cyberpunks.a_bilant.feederbw prepare --workers 4
+uv run python -m cyberpunks.a_bilant.feederbw tune --trials 40 --workers 4
+```
+
+Antrenare / validare / test pe **24 / 8 / 8 plecări reale distincte**, seed fix; toate copiile sintetice
+ale aceleiași plecări, cartierele și perechile de clienți mutați rămân în aceeași parte. Perioada comună:
+2 aprilie 2024–30 martie 2025. Testul este spațial, nu pe date din viitor. Normalul folosește parametrii
+existenți, cu predicții out-of-fold pe plecări reale pentru antrenarea diagnosticului. Optuna caută cele 8
+setări LightGBM ale diagnosticului după macro-F1 pe validare, cu aceleași reguli de pereche și martor folosite
+la test. Comparația de bază reantrenează setările v2 pe exact aceleași rânduri și trăsături. Nu se promovează
+automat rezultatul în modelul livrat. Intervalul bootstrap 90% re-eșantionează plecări reale, nu ferestre.
+
+Date: `data/raw/bilant/feederbw/`, lotul și predicțiile: `data/processed/bilant/feederbw_import_v1/`,
+modele: `models/bilant/experiments/feederbw_*` (toate în afara Git). Proveniența, splitul și SHA256:
+`data/samples/bilant/feederbw_manifest.json`. Raport: `reports/bilant/feederbw_optuna.json`.
+Aceste rezultate nu măsoară performanța pe pierderi reale sau pe date PPC.
+
+## Adaptarea pe date PPC
+
 - Lumea simulată se înlocuiește cu datele reale: contorul de balanță la 15 minute, contoarele clienților, lista client → post, GIS-ul. Modelele și trăsăturile rămân.
 - Eticheta pierderii normale e lipsa măsurată în perioadele verificate. Etichetele diagnosticului vin din verdictele echipelor după vizită (`feedback.py`).
 - De întrebat la mentor: câte posturi au azi contor de balanță (concentratorul de date nu e contor de balanță)? Cât de bună e lista client → post?

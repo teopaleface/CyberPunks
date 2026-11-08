@@ -142,7 +142,7 @@ class PostWorld:
     static: dict = field(default_factory=dict)  # trăsături statice (GIS)
 
 
-def simulate(spec: grids.PostSpec, wx: Weather, plan: P.PostPlan, cluster_mv: np.ndarray | None = None) -> PostWorld:
+def simulate(spec: grids.PostSpec, wx: Weather, plan: P.PostPlan, cluster_mv: np.ndarray | None = None, load_shape: np.ndarray | None = None) -> PostWorld:
     """Simulează un post pe toată perioada, cu problemele din `plan`."""
     rng = np.random.default_rng(spec.seed + 7919)
     post = grids.build_post(spec)
@@ -154,6 +154,12 @@ def simulate(spec: grids.PostSpec, wx: Weather, plan: P.PostPlan, cluster_mv: np
     pvk = weather.pv_per_kwp(wx.gti, wx.temp)
     pv = np.minimum(post.pv_kwp[:, None] * post.pv_orient[:, None] * pvk[None, :], post.pv_ac_kw[:, None])
     load = post.load_annual_kwh[:, None] * wx.shapes[list(post.load_profile)].to_numpy().T
+    if load_shape is not None:
+        # EXPERIMENT: doar forma importului este măsurată; clienții, scara și PV rămân SINTETICE.
+        shape = np.asarray(load_shape, dtype=float)
+        if shape.shape != (T,) or not np.isfinite(shape).all() or (shape < 0).any() or shape.mean() <= 0:
+            raise ValueError("Profilul real trebuie să aibă T valori finite, nenegative și media pozitivă")
+        load = post.load_annual_kwh[:, None] / 8760 * (shape / shape.mean())[None, :]
     # variație proprie a fiecărui client (profilele SimBench sunt medii; o casă reală e mai zgomotoasă)
     load = load * np.exp(rng.normal(0.0, 0.25, load.shape) - 0.25**2 / 2)
 

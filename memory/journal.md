@@ -73,3 +73,7 @@ Cronologic. Fiecare intrare: ora (București), ce s-a întâmplat, ce s-a decis.
 
 - Teo a cerut integrarea ultimului `design` în `main` și push, păstrând explicit engleza și Light/Dark. Integrarea păstrează modelele și mostrele șterse intenționat din copia de design, autentificarea curentă și modificările locale necomise din checkout-ul lui Teo. Landingul păstrează beam/glass, noua animație numerică și pașii la derulare pe desktop; pe mobil și cu mișcare redusă, pașii se aleg explicit și conținutul curge normal. Formularul păstrează pozițiile la schimbarea modului. Build Next și site, TypeScript, 167 teste web și suita Python trec; șapte teste web de integrare cu runtime separat rămân sărite. Hostingul Cloudflare nu este modificat.
 - 01:55: la cererea lui Eden, ramura `Eden` (experimentele cu date noi, variabile meteo noi și Optuna) a fost îmbinată cu `main` și urcată pe GitHub (fast-forward). Conflicte doar în memorie, păstrate ambele părți. ~470 de teste Python trec cu datele rulării complete; modelele livrate nu s-au schimbat.
+
+## 2026-11-08 02:12 — Eden: bilanț pe profile reale și Optuna
+
+Utilizatorul cere un dataset real pentru bilanț și hiperparametrizare LightGBM cu Optuna. Aleg FeederBW (Netze BW/KIT, CC BY 4.0), primul lot de 40 de plecări. Forma importului este reală; clienții, rețeaua, pierderile și etichetele rămân SINTETICE. Separare pe plecări reale 24/8/8; optimizare numai pe validare, modelul livrat neschimbat. Detalii: `18-bilant-feederbw-optuna-eden.md`.

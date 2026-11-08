@@ -229,8 +229,8 @@ def _vcorr(volt: np.ndarray, vmed: np.ndarray, hours: np.ndarray) -> np.ndarray:
     return (a @ b) / den
 
 
-def run_post(args: tuple[dict, dict, str]) -> dict:
-    spec_d, plan_d, cluster = args
+def run_post(args: tuple[dict, dict, str, np.ndarray | None]) -> dict:
+    spec_d, plan_d, cluster, load_shape = args
     wx: world.Weather = _W["wx"]
     spec = grids.PostSpec(**spec_d)
     plan = P.PostPlan(
@@ -240,7 +240,7 @@ def run_post(args: tuple[dict, dict, str]) -> dict:
         benign=[tuple(b) for b in plan_d["benign"]],
     )
     t0 = time.perf_counter()
-    w = world.simulate(spec, wx, plan, cluster_mv=_W["cluster_mv"].get(cluster))
+    w = world.simulate(spec, wx, plan, cluster_mv=_W["cluster_mv"].get(cluster), load_shape=load_shape)
     n, T, D = w.n_customers, wx.T, wx.D
     day = wx.local_day
 
@@ -425,8 +425,9 @@ def cluster_voltage(meta: pd.DataFrame, T: int, seed: int) -> dict[str, np.ndarr
 # ------------------------------------------------------------------------------------------------------------
 
 
-def build(pool: str, workers: int = 4, limit: int | None = None) -> pd.DataFrame:
-    wx = world.load_weather()
+def build(pool: str, workers: int = 4, limit: int | None = None, *, output_pool: str | None = None,
+          weather_data: world.Weather | None = None, load_shapes: dict[str, np.ndarray] | None = None) -> pd.DataFrame:
+    wx = weather_data if weather_data is not None else world.load_weather()
     specs, meta = train_specs(N_PER_TOPOLOGY[pool], pool=pool) if pool in N_PER_TOPOLOGY else pop_specs()
     if limit:
         specs, meta = specs[:limit], meta.iloc[:limit]
@@ -435,7 +436,7 @@ def build(pool: str, workers: int = 4, limit: int | None = None) -> pd.DataFrame
     cl = dict(zip(meta["post_id"], meta["cluster"], strict=True))
     for k in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "VECLIB_MAXIMUM_THREADS", "MKL_NUM_THREADS"):
         os.environ[k] = "1"
-    jobs = [(s.to_dict(), plan_to_dict(plans[s.post_id]), cl[s.post_id]) for s in specs]
+    jobs = [(s.to_dict(), plan_to_dict(plans[s.post_id]), cl[s.post_id], load_shapes[s.post_id] if load_shapes is not None else None) for s in specs]
     t0 = time.perf_counter()
     res: dict[str, dict] = {}
     with ProcessPoolExecutor(max_workers=min(workers, MAX_WORKERS), mp_context=get_context("spawn"), initializer=_init, initargs=(wx, cmv)) as ex:
@@ -485,16 +486,17 @@ def build(pool: str, workers: int = 4, limit: int | None = None) -> pd.DataFrame
         vc = vc.drop(columns="moved_corr")
     vc = vc.merge(voltage_topology(res, neighbors(meta), wx, ev), on=["post_id", "day"], how="left")
     posts = pd.DataFrame([{"post_id": k, **{a: b for a, b in r["static"].items() if not isinstance(b, list)}} for k, r in res.items()]).merge(meta, on="post_id", how="left")
-    out = OUT / pool
+    out = OUT / (output_pool or pool)
     out.mkdir(parents=True, exist_ok=True)
     daily.to_parquet(out / "daily.parquet")
     vc.to_parquet(out / "vcorr.parquet")
     posts.to_parquet(out / "posts.parquet")
     np.savez_compressed(out / "hourly.npz", **{f"bal__{k}": r["bal_h"] for k, r in res.items()}, **{f"db__{k}": r["db_h"] for k, r in res.items()})
     np.savez_compressed(out / "cust_daily.npz", **{k: r["cust_daily"] for k, r in res.items()})
+    np.save(out / "hour_day.npy", wx.local_day)
     (out / "plans.json").write_text(json.dumps({k: {**r["plan"], "benign_applied": r["benign"]} for k, r in res.items()}, ensure_ascii=False))
     (out / "neighbors.json").write_text(json.dumps(neighbors(meta)))
-    meta_out = {"pool": pool, "posts": len(res), "days": wx.D, "start": str(wx.days[0].date()), "end": str(wx.days[-1].date()), "seconds": round(time.perf_counter() - t0, 1), "synthetic": True}
+    meta_out = {"pool": output_pool or pool, "posts": len(res), "days": wx.D, "start": str(wx.days[0].date()), "end": str(wx.days[-1].date()), "seconds": round(time.perf_counter() - t0, 1), "synthetic": True, "measured_import_shapes": load_shapes is not None}
     (out / "meta.json").write_text(json.dumps(meta_out, indent=2))
     print(f"gata {pool}: {len(res)} posturi în {meta_out['seconds']} s -> {out}")
     return daily

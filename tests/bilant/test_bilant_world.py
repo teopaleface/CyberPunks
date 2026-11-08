@@ -70,3 +70,16 @@ def test_theft_and_config_show_in_balance(tiny):
     assert np.allclose(theft.balance_kwh[~on], base.balance_kwh[~on])
     cfg = world.simulate(spec, wx, P.PostPlan("T", (0.34, 0.33, 0.33), [P.Problem("balance_meter_config", 3, -1, {"factor": 2.0})]))
     assert cfg.balance_kwh[on].sum() == pytest.approx(2 * base.balance_kwh[on].sum())
+
+
+def test_real_import_shape_preserves_scale_and_rejects_invalid_input(tiny):
+    wx, spec = tiny
+    plan = P.PostPlan("T", (0.34, 0.33, 0.33), [])
+    shape = np.linspace(0.2, 2.0, wx.T)
+    a = world.simulate(spec, wx, plan, load_shape=shape)
+    b = world.simulate(spec, wx, plan, load_shape=shape * 1000)
+    # Schimbarea kW -> W a sursei nu schimbă lumea: folosim doar forma.
+    assert np.allclose(a.balance_kwh, b.balance_kwh)
+    assert (a.true_line_loss_kwh >= 0).all()
+    with pytest.raises(ValueError, match="Profilul real"):
+        world.simulate(spec, wx, plan, load_shape=np.full(wx.T, np.nan))

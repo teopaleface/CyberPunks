@@ -129,7 +129,8 @@ def build_windows(d: pd.DataFrame, pred: pd.DataFrame, pool: str, days: list[int
     hourly = np.load(o / "hourly.npz")
     from cyberpunks.a_bilant import world
 
-    hour_day = world.load_weather().local_day
+    hour_day_path = o / "hour_day.npy"
+    hour_day = np.load(hour_day_path) if hour_day_path.exists() else world.load_weather().local_day
     # nivelul fiecărui post pe fiecare fereastră (pentru vecini)
     rmean = {(p, e): float(g.loc[e - WINDOW + 1 : e, "r"].mean()) for p, g in by_post.items() for e in days}
     rows = []

@@ -20,6 +20,7 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 | `14-date-furtuni-eden.md` | Datele românești descărcate local pentru testarea modelului de furtuni |
 | `15-date-experimente-eden.md` | Datele A, B și C de pe Eden: ce este în Git, reproducere, rezultate și limite |
 | `17-date-noi-si-optuna-eden.md` | Experimentele lui Eden din noaptea de 7-8 nov.: date noi, variabile meteo noi, Optuna pentru A, B, C |
+| `18-bilant-feederbw-optuna-eden.md` | Bilanț: profile reale FeederBW, limitele etichetelor sintetice și Optuna pentru LightGBM |
 | `13-design-console.md` | Audit UI/UX cerut de Teo: consola aliniată cu landingul, lizibilitate, navigare și limitele verificării |
 | `14-agent-conversational.md` | Planul cu 80 de cazuri și implementarea locală: trei conturi, modele locale, Codex, voce reală și WhatsApp text verificat; nota vocală Meta încă neverificată |
 | `journal.md` | Ce s-a întâmplat și ce s-a decis, cu ora |
