@@ -16,6 +16,8 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from cyberpunks.common.processes import session_options, stop_tree
+
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME = ROOT / "outputs" / "runtime"
 ENV_FILE = RUNTIME / "daybreak.env"
@@ -24,7 +26,10 @@ ENV_FILE = RUNTIME / "daybreak.env"
 def read_private_env() -> dict[str, str]:
     if not ENV_FILE.exists():
         return {}
-    return dict(line.split("=", 1) for line in ENV_FILE.read_text().splitlines() if "=" in line and not line.startswith("#"))
+    return dict(
+        line.split("=", 1) for line in ENV_FILE.read_text(encoding="utf-8").splitlines()
+        if "=" in line and not line.startswith("#")
+    )
 
 
 def environment() -> dict[str, str]:
@@ -35,7 +40,7 @@ def environment() -> dict[str, str]:
         if path.is_file():
             if path.stat().st_mode & 0o077:
                 raise SystemExit(f"Private credentials must have mode 0600: {path.name}")
-            for line in path.read_text().splitlines():
+            for line in path.read_text(encoding="utf-8").splitlines():
                 key, sep, value = line.partition("=")
                 if sep and key.startswith(("ELEVENLABS_", "DAYBREAK_META_", "DAYBREAK_WHATSAPP_")):
                     values[key] = value.strip().strip("\"'")
@@ -62,20 +67,36 @@ def prepare(*, new_run: bool = False) -> None:
         run_root = ROOT / "outputs" / "operations-runtime" / "runs" / stamp
         target = run_root / "data"
         target.mkdir(parents=True, mode=0o700)
+        source_root = ROOT / "outputs"
+        if not all((source_root / name).is_dir() for name in ("work_items", "series", "plans")):
+            source_root = ROOT / "outputs/demo"
         manifest: dict[str, int] = {}
         for name in ("work_items", "series", "plans"):
-            source = ROOT / "outputs" / name
+            source = source_root / name
+            if name == "work_items" and source_root.name == "demo":
+                inputs = ROOT / "data/local-runtime/plans/demo-vara/inputs"
+                if not inputs.is_dir():
+                    raise SystemExit("Missing complete local runtime prediction bundle.")
+                shutil.copytree(inputs, target / name / "demo-vara")
+                manifest[name] = sum(p.is_file() for p in (target / name).rglob("*"))
+                continue
             if not source.is_dir():
                 raise SystemExit(f"Missing complete local source: {source}. Run the standard models first.")
             shutil.copytree(source, target / name)
             manifest[name] = sum(p.is_file() for p in (target / name).rglob("*"))
         (run_root / "source.json").write_text(json.dumps({
             "copied_at": datetime.now(ZoneInfo("Europe/Bucharest")).isoformat(),
-            "source": "complete current local outputs; public and synthetic technical data",
+            "source": "complete local outputs or bundled demo snapshot; public and synthetic technical data",
             "synthetic_accounts": True,
             "files": manifest,
             "inference": "not yet recomputed in isolated runtime",
         }, indent=2) + "\n")
+        if source_root.name == "demo":
+            from cyberpunks.planner.agent import run
+
+            # The saved UI snapshot has no raw inputs. Replan from the complete
+            # public/synthetic bundle, without model downloads or external writes.
+            run("demo-vara", mode="existing", out_root=target, solver="greedy")
         values["DAYBREAK_OPERATIONS_OUTPUTS"] = str(target)
         values["DAYBREAK_OPERATIONS_DB"] = str(run_root / "operations.sqlite3")
     values.setdefault("DAYBREAK_INTERNAL_TOKEN", secrets.token_urlsafe(48))
@@ -94,12 +115,13 @@ def prepare(*, new_run: bool = False) -> None:
         "DAYBREAK_API_PORT": "8720",
         "DAYBREAK_WEB_PORT": "3870",
         "PYTHONUNBUFFERED": "1",
+        "PYTHONUTF8": "1",
     })
     for key, value in values.items():
         if "\n" in value or "\r" in value or not key.replace("_", "").isalnum():
             raise SystemExit("Invalid private runtime setting.")
     fd = os.open(ENV_FILE, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-    with os.fdopen(fd, "w") as out:
+    with os.fdopen(fd, "w", encoding="utf-8") as out:
         out.write("# Private local runtime. Never commit or paste these values.\n")
         out.writelines(f"{key}={value}\n" for key, value in sorted(values.items()))
     ENV_FILE.chmod(0o600)
@@ -134,6 +156,8 @@ def start() -> None:
         prepare()
     check_ports((8720, 3870))
     env = environment()
+    subprocess.run(["bun", "run", "worker"], cwd=ROOT / "web", env=env, check=True)
+    subprocess.run(["bun", "run", "landing"], cwd=ROOT / "web", env=env, check=True)
     specs = [
         (["uv", "run", "uvicorn", "cyberpunks.runtime:create_app", "--factory", "--host", "127.0.0.1", "--port", "8720"], ROOT),
         (["bun", "x", "next", "dev", "--hostname", "127.0.0.1", "--port", "3870"], ROOT / "web"),
@@ -144,7 +168,7 @@ def start() -> None:
         for child in children:
             if child.poll() is None:
                 try:
-                    os.killpg(child.pid, signal.SIGTERM)
+                    stop_tree(child.pid)
                 except ProcessLookupError:
                     pass
 
@@ -152,7 +176,7 @@ def start() -> None:
     signal.signal(signal.SIGINT, stop)
     try:
         for command, cwd in specs:
-            children.append(subprocess.Popen(command, cwd=cwd, env=env, start_new_session=True))
+            children.append(subprocess.Popen(command, cwd=cwd, env=env, **session_options()))
         print("Daybreak workspace: http://127.0.0.1:3870/workspace", flush=True)
         print("Existing servers on 3710 and 8710 are unchanged.", flush=True)
         while all(child.poll() is None for child in children):
@@ -167,7 +191,7 @@ def start() -> None:
                 child.wait(timeout=10)
             except subprocess.TimeoutExpired:
                 try:
-                    os.killpg(child.pid, signal.SIGKILL)
+                    stop_tree(child.pid, force=True)
                 except ProcessLookupError:
                     pass
                 child.wait()

@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import asyncio
-import fcntl
 import json
 import re
 from pathlib import Path
+
+import portalocker
 
 from cyberpunks.channels.elevenlabs import runtime_root
 from cyberpunks.channels.models import ChannelError
@@ -252,8 +253,8 @@ async def run_worker(*, once=False):
     lock = root / "channels-whatsapp-worker.lock"
     with lock.open("a") as handle:
         try:
-            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
+            portalocker.lock(handle, portalocker.LOCK_EX | portalocker.LOCK_NB)
+        except portalocker.exceptions.LockException:
             raise ChannelError("worker_already_running", "Another WhatsApp worker already owns this queue.") from None
         instance = worker()
         instance.store.recover()

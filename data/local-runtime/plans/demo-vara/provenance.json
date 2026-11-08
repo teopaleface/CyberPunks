@@ -1,0 +1,10 @@
+{
+  "source_plan_id": "PLAN-demo-vara-20250708-225443-9226",
+  "description": "Complete public/synthetic prediction inputs from the current local run. No private accounts, credentials or automation settings. Recompute the local plan before operational writes.",
+  "files": {
+    "A_bilant.jsonl": "507014b68778004ff289db4d9c94ce8aa399706c2d14a3fbcd5d2a8114d4f1cb",
+    "B.jsonl": "6c675f1ca0c6d0b578e52f941617542f1773deaac8004397af0f3856bbbd33f0",
+    "C.jsonl": "ff081992259b578725469119c69e6bc9a29ef57de6b2ce056c2009c5a648e74b",
+    "A.jsonl": "6959a2285d010709f6b34d58727722475f64cdf51817f0c4027ba9ce831fc4ca"
+  }
+}

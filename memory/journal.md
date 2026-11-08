@@ -110,3 +110,8 @@ Teo relatează feedback pozitiv de la un mentor de business și cere un plan pen
 ### 2026-11-08 04:22 București: predare pentru brainstorming
 
 Teo cere actualizarea memoriei conform firului principal și push pe main pentru un coleg care va explora mai multe idei. Completat memory/15-agent-decizii-si-canale.md cu contextul, întrebările pentru coleg și separarea dintre propuneri și funcții verificate. Firul principal cere și prompturi de implementare în paralel, încă neconfirmate ca finalizate. Publicarea cerută privește documentația, fără deploy sau includerea schimbărilor UI în lucru.
+
+
+### 2026-11-08 04:29 București: pornire locală pe Windows
+
+Teo cere verificarea și corectarea rulării locale pe Windows. Înlocuite blocările Unix cu portalocker, adăugate oprirea proceselor proprii pe Windows, tzdata și lansarea portabilă a construirii site-ului. Adăugat setul complet de intrări publice/sintetice din rularea locală, cu proveniență, pentru pregătirea unei clone curate fără conturi sau chei live. Ghid în docs/WINDOWS.md și verificări automate Windows/Linux. Probele locale sunt pe macOS; integrarea vocală/WhatsApp cu fișiere private rămâne pe WSL2, iar un flux CI adăugat nu dovedește singur succesul pe Windows.

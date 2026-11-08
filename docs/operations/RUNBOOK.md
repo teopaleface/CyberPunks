@@ -2,6 +2,8 @@
 
 Implementarea locală acoperă clientul, tehnicianul și dispecerul din planul conversațional. Catalogul complet are 80 de cazuri și situații; extensiile P1/P2 din plan nu sunt toate implementate. Interfața este în engleză, iar conversația răspunde în română sau engleză.
 
+Pe Windows: [pașii PowerShell și limitele canalelor externe](../WINDOWS.md). Comenzile de mai jos cu `python3` sau `.venv/bin/python` sunt pentru macOS/Linux ori WSL2.
+
 ## Pornire
 
 ```sh
