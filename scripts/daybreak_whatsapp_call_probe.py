@@ -28,6 +28,9 @@ QUESTIONS = {
     "demo-technician": "Sunt tehnician PPC. Ce am de făcut astăzi? Trebuie echipament?",
     "demo-asr-client": "Sunt client TPC. A căzut astăzi de curent și vreau să, ăăă, raportez incidentul.",
     "demo-report-technician": "Sunt tehnician PPC. Trimite-mi raportul pe WhatsApp.",
+    "demo-dispatcher-asr": "Ă, sunt dispecer. Câte tichete am și câte au risc de siguranță?",
+    "demo-technician-asr": "Ă, sunt tehnician PPC. Ce am de făcut astăzi? Trebuie echipament?",
+    "demo-report-followup": "Trimite-mi raportul pe WhatsApp.",
     "silence": "...",
 }
 
@@ -208,9 +211,26 @@ async def probe_demo() -> dict:
 
 async def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("question", choices=[*QUESTIONS, "demo-three-roles"])
+    parser.add_argument("question", choices=[*QUESTIONS, "demo-three-roles", "demo-four-requests"])
     args = parser.parse_args()
     try:
+        if args.question == "demo-four-requests":
+            # Explicit opt-in: may register a synthetic incident and deliver one PDF.
+            session = "synthetic-four-requests-" + uuid.uuid4().hex
+            turns = []
+            for key in ("demo-customer", "demo-dispatcher-asr", "demo-technician-asr", "demo-report-followup"):
+                turn = await probe(key, conversation_id=session)
+                if "Ce rol alegi" in turn["verified_reply"]:
+                    raise ProbeError("The four-request call entered a role-selection loop.")
+                turns.append(turn)
+            print(
+                json.dumps(
+                    {"same_server_session": True, "phone_audio_tested": False, "turns": turns},
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            return 0
         print(
             json.dumps(
                 await (probe_demo() if args.question == "demo-three-roles" else probe(args.question)),
