@@ -35,6 +35,11 @@ CONVERSATION_FAILURES = {
 }
 
 
+REPORT_REQUEST = re.compile(r"\b(raport|raportul|report|reports|imagine|image|poz[ăa]|png|pdf)\b", re.IGNORECASE)
+IMAGE_REQUEST = re.compile(r"\b(imagine|image|poz[ăa]|png)\b", re.IGNORECASE)
+PDF_REQUEST = re.compile(r"\bpdf\b", re.IGNORECASE)
+
+
 def failure_response(message: dict) -> dict:
     text = message.get("text", {}).get("body", "") if message.get("type") == "text" else ""
     romanian = re.search(
@@ -115,33 +120,49 @@ class WhatsAppWorker:
             self.adapter.inbox.finish(eid, stored)
             state = await self.transport.send(incoming, text=text)
             if state in {"accepted", "delivered", "read"}:
-                for page in self.store.prepared_images(eid):
-                    # Every send reauthorizes the current sender and inbound response window.
-                    image_state = await self.transport.send(
-                        incoming, image=bytes(page["payload"]), image_key=page["kind"][6:]
-                    )
-                    if image_state not in {"accepted", "delivered", "read"}:
-                        state = image_state
-                        break
+                state = await self.send_report_parts(incoming, state)
             self.record_delivery(eid, state)
         except ChannelError as exc:
             self.store.queue_state(eid, "queued" if exc.code == "whatsapp_sending_disabled" else "failed", exc.code)
         except Exception:  # noqa: BLE001 - private failure diagnostics must never become user messages.
             self.store.queue_state(eid, "failed", "feedback_unavailable")
 
+    async def send_report_parts(self, incoming: dict, state: str) -> str:
+        """Send the frozen PNG pages or PDF document; stop at the first part that is not accepted.
+
+        Every send reauthorizes the current sender, report version and inbound response window, and the
+        ledger never resends a part whose outcome is accepted, unknown or in flight.
+        """
+        eid = incoming["event_id"]
+        for page in self.store.prepared_images(eid):
+            part_state = await self.transport.send(incoming, image=bytes(page["payload"]), image_key=page["kind"][6:])
+            if part_state not in {"accepted", "delivered", "read"}:
+                return part_state
+        for document in self.store.prepared_documents(eid):
+            manifest = self.store.report_manifest(eid)
+            if not manifest or manifest.get("part_kind") != document["kind"]:
+                raise ChannelError("outbound_conflict", "The PDF has no matching report manifest.", 409)
+            part_state = await self.transport.send(
+                incoming,
+                document=bytes(document["payload"]),
+                document_key=document["kind"][9:],
+                document_name=manifest["filename"],
+            )
+            if part_state not in {"accepted", "delivered", "read"}:
+                return part_state
+        return state
+
     async def prepare_report(self, incoming: dict, result: dict):
-        """Prepare exact private PNG pages only for an explicit inbound report request."""
+        """Prepare an exact private PDF (default) or PNG pages only for an explicit inbound report request."""
         if result.get("image_report_prepared") is not None:
             return
         task = result.get("response", {}).get("task")
-        if (
-            not task
-            or task.get("status") != "completed"
-            or not re.search(
-                r"\b(raport|report|imagine|image|poz[ăa]|png)\b", result.get("input_text", ""), re.IGNORECASE
-            )
-        ):
+        request = result.get("input_text", "")
+        if not task or task.get("status") != "completed" or not REPORT_REQUEST.search(request):
             return
+        # An explicit image wish keeps the PNG pages; any other report request is a PDF document.
+        report_format = "png" if IMAGE_REQUEST.search(request) and not PDF_REQUEST.search(request) else "pdf"
+        result["report_format"] = report_format
         try:
             self.transport.authorize(incoming)
             actor = self.adapter.bindings.resolve(incoming["destination"], incoming["sender"])
@@ -155,6 +176,7 @@ class WhatsAppWorker:
                 result["image_report_prepared"] = True
                 self.adapter.inbox.finish(incoming["event_id"], result)
                 return
+            from cyberpunks.agentic.pdf_renderer import render_pdf
             from cyberpunks.agentic.png_renderer import render_pages
             from cyberpunks.agentic.report_data import build_report_data
             from cyberpunks.agentic.report_templates import render_report
@@ -175,28 +197,47 @@ class WhatsAppWorker:
             html = render_report(data)
             if len(html) > 32:
                 raise ChannelError("report_too_large", "Use the full report in the application.", 422)
-            pages = await asyncio.to_thread(render_pages, html)
-            # Recheck the exact plan after rasterization and before making any page deliverable.
+            if report_format == "pdf":
+                rendered = await asyncio.to_thread(render_pdf, html)
+            else:
+                pages = await asyncio.to_thread(render_pages, html)
+            # Recheck the exact plan after rendering and before making any page deliverable.
             self.transport.authorize(incoming)
             if (
                 self.adapter.conversation.operations.context(actor, task["scenario"])["plan"]["version"]
                 != task["plan_version"]
             ):
                 raise ChannelError("report_stale", "The report source changed.", 409)
-            self.store.prepare_report(
-                incoming["event_id"],
-                incoming["destination"],
-                incoming["sender"],
-                task["task_id"],
-                task["plan_version"],
-                pages,
-                case_versions=case_versions,
-            )
+            if report_format == "pdf":
+                self.store.prepare_report_pdf(
+                    incoming["event_id"],
+                    incoming["destination"],
+                    incoming["sender"],
+                    task["task_id"],
+                    task["plan_version"],
+                    rendered["pdf"],
+                    sha256=rendered["sha256"],
+                    page_count=rendered["page_count"],
+                    source_pages=rendered["source_pages"],
+                    case_versions=case_versions,
+                )
+            else:
+                self.store.prepare_report(
+                    incoming["event_id"],
+                    incoming["destination"],
+                    incoming["sender"],
+                    task["task_id"],
+                    task["plan_version"],
+                    pages,
+                    case_versions=case_versions,
+                )
             result["image_report_prepared"] = True
         except Exception:  # noqa: BLE001 - optional image failure preserves the verified text, never exposes provider details.
             result["image_report_prepared"] = False
             result["image_report_error"] = (
-                "The image report could not be prepared. The verified text remains available."
+                "The PDF report could not be prepared. The verified text remains available."
+                if report_format == "pdf"
+                else "The image report could not be prepared. The verified text remains available."
             )
         self.adapter.inbox.finish(incoming["event_id"], result)
 
@@ -238,11 +279,19 @@ class WhatsAppWorker:
             if "delivery_text" not in result:
                 result["delivery_text"] = confirmation_text(result["response"])
                 if result.get("image_report_error"):
-                    result["delivery_text"] += (
-                        " Imaginea nu a putut fi pregătită. Rezultatul verificat rămâne disponibil în aplicație."
-                        if result["response"].get("language") == "ro"
-                        else " The image could not be prepared. The verified result remains available in the application."
-                    )
+                    romanian = result["response"].get("language") == "ro"
+                    if result.get("report_format") == "pdf":
+                        result["delivery_text"] += (
+                            " PDF-ul nu a putut fi pregătit. Rezultatul verificat rămâne disponibil în aplicație."
+                            if romanian
+                            else " The PDF could not be prepared. The verified result remains available in the application."
+                        )
+                    else:
+                        result["delivery_text"] += (
+                            " Imaginea nu a putut fi pregătită. Rezultatul verificat rămâne disponibil în aplicație."
+                            if romanian
+                            else " The image could not be prepared. The verified result remains available in the application."
+                        )
                 self.adapter.inbox.finish(eid, result)
             text = result["delivery_text"]
             self.store.prepare(eid, incoming["destination"], incoming["sender"], "text", text.encode())
@@ -289,14 +338,7 @@ class WhatsAppWorker:
                     else:
                         state = audio_state
             if state in {"accepted", "delivered", "read"}:
-                for page in self.store.prepared_images(eid):
-                    # Every send reauthorizes the current sender and inbound response window.
-                    image_state = await self.transport.send(
-                        incoming, image=bytes(page["payload"]), image_key=page["kind"][6:]
-                    )
-                    if image_state not in {"accepted", "delivered", "read"}:
-                        state = image_state
-                        break
+                state = await self.send_report_parts(incoming, state)
             self.record_delivery(eid, state)
         except ChannelError as exc:
             if exc.code == "whatsapp_sending_disabled":

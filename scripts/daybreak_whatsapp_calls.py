@@ -18,7 +18,7 @@ from daybreak_whatsapp_setup import CONFIG, PHONE_ID, private_env
 from cyberpunks.channels.elevenlabs import ElevenLabs, get_config, runtime_root
 from cyberpunks.channels.models import ChannelError
 from cyberpunks.channels.whatsapp import Bindings
-from cyberpunks.channels.whatsapp_calls import call_agent_config, load_config, save_config
+from cyberpunks.channels.whatsapp_calls import call_agent_config, load_config, save_config, verify_public_tool
 
 NUMBER = "+15551545755"
 LABEL = "Daybreak WhatsApp incoming demo"
@@ -158,6 +158,7 @@ async def configure(origin: str) -> None:
 
 async def verify() -> None:
     config = load_config()
+    await verify_public_tool(config["public_origin"])
     api = ElevenLabs()
     check_agent(await api.request("GET", f"/v1/convai/agents/{config['agent_id']}"), config)
     phone = await api.request("GET", f"/v1/convai/phone-numbers/{config['elevenlabs_phone_id']}")

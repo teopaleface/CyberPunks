@@ -589,7 +589,8 @@ class OperationsService:
             route_approved = (
                 any(not a["stale"] and a["crew_id"] == actor.crew_id for a in approvals) or plan_info["approved"]
             )
-            stops = [s for r in routes for s in r.get("stops", [])]
+            visited = {w["work_item_id"] for w in items if w.get("findings")}
+            stops = [s for r in routes for s in r.get("stops", []) if s.get("work_item_id") not in visited]
             return {
                 "actor": actor.model_dump(),
                 "scenario": scenario,
@@ -988,6 +989,8 @@ class OperationsService:
         if p["scenario"] != scenario:
             fail(404, "not_found", "Proposal not found in your scenario.")
         if not cid:
+            if datetime.fromisoformat(p["expires_at"]) <= now():
+                return {"status": "expired", "proposal_id": proposal_id, "command": None}
             return {"status": "awaiting_confirmation", "proposal_id": proposal_id, "command": None}
         with self.db.connect() as db:
             row = db.execute(
