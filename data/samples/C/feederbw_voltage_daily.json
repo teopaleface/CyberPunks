@@ -1,0 +1,329 @@
+{
+  "source": "https://doi.org/10.5281/zenodo.17831177",
+  "attribution": "Manuel Treutlein, Pascal Bothe, Marc Schmidt, Roman Hahn, Oliver Neumann, Ralf Mikut, Veit Hagenmeyer; Netze BW / KIT",
+  "license": "CC BY 4.0",
+  "transform": "Agregare zilnică UTC a voltage_one_phase_V; interval de calitate [150,300] V; minimum 1368 minute distincte/zi. Fără interpolare și fără etichete sintetice.",
+  "archive_sha256": "86dc8139d04db6f7b0150b78f767413d14966a34b07a3af3be208069f9972ec4",
+  "quality": {
+    "1": {
+      "raw_rows": 1052540,
+      "invalid_rows": 0,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 730,
+      "excluded_days": 2
+    },
+    "2": {
+      "raw_rows": 1052448,
+      "invalid_rows": 1,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 730,
+      "excluded_days": 2
+    },
+    "3": {
+      "raw_rows": 1052364,
+      "invalid_rows": 0,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 729,
+      "excluded_days": 3
+    },
+    "4": {
+      "raw_rows": 1052366,
+      "invalid_rows": 0,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 729,
+      "excluded_days": 3
+    },
+    "5": {
+      "raw_rows": 1052593,
+      "invalid_rows": 1,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 730,
+      "excluded_days": 2
+    },
+    "6": {
+      "raw_rows": 1051620,
+      "invalid_rows": 0,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 727,
+      "excluded_days": 5
+    },
+    "7": {
+      "raw_rows": 1052311,
+      "invalid_rows": 2,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 729,
+      "excluded_days": 3
+    },
+    "8": {
+      "raw_rows": 1047244,
+      "invalid_rows": 3,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 723,
+      "excluded_days": 9
+    },
+    "9": {
+      "raw_rows": 1048186,
+      "invalid_rows": 1,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 723,
+      "excluded_days": 9
+    },
+    "10": {
+      "raw_rows": 1045332,
+      "invalid_rows": 18,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 721,
+      "excluded_days": 11
+    },
+    "11": {
+      "raw_rows": 1050240,
+      "invalid_rows": 3,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 726,
+      "excluded_days": 6
+    },
+    "12": {
+      "raw_rows": 1052519,
+      "invalid_rows": 2,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 730,
+      "excluded_days": 2
+    },
+    "13": {
+      "raw_rows": 1047052,
+      "invalid_rows": 2,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 720,
+      "excluded_days": 12
+    },
+    "14": {
+      "raw_rows": 1047050,
+      "invalid_rows": 2,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 720,
+      "excluded_days": 12
+    },
+    "15": {
+      "raw_rows": 1052143,
+      "invalid_rows": 6,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 727,
+      "excluded_days": 5
+    },
+    "16": {
+      "raw_rows": 1051498,
+      "invalid_rows": 1,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 727,
+      "excluded_days": 5
+    },
+    "17": {
+      "raw_rows": 1051468,
+      "invalid_rows": 1,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 728,
+      "excluded_days": 4
+    },
+    "18": {
+      "raw_rows": 1052249,
+      "invalid_rows": 0,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 729,
+      "excluded_days": 3
+    },
+    "19": {
+      "raw_rows": 1052597,
+      "invalid_rows": 0,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 730,
+      "excluded_days": 2
+    },
+    "20": {
+      "raw_rows": 1050291,
+      "invalid_rows": 2,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 723,
+      "excluded_days": 9
+    },
+    "21": {
+      "raw_rows": 1052500,
+      "invalid_rows": 1,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 730,
+      "excluded_days": 2
+    },
+    "22": {
+      "raw_rows": 1051466,
+      "invalid_rows": 2,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 727,
+      "excluded_days": 5
+    },
+    "23": {
+      "raw_rows": 1048003,
+      "invalid_rows": 4,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 724,
+      "excluded_days": 8
+    },
+    "24": {
+      "raw_rows": 1035913,
+      "invalid_rows": 6,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 622,
+      "excluded_days": 110
+    },
+    "25": {
+      "raw_rows": 1047937,
+      "invalid_rows": 0,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 724,
+      "excluded_days": 8
+    },
+    "26": {
+      "raw_rows": 1051611,
+      "invalid_rows": 1,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 728,
+      "excluded_days": 4
+    },
+    "27": {
+      "raw_rows": 1045480,
+      "invalid_rows": 4,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 714,
+      "excluded_days": 18
+    },
+    "28": {
+      "raw_rows": 1052398,
+      "invalid_rows": 6,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 729,
+      "excluded_days": 3
+    },
+    "29": {
+      "raw_rows": 1052419,
+      "invalid_rows": 2,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 730,
+      "excluded_days": 2
+    },
+    "30": {
+      "raw_rows": 1041590,
+      "invalid_rows": 54,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 702,
+      "excluded_days": 30
+    },
+    "31": {
+      "raw_rows": 1041429,
+      "invalid_rows": 52,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 702,
+      "excluded_days": 30
+    },
+    "32": {
+      "raw_rows": 1052587,
+      "invalid_rows": 0,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 730,
+      "excluded_days": 2
+    },
+    "33": {
+      "raw_rows": 1052327,
+      "invalid_rows": 2,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 730,
+      "excluded_days": 2
+    },
+    "34": {
+      "raw_rows": 972992,
+      "invalid_rows": 6,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 348,
+      "excluded_days": 384
+    },
+    "35": {
+      "raw_rows": 1051787,
+      "invalid_rows": 5,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 725,
+      "excluded_days": 7
+    },
+    "36": {
+      "raw_rows": 1052187,
+      "invalid_rows": 2,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 729,
+      "excluded_days": 3
+    },
+    "37": {
+      "raw_rows": 1052487,
+      "invalid_rows": 2,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 730,
+      "excluded_days": 2
+    },
+    "38": {
+      "raw_rows": 1000360,
+      "invalid_rows": 76,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 433,
+      "excluded_days": 299
+    },
+    "39": {
+      "raw_rows": 1052120,
+      "invalid_rows": 0,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 729,
+      "excluded_days": 3
+    },
+    "40": {
+      "raw_rows": 1040313,
+      "invalid_rows": 4,
+      "duplicate_timestamps": 0,
+      "days": 732,
+      "accepted_days": 699,
+      "excluded_days": 33
+    }
+  }
+}

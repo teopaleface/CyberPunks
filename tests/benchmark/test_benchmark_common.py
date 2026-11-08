@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import importlib.util
+import subprocess
+import sys
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -25,8 +29,26 @@ def test_ci90_skips_nan_statistics():
     assert res["n_boot"] < 200 and res["delta"] == 1.0
 
 
+def test_ci90_rejects_insufficient_data():
+    with pytest.raises(ValueError, match="grupuri"):
+        C.ci90(lambda i: 0, np.array([]))
+    with pytest.raises(ValueError, match="insuficiente"):
+        C.ci90(lambda i: np.nan, np.arange(3), n=10)
+
+
 def test_cat_meter_model_keeps_meter_interface():
-    pytest.importorskip("catboost")
+    if importlib.util.find_spec("catboost") is None:
+        pytest.skip("Instalează grupul bench")
+    # Extensia CatBoost poate produce SIGSEGV după alte biblioteci native în suita completă macOS.
+    # Verificăm interfața reală într-un proces nou; o eroare nativă devine test eșuat, nu pierde întreaga suită.
+    result = subprocess.run(
+        [sys.executable, "-c", f"import runpy; runpy.run_path({__file__!r})['_check_cat_meter_model']()"],
+        capture_output=True, text=True, timeout=120, check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def _check_cat_meter_model():
     from cyberpunks.benchmark.contoare import CatMeterModel
 
     rng = np.random.default_rng(1)

@@ -26,6 +26,7 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 | `14-agent-conversational.md` | Planul cu 80 de cazuri și implementarea locală: trei conturi, modele locale, Codex, voce reală și WhatsApp text verificat; nota vocală Meta încă neverificată |
 | `15-agent-decizii-si-canale.md` | Agentul implementat și activat live după feedbackul mentorului: coadă completă, execuție confirmată, telefon, rapoarte PNG și limitele probelor reale |
 | `22-evaluare-ml-0936.md` | Evaluarea calității ML pe baremul PPC, cu cifre reproduse și limitele testelor |
+| `23-ml-dovezi-complete.md` | Raport ML unic, tensiuni reale FeederBW, comparație C, audit bilanț cu protocol fixat și teste reparate |
 | `journal.md` | Ce s-a întâmplat și ce s-a decis, cu ora |
 
 ## Reguli

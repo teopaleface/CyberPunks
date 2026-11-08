@@ -1,0 +1,174 @@
+{
+  "labels": "SINTETICE, calcul fizic pe topologii SimBench; vreme reală București",
+  "protocol": "6 folduri: topologie nevăzută × test din 2025; train 2023-2024; aceleași 60000 rânduri/fold și trăsături pentru toate modelele, 300 arbori, fără tuning. Regresie mediană; baseline liniar GTI×kW/kVA. Nu se selectează un model nou pe test.",
+  "limits": "Buget redus pentru această comparație; nu echivalează cu modelul C calibrat complet. Doar 6 topologii pentru bootstrap; IC90 exploratoriu, fără corecție de multiplicitate.",
+  "test_rows": 324000,
+  "folds": [
+    {
+      "topology": "rural1",
+      "train_rows": 60000,
+      "test_rows": 54000,
+      "seconds": {
+        "lightgbm": 1.068,
+        "catboost": 1.175,
+        "xgboost": 0.784
+      }
+    },
+    {
+      "topology": "rural2",
+      "train_rows": 60000,
+      "test_rows": 54000,
+      "seconds": {
+        "lightgbm": 0.9,
+        "catboost": 1.029,
+        "xgboost": 0.694
+      }
+    },
+    {
+      "topology": "rural3",
+      "train_rows": 60000,
+      "test_rows": 54000,
+      "seconds": {
+        "lightgbm": 0.887,
+        "catboost": 0.99,
+        "xgboost": 0.67
+      }
+    },
+    {
+      "topology": "semiurb4",
+      "train_rows": 60000,
+      "test_rows": 54000,
+      "seconds": {
+        "lightgbm": 0.889,
+        "catboost": 1.013,
+        "xgboost": 0.748
+      }
+    },
+    {
+      "topology": "semiurb5",
+      "train_rows": 60000,
+      "test_rows": 54000,
+      "seconds": {
+        "lightgbm": 0.889,
+        "catboost": 1.004,
+        "xgboost": 0.644
+      }
+    },
+    {
+      "topology": "urban6",
+      "train_rows": 60000,
+      "test_rows": 54000,
+      "seconds": {
+        "lightgbm": 0.849,
+        "catboost": 1.104,
+        "xgboost": 0.898
+      }
+    }
+  ],
+  "test": {
+    "linear": {
+      "mae_pu": 0.022742161262217824,
+      "rmse_pu": 0.027686328338621172,
+      "by_topology_mae": {
+        "rural1": 0.01996752197258815,
+        "rural2": 0.02697984904185665,
+        "rural3": 0.025444623301300606,
+        "semiurb4": 0.021564478504016552,
+        "semiurb5": 0.02137313366416094,
+        "urban6": 0.021123361089384028
+      },
+      "delta_mae_vs_lightgbm": {
+        "delta": 0.01736,
+        "ci90": [
+          0.01591,
+          0.01879
+        ],
+        "includes_zero": false,
+        "share_positive": 1.0,
+        "groups": 6,
+        "n_boot": 1000
+      }
+    },
+    "lightgbm": {
+      "mae_pu": 0.0053817389437682125,
+      "rmse_pu": 0.006904740896571027,
+      "by_topology_mae": {
+        "rural1": 0.004517369548985268,
+        "rural2": 0.005896719676437148,
+        "rural3": 0.006300890839433093,
+        "semiurb4": 0.004557548834774934,
+        "semiurb5": 0.0063061029344845445,
+        "urban6": 0.0047118018284942895
+      },
+      "delta_mae_vs_lightgbm": {
+        "delta": 0.0,
+        "ci90": [
+          0.0,
+          0.0
+        ],
+        "includes_zero": true,
+        "share_positive": 0.0,
+        "groups": 6,
+        "n_boot": 1000
+      }
+    },
+    "catboost": {
+      "mae_pu": 0.00556105185845058,
+      "rmse_pu": 0.007229217697964484,
+      "by_topology_mae": {
+        "rural1": 0.004472404154635984,
+        "rural2": 0.006632884995094986,
+        "rural3": 0.00662407288697764,
+        "semiurb4": 0.004760166955944519,
+        "semiurb5": 0.0062529331577834794,
+        "urban6": 0.004623849000266866
+      },
+      "delta_mae_vs_lightgbm": {
+        "delta": 0.00018,
+        "ci90": [
+          -1e-05,
+          0.00038
+        ],
+        "includes_zero": true,
+        "share_positive": 0.931,
+        "groups": 6,
+        "n_boot": 1000
+      }
+    },
+    "xgboost": {
+      "mae_pu": 0.005417575594037771,
+      "rmse_pu": 0.006980673409998417,
+      "by_topology_mae": {
+        "rural1": 0.00458192965015769,
+        "rural2": 0.006138541270047426,
+        "rural3": 0.006562558002769947,
+        "semiurb4": 0.004393614362925291,
+        "semiurb5": 0.006199300289154053,
+        "urban6": 0.004629510920494795
+      },
+      "delta_mae_vs_lightgbm": {
+        "delta": 4e-05,
+        "ci90": [
+          -8e-05,
+          0.00015
+        ],
+        "includes_zero": true,
+        "share_positive": 0.676,
+        "groups": 6,
+        "n_boot": 1000
+      }
+    }
+  },
+  "environment": {
+    "git": "9966578",
+    "python": "3.12.14",
+    "machine": "arm64",
+    "system": "Darwin",
+    "cpu_count": 15,
+    "lightgbm": "4.7.0",
+    "catboost": "1.2.10",
+    "xgboost": "3.4.1",
+    "scikit_learn": "1.9.1",
+    "created_at": "2026-11-08T10:18:42+02:00"
+  }
+}

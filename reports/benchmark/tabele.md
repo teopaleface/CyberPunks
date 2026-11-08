@@ -1,6 +1,6 @@
 # Tabelele benchmarkului (generate)
 
-Generat de `python -m cyberpunks.benchmark.report` din `reports/benchmark/*.json`. Diferențele sunt candidat − LightGBM, cu interval bootstrap 90% pe grupuri. „(include 0)” = diferența nu e sigură.
+Generat de `python -m cyberpunks.benchmark.report` din `reports/benchmark/*.json`. Diferențele sunt candidat − LightGBM, cu interval bootstrap 90% pe grupuri. „(include 0)” = diferență neconcludentă, nu echivalență demonstrată. Analiză exploratorie, fără corecție pentru comparații multiple.
 
 ## 1. Bilanț pe post (diagnostice SINTETICE)
 
@@ -19,7 +19,7 @@ Etichete: SINTETICE: rețele, clienți, pierderi și toate diagnosticele sunt si
 | F1 client la postul greșit | 0,8713 | 0,8847 | 0,0134 [-0,0012; 0,0295] (include 0) |
 | F1 contor de bilanț setat greșit | 0,9915 | 0,9931 | 0,0016 [-0,0080; 0,0146] (include 0) |
 
-Bootstrap: cartierul postului de test (31 cartiere), 1000 de reeșantionări, 90%. Clase mai slabe la CatBoost: furt_inainte_contor, pierdere_tehnica; cu intervalul sub zero: niciuna. **Verdict CatBoost: la egalitate statistică.**
+Bootstrap: cartierul postului de test (31 cartiere), 1000 de reeșantionări, 90%. Clase mai slabe la CatBoost: furt_inainte_contor, pierdere_tehnica; cu intervalul sub zero: niciuna. **Verdict CatBoost: diferență neconcludentă.**
 
 Matricea de confuzie LightGBM (rânduri = adevărat, coloane = prezis; ordinea claselor de mai sus):
 
@@ -58,7 +58,7 @@ Etichete: SINTETICE: rețele, clienți, pierderi și toate diagnosticele sunt si
 | F1 client la postul greșit | 0,8101 | 0,8187 | 0,0086 [-0,0256; 0,0389] (include 0) |
 | F1 contor de bilanț setat greșit | 0,9929 | 1,0000 | 0,0071 [0,0000; 0,0345] (include 0) |
 
-Bootstrap: plecarea reală de test (8 plecări), 1000 de reeșantionări, 90%. Clase mai slabe la CatBoost: normal, contor_client, furt_inainte_contor, pierdere_tehnica; cu intervalul sub zero: niciuna. **Verdict CatBoost: la egalitate statistică.**
+Bootstrap: plecarea reală de test (8 plecări), 1000 de reeșantionări, 90%. Clase mai slabe la CatBoost: normal, contor_client, furt_inainte_contor, pierdere_tehnica; cu intervalul sub zero: niciuna. **Verdict CatBoost: diferență neconcludentă.**
 
 Matricea de confuzie LightGBM (rânduri = adevărat, coloane = prezis; ordinea claselor de mai sus):
 
@@ -103,7 +103,7 @@ Etichete: REALE (SGCC).
 | precizia la K=1446 | 0,2994 | 0,2981 |  |
 | Brier (scor calibrat) | 0,0633 | 0,0633 | |
 
-Bootstrap: clientul (un rând pe client). **Verdict CatBoost: la egalitate statistică.**
+Bootstrap: clientul (un rând pe client). **Verdict CatBoost: diferență neconcludentă.**
 
 ### 2b. Low Carbon London, 45 de fișiere (probleme INJECTATE)
 
@@ -132,7 +132,7 @@ Antrenare: 16328 eșantioane, 838 gospodării. Test: 13028 eșantioane, 265 gosp
 | manipulări vs normale: precizia la 1% | 0,5952 | 0,6190 | 0,0238 [-0,1111; 0,1600] (include 0) |
 | Brier (tot testul) | 0,0232 | 0,0224 | |
 
-Bootstrap: gospodăriile de test. **Verdict CatBoost: la egalitate statistică.**
+Bootstrap: gospodăriile de test. **Verdict CatBoost: diferență neconcludentă.**
 
 ### 2c. Low Carbon London extins, 168 de fișiere (probleme INJECTATE)
 
@@ -193,7 +193,7 @@ Referințe la același buget: aleator 0,0763, oracol 0,8855. Bootstrap pe săpt�
 | PA | 470 | 0,2854 | 0,2697 | 0,1048 | 0,1057 |
 | VA | 491 | 0,3255 | 0,3136 | 0,1081 | 0,1085 |
 
-Media pe 8 state: LightGBM 0,2586, XGBoost 0,2550; diferența medie -0,0036 [-0,0076; 0,0002] (include 0); XGBoost mai bun în 3 din 8 state. **Verdict XGBoost: la egalitate statistică.**
+Media pe 8 state: LightGBM 0,2586, XGBoost 0,2550; diferența medie -0,0036 [-0,0076; 0,0002] (include 0); XGBoost mai bun în 3 din 8 state. **Verdict XGBoost: diferență neconcludentă.**
 
 ### 3c. Experiment separat: ambele modele cu variabilele de convecție
 
@@ -208,7 +208,7 @@ Media pe 8 state: LightGBM 0,2586, XGBoost 0,2550; diferența medie -0,0036 [-0,
 | recall pe zilele severe, la prag | 0,5300 | 0,4977 | |
 | alerte la 100 zone-zile | 16,46 | 15,54 | |
 
-Referințe la același buget: aleator 0,0763, oracol 0,8855. Bootstrap pe săptămânile din 2025. **Verdict XGBoost: la egalitate statistică.**
+Referințe la același buget: aleator 0,0763, oracol 0,8855. Bootstrap pe săptămânile din 2025. **Verdict XGBoost: diferență neconcludentă.**
 
 Câștigul convecției, pe același test: LightGBM 0,0089 [0,0025; 0,0157], XGBoost 0,0106 [0,0041; 0,0175].
 
