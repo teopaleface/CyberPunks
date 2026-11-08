@@ -82,3 +82,13 @@ Teo a cerut un aspect și un limbaj mai uman pentru PDF-ul primit, inclusiv denu
 PDF-ul real cu șase opriri încape pe o pagină și a fost inspectat după randare. Numele transmis prin Meta este Daybreak-Traseu-8-iulie-2025.pdf, fără identificator de task ori hash. Octeții și hash-ul persistă în registrul privat. Testele afectate de randare/transport și cele două probe noi de prezentare trec; lint și verificarea diferențelor trec. Meta a acceptat documentul nou; livrarea nu este încă reconfirmată.
 
 Ingressul Meta și workerul rulează separat, câte un proces. Verificarea porturilor din vechiul supervisor putea refuza repornirea după oprire din cauza portului încă rezervat temporar; pornirea independentă a fost verificată prin listener și mesajul de singleton al workerului. Nu s-au schimbat conturile sau asocierile.
+
+### Strat LLM pentru decizii operaționale, 8 noiembrie 2026
+
+Teo a cerut explicit ca LLM-ul să aleagă și să poată aplica decizii, nu doar să citească explicațiile planificatorului. Captura transmisă arăta și un refuz de ștergere lângă rezultatul unei operații anterioare, afișare care putea sugera o schimbare greșită.
+
+Noua sarcină recommend_queue trimite întreaga coadă autorizată către LLM. Acesta alege approve, reject, defer sau abținere pentru fiecare lucrare și oferă un motiv cu dovezi exacte. Predicțiile ML sunt păstrate. Codul verifică acoperirea exactă, cifrele, incertitudinea, capacitatea, riscul și versiunea sursei. Inferența are timp limitat și un claim persistent; rezultatul conține furnizorul și modelul folosite. O propunere se pregătește din recomandarea salvată, nu din decizia trimisă de browser. Confirmarea existentă execută planificatorul real. Schimbarea planului impune o analiză nouă; aprobarea în grup și ștergerea arbitrară nu sunt adăugate.
+
+Interfața oferă Recommend decisions și Review & apply. O cerere nouă elimină imediat cardul rezultatului anterior și propunerea activă, inclusiv la refuz sau eroare; istoricul și drafturile persistente rămân. Probele UI verifică separat că un simplu „da” nu confirmă.
+
+Copia proaspătă a datelor live a inclus 1305 fișiere cu hash-uri identice sursei, fără configurări de automatizare. Prima probă cu furnizorul real Codex, gpt-6.1-sol, a acoperit toate cele 25 de cazuri în aproximativ 70 de secunde: șapte amânări și 18 abțineri pentru evaluări insuficiente. Pe copia izolată, una dintre amânări a fost pregătită și aplicată prin planificator; confirmarea repetată a returnat aceeași comandă. Această probă locală nu dovedește încă fluxul live al versiunii noi.

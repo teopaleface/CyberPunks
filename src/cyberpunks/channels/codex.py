@@ -9,7 +9,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from cyberpunks.channels.models import ChannelError, Intention
 from cyberpunks.common.processes import session_options, stop_tree
@@ -85,7 +85,7 @@ def command(binary: str, cwd: Path, schema: Path, model: str) -> list[str]:
     return args + ["-"]
 
 
-def parse_events(raw: bytes) -> tuple[Intention, dict]:
+def parse_events(raw: bytes, output_model: type[BaseModel] = Intention) -> tuple[BaseModel, dict]:
     final = None
     usage = None
     for line in raw.splitlines():
@@ -108,7 +108,7 @@ def parse_events(raw: bytes) -> tuple[Intention, dict]:
     if not final or usage is None:
         raise ChannelError("provider_incomplete", "The conversation provider did not finish. No action was executed.")
     try:
-        intention = Intention.model_validate_json(final)
+        intention = output_model.model_validate_json(final)
     except (ValidationError, ValueError):
         raise ChannelError("provider_schema", "The conversation provider returned an unsupported intention.") from None
     return intention, {k: v for k, v in usage.items() if k in {"input_tokens", "output_tokens", "cached_input_tokens"}}
@@ -130,6 +130,10 @@ class CodexProvider:
         self.model = model or os.getenv("DAYBREAK_CODEX_MODEL", "gpt-6.1-sol")
 
     async def turn(self, prompt: str) -> tuple[Intention, dict]:
+        return await self.structured(prompt, Intention)
+
+    async def structured(self, prompt: str, output_model: type[BaseModel]) -> tuple[BaseModel, dict]:
+        """Run the same isolated provider with any strict structured output contract."""
         binary = shutil.which("codex")
         auth_home = Path(os.getenv("CODEX_HOME", str(Path.home() / ".codex")))
         auth_file = auth_home / "auth.json"
@@ -145,7 +149,7 @@ class CodexProvider:
             shutil.copyfile(auth_file, private / "auth.json")
             (private / "auth.json").chmod(0o600)
             schema = root / "intention-schema.json"
-            output_schema = Intention.model_json_schema()
+            output_schema = output_model.model_json_schema()
             # Structured output requires nullable optional properties to be explicitly present.
             output_schema["required"] = list(output_schema["properties"])
             schema.write_text(json.dumps(output_schema))
@@ -193,7 +197,7 @@ class CodexProvider:
                         "provider_unavailable",
                         "Codex could not answer using the existing ChatGPT sign-in. No action was executed.",
                     )
-                intention, usage = parse_events(out)
+                intention, usage = parse_events(out, output_model)
                 return intention, {
                     "provider": PROVIDER,
                     "model": self.model,

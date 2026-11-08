@@ -149,8 +149,8 @@ class TaskStore:
 
     def claim(self, actor, task_id, *, seconds=30):
         """Return a fencing token; expired work can be reclaimed after restart."""
-        if not 0 < seconds <= 60:
-            raise ValueError("Claim duration must be between zero and 60 seconds")
+        if not 0 < seconds <= 180:
+            raise ValueError("Claim duration must be between zero and 180 seconds")
         with self._db() as db:
             db.execute("BEGIN IMMEDIATE")
             body, lease, until = self._read(db, actor, task_id)

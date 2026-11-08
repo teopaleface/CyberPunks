@@ -207,7 +207,7 @@ test("main presentation contains only the conversation, with honest history and 
 test("main role prompts stay relevant to each verified role", () => {
   expect(conversationSuggestions("customer")).toEqual(["Case update", "Report a problem", "Get help"]);
   expect(conversationSuggestions("technician")).toEqual(["Next visit", "Why this visit?", "Record a finding"]);
-  expect(conversationSuggestions("dispatcher")).toEqual(["Review pending decisions", "Explain the plan", "Find a work item"]);
+  expect(conversationSuggestions("dispatcher")).toEqual(["Recommend decisions", "Explain the plan", "Find a work item"]);
 });
 
 test("main proposal links and incoming forms remain idle until live scope and explicit review", () => {

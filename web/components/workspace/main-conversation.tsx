@@ -6,7 +6,7 @@ import type { Role } from "@/lib/operations/policy";
 import type { ConversationStore } from "@/lib/operations/conversation-store";
 
 export function conversationSuggestions(role: Role): string[] {
-  if (role === "dispatcher") return ["Review pending decisions", "Explain the plan", "Find a work item"];
+  if (role === "dispatcher") return ["Recommend decisions", "Explain the plan", "Find a work item"];
   if (role === "technician") return ["Next visit", "Why this visit?", "Record a finding"];
   return ["Case update", "Report a problem", "Get help"];
 }

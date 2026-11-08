@@ -27,7 +27,7 @@ export function allowedPath(
   if (path.some((p) => !/^[A-Za-z0-9_-]{1,160}$/.test(p))) return false;
   const p = path.join("/");
   if (kind === "conversation")
-    return (method === "POST" && (["chat", "voice-session", "tasks"].includes(p) || /^tasks\/[A-Za-z0-9_-]+\/resume$/.test(p))) ||
+    return (method === "POST" && (["chat", "voice-session", "tasks"].includes(p) || /^tasks\/[A-Za-z0-9_-]+\/resume$/.test(p) || /^tasks\/[A-Za-z0-9_-]+\/recommendations\/[A-Za-z0-9_-]+\/prepare$/.test(p))) ||
       (method === "GET" && /^tasks\/[A-Za-z0-9_-]+$/.test(p));
   return (
     (method === "GET" &&
@@ -83,6 +83,8 @@ export async function forward(
     path[0] === "commands" &&
     path[2] === "recover" &&
     request.method === "POST";
+  const isRecommendation = kind === "conversation" && path[0] === "tasks" &&
+    path[2] === "recommendations" && path[4] === "prepare";
   if (
     isRecovery &&
     (membershipOf(user).role !== "dispatcher" ||
@@ -122,6 +124,8 @@ export async function forward(
       const data = JSON.parse(body);
       if (!data || typeof data !== "object" || Array.isArray(data))
         return fail(422, "Expected a JSON object.");
+      if (isRecommendation && Object.keys(data).length)
+        return fail(422, "A saved recommendation cannot be changed in this request.");
       if (
         [
           "actor",
