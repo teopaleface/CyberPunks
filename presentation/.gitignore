@@ -24,3 +24,9 @@ music/out/*_asculta.mp4
 # Audio: doar pe disc, în afara git-ului (regula lui Teo, 7 nov., 17:15). Se refac cu `make music`.
 music/out/*.m4a
 video/assets/audio/*.flac
+
+# Fișiere peste 5 MB din filmul v3 (regula lui Teo): rămân doar pe disc.
+frames-3d/plates_v3/qa/
+frames-3d/objects/cloud/scene.blend
+frames-3d/threejs/film/assets/objects/solar/spin.png
+frames-3d/threejs/film_v3/assets/objects/solar/spin.png
