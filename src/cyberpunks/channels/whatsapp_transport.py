@@ -109,8 +109,28 @@ class MetaTransport:
             )
         return config
 
-    async def send(self, inbound: dict, *, text: str | None = None, audio: bytes | None = None) -> str:
-        if (text is None) == (audio is None):
+    def check_report_source(self, inbound: dict):
+        frozen = self.ledger.report_version(inbound["event_id"])
+        if not frozen:
+            return
+        actor = self.bindings.resolve(inbound["destination"], inbound["sender"])
+        current = self.operations.context(actor, "demo-vara")
+        current_cases = {case["case_id"]: case.get("version") for case in current.get("cases", [])}
+        if current["plan"]["version"] != frozen or any(
+            current_cases.get(key) != version for key, version in self.ledger.report_cases(inbound["event_id"]).items()
+        ):
+            raise ChannelError("report_stale", "The report source changed. Request a fresh report.", 409)
+
+    async def send(
+        self,
+        inbound: dict,
+        *,
+        text: str | None = None,
+        audio: bytes | None = None,
+        image: bytes | None = None,
+        image_key: str | None = None,
+    ) -> str:
+        if sum(x is not None for x in (text, audio, image)) != 1:
             raise ChannelError("outbound_invalid", "A reply must contain exactly one supported message type.", 422)
         if text is not None and not 1 <= len(text) <= 4096:
             raise ChannelError("outbound_invalid", "The text reply exceeds its supported limit.", 422)
@@ -118,14 +138,24 @@ class MetaTransport:
             len(audio) > 2_000_000 or not audio.startswith(b"OggS") or b"OpusHead" not in audio[:200]
         ):
             raise ChannelError("outbound_invalid", "Voice replies must be bounded OGG/Opus audio.", 422)
+        if image is not None and (
+            len(image) > 4_000_000
+            or not image.startswith(b"\x89PNG\r\n\x1a\n")
+            or not image_key
+            or not re.fullmatch(r"[A-Za-z0-9_-]{1,160}", image_key)
+        ):
+            raise ChannelError("outbound_invalid", "A bounded PNG and stable page identifier are required.", 422)
         config = self.authorize(inbound, audio=audio is not None)
         version = config["DAYBREAK_META_GRAPH_VERSION"] or "v25.0"
         if not re.fullmatch(r"v\d{2}\.0", version):
             raise ChannelError("whatsapp_unconfigured", "The configured Meta Graph version is invalid.")
+        if image is not None:
+            self.check_report_source(inbound)
         base = "https://graph.facebook.com/" + version + "/" + inbound["destination"]
-        kind = "audio" if audio is not None else "text"
-        content = audio if audio is not None else text.encode()
-        row = self.ledger.prepare(inbound["event_id"], inbound["destination"], inbound["sender"], kind, content)
+        kind = "image" if image is not None else "audio" if audio is not None else "text"
+        content = image if image is not None else audio if audio is not None else text.encode()
+        part_kind = "image:" + image_key if image is not None else kind
+        row = self.ledger.prepare(inbound["event_id"], inbound["destination"], inbound["sender"], part_kind, content)
         if row["state"] in {"accepted", "delivered", "read"}:
             return row["state"]
         if row["state"] != "prepared":
@@ -135,7 +165,7 @@ class MetaTransport:
 
         async def deliver(client):
             media_id = row["media_id"]
-            if audio is not None and not media_id:
+            if (audio is not None or image is not None) and not media_id:
                 # Uploading again cannot send a user message. Only the message POST is at-most-once.
                 try:
                     status, data = await _json_response(
@@ -143,8 +173,15 @@ class MetaTransport:
                         "POST",
                         base + "/media",
                         headers=headers,
-                        data={"messaging_product": "whatsapp", "type": "audio/ogg"},
-                        files={"file": ("daybreak-reply.ogg", audio, "audio/ogg")},
+                        data={
+                            "messaging_product": "whatsapp",
+                            "type": "image/png" if image is not None else "audio/ogg",
+                        },
+                        files={
+                            "file": ("daybreak-report.png", image, "image/png")
+                            if image is not None
+                            else ("daybreak-reply.ogg", audio, "audio/ogg")
+                        },
                     )
                 except httpx.HTTPError:
                     raise ChannelError("meta_upload_unavailable", "The voice reply upload did not finish.") from None
@@ -154,6 +191,8 @@ class MetaTransport:
                 self.ledger.outbound_state(row["part_id"], "prepared", media_id=media_id)
             # Recheck flags, sender mapping and scope immediately before the irreversible network POST.
             self.authorize(inbound, audio=audio is not None)
+            if image is not None:
+                self.check_report_source(inbound)
             if not self.ledger.begin_send(row["part_id"]):
                 return "unknown"
             payload = {
@@ -166,6 +205,8 @@ class MetaTransport:
             }
             if text is not None:
                 payload["text"] = {"preview_url": False, "body": text}
+            elif image is not None:
+                payload["image"] = {"id": media_id}
             else:
                 payload["audio"] = {"id": media_id, "voice": True}
             try:

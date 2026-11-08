@@ -114,11 +114,89 @@ class WhatsAppWorker:
             # neither model output nor the exception message and never creates a proposal.
             self.adapter.inbox.finish(eid, stored)
             state = await self.transport.send(incoming, text=text)
+            if state in {"accepted", "delivered", "read"}:
+                for page in self.store.prepared_images(eid):
+                    # Every send reauthorizes the current sender and inbound response window.
+                    image_state = await self.transport.send(
+                        incoming, image=bytes(page["payload"]), image_key=page["kind"][6:]
+                    )
+                    if image_state not in {"accepted", "delivered", "read"}:
+                        state = image_state
+                        break
             self.record_delivery(eid, state)
         except ChannelError as exc:
             self.store.queue_state(eid, "queued" if exc.code == "whatsapp_sending_disabled" else "failed", exc.code)
         except Exception:  # noqa: BLE001 - private failure diagnostics must never become user messages.
             self.store.queue_state(eid, "failed", "feedback_unavailable")
+
+    async def prepare_report(self, incoming: dict, result: dict):
+        """Prepare exact private PNG pages only for an explicit inbound report request."""
+        if result.get("image_report_prepared") is not None:
+            return
+        task = result.get("response", {}).get("task")
+        if (
+            not task
+            or task.get("status") != "completed"
+            or not re.search(
+                r"\b(raport|report|imagine|image|poz[ăa]|png)\b", result.get("input_text", ""), re.IGNORECASE
+            )
+        ):
+            return
+        try:
+            self.transport.authorize(incoming)
+            actor = self.adapter.bindings.resolve(incoming["destination"], incoming["sender"])
+            context = self.adapter.conversation.operations.context(actor, task["scenario"])
+            if context["plan"]["version"] != task["plan_version"]:
+                raise ChannelError("report_stale", "The report source changed.", 409)
+            supported = {"dispatcher": "analyze_queue", "technician": "route_brief", "customer": "case_brief"}
+            if supported.get(actor.role) != task["goal"]:
+                return
+            if self.store.report_version(incoming["event_id"]):
+                result["image_report_prepared"] = True
+                self.adapter.inbox.finish(incoming["event_id"], result)
+                return
+            from cyberpunks.agentic.png_renderer import render_pages
+            from cyberpunks.agentic.report_data import build_report_data
+            from cyberpunks.agentic.report_templates import render_report
+
+            case_versions = {case["case_id"]: case.get("version") for case in task["result"].get("cases", [])}
+            current_cases = {case["case_id"]: case.get("version") for case in context.get("cases", [])}
+            if any(current_cases.get(key) != version for key, version in case_versions.items()):
+                raise ChannelError("report_stale", "The case changed.", 409)
+            if actor.role == "customer":
+                context = {**context, "cases": task["result"].get("cases", [])}
+            data = build_report_data(
+                context,
+                task["result"] if actor.role == "dispatcher" else None,
+                result["response"].get("language", "ro"),
+            )
+            html = render_report(data)
+            if len(html) > 32:
+                raise ChannelError("report_too_large", "Use the full report in the application.", 422)
+            pages = await asyncio.to_thread(render_pages, html)
+            # Recheck the exact plan after rasterization and before making any page deliverable.
+            self.transport.authorize(incoming)
+            if (
+                self.adapter.conversation.operations.context(actor, task["scenario"])["plan"]["version"]
+                != task["plan_version"]
+            ):
+                raise ChannelError("report_stale", "The report source changed.", 409)
+            self.store.prepare_report(
+                incoming["event_id"],
+                incoming["destination"],
+                incoming["sender"],
+                task["task_id"],
+                task["plan_version"],
+                pages,
+                case_versions=case_versions,
+            )
+            result["image_report_prepared"] = True
+        except Exception:  # noqa: BLE001 - optional image failure preserves the verified text, never exposes provider details.
+            result["image_report_prepared"] = False
+            result["image_report_error"] = (
+                "The image report could not be prepared. The verified text remains available."
+            )
+        self.adapter.inbox.finish(incoming["event_id"], result)
 
     async def step(self) -> bool:
         # Nothing is claimed or processed while the local sending gate is closed.
@@ -159,6 +237,7 @@ class WhatsAppWorker:
                 self.adapter.inbox.finish(eid, result)
             text = result["delivery_text"]
             self.store.prepare(eid, incoming["destination"], incoming["sender"], "text", text.encode())
+            await self.prepare_report(incoming, result)
             audio = None
             if result.get("tts") == "pending":
                 self.audio_fallback(
@@ -201,6 +280,15 @@ class WhatsAppWorker:
                         )
                     else:
                         state = audio_state
+            if state in {"accepted", "delivered", "read"}:
+                for page in self.store.prepared_images(eid):
+                    # Every send reauthorizes the current sender and inbound response window.
+                    image_state = await self.transport.send(
+                        incoming, image=bytes(page["payload"]), image_key=page["kind"][6:]
+                    )
+                    if image_state not in {"accepted", "delivered", "read"}:
+                        state = image_state
+                        break
             self.record_delivery(eid, state)
         except ChannelError as exc:
             if exc.code == "whatsapp_sending_disabled":

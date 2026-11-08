@@ -145,7 +145,10 @@ class CodexProvider:
             shutil.copyfile(auth_file, private / "auth.json")
             (private / "auth.json").chmod(0o600)
             schema = root / "intention-schema.json"
-            schema.write_text(json.dumps(Intention.model_json_schema()))
+            output_schema = Intention.model_json_schema()
+            # Structured output requires nullable optional properties to be explicitly present.
+            output_schema["required"] = list(output_schema["properties"])
+            schema.write_text(json.dumps(output_schema))
             env = {
                 "PATH": os.environ.get("PATH", os.defpath),
                 "HOME": str(root),

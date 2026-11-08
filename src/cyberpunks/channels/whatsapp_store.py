@@ -33,6 +33,8 @@ class DeliveryStore:
                     state TEXT NOT NULL, created REAL NOT NULL, retry_at REAL NOT NULL,
                     attempts INTEGER NOT NULL DEFAULT 0, error_code TEXT
                 );
+                CREATE TABLE IF NOT EXISTS outbound_reports (event_id TEXT PRIMARY KEY, report_id TEXT NOT NULL, plan_version TEXT NOT NULL, page_count INTEGER NOT NULL, case_versions TEXT NOT NULL DEFAULT '{}');
+                CREATE TABLE IF NOT EXISTS outbound_media (part_id TEXT PRIMARY KEY, payload BLOB NOT NULL);
                 CREATE TABLE IF NOT EXISTS outbound (
                     part_id TEXT PRIMARY KEY, event_id TEXT NOT NULL, destination TEXT NOT NULL,
                     recipient_hash TEXT NOT NULL, kind TEXT NOT NULL, payload_hash TEXT NOT NULL,
@@ -40,6 +42,9 @@ class DeliveryStore:
                     provider_message_id TEXT UNIQUE, error_code TEXT
                 );
             """)
+
+            if "case_versions" not in {row[1] for row in db.execute("PRAGMA table_info(outbound_reports)")}:
+                db.execute("ALTER TABLE outbound_reports ADD COLUMN case_versions TEXT NOT NULL DEFAULT '{}'")
 
     def connect(self):
         db = sqlite3.connect(self.path, timeout=5)
@@ -134,6 +139,7 @@ class DeliveryStore:
         recipient = hashlib.sha256(sender.encode()).hexdigest()
         digest = hashlib.sha256(payload).hexdigest()
         with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
             db.execute(
                 "INSERT OR IGNORE INTO outbound(part_id,event_id,destination,recipient_hash,kind,payload_hash,state,updated) "
                 "VALUES(?,?,?,?,?,?,'prepared',?)",
@@ -144,7 +150,63 @@ class DeliveryStore:
                 raise ChannelError(
                     "outbound_conflict", "The durable reply no longer matches this inbound message.", 409
                 )
+            if kind.startswith("image:"):
+                db.execute("INSERT OR IGNORE INTO outbound_media VALUES (?,?)", (part, payload))
         return dict(row)
+
+    def prepare_report(
+        self,
+        eid: str,
+        destination: str,
+        sender: str,
+        report_id: str,
+        version: str,
+        pages: list[dict],
+        case_versions: dict | None = None,
+    ):
+        """Freeze the complete report and every page in one transaction before delivery."""
+        recipient = hashlib.sha256(sender.encode()).hexdigest()
+        with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            previous = db.execute("SELECT * FROM outbound_reports WHERE event_id=?", (eid,)).fetchone()
+            if previous:
+                if previous["report_id"] != report_id or previous["plan_version"] != version:
+                    raise ChannelError("outbound_conflict", "The report source changed.", 409)
+                return
+            for page in pages:
+                kind = "image:" + report_id + "_" + str(page["page"]).zfill(3)
+                part = hashlib.sha256((eid + ":" + kind).encode()).hexdigest()
+                digest = hashlib.sha256(page["png"]).hexdigest()
+                if digest != page["sha256"]:
+                    raise ChannelError("outbound_conflict", "Report integrity check failed.", 409)
+                db.execute(
+                    "INSERT INTO outbound(part_id,event_id,destination,recipient_hash,kind,payload_hash,state,updated) VALUES(?,?,?,?,?,?,'prepared',?)",
+                    (part, eid, destination, recipient, kind, digest, time.time()),
+                )
+                db.execute("INSERT INTO outbound_media VALUES(?,?)", (part, page["png"]))
+            db.execute(
+                "INSERT INTO outbound_reports(event_id,report_id,plan_version,page_count,case_versions) VALUES(?,?,?,?,?)",
+                (eid, report_id, version, len(pages), json.dumps(case_versions or {})),
+            )
+
+    def report_cases(self, eid: str) -> dict:
+        with self.connect() as db:
+            row = db.execute("SELECT case_versions FROM outbound_reports WHERE event_id=?", (eid,)).fetchone()
+        return json.loads(row[0]) if row else {}
+
+    def report_version(self, eid: str) -> str | None:
+        with self.connect() as db:
+            row = db.execute("SELECT plan_version FROM outbound_reports WHERE event_id=?", (eid,)).fetchone()
+        return row[0] if row else None
+
+    def prepared_images(self, eid: str) -> list[dict]:
+        with self.connect() as db:
+            rows = db.execute(
+                "SELECT o.*,m.payload FROM outbound o JOIN outbound_media m USING(part_id) "
+                "WHERE event_id=? AND kind LIKE 'image:%' ORDER BY kind",
+                (eid,),
+            ).fetchall()
+        return [dict(row) for row in rows]
 
     def outbound_state(self, part: str, state: str, *, media_id=None, message_id=None, code=None) -> str:
         with self.connect() as db:
