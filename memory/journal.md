@@ -77,3 +77,11 @@ Cronologic. Fiecare intrare: ora (București), ce s-a întâmplat, ce s-a decis.
 ## 2026-11-08 02:12 — Eden: bilanț pe profile reale și Optuna
 
 Utilizatorul cere un dataset real pentru bilanț și hiperparametrizare LightGBM cu Optuna. Aleg FeederBW (Netze BW/KIT, CC BY 4.0), primul lot de 40 de plecări. Forma importului este reală; clienții, rețeaua, pierderile și etichetele rămân SINTETICE. Separare pe plecări reale 24/8/8; optimizare numai pe validare, modelul livrat neschimbat. Detalii: `18-bilant-feederbw-optuna-eden.md`.
+
+### 2026-11-08 02:20 — Calitatea datelor FeederBW
+
+Arhiva MD5 verificată. Sursele 34 și 38 sunt excluse (peste 10% ore lipsă); rămân 38. Împărțirea finală: 22/8/8 plecări reale, 170/65/65 posturi simulate. 40 de încercări Optuna pornite, fără acces al obiectivului la test.
+
+### 2026-11-08 02:26 — Bilanț FeederBW: Optuna terminat
+
+40 de încercări: F1 macro test 0.70858 → 0.71393, diferență +0.00535, interval bootstrap 90% [-0.00618; +0.01769] pe plecări reale. Câștig mic, neconfirmat statistic. Model salvat separat în `models/bilant/experiments/`, fără promovare în livrare. Profile reale, pierderi și etichete SINTETICE. Raport: `reports/bilant/feederbw_optuna.json`. 31 de teste bilanț și Ruff trecute.

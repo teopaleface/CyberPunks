@@ -159,15 +159,22 @@ def prepare(workers: int) -> None:
     if not (RAW / ARCHIVE).exists():
         raise FileNotFoundError("Rulează întâi feederbw download")
     wx = world.load_weather(PERIOD)
-    profiles, quality = {}, {}
+    profiles, quality, excluded = {}, {}, {}
     with zipfile.ZipFile(RAW / ARCHIVE) as archive:
         for name in sorted(archive.namelist()):
             if not name.endswith(".parquet"):
                 continue
             feeder = int(name.rsplit("_", 1)[-1].split(".")[0])
             frame = pd.read_parquet(io.BytesIO(archive.read(name)), columns=["timestamp_UTC", "active_power_kW"])
-            profiles[feeder], quality[str(feeder)] = hourly_import(frame, wx.index)
+            try:
+                profiles[feeder], quality[str(feeder)] = hourly_import(frame, wx.index)
+            except ValueError as exc:
+                excluded[str(feeder)] = str(exc)
+                print(f"profil {feeder} exclus: {exc}", flush=True)
+                continue
             print(f"profil real {feeder}/40", flush=True)
+    if len(profiles) < 30:
+        raise ValueError(f"Doar {len(profiles)} profile valide; prea puține pentru experiment")
     _, meta = D.train_specs()
     mapping = source_assignment(meta, sorted(profiles))
     split = feeder_split(sorted(profiles))
@@ -176,10 +183,12 @@ def prepare(workers: int) -> None:
     provenance = {"source": "FeederBW, Netze BW / KIT", "record": "https://zenodo.org/records/17831177",
                   "paper": "https://doi.org/10.1038/s41597-026-08152-9", "license": "CC BY 4.0",
                   "archive": ARCHIVE, "archive_sha256": "", "period": PERIOD, "seed": SEED,
+                  "simulation_seed": D.SEEDS["train"],
                   "real": "forma importului orar: max(media puterii nete măsurate, 0), normalizată",
                   "synthetic": "rețele, scară kWh, clienți, PV, pierderi, măsurători simulate și toate etichetele",
                   "weather": "Open-Meteo București, nu vremea plecărilor germane",
-                  "split_feeders": split, "post_source_feeder": mapping, "quality": quality}
+                  "split_feeders": split, "post_source_feeder": mapping, "quality": quality,
+                  "excluded_feeders": excluded}
     with (RAW / ARCHIVE).open("rb") as f:
         provenance["archive_sha256"] = hashlib.file_digest(f, "sha256").hexdigest()
     MANIFEST.parent.mkdir(parents=True, exist_ok=True)
@@ -283,8 +292,11 @@ def tune(trials: int, workers: int) -> None:
     result = {
         "source": manifest["record"], "license": manifest["license"], "period": PERIOD,
         "real": manifest["real"], "synthetic": manifest["synthetic"],
-        "split_feeders": split, "posts": {k: int(v["post_id"].nunique()) for k, v in (("train", tr), ("validation", va), ("test", te))},
+        "split_feeders": split, "excluded_feeders": manifest["excluded_feeders"],
+        "posts": {k: int(v["post_id"].nunique()) for k, v in (("train", tr), ("validation", va), ("test", te))},
         "windows": {k: len(v) for k, v in (("train", tr), ("validation", va), ("test", te))},
+        "class_counts": {k: {c: int((v["true_class"] == c).sum()) for c in CLASSES}
+                         for k, v in (("train", tr), ("validation", va), ("test", te))},
         "features": W.WIN_FEATURES_V2, "classes": list(CLASSES), "trials": len(study.trials), "seed": SEED,
         "objective": "macro-F1 pe validare, inclusiv regula perechii și a contorului martor; aceleași reguli la test",
         "baseline_params": current, "best_params": study.best_params,
@@ -294,7 +306,7 @@ def tune(trials: int, workers: int) -> None:
         "confirmed_gain": bool(ci[0] > 0), "release_changed": False,
         "normal_model": "parametrii existenți, antrenat numai pe plecările train; OOF 3 grupe de plecări pentru diagnosticul train",
         "limitations": ["Toate etichetele sunt SINTETICE, inclusiv furtul și pierderea normală.",
-                        "Doar 40/200 plecări (primul lot oficial), test pe 8 plecări reale; putere statistică mică.",
+                        f"Primul lot oficial: {sum(map(len, split.values()))}/40 plecări valide din 200; test pe {len(split['test'])} plecări reale; putere statistică mică.",
                         "Se păstrează forma importului, nu scara, exportul sau măsurătorile pereche post-clienți.",
                         "Vreme București și PV simulate, fără sincronizare cu vremea germană.",
                         "Test spațial pe plecări nevăzute, în aceeași perioadă; nu este test în viitor."],

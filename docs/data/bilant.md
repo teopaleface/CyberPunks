@@ -102,9 +102,7 @@ Contorul de post lipsă trece postul pe planul B. Orele dublate se curăță. Un
 
 `uv run python -m cyberpunks.a_bilant.weave_check` descarcă mostra Weave (o zi, 2024-02-12, ~38 MB, în `data/raw/bilant/weave/`, în afara git; sha256 `b4f4717e929d7c9bf1cbc1d8bf99c954cede6b2237fb0d6810820f2d22e8729c`) și compară forma zilnică a curbelor a ~42.000 de posturi reale din UK cu cele 300 de posturi simulate (`reports/bilant/weave_check.md`, `.png`). Weave e folosit doar ca reper pentru formă, citat; licența nu e declarată, deci nu intră în antrenare și nu dă etichete. Fișierul complet (~700 MB) nu e descărcat. Folosirea Weave pentru profilele de încărcare din simulare rămâne o îmbunătățire viitoare.
 
-## Ce se schimbă pe date PPC
-
-### Experiment separat cu date reale FeederBW (ramura Eden, 8 nov. 2026)
+## Experiment separat cu date reale FeederBW (ramura Eden, 8 nov. 2026)
 
 Sursa: **Netze BW și KIT, FeederBW**, [Zenodo, versiunea fixată 1.0](https://zenodo.org/records/17831177),
 CC BY 4.0. Citare: Treutlein et al., *Scientific Data* 13, 1283 (2026),
@@ -125,7 +123,11 @@ uv run python -m cyberpunks.a_bilant.feederbw prepare --workers 4
 uv run python -m cyberpunks.a_bilant.feederbw tune --trials 40 --workers 4
 ```
 
-Antrenare / validare / test pe **24 / 8 / 8 plecări reale distincte**, seed fix; toate copiile sintetice
+În rularea din 8 nov., **38 de plecări sunt valide**; 34 și 38 sunt excluse pentru peste 10% ore lipsă
+(1.272 și respectiv 1.171 din 8.712). Au fost completate cauzal 1.068 de ore din cele 331.056 ale surselor
+valide. Exportul a fost tăiat în 20.418 ore. Manifestul păstrează verificările pentru fiecare sursă.
+
+Antrenare / validare / test pe **22 / 8 / 8 plecări reale distincte** (170 / 65 / 65 posturi simulate), seed fix; toate copiile sintetice
 ale aceleiași plecări, cartierele și perechile de clienți mutați rămân în aceeași parte. Perioada comună:
 2 aprilie 2024–30 martie 2025. Testul este spațial, nu pe date din viitor. Normalul folosește parametrii
 existenți, cu predicții out-of-fold pe plecări reale pentru antrenarea diagnosticului. Optuna caută cele 8
@@ -137,6 +139,10 @@ Date: `data/raw/bilant/feederbw/`, lotul și predicțiile: `data/processed/bilan
 modele: `models/bilant/experiments/feederbw_*` (toate în afara Git). Proveniența, splitul și SHA256:
 `data/samples/bilant/feederbw_manifest.json`. Raport: `reports/bilant/feederbw_optuna.json`.
 Aceste rezultate nu măsoară performanța pe pierderi reale sau pe date PPC.
+
+Rezultatul celor 40 de încercări: F1 macro test **0,70858 → 0,71393**; diferență +0,00535,
+interval bootstrap 90% **[-0,00618; +0,01769]** pe plecări reale. Câștigul nu este confirmat statistic;
+modelul rămâne experimental. Rezumat: `reports/bilant/feederbw_optuna.md`.
 
 ## Adaptarea pe date PPC
 
