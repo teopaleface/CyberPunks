@@ -25,6 +25,7 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 | `14-agent-conversational.md` | Planul cu 80 de cazuri și implementarea locală: trei conturi, modele locale, Codex, voce reală și WhatsApp text verificat; nota vocală Meta încă neverificată |
 | `10-raspunsuri-mentor.md` | Răspunsurile mentorului PPC: contoare la 5 minute, echipele așteaptă sfârșitul săptămânii dacă nu e urgent |
 | `13-regresie-logistica-vs-lightgbm.md` | Regresia logistică în loc de LightGBM nu ajută: cifre, metrica de decizie, ce spunem la prezentare |
+| `19-tura-de-zona.md` | **Tura de zonă**: urgent azi, restul vineri, fără să treacă termenul legal; cum merge și ce economisește (−20% km, −24% zile-echipă, sintetic) |
 | `journal.md` | Ce s-a întâmplat și ce s-a decis, cu ora |
 
 ## Reguli
