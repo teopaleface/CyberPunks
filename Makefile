@@ -189,3 +189,16 @@ web-smoke:        ## încarcă toate ecranele pe consola pornită (make web) și
 	cd web && bun run smoke
 
 # ---- Prezentare (firul Teo-prezentare) ----
+
+# ---- Benchmark: putem bate LightGBM? (ramura Eden; cere grupul bench: uv sync --group bench) ----
+.PHONY: bench-bilant bench-contoare bench-furtuni bench-test bench-all
+bench-bilant:     ## Benchmark bilanț: CatBoost vs LightGBM v2, testul v2 (~40 min) și FeederBW (~10 min); etichete SINTETICE
+	uv run --group bench python -m cyberpunks.benchmark.bilant v2 --trials 40
+	uv run --group bench python -m cyberpunks.benchmark.bilant feederbw --trials 40
+bench-contoare:   ## Benchmark contoare: CatBoost vs LightGBM, SGCC (real), LCL de bază și extins (injectat, SINTETIC)
+	uv run --group bench python -m cyberpunks.benchmark.contoare
+bench-furtuni:    ## Benchmark furtuni: XGBoost vs LightGBM, test 2025, state nevăzute, convecție separat
+	uv run --group bench python -m cyberpunks.benchmark.furtuni
+bench-test:       ## testele benchmarkului
+	uv run --group bench pytest tests/benchmark -q
+bench-all: bench-bilant bench-contoare bench-furtuni  ## tot benchmarkul; rezultatele în reports/benchmark/
