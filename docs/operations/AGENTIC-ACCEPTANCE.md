@@ -14,7 +14,7 @@ Pregătirea folosește operațiile existente, cu versiunile exacte ale planului 
 
 Interfața arată recomandări și motive, cu dovezile tehnice în secțiuni care se deschid la cerere. Review deschide formularul existent. Referința ultimei sarcini din sesiune se poate restaura, după reverificarea accesului și versiunii. Schimbarea contului/scenariului izolează starea.
 
-Rapoartele folosesc HTML fix, texte escapate și Chromium izolat pentru PNG. Pe WhatsApp, o cerere explicită de raport dintr-un mesaj autorizat poate pregăti paginile. Registrul existent păstrează atomic raportul complet, octeții, hash-urile și identificatori separați per pagină. Identitatea, fereastra de mesagerie și versiunile se verifică înaintea uploadului și trimiterii. Rezultatul necunoscut nu provoacă retrimitere automată. Eșecul imaginii păstrează textul verificat.
+Rapoartele folosesc HTML fix, texte escapate și Chromium izolat pentru PNG. Pe WhatsApp, o cerere explicită de raport dintr-un mesaj autorizat poate pregăti paginile. Registrul existent păstrează atomic raportul complet, octeții, hash-urile și identificatori separați per pagină. Identitatea, fereastra de mesagerie și versiunile se verifică înaintea uploadului și trimiterii. Rezultatul necunoscut nu provoacă retrimitere automată. Eșecul imaginii păstrează textul verificat și explică faptul că imaginea nu a putut fi pregătită.
 
 ## Date și verificări
 
@@ -25,6 +25,7 @@ Referința operațională istorică completă a fost copiată separat, fără co
 - Build Next de producție reușit într-o copie separată, cu `--webpack`. Directorul de build al demonstrației a rămas separat. Turbopack a refuzat inițial symlinkul către dependențe din afara rădăcinii copiei; aceasta a fost o limită a izolării folosite pentru build.
 - Probă cu Codex real pe abonamentul existent, două ture: prima a întors o sarcină completă cu toate cele 25 de cazuri, iar a doua a explicat că schimbările cer Confirm. Nu s-a executat o operație în aceste ture. Extensia schemei JSON cere explicit și proprietatea nullable `task_goal`; omiterea ei din lista required a fost corectată înaintea probei reușite.
 - Randare reală a PNG-urilor și transport Meta simulat, cu pagini multiple, timeout necunoscut, retry și verificarea versiunii cazului înaintea rețelei. Proba integrată a workerului a produs un PNG real și l-a trimis clientului HTTP simulat, fără dublarea conversației.
+- După ajustarea lizibilității PNG și a mesajului de rezervă au trecut și probele afectate de randare/livrare.
 - Afișare statică a componentei reale la 360 px, pe rezultatul complet de 25 de cazuri, cu stiluri proprii și fără depășire orizontală. Aceasta nu înlocuiește o probă nouă autentificată a întregului site pe telefon.
 
 ## Repetarea probelor

@@ -9,7 +9,7 @@ def build_report_data(context, analysis=None, language="ro"):
         raise ValueError("Unsupported report role")
     plan = context.get("plan") or {}
     fields = {
-        "dispatcher": ("work_item_id", "recommendation", "reason"),
+        "dispatcher": ("title", "work_item_id", "recommendation", "reason"),
         "technician": ("work_item_id", "eta", "duration_min", "seq", "travel_km", "reason", "status"),
         "customer": ("case_id", "status", "next_step"),
     }[role]

@@ -73,8 +73,15 @@ def test_unknown_image_send_is_not_retried(delivery):
     assert len(calls) == 2
 
 
-def test_worker_generates_real_report_for_explicit_inbound_request(env, delivery):
+@pytest.mark.parametrize("render_fails", [False, True])
+def test_worker_generates_real_report_for_explicit_inbound_request(env, delivery, monkeypatch, render_fails):
     adapter, store, _payload, message = delivery
+    if render_fails:
+
+        def unavailable(_pages):
+            raise RuntimeError("Synthetic renderer outage")
+
+        monkeypatch.setattr("cyberpunks.agentic.png_renderer.render_pages", unavailable)
     operations = env["operations"]
     actor = env["actors"]["customer"]
     proposal = operations.prepare(
@@ -109,7 +116,11 @@ def test_worker_generates_real_report_for_explicit_inbound_request(env, delivery
             assert await worker.step()
 
     asyncio.run(run())
-    assert len(calls) == 3
+    assert len(calls) == (1 if render_fails else 3)
+    if render_fails:
+        assert "image could not be prepared" in json.loads(calls[0].content)["text"]["body"]
+        assert not store.prepared_images(event["event_id"])
+        return
     pages = store.prepared_images(event["event_id"])
     assert len(pages) == 1 and bytes(pages[0]["payload"]).startswith(b"\x89PNG")
     assert store.report_version(event["event_id"])

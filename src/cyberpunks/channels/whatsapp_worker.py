@@ -231,13 +231,19 @@ class WhatsAppWorker:
                 result = self.adapter.inbox.result(eid)
             if result is None:
                 raise ChannelError("reply_unavailable", "No verified reply was prepared.")
+            await self.prepare_report(incoming, result)
             # The exact text is persisted before any send, so a restart cannot change an accepted reply.
             if "delivery_text" not in result:
                 result["delivery_text"] = confirmation_text(result["response"])
+                if result.get("image_report_error"):
+                    result["delivery_text"] += (
+                        " Imaginea nu a putut fi pregătită. Rezultatul verificat rămâne disponibil în aplicație."
+                        if result["response"].get("language") == "ro"
+                        else " The image could not be prepared. The verified result remains available in the application."
+                    )
                 self.adapter.inbox.finish(eid, result)
             text = result["delivery_text"]
             self.store.prepare(eid, incoming["destination"], incoming["sender"], "text", text.encode())
-            await self.prepare_report(incoming, result)
             audio = None
             if result.get("tts") == "pending":
                 self.audio_fallback(
