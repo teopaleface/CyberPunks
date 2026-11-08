@@ -7,7 +7,6 @@ from pathlib import Path
 import httpx
 import pytest
 
-
 pytestmark = pytest.mark.skipif(
     os.name == "nt",
     reason="WhatsApp private-file setup requires POSIX permissions; use WSL2 on Windows.",
