@@ -408,7 +408,7 @@ class ConversationService:
         from cyberpunks.agentic.contracts import TaskRequest
         from cyberpunks.agentic.task_store import TaskStore
 
-        if event_key:
+        if event_key and actor.role == "dispatcher":
             store = TaskStore(self.operations.db_path.with_name("agentic-tasks.sqlite3"))
             if event_key:
                 for task in store.list(actor, request.scenario):
