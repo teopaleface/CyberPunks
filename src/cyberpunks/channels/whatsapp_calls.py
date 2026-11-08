@@ -440,6 +440,96 @@ def create_app(
     limiter = Limits(per_minute=40, concurrency=8, max_actors=100)
     inflight: dict[str, asyncio.Task] = {}
 
+    def fast_job_turn(request, config, caller, base_actor):
+        """Enqueue/read only, using a previously verified unchanged call identity.
+
+        Long planner file locks must not delay acknowledgements. Every job still
+        reauthorizes from current operational data before any effect or delivery.
+        """
+        if not background_jobs:
+            return None
+        existing = sessions.get(request.conversation_id)
+        entry = config.get("demo_callers", {}).get(caller, {})
+        signature = _fingerprint(
+            {"actor": base_actor.model_dump(), "caller": caller, "destination": config["phone_number_id"]}
+        )
+        try:
+            expiry = datetime.fromisoformat(entry["expires_at"])
+            if (
+                not existing
+                or existing["actor"] != signature
+                or existing["expires"] <= time.monotonic()
+                or existing.get("demo") != _fingerprint(entry)
+                or expiry.utcoffset() != timedelta(0)
+                or expiry <= datetime.now(UTC)
+            ):
+                return None
+            role, remainder, ambiguous = _role_declaration(request.message)
+            if ambiguous:
+                return None
+            role = role or existing.get("demo_role")
+            actor = Actor.model_validate(entry["actors"][role])
+            message = remainder if _role_declaration(request.message)[0] else request.message
+            kind = (
+                "report"
+                if is_report_request(message) and entry.get("allow_voice_reports") is True
+                else "dispatch"
+                if role == "dispatcher" and is_dispatch_request(message) and entry.get("allow_queue_actions") is True
+                else None
+            )
+            if kind:
+                key = (
+                    "wa-call:"
+                    + hashlib.sha256(
+                        (
+                            request.conversation_id
+                            + "\0"
+                            + _fingerprint(actor.model_dump())
+                            + "\0"
+                            + role
+                            + "\0"
+                            + message
+                        ).encode()
+                    ).hexdigest()
+                )
+                job = job_store.submit(
+                    actor,
+                    kind,
+                    {
+                        "conversation_id": request.conversation_id,
+                        "caller": caller,
+                        "destination": config["phone_number_id"],
+                        "demo_signature": existing["demo"],
+                        "base_actor_signature": _fingerprint(base_actor.model_dump()),
+                    },
+                    key,
+                )
+                reply = (job.get("result") or {}).get("reply") or (
+                    "Pregătesc raportul și îl trimit pe WhatsApp."
+                    if kind == "report"
+                    else "Analizez coada și aplic deciziile susținute de date. Poți continua să vorbești."
+                )
+            elif re.search(r"\b(terminat|gata|stadiu|status|cum merge|ce ai facut)\b", message.casefold()):
+                job = job_store.latest(actor, request.conversation_id)
+                if not job:
+                    return None
+                reply = (job.get("result") or {}).get("reply") or (
+                    "Încă lucrez la cererea ta. Poți continua să vorbești."
+                    if job["status"] in {"queued", "running"}
+                    else "Operația nu este confirmată. Nu am repetat-o automat."
+                )
+            else:
+                return None
+            switched = existing.get("demo_role") != role
+            existing.update(
+                demo_role=role, effective_actor=_fingerprint(actor.model_dump()), expires=time.monotonic() + 660
+            )
+            if switched:
+                existing.update(history=[], replies={})
+            return {"reply": (DEMO_LABELS[role] + " " if switched else "") + reply}
+        except (KeyError, TypeError, ValueError, ValidationError):
+            return None
+
     @app.middleware("http")
     async def authorize(request: Request, call_next):
         if request.url.path != "/healthz":
@@ -477,6 +567,9 @@ def create_app(
             if previous and not previous.done():
                 previous.cancel()
                 await asyncio.gather(previous, return_exceptions=True)
+            quick = fast_job_turn(request, config, caller, base_actor)
+            if quick is not None:
+                return quick
             # Scope and binding are rechecked on every turn. Neither the model nor the request selects a role.
             service.operations.context(base_actor, "demo-vara")
             now = time.monotonic()

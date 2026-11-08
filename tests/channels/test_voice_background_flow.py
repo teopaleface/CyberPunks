@@ -55,6 +55,14 @@ def test_pdf_is_queued_immediately_and_the_next_question_still_works(demo_call, 
         assert response.status_code == 200 and "Pregătesc raportul" in response.json()["reply"]
         assert time.monotonic() - begin < 2 and not sent
         assert started.wait(2)
+        with monkeypatch.context() as blocked:
+
+            def planner_locked(*args, **kwargs):
+                raise AssertionError("A queued voice acknowledgement must not wait on the planner")
+
+            blocked.setattr(env["operations"], "context", planner_locked)
+            queued_again = client.post("/api/voice/turn", headers=demo_call["headers"], json=body)
+            assert queued_again.status_code == 200 and "Pregătesc raportul" in queued_again.json()["reply"]
         second = client.post(
             "/api/voice/turn", headers=demo_call["headers"], json={**body, "message": "Ce am de făcut astăzi?"}
         )
