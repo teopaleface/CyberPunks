@@ -138,3 +138,12 @@ Teo cere poze pentru tehnician, corectarea manuală vizibilă a deciziilor AI ș
 - 04:16: Teo cere publicarea pe main a versiunii comise, inclusiv fotografii, corecții manuale și noua interfață. Integrare separată peste main-ul actual, cu revenirea colegilor la modelul bilanț v2 păstrată și ambele istorii din jurnal. Modificările necomise din checkout-ul Teo rămân neatinse. Fără deploy.
 
 - 04:19: Integrarea main trece 237 teste web, 221 teste Python pentru operații/canale/runtime/bilanț, TypeScript, ESLint și build Next. Șapte teste web runtime opționale sunt omise. Verificarea folosește copia completă izolată a datelor; fără deploy sau modificarea serviciilor active.
+
+### 2026-11-08 04:14 București: plan pentru agentul care decide și execută
+
+Teo relatează feedback pozitiv de la un mentor de business și cere un plan pentru decizii, apeluri în funcție de cont și rapoarte WhatsApp generate din HTML ca imagini. Redactat docs/PLAN-AGENTIC.md, cu analiza întregii cozi, coordonare prin funcții autorizate, confirmare pentru schimbări operaționale, rezultate verificate și etape separate pentru celelalte identități telefonice. Estimarea de 4–7,5 ore este orientativă. Planul completează catalogul inițial; nu este o aprobare a implementării sau a publicării. Feedbackul mentorului nu este tratat drept confirmare a regulamentului. Detalii în memory/15-agent-decizii-si-canale.md. Nu s-au schimbat codul aplicației, conturile sau serviciile externe.
+
+
+### 2026-11-08 04:22 București: predare pentru brainstorming
+
+Teo cere actualizarea memoriei conform firului principal și push pe main pentru un coleg care va explora mai multe idei. Completat memory/15-agent-decizii-si-canale.md cu contextul, întrebările pentru coleg și separarea dintre propuneri și funcții verificate. Firul principal cere și prompturi de implementare în paralel, încă neconfirmate ca finalizate. Publicarea cerută privește documentația, fără deploy sau includerea schimbărilor UI în lucru.

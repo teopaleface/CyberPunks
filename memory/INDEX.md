@@ -23,6 +23,7 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 | `18-bilant-feederbw-optuna-eden.md` | Bilanț: profile reale FeederBW, limitele etichetelor sintetice și Optuna pentru LightGBM |
 | `13-design-console.md` | Audit UI/UX cerut de Teo: consola aliniată cu landingul, lizibilitate, navigare și limitele verificării |
 | `14-agent-conversational.md` | Planul cu 80 de cazuri și implementarea locală: trei conturi, modele locale, Codex, voce reală și WhatsApp text verificat; nota vocală Meta încă neverificată |
+| `15-agent-decizii-si-canale.md` | Cererea după feedbackul mentorului de business și planul agentic: analiza întregii cozi, execuție confirmată, apel WhatsApp și rapoarte HTML transformate în PNG |
 | `journal.md` | Ce s-a întâmplat și ce s-a decis, cu ora |
 
 ## Reguli
