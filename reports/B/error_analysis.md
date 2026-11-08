@@ -108,6 +108,7 @@ Pe zilele cu eveniment din 2025: vârful real e în intervalul P10-P90 în 81% d
 | prag_5pct | evenimentul la ≥ 5% din clienți | 0.1004 | 0.0212 | 0.0222 |
 | arbori_mai_mari | num_leaves 31, min_data_in_leaf 20 | 0.2746 | 0.0842 | 0.1032 |
 | coada_rafalei | + cât trece rafala peste 60 km/h | 0.2763 | 0.0842 | 0.1032 |
+| zapada_uda_viscol | + zăpadă udă și viscol (pentru punctul slab, zăpada) | 0.2754 | 0.0842 | 0.1032 |
 | cu_temperaturi | + temperaturile și radiația (scoase din model: trimiteau echipe la caniculă în România) | 0.2829 | 0.0837 | 0.1032 |
 | mai_putine_variabile | fără orele de ploaie, vântul mediu și sezonul (cos) | 0.2689 | 0.0847 | 0.1032 |
 

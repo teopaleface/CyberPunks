@@ -131,11 +131,9 @@ def build() -> str:
     c_b = figure("C eroare tensiune maximă (pu), metoda simplă", "reports/C/metrics.json", "baseline_metrics.mae_vmax_pu", lambda v: ro(v, 4))
     c_rec = figure("C depășiri 1,10 pu găsite, Daybreak", "reports/C/metrics.json", "metrics.recall_exceed", PCT0)
     c_rec_b = figure("C depășiri 1,10 pu găsite, metoda simplă", "reports/C/metrics.json", "baseline_metrics.recall_exceed", PCT0)
-    bl_p = figure("Bilanț precizie@10 cu bilanț", "reports/bilant/metrics.json", "metrics.fuziune_precision_at_10", lambda v: ro(v * 100, 1) + "%")
-    bl_pb = figure("Bilanț precizie@10 fără bilanț", "reports/bilant/metrics.json", "baseline_metrics.fuziune_precision_at_10", lambda v: ro(v * 100, 1) + "%")
     bl_f1 = figure("Bilanț diagnostic F1 macro, Daybreak", "reports/bilant/metrics.json", "metrics.diagnoza_macro_f1", P2)
     bl_f1b = figure("Bilanț diagnostic F1 macro, reguli simple", "reports/bilant/metrics.json", "baseline_metrics.diagnoza_macro_f1", P2)
-    bl_w = figure("Bilanț deplasări degeaba evitate/zi (K=10)", "reports/bilant/metrics.json", "metrics.fuziune_wasted_trips_avoided_per_day_at_10", P2)
+    bl_e = figure("Bilanț energie lipsă găsită (cauze pe care contoarele clienților nu le văd)", "reports/bilant/metrics.json", "metrics.cauze_post_energy_found_share", PCT0)
 
     ev = "reports/planner/agent_eval.json"
     strat = (load(ev) or {}).get("main", {}).get("strategies", {}) if load(ev) else {}
@@ -262,7 +260,7 @@ def build() -> str:
         {row("A · Contoare", "furturi reale găsite în primele 1%", a_sg, a_sg_b, "regula de verificare VEE", "SGCC, clienți nevăzuți, etichete reale")}
         {row("B · Furtună", "PR-AUC, zone în risc", b_m, b_b, "media istorică a lunii", "SUA, anul 2025 nevăzut")}
         {row("C · Tensiune", "eroare la tensiunea maximă (pu)", c_m, c_b, "regresie liniară", "6 rețele nevăzute, sintetice")}
-        {row("Bilanț", "precizia verificărilor, top 10", bl_p, bl_pb, "doar scorul contoarelor", "300 de posturi, sintetic")}
+        {row("Bilanț", "diagnosticul cauzei, F1 macro", bl_f1, bl_f1b, "tabelul de reguli", "300 de posturi, sintetic")}
         </tbody></table>''',
         source="reports/A, B, C, bilant: metrics.json. Pentru A, B și bilanț, mai mare e mai bine; pentru C, mai mic."))
 
@@ -271,7 +269,7 @@ def build() -> str:
         f'''<h2>Bilanțul pe post vede ce nu vede niciun contor.</h2>
         <p class="body">Energia care iese din post, minus suma contoarelor clienților. Modelul învață pierderea normală; ce rămâne are o cauză.</p>
         {pair(bl_f1, bl_f1b, "reguli simple")}
-        <p class="body grey">F1 la diagnosticul cauzei, 6 clase. Cu bilanț, {e(bl_w)} deplasări degeaba mai puțin pe zi.</p>''',
+        <p class="body grey">F1 la diagnosticul cauzei, 6 clase. Găsește {e(bl_e)} din energia pierdută prin cauze pe care contoarele clienților nu le văd.</p>''',
         source="reports/bilant/metrics.json. Simulare pe date publice, 300 de posturi sintetice, gândită pentru datele PPC."))
 
     # ------------------------------------------------ 8 Tensiune

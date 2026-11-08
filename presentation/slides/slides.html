@@ -104,12 +104,12 @@ h2{font-size:80px;max-width:1500px;margin-bottom:56px}
         <tr><td class="r-src">A · Contoare</td><td class="r-what">furturi reale găsite în primele 1%</td><td class="r-num acc">0,80</td><td class="r-num">0,11</td><td class="r-base">regula de verificare VEE<br><span class="g2">SGCC, clienți nevăzuți, etichete reale</span></td></tr>
         <tr><td class="r-src">B · Furtună</td><td class="r-what">PR-AUC, zone în risc</td><td class="r-num acc">0,28</td><td class="r-num">0,15</td><td class="r-base">media istorică a lunii<br><span class="g2">SUA, anul 2025 nevăzut</span></td></tr>
         <tr><td class="r-src">C · Tensiune</td><td class="r-what">eroare la tensiunea maximă (pu)</td><td class="r-num acc">0,0054</td><td class="r-num">0,0227</td><td class="r-base">regresie liniară<br><span class="g2">6 rețele nevăzute, sintetice</span></td></tr>
-        <tr><td class="r-src">Bilanț</td><td class="r-what">precizia verificărilor, top 10</td><td class="r-num acc">12,2%</td><td class="r-num">10,2%</td><td class="r-base">doar scorul contoarelor<br><span class="g2">300 de posturi, sintetic</span></td></tr>
+        <tr><td class="r-src">Bilanț</td><td class="r-what">diagnosticul cauzei, F1 macro</td><td class="r-num acc">0,75</td><td class="r-num">0,48</td><td class="r-base">tabelul de reguli<br><span class="g2">300 de posturi, sintetic</span></td></tr>
         </tbody></table><div class="src">reports/A, B, C, bilant: metrics.json. Pentru A, B și bilanț, mai mare e mai bine; pentru C, mai mic.</div><div class="pg">6</div></section>
 <section class="slide " id="s7"><h2>Bilanțul pe post vede ce nu vede niciun contor.</h2>
         <p class="body">Energia care iese din post, minus suma contoarelor clienților. Modelul învață pierderea normală; ce rămâne are o cauză.</p>
-        <div class="pair"><div class="p-main"><span class="big ">0,71</span><div class="cap">Daybreak</div></div><div class="p-vs">față de</div><div class="p-base"><span class="mid grey">0,48</span><div class="cap">reguli simple</div></div></div>
-        <p class="body grey">F1 la diagnosticul cauzei, 6 clase. Cu bilanț, 0,20 deplasări degeaba mai puțin pe zi.</p><div class="src">reports/bilant/metrics.json. Simulare pe date publice, 300 de posturi sintetice, gândită pentru datele PPC.</div><div class="pg">7</div></section>
+        <div class="pair"><div class="p-main"><span class="big ">0,75</span><div class="cap">Daybreak</div></div><div class="p-vs">față de</div><div class="p-base"><span class="mid grey">0,48</span><div class="cap">reguli simple</div></div></div>
+        <p class="body grey">F1 la diagnosticul cauzei, 6 clase. Găsește 84% din energia pierdută prin cauze pe care contoarele clienților nu le văd.</p><div class="src">reports/bilant/metrics.json. Simulare pe date publice, 300 de posturi sintetice, gândită pentru datele PPC.</div><div class="pg">7</div></section>
 <section class="slide " id="s8"><h2>Peste 1,10 pu, alege cea mai ieftină soluție.</h2>
         <div class="pair"><div class="p-main"><span class="big ">0,0054</span><div class="cap">Daybreak</div></div><div class="p-vs">față de</div><div class="p-base"><span class="mid grey">0,0227</span><div class="cap">metoda simplă</div></div></div>
         <p class="body">Eroarea la tensiunea maximă, în pu. Depășirile găsite: 87% față de 26%.</p>
@@ -118,7 +118,7 @@ h2{font-size:80px;max-width:1500px;margin-bottom:56px}
         <div class="agent">
           <div class="a-big"><span class="huge">+49%</span><div class="cap">valoare netă față de cea mai bună strategie simplă (primul venit, primul servit)</div></div>
           <div class="a-side">
-            <div class="row2"><span class="v">10.565 km</span><span class="vs">față de 15.439 km, adică 31,6% mai puțin</span></div>
+            <div class="row2"><span class="v">10.515 km</span><span class="vs">față de 15.439 km, adică 31,9% mai puțin</span></div>
             <div class="row2"><span class="v">37%</span><span class="vs">vizite degeaba, față de 63%</span></div>
           </div>
         </div><div class="src">reports/planner/agent_eval.json, main.strategies. Simulare pe 30 de zile, date sintetice.</div><div class="pg">9</div></section>

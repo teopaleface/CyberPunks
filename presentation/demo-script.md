@@ -27,16 +27,16 @@ Varianta finală, 8 nov. 2026, 08:03. Produsul: **Daybreak**. Prezintă Teo (T);
 | 1:45-2:45 | Consola: butonul care rulează agentul, apoi planul pe hartă | „Daybreak citește datele, cele trei modele ale noastre estimează, regulile din cod aleg, iar la final iese planul: traseul și ordinea lucrărilor pentru fiecare echipă, alertele, mesajele.” |
 | 2:45-3:25 | Detaliul unei lucrări la un contor: factorii, cazul asemănător, regula și pragul | „De ce merge echipa aici: factorii în cuvinte simple, un caz asemănător din istoric și regula care a decis. Nu e o cutie neagră.” |
 | 3:25-3:55 | Coada „Nu sunt sigur”: aprobă o lucrare | „Când nu e sigur, Daybreak nu decide singur. Dispecerul aprobă sau respinge, iar decizia lui intră în jurnal.” |
-| 3:55-4:35 | Slide 9 (+49%), apoi slide 6 (modelele față de metoda simplă) | Cifrele citite exact de pe slide: „În 30 de zile simulate, cu aceleași echipe: 49% mai multă valoare, 31,6% mai puțini kilometri, 37% vizite degeaba față de 63%.” |
+| 3:55-4:35 | Slide 9 (+49%), apoi slide 6 (modelele față de metoda simplă) | Cifrele citite exact de pe slide: „În 30 de zile simulate, cu aceleași echipe: 49% mai multă valoare, 31,9% mai puțini kilometri, 37% vizite degeaba față de 63%.” |
 | 4:35-5:00 | Slide 12 (ce vrem să confirmăm cu PPC), apoi titlul | „Ca să meargă pe date reale ne trebuie contoarele de bilanț din posturi și lista client → post. Mulțumim.” |
 
 ## Cifrele (aceleași ca pe slideuri, din `reports/`)
 
-- Agentul, 30 de zile simulate, date sintetice, față de „primul venit, primul servit” (cea mai bună strategie simplă): +49% valoare netă; 10.565 km față de 15.439 (-31,6%); 37% vizite degeaba față de 63%; 46 de cazuri trimise la om. Sursa: `reports/planner/agent_eval.json`.
+- Agentul, 30 de zile simulate, date sintetice, față de „primul venit, primul servit” (cea mai bună strategie simplă): +49% valoare netă; 10.515 km față de 15.439 (-31,9%); 37% vizite degeaba față de 63%; 46 de cazuri trimise la om. Sursa: `reports/planner/agent_eval.json`.
 - A (contoare): pe problemele subtile 0,62 față de 0,02 la regula simplă VEE; pe SGCC, cu etichete reale, 0,80 față de 0,11. NU spunem 1,00 (vine din defectele evidente de pe Londra).
 - B (furtună): PR-AUC 0,28 față de 0,15 la climatologie.
 - C (tensiune): eroarea la tensiunea maximă 0,0054 pu față de 0,0227; găsește 87% din depășiri față de 26%.
-- Bilanțul pe post: F1 la diagnosticul cauzei 0,71 față de 0,48.
+- Bilanțul pe post: F1 la diagnosticul cauzei 0,75 față de 0,48; găsește 84% din energia pierdută prin cauze pe care contoarele clienților nu le văd. Cifrele de fuziune ale bilanțului nu se folosesc.
 - Atenție: filmul spune „556 problems” (consola de ieri); planul de azi pentru 8 iulie are alt număr de lucrări. Live spunem doar ce e pe ecran („sute de lucrări”).
 
 ## De știut despre consolă (găsit la înregistrarea de rezervă, 08:15)

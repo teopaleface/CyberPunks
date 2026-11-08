@@ -70,6 +70,13 @@
     "prevalence": 0.1032
   },
   {
+    "varianta": "zapada_uda_viscol",
+    "ce": "+ zăpadă udă și viscol (pentru punctul slab, zăpada)",
+    "pr_auc": 0.2754,
+    "brier": 0.0842,
+    "prevalence": 0.1032
+  },
+  {
     "varianta": "cu_temperaturi",
     "ce": "+ temperaturile și radiația (scoase din model: trimiteau echipe la caniculă în România)",
     "pr_auc": 0.2829,

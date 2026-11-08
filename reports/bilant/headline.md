@@ -1,6 +1,8 @@
 # Bilanț pe post: cifrele pentru prezentare
 
-SIMULARE pe date publice, gândită pentru datele PPC. Sursa: `reports/bilant/metrics.json` (bilant-lgbm@6eba102), comanda `make bilant-data bilant-eval`. Test: cele 300 de posturi ale hărții (registrul C), rețele nevăzute la antrenare; defectele de contor sunt cele ale firului A.
+SIMULARE pe date publice, gândită pentru datele PPC. Sursa: `reports/bilant/metrics.json` (bilant-lgbm@a1862c1), comanda `make bilant-data bilant-eval`. Test: cele 300 de posturi ale hărții (registrul C), rețele nevăzute la antrenare; defectele de contor sunt cele ale firului A.
+
+**Baza legală:** Codul de măsurare ANRE (Ord. 103/2015) cere ca sistemele de măsurare inteligentă să permită „cel puţin un contor de balanţă la fiecare post de transformare, pentru a facilita identificarea pierderilor tehnice şi netehnice”.
 
 ## 1. Ce vede doar bilanțul (cifra principală)
 
@@ -8,41 +10,34 @@ Contoarele clienților (modelul A) nu au cum să vadă aceste probleme: A găse�
 
 | Problema | Bilanțul găsește postul | și cauza corectă | Energia lipsă găsită |
 |---|---|---|---|
-| furt înainte de contor | 74% | 55% | 86% |
-| pierderi în cabluri sau faze dezechilibrate | 64% | 42% | 95% |
-| contorul postului setat greșit | 99% | 99% | doar pe hârtie |
-| client trecut în bază la alt post | 53% | 42% | 72% |
+| furt înainte de contor | 76% | 62% | 87% |
+| pierderi în cabluri sau faze dezechilibrate | 64% | 50% | 86% |
+| contorul postului setat greșit | 99% | 98% | doar pe hârtie |
+| client trecut în bază la alt post | 58% | 54% | 75% |
 
-- **Bilanțul găsește 85% din energia pierdută din aceste cauze, ~25.137 lei pe lună** pe cele 300 de posturi (la 0,70 lei/kWh, `config/economics.yaml`). Din posturile marcate, 13% sunt de fapt normale.
+- **Bilanțul găsește 84% din energia pierdută din aceste cauze, ~24.663 lei pe lună** pe cele 300 de posturi (la 0,70 lei/kWh, `config/economics.yaml`). Din posturile marcate, 18% sunt de fapt normale.
 - În ziua demo, **48% din energia pierdută peste normal nu apare la niciun contor de client**.
-- Diagnosticul cauzei: F1 macro 0,71 față de 0,48 la tabelul de reguli din concept.
+- Diagnosticul cauzei: F1 macro 0,75 față de 0,48 la tabelul de reguli din concept.
+- **Contorul martor** (regulă, prag 0,5% = clasa de exactitate): pe posturile cu martor prinde 98% din contoarele de balanță setate greșit, cu 0 alarme false; diferența normală martor − contor de balanță are mediana 0,06% (mentorul PPC: ~0,1%).
 
 ## 2. Cu bilanț față de fără, la verificările de contoare
 
-Bilanțul doar confirmă (urcă scorul contorului când lipsa de la post crește cât lipsește la contor); nu coboară niciodată un contor găsit de A.
+Testul: harta (cele 300 de posturi, defectele de contor ale lui A apărute în ultimele 2-12 zile), ultimele 50 de zile, scoruri de tip A simulate (AUC 0,91). Regula v2 are parametrii căutați automat pe un lot separat de 3.000 de posturi (`reports/bilant/fusion_v2_params.json`) și doar confirmă: nu coboară niciodată un contor găsit de A.
 
-| Modelul de contoare | K verificări pe zi | Precizia fără → cu | Deplasări degeaba evitate pe zi | Lei recuperați pe zi fără → cu |
-|---|---|---|---|---|
-| scor A simulat, calitatea pe Londra (AUC 0,91) | 10 | 10,2% → 12,2% | 0,20 | 824 → 855 |
-|  | 20 | 6,4% → 7,8% | 0,28 | 921 → 1.000 |
-|  | 50 | 4,0% → 4,5% | 0,28 | 1.177 → 1.458 |
-|  | 100 | 2,6% → 2,7% | 0,05 | 1.370 → 1.587 |
-| scor A simulat, calitatea pe SGCC (AUC 0,80) | 10 | 2,5% → 4,0% | 0,15 | 126 → 456 |
-|  | 20 | 1,4% → 2,6% | 0,25 | 126 → 502 |
-|  | 50 | 0,9% → 1,4% | 0,25 | 450 → 602 |
-|  | 100 | 0,8% → 1,1% | 0,40 | 539 → 740 |
-| scorurile REALE ale lui A, ziua demo | 10 | 100,0% → 100,0% | 0 | - |
-|  | 100 | 100,0% → 100,0% | 0 | - |
-|  | 300 | 100,0% → 100,0% | 0 | - |
-|  | 500 | 93,0% → 90,6% | -12 | - |
+| K verificări pe zi | Precizia: A singur → regula v1 → regula v2 | Deplasări degeaba evitate pe zi (v2 față de A) | Lei recuperați pe zi: A singur → v2 |
+|---|---|---|---|
+| 10 | 80% → 78% → **90%** | 1,0 | 4.966 → 8.278 |
+| 20 | 64% → 62% → **68%** | 0,8 | 7.917 → 10.444 |
+| 50 | 44% → 40% → **46%** | 1,0 | 11.716 → 13.595 |
+| 100 | 31% → 29% → **33%** | 2,0 | 13.818 → 17.484 |
 
-Cum se citește: cu scorurile reale, A e deja precis în vârful listei, iar bilanțul nu mai adaugă nimic la clasare. Când modelul de contoare e mai slab, confirmarea din bilanț ridică banii recuperați (la calitatea SGCC, de 3,6 ori în primele 10).
+Cu scorurile **reale** ale lui A (ziua demo, 15.850 de contoare): AUC 0,917 (A singur), 0,916 (v1), 0,919 (v2); precizia în primele 500: 96,2% → 96,0%. Pe scorurile reale, A e deja precis în vârf; regula v2 nu strică, regula v1 strica la K mare.
 
-## 3. Unde montăm întâi contoarele de bilanț (planul B)
+## 3. Unde montăm întâi contoarele de balanță (planul B)
 
-`reports/bilant/plan_b.md`: gradul de integrare a contoarelor inteligente e 56-67% pe regiuni (31 dec. 2025). Montând contoare de bilanț la 20% din posturi, în ordinea modelului, găsim mai multă energie lipsă decât la întâmplare sau la „posturile mari întâi”.
+`reports/bilant/plan_b.md`: gradul de integrare a contoarelor inteligente e 56-67% pe regiuni (31 dec. 2025). Montând contoare de balanță la 20% din posturi, în ordinea modelului, găsim mai multă energie lipsă decât la întâmplare sau la „posturile mari întâi”.
 
 ## 4. Postul pentru demo
 
-- **PT-1269** (`A-20250708-PT-1269`): pierderea pe cabluri e de 2,2 ori normalul, iar bilanțul estimează că o fază are ~69% din case. Adevărul din simulare și potrivirea cu lucrarea lui C (`C-20250708-PT-1269`, `phase_rebalance` prima treaptă) sunt în `reports/bilant/demo_posts.md`.
-- Postul PT-1269: ~5146 lei pe lună pierduți peste normal. Cauza probabilă (99%): pierdere tehnică (cablu, faze dezechilibrate). Recomand: echipa de rețea (cabluri, îmbinări, faze).
+- **PT-1269** (`A-20250708-PT-1269`): pierderea pe cabluri e de 2,4 ori normalul, iar bilanțul estimează că o fază are ~71% din case. Adevărul din simulare și potrivirea cu lucrarea lui C (`C-20250708-PT-1269`, `phase_rebalance` prima treaptă) sunt în `reports/bilant/demo_posts.md`.
+- Postul PT-1269: ~5402 lei pe lună pierduți peste normal. Cauza probabilă (97%): pierdere tehnică (cablu, faze dezechilibrate). Recomand: echipa de rețea (cabluri, îmbinări, faze).

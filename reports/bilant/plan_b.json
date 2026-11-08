@@ -1,8 +1,8 @@
 {
   "posts": 287,
-  "capture_top20pct_model": 0.3575432629280359,
-  "capture_top20pct_random": 0.19808518461555394,
-  "capture_top20pct_biggest": 0.22591595076530344,
-  "lei_year_per_meter_model_top20pct": 3531.7662214895286,
-  "lei_year_per_meter_random": 1961.8071287198873
+  "capture_top20pct_model": 0.3034430415805989,
+  "capture_top20pct_random": 0.19808518881987502,
+  "capture_top20pct_biggest": 0.22591605687621372,
+  "lei_year_per_meter_model_top20pct": 2997.3716635816904,
+  "lei_year_per_meter_random": 1961.807422352358
 }

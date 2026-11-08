@@ -1,5 +1,5 @@
 # Status: Teo-prezentare
-Actualizat: 2026-11-08 08:14
+Actualizat: 2026-11-08 09:25
 Milestone curent: PREDAREA (12:00). Toate livrabilele prezentării sunt gata: filmul, slideurile, scriptul demo-ului și înregistrarea de rezervă.
 Gata de merge: NU se face merge din acest branch (istoria cu fișierele 3D); fișierele de predare se aduc în `Teo` individual (comanda de mai jos).
 
@@ -16,7 +16,18 @@ Gata de merge: NU se face merge din acest branch (istoria cu fișierele 3D); fi�
 
 Verificat: `tests/test_repo_size.py` trece. La 08:00 am scos din urmărire fișierele grele urcate peste noapte în acest branch (58 de planșe QA mărite, 522 MB; o scenă Blender de 11 MB; două foi de 5,6 MB; încercările planșelor; audio-ul m4a/flac). Rămân pe disc. Sunt însă în istoria de pe GitHub (commiturile din 7 nov., 18:51 și 19:33): de adăugat la curățarea pe care o decide Teo.
 
-Cifrele din film și de pe slideuri, din `reports/`: +49% valoare netă, 10.565 față de 15.439 km (-31,6%, în film „30% less driving”), 37% față de 63% vizite degeaba (simulare de 30 de zile, față de „primul venit, primul servit”); A 0,62/0,02 (subtile) și 0,80/0,11 (SGCC); B PR-AUC 0,28/0,15; C 0,0054/0,0227 pu; bilanț F1 0,71/0,48. De știut: filmul spune „556 problems” (consola de ieri); planul de azi are alt număr de lucrări, deci live spunem doar ce e pe ecran.
+Cifrele din film și de pe slideuri, din `reports/`: +49% valoare netă, 10.515 față de 15.439 km (-31,9%, în film „30% less driving”), 37% față de 63% vizite degeaba (simulare de 30 de zile, față de „primul venit, primul servit”); A 0,62/0,02 (subtile) și 0,80/0,11 (SGCC); B PR-AUC 0,28/0,15; C 0,0054/0,0227 pu; bilanț F1 0,75/0,48. De știut: filmul spune „556 problems” (consola de ieri); planul de azi are alt număr de lucrări, deci live spunem doar ce e pe ecran.
+
+### Refăcut pe rapoartele finale din `Teo` (09:25)
+
+`reports/` e luat din `origin/Teo`; slideurile sunt reconstruite cu `presentation/scripts/build_slides.py`, iar tabelul cifrelor e verificat. Ce s-a schimbat pe slideuri: bilanțul are F1 0,75 față de 0,48 (slideurile 6 și 7), agentul 10.515 km și 31,9% mai puțin (slideul 9). Fuziunea bilanțului nu mai apare nicăieri (pe slideul 6 e diagnosticul cauzei, pe slideul 7 cele 84% din energia pierdută găsită). Precizia@K de 1,00 a lui A nu apare. Scriptul demo-ului și creditele au valorile noi.
+
+Cifrele din film, față de rapoartele finale (filmul nu e re-randat):
+- A și bilanț: filmul nu spune nicio cifră a lor.
+- „Thirty percent less driving”, „30%” pe ecran (replica 12, 39,35-42,58 s, scena `s12`): corect, raportul dă -31,9%.
+- „Fewer wasted trips” (aceeași replică): corect, 37% față de 63%.
+- „Eleven crews”, „11 crews” pe ecran (replica 4, de la 15,2 s, scena `s04`): corect, `config/crews.yaml` are 11 echipe.
+- „Five hundred and fifty-six problems”, „556 problems” pe ecran (replica 4, 16,5-18,4 s, scena `s04`): NU mai corespunde. Consola servește acum 653 de lucrări (`/api/plan`, plan regenerat azi, se schimbă între rulări), iar `demo_day.work_items` din `agent_eval.json` e 532. E singura cifră din film care nu se potrivește.
 
 ### Fișierele de adus în `Teo` pentru predare
 
