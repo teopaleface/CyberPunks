@@ -13,6 +13,9 @@ from cyberpunks.channels.models import ChannelError
 
 API = "https://api.elevenlabs.io"
 ROLES = ("customer", "technician", "dispatcher")
+VOICE_SESSION_SECONDS = 600
+LIVE_VOICE_MODEL = "eleven_v4_turbo"
+VOICE_NOTE_MODEL = "eleven_v4"
 
 
 def runtime_root() -> Path:
@@ -114,7 +117,7 @@ class ElevenLabs:
             "connection_type": "webrtc",
             "role": role,
             "client_tool": "daybreak_turn",
-            "max_duration_seconds": 180,
+            "max_duration_seconds": VOICE_SESSION_SECONDS,
             "confirmation": "ui_button",
             "send_enabled": False,
         }
@@ -125,7 +128,10 @@ class ElevenLabs:
         result = await self.request(
             "POST",
             "/v1/speech-to-text",
-            data={"model_id": "scribe_v1", "tag_audio_events": "false", "diarize": "false"},
+            data={
+                "model_id": "scribe_v2", "tag_audio_events": "false", "diarize": "false",
+                "timestamps_granularity": "none",
+            },
             files={"file": ("voice-note", audio, mime)},
         )
         text = result.get("text", "").strip()
@@ -150,7 +156,7 @@ class ElevenLabs:
                     API + f"/v1/text-to-speech/{voice_id}",
                     params={"output_format": "mp3_44100_128"},
                     headers={"xi-api-key": get_key()},
-                    json={"text": text, "model_id": "eleven_multilingual_v2"},
+                    json={"text": text, "model_id": VOICE_NOTE_MODEL},
                 ) as response:
                     if not response.is_success:
                         raise ChannelError(
@@ -181,7 +187,8 @@ def tool_config() -> dict:
         "description": "Always call this for every user message. The server verifies scope and returns the exact reply to speak.",
         "expects_response": True,
         "response_timeout_secs": 90,
-        "pre_tool_speech": "off",
+        "pre_tool_speech": "force",
+        "interruption_mode": "disable_during_tool_and_turn",
         "parameters": {
             "type": "object",
             "properties": {
@@ -203,12 +210,14 @@ def agent_config(role: str, voice_id: str) -> dict:
         "tags": ["daybreak", "local-demo", role],
         "conversation_config": {
             "agent": {
-                "first_message": "Hi. I'm Daybreak. How can I help?",
+                "first_message": "Salut! Sunt Daybreak. Cu ce te pot ajuta?",
                 "language": "ro",
                 "prompt": {
                     "prompt": f"""You are the Daybreak {role} voice coordinator. You have no operational
 knowledge or authority. For EVERY user message, including greetings and confirmations, call daybreak_turn with
-the user's complete original utterance. Wait for its response. Speak ONLY the exact reply string returned by
+the user's complete original utterance. Before the tool call, say only 'Verific informațiile.' in Romanian
+or 'Let me check.' in English. This acknowledgement contains no operational facts or success claims.
+Wait for the tool response. Then speak ONLY the exact reply string returned by
 the tool, preserving its Romanian or English wording. Never summarize it, invent facts, offer electrical
 instructions, execute actions or claim a proposal is saved. If a proposal is returned, tell the user to use
 Confirm in the application; the tool's reply already explains this. A spoken yes never confirms anything.
@@ -224,15 +233,23 @@ Please use text in the app. Do not improvise. You cannot call, email, send Whats
                     "enable_parallel_tool_calls": False,
                 },
             },
-            "tts": {"voice_id": voice_id, "model_id": "eleven_flash_v2_5"},
+            "tts": {"voice_id": voice_id, "model_id": LIVE_VOICE_MODEL, "expressive_mode": True},
+            "asr": {"provider": "scribe_realtime", "quality": "high"},
+            "vad": {"background_voice_detection": True},
+            "turn": {
+                "turn_model": "turn_v3",
+                "turn_eagerness": "eager",
+                "turn_timeout": 5,
+                "speculative_turn": False,
+            },
             "conversation": {
-                "max_duration_seconds": 180,
+                "max_duration_seconds": VOICE_SESSION_SECONDS,
                 "client_events": ["audio", "interruption", "user_transcript", "agent_response", "client_tool_call"],
             },
         },
         "platform_settings": {
             "auth": {"enable_auth": True},
-            "call_limits": {"agent_concurrency_limit": 1, "daily_limit": 10, "bursting_enabled": False},
+            "call_limits": {"agent_concurrency_limit": 1, "daily_limit": 30, "bursting_enabled": False},
             "privacy": {
                 "record_voice": False,
                 "retention_days": 1,
@@ -265,5 +282,5 @@ def verify_agent(agent: dict) -> None:
     ):
         raise ChannelError("voice_agent_unsafe", "The voice agent contains unexpected external integrations.")
     conversation = agent.get("conversation_config", {}).get("conversation", {})
-    if conversation.get("max_duration_seconds", 600) > 180:
+    if conversation.get("max_duration_seconds", 600) > VOICE_SESSION_SECONDS:
         raise ChannelError("voice_agent_unsafe", "The voice session exceeds the local demo duration limit.")

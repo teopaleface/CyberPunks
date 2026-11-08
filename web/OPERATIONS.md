@@ -1,6 +1,6 @@
-# Workspace operațional local
+# Dashboard operațional local
 
-Interfața `/workspace` folosește rolul și apartenența salvată în cont. `/app` trimite spre această pagină. Dispecerul autorizat păstrează consola detaliată la `/app?console=1`.
+Dashboardul principal `/app` folosește rolul și apartenența salvată în cont. Asistentul este integrat în pagină. Clientul și tehnicianul văd numai datele autorizate; dispecerul autorizat păstrează și paginile detaliate ale consolei. `/workspace` redirecționează către `/app`, păstrând propunerile valide.
 
 ## Pornire și conturi
 
@@ -109,3 +109,11 @@ Fișierele acestei completări P1:
 - Funcția findingText și folosirile ei adăugate de root sunt păstrate. Nu au fost atinse culorile din coada.
 
 Verificări: `bun test` a trecut 164 de probe, cu șapte probe runtime oprite implicit și zero eșecuri. Typecheck și lint pentru web au trecut; buildul Next izolat în `.next-operations-link-review` a trecut. Site-ul de autentificare a trecut `bun run build`; lintul lui nu are erori, dar raportează avertismente existente despre Fast Refresh și efecte React. `bun scripts/build-landing.ts` a reconstruit bundle-ul local de autentificare, fără modificări ale datelor urmărite de git. Testele acoperă păstrarea ID-ului prin login, refuzul redirecționărilor externe, identitatea exactă a obiectului citit, GET fără confirmare, refuzurile sigure și lista inertă de ciorne. Fluxul WhatsApp real până la butonul Confirm rămâne de verificat de root cu backendul integrat.
+
+## Dashboardul principal /app
+
+Cerința actuală înlocuiește atât pagina separată, cât și sertarul conversațional. /app folosește consola comună și afișează asistentul direct lângă un rezumat și cazul sau vizita principală. Tabelele compacte păstrează căutarea, selecția și paginarea; stările și orele sunt cele verificate de server. Vocea are o filă separată, cu acord înainte de pornire. Formularele și revizuirea propunerilor înlocuiesc temporar conversația în aceeași zonă. Confirm rămâne singura acțiune care execută propunerea.
+
+Navigarea clientului și tehnicianului duce numai la secțiunile autorizate ale propriului dashboard. Dispecerul păstrează paginile consolei. Acțiunile din alte pagini transferă o singură cerere temporară, verificată pentru același cont și scenariu; apoi /app reverifică datele și drepturile. Nu se transferă identități sau drepturi din browser. Propunerile UUID păstrează prioritatea față de cererile temporare și cer confirmare explicită.
+
+Verificarea dashboardului: 209 teste web trecute, șapte probe runtime omise implicit; typecheck, lint și build Next izolat trecute. QA Helium pentru cele trei conturi la 1440×1100, 1024×900 și 390×844: un singur asistent inline, fără dialog sau depășire orizontală, navigare filtrată pe rol. Verificate schimbarea temei, pregătirea și anularea unei propuneri fără schimbarea cazurilor/versiunii planului, deschiderea formularului Defer dintr-o lucrare și un răspuns Codex real fără operație executată. Dovezi locale: /tmp/daybreak-main-dashboard-qa.json și /tmp/daybreak-main-dashboard-chat-qa.json. Microfonul și difuzorul fizic nu au fost retestate aici. Fără deploy al acestei corecții.

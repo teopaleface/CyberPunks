@@ -1,23 +1,13 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { ConversationProvider } from "@elevenlabs/react";
-import {
-  ArrowRight,
-  ArrowUpRight,
-  Check,
-  CircleHelp,
-  LogOut,
-  RefreshCw,
-  Zap,
-} from "lucide-react";
-import { englishText } from "@/lib/english";
+import { ArrowLeft, ArrowRight, Check, MessageSquare, Mic, Sparkles, X } from "lucide-react";
 import { api, SessionExpired } from "@/lib/operations/client";
 import { loadLinkedProposal } from "@/lib/operations/linked-proposal";
 import { proposalSignInPath } from "@/lib/operations/proposal-link";
 import { conversationHistory } from "@/lib/operations/history";
 import {
   label,
-  rows,
   text,
   type Action,
   type Command,
@@ -27,65 +17,87 @@ import {
   type Row,
   type Turn,
   type WorkspaceAccount,
-  findingText,
 } from "@/lib/operations/types";
 import { DraftRequests } from "./draft-requests";
 import { PendingCommands } from "./pending-commands";
 import { recoveryControl } from "@/lib/operations/recovery";
 import { ACTION_NAMES, ProposalForm } from "./proposal-form";
+import { RoleOverview } from "./role-overview";
+import {
+  assertProposalScenario,
+  assertScope,
+  canPrepare,
+  itemTitle,
+  readableDate,
+  openRequestedAction,
+  resolveSelection,
+  selectionKey,
+  validateRequestedAction,
+  type WorkspaceRequestedAction,
+  type WorkspaceSelection,
+} from "./scope";
 import { Voice } from "./voice";
 import "./workspace.css";
-const SCENARIO = "demo-vara";
-const TITLE = {
-  customer: "How can we help?",
-  technician: "Your shift, in order.",
-  dispatcher: "The decisions that move work forward.",
-};
-const INTRO = {
-  customer:
-    "Report a problem, follow your case and tell us when you are available.",
-  technician:
-    "Your assigned work and the reasons behind each visit. Record what you find when safely stopped.",
-  dispatcher:
-    "Review the evidence, make a decision and follow the same case through the field visit.",
-};
-function id(row: Row): string {
-  return text(row.case_id ?? row.work_item_id ?? row.connection_id ?? row.id);
-}
-function date(value: unknown): string {
-  const input = text(value);
-  if (!input) return "Not available";
-  const parsed = new Date(input);
-  return Number.isNaN(parsed.getTime())
-    ? input
-    : parsed.toLocaleString("en-GB");
-}
-interface WorkspaceProps {
+export type { WorkspaceAccount } from "@/lib/operations/types";
+export type { WorkspaceRequestedAction, WorkspaceSelection } from "./scope";
+export interface WorkspaceProps {
   account: WorkspaceAccount;
+  presentation?: "page" | "assistant" | "role";
+  initialSelection?: WorkspaceSelection;
+  requestedAction?: WorkspaceRequestedAction;
+  scenario?: string;
   linkedProposalId?: string | null;
   initialError?: string;
+  assistant?: ReactNode;
 }
-export function Workspace({
-  account,
-  linkedProposalId,
-  initialError,
-}: WorkspaceProps) {
-  return (
-    <ConversationProvider>
-      <WorkspaceContent
-        account={account}
-        linkedProposalId={linkedProposalId}
-        initialError={initialError}
-      />
-    </ConversationProvider>
+export function Workspace(props: WorkspaceProps) {
+  // Remount private state and voice when the account, scope or scenario changes.
+  const key = JSON.stringify([
+    props.account.id,
+    props.account.membership,
+    props.scenario ?? "demo-vara",
+  ]);
+  const content = <WorkspaceContent key={key} {...props} />;
+  return props.presentation === "role" ? (
+    content
+  ) : (
+    <ConversationProvider key={key}>{content}</ConversationProvider>
   );
 }
 function WorkspaceContent({
   account,
   linkedProposalId,
   initialError,
+  initialSelection,
+  requestedAction,
+  scenario = "demo-vara",
+  presentation = "page",
+  assistant,
 }: WorkspaceProps) {
   const role = account.membership.role;
+  const messageId = useId();
+  const [validated, setValidated] = useState<{
+    key: string;
+    selection?: WorkspaceSelection;
+  } | null>(null);
+  const [selectionIssue, setSelectionIssue] = useState<{
+    key: string;
+    message: string;
+  } | null>(null);
+  const [clearedSelection, setClearedSelection] = useState<{
+    value?: WorkspaceSelection;
+  } | null>(null);
+  const [defaultSelection, setDefaultSelection] = useState<WorkspaceSelection>();
+  const defaultAttempted = useRef(false);
+  const effectiveSelection =
+    clearedSelection && clearedSelection.value === initialSelection
+      ? undefined
+      : initialSelection ?? defaultSelection;
+  const currentKey = selectionKey(effectiveSelection);
+  const selectionPending = validated?.key !== currentKey;
+  const appliedRequests = useRef(new Set<string>());
+  const scopeSequence = useRef(0);
+  const previousSelectionKey = useRef(currentKey);
   const [context, setContext] = useState<Context | null>(null);
   const [error, setError] = useState(initialError ?? "");
   const [proposalLoading, setProposalLoading] = useState(
@@ -100,17 +112,22 @@ function WorkspaceContent({
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [command, setCommand] = useState<Command | null>(null);
   const [form, setForm] = useState<{ action: Action; data: Row } | null>(null);
-  const [selected, setSelected] = useState<Row | null>(null);
-  const [provider, setProvider] = useState("Not started");
+  const [mode, setMode] = useState<"text" | "voice">("text");
   const [updated, setUpdated] = useState("");
   const [notice, setNotice] = useState("");
-  const messagesEnd = useRef<HTMLDivElement>(null);
+  const messageList = useRef<HTMLDivElement>(null);
   const proposalCard = useRef<HTMLElement>(null);
+  const open = useCallback((action: Action, data: Row = {}) => {
+    setForm({ action, data });
+    setProposal(null);
+    setNotice("");
+    setCommand(null);
+  }, []);
   const onError = useCallback((issue: unknown) => {
     if (issue instanceof SessionExpired) {
       setExpired(true);
       setContext(null);
-      setSelected(null);
+      setValidated(null);
       setMessages([]);
       history.current = [];
       setProposal(null);
@@ -131,7 +148,7 @@ function WorkspaceContent({
       void loadLinkedProposal(linkedProposalId, (path) => api<Proposal>(path))
         .then((saved) => {
           if (!active) return;
-          setProposal(saved);
+          setProposal(assertProposalScenario(saved, scenario));
           setNotice(
             "Linked proposal loaded. Review it below. Nothing has been confirmed.",
           );
@@ -151,7 +168,13 @@ function WorkspaceContent({
       active = false;
       clearTimeout(timer);
     };
-  }, [linkedProposalId, expired, account.membership.organization_id, onError]);
+  }, [
+    linkedProposalId,
+    expired,
+    account.membership.organization_id,
+    onError,
+    scenario,
+  ]);
   useEffect(() => {
     if (proposal?.proposal_id)
       proposalCard.current?.scrollIntoView({
@@ -159,22 +182,137 @@ function WorkspaceContent({
         block: "center",
       });
   }, [proposal?.proposal_id]);
-  const refresh = useCallback(async () => {
-    if (!account.membership.organization_id || expired) return;
+  const loadScope = useCallback(async () => {
+    if (!account.membership.organization_id)
+      throw new Error("Your account is not linked to operational data.");
+    const sequence = ++scopeSequence.current;
+    const next = assertScope(
+      await api<Context>(
+        `operations/context?scenario=${encodeURIComponent(scenario)}`,
+      ),
+      account,
+      scenario,
+    );
+    if (sequence === scopeSequence.current) setContext(next);
+    return next;
+  }, [account, scenario]);
+  const refresh = useCallback(async (): Promise<Context | null> => {
+    if (!account.membership.organization_id || expired) return null;
     try {
-      const next = await api<Context>(
-        `operations/context?scenario=${SCENARIO}`,
-      );
-      if (next.actor.user_id !== account.id || next.actor.role !== role)
-        throw new SessionExpired(
-          "The signed-in account changed. Reopen the workspace.",
-        );
-      setContext(next);
+      const next = await loadScope();
       setUpdated(new Date().toLocaleTimeString("en-GB"));
+      return next;
     } catch (issue) {
       onError(issue);
+      return null;
     }
-  }, [account.id, account.membership.organization_id, expired, onError, role]);
+  }, [account.membership.organization_id, expired, loadScope, onError]);
+  useEffect(() => {
+    if (expired || !account.membership.organization_id) return;
+    let active = true;
+    const timer = setTimeout(() => {
+      if (previousSelectionKey.current !== currentKey) {
+        previousSelectionKey.current = currentKey;
+        setForm(null);
+        setProposal(null);
+        setCommand(null);
+        setNotice("");
+      }
+      void loadScope()
+        .then((next) => {
+          resolveSelection(next, effectiveSelection);
+          if (active) {
+            // Use only a freshly verified role scope, once. An explicit selection,
+            // a linked review or Clear selection always takes precedence.
+            if (!defaultAttempted.current && !clearedSelection && initialSelection === undefined && !requestedAction && !linkedProposalId && !initialError && presentation !== "role") {
+              defaultAttempted.current = true;
+              const preferred = defaultAssistantSelection(next);
+              if (preferred) setDefaultSelection(preferred);
+            }
+            setValidated({ key: currentKey, selection: effectiveSelection });
+            setSelectionIssue(null);
+          }
+        })
+        .catch((issue) => {
+          if (!active) return;
+          setValidated({ key: currentKey });
+          setSelectionIssue({
+            key: currentKey,
+            message:
+              issue instanceof Error
+                ? issue.message
+                : "The selection could not be checked.",
+          });
+          onError(issue);
+        });
+    }, 0);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [
+    currentKey,
+    effectiveSelection,
+    expired,
+    account.membership.organization_id,
+    loadScope,
+    onError,
+    clearedSelection,
+    initialSelection,
+    requestedAction,
+    linkedProposalId,
+    initialError,
+    presentation,
+  ]);
+  useEffect(() => {
+    if (
+      !requestedAction ||
+      presentation === "role" ||
+      expired ||
+      busy ||
+      selectionPending ||
+      appliedRequests.current.has(requestedAction.requestId)
+    )
+      return;
+    let active = true;
+    const timer = setTimeout(() => {
+      setForm(null);
+      setProposal(null);
+      setCommand(null);
+      setError("");
+      void loadScope()
+        .then((next) => {
+          if (!active) return;
+          // Intent only: validation and opening the editable form never POST or confirm.
+          resolveSelection(next, effectiveSelection);
+          openRequestedAction(
+            next,
+            requestedAction,
+            appliedRequests.current,
+            open,
+          );
+        })
+        .catch((issue) => {
+          if (!active) return;
+          appliedRequests.current.add(requestedAction.requestId);
+          onError(issue);
+        });
+    }, 0);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [
+    requestedAction,
+    presentation,
+    expired,
+    busy,
+    selectionPending,
+    effectiveSelection,
+    loadScope,
+    onError,
+    open,
+  ]);
   useEffect(() => {
     const first = setTimeout(() => {
       void refresh();
@@ -188,65 +326,68 @@ function WorkspaceContent({
     };
   }, [refresh]);
   useEffect(() => {
-    messagesEnd.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-    });
+    const list = messageList.current;
+    if (list) list.scrollTop = list.scrollHeight;
   }, [messages]);
   const append = useCallback((next: Message[]) => {
     history.current = [...history.current, ...next].slice(-40);
     setMessages([...history.current]);
   }, []);
-  const turn = useCallback(
-    async (input: string): Promise<Turn> => {
-      if (expired || inFlight.current)
-        throw new Error(
-          "Please wait for the current request before speaking or typing again.",
-        );
-      inFlight.current = true;
-      setBusy(true);
-      setError("");
-      const previous = conversationHistory(history.current);
-      append([{ role: "user", content: input }]);
-      try {
-        const answer = await api<Turn>("conversation/chat", {
-          message: input,
-          history: previous,
-          scenario: SCENARIO,
-          ...(selected
-            ? {
-                selection: {
-                  ...(selected.case_id ? { case_id: selected.case_id } : {}),
-                  ...(selected.work_item_id
-                    ? { work_item_id: selected.work_item_id }
-                    : {}),
-                  ...(selected.connection_id
-                    ? { connection_id: selected.connection_id }
-                    : {}),
-                },
-              }
-            : {}),
-        });
-        if (typeof answer.reply !== "string")
-          throw new Error("The conversation service did not return a reply.");
-        append([{ role: "assistant", content: answer.reply }]);
-        setProvider(answer.provider || "Unknown provider");
-        if (answer.proposal) {
-          setProposal(answer.proposal);
-          setForm(null);
-          setCommand(null);
-        }
-        return answer;
-      } catch (issue) {
-        onError(issue);
-        throw issue;
-      } finally {
-        inFlight.current = false;
-        setBusy(false);
+  const { current, selectionError } = (() => {
+    const issue =
+      selectionIssue?.key === currentKey ? selectionIssue.message : "";
+    if (selectionPending || !context || issue)
+      return { current: null, selectionError: issue };
+    try {
+      return {
+        current: resolveSelection(context, validated?.selection),
+        selectionError: "",
+      };
+    } catch (error) {
+      return {
+        current: null,
+        selectionError:
+          error instanceof Error ? error.message : "Selection unavailable.",
+      };
+    }
+  })();
+  async function turn(input: string): Promise<Turn> {
+    if (expired || inFlight.current || selectionPending || selectionError)
+      throw new Error(
+        "Please wait for the current request before speaking or typing again.",
+      );
+    inFlight.current = true;
+    setBusy(true);
+    setError("");
+    const previous = conversationHistory(history.current);
+    append([{ role: "user", content: input }]);
+    try {
+      const fresh = await loadScope();
+      resolveSelection(fresh, validated?.selection);
+      const answer = await api<Turn>("conversation/chat", {
+        message: input,
+        history: previous,
+        scenario,
+        ...(validated?.selection ? { selection: validated.selection } : {}),
+      });
+      if (typeof answer.reply !== "string")
+        throw new Error("The conversation service did not return a reply.");
+      append([{ role: "assistant", content: answer.reply }]);
+
+      if (answer.proposal) {
+        setProposal(assertProposalScenario(answer.proposal, scenario));
+        setForm(null);
+        setCommand(null);
       }
-    },
-    [append, expired, onError, selected],
-  );
+      return answer;
+    } catch (issue) {
+      onError(issue);
+      throw issue;
+    } finally {
+      inFlight.current = false;
+      setBusy(false);
+    }
+  }
   async function openDraft(proposalId: string) {
     if (expired || inFlight.current) return;
     inFlight.current = true;
@@ -257,7 +398,7 @@ function WorkspaceContent({
       const saved = await loadLinkedProposal(proposalId, (path) =>
         api<Proposal>(path),
       );
-      setProposal(saved);
+      setProposal(assertProposalScenario(saved, scenario));
       setForm(null);
       setCommand(null);
       setNotice(
@@ -272,22 +413,33 @@ function WorkspaceContent({
     }
   }
   async function prepare(action: Action, data: Row) {
-    if (inFlight.current) return;
+    if (expired || inFlight.current || selectionPending || selectionError)
+      return;
     inFlight.current = true;
     setBusy(true);
     setError("");
     setNotice("");
     try {
+      const fresh = await loadScope();
+      resolveSelection(fresh, validated?.selection);
+      validateRequestedAction(fresh, {
+        action,
+        data,
+        requestId: "form-review",
+      });
       const payload: Row = { ...data, idempotency_key: crypto.randomUUID() };
       if (action === "set_availability")
         for (const key of ["start", "end"])
           payload[key] = new Date(text(payload[key])).toISOString();
       setProposal(
-        await api<Proposal>("operations/proposals", {
-          action,
-          data: payload,
-          scenario: SCENARIO,
-        }),
+        assertProposalScenario(
+          await api<Proposal>("operations/proposals", {
+            action,
+            data: payload,
+            scenario,
+          }),
+          scenario,
+        ),
       );
       setCommand(null);
       setForm(null);
@@ -299,20 +451,35 @@ function WorkspaceContent({
     }
   }
   async function confirm() {
-    if (!proposal || inFlight.current) return;
+    if (
+      !proposal ||
+      expired ||
+      inFlight.current ||
+      selectionPending ||
+      selectionError
+    )
+      return;
     inFlight.current = true;
     setBusy(true);
     setError("");
     try {
+      assertProposalScenario(proposal, scenario);
+      const fresh = await loadScope();
+      validateRequestedAction(fresh, {
+        action: proposal.action,
+        data: proposal.data,
+        requestId: "confirm-review",
+      });
       const saved = await api<Command>(
         `operations/proposals/${encodeURIComponent(proposal.proposal_id)}/confirm`,
         {},
       );
       setCommand(saved);
       setProposal(null);
-      setNotice(
-        "The server returned the command below. Its status is the saved result.",
+      window.dispatchEvent(
+        new CustomEvent("daybreak:changed", { detail: { scenario } }),
       );
+      setNotice("");
       await refresh();
     } catch (issue) {
       onError(issue);
@@ -350,12 +517,15 @@ function WorkspaceContent({
       setCommand(result);
       setNotice(
         result.status === "cancelled"
-          ? "The server confirmed cancellation. The original operation was not executed."
+          ? "Request cancelled. The original operation was not executed."
           : result.status === "succeeded"
-            ? "The server recovered the saved result."
-            : "The command is still pending. Check its current recovery instructions.",
+            ? "Saved result retrieved."
+            : "Still processing. Check the request instructions below.",
       );
       await refresh();
+      window.dispatchEvent(
+        new CustomEvent("daybreak:changed", { detail: { scenario } }),
+      );
       return true;
     } catch (issue) {
       onError(issue);
@@ -366,800 +536,190 @@ function WorkspaceContent({
       setBusy(false);
     }
   }
-  function open(action: Action, data: Row = {}) {
-    setForm({ action, data });
-    setProposal(null);
-    setNotice("");
-    setCommand(null);
-  }
-  async function logout() {
-    // Unmounts voice immediately, clears private state, then revokes the cookie on the server.
-    setExpired(true);
-    setContext(null);
-    setSelected(null);
-    setMessages([]);
-    history.current = [];
-    setProposal(null);
-    setCommand(null);
+  function backToChat() {
     setForm(null);
-    try {
-      await api("cont/iesire", {});
-      window.location.assign(new URL("/intra", window.location.origin).href);
-    } catch (issue) {
-      onError(issue);
-    }
+    setProposal(null);
+    setCommand(null);
+    setNotice("");
+    setMode("text");
   }
-  const cases = context?.cases ?? [];
-  const work = context?.work_items ?? [];
-  const connections = context?.connections ?? [];
-  const current =
-    (selected &&
-      [...cases, ...work, ...connections].find(
-        (row) => id(row) === id(selected),
-      )) ||
-    selected;
-  const source = context?.plan.source ?? context?.source;
-  const nextStop =
-    context?.next_stop && typeof context.next_stop === "object"
-      ? (context.next_stop as Row)
-      : null;
+  const reviewing = Boolean(form || proposal || proposalLoading || command);
+  const unavailable = expired || !context || selectionPending || Boolean(selectionError);
+  const pendingCount = (context?.pending_proposals?.length ?? 0) + (context?.pending_commands?.length ?? 0);
   return (
-    <main className="db-workspace">
-      <header className="db-header">
-        <a href="/" className="db-brand">
-          <Zap size={24} fill="currentColor" />
-          daybreak
-        </a>
-        <div className="db-account">
-          <span className="db-role">{role}</span>
-          <span>{account.name || account.email}</span>
-          <button
-            className="db-icon"
-            aria-label="Sign out"
-            onClick={() => void logout()}
-          >
-            <LogOut size={18} />
-          </button>
-        </div>
-      </header>
-      <div className="db-page">
-        <section className="db-intro">
-          <p className="db-eyebrow">
-            YOUR{" "}
-            {role === "customer"
-              ? "SERVICE"
-              : role === "technician"
-                ? "CREW"
-                : "OPERATIONS"}{" "}
-            WORKSPACE
-          </p>
-          <h1>{TITLE[role]}</h1>
-          <p>{INTRO[role]}</p>
-        </section>
-        {expired ? (
-          <div className="db-alert" role="alert">
-            {error || "Your session ended."}{" "}
-            <a href={proposalSignInPath(linkedProposalId)}>Sign in again</a>
+    <div className={`db-workspace db-${presentation}`}>
+      {presentation !== "role" && (
+        <div className="db-assistant-heading">
+          <span className="db-assistant-symbol"><Sparkles size={19} aria-hidden="true" /></span>
+          <div>
+            <h2>Daybreak assistant</h2>
+            <p>{role === "customer" ? "Help with your connections and cases." : role === "technician" ? "Your visits, findings and next steps." : "Help with cases, evidence and plan decisions."}</p>
           </div>
-        ) : (
-          <>
-            {!account.membership.organization_id && (
-              <section className="db-panel">
-                <h2>Your connection is not linked yet.</h2>
-                <p>
-                  Ask your administrator to verify your service connection.
-                  Creating an account or changing your profile team does not
-                  grant access to operational data.
-                </p>
-              </section>
-            )}
-            {account.membership.organization_id && (
-              <>
-                <div className="db-provenance">
-                  <span>
-                    <i /> Synthetic demo · Historical scenario, 8 July 2025
-                  </span>
-                  <span>
-                    Source:{" "}
-                    {source === "local_run"
-                      ? "Local model run"
-                      : source === "demo_snapshot"
-                        ? "Saved demo, read only"
-                        : text(source) || "Waiting for operations service"}{" "}
-                    · Plan {text(context?.plan.plan_id) || "unavailable"} ·
-                    Updated {updated || "waiting"}
-                  </span>
-                  <button
-                    className="db-icon"
-                    aria-label="Refresh workspace"
-                    onClick={() => void refresh()}
-                  >
-                    <RefreshCw size={15} />
-                  </button>
-                </div>
-                {error && (
-                  <div className="db-alert" role="alert">
-                    {error}
-                    <button className="db-button" onClick={() => setError("")}>
-                      Dismiss
-                    </button>
+        </div>
+      )}
+      {expired ? (
+        <div className="db-alert" role="alert">
+          {error || "Your session ended."}{" "}
+          <a href={proposalSignInPath(linkedProposalId)}>Sign in again</a>
+        </div>
+      ) : !account.membership.organization_id ? (
+        <section className="db-panel">
+          <h2>Your connection is not linked yet.</h2>
+          <p>Ask your administrator to verify your service connection. Creating an account or changing your profile team does not grant access to operational data.</p>
+        </section>
+      ) : (
+        <>
+          {error && <div className="db-alert" role="alert">{error}<button className="db-button" onClick={() => setError("")}>Dismiss</button></div>}
+          {presentation !== "assistant" && <RoleOverview context={context} role={role} onRefresh={() => void refresh()} assistant={assistant} />}
+          {presentation !== "role" && (
+            <div className="db-assistant-content">
+              <div className="db-assistant-context">
+                {!reviewing && <div className="db-assistant-toolbar">
+                  <div className="db-mode-toggle" role="group" aria-label="Conversation mode">
+                    <button type="button" aria-pressed={mode === "text"} onClick={() => setMode("text")}><MessageSquare size={14} aria-hidden="true" />Text</button>
+                    <button type="button" aria-pressed={mode === "voice"} disabled={unavailable || busy} onClick={() => setMode("voice")}><Mic size={14} aria-hidden="true" />Voice</button>
                   </div>
+                  <span className="db-assistant-status" role="status">{busy ? "Working…" : context && !selectionPending ? "Ready" : "Connecting…"}</span>
+                </div>}
+                {!reviewing && context && context.cases.length > 0 && (!current || Boolean(current.case_id)) && (
+                  <label className="db-filter db-case-picker" htmlFor={`${messageId}-case`}>
+                    Case
+                    <select id={`${messageId}-case`} value={current?.case_id ? text(current.case_id) : ""} disabled={busy} onChange={(event) => {
+                      window.dispatchEvent(new CustomEvent("daybreak:assistant", { detail: { selection: event.target.value ? { case_id: event.target.value } : {}, scenario } }));
+                    }}>
+                      <option value="">Choose a case to discuss</option>
+                      {context.cases.map((item) => <option key={text(item.case_id)} value={text(item.case_id)}>{itemTitle(item, "Service case")} · #{text(item.case_id).slice(0, 8)}</option>)}
+                    </select>
+                  </label>
                 )}
-                {proposalLoading && (
-                  <p role="status">Loading your draft for review…</p>
-                )}
-                <DraftRequests
-                  proposals={context?.pending_proposals ?? []}
-                  busy={busy}
-                  onOpen={(id) => {
-                    void openDraft(id);
-                  }}
-                />
-                <PendingCommands
-                  commands={context?.pending_commands ?? []}
-                  actor={context?.actor ?? account.membership}
-                  busy={busy}
-                  onRetrieve={(id) => recoverCommand(id)}
-                  onCancel={(id, reason) => recoverCommand(id, reason)}
-                />
-                <div className="db-grid">
-                  <section className="db-context">
-                    {role === "customer" && (
-                      <section className="db-panel">
-                        <div className="db-section-title">
-                          <h2>Your service connection</h2>
-                          <span className="db-count">{connections.length}</span>
-                        </div>
-                        {connections.length ? (
-                          connections.map((connection) => (
-                            <article
-                              className="db-connection"
-                              key={id(connection)}
-                            >
-                              <p className="db-eyebrow">{id(connection)}</p>
-                              <h3>
-                                {text(
-                                  connection.label ??
-                                    connection.address ??
-                                    connection.post_id,
-                                ) || "Verified demo connection"}
-                              </h3>
-                              <p>
-                                {text(
-                                  connection.customer_summary ??
-                                    connection.summary,
-                                ) ||
-                                  "Only the connection linked to your verified account is shown."}
-                              </p>
-                              <button
-                                className="db-primary"
-                                disabled={busy}
-                                onClick={() => {
-                                  setSelected(connection);
-                                  open("create_case", {
-                                    connection_id: id(connection),
-                                  });
-                                }}
-                              >
-                                Report a problem <ArrowUpRight size={16} />
-                              </button>
-                            </article>
-                          ))
-                        ) : (
-                          <p className="db-muted">
-                            {context
-                              ? "No verified connection is available."
-                              : "Loading your connection…"}
-                          </p>
-                        )}
-                      </section>
-                    )}
-                    {role === "technician" && (
-                      <section className="db-panel db-shift">
-                        <p className="db-eyebrow">YOUR ASSIGNED ROUTE</p>
-                        <h2>Crew {account.membership.crew_id}</h2>
-                        <p className="db-badge">
-                          {label(context?.next_stop_status) ||
-                            "Waiting for approval"}
-                        </p>
-                        <p>
-                          Plan date:{" "}
-                          {text(context?.plan.plan_date) ||
-                            "Waiting for the plan"}
-                        </p>
-                        <p className="db-muted">
-                          {context?.next_stop_status === "approved_plan"
-                            ? "Stops and times come from the approved plan."
-                            : "This route is proposed and awaits dispatcher approval."}{" "}
-                          Times are planned, with no live GPS position or
-                          promise of arrival.
-                        </p>
-                        {nextStop && (
-                          <p>
-                            <strong>Next approved stop</strong>
-                            <br />
-                            {text(nextStop.work_item_id)} · {date(nextStop.eta)}
-                          </p>
-                        )}
-                        {rows(context?.routes ?? context?.plan.routes).map(
-                          (route, index) => (
-                            <div key={index}>
-                              {rows(route.stops).map((stop, i) => (
-                                <div className="db-stop" key={i}>
-                                  <span>{i + 1}</span>
-                                  <div>
-                                    {text(
-                                      stop.work_item_id ??
-                                        stop.post_id ??
-                                        stop.asset_id,
-                                    )}
-                                    <p className="db-muted">
-                                      {text(
-                                        stop.arrival ??
-                                          stop.arrival_time ??
-                                          stop.planned_start ??
-                                          stop.scheduled_start ??
-                                          stop.start_time ??
-                                          stop.eta,
-                                      )}
-                                    </p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          ),
-                        )}
-                      </section>
-                    )}
-                    {role === "dispatcher" && (
-                      <section className="db-panel db-decision">
-                        <p className="db-eyebrow">PLAN & CAPACITY</p>
-                        <h2>
-                          {work.length} work items. {cases.length} shared cases.
-                        </h2>
-                        <p>
-                          Plan date:{" "}
-                          {text(context?.plan.plan_date) || "Not available"}
-                        </p>
-                        <p className="db-muted">
-                          Review the model evidence before approving. Everyone
-                          sees the resulting operational state in their own
-                          scope.
-                        </p>
-                        <div className="db-actions">
-                          <button
-                            className="db-primary"
-                            disabled={
-                              busy ||
-                              !context?.plan.plan_id ||
-                              !account.membership.permissions.includes(
-                                "approve_plan",
-                              )
-                            }
-                            onClick={() =>
-                              open("approve_plan", {
-                                plan_id: context?.plan.plan_id,
-                              })
-                            }
-                          >
-                            Review plan approval <ArrowRight size={16} />
-                          </button>
-                          {account.membership.permissions.includes(
-                            "view_console",
-                          ) && (
-                            <a className="db-button" href="/app?console=1">
-                              Open detailed console
-                            </a>
-                          )}
-                        </div>
-                      </section>
-                    )}
-                    <section className="db-panel">
-                      <div className="db-section-title">
-                        <h2>
-                          {role === "customer" ? "Your cases" : "Shared cases"}
-                        </h2>
-                        <span className="db-count">{cases.length}</span>
+                {selectionPending && <p className="db-muted" role="status">Checking your current access…</p>}
+                {selectionError && <p className="db-alert" role="alert">{selectionError}</p>}
+                {((current && !current.case_id) || selectionError) && <div className="db-selection">
+                  <span>{current ? `About ${itemTitle(current, current.case_id ? "this case" : current.work_item_id ? "this visit" : "this connection")}` : "Selection unavailable"}</span>
+                  <button type="button" className="db-icon" disabled={busy} aria-label="Clear selection" onClick={() => {
+                    setClearedSelection({ value: initialSelection });
+                    backToChat();
+                    setError("");
+                  }}><X size={16} /></button>
+                </div>}
+                {!reviewing && context && current && !unavailable && <details className="db-context-menu"><summary>Actions</summary><div className="db-actions db-context-actions">
+                  {current.connection_id && !current.case_id && canPrepare(context, "create_case") ? <button className="db-button" disabled={busy} onClick={() => open("create_case", { connection_id: current.connection_id })}>Report a problem</button> : null}
+                  {current.case_id && canPrepare(context, "set_availability") ? <button className="db-button" disabled={busy} onClick={() => open("set_availability", { case_id: current.case_id })}>Share availability</button> : null}
+                  {current.work_item_id && canPrepare(context, "record_verdict") ? <button className="db-button" disabled={busy} onClick={() => open("record_verdict", { work_item_id: current.work_item_id })}>Record finding</button> : null}
+                  {current.work_item_id && canPrepare(context, "review_work_item") ? <button className="db-button" disabled={busy} onClick={() => open("review_work_item", { work_item_id: current.work_item_id })}>Review work</button> : null}
+                  <button className="db-button" disabled={busy} onClick={() => open("request_human", {
+                    ...(current.case_id ? { case_id: current.case_id } : {}),
+                    ...(current.connection_id ? { connection_id: current.connection_id } : {}),
+                  })}>Ask for help</button>
+                </div></details>}
+              </div>
+              {!reviewing ? (
+                <section className="db-panel db-chat" aria-label="Chat with Daybreak">
+                  {mode === "voice" && <Voice scenario={scenario} turn={turn} onError={onError} disabled={unavailable} />}
+                  <div className="db-messages" role="log" aria-label="Conversation" aria-live="polite" ref={messageList}>
+                    {!messages.length && <div className="db-welcome">
+                      <p>{role === "customer" ? "How can I help with your service today?" : role === "technician" ? "Ask about your next visit or record what you found." : "What would you like to review today?"}</p>
+                      <div className="db-quick-chips">
+                        <button className="db-suggestion" disabled={busy || unavailable} onClick={() => void turn(role === "technician" ? "What is my next stop and why?" : role === "dispatcher" ? "What needs my decision?" : "What is the status of my case?").catch(() => {})}>{role === "technician" ? "Next visit" : role === "dispatcher" ? "Needs review" : "Case update"}</button>
+                        <button className="db-suggestion" disabled={busy || unavailable} onClick={() => {
+                          if (context && canPrepare(context, "create_case")) open("create_case", current?.connection_id ? { connection_id: current.connection_id } : {});
+                          else { setMessage("I need help with a new request: "); document.getElementById(messageId)?.focus(); }
+                        }}>New request</button>
+                        <button className="db-suggestion" disabled={busy || unavailable} onClick={() => document.getElementById(messageId)?.focus()}>Ask a question</button>
                       </div>
-                      {cases.length ? (
-                        cases.map((item) => (
-                          <button
-                            className={`db-row ${id(current ?? {}) === id(item) ? "is-selected" : ""}`}
-                            key={id(item)}
-                            onClick={() => setSelected(item)}
-                          >
-                            <div>
-                              <strong>
-                                {text(
-                                  item.symptom ?? item.summary ?? item.title,
-                                ) || "Service case"}
-                              </strong>
-                              <p>
-                                {id(item)} · {text(item.connection_id)}
-                              </p>
-                              {findingText(item) && <p>{findingText(item)}</p>}
-                            </div>
-                            <span className="db-badge">
-                              {label(item.status) || "Open"}
-                            </span>
-                          </button>
-                        ))
-                      ) : (
-                        <p className="db-muted">
-                          {context
-                            ? "No cases in your scope yet."
-                            : "Loading cases…"}
-                        </p>
-                      )}
-                    </section>
-                    {role !== "customer" && (
-                      <section className="db-panel">
-                        <div className="db-section-title">
-                          <h2>
-                            {role === "technician"
-                              ? "Your assigned work"
-                              : "Work to review"}
-                          </h2>
-                          <span className="db-count">{work.length}</span>
-                        </div>
-                        <div className="db-work-list">
-                          {work.map((item) => (
-                            <button
-                              className={`db-row ${id(current ?? {}) === id(item) ? "is-selected" : ""}`}
-                              key={id(item)}
-                              onClick={() => setSelected(item)}
-                            >
-                              <div>
-                                <strong>
-                                  {text(
-                                    item.title ??
-                                      item.action ??
-                                      item.asset_id ??
-                                      item.work_item_id,
-                                  )}
-                                </strong>
-                                <p>
-                                  {id(item)} ·{" "}
-                                  {text(item.post_id ?? item.crew_id)}
-                                </p>
-                              </div>
-                              <span className="db-badge">
-                                {label(item.status ?? item.source)}
-                              </span>
-                            </button>
-                          ))}
-                          {context && !work.length && (
-                            <p className="db-muted">
-                              No assigned work is available in this scope.
-                            </p>
-                          )}
-                        </div>
-                      </section>
-                    )}
-                    {current && (
-                      <section className="db-panel db-detail">
-                        <p className="db-eyebrow">
-                          SELECTED{" "}
-                          {current.case_id
-                            ? "CASE"
-                            : current.work_item_id
-                              ? "WORK"
-                              : "CONNECTION"}
-                        </p>
-                        <h2>{id(current)}</h2>
-                        {findingText(current) && <p>{findingText(current)}</p>}
-                        {[
-                          "symptom",
-                          "status",
-                          "next_step",
-                          "customer_summary",
-                          "explanation",
-                          "reason",
-                          "planned_start",
-                          "planned_end",
-                          "outcome",
-                        ].map((key) =>
-                          text(current[key]) ? (
-                            <p key={key}>
-                              <span className="db-field-label">
-                                {label(key)}
-                              </span>
-                              {label(current[key])}
-                            </p>
-                          ) : null,
-                        )}
-                        {role !== "customer" && (
-                          <>
-                            <Assessment value={current.assessment} />
-                            <WorkExplanation value={current.explanation} />
-                          </>
-                        )}
-                        {rows(current.events).map((event, i) => (
-                          <p key={i} className="db-event">
-                            {date(event.created_at ?? event.ts)} ·{" "}
-                            {label(
-                              event.event_type ?? event.type ?? event.action,
-                            )}{" "}
-                            {text(event.summary ?? event.message)}
-                          </p>
-                        ))}
-                        <div className="db-actions">
-                          {role === "customer" && Boolean(current.case_id) && (
-                            <button
-                              className="db-button"
-                              disabled={busy}
-                              onClick={() =>
-                                open("set_availability", {
-                                  case_id: current.case_id,
-                                })
-                              }
-                            >
-                              Share availability
-                            </button>
-                          )}
-                          {role === "technician" &&
-                            Boolean(current.work_item_id) && (
-                              <button
-                                className="db-primary"
-                                disabled={busy}
-                                onClick={() =>
-                                  open("record_verdict", {
-                                    work_item_id: current.work_item_id,
-                                    ...(current.case_id
-                                      ? { case_id: current.case_id }
-                                      : {}),
-                                  })
-                                }
-                              >
-                                Record finding
-                              </button>
-                            )}
-                          {role === "dispatcher" &&
-                            Boolean(current.work_item_id) &&
-                            account.membership.permissions.includes(
-                              "review_work_item",
-                            ) && (
-                              <button
-                                className="db-primary"
-                                disabled={busy}
-                                onClick={() =>
-                                  open("review_work_item", {
-                                    work_item_id: current.work_item_id,
-                                  })
-                                }
-                              >
-                                Review work
-                              </button>
-                            )}
-                          <button
-                            className="db-button"
-                            disabled={busy}
-                            onClick={() =>
-                              open("request_human", {
-                                ...(current.case_id
-                                  ? { case_id: current.case_id }
-                                  : {}),
-                                ...(current.connection_id
-                                  ? { connection_id: current.connection_id }
-                                  : {}),
-                              })
-                            }
-                          >
-                            <CircleHelp size={16} /> Ask for help
-                          </button>
-                        </div>
-                      </section>
-                    )}
-                  </section>
-                  <aside className="db-conversation">
-                    <section className="db-panel db-chat">
-                      <div className="db-section-title">
-                        <h2>Daybreak, with you.</h2>
-                        <span className="db-badge">
-                          {busy ? "Working…" : "Ready"}
-                        </span>
-                      </div>
-                      <p className="db-muted">
-                        Ask in English or Romanian. Actions stay as drafts until
-                        you press Confirm.
-                      </p>
-                      <Voice
-                        scenario={SCENARIO}
-                        turn={turn}
-                        onError={onError}
-                        disabled={expired || !context}
-                      />
-                      <div
-                        className="db-messages"
-                        role="log"
-                        aria-label="Conversation"
-                        aria-live="polite"
-                      >
-                        {!messages.length && (
-                          <div className="db-welcome">
-                            <Zap size={25} />
-                            <p>
-                              {role === "customer"
-                                ? "Tell me what happened at your connection."
-                                : role === "technician"
-                                  ? "Ask what is next, why it matters, or tell me what you found."
-                                  : "Ask what needs a decision or compare the evidence behind two work items."}
-                            </p>
-                            <button
-                              className="db-suggestion"
-                              disabled={busy || !context}
-                              onClick={() => {
-                                void turn(
-                                  role === "technician"
-                                    ? "What is my next stop and why?"
-                                    : role === "dispatcher"
-                                      ? "What needs my decision?"
-                                      : "What is the status of my case?",
-                                ).catch(() => {});
-                              }}
-                            >
-                              Start with an update <ArrowRight size={14} />
-                            </button>
-                          </div>
-                        )}
-                        {messages.map((entry, i) => (
-                          <div className={`db-message ${entry.role}`} key={i}>
-                            <span>
-                              {entry.role === "user" ? "You" : "Daybreak"}
-                            </span>
-                            <p>{entry.content}</p>
-                          </div>
-                        ))}
-                        <div ref={messagesEnd} />
-                      </div>
-                      <form
-                        className="db-compose"
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          if (!message.trim() || busy) return;
-                          const input = message;
-                          setMessage("");
-                          void turn(input).catch(() => {});
-                        }}
-                      >
-                        <label className="sr-only" htmlFor="daybreak-message">
-                          Message Daybreak
-                        </label>
-                        <textarea
-                          id="daybreak-message"
-                          placeholder="Type your message…"
-                          maxLength={4000}
-                          value={message}
-                          onChange={(e) => setMessage(e.target.value)}
-                          disabled={expired}
-                        />
-                        <button
-                          className="db-primary"
-                          disabled={busy || !context || !message.trim()}
-                          aria-label="Send message"
-                        >
-                          <ArrowRight size={18} />
-                        </button>
-                      </form>
-                      <p className="db-provider">
-                        Conversation provider: {provider}. Technical estimates
-                        come from local energy models when valid evidence is
-                        available.
-                      </p>
-                    </section>
-                    {form && (
-                      <section className="db-panel">
-                        <ProposalForm
-                          key={`${form.action}-${JSON.stringify(form.data)}`}
-                          action={form.action}
-                          initial={form.data}
-                          onSubmit={prepare}
-                          onCancel={() => setForm(null)}
-                          busy={busy}
-                        />
-                      </section>
-                    )}
-                    {proposal && (
-                      <section
-                        className="db-panel db-proposal"
-                        ref={proposalCard}
-                        aria-label="Action proposal"
-                      >
-                        <p className="db-eyebrow">REVIEW BEFORE SAVING</p>
-                        <h2>{ACTION_NAMES[proposal.action]}</h2>
-                        <p>{proposal.summary}</p>
-                        <dl>
-                          {Object.entries(proposal.data)
-                            .filter(
-                              ([key]) => !["idempotency_key"].includes(key),
-                            )
-                            .map(([key, value]) => (
-                              <div key={key}>
-                                <dt>{label(key)}</dt>
-                                <dd>
-                                  {typeof value === "object"
-                                    ? JSON.stringify(value)
-                                    : text(value)}
-                                </dd>
-                              </div>
-                            ))}
-                        </dl>
-                        <p className="db-muted">
-                          Expires {date(proposal.expires_at)}. No change has
-                          been saved yet.
-                        </p>
-                        <div className="db-actions">
-                          <button
-                            className="db-primary"
-                            disabled={busy}
-                            onClick={() => void confirm()}
-                          >
-                            <Check size={17} />
-                            Confirm
-                          </button>
-                          <button
-                            className="db-button"
-                            disabled={busy}
-                            onClick={() => {
-                              setForm({
-                                action: proposal.action,
-                                data: proposal.data,
-                              });
-                              setProposal(null);
-                            }}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="db-button"
-                            disabled={busy}
-                            onClick={() => {
-                              setProposal(null);
-                              setNotice(
-                                "Proposal cancelled. No change was saved.",
-                              );
-                            }}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </section>
-                    )}
-                    {notice && (
-                      <p className="db-notice" role="status">
-                        {notice}
-                      </p>
-                    )}
-                    {command && (
-                      <section
-                        className="db-panel db-result"
-                        aria-label="Saved command"
-                      >
-                        <p className="db-eyebrow">SERVER RESULT</p>
-                        <h2>{label(command.status)}</h2>
-                        <p>Command {command.command_id}</p>
-                        {text(command.completed_at) && (
-                          <p className="db-muted">
-                            Saved {date(command.completed_at)}
-                          </p>
-                        )}
-                        {command.status === "reconciling" && (
-                          <p>
-                            Pending verification. Check the saved result before
-                            preparing another request.
-                          </p>
-                        )}
-                        {command.result?.case &&
-                        typeof command.result.case === "object" ? (
-                          <p>
-                            Case {text((command.result.case as Row).case_id)} ·{" "}
-                            {label((command.result.case as Row).status)}
-                          </p>
-                        ) : null}
-                        {command.result && (
-                          <dl>
-                            {Object.entries(command.result)
-                              .filter(
-                                ([, value]) =>
-                                  typeof value === "string" ||
-                                  typeof value === "number",
-                              )
-                              .map(([key, value]) => (
-                                <div key={key}>
-                                  <dt>{label(key)}</dt>
-                                  <dd>{text(value)}</dd>
-                                </div>
-                              ))}
-                          </dl>
-                        )}
-                        <button
-                          className="db-button"
-                          onClick={() => {
-                            void api<Command>(
-                              `operations/commands/${encodeURIComponent(command.command_id)}`,
-                            )
-                              .then(setCommand)
-                              .catch(onError);
-                          }}
-                        >
-                          Check saved result
-                        </button>
-                      </section>
-                    )}
-                  </aside>
+                    </div>}
+                    {messages.map((entry, i) => <div className={`db-message ${entry.role}`} key={i}><span>{entry.role === "user" ? "You" : "Daybreak"}</span><p>{entry.content}</p></div>)}
+                  </div>
+                  <form className="db-compose" onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!message.trim() || busy || unavailable) return;
+                    const input = message;
+                    setMessage("");
+                    void turn(input).catch(() => {});
+                  }}>
+                    <label className="sr-only" htmlFor={messageId}>Message Daybreak</label>
+                    <textarea id={messageId} rows={2} placeholder="Ask Daybreak…" maxLength={4000} value={message} onChange={(e) => setMessage(e.target.value)} disabled={unavailable || busy} />
+                    <button className="db-primary" disabled={busy || unavailable || !message.trim()} aria-label="Send message"><ArrowRight size={18} /></button>
+                  </form>
+                  <p className="db-provider">Changes stay as drafts until you press Confirm.</p>
+                </section>
+              ) : (
+                <div className="db-assistant-review">
+                  <button type="button" className="db-button db-back-chat" disabled={busy} onClick={backToChat}><ArrowLeft size={14} />Back to chat</button>
+                  {proposalLoading && <p role="status">Loading your draft for review…</p>}
+                  {form && !selectionPending && <section className="db-panel">
+                    <ProposalForm key={`${form.action}-${JSON.stringify(form.data)}`} action={form.action} initial={form.data} context={context ?? undefined} onSubmit={prepare} onCancel={backToChat} busy={busy} />
+                  </section>}
+                  {proposal && !selectionPending && <section className="db-panel db-proposal" ref={proposalCard} aria-label="Action proposal">
+                    <p className="db-eyebrow">Review before saving</p>
+                    <h2>{ACTION_NAMES[proposal.action]}</h2>
+                    <p>{proposal.summary}</p>
+                    <dl>{Object.entries(proposal.data).filter(([key]) => key !== "idempotency_key").map(([key, value]) => <div key={key}>
+                      <dt>{label(key)}</dt>
+                      <dd>{proposalField(context, key, value)}</dd>
+                    </div>)}</dl>
+                    <p className="db-muted">Expires {readableDate(proposal.expires_at)}. No change has been saved yet.</p>
+                    {proposal.action === "record_verdict" && <p className="db-muted">This records a finding. It does not confirm a repair or close the case.</p>}
+                    <div className="db-actions">
+                      <button className="db-primary" disabled={busy || unavailable} onClick={() => void confirm()}><Check size={17} />Confirm</button>
+                      <button className="db-button" disabled={busy || unavailable} onClick={() => { setForm({ action: proposal.action, data: proposal.data }); setProposal(null); }}>Edit</button>
+                      <button className="db-button" disabled={busy || unavailable} onClick={() => { setProposal(null); setNotice("Proposal cancelled. No change was saved."); }}>Cancel</button>
+                    </div>
+                  </section>}
+                  {command && <section className="db-panel db-result" aria-label="Request result">
+                    <h2>{commandHeading(command.status)}</h2>
+                    <p>{command.status === "succeeded" ? "Your request was saved." : command.status === "cancelled" ? "This request was cancelled." : command.status === "failed" ? "The request could not complete. Review its details before trying again." : "This request is awaiting verification. Check its result before starting another."}</p>
+                    <p className="db-muted">Request {command.command_id.slice(0, 8)} · {label(command.status)}{text(command.completed_at) ? ` · ${readableDate(command.completed_at)}` : ""}</p>
+                    {command.result?.case && typeof command.result.case === "object" ? <p>Case status: {label((command.result.case as Row).status)}</p> : null}
+                    <details className="db-details">
+                      <summary>Request receipt</summary>
+                      <p>Reference: {command.command_id}</p>
+                      <dl>{Object.entries(command.result ?? {}).filter(([, value]) => typeof value === "string" || typeof value === "number").map(([key, value]) => <div key={key}><dt>{label(key)}</dt><dd>{text(value)}</dd></div>)}</dl>
+                    </details>
+                    <button className="db-button" disabled={busy} onClick={() => {
+                      void api<Command>(`operations/commands/${encodeURIComponent(command.command_id)}`).then(setCommand).catch(onError);
+                    }}>Check request status</button>
+                  </section>}
                 </div>
-              </>
-            )}
-          </>
-        )}
-        <footer className="db-footer">
-          Daybreak · SmartHack 2026 · Synthetic demo. No outgoing calls, emails
-          or WhatsApp messages.
-        </footer>
-      </div>
-    </main>
-  );
-}
-
-function Assessment({ value }: { value: unknown }) {
-  if (!value || typeof value !== "object") return null;
-  const data = value as Row;
-  return (
-    <div className="db-assessment">
-      <p className="db-eyebrow">MODEL EVIDENCE</p>
-      <p>
-        {label(data.status)}
-        {text(data.reason) && ` · ${text(data.reason)}`}
-      </p>
-      <dl>
-        {[
-          "prediction_id",
-          "model_version",
-          "source",
-          "score",
-          "confidence",
-          "generated_at",
-          "plan_id",
-        ]
-          .filter((key) => data[key] !== undefined && data[key] !== null)
-          .map((key) => (
-            <div key={key}>
-              <dt>{label(key)}</dt>
-              <dd>{text(data[key])}</dd>
+              )}
+              {notice && <p className="db-notice" role="status">{notice}</p>}
+              {pendingCount > 0 && <details className="db-assistant-requests">
+                <summary>Drafts and pending requests <span className="db-count">{pendingCount}</span></summary>
+                <div>
+                  <DraftRequests proposals={context?.pending_proposals ?? []} busy={busy} onOpen={(id) => void openDraft(id)} />
+                  <PendingCommands commands={context?.pending_commands ?? []} actor={context?.actor ?? account.membership} busy={busy} onRetrieve={(id) => recoverCommand(id)} onCancel={(id, reason) => recoverCommand(id, reason)} />
+                </div>
+              </details>}
+              {presentation === "page" && <p className="db-muted">Synthetic demo · Current scope updated {updated || "when the service is ready"}.</p>}
             </div>
-          ))}
-      </dl>
-      {rows(data.top_factors ?? data.reasons).map((factor, i) => (
-        <p key={i}>
-          {text(factor.feature ?? factor.name ?? factor.description)}{" "}
-          {text(factor.value ?? factor.contribution)}
-        </p>
-      ))}
-      {Array.isArray(data.limitations) &&
-        data.limitations.map((item, i) => (
-          <p className="db-muted" key={i}>
-            {text(item)}
-          </p>
-        ))}
+          )}
+        </>
+      )}
     </div>
   );
 }
 
-function WorkExplanation({ value }: { value: unknown }) {
-  if (!value || typeof value !== "object") return null;
-  const explanation = value as Row;
-  return (
-    <div>
-      <h3>Why this work matters</h3>
-      <p>{englishText(text(explanation.summary_ro ?? explanation.summary))}</p>
-      {rows(explanation.top_factors).map((factor, i) => (
-        <p key={i}>
-          {englishText(
-            text(factor.label_ro ?? factor.description ?? factor.feature),
-          )}{" "}
-          {text(factor.value)}
-        </p>
-      ))}
-    </div>
-  );
+export function commandHeading(status: string): string {
+  if (status === "succeeded") return "Saved";
+  if (status === "cancelled") return "Cancelled";
+  if (status === "pending" || status === "running" || status === "processing") return "Processing";
+  return "Needs review";
+}
+export function defaultAssistantSelection(context: Context): WorkspaceSelection | undefined {
+  if (context.actor.role === "customer") {
+    const latest = [...context.cases].sort((a, b) => (Date.parse(text(b.created_at ?? b.updated_at)) || 0) - (Date.parse(text(a.created_at ?? a.updated_at)) || 0))[0];
+    return latest && text(latest.case_id) ? { case_id: text(latest.case_id) } : undefined;
+  }
+  if (context.actor.role === "technician" && (context.plan.approved === true || context.next_stop_status === "approved_plan") && context.next_stop && typeof context.next_stop === "object") {
+    const id = text((context.next_stop as Row).work_item_id);
+    if (id && context.work_items.some((item) => item.work_item_id === id)) return { work_item_id: id };
+  }
+  return undefined;
+}
+function proposalField(context: Context | null, key: string, value: unknown): string {
+  const items = key === "connection_id" ? context?.connections : key === "case_id" ? context?.cases : key === "work_item_id" ? context?.work_items : undefined;
+  const item = items?.find((row) => row[key] === value);
+  if (item) return itemTitle(item, key === "case_id" ? "Service case" : key === "work_item_id" ? "Assigned visit" : "Service connection");
+  if (["start", "end", "planned_start", "planned_end"].includes(key)) return readableDate(value);
+  return typeof value === "object" ? JSON.stringify(value) : text(value);
 }

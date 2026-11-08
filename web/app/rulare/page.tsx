@@ -2,7 +2,6 @@ import { requireConsole } from "@/lib/server/operations";
 import { englishText } from "@/lib/english";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { Suspense, type ComponentType } from "react";
 import { cn } from "cn";
@@ -103,15 +102,13 @@ async function Run({ searchParams }: { searchParams: PageProps<"/rulare">["searc
   const stepTime = (k: string) => (timings && typeof timings[k] === "number" ? fmtSeconds(timings[k]) : "—");
   const totalTime = timings ? ["perceive", "estimate", "decide", "act"].reduce((n, k) => n + (Number(timings[k]) || 0), 0) : null;
 
-  // aprobarea listei: din jurnal sau din cookie-ul acestui browser (ca pe pagina „Planul de mâine”)
+  // Approval comes only from the server audit, never a browser-only flag.
   let approved = false;
   if (plan) {
     const fromAudit = plan.audit.some(
       (a) => a.actor === "human" && /plan/i.test(a.action) && /aprob|approv/i.test(a.action) && Date.parse(a.ts) >= Date.parse(plan.plan.generated_at),
     );
-    const cookie = (await cookies()).get(`aprobat_${scenario}`)?.value;
-    const [cookiePlan, cookieAt] = cookie ? cookie.split("|") : [];
-    approved = fromAudit || (cookiePlan === plan.plan.plan_id && Boolean(cookieAt));
+    approved = fromAudit;
   }
   const waiting = plan ? plan.plan.decisions.filter((d) => d.decision === "human_review") : [];
 

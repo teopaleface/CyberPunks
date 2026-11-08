@@ -8,17 +8,18 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from 
 import type { ShellInfo } from "@/lib/server/queries";
 import { Provenance } from "./provenance";
 import { ScenarioSwitch } from "./scenario-switch";
-import { NAV } from "./side-nav";
+import { availableNav, navigationHref } from "./side-nav";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import type { WorkspaceAccount } from "@/lib/operations/types";
+import { AccountControls } from "./account-controls";
 
 /** Pe telefon, meniul include aceleași ecrane și setări ca meniul lateral. */
-export function MobileMenu({ info }: { info: ShellInfo }) {
+export function MobileMenu({ info, consoleAllowed = false, account }: { info?: ShellInfo; consoleAllowed?: boolean; account: WorkspaceAccount | null }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const scenario = useSearchParams().get("scenariu");
-  const q = scenario ? `?scenariu=${encodeURIComponent(scenario)}` : "";
   const links = [
-    ...NAV.map((n) => ({ href: `${n.href}${q}`, label: n.label, on: n.match(pathname) })),
+    ...availableNav(consoleAllowed, account?.membership.role).map((n) => ({ href: navigationHref(n.href, scenario), label: n.label, on: n.match(pathname) })),
   ];
   const item = "flex h-12 items-center gap-2 rounded-[10px] px-3 text-[16px] hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-ring";
   return (
@@ -37,13 +38,15 @@ export function MobileMenu({ info }: { info: ShellInfo }) {
               {l.label}
             </Link>
           ))}
-          <a href="/intra" className={`${item} text-ink-soft`}>Account</a>
         </nav>
         <div className="space-y-3">
           <ThemeToggle />
-          <p className="text-[13px] text-ink-soft">Scenario</p>
-          <ScenarioSwitch scenario={info.scenario} scenarios={info.scenarios} />
-          <Provenance {...info.provenance} />
+          {consoleAllowed && info ? <>
+            <p className="text-[13px] text-ink-soft">Scenario</p>
+            <ScenarioSwitch scenario={info.scenario} scenarios={info.scenarios} />
+            <Provenance {...info.provenance} />
+          </> : null}
+          {account ? <AccountControls name={account.name || account.email} /> : <a href="/intra" className={item}>Sign in</a>}
         </div>
       </SheetContent>
     </Sheet>

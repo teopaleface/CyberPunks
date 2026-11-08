@@ -27,7 +27,7 @@ const GESTURE_GAP = 240 // ms of quiet that ends one wheel gesture
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
 
 function enabledFor(w: number, h: number) {
-  return w >= 1024 && h >= 600 && !prefersReducedMotion() && window.matchMedia("(hover: hover) and (pointer: fine)").matches
+  return w >= 768 && h >= 500 && !prefersReducedMotion() && window.matchMedia("(hover: hover) and (pointer: fine)").matches
 }
 
 export function SectionSnap({ children }: { children: ReactNode }) {

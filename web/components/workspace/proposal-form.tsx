@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
-import type { Action, Row } from "@/lib/operations/types";
-import { text } from "@/lib/operations/types";
+import type { Action, Context, Row } from "@/lib/operations/types";
+import { rows, text } from "@/lib/operations/types";
+import { itemTitle } from "./scope";
 export const ACTION_NAMES: Record<Action, string> = {
   create_case: "Report a problem",
   record_verdict: "Record a finding",
@@ -63,12 +64,14 @@ export function ProposalForm({
   onSubmit,
   onCancel,
   busy,
+  context,
 }: {
   action: Action;
   initial: Row;
   onSubmit: (action: Action, data: Row) => Promise<void>;
   onCancel: () => void;
   busy: boolean;
+  context?: Context;
 }) {
   const [data, setData] = useState<Row>({
     symptom_type: "voltage",
@@ -97,7 +100,22 @@ export function ProposalForm({
       {FIELDS[action].map((key) => (
         <label key={key}>
           {LABELS[key]}
-          {OPTIONS[key] ? (
+          {context && ["connection_id", "case_id", "work_item_id", "plan_id", "crew_id"].includes(key) ? (
+            <select
+              value={text(data[key])}
+              disabled={busy}
+              required={
+                (key === "connection_id" && action === "create_case") ||
+                (key === "case_id" && action === "set_availability") ||
+                (key === "work_item_id" && ["record_verdict", "review_work_item"].includes(action)) ||
+                (key === "plan_id" && action === "approve_plan")
+              }
+              onChange={(e) => change(key, e.target.value)}
+            >
+              <option value="">{key === "crew_id" ? "All authorized crews" : `Choose ${LABELS[key].toLowerCase()}`}</option>
+              {referenceOptions(context, key).map(([value, title]) => <option key={value} value={value}>{title}</option>)}
+            </select>
+          ) : OPTIONS[key] ? (
             <select
               value={text(data[key])}
               onChange={(e) => change(key, e.target.value)}
@@ -150,4 +168,14 @@ export function ProposalForm({
       </div>
     </form>
   );
+}
+
+function referenceOptions(context: Context, key: string): [string, string][] {
+  if (key === "plan_id") return text(context.plan.plan_id) ? [[text(context.plan.plan_id), `Current plan${text(context.plan.plan_date) ? ` · ${text(context.plan.plan_date)}` : ""}`]] : [];
+  if (key === "crew_id") {
+    const crews = rows(context.crews ?? context.plan.crews ?? context.routes ?? context.plan.routes);
+    return [...new Map(crews.filter((row) => text(row.crew_id)).map((row) => [text(row.crew_id), text(row.name ?? row.label ?? row.crew_name) || `Crew ${text(row.crew_id)}`])).entries()];
+  }
+  const items = key === "connection_id" ? context.connections : key === "case_id" ? context.cases : context.work_items;
+  return items.map((row) => [text(row[key] ?? row.id), `${itemTitle(row, key === "case_id" ? "Service case" : key === "work_item_id" ? "Assigned visit" : "Service connection")}${key === "case_id" ? ` · #${text(row[key] ?? row.id).slice(0, 8)}` : ""}`]);
 }

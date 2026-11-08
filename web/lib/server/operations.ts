@@ -6,7 +6,7 @@ import { forward } from "../operations/gateway";
 export async function requireConsole(): Promise<void> {
   const user = await currentUser();
   if (!user) redirect("/intra");
-  if (!mayReadConsole(user)) redirect("/workspace");
+  if (!mayReadConsole(user)) redirect("/app");
 }
 export async function consoleDenied(): Promise<Response | null> {
   const user = await currentUser();

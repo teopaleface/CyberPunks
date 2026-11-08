@@ -63,6 +63,8 @@ def command(binary: str, cwd: Path, schema: Path, model: str) -> list[str]:
         "forced_login_method": '"chatgpt"',
         "model_provider": '"openai"',
         "model_reasoning_effort": '"low"',
+        "model_verbosity": '"low"',
+        "service_tier": '"priority"',
         "web_search": '"disabled"',
         "mcp_servers": "{}",
         "project_doc_max_bytes": "0",

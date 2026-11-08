@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from cyberpunks.channels.conversation import scoped_projection
+from cyberpunks.channels.conversation import checked_evidence, scoped_projection
 from cyberpunks.channels.models import ChannelError, ChatRequest
 
 from .conftest import call, intention
@@ -67,10 +67,55 @@ def test_dispatcher_projection_uses_real_selection_from_complete_context(env):
     assert comparison["work_items"] == [a, b]
 
 
+@pytest.mark.parametrize("message", ["Care este următoarea mea oprire și de ce?", "Why is this my next stop?"])
+def test_next_stop_question_retains_approved_job_details_and_full_queue_counts(env, message):
+    current = env["operations"].context(env["actors"]["technician"])
+    # This is still the full scoped source; the approved stop need not have the highest priority.
+    assert len(current["work_items"]) > 1
+    target = current["work_items"][-1]
+    current["next_stop"] = {"work_item_id": target["work_item_id"]}
+    projection = scoped_projection(current, ChatRequest(message=message))
+    assert projection["work_items"] == [target]
+    assert projection["projection"]["detail_selection"] == "approved_next_stop"
+    assert projection["projection"]["work_items_total"] == len(current["work_items"])
+    assert projection["plan"]["routes"] == current["plan"]["routes"]
+    explicit = current["work_items"][0]
+    chosen = scoped_projection(
+        current, ChatRequest(message=message, selection={"work_item_id": explicit["work_item_id"]})
+    )
+    assert chosen["work_items"] == [explicit]
+
+
 def test_selection_outside_scope_rejected_before_provider(env):
     r = call(env, selection={"work_item_id": "A-20250708-FOREIGN"})
     assert r.status_code == 404
     assert not env["provider"].prompts
+
+
+def test_evidence_can_reference_input_wrapper_without_bypassing_exact_value_checks():
+    context = {"next_stop": {"eta": "2025-07-08T08:32:00+03:00"}}
+    proof = intention(
+        kind="read", reply="Următoarea oprire este la 08:32.",
+        evidence=[{"path": "/scoped_context/next_stop/eta", "value_json": '"2025-07-08T08:32:00+03:00"'}],
+    )
+    assert checked_evidence(proof, context) == [{"path": "/next_stop/eta", "value": context["next_stop"]["eta"]}]
+    proof.evidence[0].value_json = '"2025-07-08T09:32:00+03:00"'
+    with pytest.raises(ChannelError, match="verified source"):
+        checked_evidence(proof, context)
+
+
+def test_input_wrapper_cannot_bypass_unavailable_prediction_check():
+    context = {"work_items": [{"assessment": {"status": "unavailable"}, "prediction": {"score": 0.9}}]}
+    proof = intention(
+        kind="read", reply="The score is 0.9.",
+        evidence=[{"path": "/scoped_context/work_items/0/prediction/score", "value_json": "0.9"}],
+    )
+    with pytest.raises(ChannelError) as error:
+        checked_evidence(proof, context)
+    assert error.value.code == "assessment_unavailable"
+    proof.evidence[0].path = "/scoped_context/scoped_context/work_items/0/prediction/score"
+    with pytest.raises(ChannelError):
+        checked_evidence(proof, context)
 
 
 def test_foreign_organization_never_reaches_provider(env):

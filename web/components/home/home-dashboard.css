@@ -1,0 +1,16 @@
+.home-dashboard-grid {
+  display: grid;
+  grid-template-areas: "decision" "assistant" "plan";
+  align-items: start;
+  gap: 20px;
+}
+.home-dashboard-decision { grid-area: decision; }
+.home-dashboard-plan { grid-area: plan; }
+.home-dashboard-assistant { grid-area: assistant; scroll-margin-top: 24px; }
+@media (min-width: 1280px) {
+  .home-dashboard-grid {
+    grid-template-columns: minmax(0, 1fr) 400px;
+    grid-template-areas: "decision assistant" "plan assistant";
+    grid-template-rows: auto 1fr;
+  }
+}

@@ -2,6 +2,32 @@
 
 Implementarea locală acoperă clientul, tehnicianul și dispecerul din planul conversațional. Catalogul complet are 80 de cazuri și situații; extensiile P1/P2 din plan nu sunt toate implementate. Interfața este în engleză, iar conversația răspunde în română sau engleză.
 
+## Pornire pe alt laptop, din `main`
+
+`git pull` transferă sursa și instantaneul complet `outputs/demo`, nu conturile locale, sesiunile, baza SQLite sau fișierele private. Nu copiați parole ori tokenuri în Git.
+
+```sh
+git switch main
+git pull --ff-only origin main
+uv sync
+(cd web && bun install)
+uv run cyberpunks run --scenario demo-vara
+python3 scripts/daybreak_runtime.py prepare --named-accounts
+python3 scripts/daybreak_runtime.py start
+```
+
+`prepare` cere parola demonstrativă în terminal, fără afișare, pentru `client@daybreak.ro`, `tehnician@daybreak.ro` și `dispecer@daybreak.ro`. Fiecare laptop își păstrează configurația privată; aceeași parolă pe două laptopuri se introduce separat pe fiecare. Un runtime existent este păstrat, nu resetat. Comanda `cyberpunks run` generează intrările complete și planul. Folosește modelele publicate în repo și construiește local componentele bilanțului care lipsesc; prima pornire poate dura câteva minute. `prepare` copiază apoi rularea completă într-un director izolat; nu folosește graficele parțiale din instantaneul landingului. Datele demonstrative sunt istorice și includ intrări sintetice etichetate.
+
+După pornire, într-un al doilea terminal din rădăcina proiectului:
+
+```sh
+python3 scripts/daybreak_runtime.py accounts
+```
+
+Deschideți **http://127.0.0.1:3870/app**. Acesta este runtime-ul cu conturi și baza operațională; API-ul este pe 8720. `3736` a fost o copie temporară pentru verificarea designului, iar `3730` aparține landingului vechi. Nu folosiți aceste porturi pentru verificarea conturilor. Pe desktop, landingul trece între secțiuni cu câte un gest; pe ecran tactil sau cu mișcarea redusă activată păstrează derularea accesibilă.
+
+Dacă parola ori apartenența unui cont local existent diferă, provisionarea refuză suprascrierea. Nu folosiți `--new-run` pentru a remedia automat o demonstrație activă. Codex, ElevenLabs și WhatsApp cer configurarea privată separată descrisă mai jos; clonarea repo-ului nu transferă autentificările lor.
+
 ## Pornire
 
 ```sh
@@ -11,7 +37,7 @@ python3 scripts/daybreak_runtime.py start
 python3 scripts/daybreak_runtime.py accounts
 ```
 
-Aplicația este la `http://127.0.0.1:3870/workspace`, API-ul privat pe 8720. Procesele vechi de pe 3710 și 8710 sunt separate. Comanda accounts păstrează identificatorii și parolele existente; upgrade-ul verificat al dispecerului sintetic acordă numai recuperarea comenzilor. Nu se folosește prepare --new-run peste o demonstrație activă, deoarece creează alte identități și necesită refacerea asocierilor.
+Aplicația este la `http://127.0.0.1:3870/app`, API-ul privat pe 8720. Procesele vechi de pe 3710 și 8710 sunt separate. Comanda accounts păstrează identificatorii și parolele existente; upgrade-ul verificat al dispecerului sintetic acordă numai recuperarea comenzilor. Nu se folosește prepare --new-run peste o demonstrație activă, deoarece creează alte identități și necesită refacerea asocierilor.
 
 Credențialele celor trei conturi sunt generate și păstrate numai în fișierul privat ignorat `outputs/runtime/daybreak.env`. Nu copiați fișierul în chat, prezentare sau Git. Celelalte configurări private sunt în același director, cu acces numai pentru utilizator. Nu se cere o cheie OpenAI nouă.
 
@@ -69,3 +95,19 @@ Configurarea callbackului folosește [API-ul oficial Meta pentru subscriptions](
 `python3 scripts/daybreak_sync_live_accounts.py` citește numai înregistrările conturilor și indexurile lor de email din KV-ul live și le copiază în KV-ul local. Păstrează parola derivată, identificatorul și apartenența; nu copiază sesiuni sau aprobări și nu scrie pe live. Refuză coliziunile cu un alt cont local, păstrează o copie privată de siguranță și recitește fiecare valoare după import. La prima copiere a existat un singur cont live, fără apartenență operațională. Drepturile locale se atribuie separat, explicit.
 
 La cererea ulterioară a lui Teo, conturile demonstrative sunt dispecer@daybreak.ro, tehnician@daybreak.ro și client@daybreak.ro, cu rolurile corespunzătoare, local și pe live. Parola cerută este păstrată numai în configurarea privată. Identificatorii existenți sunt păstrați, inclusiv asocierea WhatsApp a tehnicianului. Autentificarea existentă acceptă parola contului; crearea și resetarea obișnuită păstrează minimul de șase caractere. Provisionarea administrativă permite minimum patru caractere și o parolă comună numai pentru cele trei adrese și roluri exacte. Formularul a fost verificat cu toate cele trei roluri în ambele medii. Versiunea publicată din sursa comisă este 2c071473-84fb-4923-a5e7-2135d343fad1. Serviciul operațional Python continuă să ruleze local.
+
+## Agentul în consola existentă
+
+La cererea lui Teo, integrarea separată /workspace a fost înlocuită cu agentul din consola existentă. /app deschide planul original pentru dispecer, iar tehnicianul și clientul folosesc același AppShell cu datele autorizate. /workspace este numai o redirecționare de compatibilitate, inclusiv pentru propuneri. Navigarea, Wordmark, componentele DS, temele și culorile semantice PPC sunt comune site-ului.
+
+Dashboardul /app include direct asistentul, alături de rezumat și cazul sau vizita relevantă. Nu există buton plutitor sau sertar peste ecran. Textul este modul implicit; vocea are o filă separată. Paginile de detaliu transmit lucrarea deschisă printr-o cerere temporară, limitată la contul și scenariul curent, apoi deschid dashboardul. Butoanele de aprobare și revizuire deschid acolo formularul, fără scriere sau succes local fictiv. Aprobarea nu se deduce din cookie-uri. Contextul, rolul și scenariul sunt reverificate; după confirmare se actualizează consola.
+
+Verificare locală a dashboardului: trei conturi la 1440×1100, 1024×900 și 390×844, fără alerte sau depășiri orizontale; schimbarea temei; revizuire din detaliul lucrării în asistentul inline, fără efect automat; pregătire și anulare de propunere fără caz nou sau schimbarea versiunii planului; răspuns Codex real fără operație executată. 209 teste web, build Next izolat, typecheck și lint trec. Confirmarea efectivă fusese verificată în integrarea anterioară. Microfonul și difuzorul fizic nu au fost retestate în această etapă. Această corecție UI este verificată local, fără deploy.
+
+## Actualizare vocală pentru prezentare
+
+`python3 scripts/daybreak_channels.py tune-presentation` actualizează numai cei trei agenți existenți, verifică dependențele uneltelor, păstrează o copie privată a configurației anterioare și recitește rezultatul. Activează filtrarea vocilor din fundal, v4 Turbo, eager și confirmarea scurtă înaintea cererii. Limita este 10 minute și 30 sesiuni pe zi pentru fiecare rol. Nu pornește conversații și nu trimite mesaje. Notele vocale WhatsApp folosesc Scribe v2 și Eleven v4.
+
+Dacă Meta întoarce 190/463, tokenul temporar a expirat. Generează un token nou în aplicația Meta existentă, apoi rulează `python3 scripts/daybreak_whatsapp_setup.py refresh-token`. Introducerea este ascunsă, iar tokenul se salvează numai după verificarea aplicației, a dreptului de mesagerie și a numărului. Nu îl pune în chat sau în argumentele comenzii. Serviciul îl preia fără restart. Starea confirmată pe 8 noiembrie la 01:54: token expirat, callback activ și verificat, fără probă WhatsApp nouă.
+
+Răspunsul conversațional local măsurat după actualizare este circa 12 secunde; viteza și zgomotul din sala reală rămân de verificat. O notă vocală WhatsApp nu testează detectarea sfârșitului de vorbire din conversația live.

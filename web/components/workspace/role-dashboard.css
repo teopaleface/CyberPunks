@@ -1,0 +1,826 @@
+/* Local to the role dashboard; colors follow the shared PPC light/dark tokens. */
+.role-dashboard {
+  width: 100%;
+  max-width: 1512px;
+  min-width: 0;
+  margin-inline: auto;
+  padding: 32px;
+  color: var(--ink);
+  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.role-dashboard *,
+.role-dashboard *::before,
+.role-dashboard *::after {
+  box-sizing: border-box;
+}
+.role-dashboard p {
+  margin: 0;
+}
+.role-dashboard button {
+  cursor: pointer;
+}
+.role-dashboard button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.role-dashboard button:focus-visible,
+.role-dashboard input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+.rd-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+.rd-heading {
+  min-width: 0;
+}
+.rd-heading h1 {
+  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  font-size: 28px;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.25;
+}
+.rd-demo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px !important;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.rd-demo-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--idle);
+}
+.rd-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.rd-primary,
+.rd-secondary,
+.rd-refresh,
+.rd-text-button,
+.rd-row-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+.rd-primary {
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 1px solid var(--action);
+  border-radius: 9px;
+  color: var(--on-action);
+  background: var(--action);
+  white-space: nowrap;
+}
+.rd-primary:hover:not(:disabled) {
+  background: var(--action-hover);
+  border-color: var(--action-hover);
+}
+.rd-refresh {
+  width: 42px;
+  height: 42px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink-soft);
+}
+.rd-refresh:hover {
+  color: var(--ink);
+  background: var(--surface-2);
+}
+.rd-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.rd-summary-tile {
+  min-width: 0;
+  padding: 16px 18px;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+}
+.rd-summary-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 500;
+}
+.rd-summary-label > span {
+  display: flex;
+  color: var(--ink-soft);
+}
+.rd-tone-blue .rd-summary-label > span {
+  color: var(--src-a);
+}
+.rd-tone-amber .rd-summary-label > span {
+  color: var(--src-c-ink);
+}
+.rd-summary-value {
+  display: block;
+  margin-top: 9px;
+  font-size: 27px;
+  line-height: 1.2;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+.rd-summary-note {
+  display: block;
+  margin-top: 5px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.rd-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(380px, 32vw, 420px);
+  grid-template-areas: "focus assistant" "connections assistant" "cases assistant";
+  align-items: start;
+  align-content: start;
+  grid-auto-rows: min-content;
+  gap: 20px 24px;
+  min-width: 0;
+}
+.rd-technician .rd-content,
+.rd-dispatcher .rd-content {
+  grid-template-areas: "focus assistant" "work assistant" "cases assistant";
+}
+.rd-focus {
+  grid-area: focus;
+}
+.rd-assistant {
+  grid-area: assistant;
+  align-self: start;
+  min-width: 0;
+  position: sticky;
+  top: 24px;
+}
+.rd-connections {
+  grid-area: connections;
+}
+.rd-cases {
+  grid-area: cases;
+}
+.rd-work {
+  grid-area: work;
+}
+.rd-content > * {
+  min-width: 0;
+  scroll-margin-top: 24px;
+}
+.rd-focus-card,
+.rd-list,
+.rd-agent-placeholder {
+  min-width: 0;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--panel);
+}
+.rd-focus-card .rd-focus-body {
+  padding: 22px;
+}
+.rd-focus-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.rd-kicker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 550;
+}
+.rd-reference {
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+.role-dashboard .rd-focus-title,
+.rd-focus-body > h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1.35;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+.role-dashboard .rd-finding {
+  margin-top: 12px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.rd-next {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-left: 2px solid var(--src-a);
+  border-radius: 0 7px 7px 0;
+  background: color-mix(in srgb, var(--src-a) 5%, var(--panel));
+}
+.rd-next-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+.role-dashboard .rd-next-copy {
+  margin-top: 6px;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+.rd-timeline {
+  display: flex;
+  gap: 16px;
+  padding: 18px 0 0;
+  margin: 18px 0 0;
+  list-style: none;
+  border-top: 1px solid var(--rule);
+}
+.rd-timeline li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.rd-timeline-dot {
+  width: 6px;
+  height: 6px;
+  margin-top: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--src-a);
+}
+.rd-timeline strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 550;
+  color: var(--ink);
+}
+.rd-timeline li div > span {
+  display: block;
+  margin-top: 3px;
+  color: var(--ink-soft);
+  font-size: 11px;
+}
+.rd-focus-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin-top: 18px;
+}
+.rd-secondary {
+  min-height: 38px;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--input);
+  border-radius: 8px;
+  font-size: 12px;
+}
+.rd-secondary:hover:not(:disabled) {
+  border-color: var(--ink-soft);
+  background: var(--surface-2);
+}
+.rd-text-button {
+  min-height: 38px;
+  padding: 4px 0;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 0;
+  font-size: 12px;
+}
+.rd-text-button:hover {
+  color: var(--ink);
+}
+.rd-visit-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-top: 12px;
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+.rd-visit-meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.rd-visit-meta svg {
+  flex-shrink: 0;
+}
+.rd-list > header {
+  display: flex;
+  align-items: center;
+  padding: 17px 18px 0;
+}
+.rd-list > header h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.rd-section-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.rd-list .rd-list-body {
+  padding: 12px 0 0;
+}
+.rd-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 18px 12px;
+  padding: 0 10px;
+  border: 1px solid var(--rule);
+  background: var(--canvas);
+  border-radius: 7px;
+  color: var(--ink-soft);
+}
+.rd-search > svg {
+  flex-shrink: 0;
+}
+.role-dashboard .rd-search input[type="search"] {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 7px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 12px;
+  outline-offset: 4px;
+}
+.rd-search input::placeholder {
+  color: var(--muted-foreground);
+  opacity: 1;
+}
+.rd-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  text-align: left;
+}
+.rd-table th {
+  padding: 8px 18px;
+  background: color-mix(in srgb, var(--surface-2) 45%, var(--panel));
+  border-block: 1px solid var(--rule);
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 500;
+}
+.rd-table td {
+  height: 72px;
+  padding: 9px 18px;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: middle;
+}
+.rd-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.rd-table tbody tr[data-selected="true"] {
+  background: color-mix(in srgb, var(--src-a) 5%, var(--panel));
+}
+.rd-table tbody tr:hover {
+  background: var(--surface-2);
+}
+.rd-table .rd-status-cell {
+  width: 174px;
+  padding-left: 8px;
+}
+.rd-table-work .rd-status-cell {
+  width: 126px;
+}
+.rd-table .rd-action-cell {
+  width: 138px;
+  padding-left: 0;
+}
+.rd-item-select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+  padding: 0;
+  background: transparent;
+  color: var(--ink);
+  border: 0;
+  font-family: inherit;
+}
+.rd-cell-title {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-weight: 550;
+}
+.rd-item-select:hover .rd-cell-title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.rd-cell-meta {
+  display: block;
+  margin-top: 5px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.4;
+}
+.rd-table .rd-status-cell > span {
+  max-width: 100%;
+  font-size: 11px;
+  white-space: normal;
+  line-height: 1.35;
+}
+.rd-planned-time {
+  display: block;
+  color: var(--ink-soft);
+  font-size: 11px;
+  line-height: 1.4;
+}
+.rd-planned-time > span {
+  display: block;
+  margin-top: 3px;
+}
+.rd-row-action {
+  min-height: 36px;
+  width: 100%;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 7px;
+  color: var(--ink);
+  background: transparent;
+  font-size: 11px;
+  line-height: 1.35;
+}
+.rd-row-action svg {
+  flex-shrink: 0;
+}
+.rd-row-action:hover:not(:disabled) {
+  background: var(--surface-2);
+  border-color: var(--ink-soft);
+}
+.rd-mobile-time {
+  display: none;
+}
+.rd-connection {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  min-height: 70px;
+  max-height: 80px;
+  padding: 13px 18px;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  font-family: inherit;
+}
+.rd-connection:last-child {
+  border-bottom: 0;
+}
+.rd-connection:hover {
+  background: var(--surface-2);
+}
+.rd-connection > svg {
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+.rd-connection-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  color: var(--ink-soft);
+}
+.rd-connection-copy {
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+.rd-connection-copy strong {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-weight: 550;
+}
+.rd-connection-copy > span {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-top: 3px;
+  color: var(--ink-soft);
+  font-size: 11px;
+}
+.role-dashboard .rd-empty {
+  padding: 16px 18px 22px;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+.rd-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 8px 18px;
+  border-top: 1px solid var(--rule);
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.rd-pagination > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rd-pagination button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--ink);
+  background: transparent;
+}
+.rd-pagination button:hover:not(:disabled) {
+  background: var(--surface-2);
+  border-color: var(--rule);
+}
+.rd-agent-placeholder p {
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+.rd-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 1199px) {
+  .rd-content {
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 18px;
+  }
+  .rd-table-work .rd-status-cell {
+    display: none;
+  }
+  .rd-mobile-time {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin-top: 3px;
+    color: var(--ink-soft);
+    font-size: 11px;
+  }
+}
+@media (max-width: 1000px) {
+  .rd-content,
+  .rd-technician .rd-content,
+  .rd-dispatcher .rd-content {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "focus" "assistant" "connections" "cases";
+  }
+  .rd-technician .rd-content,
+  .rd-dispatcher .rd-content {
+    grid-template-areas: "focus" "assistant" "work" "cases";
+  }
+  .rd-assistant {
+    position: static;
+  }
+  .rd-table-work .rd-status-cell {
+    display: table-cell;
+  }
+  .rd-mobile-time {
+    display: none;
+  }
+}
+@media (max-width: 600px) {
+  .role-dashboard {
+    padding: 20px 16px 28px;
+  }
+  .rd-header {
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .rd-heading {
+    flex: 1 1 100%;
+  }
+  .rd-heading h1 {
+    font-size: 25px;
+  }
+  .rd-demo {
+    font-size: 11px;
+  }
+  .rd-header-actions {
+    width: 100%;
+    flex-direction: row-reverse;
+  }
+  .rd-primary {
+    flex: 1;
+    min-height: 42px;
+    font-size: 13px;
+  }
+  .rd-refresh {
+    border-color: var(--rule);
+  }
+  .rd-summary {
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .rd-summary-tile {
+    padding: 12px 10px;
+    border-radius: 9px;
+  }
+  .rd-summary-label {
+    font-size: 11px;
+    line-height: 1.35;
+  }
+  .rd-summary-label > span {
+    display: none;
+  }
+  .rd-summary-value {
+    font-size: 19px;
+    margin-top: 7px;
+    line-height: 1.2;
+  }
+  .rd-summary-note {
+    margin-top: 5px;
+    font-size: 10px;
+    line-height: 1.4;
+  }
+  .rd-content {
+    gap: 16px;
+  }
+  .rd-focus-card .rd-focus-body {
+    padding: 18px 16px;
+  }
+  .rd-focus-top {
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .rd-focus-top > span:last-child {
+    font-size: 11px;
+    white-space: normal;
+  }
+  .rd-kicker {
+    font-size: 11px;
+  }
+  .role-dashboard .rd-focus-title,
+  .rd-focus-body > h2 {
+    font-size: 20px;
+  }
+  .rd-next {
+    padding: 12px;
+    margin-top: 16px;
+  }
+  .role-dashboard .rd-next-copy {
+    font-size: 13px;
+  }
+  .rd-timeline {
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 15px;
+    margin-top: 16px;
+  }
+  .rd-timeline li div {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 3px 10px;
+  }
+  .rd-timeline li div > span {
+    margin: 0;
+  }
+  .rd-focus-actions {
+    gap: 6px 14px;
+    margin-top: 16px;
+  }
+  .rd-list > header {
+    padding: 15px 14px 0;
+  }
+  .rd-list > header h2 {
+    font-size: 14px;
+  }
+  .rd-search {
+    margin-inline: 14px;
+  }
+  .rd-table td {
+    height: 74px;
+    padding: 9px 14px;
+  }
+  .rd-table th {
+    padding: 7px 14px;
+  }
+  .rd-table .rd-status-cell {
+    width: 112px;
+    padding-left: 4px;
+  }
+  .rd-table-work .rd-status-cell {
+    display: none;
+  }
+  .rd-table .rd-action-cell {
+    width: 100px;
+    padding-left: 0;
+  }
+  .rd-mobile-time {
+    display: block;
+    font-size: 10px;
+  }
+  .rd-cell-title {
+    font-size: 12px;
+  }
+  .rd-cell-meta {
+    font-size: 10px;
+  }
+  .rd-table .rd-status-cell > span {
+    font-size: 10px;
+  }
+  .rd-row-action {
+    font-size: 10px;
+    min-height: 40px;
+    gap: 4px;
+    padding: 6px;
+  }
+  .rd-row-action svg {
+    display: none;
+  }
+  .rd-connection {
+    padding-inline: 14px;
+    gap: 10px;
+  }
+  .rd-pagination {
+    padding-left: 14px;
+  }
+}

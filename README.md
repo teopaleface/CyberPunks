@@ -6,6 +6,8 @@ Stare: în lucru, vezi [`status/ACUM.md`](status/ACUM.md). Planul: [`docs/PLAN.m
 
 ## Cum testezi
 
+Aplicația completă, cu conturi și baza operațională locală, rulează pe **http://127.0.0.1:3870/app**. Pentru un laptop nou, urmați secțiunea [Pornire pe alt laptop, din main](docs/operations/RUNBOOK.md#pornire-pe-alt-laptop-din-main). Conturile și baza locală nu se transferă prin `git pull`.
+
 Ghidul pentru echipă, cu pornirea demo-ului într-o singură comandă (`make demo`) și ce verifici pe fiecare ecran: [`docs/TESTARE.md`](docs/TESTARE.md).
 
 Pentru cele trei conturi, conversația prin Codex, vocea ElevenLabs și WhatsApp: [`docs/operations/RUNBOOK.md`](docs/operations/RUNBOOK.md). Această integrare rulează separat, local, fără publicarea site-ului.

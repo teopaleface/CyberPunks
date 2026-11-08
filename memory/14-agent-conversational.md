@@ -44,3 +44,21 @@ Tunelul și tokenul Meta sunt temporare. Procesele locale trebuie să rămână 
 ## Conturi nominale, 8 noiembrie
 
 Teo a cerut explicit aceleași trei conturi local și pe live: dispecer@daybreak.ro, tehnician@daybreak.ro și client@daybreak.ro, cu parola comună stabilită de el, păstrată numai privat. Conturile au fost configurate cu rolurile corespunzătoare, păstrând identificatorii și asocierea WhatsApp. Formularul a fost corectat pentru autentificarea cu parola existentă, păstrând minimul obișnuit la creare/resetare. Toate cele șase autentificări din formular, trei roluri în două medii, au trecut. Publicare din copie izolată a sursei comise, versiunea 2c071473-84fb-4923-a5e7-2135d343fad1. Serviciul operațional rămâne local.
+
+## Corecție cerută: integrare în consola veche
+
+Teo a respins explicit pagina separată de workspace. Agentul trebuie să fie funcțional în interfața veche, cu navigarea, componentele și paleta PPC ale restului site-ului. Implementarea locală folosește /app și AppShell pentru toate rolurile; dispecerul păstrează planul vechi, iar datele celorlalte roluri sunt filtrate. Agentul este un panou contextual comun, cu text, voce și confirmări. /workspace rămâne numai redirecționare compatibilă, fără produs separat. Butoanele existente de aprobare/revizuire deschid formularele agentului. Verificate toate rolurile pe desktop/mobil, conversație Codex reală și confirmarea unei sesizări. Nu reintroduceți o pagină cu branding separat pentru această funcție.
+
+## Corecție cerută: dashboard principal
+
+Teo a respins și lista de fișe cu agent într-un sertar lateral. Cerința curentă este un dashboard principal la /app: rezumat scurt, un caz sau o vizită relevantă, liste compacte și agent vizibil în pagină. Fără buton plutitor sau fereastră peste conținut. Clientul, tehnicianul și dispecerul păstrează datele și acțiunile permise rolului; navigarea, tema și paleta PPC rămân comune consolei existente. Formularele și propunerile se deschid în zona agentului, iar numai Confirm execută o acțiune. Această cerință înlocuiește alegerea anterioară a panoului contextual.
+
+## Voce pentru prezentare și verificare API, 8 noiembrie
+
+La cererea lui Teo, cele trei configurații existente ElevenLabs au fost actualizate prin API și recitite: filtrarea vocilor din fundal activă, turn_v3 în modul eager, timeout de tăcere 5 secunde, Eleven v4 Turbo cu expressive mode și salut în română. Agentul spune o confirmare scurtă înainte să ceară datele; întreruperile sunt blocate pe durata cererii și a răspunsului aferent. Autentificarea, rolurile, unealta unică și politica de confidențialitate au fost păstrate. Limita este 600 secunde și 30 sesiuni pe zi pentru fiecare rol, cu o singură sesiune simultană. Nu au fost pornite conversații ElevenLabs noi în această etapă.
+
+WhatsApp direct Meta folosește acum Scribe v2 și Eleven v4 pentru note vocale. O probă audio sintetică prin API a trecut sinteza și retranscrierea. Codex păstrează abonamentul existent, cu Fast și răspuns scurt; întrebările despre următoarea oprire primesc detaliile opririi aprobate, păstrând traseul și agregatele întregii surse autorizate. Corectată și normalizarea prefixului scoped_context din dovezi, fără slăbirea verificării valorilor sau a predicțiilor indisponibile. Proba comparabilă: 13,60 secunde înainte, 11,82 după; API-ul local repornit a răspuns corect în 12,00 secunde. Acestea sunt probe individuale, nu o garanție de latență.
+
+Interfața vocală locală are control de microfon, stare de pregătire și transmite coordonatorului doar răspunsul verificat. Typecheck, lint și probele locale relevante trec; microfonul fizic, boxele, zgomotul sălii și conversația live completă după aceste modificări rămân neverificate. Fără deploy.
+
+Blocaj actual WhatsApp: tokenul temporar Meta a expirat pe 8 noiembrie la 01:00 București. Debug Token confirmă is_valid=false, accesul la număr și schimbul de token răspund cu 190/463. Subscrierea rămâne activă și callbackul public răspunde corect la verificare. Nu au fost trimise mesaje de test. Comanda refresh-token din daybreak_whatsapp_setup.py cere tokenul ascuns, verifică aplicația, dreptul de mesagerie și numărul înainte de salvarea privată; serviciul recitește tokenul fără restart. Teo va testa o singură notă vocală după înlocuire.
