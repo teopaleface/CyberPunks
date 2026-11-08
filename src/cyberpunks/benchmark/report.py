@@ -18,6 +18,9 @@ CLASSES_RO = {"normal": "normal", "contor_client": "contor de client", "furt_ina
               "contor_bilant_setat": "contor de bilanț setat greșit"}
 
 
+BASE_RO = {"lightgbm": "LightGBM v2", "lightgbm_tuned": "LightGBM optimizat pe FeederBW"}
+
+
 def load(name: str) -> dict | None:
     p = OUT / f"{name}.json"
     return json.loads(p.read_text()) if p.exists() else None
@@ -46,7 +49,7 @@ def bilant_table(d: dict, base: str, cand: str, delta_key: str, title: str) -> l
     tb, tc = d[base]["test"], d[cand]["test"]
     dd = d[delta_key]
     rows = [f"### {title}", "", f"Etichete: {d['labels']}.", "",
-            f"| Metrica | LightGBM ({base}) | CatBoost | CatBoost − LightGBM, IC 90% |", "|---|---:|---:|---|",
+            f"| Metrica | {BASE_RO.get(base, base)} | CatBoost | CatBoost − LightGBM, IC 90% |", "|---|---:|---:|---|",
             f"| F1 macro | {f(tb['macro_f1'])} | {f(tc['macro_f1'])} | {ci(dd['macro_f1'])} |",
             f"| exactitate | {f(tb['accuracy'])} | {f(tc['accuracy'])} | |"]
     for c, ro in CLASSES_RO.items():
