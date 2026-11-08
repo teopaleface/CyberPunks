@@ -1,0 +1,645 @@
+{
+  "problem": "furtuni: probabilitatea zilei cu vârf ≥ 1% din clienți fără curent (zonă × zi)",
+  "data": "EAGLE-I (ORNL, CC BY 4.0) și Open-Meteo, REALE; 80 de comitate din 8 state SUA",
+  "split": "pe timp: antrenare (2023, 2024), test 2025",
+  "features": [
+    "gust_max",
+    "wind_max",
+    "gust_prev",
+    "gust_max_2d",
+    "precip",
+    "precip_48h",
+    "precip_7d",
+    "precip_hours",
+    "snow",
+    "snow_3d",
+    "ice_proxy",
+    "doy_sin",
+    "doy_cos",
+    "log_customers",
+    "log_density"
+  ],
+  "monotone_constraints": {
+    "gust_max": 1,
+    "wind_max": 1,
+    "gust_prev": 1,
+    "gust_max_2d": 1,
+    "precip": 1,
+    "precip_48h": 1,
+    "precip_7d": 1,
+    "precip_hours": 0,
+    "snow": 1,
+    "snow_3d": 1,
+    "ice_proxy": 1,
+    "doy_sin": 0,
+    "doy_cos": 0,
+    "log_customers": 0,
+    "log_density": 0
+  },
+  "calibration": "izotonică pe OOF (5 fold-uri pe săptămâni), identică pentru ambele",
+  "severity_model": "neschimbat (cuantilele LightGBM), în afara benchmarkului",
+  "tuning_budget": {
+    "lightgbm": "24 de configurații pe PR-AUC OOF (reports/B/tuning.json)",
+    "xgboost": "24 de configurații pe PR-AUC OOF, aceeași structură a grilei"
+  },
+  "xgboost_params": {
+    "objective": "binary:logistic",
+    "tree_method": "hist",
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "reg_lambda": 1.0,
+    "nthread": 4,
+    "seed": 42,
+    "eval_metric": "logloss",
+    "max_depth": 4,
+    "min_child_weight": 4.0,
+    "learning_rate": 0.04,
+    "rounds": 300,
+    "max_bin": 255
+  },
+  "xgboost_grid": [
+    {
+      "max_depth": 4,
+      "min_child_weight": 4.0,
+      "learning_rate": 0.04,
+      "rounds": 300,
+      "oof_pr_auc": 0.2905,
+      "oof_brier": 0.078
+    },
+    {
+      "max_depth": 4,
+      "min_child_weight": 10.0,
+      "learning_rate": 0.04,
+      "rounds": 300,
+      "oof_pr_auc": 0.2901,
+      "oof_brier": 0.078
+    },
+    {
+      "max_depth": 5,
+      "min_child_weight": 4.0,
+      "learning_rate": 0.02,
+      "rounds": 600,
+      "oof_pr_auc": 0.2901,
+      "oof_brier": 0.0781
+    },
+    {
+      "max_depth": 5,
+      "min_child_weight": 4.0,
+      "learning_rate": 0.02,
+      "rounds": 300,
+      "oof_pr_auc": 0.29,
+      "oof_brier": 0.0781
+    },
+    {
+      "max_depth": 5,
+      "min_child_weight": 4.0,
+      "learning_rate": 0.04,
+      "rounds": 300,
+      "oof_pr_auc": 0.2898,
+      "oof_brier": 0.0781
+    },
+    {
+      "max_depth": 4,
+      "min_child_weight": 4.0,
+      "learning_rate": 0.02,
+      "rounds": 600,
+      "oof_pr_auc": 0.2896,
+      "oof_brier": 0.0781
+    },
+    {
+      "max_depth": 3,
+      "min_child_weight": 4.0,
+      "learning_rate": 0.02,
+      "rounds": 600,
+      "oof_pr_auc": 0.289,
+      "oof_brier": 0.0781
+    },
+    {
+      "max_depth": 5,
+      "min_child_weight": 10.0,
+      "learning_rate": 0.02,
+      "rounds": 300,
+      "oof_pr_auc": 0.2889,
+      "oof_brier": 0.0781
+    },
+    {
+      "max_depth": 5,
+      "min_child_weight": 10.0,
+      "learning_rate": 0.02,
+      "rounds": 600,
+      "oof_pr_auc": 0.2889,
+      "oof_brier": 0.0781
+    },
+    {
+      "max_depth": 4,
+      "min_child_weight": 10.0,
+      "learning_rate": 0.02,
+      "rounds": 600,
+      "oof_pr_auc": 0.2885,
+      "oof_brier": 0.0781
+    },
+    {
+      "max_depth": 5,
+      "min_child_weight": 10.0,
+      "learning_rate": 0.04,
+      "rounds": 300,
+      "oof_pr_auc": 0.2884,
+      "oof_brier": 0.0782
+    },
+    {
+      "max_depth": 3,
+      "min_child_weight": 4.0,
+      "learning_rate": 0.04,
+      "rounds": 300,
+      "oof_pr_auc": 0.2879,
+      "oof_brier": 0.0782
+    },
+    {
+      "max_depth": 3,
+      "min_child_weight": 4.0,
+      "learning_rate": 0.04,
+      "rounds": 600,
+      "oof_pr_auc": 0.2879,
+      "oof_brier": 0.0782
+    },
+    {
+      "max_depth": 3,
+      "min_child_weight": 10.0,
+      "learning_rate": 0.02,
+      "rounds": 600,
+      "oof_pr_auc": 0.2879,
+      "oof_brier": 0.0782
+    },
+    {
+      "max_depth": 3,
+      "min_child_weight": 10.0,
+      "learning_rate": 0.04,
+      "rounds": 300,
+      "oof_pr_auc": 0.2874,
+      "oof_brier": 0.0782
+    },
+    {
+      "max_depth": 3,
+      "min_child_weight": 10.0,
+      "learning_rate": 0.04,
+      "rounds": 600,
+      "oof_pr_auc": 0.2866,
+      "oof_brier": 0.0783
+    },
+    {
+      "max_depth": 4,
+      "min_child_weight": 4.0,
+      "learning_rate": 0.02,
+      "rounds": 300,
+      "oof_pr_auc": 0.2862,
+      "oof_brier": 0.0783
+    },
+    {
+      "max_depth": 4,
+      "min_child_weight": 4.0,
+      "learning_rate": 0.04,
+      "rounds": 600,
+      "oof_pr_auc": 0.2862,
+      "oof_brier": 0.0785
+    },
+    {
+      "max_depth": 4,
+      "min_child_weight": 10.0,
+      "learning_rate": 0.02,
+      "rounds": 300,
+      "oof_pr_auc": 0.286,
+      "oof_brier": 0.0783
+    },
+    {
+      "max_depth": 4,
+      "min_child_weight": 10.0,
+      "learning_rate": 0.04,
+      "rounds": 600,
+      "oof_pr_auc": 0.2859,
+      "oof_brier": 0.0785
+    },
+    {
+      "max_depth": 5,
+      "min_child_weight": 4.0,
+      "learning_rate": 0.04,
+      "rounds": 600,
+      "oof_pr_auc": 0.2831,
+      "oof_brier": 0.079
+    },
+    {
+      "max_depth": 3,
+      "min_child_weight": 4.0,
+      "learning_rate": 0.02,
+      "rounds": 300,
+      "oof_pr_auc": 0.2821,
+      "oof_brier": 0.0786
+    },
+    {
+      "max_depth": 3,
+      "min_child_weight": 10.0,
+      "learning_rate": 0.02,
+      "rounds": 300,
+      "oof_pr_auc": 0.282,
+      "oof_brier": 0.0786
+    },
+    {
+      "max_depth": 5,
+      "min_child_weight": 10.0,
+      "learning_rate": 0.04,
+      "rounds": 600,
+      "oof_pr_auc": 0.281,
+      "oof_brier": 0.079
+    }
+  ],
+  "lightgbm_params": {
+    "objective": "binary",
+    "learning_rate": 0.02,
+    "num_leaves": 31,
+    "min_data_in_leaf": 100,
+    "feature_fraction": 0.8,
+    "bagging_fraction": 0.8,
+    "bagging_freq": 1,
+    "lambda_l2": 1.0,
+    "monotone_constraints_method": "advanced",
+    "num_threads": 4,
+    "verbose": -1,
+    "seed": 42,
+    "rounds": 300
+  },
+  "reference_check": {
+    "report": {
+      "pr_auc": 0.2777,
+      "brier": 0.0841,
+      "capacity_customers_covered": 0.1671,
+      "source": "reports/B/metrics.json"
+    },
+    "reproduced": {
+      "pr_auc": 0.2777,
+      "brier": 0.0841,
+      "capacity_customers_covered": 0.1671
+    },
+    "matches_report": true
+  },
+  "test_2025": {
+    "lightgbm": {
+      "pr_auc": 0.2776740116695608,
+      "roc_auc": 0.7245503379402449,
+      "brier": 0.08411089905767892,
+      "log_loss": 0.2970364055444964,
+      "threshold": 0.16,
+      "precision_at_thr": 0.28026345673404496,
+      "recall_at_thr": 0.40942269409422694,
+      "recall_severe_at_thr": 0.49768875192604006,
+      "recall_extreme_at_thr": 0.5416666666666666,
+      "alerts_per_100_zone_days": 15.07876712328767,
+      "f1_at_thr": 0.3327490899285425
+    },
+    "xgboost": {
+      "pr_auc": 0.2738161783937029,
+      "roc_auc": 0.7235679256623194,
+      "brier": 0.08433658992456813,
+      "log_loss": 0.29758683986733203,
+      "threshold": 0.14,
+      "precision_at_thr": 0.2771680654185496,
+      "recall_at_thr": 0.42733908427339085,
+      "recall_severe_at_thr": 0.5084745762711864,
+      "recall_extreme_at_thr": 0.5568181818181818,
+      "alerts_per_100_zone_days": 15.914383561643836,
+      "f1_at_thr": 0.33624853152329987
+    },
+    "capacity": {
+      "k_crews_per_day": 8,
+      "zones": 80,
+      "results": {
+        "lightgbm": {
+          "customers_covered_share": 0.1671,
+          "events_caught_share": 0.2153,
+          "alert_precision": 0.2223
+        },
+        "xgboost": {
+          "customers_covered_share": 0.1654,
+          "events_caught_share": 0.2143,
+          "alert_precision": 0.2212
+        },
+        "aleator": {
+          "customers_covered_share": 0.0763,
+          "events_caught_share": 0.0946,
+          "alert_precision": 0.0976
+        },
+        "oracol": {
+          "customers_covered_share": 0.8855,
+          "events_caught_share": 0.7157,
+          "alert_precision": 0.7387
+        }
+      }
+    },
+    "delta_xgboost_minus_lightgbm": {
+      "pr_auc": {
+        "delta": -0.00386,
+        "ci90": [
+          -0.00641,
+          -0.00117
+        ],
+        "includes_zero": false,
+        "share_positive": 0.011,
+        "groups": 53,
+        "n_boot": 1000
+      },
+      "brier": {
+        "delta": 0.00023,
+        "ci90": [
+          3e-05,
+          0.00043
+        ],
+        "includes_zero": false,
+        "share_positive": 0.965,
+        "groups": 53,
+        "n_boot": 1000
+      },
+      "customers_covered_share": {
+        "delta": -0.00176,
+        "ci90": [
+          -0.01212,
+          0.00805
+        ],
+        "includes_zero": true,
+        "share_positive": 0.401,
+        "groups": 53,
+        "n_boot": 1000
+      },
+      "note": "Brier: o diferență NEGATIVĂ înseamnă că XGBoost e mai bine calibrat"
+    },
+    "oof_pr_auc_train": {
+      "lightgbm": 0.2916,
+      "xgboost": 0.2905
+    },
+    "thresholds_from_train_oof": {
+      "lightgbm": 0.16,
+      "xgboost": 0.14
+    },
+    "test_rows": 29200,
+    "test_events": 3014,
+    "train_rows": 58480
+  },
+  "bootstrap_unit": "săptămâna ISO din 2025, 1000 de reeșantionări, 90%",
+  "unseen_states": {
+    "per_state": {
+      "IL": {
+        "events": 238,
+        "prevalence": 0.0652,
+        "lightgbm_pr_auc": 0.20622,
+        "xgboost_pr_auc": 0.21415,
+        "lightgbm_brier": 0.05831,
+        "xgboost_brier": 0.05779
+      },
+      "KY": {
+        "events": 454,
+        "prevalence": 0.1244,
+        "lightgbm_pr_auc": 0.26578,
+        "xgboost_pr_auc": 0.27308,
+        "lightgbm_brier": 0.10251,
+        "xgboost_brier": 0.10196
+      },
+      "MI": {
+        "events": 372,
+        "prevalence": 0.1019,
+        "lightgbm_pr_auc": 0.2727,
+        "xgboost_pr_auc": 0.26252,
+        "lightgbm_brier": 0.08373,
+        "xgboost_brier": 0.08409
+      },
+      "MO": {
+        "events": 353,
+        "prevalence": 0.0967,
+        "lightgbm_pr_auc": 0.23215,
+        "xgboost_pr_auc": 0.22741,
+        "lightgbm_brier": 0.08227,
+        "xgboost_brier": 0.08265
+      },
+      "NY": {
+        "events": 273,
+        "prevalence": 0.0748,
+        "lightgbm_pr_auc": 0.23679,
+        "xgboost_pr_auc": 0.24373,
+        "lightgbm_brier": 0.06814,
+        "xgboost_brier": 0.06879
+      },
+      "OH": {
+        "events": 363,
+        "prevalence": 0.0995,
+        "lightgbm_pr_auc": 0.24433,
+        "xgboost_pr_auc": 0.23612,
+        "lightgbm_brier": 0.08403,
+        "xgboost_brier": 0.08429
+      },
+      "PA": {
+        "events": 470,
+        "prevalence": 0.1288,
+        "lightgbm_pr_auc": 0.28544,
+        "xgboost_pr_auc": 0.2697,
+        "lightgbm_brier": 0.10484,
+        "xgboost_brier": 0.10566
+      },
+      "VA": {
+        "events": 491,
+        "prevalence": 0.1345,
+        "lightgbm_pr_auc": 0.32548,
+        "xgboost_pr_auc": 0.31359,
+        "lightgbm_brier": 0.10806,
+        "xgboost_brier": 0.10845
+      }
+    },
+    "states": 8,
+    "lightgbm_pr_auc_mean": 0.25861,
+    "xgboost_pr_auc_mean": 0.25504,
+    "states_xgboost_better": 3,
+    "delta_mean_pr_auc": {
+      "delta": -0.00357,
+      "ci90": [
+        -0.00765,
+        0.00018
+      ],
+      "includes_zero": true,
+      "share_positive": 0.06,
+      "groups": 53,
+      "n_boot": 500
+    },
+    "bootstrap_unit": "săptămânile din 2025 (aceleași pentru toate statele), 500 de reeșantionări, 90%",
+    "reference_report_lightgbm_pr_auc_mean": 0.2586
+  },
+  "convection_experiment": {
+    "features_added": [
+      "cape_max",
+      "cape_max_2d",
+      "li_min",
+      "tcwv_max",
+      "dew_max",
+      "blh_max"
+    ],
+    "train_years": [
+      2023,
+      2024
+    ],
+    "data": "ERA5 orar (Open-Meteo) și GFS (CAPE, lifted index), REALE; tabel local",
+    "test_rows": 29200,
+    "with_convection": {
+      "lightgbm": {
+        "pr_auc": 0.2865287480302182,
+        "roc_auc": 0.7320912246832433,
+        "brier": 0.08353045743586167,
+        "log_loss": 0.29502356314074696,
+        "threshold": 0.15000000000000002,
+        "precision_at_thr": 0.27647181194091947,
+        "recall_at_thr": 0.4409422694094227,
+        "recall_severe_at_thr": 0.5300462249614792,
+        "recall_extreme_at_thr": 0.5757575757575758,
+        "alerts_per_100_zone_days": 16.46232876712329,
+        "f1_at_thr": 0.33985423858841574
+      },
+      "xgboost": {
+        "pr_auc": 0.2844509637587057,
+        "roc_auc": 0.7296303887695147,
+        "brier": 0.08365917466155551,
+        "log_loss": 0.2955336420477564,
+        "threshold": 0.16999999999999998,
+        "precision_at_thr": 0.2790390125633679,
+        "recall_at_thr": 0.42003981420039815,
+        "recall_severe_at_thr": 0.49768875192604006,
+        "recall_extreme_at_thr": 0.5340909090909091,
+        "alerts_per_100_zone_days": 15.537671232876713,
+        "f1_at_thr": 0.3353198251887168
+      },
+      "capacity": {
+        "k_crews_per_day": 8,
+        "zones": 80,
+        "results": {
+          "lightgbm": {
+            "customers_covered_share": 0.1791,
+            "events_caught_share": 0.2196,
+            "alert_precision": 0.2267
+          },
+          "xgboost": {
+            "customers_covered_share": 0.1804,
+            "events_caught_share": 0.221,
+            "alert_precision": 0.2281
+          },
+          "aleator": {
+            "customers_covered_share": 0.0763,
+            "events_caught_share": 0.0946,
+            "alert_precision": 0.0976
+          },
+          "oracol": {
+            "customers_covered_share": 0.8855,
+            "events_caught_share": 0.7157,
+            "alert_precision": 0.7387
+          }
+        }
+      },
+      "delta_xgboost_minus_lightgbm": {
+        "pr_auc": {
+          "delta": -0.00208,
+          "ci90": [
+            -0.00473,
+            0.00052
+          ],
+          "includes_zero": true,
+          "share_positive": 0.092,
+          "groups": 53,
+          "n_boot": 1000
+        },
+        "brier": {
+          "delta": 0.00013,
+          "ci90": [
+            -3e-05,
+            0.00028
+          ],
+          "includes_zero": true,
+          "share_positive": 0.908,
+          "groups": 53,
+          "n_boot": 1000
+        },
+        "customers_covered_share": {
+          "delta": 0.00125,
+          "ci90": [
+            -0.00885,
+            0.01243
+          ],
+          "includes_zero": true,
+          "share_positive": 0.511,
+          "groups": 53,
+          "n_boot": 1000
+        },
+        "note": "Brier: o diferență NEGATIVĂ înseamnă că XGBoost e mai bine calibrat"
+      }
+    },
+    "convection_gain_per_model": {
+      "lightgbm": {
+        "pr_auc_base": 0.27767,
+        "pr_auc_convection": 0.28653,
+        "delta": {
+          "delta": 0.00885,
+          "ci90": [
+            0.00249,
+            0.01568
+          ],
+          "includes_zero": false,
+          "share_positive": 0.991,
+          "groups": 53,
+          "n_boot": 1000
+        }
+      },
+      "xgboost": {
+        "pr_auc_base": 0.27382,
+        "pr_auc_convection": 0.28445,
+        "delta": {
+          "delta": 0.01063,
+          "ci90": [
+            0.00409,
+            0.01753
+          ],
+          "includes_zero": false,
+          "share_positive": 0.997,
+          "groups": 53,
+          "n_boot": 1000
+        }
+      }
+    },
+    "reference_report": {
+      "lightgbm_base": 0.2777,
+      "lightgbm_convection": 0.2865,
+      "source": "reports/B/experiments_extra.json"
+    }
+  },
+  "timing_s": {
+    "xgboost_grid_search_s": 76.549,
+    "lightgbm_train_oof_calibration_final_s": 11.718,
+    "lightgbm_predict_test_s": 0.0429,
+    "xgboost_train_oof_calibration_final_s": 2.72,
+    "xgboost_predict_test_s": 0.0134,
+    "loso_both_s": 117.057,
+    "conv_baza_lightgbm_train_oof_calibration_final_s": 13.151,
+    "conv_baza_lightgbm_predict_test_s": 0.0356,
+    "conv_baza_xgboost_train_oof_calibration_final_s": 2.684,
+    "conv_baza_xgboost_predict_test_s": 0.0124,
+    "conv_convectie_lightgbm_train_oof_calibration_final_s": 13.993,
+    "conv_convectie_lightgbm_predict_test_s": 0.0359,
+    "conv_convectie_xgboost_train_oof_calibration_final_s": 3.268,
+    "conv_convectie_xgboost_predict_test_s": 0.0135,
+    "threads": 4,
+    "test_rows": 29200
+  },
+  "environment": {
+    "git": "cd83de6",
+    "python": "3.12.14",
+    "machine": "arm64",
+    "system": "Darwin",
+    "cpu_count": 15,
+    "threads_per_model": 12,
+    "lightgbm": "4.7.0",
+    "catboost": "1.2.10",
+    "xgboost": "3.4.1",
+    "scikit_learn": "1.9.1",
+    "created_at": "2026-11-08T06:13:04+02:00"
+  },
+  "seconds_total": 259.8
+}
