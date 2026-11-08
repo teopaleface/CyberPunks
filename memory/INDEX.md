@@ -21,9 +21,11 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 | `15-date-experimente-eden.md` | Datele A, B și C de pe Eden: ce este în Git, reproducere, rezultate și limite |
 | `17-date-noi-si-optuna-eden.md` | Experimentele lui Eden din noaptea de 7-8 nov.: date noi, variabile meteo noi, Optuna pentru A, B, C |
 | `18-bilant-feederbw-optuna-eden.md` | Bilanț: profile reale FeederBW, limitele etichetelor sintetice și Optuna pentru LightGBM |
+| `20-benchmark-lightgbm-eden.md` | Benchmark CatBoost/XGBoost față de LightGBM pe bilanț, contoare și furtuni: niciun candidat nu câștigă, LightGBM rămâne |
 | `13-design-console.md` | Audit UI/UX cerut de Teo: consola aliniată cu landingul, lizibilitate, navigare și limitele verificării |
 | `14-agent-conversational.md` | Planul cu 80 de cazuri și implementarea locală: trei conturi, modele locale, Codex, voce reală și WhatsApp text verificat; nota vocală Meta încă neverificată |
 | `15-agent-decizii-si-canale.md` | Agentul implementat și activat live după feedbackul mentorului: coadă completă, execuție confirmată, telefon, rapoarte PNG și limitele probelor reale |
+| `22-evaluare-ml-0936.md` | Evaluarea calității ML pe baremul PPC, cu cifre reproduse și limitele testelor |
 | `journal.md` | Ce s-a întâmplat și ce s-a decis, cu ora |
 
 ## Reguli

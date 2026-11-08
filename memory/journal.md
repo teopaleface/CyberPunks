@@ -123,6 +123,18 @@ Pachetul activ FeederBW: F1 macro 0,58950 pe 13.200 ferestre, MAE pierdere norma
 
 Utilizatorul a aprobat revenirea. V2 a fost reconstruit din parametrii salvați și este activ; FeederBW rămâne pentru experimente. Pe aceleași 13.200 de ferestre simulate, F1 v2 0,75352 față de FeederBW 0,58950; MAE 5,398 față de 8,813 kWh/zi. V2 reproduce F1 și MAE din raportul istoric. Comparație: `reports/bilant/comparatie_v2_feederbw.json`; fuziunea nu a fost evaluată separat.
 
+### 2026-11-08 05:11 București — probă video pentru traseul unui tichet
+
+Scenariu HyperFrames de 36 s pentru demonstrație: clientul raportează un stâlp căzut în Banat, dispecerul primește tichetul #DB-010 într-o coadă cu nouă tichete, verifică riscul estimat și confirmă repartizarea, iar tehnicianul primește lucrarea. Am folosit interfețe simplificate în română, date sintetice marcate și un clip fără sunet pentru prezentare live. Sursa editabilă și exportul 1080p/30 fps sunt în copia locală `materiale/daybreak-flux/`. Verificările HyperFrames de rulare, layout, mișcare și contrast au trecut. Compoziția este separată de aplicația Daybreak.
+
+### 2026-11-08 05:27 București — animație cu ecranele Daybreak reale
+
+Am actualizat proba de 36 s la cererea utilizatorului. Portul 3710 servea o versiune mai veche, cu Plan pe ecranul principal. Capturile pentru film au fost făcute pe 3713 într-o copie izolată a versiunii locale actuale: Assistant și My cases pentru client, Service cases și aprobarea în Assistant pentru dispecer, Assigned work și Work details pentru tehnician. Conturile, cele zece tichete, evaluarea de risc și repartizarea sunt sintetice; răspunsurile și confirmările au fost simulate în browser. Notificarea de tichet nou, cursorul și marcajele sunt adăugate în HyperFrames. Aplicația activă pe 3710 nu a fost modificată. Verificat exportul H.264 1080p/30 fps, 36 s, în `materiale/daybreak-flux/daybreak-flux.mp4`.
+
+### 2026-11-08 05:44 București — videoclipul Daybreak pe main
+
+La cererea utilizatorului, am urcat exportul Daybreak de 36 s în `presentation/daybreak-flux.mp4` pe `origin/main`, commit `cfc097a`. Commitul publicat conține doar videoclipul.
+
 
 ### 2026-11-08 03:25 București — interogare API și corectarea agentului vocal
 
@@ -159,3 +171,27 @@ Teo cere verificarea și corectarea rulării locale pe Windows. Înlocuite bloc�
 Instalarea Python/Bun, build-ul web, pregătirea din setul complet inclus, pornirea API-ului și a paginii de autentificare, protecția API și provisionarea conturilor sintetice au trecut pe runner Windows nativ. 107 teste trec, 6 teste de configurare WhatsApp bazate pe permisiuni Unix sunt omise explicit; canalele externe cu fișiere private rămân documentate pentru WSL2. Linux: 113 teste și aceleași probe trec. Dovadă: GitHub Actions run 42439361553, job Windows 128605062645. Statusul general este cancelled: agentul a cerut oprirea pentru diagnostic când testele se terminaseră, iar curățarea încă rula; toate etapele funcționale au status success. Nu este probă a microfonului, a contului Codex al colegului sau a apelurilor pe PC-ul lui. Ghidul docs/WINDOWS.md folosește PowerShell, fără make; fișierele de predicții păstrează LF și pe Windows pentru proveniență stabilă. Integrarea main păstrează opțiunea existentă de conturi nominale și lucrul necomis al celorlalte fire. Fără deploy.
 
 - 09:29: Teo cere îmbinarea tuturor commiturilor Teo în main și push. Integrarea păstrează contribuțiile noi din main și configurația de pornire pe alt laptop; fișierele necomise din checkout-ul Teo rămân locale.
+### 2026-11-08 05:46 București — integrare Teo în Eden
+
+La cererea lui Eden, integrată ramura `origin/Teo` la `7e30868` în ramura locală `Eden`. Rezolvate conflictele din ghid, jurnal, pornirea runtime și afișarea evaluării bilanțului, păstrând alegerea bilanț v2 și suportul Windows. `origin/main` la `cfc097a` conține versiunea anterioară a agentului conversațional, fotografii și corecții, dar nu include încă modulele agentice noi de pe Teo; conține și videoclipul demo, într-un commit separat. Integrarea este locală, fără publicare sau repornire de servicii.
+
+### 2026-11-08 05:53 București — LangSmith pe Eden
+
+La cererea lui Eden, conversațiile care ajung la serviciul comun sunt instrumentate pentru LangSmith, cu activare din mediul privat și fără chei în Git. Trasarea conține întrebarea, rolul, canalul aproximativ și răspunsul; nu include ca metadate istoricul, identitatea sau contextul operațional complet. Proba folosește date sintetice și SDK simulat la transport, fără cont sau trimitere reală către LangSmith. Replicile ElevenLabs fără apel la serviciul Daybreak și livrarea în timpul întreruperilor rămân în afara garanției. Configurare și limite: `docs/operations/RUNBOOK.md`. Fără pornirea serviciilor sau deploy.
+
+### 2026-11-08 06:35 București — benchmark CatBoost/XGBoost față de LightGBM (Eden)
+
+La cererea lui Eden, am comparat CatBoost cu LightGBM la bilanț (testul v2 și FeederBW) și la contoare (SGCC, LCL de bază și LCL extins), apoi XGBoost cu LightGBM la furtuni (2025, state nevăzute și convecție, separat). Am folosit aceleași date, trăsături, teste, reguli după model și calibrare, cu buget de căutare comparabil și bootstrap 90% pe grupuri. Referințele LightGBM au fost refăcute exact.
+
+Decizii:
+- 05:58 — Lucrul se face pe ramura `Eden`, nu pe `Teo` cum spunea textul inițial: Eden a cerut explicit „totul pe branch-ul meu, Eden”.
+- 06:00 — CatBoost și XGBoost intră într-un grup separat de dependențe (`bench`), ca mediul implicit și demo-ul să nu se schimbe.
+- 06:05 — Contoare: nicio căutare pentru niciun model; LightGBM păstrează setările livrate, iar CatBoost primește setări echivalente, fixate înainte de test. Furtuni: XGBoost primește o grilă de 24 de configurații, ca LightGBM.
+- 06:10 — Predicțiile SGCC rămân locale, din cauza licenței; celelalte predicții intră în Git.
+- 06:35 — **LightGBM rămâne pe toate cele trei probleme.** CatBoost și XGBoost sunt la egalitate statistică sau pierd (LCL extins, furtuni 2025). Nu se schimbă nimic în `models/release/` sau în demo. Convecția la B rămâne recomandată, independent de algoritm.
+
+Detalii: `memory/20-benchmark-lightgbm-eden.md`, `reports/benchmark/RAPORT.md`.
+
+### 2026-11-08 09:36 București — evaluarea calității ML
+
+Scor neoficial pentru `origin/main` la `68d62bf`: **20/25**, cu cinci puncte posibile pentru fiecare dintre cele cinci aspecte ML enumerate de PPC. Scor estimat de până la 22/25 dacă benchmarkul local de pe `Eden` este inclus la predare. Am reprodus cifrele principale pentru contoare, furtuni și diagnosticul bilanțului. Pentru C am folosit raportul de evaluare. Toate cele 195 de teste ML au trecut. Scriptul de prezentare are încă F1 0,71 la bilanț, iar pachetul v2 verificat obține 0,75. Detalii în `memory/22-evaluare-ml-0936.md`.

@@ -42,3 +42,6 @@ presentation/**/*.wav
 presentation/**/renders/
 *.mov
 logs/
+
+# jurnalele automate CatBoost (benchmark)
+catboost_info/
