@@ -18,7 +18,7 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 | `12-probleme-reale-ppc-2026.md` | Research primit de Teo (14:30), neverificat: probleme reale 2026 pe cele 4 companii, cifre pentru B, C, bilanț, A, prezentare |
 | `13-design-console.md` | Audit UI/UX cerut de Teo: consola aliniată cu landingul, lizibilitate, navigare și limitele verificării |
 | `14-agent-conversational.md` | Planul cu 80 de cazuri și implementarea locală: trei conturi, modele locale, Codex, voce reală și WhatsApp text verificat; nota vocală Meta încă neverificată |
-| `15-agent-decizii-si-canale.md` | Planul agentic după feedbackul mentorului și pachetul redus la cinci prompturi pentru implementare paralelă: coadă completă, execuție confirmată, telefon și rapoarte PNG |
+| `15-agent-decizii-si-canale.md` | Agentul implementat și activat live după feedbackul mentorului: coadă completă, execuție confirmată, telefon, rapoarte PNG și limitele probelor reale |
 | `journal.md` | Ce s-a întâmplat și ce s-a decis, cu ora |
 
 ## Reguli

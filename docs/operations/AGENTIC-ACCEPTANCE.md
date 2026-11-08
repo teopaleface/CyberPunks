@@ -1,6 +1,6 @@
-# Acceptanța locală a agentului Daybreak
+# Acceptanța locală și live a agentului Daybreak
 
-8 noiembrie 2026. Implementarea este verificată local. Serviciile existente de demo nu au fost repornite, nu s-a publicat aplicația și nu s-au trimis mesaje sau apeluri de probă prin Meta.
+8 noiembrie 2026. Agentul este activ pe site-ul public. Secțiunile inițiale descriu verificarea locală, înainte de restart și publicare; probele reale, versiunea live și limitele actuale sunt în secțiunea de activare de la final.
 
 ## Comportamentul livrat
 
