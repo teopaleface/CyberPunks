@@ -234,8 +234,8 @@ export function PlanScreen({
 
   return (
     <>
-      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_clamp(460px,38vw,732px)]">
-        <div className={cn("relative min-h-0 overflow-hidden border-r border-rule", spotlight === "map" && "spot")}>
+      <div className="grid min-h-0 min-w-0 flex-1 grid-cols-[minmax(0,1fr)_clamp(460px,38vw,732px)] max-md:grid-cols-1 max-md:overflow-y-auto">
+        <div className={cn("relative min-h-0 max-md:min-h-[300px] overflow-hidden border-r border-rule", spotlight === "map" && "spot")}>
           <PlanMap
             className="absolute inset-0"
             items={mapItems}
@@ -270,7 +270,7 @@ export function PlanScreen({
             />
           ) : null}
         </div>
-        <aside className="flex min-h-0 flex-col bg-panel" aria-label="Decisions needing attention">
+        <aside className="flex min-h-0 min-w-0 flex-col bg-panel" aria-label="Decisions needing attention">
           <div className={cn(spotlight === "queue" && "spot spot-att")}>
             <QueuePanel queue={queue} itemsById={itemsById} scenario={data.scenario} onSelect={select} recovered={data.recovered} />
           </div>

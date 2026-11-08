@@ -50,11 +50,11 @@ export async function forwardPhoto(request: Request, item: { photoId: string } |
   if (upload && !body?.length) return fail(422, "Choose a photo to upload.");
   let target: URL;
   try {
-    target = backendUrl(deps.base, upload ? `/operations/work-items/${encodeURIComponent(item.workId)}/photos` : `/operations/photos/${item.photoId}`);
+    target = backendUrl(deps.base, upload ? `/operations/work-items/${encodeURIComponent(item.workId)}/photos` : `/operations/photos/${item.photoId}`, deps.trustedOrigin);
     target.searchParams.set("scenario", scenario);
   } catch { return fail(503, "The photo service is not configured."); }
   try {
-    const response = await deps.fetch(target, { method: request.method, cache: "no-store", redirect: "error", signal: AbortSignal.timeout(30000),
+    const response = await deps.fetch(target, { method: request.method, cache: "no-store", redirect: "manual", signal: AbortSignal.timeout(30000),
       headers: { authorization: `Bearer ${deps.token}`, "x-daybreak-actor": JSON.stringify(actorOf(user)), ...(upload ? { "content-type": mime } : {}) },
       ...(body ? { body: body as BodyInit } : {}) });
     if (!response.ok) {

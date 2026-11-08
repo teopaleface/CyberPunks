@@ -18,6 +18,14 @@ Estimarea din plan este 4–7,5 ore pentru implementare și verificare, orientat
 
 Planul se bazează pe codul local, documentele operaționale, tema oficială PPC și documentația Meta/ElevenLabs. Au fost verificate legăturile și coerența documentelor, fără retestarea serviciilor live, apeluri, mesaje, modificări de conturi sau deploy. Demonstrația vizuală din chat descrie comportamentul propus și nu este o interfață implementată. Datele istorice și identitățile sintetice își păstrează etichetele.
 
+## Prompturi pentru lucru în paralel
+
+Teo a cerut apoi pregătirea cât mai multor prompturi pentru implementare paralelă, ca să scurteze timpul. Pachetul este în [docs/agentic-prompts](../docs/agentic-prompts/README.md): 19 prompturi, dintre care un coordonator, 14 joburi de implementare, două de verificare și două revizii independente. Contractele se îngheață înaintea consumatorilor; fiecare job are fișiere proprii, iar coordonatorul conectează fișierele centrale. La limita sesiunii se folosesc maximum trei copii simultan, pe lângă coordonator.
+
+Două analize delegate read-only, pentru împărțirea modulelor și criteriile de acceptanță, au fost încorporate și închise. Au clarificat că sursa operațională conține deja toate lucrările, coada human_review diferă de toate lucrările, citirea unei comenzi poate reconcilia, paginile PNG cer identificatori de livrare separați și proxy-ul JSON nu transportă implicit imaginea. Reluarea V1 cere identitate reverificată, nu doar actor salvat.
+
+Manifestul pachetului a fost verificat pentru 19 sarcini, 83 de căi deținute fără suprapunere, dependențe fără cicluri și legături locale valide. Aceste verificări privesc prompturile. Implementarea agentică, serviciile și trimiterile externe nu au fost pornite de această cerere.
+
 ## Predare pentru brainstorming, 8 noiembrie 2026
 
 Teo cere publicarea contextului și planului pe `main`, ca un alt coleg să poată propune mai multe idei. În firul principal a cerut și prompturi pentru implementare în paralel. La această predare, prompturile sunt cerute, nu confirmate ca finalizate; implementarea noului plan nu este dovedită.
@@ -32,3 +40,22 @@ Teo cere publicarea contextului și planului pe `main`, ca un alt coleg să poat
 - Identifică sarcini independente care pot fi implementate în paralel și dependențele dintre ele. Brainstormingul nu autorizează activarea serviciilor, plăți, mesaje, schimbări de cont sau deploy.
 
 Feedbackul de business susține direcția de produs. Încadrarea în tema PPC rămâne interpretarea echipei din documentul oficial, fără confirmare separată a mentorilor asupra regulamentului.
+
+## Simplificare acceptată
+
+Teo a considerat excesive cele 19 prompturi și a acceptat reducerea la cinci sarcini. Pachetul activ este docs/agentic-prompts/compact, cu integrarea și verificarea la coordonator. Primele trei joburi rulează după fixarea contractelor; al patrulea ocupă primul loc liber. Vechile prompturi sunt referință, nu joburi suplimentare. Implementarea nu a fost pornită.
+
+## Implementare locală autorizată, 2026-11-08 05:18 București
+
+Teo a cerut explicit începerea implementării. Cele patru joburi de implementare și integrarea au fost executate, cu maximum trei copii simultan; toate delegările sunt închise. Codul local include analiza întregii cozi, sarcini persistente și reluare autorizată, pregătire legată de versiuni, observație pasivă a efectului, carduri în conversație și rapoarte PNG conectate la registrul/workerul Meta. Confirmarea rămâne în aplicație.
+
+Verificări: 689 de lucrări, toate cele 25 de cazuri analizate, 262 de probe Python trecute, apoi 35 de regresii afectate repetate; 239 probe web trecute și șapte probe runtime web omise. TypeScript, lint și build Next izolat cu webpack trec. Codex real a parcurs două ture, cu task complet și confirmare necesară, fără efect operațional. Chromium real produce PNG, Meta este simulat în probe. Layoutul componentei reale a fost verificat static la 360 px.
+
+Corecții confirmate: proprietatea nullable task_goal trebuie inclusă în required pentru schema structurată Codex; observația nu poate apela command care reconciliază; raportul și sarcina se invalidează și când se schimbă versiunea cazului fără schimbarea planului; paginile PNG se persistă atomic înaintea trimiterii. Pentru build izolat folosiți cwd web și dependențe rezolvabile în acea rădăcină; symlinkul din afara rădăcinii a fost refuzat de Turbopack.
+
+Nu au fost repornite serviciile demo, publicată aplicația, schimbate conturi/configurații private sau trimise apeluri/mesaje Meta. Activarea și proba fizică nouă pe telefon rămân separate. Detalii în docs/operations/AGENTIC-ACCEPTANCE.md.
+
+
+## Activare autorizată, 8 noiembrie, 05:57
+
+Teo a cerut publicarea și testele live. Site-ul public este conectat la serviciul operațional existent prin intrarea restrânsă 8723 și o legătură HTTPS autentificată. Publicarea `39da5489-2891-453f-b8bd-6dbc84bcd661` include agentul; conturile și registrele au fost păstrate. Circuitul complet sintetic al celor trei roluri, analiza celor 25, confirmarea unică, fotografiile private și două imagini cu callback de livrare au fost verificate pe serviciile reale. Vocea a completat circuitul la a doua probă, dar testul strict al reproducerii identice a textului nu a trecut; prima probă a avut timeout. Apelul fizic este încă neconfirmat. Backendul și tunelurile depind de calculatorul pornit. Detalii: `docs/operations/AGENTIC-ACCEPTANCE.md`.

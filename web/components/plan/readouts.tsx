@@ -92,7 +92,7 @@ export function Readouts({
     },
   ];
   return (
-    <section aria-label="Daily figures" className="flex h-[88px] shrink-0 border-b border-rule bg-canvas [@media(max-height:950px)]:h-[76px]">
+    <section aria-label="Daily figures" className="flex min-w-0 overflow-x-auto h-[88px] shrink-0 border-b border-rule bg-canvas [@media(max-height:950px)]:h-[76px]">
       <div className="flex shrink-0 flex-col justify-center border-r border-rule bg-panel pr-7 pl-7 max-[1600px]:pr-5 max-[1600px]:pl-5">
         <h1 className="text-[21px] leading-tight font-[650] tracking-[-0.005em] whitespace-nowrap max-[1600px]:text-[18px]">
           {fmtDateLong(planDate)}

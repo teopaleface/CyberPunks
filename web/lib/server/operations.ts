@@ -26,8 +26,9 @@ export function proxy(
 ) {
   return forward(request, kind, path, {
     user: currentUser,
-    fetch,
+    fetch: (input, init) => fetch(input, init),
     base: process.env.API_BASE ?? "http://127.0.0.1:8720/api",
     token: process.env.DAYBREAK_INTERNAL_TOKEN,
+    trustedOrigin: process.env.DAYBREAK_WORKSPACE_ORIGIN,
   });
 }

@@ -978,6 +978,27 @@ class OperationsService:
             )
         return audit
 
+    def observe_effect(self, actor: Actor, proposal_id: str, scenario: str) -> dict:
+        """Observe the owner's saved result without resuming or reconciling any effect."""
+        context = self.context(actor, scenario)
+        p, cid = self._load_proposal(actor, proposal_id)
+        work_id = p["data"].get("work_item_id")
+        if work_id and not any(item["work_item_id"] == work_id for item in context.get("work_items", [])):
+            fail(404, "not_found", "Work item no longer available in your scope.")
+        if p["scenario"] != scenario:
+            fail(404, "not_found", "Proposal not found in your scenario.")
+        if not cid:
+            return {"status": "awaiting_confirmation", "proposal_id": proposal_id, "command": None}
+        with self.db.connect() as db:
+            row = db.execute(
+                "SELECT body FROM commands WHERE command_id=? AND user_id=? AND organization_id=? AND scenario=?",
+                (cid, actor.user_id, actor.organization_id, scenario),
+            ).fetchone()
+        if not row:
+            fail(404, "not_found", "Command not found in your scope.")
+        command = json.loads(row["body"])
+        return {"status": command["status"], "proposal_id": proposal_id, "command": command}
+
     def command(self, actor: Actor, command_id: str) -> dict:
         with self._lock():
             row = self._command_row(actor, command_id)

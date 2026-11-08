@@ -77,7 +77,7 @@ def prepare(*, new_run: bool = False, named_accounts: bool = False) -> None:
             if name == "work_items" and source_root.name == "demo":
                 inputs = ROOT / "data/local-runtime/plans/demo-vara/inputs"
                 if not inputs.is_dir():
-                    raise SystemExit("Missing complete local runtime prediction bundle.")
+                    raise SystemExit("Missing complete local source: runtime prediction bundle.")
                 shutil.copytree(inputs, target / name / "demo-vara")
                 manifest[name] = sum(p.is_file() for p in (target / name).rglob("*"))
                 continue

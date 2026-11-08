@@ -41,7 +41,9 @@ def create_app() -> FastAPI:
             if request.method not in ("GET", "HEAD", "OPTIONS") and not request.url.path.startswith(
                 ("/api/operations/", "/api/conversation/")
             ):
-                return JSONResponse({"detail": "Use a confirmed workspace proposal for operational changes."}, status_code=409)
+                return JSONResponse(
+                    {"detail": "Use a confirmed workspace proposal for operational changes."}, status_code=409
+                )
         response = await call_next(request)
         if request.url.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"
@@ -54,4 +56,18 @@ def create_app() -> FastAPI:
     runtime.include_router(legacy.api)
     runtime.include_router(operations_router)
     runtime.include_router(conversation_router)
+    from cyberpunks.agentic.router import create_router
+    from cyberpunks.agentic.task_store import TaskStore
+    from cyberpunks.operations.service import get_service
+
+    class OperationsProxy:
+        def __getattr__(self, name):
+            return getattr(get_service(), name)
+
+    class StoreProxy:
+        def __getattr__(self, name):
+            path = get_service().db_path.with_name("agentic-tasks.sqlite3")
+            return getattr(TaskStore(path), name)
+
+    runtime.include_router(create_router(OperationsProxy(), StoreProxy()))
     return runtime

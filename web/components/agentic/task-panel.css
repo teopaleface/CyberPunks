@@ -1,0 +1,37 @@
+.db-agent-task {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--rule, #333);
+  border-radius: 14px;
+  background: var(--panel, #111);
+  color: var(--ink, #eee);
+  font-size: 15px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.db-agent-task > * + * { margin-top: 12px; }
+.db-agent-task h3 { font-size: 20px; font-weight: 600; }
+.db-agent-task h4 { font-size: 16px; font-weight: 600; }
+.db-agent-case {
+  padding: 16px;
+  margin-top: 14px;
+  border: 1px solid var(--rule, #333);
+  border-radius: 10px;
+  background: var(--surface-2, #181818);
+}
+.db-agent-case > * + * { margin-top: 10px; }
+.db-agent-task details { color: var(--ink-soft, #aaa); font-size: 13px; }
+.db-agent-task summary { cursor: pointer; min-height: 32px; }
+.db-agent-evidence { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
+.db-agent-task button {
+  min-height: 42px;
+  padding: 9px 16px;
+  border: 1px solid var(--rule, #444);
+  border-radius: 9px;
+  background: var(--action, #f9cf12);
+  color: var(--on-action, #111);
+  font-weight: 600;
+  cursor: pointer;
+}
+.db-agent-task button:focus-visible { outline: 2px solid var(--ink, #eee); outline-offset: 3px; }
+.db-agent-task li { margin-top: 12px; }

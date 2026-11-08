@@ -101,11 +101,19 @@ async function request<T>(
   const url = apiUrl(pathname, options.query);
   const timeoutMs = options.timeoutMs ?? TIMEOUTS.getMs;
   const hasBody = options.body !== undefined;
+  let actorHeaders: Record<string, string> = {};
+  if (process.env.DAYBREAK_WORKSPACE_ORIGIN) {
+    const { currentUser } = await import("../server/accounts");
+    const { actorOf } = await import("../operations/policy");
+    const user = await currentUser();
+    if (user) actorHeaders = { "x-daybreak-actor": JSON.stringify(actorOf(user)) };
+  }
   let res: Response;
   try {
     res = await fetch(url, {
       method,
-      headers: { accept: "application/json", ...(hasBody ? { "content-type": "application/json" } : {}), ...(process.env.DAYBREAK_INTERNAL_TOKEN ? { authorization: `Bearer ${process.env.DAYBREAK_INTERNAL_TOKEN}` } : {}) },
+      redirect: "manual",
+      headers: { ...actorHeaders, accept: "application/json", ...(hasBody ? { "content-type": "application/json" } : {}), ...(process.env.DAYBREAK_INTERNAL_TOKEN ? { authorization: `Bearer ${process.env.DAYBREAK_INTERNAL_TOKEN}` } : {}) },
       body: hasBody ? JSON.stringify(options.body) : undefined,
       signal: AbortSignal.timeout(timeoutMs),
       cache: "no-store",
@@ -256,12 +264,12 @@ export function apiReview(
   body: { decision: ReviewDecision; note: string; reviewer: string },
   scenario?: string,
 ): Promise<AuditRecord> {
-  return request<AuditRecord>("POST", `/review/${encodeURIComponent(id)}`, { body, query: scenario ? { scenario } : undefined });
+  return request<AuditRecord>("POST", `/review/${encodeURIComponent(id)}`, { body, query: scenario ? { scenario } : undefined, timeoutMs: TIMEOUTS.reviewMs });
 }
 
 /** Aprobarea listei de mâine de către dispecer (POST /plan/approve). */
 export function apiApprovePlan(body: { scenario: string; plan_id: string; approver: string; note: string }): Promise<AuditRecord> {
-  return request<AuditRecord>("POST", "/plan/approve", { body, query: { scenario: body.scenario } });
+  return request<AuditRecord>("POST", "/plan/approve", { body, query: { scenario: body.scenario }, timeoutMs: TIMEOUTS.reviewMs });
 }
 
 /** Lista de scenarii poate veni ca listă de obiecte, listă de nume sau dicționar (ca în YAML). */

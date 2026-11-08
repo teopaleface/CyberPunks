@@ -509,3 +509,24 @@ test("a failed linked-proposal read reports no confirmation and offers a read re
   expect(error).toContain("No action was confirmed");
   expect(error).not.toContain("private upstream failure");
 });
+
+ test("only explicitly pinned HTTPS origin can receive private credentials", async () => {
+  const { deps, calls } = setup();
+  deps.base = "https://workspace.example.test/api";
+  deps.trustedOrigin = "https://workspace.example.test";
+  expect((await forward(request(), "operations", ["proposals"], deps)).status).toBe(200);
+  expect(calls).toHaveLength(1);
+  deps.base = "https://another.example.test/api";
+  expect((await forward(request(), "operations", ["proposals"], deps)).status).toBe(503);
+  expect(calls).toHaveLength(1);
+});
+
+test("upstream redirects are never followed with service credentials", async () => {
+  const { deps, calls } = setup();
+  deps.fetch = (async (_input, init) => {
+    expect(init?.redirect).toBe("manual");
+    return new Response(null, { status: 302, headers: { location: "https://foreign.test/" } });
+  });
+  expect((await forward(request(), "operations", ["proposals"], deps)).status).toBe(503);
+  expect(calls).toHaveLength(0);
+});

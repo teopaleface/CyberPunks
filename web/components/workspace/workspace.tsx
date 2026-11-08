@@ -7,6 +7,8 @@ import { loadLinkedProposal } from "@/lib/operations/linked-proposal";
 import { proposalSignInPath } from "@/lib/operations/proposal-link";
 import { conversationHistory } from "@/lib/operations/history";
 import { activeConversation, conversationScope, emptyConversations, newConversation, readConversations, rememberReadOnlyTurn, saveConversations, selectConversation, type ConversationStore } from "@/lib/operations/conversation-store";
+import { TaskPanel } from "@/components/agentic/task-panel";
+import { getTask, resumeTask, type TaskView } from "@/lib/agentic/client";
 import { MainConversation } from "./main-conversation";
 import {
   label,
@@ -101,6 +103,7 @@ function WorkspaceContent({
   const selectionPending = validated?.key !== currentKey;
   const appliedRequests = useRef(new Set<string>());
   const scopeSequence = useRef(0);
+  const scopeRead = useRef<Promise<Context> | null>(null);
   const previousSelectionKey = useRef(currentKey);
   const [context, setContext] = useState<Context | null>(null);
   const [error, setError] = useState(initialError ?? "");
@@ -108,6 +111,15 @@ function WorkspaceContent({
     Boolean(linkedProposalId),
   );
   const [expired, setExpired] = useState(false);
+  const [task, setTask] = useState<TaskView | null>(null);
+  const taskOutdated = Boolean(task && context && (
+    text(context.plan.version ?? context.plan.plan_version) !== task.plan_version ||
+    (Array.isArray(task.result.cases) && task.result.cases.some((value) => {
+      const saved = value as Row;
+      const current = context.cases.find((item) => item.case_id === saved.case_id);
+      return !current || current.version !== saved.version;
+    }))
+  ));
   const [messages, setMessages] = useState<Message[]>([]);
   const history = useRef<Message[]>([]);
   const conversationKey = conversationScope(account, scenario);
@@ -149,6 +161,7 @@ function WorkspaceContent({
       setExpired(true);
       setContext(null);
       setValidated(null);
+      setTask(null);
       setMessages([]);
       history.current = [];
       setProposal(null);
@@ -203,21 +216,45 @@ function WorkspaceContent({
         block: "center",
       });
   }, [proposal?.proposal_id]);
-  const loadScope = useCallback(async () => {
+  useEffect(() => {
+    const controller = new AbortController();
+    let taskId: string | null = null;
+    try { taskId = window.sessionStorage.getItem(`agentic-task:${conversationKey}`); } catch { /* Optional storage. */ }
+    if (taskId) {
+      getTask(taskId, scenario, controller.signal).then((saved) => {
+        if (!controller.signal.aborted && sessionCurrent.current) setTask(saved);
+      }).catch(() => { /* A stale or revoked task is never restored as current evidence. */ });
+    }
+    return () => controller.abort();
+  }, [conversationKey, scenario]);
+  useEffect(() => {
+    if (task) {
+      try { window.sessionStorage.setItem(`agentic-task:${conversationKey}`, task.task_id); } catch { /* Optional storage. */ }
+    }
+  }, [task, conversationKey]);
+  const loadScope = useCallback(async (): Promise<Context> => {
     if (!account.membership.organization_id)
       throw new Error("Your account is not linked to operational data.");
-    const sequence = ++scopeSequence.current;
-    const next = assertScope(
-      await api<Context>(
-        `operations/context?scenario=${encodeURIComponent(scenario)}`,
-      ),
-      account,
-      scenario,
-    );
-    if (conversationScope({ ...account, membership: next.actor }, scenario) !== conversationKey)
-      throw new SessionExpired("Your operational access changed. Reopen the console.");
-    if (alive.current && sessionCurrent.current && sequence === scopeSequence.current) setContext(next);
-    return next;
+    // Polls and selection checks share one authenticated read. Starting a new
+    // read every two seconds used to invalidate every slower response.
+    if (scopeRead.current) return scopeRead.current;
+    const pending = (async () => {
+      const sequence = ++scopeSequence.current;
+      const next = assertScope(
+        await api<Context>(
+          `operations/context?scenario=${encodeURIComponent(scenario)}`,
+        ),
+        account,
+        scenario,
+      );
+      if (conversationScope({ ...account, membership: next.actor }, scenario) !== conversationKey)
+        throw new SessionExpired("Your operational access changed. Reopen the console.");
+      if (alive.current && sessionCurrent.current && sequence === scopeSequence.current) setContext(next);
+      return next;
+    })();
+    scopeRead.current = pending;
+    try { return await pending; }
+    finally { if (scopeRead.current === pending) scopeRead.current = null; }
   }, [account, scenario, conversationKey]);
   const refresh = useCallback(async (): Promise<Context | null> => {
     if (!account.membership.organization_id || expired) return null;
@@ -425,6 +462,7 @@ function WorkspaceContent({
         updateConversations(rememberReadOnlyTurn(conversationsRef.current, input, answer));
       }
 
+      if (answer.task) setTask(answer.task);
       if (answer.proposal) {
         setProposal(assertProposalScenario(answer.proposal, scenario));
         setForm(null);
@@ -438,6 +476,18 @@ function WorkspaceContent({
       inFlight.current = false;
       setBusy(false);
     }
+  }
+  async function continueTask(taskId: string) {
+    if (expired || inFlight.current) return;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30000);
+    try {
+      setBusy(true);
+      inFlight.current = true;
+      const result = await resumeTask(taskId, scenario, controller.signal);
+      if (alive.current && sessionCurrent.current) setTask(result);
+    } catch (issue) { onError(issue); }
+    finally { clearTimeout(timer); inFlight.current = false; setBusy(false); }
   }
   async function openDraft(proposalId: string) {
     if (expired || inFlight.current) return;
@@ -651,6 +701,8 @@ function WorkspaceContent({
                 </div>
               </details>;
   function selectChat(id?: string) {
+    setTask(null);
+    try { window.sessionStorage.removeItem(`agentic-task:${conversationKey}`); } catch { /* Optional storage. */ }
     if (busy || unavailable || reviewing || mode === "voice") return;
     const next = id ? selectConversation(conversationsRef.current, id) : newConversation(conversationsRef.current);
     updateConversations(next);
@@ -703,9 +755,9 @@ function WorkspaceContent({
       {expired ? <div className="db-alert" role="alert">{error || "Your session ended."} <a href={proposalSignInPath(linkedProposalId)}>Sign in again</a></div>
         : !account.membership.organization_id ? <section className="db-panel"><h2>Your connection is not linked yet.</h2><p>Ask your administrator to verify your service connection.</p></section>
         : <>
-          {error && <div className="db-alert" role="alert">{error}<button className="db-button" onClick={() => setError("")}>Dismiss</button></div>}
+          {error && <div className="db-alert" role="alert">{error}{!context && <button className="db-button" disabled={busy} onClick={() => { setError(""); void refresh(); }}>Retry loading access</button>}<button className="db-button" onClick={() => setError("")}>Dismiss</button></div>}
           {selectionError && <div className="db-alert" role="alert">{selectionError}<button className="db-button" disabled={busy} onClick={() => { setClearedSelection({ value: initialSelection }); backToChat(); setError(""); }}>Clear selection</button></div>}
-          <MainConversation role={role} messages={messages} message={message} messageId={messageId} setMessage={setMessage} busy={busy} unavailable={unavailable} reviewing={reviewing} mode={mode} setMode={setMode} onSend={sendMessage} onSuggestion={suggest} conversations={conversations} onNew={() => selectChat()} onSelect={selectChat} messageList={messageList} contextControls={contextControls} review={reviewContent} voice={<Voice scenario={scenario} turn={turn} onError={onError} disabled={unavailable} />} pending={pendingControls} notice={notice} />
+          <MainConversation taskResult={task ? <TaskPanel task={taskOutdated ? {...task, result: {...task.result, snapshot_outdated: true}} : task} onReview={(work_item_id) => open("review_work_item", {work_item_id})} onResume={continueTask} /> : null} role={role} messages={messages} message={message} messageId={messageId} setMessage={setMessage} busy={busy} unavailable={unavailable} reviewing={reviewing} mode={mode} setMode={setMode} onSend={sendMessage} onSuggestion={suggest} conversations={conversations} onNew={() => selectChat()} onSelect={selectChat} messageList={messageList} contextControls={contextControls} review={reviewContent} voice={<Voice scenario={scenario} turn={turn} onError={onError} disabled={unavailable} />} pending={pendingControls} notice={notice} />
         </>}
     </div>;
   }
@@ -732,7 +784,7 @@ function WorkspaceContent({
         </section>
       ) : (
         <>
-          {error && <div className="db-alert" role="alert">{error}<button className="db-button" onClick={() => setError("")}>Dismiss</button></div>}
+          {error && <div className="db-alert" role="alert">{error}{!context && <button className="db-button" disabled={busy} onClick={() => { setError(""); void refresh(); }}>Retry loading access</button>}<button className="db-button" onClick={() => setError("")}>Dismiss</button></div>}
           {presentation !== "assistant" && <RoleOverview context={context} role={role} onRefresh={() => void refresh()} assistant={assistant} />}
           {presentation !== "role" && (
             <div className="db-assistant-content">

@@ -9,7 +9,9 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
   });
   if (response.status === 401)
     throw new SessionExpired("Your session ended. Sign in again.");
-  const data = await response.json();
+  let data;
+  try { data = await response.json(); }
+  catch { throw new Error("Daybreak is temporarily unavailable. Retry loading your access. No action has been confirmed."); }
   if (!response.ok)
     throw new Error(data.error ?? "The request could not complete.");
   return data as T;

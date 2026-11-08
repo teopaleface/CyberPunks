@@ -12,6 +12,7 @@ import sys
 import time
 import uuid
 from contextlib import ExitStack
+from urllib.parse import urlsplit
 
 import httpx
 from daybreak_runtime import ROOT, read_private_env
@@ -40,10 +41,14 @@ def context(client: httpx.Client):
 def main() -> None:
     args = argparse.ArgumentParser(description=__doc__)
     args.add_argument("--chat", action="store_true", help="Also call the real Codex conversation provider for each account")
+    args.add_argument("--base", default="http://127.0.0.1:3870", help="Explicit site origin for authorized synthetic acceptance")
     parsed = args.parse_args()
+    target = urlsplit(parsed.base)
+    if target.username or target.password or target.path not in ("", "/") or target.query or target.fragment or not (target.scheme == "https" or parsed.base == "http://127.0.0.1:3870"):
+        args.error("Use an HTTPS origin or the default private local origin")
     env = read_private_env()
-    base = "http://127.0.0.1:3870"
-    report = {"synthetic": True, "environment": "local", "checks": [], "conversation": []}
+    base = parsed.base.rstrip("/")
+    report = {"synthetic": True, "environment": "local" if target.hostname == "127.0.0.1" else "public", "checks": [], "conversation": []}
 
     def passed(name: str):
         report["checks"].append(name)
@@ -131,7 +136,7 @@ def main() -> None:
             checked(client.post("/api/cont/iesire", json={}))
             assert client.get("/api/operations/context").status_code == 401
         passed("logout: all three sessions lose private API access")
-    output = ROOT / "outputs" / "runtime" / "acceptance.json"
+    output = ROOT / "outputs" / "runtime" / ("acceptance-live.json" if report["environment"] == "public" else "acceptance.json")
     output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")
     print(f"Saved nonsecret acceptance evidence: {output}")
 
