@@ -94,7 +94,7 @@ def pointer_value(context: dict, pointer: str) -> Any:
     return value
 
 
-def checked_evidence(intention: Intention, context: dict) -> list[dict]:
+def checked_evidence(intention: Intention, context: dict, *, explain_abstention: bool = False) -> list[dict]:
     result = []
     for claim in intention.evidence:
         path = context_pointer(claim.path)
@@ -103,10 +103,14 @@ def checked_evidence(intention: Intention, context: dict) -> list[dict]:
         if match:
             item = context.get("work_items", [])[int(match[1])]
             subpath = match[2] or ""
-            if (item.get("assessment") or {}).get("status") != "available" and (
-                not subpath
-                or subpath.split("/")[0] in {"prediction", "explanation", "impact"}
-                or subpath == "assessment/score"
+            if (
+                not explain_abstention
+                and (item.get("assessment") or {}).get("status") != "available"
+                and (
+                    not subpath
+                    or subpath.split("/")[0] in {"prediction", "explanation", "impact"}
+                    or subpath == "assessment/score"
+                )
             ):
                 raise ChannelError(
                     "assessment_unavailable",

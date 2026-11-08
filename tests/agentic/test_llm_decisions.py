@@ -521,3 +521,30 @@ def test_tasks_share_chat_limiter_and_return_429(env, tmp_path, monkeypatch, end
 
     asyncio.run(held())
     assert not provider.prompts
+
+
+@pytest.mark.parametrize("choice", [None, "approve"])
+def test_unavailable_prediction_can_explain_abstention_but_cannot_justify_an_action(env, tmp_path, choice):
+    def explain(rows, payload):
+        for row, item in zip(rows, payload["review_queue"], strict=True):
+            source = item["source"]
+            if source["assessment"]["status"] == "available":
+                continue
+            row["suggested_decision"] = choice
+            row["agent_reason"] = "The recorded model output is unusable because the source assessment needs more data."
+            row["evidence"].append(
+                {
+                    "path": item["source_path"] + "/prediction/score",
+                    "value_json": json.dumps(source["prediction"]["score"]),
+                }
+            )
+
+    task, store = run_task(env, tmp_path, SimulatedDecisionProvider(mutation=explain))
+    if choice is None:
+        assert task.status == "completed", task.error
+        invalid = next(r for r in task.result["items"] if r["assessment"]["status"] != "available")
+        assert invalid["suggested_decision"] is None and invalid["constraint"] == "invalid_assessment"
+        with pytest.raises(ValueError, match="No actionable"):
+            prepare_recommendation(env["service"], store, env["dispatcher"], task.task_id, invalid["work_item_id"])
+    else:
+        assert task.status == "failed" and task.error == "assessment_unavailable"
