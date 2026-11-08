@@ -54,3 +54,33 @@ Buildurile se rulează într-o copie separată a sursei și datelor, cu dependen
 După activare se verifică separat: cele trei sesiuni web nominale, răspunsul operațional prin apel WhatsApp fizic, o cerere explicită de raport în chat și imaginea primită pe telefon. Zgomotul sălii și timpul comparat cu lucrul manual nu sunt măsurate de această execuție.
 
 Asocierea telefonică existentă rămâne a tehnicianului. Nu s-au adăugat identități telefonice pentru dispecer/client. Confirmarea în WhatsApp sau prin voce, aprobarea în grup, simularea capacității și telefonia obișnuită rămân în afara primei versiuni.
+
+
+## Activare live, 8 noiembrie 2026, 05:57 București
+
+Teo a autorizat explicit publicarea și probele live. Interfața este publicată la https://daybreak.ghiseateodor245.workers.dev, versiunea `39da5489-2891-453f-b8bd-6dbc84bcd661`, din codul de activare `d5a4a93` și corecția `c4e6e2a`. Modificările neterminate ale landingului nu au fost incluse. Conturile, parolele, asocierile și bazele existente au fost păstrate.
+
+API-ul 8720, serviciul de apeluri 8722 și unicul worker Meta au încărcat codul nou. Intrarea restrânsă 8723 expune doar rutele permise, cere acreditarea serverului și identitatea verificată; citirile consolei cer dispecerul organizației demo și dreptul de consolă. Nu expune documentația, webhookul sau scrierile vechi. Adresa temporară a legăturii și acreditarea sunt păstrate privat, inclusiv secretul Workerului.
+
+Cloudflare nu acceptă `redirect: error`; proba reală a identificat eroarea și transportul folosește acum `manual`, cu refuzul răspunsurilor redirecționate. JSON-ul autorizat se transmite fără o a doua parsare și serializare la marginea rețelei. Deschiderea asistentului nu mai citește întregul plan pentru cifrele din meniu. Răspunsurile ne-JSON produc un mesaj controlat; reîncărcarea accesului este o citire explicită. Harta pe mobil folosește coloane suprapuse și zone proprii de derulare. Citirile de acces simultane folosesc aceeași cerere în curs: înainte, intervalul de două secunde putea invalida continuu toate răspunsurile care durau mai mult, blocând restaurarea conversației.
+
+### Probe live efectuate
+
+- Trei sesiuni independente autentificate; izolarea clientului, refuzul operațiilor de dispecer pentru celelalte roluri și revocarea prin logout.
+- Analiza exactă a celor 25 de cazuri, accesul numai la propria sarcină, traseul aprobat și raportul sesizării selectate. Două ture Codex reale ca dispecer, fără execuție implicită.
+- Sarcină de aprobare a planului curent, confirmare repetată cu aceeași comandă și reluare pasivă a rezultatului.
+- Circuit complet etichetat sintetic pe site-ul public: creare de sesizare după Confirm, evaluare locală reală, vizibilitate în toate rolurile, aprobare prin planificator, constatare comună fără reparație fictivă și refuzul propunerii învechite. Conversațiile Codex au răspuns pentru toate cele trei roluri. Raport: `outputs/runtime/acceptance-live.json`.
+- Încărcare, citire și ștergere a propriului draft fotografic sintetic; clientul primește 403. Raport: `outputs/runtime/agentic-live-photos.json`.
+- Două pagini PNG reale, trimise prin transportul și registrul existente către numărul deja asociat. Callbackurile semnate le-au marcat `delivered`. Proba a folosit mesajul real anterior și momentul lui original, fără să inventeze o nouă fereastră de mesagerie. Nu este o probă nouă a recepției unui mesaj de raport.
+- Serviciile reale ElevenLabs și unealta HTTP a apelului au răspuns cu oprirea verificată în 18,04 secunde total, dintre care 12,73 secunde unealta. Nu s-a inițiat un apel fizic.
+- Vocea din browser a parcurs ASR → unealtă autenticată pe site-ul public → Codex → răspuns audio, cu context neschimbat. Prima probă a eșuat cu indisponibilitate; diagnosticul separat a confirmat un timeout Codex. A doua a completat circuitul, dar comparația strictă a textului a rămas nereușită: agentul a omis salutul și a spus cifra 5 ca „cinci”, fără schimbarea informației. Cele două probe nu se raportează drept acceptanță vocală strictă trecută. Audio nu a fost ascultat manual.
+
+Probe automate afectate: 33 pentru agentic/intrare, cinci pentru imagini, 241 web trecute cu șapte omise în rularea globală; după eliminarea citirii planului la deschiderea asistentului au trecut și cele opt probe de rutare ajustate. TypeScript, lint, verificarea diferențelor și buildul Cloudflare izolat trec. Fișierele de build folosesc dependențe proprii, fără symlink către alt checkout; construirea finală Next folosește Turbopack, conform configurației de stiluri a proiectului. Buildul webpack intermediar compilase codul, dar nu procesase utilitarele Tailwind; verificarea vizuală a respins acea variantă înainte de acceptanța finală.
+
+Proba vizuală finală în Helium, pe publicarea finală: 25 de rezultate în componenta reală la 1440 px și 390 px, restaurate după reîncărcare pe mobil, fără alerte sau depășire orizontală. Stilurile Geist/Tailwind și ascunderea meniului lateral pe mobil au fost verificate prin randare și proprietăți calculate. Harta hidratată nu mai depășește lățimea ecranului. Raport: `outputs/runtime/agentic-live-task-browser.json`. Cele 23 de stări/pagini verificate pentru cele trei roluri au trecut și în rularea vizuală finală, fără alerte sau depășire laterală; inventar în `outputs/runtime/agentic-live-browser.json`. Cinci citiri consecutive ale contextului public au răspuns cu JSON și HTTP 200.
+
+### Limite operaționale
+
+Site-ul este publicat, dar calculele și canalele rulează încă pe calculatorul lui Teo. Calculatorul și tunelurile trebuie să rămână pornite. Aceasta nu este o migrare a backendului pe găzduire permanentă. O publicare viitoare din configurația implicită `web/wrangler.jsonc` ar reveni la datele demo: păstrați configurația de release privată, cu `DATA_SOURCE=api`, `API_BASE` și originea HTTPS exactă din `outputs/runtime/workspace-origin.txt`, plus secretul Workerului. Nu copiați acreditarea în Git.
+
+Apelul fizic, întreruperea prin voce și microfonul/difuzorul din sală așteaptă proba lui Teo, cerută în conversație. Nu este raportată primirea pe telefon numai din acceptarea Meta; pentru cele două PNG-uri există separat callbackul de livrare.

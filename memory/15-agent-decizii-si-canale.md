@@ -54,3 +54,8 @@ Verificări: 689 de lucrări, toate cele 25 de cazuri analizate, 262 de probe Py
 Corecții confirmate: proprietatea nullable task_goal trebuie inclusă în required pentru schema structurată Codex; observația nu poate apela command care reconciliază; raportul și sarcina se invalidează și când se schimbă versiunea cazului fără schimbarea planului; paginile PNG se persistă atomic înaintea trimiterii. Pentru build izolat folosiți cwd web și dependențe rezolvabile în acea rădăcină; symlinkul din afara rădăcinii a fost refuzat de Turbopack.
 
 Nu au fost repornite serviciile demo, publicată aplicația, schimbate conturi/configurații private sau trimise apeluri/mesaje Meta. Activarea și proba fizică nouă pe telefon rămân separate. Detalii în docs/operations/AGENTIC-ACCEPTANCE.md.
+
+
+## Activare autorizată, 8 noiembrie, 05:57
+
+Teo a cerut publicarea și testele live. Site-ul public este conectat la serviciul operațional existent prin intrarea restrânsă 8723 și o legătură HTTPS autentificată. Publicarea `39da5489-2891-453f-b8bd-6dbc84bcd661` include agentul; conturile și registrele au fost păstrate. Circuitul complet sintetic al celor trei roluri, analiza celor 25, confirmarea unică, fotografiile private și două imagini cu callback de livrare au fost verificate pe serviciile reale. Vocea a completat circuitul la a doua probă, dar testul strict al reproducerii identice a textului nu a trecut; prima probă a avut timeout. Apelul fizic este încă neconfirmat. Backendul și tunelurile depind de calculatorul pornit. Detalii: `docs/operations/AGENTIC-ACCEPTANCE.md`.
