@@ -4,7 +4,15 @@ import json
 import httpx
 import pytest
 
-from cyberpunks.channels.elevenlabs import ElevenLabs, agent_config, get_key, verify_agent
+from cyberpunks.channels.elevenlabs import (
+    LIVE_VOICE_MODEL,
+    VOICE_NOTE_MODEL,
+    VOICE_SESSION_SECONDS,
+    ElevenLabs,
+    agent_config,
+    get_key,
+    verify_agent,
+)
 from cyberpunks.channels.models import ChannelError
 
 
@@ -16,6 +24,11 @@ def test_agents_are_private_bounded_and_wait_for_actual_reply():
         assert tool["name"] == "daybreak_turn" and tool["expects_response"] is True
         assert config["platform_settings"]["call_limits"]["bursting_enabled"] is False
         assert config["platform_settings"]["privacy"]["record_voice"] is False
+        conversation = config["conversation_config"]
+        assert conversation["vad"]["background_voice_detection"] is True
+        assert conversation["tts"]["model_id"] == LIVE_VOICE_MODEL
+        assert conversation["conversation"]["max_duration_seconds"] == VOICE_SESSION_SECONDS
+        assert tool["interruption_mode"] == "disable_during_tool_and_turn"
 
 
 @pytest.mark.parametrize("change", ["auth", "tool", "mcp", "duration"])
@@ -56,6 +69,30 @@ def test_session_returns_only_short_lived_auth_for_server_selected_role(tmp_path
 
     asyncio.run(run())
     assert len(calls) == 2
+
+
+def test_voice_notes_use_current_models_and_preserve_the_verified_text(tmp_path, monkeypatch):
+    monkeypatch.setenv("DAYBREAK_CHANNELS_RUNTIME", str(tmp_path))
+    monkeypatch.setenv("ELEVENLABS_API_KEY", "synthetic-private-key")
+    (tmp_path / "channels.json").write_text(json.dumps({"voice_id": "syntheticvoice123"}))
+    text = "Verific informațiile despre oprirea următoare."
+
+    async def handler(request):
+        if request.url.path == "/v1/speech-to-text":
+            body = request.content
+            assert b"scribe_v2" in body and b"scribe_v1" not in body
+            return httpx.Response(200, json={"text": text})
+        body = json.loads(request.content)
+        assert body["model_id"] == VOICE_NOTE_MODEL and body["text"] == text
+        return httpx.Response(200, content=b"synthetic-audio")
+
+    async def run():
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            provider = ElevenLabs(client)
+            assert await provider.transcribe(b"synthetic-input", "audio/ogg") == text
+            assert await provider.synthesize(text) == b"synthetic-audio"
+
+    asyncio.run(run())
 
 
 def test_provider_rejection_never_echoes_secret(tmp_path, monkeypatch):

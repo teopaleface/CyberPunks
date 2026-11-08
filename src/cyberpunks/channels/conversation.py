@@ -21,7 +21,10 @@ Use ONLY the current scoped_context for operational facts. The projection aggreg
 never evidence of a completed action, ownership or permission. Do not invent IDs, model versions, numbers,
 measurements, schedules, diagnoses or data freshness. Historical demo-vara is 2025-07-08, not today's measurements.
 For reads, return kind=read with evidence containing RFC6901 pointers into scoped_context and value_json
-containing the exact JSON at each pointer. Cite the specific facts supporting your answer. Prefer small objects.
+containing the exact JSON at each pointer. Prefer leaf fields and the fewest pointers needed for the answer;
+do not copy whole work items or route objects into evidence. Usually one to three short values suffice.
+Paths are relative to scoped_context, e.g. /next_stop/eta, not /scoped_context/next_stop/eta.
+Every number or time spoken in the reply must also appear in the referenced evidence values.
 For missing or ambiguous targets, ask ONE short question with kind=clarify. Selection is only a hint and confers
 no rights. If multiple cases/connections/jobs match and none is explicitly selected, clarify rather than guess.
 For requested writes return kind=prepare and one of the six actions below, with typed data; never claim any
@@ -42,6 +45,12 @@ No physical electrical instructions. Safety reports need a human, and immediate 
 services; you cannot call them. No automatic confirmations, emails, phone calls or WhatsApp sends.
 If user asks what to do next, use ONLY approved route information if present; do not pretend live GPS.
 """
+
+
+def context_pointer(pointer: str) -> str:
+    # Models may address the input envelope. Both spellings resolve to the same scoped data,
+    # and all authorization, unavailable-assessment and lifecycle checks use the canonical path.
+    return pointer.removeprefix("/scoped_context") if pointer.startswith("/scoped_context/") else pointer
 
 
 def pointer_value(context: dict, pointer: str) -> Any:
@@ -65,8 +74,9 @@ def pointer_value(context: dict, pointer: str) -> Any:
 def checked_evidence(intention: Intention, context: dict) -> list[dict]:
     result = []
     for claim in intention.evidence:
-        actual = pointer_value(context, claim.path)
-        match = re.match(r"^/work_items/(\d+)(?:/(.*))?$", claim.path)
+        path = context_pointer(claim.path)
+        actual = pointer_value(context, path)
+        match = re.match(r"^/work_items/(\d+)(?:/(.*))?$", path)
         if match:
             item = context.get("work_items", [])[int(match[1])]
             subpath = match[2] or ""
@@ -86,7 +96,7 @@ def checked_evidence(intention: Intention, context: dict) -> list[dict]:
             claimed, sort_keys=True, ensure_ascii=False
         ):
             raise ChannelError("ungrounded_reply", "The reply did not match the verified source.")
-        result.append({"path": claim.path, "value": actual})
+        result.append({"path": path, "value": actual})
     if intention.kind == "read" and not result:
         raise ChannelError("ungrounded_reply", "Operational answers require verified evidence.")
     if intention.kind != "prepare":
@@ -123,7 +133,7 @@ def authoritative_status(request: ChatRequest, intention: Intention, context: di
         return None
     cited = []
     for item in intention.evidence:
-        match = re.match(r"^/cases/(\d+)(?:/|$)", item.path)
+        match = re.match(r"^/cases/(\d+)(?:/|$)", context_pointer(item.path))
         if match:
             cited.append(int(match[1]))
     selected = request.selection.case_id if request.selection else None
@@ -234,6 +244,22 @@ def scoped_projection(context: dict, request: ChatRequest | None = None) -> dict
         )
     if request:
         wanted.update(w.get("work_item_id") for w in items if w.get("work_item_id", "__missing__") in request.message)
+    next_stop_selected = False
+    if (
+        request
+        and context.get("actor", {}).get("role") == "technician"
+        and not any(wanted)
+        and re.search(
+            r"\b(next (?:stop|visit|job)|următoarea (?:mea )?(?:oprire|intervenție|lucrare)|"
+            r"urmatoarea (?:mea )?(?:oprire|interventie|lucrare))\b",
+            request.message,
+            re.IGNORECASE,
+        )
+    ):
+        next_id = (context.get("next_stop") or {}).get("work_item_id")
+        if next_id and any(w.get("work_item_id") == next_id for w in items):
+            wanted.add(next_id)
+            next_stop_selected = True
     details = [w for w in items if w.get("work_item_id") in wanted]
     if not details:
         details = sorted(items, key=lambda w: (w.get("decision") or {}).get("priority_score") or 0, reverse=True)[:6]
@@ -269,7 +295,7 @@ def scoped_projection(context: dict, request: ChatRequest | None = None) -> dict
         "work_items_total": len(items),
         "work_items_included": len(details),
         "work_items_complete": len(details) == len(items),
-        "detail_selection": "explicit_selection_or_message_id"
+        "detail_selection": "approved_next_stop" if next_stop_selected else "explicit_selection_or_message_id"
         if any(w.get("work_item_id") in wanted for w in details)
         else "highest_priority_first_six",
         "counts_by_source": dict(Counter(w.get("source", "unknown") for w in items)),
@@ -324,7 +350,7 @@ class ConversationService:
             "message": request.message,
         }
         intention, metadata = await self.provider.turn(
-            SYSTEM + "\nINPUT JSON:\n" + json.dumps(payload, ensure_ascii=False)
+            SYSTEM + "\nINPUT JSON:\n" + json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
         )
         evidence = checked_evidence(intention, context)
         proposal = None

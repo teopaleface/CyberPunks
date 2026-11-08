@@ -32,6 +32,46 @@ def mock_graph(monkeypatch, module, handler):
     monkeypatch.setattr(module.httpx, "Client", lambda **kw: real_client(transport=httpx.MockTransport(handler), **kw))
 
 
+@pytest.mark.parametrize("valid,app_matches", [(False, True), (True, False)])
+def test_refresh_rejects_expired_or_foreign_tokens_without_writing(setup_module, monkeypatch, valid, app_matches):
+    module = setup_module
+    before = module.CONFIG.read_bytes()
+
+    def handler(request):
+        assert request.method == "GET"
+        return httpx.Response(200, json={"data": {
+            "is_valid": valid, "app_id": module.APP_ID if app_matches else "another-app", "expires_at": 0,
+        }})
+
+    mock_graph(monkeypatch, module, handler)
+    with pytest.raises(SystemExit, match="existing token was preserved"):
+        module.refresh_token("synthetic-new-token-for-this-test")
+    assert module.CONFIG.read_bytes() == before
+
+
+def test_refresh_validates_number_and_changes_only_private_token(setup_module, monkeypatch):
+    module = setup_module
+    before = module.private_env(module.CONFIG)
+    calls = []
+
+    def handler(request):
+        calls.append(request)
+        assert request.method == "GET"
+        if request.url.path.endswith("debug_token"):
+            return httpx.Response(200, json={"data": {
+                "is_valid": True, "app_id": module.APP_ID, "expires_at": 0,
+                "scopes": ["whatsapp_business_messaging"],
+            }})
+        return httpx.Response(200, json={"id": module.PHONE_ID})
+
+    mock_graph(monkeypatch, module, handler)
+    token = "synthetic-new-token-for-this-test"
+    module.refresh_token(token)
+    assert module.private_env(module.CONFIG) == {**before, "DAYBREAK_META_ACCESS_TOKEN": token}
+    assert module.CONFIG.stat().st_mode & 0o077 == 0
+    assert len(calls) == 2
+
+
 def test_an_existing_unrelated_callback_is_preserved(setup_module, monkeypatch):
     module = setup_module
     baseline = module.CONFIG.read_bytes()

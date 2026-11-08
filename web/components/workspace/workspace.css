@@ -418,3 +418,280 @@
     transition: none;
   }
 }
+
+/* Inline dashboard assistant. These rules do not change the dashboard grid. */
+.db-assistant-card {
+  height: 600px;
+  min-height: 360px;
+  max-height: 760px;
+  min-width: 0;
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  background: var(--panel);
+  overflow: hidden;
+  scroll-margin-top: 24px;
+}
+.db-assistant-card:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+.db-assistant-card > .db-assistant,
+.db-assistant-error {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.db-assistant-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  border-bottom: 1px solid var(--rule);
+  flex-shrink: 0;
+}
+.db-assistant-heading h2 {
+  font-size: 16px;
+  margin: 0;
+}
+.db-assistant-heading p {
+  color: var(--ink-soft);
+  font-size: 12px;
+  margin: 3px 0 0;
+}
+.db-assistant-symbol {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  color: var(--action);
+  background: var(--canvas);
+}
+.db-assistant .db-assistant-content {
+  flex: 1;
+  min-height: 0;
+  gap: 0;
+}
+.db-assistant-context {
+  padding: 12px 16px 0;
+  flex-shrink: 0;
+  max-height: 190px;
+  overflow-y: auto;
+}
+.db-assistant-context:empty {
+  display: none;
+}
+.db-assistant-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.db-mode-toggle {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--rule);
+  border-radius: 9px;
+  background: var(--canvas);
+}
+.db-mode-toggle button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 12px;
+}
+.db-mode-toggle button[aria-pressed="true"] {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.db-assistant-status {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.db-case-picker {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 10px;
+  font-size: 12px;
+}
+.db-case-picker select {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: 12px;
+  height: 36px;
+}
+.db-assistant .db-selection {
+  padding-bottom: 6px;
+  font-size: 12px;
+}
+.db-assistant .db-context-actions {
+  margin-block: 8px;
+}
+.db-assistant .db-context-actions .db-button {
+  font-size: 12px;
+  min-height: 32px;
+  padding: 5px 8px;
+}
+.db-assistant .db-chat {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  border: 0;
+  border-radius: 0;
+  padding: 0 16px 10px;
+}
+.db-assistant .db-messages {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  padding-block: 12px;
+}
+.db-assistant .db-welcome {
+  margin-block: auto;
+  padding-block: 16px;
+}
+.db-quick-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.db-quick-chips .db-suggestion {
+  min-height: 34px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 20px;
+}
+.db-assistant .db-compose {
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+.db-assistant .db-compose textarea {
+  min-height: 64px;
+  max-height: 100px;
+  resize: none;
+  font-size: 14px;
+}
+.db-assistant .db-provider {
+  font-size: 11px;
+  margin-block: 6px 0;
+}
+.db-assistant .db-voice {
+  flex-shrink: 0;
+  margin-block: 6px;
+  padding: 10px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+}
+.db-assistant-review {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px 16px 16px;
+}
+.db-assistant-review > .db-panel {
+  border: 0;
+  padding: 12px 0;
+}
+.db-back-chat {
+  min-height: 32px;
+  padding: 4px 0;
+  border: 0;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.db-assistant .db-alert {
+  flex-shrink: 0;
+  max-height: 150px;
+  overflow-y: auto;
+  margin: 10px;
+  font-size: 13px;
+}
+.db-assistant .db-notice {
+  flex-shrink: 0;
+  max-height: 80px;
+  overflow-y: auto;
+  font-size: 12px;
+  margin: 6px 16px;
+}
+.db-assistant-requests {
+  border-top: 1px solid var(--rule);
+  flex-shrink: 0;
+  padding: 10px 16px;
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+.db-assistant-requests > summary {
+  cursor: pointer;
+}
+.db-assistant-requests > div {
+  max-height: 200px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.db-assistant .db-details {
+  margin-block: 12px;
+  font-size: 12px;
+}
+.db-assistant-error {
+  padding: 16px;
+  gap: 16px;
+}
+@media (max-width: 600px) {
+  .db-assistant-card {
+    height: 580px;
+    max-height: 700px;
+    scroll-margin-top: 80px;
+  }
+  .db-assistant-heading {
+    padding: 14px;
+  }
+  .db-assistant-context {
+    padding-inline: 14px;
+    max-height: 180px;
+  }
+  .db-assistant .db-chat,
+  .db-assistant-review {
+    padding-inline: 14px;
+  }
+  .db-assistant .db-compose textarea {
+    font-size: 16px;
+  }
+}
+.db-assistant-context {
+  /* Only expanded secondary actions scroll. The initial context stays complete. */
+  max-height: none;
+  overflow: visible;
+}
+.db-context-menu {
+  color: var(--ink-soft);
+  font-size: 12px;
+  margin-block: 8px;
+}
+.db-context-menu > summary {
+  cursor: pointer;
+}
+.db-context-menu > .db-context-actions {
+  max-height: 100px;
+  overflow-y: auto;
+  padding-block: 3px;
+}
+@media (max-width: 600px) {
+  .db-assistant-context {
+    max-height: none;
+  }
+}

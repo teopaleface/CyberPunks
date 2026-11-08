@@ -117,7 +117,8 @@ def test_text_and_transcribed_voice_notes_use_same_service_without_sends(env, au
     assert result["outbound_status"] == "not_sent"
     assert result["tts"] == "disabled_no_audio_reply_opt_in"
     assert env["operations"].context(env["actors"]["customer"])["cases"] == []
-    assert '"role": "customer"' in env["provider"].prompts[-1]
+    prompt_payload = json.loads(env["provider"].prompts[-1].split("INPUT JSON:\n")[1])
+    assert prompt_payload["role"] == "customer"
     assert '"role": "dispatcher"' not in env["provider"].prompts[-1]
 
 

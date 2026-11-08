@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { assistantIntent, assistantScenarioMatches, assistantSelection, routeSelection } from "./assistant-context";
 import { compatibilityAppPath } from "./compatibility-route";
-import { availableNav } from "./side-nav";
+import { availableNav, navigationHref } from "./side-nav";
 import { proposalFromSearch, proposalSignInPath, signInModeParams } from "@/lib/operations/proposal-link";
 
 const proposal = "6d57ebca-af8d-4da4-afcb-3080dca9a671";
@@ -54,13 +54,21 @@ test("assistant intents cannot silently change the current scenario", () => {
   expect(assistantScenarioMatches({ scenario: ["maine"] }, "maine")).toBe(false);
 });
 
-test("restricted desktop/mobile navigation exposes only the role home", () => {
+test("restricted navigation exposes scoped dashboard sections without global console pages", () => {
   for (const role of ["customer", "technician", "dispatcher"] as const) {
-    expect(availableNav(false, role).map((item) => item.href)).toEqual(["/app"]);
-    expect(availableNav(false, role)[0]).not.toHaveProperty("count");
+    const links = availableNav(false, role);
+    expect(links.map((item) => item.href)).toContain("/app#assistant");
+    expect(links.every((item) => item.href === "/app" || item.href.startsWith("/app#"))).toBe(true);
+    expect(links.every((item) => !("count" in item))).toBe(true);
   }
   expect(availableNav(true, "dispatcher").map((item) => item.href)).toContain("/coada");
   expect(availableNav(true, "dispatcher").map((item) => item.href)).toContain("/posturi");
+});
+
+test("scenario queries stay before dashboard section anchors", () => {
+  expect(navigationHref("/app#assistant", "demo-vara")).toBe("/app?scenariu=demo-vara#assistant");
+  expect(navigationHref("/app#cases", null)).toBe("/app#cases");
+  expect(navigationHref("/app?case_id=one#assistant", "storm")).toBe("/app?case_id=one&scenariu=storm#assistant");
 });
 
 test("actual server routes gate global reads and serialize shell metadata only for authorized dispatchers", () => {
