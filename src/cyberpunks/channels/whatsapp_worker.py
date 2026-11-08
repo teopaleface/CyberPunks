@@ -194,7 +194,9 @@ class WhatsAppWorker:
                 task["result"] if actor.role == "dispatcher" else None,
                 result["response"].get("language", "ro"),
             )
-            html = render_report(data)
+            from cyberpunks.agentic.pdf_report import pdf_pages, report_filename
+
+            html = pdf_pages(data) if report_format == "pdf" else render_report(data)
             if len(html) > 32:
                 raise ChannelError("report_too_large", "Use the full report in the application.", 422)
             if report_format == "pdf":
@@ -219,6 +221,7 @@ class WhatsAppWorker:
                     sha256=rendered["sha256"],
                     page_count=rendered["page_count"],
                     source_pages=rendered["source_pages"],
+                    filename=report_filename(data),
                     case_versions=case_versions,
                 )
             else:

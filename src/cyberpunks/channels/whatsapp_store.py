@@ -212,6 +212,7 @@ class DeliveryStore:
         page_count: int,
         source_pages: int | None = None,
         case_versions: dict | None = None,
+        filename: str | None = None,
     ) -> dict:
         """Freeze the exact PDF bytes, their hash and the report manifest in one transaction.
 
@@ -224,12 +225,14 @@ class DeliveryStore:
             raise ChannelError("outbound_conflict", "Report integrity check failed.", 409)
         if not re.fullmatch(r"[A-Za-z0-9_-]{1,120}", report_id) or not isinstance(page_count, int) or page_count < 1:
             raise ChannelError("outbound_invalid", "A stable report identifier is required.", 422)
+        if filename and not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,100}\.pdf", filename):
+            raise ChannelError("outbound_invalid", "Invalid report filename.", 422)
         recipient = hashlib.sha256(sender.encode()).hexdigest()
         kind = "document:" + report_id + "_pdf"
         manifest = {
             "format": "pdf",
             "mime": "application/pdf",
-            "filename": f"daybreak-raport-{report_id[:60]}-{digest[:8]}.pdf",
+            "filename": filename or f"daybreak-raport-{report_id[:60]}-{digest[:8]}.pdf",
             "sha256": digest,
             "bytes": len(pdf),
             "page_count": page_count,
