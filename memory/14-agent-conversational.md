@@ -62,3 +62,7 @@ WhatsApp direct Meta folosește acum Scribe v2 și Eleven v4 pentru note vocale.
 Interfața vocală locală are control de microfon, stare de pregătire și transmite coordonatorului doar răspunsul verificat. Typecheck, lint și probele locale relevante trec; microfonul fizic, boxele, zgomotul sălii și conversația live completă după aceste modificări rămân neverificate. Fără deploy.
 
 Blocaj actual WhatsApp: tokenul temporar Meta a expirat pe 8 noiembrie la 01:00 București. Debug Token confirmă is_valid=false, accesul la număr și schimbul de token răspund cu 190/463. Subscrierea rămâne activă și callbackul public răspunde corect la verificare. Nu au fost trimise mesaje de test. Comanda refresh-token din daybreak_whatsapp_setup.py cere tokenul ascuns, verifică aplicația, dreptul de mesagerie și numărul înainte de salvarea privată; serviciul recitește tokenul fără restart. Teo va testa o singură notă vocală după înlocuire.
+
+## Clarificarea finală: agentul este pagina principală
+
+Teo a precizat că dashboardul principal trebuie să conțină numai agentul, cu o conversație mare și simplă, asemănătoare ChatGPT. Istoricul poate rămâne discret în stânga, iar textul și vocea sunt în același loc. Cazurile și confirmările apar la nevoie în conversație. Nu se păstrează rezumatul cu cifre și tabele lângă un card de chat. A cerut o generare vizuală înaintea noii implementări; macheta este o propunere, nu interfață deja modificată. Această clarificare înlocuiește structura cu rezumat, card principal și asistent inline.
