@@ -1,8 +1,6 @@
 """API tests on a fresh full-data planner run, with an explicitly simulated conversation provider."""
 
-import os
 import shutil
-from pathlib import Path
 
 import pytest
 from fastapi import FastAPI
@@ -12,10 +10,8 @@ from cyberpunks.channels.conversation import ConversationService
 from cyberpunks.channels.limits import Limits
 from cyberpunks.channels.models import Intention, IntentionData
 from cyberpunks.channels.router import get_conversation, router
-from cyberpunks.common.paths import ROOT
 from cyberpunks.operations.models import Actor
 from cyberpunks.operations.service import OperationsService
-from cyberpunks.planner.agent import run
 
 
 class SimulatedProvider:
@@ -35,20 +31,6 @@ def intention(kind="clarify", reply="Which connection do you mean?", action=None
     empty = dict.fromkeys(IntentionData.model_fields)
     empty.update(data)
     return Intention(kind=kind, reply=reply, language="en", action=action, data=empty, evidence=evidence or [])
-
-
-@pytest.fixture(scope="session")
-def full_run(tmp_path_factory):
-    root = tmp_path_factory.mktemp("channels-complete-data")
-    original = Path(os.getenv("DAYBREAK_OPERATIONS_TEST_DATA", str(ROOT / "outputs"))) / "plans/demo-vara/inputs"
-    assert original.is_dir(), "A complete current local run is required, not a sample fixture."
-    target = root / "work_items/demo-vara"
-    target.mkdir(parents=True)
-    for path in original.glob("*.jsonl"):
-        shutil.copy2(path, target / path.name)
-    result = run("demo-vara", mode="existing", out_root=root, solver="greedy")
-    assert result.plan.summary.items_valid >= 600
-    return root
 
 
 @pytest.fixture

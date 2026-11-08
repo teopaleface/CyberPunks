@@ -199,3 +199,9 @@ Scor neoficial pentru `origin/main` la `68d62bf`: **20/25**, cu cinci puncte pos
 ### 2026-11-08 09:43 București — Eden pe main
 
 La cererea lui Eden, am verificat întâi că Teo a pus tot pe `main`: `origin/Teo` (ultimul commit 09:22) este inclus integral în `origin/main` la `68d62bf`. Apoi am îmbinat toată ramura `Eden` în `main` (commit `087bfa9`): benchmarkul CatBoost/XGBoost față de LightGBM, trasarea LangSmith (oprită implicit, fără cheie) și evaluarea ML. Conflictele au fost mici, doar în text și ordine: jurnal, memoria 15, RUNBOOK cu ambele părți păstrate; în `scripts/daybreak_runtime.py` un singur apel `bun run worker`. Verificări pe copia îmbinată: ruff curat; testele de pornire, platforme, mărimea repo-ului și benchmark trec; suita completă nu are eșecuri, iar 184 de teste nu pornesc în copia temporară pentru că lipsește rularea locală a modelelor (`outputs/plans/demo-vara`). Fără deploy și fără repornirea serviciilor.
+
+### 2026-11-08 09:59 București — datele implicite pentru testele de integrare
+
+Utilizatorul a ales pachetul complet din repo ca sursă implicită pentru teste. Pachetul din `data/local-runtime` conține 689 de predicții pentru 8 iulie 2025, din date publice și sintetice: 532 de cazuri de contor, 98 de bilanț, 26 de zone pentru furtuni și 33 de cazuri de tensiune. Cele patru sume SHA256 corespund manifestului. Testele de agent, canale și operațiuni folosesc aceeași pregătire a planului într-un director temporar. `DAYBREAK_OPERATIONS_TEST_DATA` rămâne disponibil pentru o rulare alternativă. Cele două probe de randare PNG cer separat versiunea Chromium instalată de Playwright.
+
+Verificare pe `Eden`: toate cele 584 de teste Python au trecut cu sursa implicită, fără `DAYBREAK_OPERATIONS_TEST_DATA`, după instalarea Chromium într-un cache temporar. Ruff pe `src` și `tests` a trecut.

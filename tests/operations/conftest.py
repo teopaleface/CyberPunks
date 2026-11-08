@@ -1,33 +1,14 @@
 """Testele folosesc o copie completă a intrărilor modelului, niciodată mostra redusă."""
 
-import os
 import shutil
-from pathlib import Path
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from cyberpunks.common.paths import ROOT
 from cyberpunks.operations.models import Actor
 from cyberpunks.operations.router import router
 from cyberpunks.operations.service import OperationsService, get_service
-from cyberpunks.planner.agent import run
-
-
-@pytest.fixture(scope="session")
-def full_run(tmp_path_factory):
-    root = tmp_path_factory.mktemp("operations-full-data")
-    original = Path(os.environ.get("DAYBREAK_OPERATIONS_TEST_DATA", ROOT / "outputs")) / "plans/demo-vara"
-    assert (original / "inputs").is_dir(), "Tests require the complete local model run, not sample fixtures."
-    inputs = root / "work_items/demo-vara"
-    inputs.mkdir(parents=True)
-    for p in (original / "inputs").glob("*.jsonl"):
-        shutil.copy2(p, inputs / p.name)
-    # Real planner computation on every source/row, reusing predictions with their actual provenance.
-    result = run("demo-vara", mode="existing", out_root=root, solver="greedy")
-    assert result.plan.summary.items_valid >= 600
-    return root
 
 
 @pytest.fixture

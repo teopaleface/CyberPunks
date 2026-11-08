@@ -30,13 +30,14 @@ Referința operațională istorică completă a fost copiată separat, fără co
 
 ## Repetarea probelor
 
-Din rădăcina proiectului, cu datele complete pregătite:
+Din rădăcina proiectului:
 
 ```sh
+uv run playwright install --only-shell chromium
 uv run pytest tests/agentic tests/channels tests/operations tests/runtime -x -q
 ```
 
-`DAYBREAK_OPERATIONS_TEST_DATA` poate indica rădăcina unei alte copii complete, care conține `plans/demo-vara/inputs`. Testele construiesc și copiază separat starea planificatorului. Furnizorii din probele automate sunt simulați, exceptând proba Codex reală descrisă separat mai sus.
+Testele folosesc implicit cele 689 de predicții publice și sintetice din `data/local-runtime`. `DAYBREAK_OPERATIONS_TEST_DATA` poate indica rădăcina unei alte copii complete, care conține `plans/demo-vara/inputs`. Testele refac planul în spațiul temporar pytest și lucrează pe copii separate. Furnizorii din probele automate sunt simulați, exceptând proba Codex reală descrisă separat mai sus.
 
 Din directorul `web`:
 
