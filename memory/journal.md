@@ -88,3 +88,11 @@ Cronologic. Fiecare intrare: ora (București), ce s-a întâmplat, ce s-a decis.
 - 02:43: la cererea lui Teo, recuperate cele 14 vederi originale ale consolei și integrate cu agentul principal pe /app. Planul complet este la /planificare; meniul dispecerului păstrează toate operațiunile, iar clientul și tehnicianul au pagini filtrate pentru propriile cazuri/conexiuni/trasee/lucrări. Agentul ocupă pagina, cu istoric real și confirmări explicite. Verificate în Helium toate vederile, cele trei roluri, mobilul, hărțile încărcate, conversația și istoricul; 223 teste web, typecheck, lint și build izolat trecute. Cache-ul frontend vechi a fost reconstruit; runtime stabil, fără deploy.
 
 - 02:45 (8 noiembrie, București): Teo confirmă că apelul WhatsApp răspunde și agentul îl aude. ElevenLabs confirmă un apel SIP reușit de 23 secunde. Legătura vocală de pe telefon este verificată; răspunsul operațional pe date și zgomotul sălii nu sunt încă validate prin acest apel.
+
+
+### 2026-11-08 03:25 București — interogare API și corectarea agentului vocal
+
+- Teo a cerut interogarea automată a agentului. Reprodus răspunsul blocat la „Verific informațiile”; corectate instrucțiunile și trecut coordonatorul la gemini-3.5-flash în cele patru configurații existente. Configurația actuală trece 12/12 probe de apelare a uneltei, cu mesajul original neschimbat.
+- Corectată verificarea conversiei exacte 0.9776 în 97,76%, inclusiv score din assessment, cu blocarea evaluărilor indisponibile păstrată. Probele reale verifică oprirea, incertitudinea predicției, rolul și Confirm; regresia cu două ture consecutive a executat două cereri HTTP reușite.
+- Audio sintetic prin agentul tehnicianului din browser: zgomot continuu la 12 dB, 40 secunde după vorbire, transcriere exactă, 1,695 secunde până la cererea de date și 15,389 până la audio, zgomotul continuând. Nu este probă a sălii sau a zgomotului pe SIP; microfonul/difuzorul și ascultarea manuală nu sunt verificate.
+- 126 teste de canale și lint trec. Probe numai de citire, fără apeluri WhatsApp inițiate sau confirmări operaționale. Repornit numai serviciul 8722; 8720 a fost eliberat pentru restartul separat al firului de fotografii/corecții.

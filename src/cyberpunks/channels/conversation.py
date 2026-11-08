@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from decimal import Decimal
 from typing import Any
 
 from cyberpunks.channels.codex import CodexProvider
@@ -25,6 +26,10 @@ containing the exact JSON at each pointer. Prefer leaf fields and the fewest poi
 do not copy whole work items or route objects into evidence. Usually one to three short values suffice.
 Paths are relative to scoped_context, e.g. /next_stop/eta, not /scoped_context/next_stop/eta.
 Every number or time spoken in the reply must also appear in the referenced evidence values.
+For probability percentages, cite the exact prediction/score leaf. Its verified decimal may be multiplied
+by 100 and followed by % without rounding; do not change other numbers or invent precision.
+For pure questions about capabilities, permission rules or how confirmation works, use kind=clarify
+with no operational claims; evidence may be empty. These policy answers are not operational data reads.
 For missing or ambiguous targets, ask ONE short question with kind=clarify. Selection is only a hint and confers
 no rights. If multiple cases/connections/jobs match and none is explicitly selected, clarify rather than guess.
 For requested writes return kind=prepare and one of the six actions below, with typed data; never claim any
@@ -82,6 +87,7 @@ def checked_evidence(intention: Intention, context: dict) -> list[dict]:
             subpath = match[2] or ""
             if (item.get("assessment") or {}).get("status") != "available" and (
                 not subpath or subpath.split("/")[0] in {"prediction", "explanation", "impact"}
+                or subpath == "assessment/score"
             ):
                 raise ChannelError(
                     "assessment_unavailable",
@@ -102,8 +108,24 @@ def checked_evidence(intention: Intention, context: dict) -> list[dict]:
     if intention.kind != "prepare":
         # Every numerical claim and common operational ID must occur in checked evidence.
         source = json.dumps(result, ensure_ascii=False)
-        tokens = re.findall(r"\d+(?:[.,]\d+)?|\b[ABC]-\d{8}-[\w.-]+", intention.reply)
-        if any(t not in source and t.replace(",", ".") not in source for t in tokens):
+        # A probability's exact percentage is the same checked value in different units.
+        # Only available, explicitly cited score leaves qualify; arbitrary numbers and rounding do not.
+        percentages = set()
+        for item in result:
+            if re.fullmatch(r"/work_items/\d+/(?:prediction|assessment)/score", item["path"]) and type(item["value"]) in {int, float}:
+                score = Decimal(str(item["value"]))
+                if score.is_finite() and 0 <= score <= 1:
+                    percentages.add(score * 100)
+        for match in re.finditer(r"\d+(?:[.,]\d+)?|\b[ABC]-\d{8}-[\w.-]+", intention.reply):
+            token = match.group()
+            if token in source or token.replace(",", ".") in source:
+                continue
+            if (
+                re.fullmatch(r"\d+(?:[.,]\d+)?", token)
+                and re.match(r"\s*%", intention.reply[match.end():])
+                and Decimal(token.replace(",", ".")) in percentages
+            ):
+                continue
             raise ChannelError("ungrounded_reply", "The reply included an unverified number or identifier.")
         if re.search(
             r"\b(I (?:have )?(?:saved|sent|confirmed|approved|recorded|dispatched|called|resolved)|"
