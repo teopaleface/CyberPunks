@@ -40,6 +40,8 @@ export const DEFAULT_SCENARIO = getConfig().defaultScenario;
 export const TIMEOUTS = {
   /** GET-urile către API. */
   getMs: 1500,
+  /** POST /review/{id} și POST /plan/approve: API-ul reface planul (~5 s). */
+  reviewMs: 30_000,
   /** POST /run: agentul rulează cap-coadă. */
   runMs: 120_000,
   /** Verificarea GET /health. */

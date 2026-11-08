@@ -264,12 +264,12 @@ export function apiReview(
   body: { decision: ReviewDecision; note: string; reviewer: string },
   scenario?: string,
 ): Promise<AuditRecord> {
-  return request<AuditRecord>("POST", `/review/${encodeURIComponent(id)}`, { body, query: scenario ? { scenario } : undefined });
+  return request<AuditRecord>("POST", `/review/${encodeURIComponent(id)}`, { body, query: scenario ? { scenario } : undefined, timeoutMs: TIMEOUTS.reviewMs });
 }
 
 /** Aprobarea listei de mâine de către dispecer (POST /plan/approve). */
 export function apiApprovePlan(body: { scenario: string; plan_id: string; approver: string; note: string }): Promise<AuditRecord> {
-  return request<AuditRecord>("POST", "/plan/approve", { body, query: { scenario: body.scenario } });
+  return request<AuditRecord>("POST", "/plan/approve", { body, query: { scenario: body.scenario }, timeoutMs: TIMEOUTS.reviewMs });
 }
 
 /** Lista de scenarii poate veni ca listă de obiecte, listă de nume sau dicționar (ca în YAML). */
