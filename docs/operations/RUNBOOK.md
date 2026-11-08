@@ -106,7 +106,7 @@ Pornire și verificare fără apeluri automate:
 .venv/bin/python scripts/daybreak_whatsapp_calls.py prepare
 .venv/bin/python -m uvicorn cyberpunks.channels.whatsapp_calls:create_app --factory --host 127.0.0.1 --port 8722 --no-access-log
 # Alt terminal, numai serviciul restrâns:
-cloudflared tunnel --url http://127.0.0.1:8722 --no-autoupdate
+cloudflared tunnel --protocol http2 --url http://127.0.0.1:8722 --no-autoupdate
 # După obținerea originii HTTPS a acestui tunel:
 .venv/bin/python scripts/daybreak_whatsapp_calls.py configure --public-origin https://GAZDA.trycloudflare.com
 .venv/bin/python scripts/daybreak_whatsapp_calls.py verify
@@ -114,6 +114,8 @@ cloudflared tunnel --url http://127.0.0.1:8722 --no-autoupdate
 ```
 
 Secretele SIP, acreditarea serviciului, originea temporară și identificatorii resurselor sunt numai în outputs/runtime/whatsapp-calling.json, cu permisiuni 0600 și ignorat de Git. Nu afișați sau copiați conținutul. Scriptul păstrează separat resursele noi, refuză numere existente străine și nu repetă creări cu rezultat necunoscut. Nu oprește și nu repornește runtime-ul consolei sau workerul de mesaje.
+
+Pentru apeluri folosiți explicit `--protocol http2`, care ține legătura tunelului prin TCP. În apelul fizic din 8 noiembrie, 13:33, legătura QUIC a pierdut conexiunea repetat, iar furnizorul a primit HTTP 502, deși serviciul local răspundea. La schimbarea tunelului, verificați noua adresă, actualizați unealta agentului prin `configure` și recitiți configurația prin `verify`; opriți vechiul tunel numai după aceste verificări. Nu modificați tunelurile separate ale consolei și webhookului Meta. Verificați apoi cereri autentificate repetate timp de cel puțin un minut: un singur răspuns de sănătate nu dovedește stabilitatea legăturii.
 
 Verificare din 8 noiembrie: setările Meta și ElevenLabs recitite, certificat TLS SIP verificat, cerere neautentificată respinsă cu 401, cerere autorizată prin tunel cu răspuns Codex real în 11,23 secunde. Cele 184 teste Python pentru canale, runtime și operațiuni trec. Apelul complet de pe telefon și zgomotul din sală rămân probe separate. Teo a primit solicitarea de a suna o singură dată. Calculatorul și tunelul serviciului trebuie să rămână pornite pentru răspunsurile cu date Daybreak.
 
