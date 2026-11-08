@@ -54,3 +54,7 @@ Verificări: 689 de lucrări, toate cele 25 de cazuri analizate, 262 de probe Py
 Corecții confirmate: proprietatea nullable task_goal trebuie inclusă în required pentru schema structurată Codex; observația nu poate apela command care reconciliază; raportul și sarcina se invalidează și când se schimbă versiunea cazului fără schimbarea planului; paginile PNG se persistă atomic înaintea trimiterii. Pentru build izolat folosiți cwd web și dependențe rezolvabile în acea rădăcină; symlinkul din afara rădăcinii a fost refuzat de Turbopack.
 
 Nu au fost repornite serviciile demo, publicată aplicația, schimbate conturi/configurații private sau trimise apeluri/mesaje Meta. Activarea și proba fizică nouă pe telefon rămân separate. Detalii în docs/operations/AGENTIC-ACCEPTANCE.md.
+
+## LangSmith — integrare pe Eden
+
+Eden a cerut un jurnal LangSmith pentru întrebările adresate agentului. Trasarea este configurabilă și dezactivată implicit; include mesajul, rolul, canalul aproximativ și răspunsul pentru apelurile care ajung la serviciul comun Daybreak. Replicile vocale care nu invocă serviciul nu sunt acoperite, iar SDK-ul nu garantează livrarea în caz de întrerupere. Configurația privată și limitele sunt documentate în `docs/operations/RUNBOOK.md`; nu există cheie sau activare live în repo.

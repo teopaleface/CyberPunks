@@ -157,3 +157,19 @@ Recuperarea consolei complete a fost verificată în toate vederile dispecerului
 Codul local nou și limitele verificării sunt în [AGENTIC-ACCEPTANCE.md](AGENTIC-ACCEPTANCE.md). Routerul privat adaugă POST /api/conversation/tasks, GET /api/conversation/tasks/{id} și POST /api/conversation/tasks/{id}/resume, prin același cont verificat. Niciunul nu confirmă operații. Sarcinile private stau lângă baza operațională, în agentic-tasks.sqlite3.
 
 Workerul păstrează paginile PNG și manifestul lor în registrul Meta existent, fără un al doilea registru. Cereți explicit raportul într-un mesaj pentru a folosi fereastra de mesagerie verificată; apelul singur nu o deschide. Codul nou nu a fost încărcat prin restart în serviciile existente în această etapă. Păstrați separată activarea de verificarea locală.
+
+## Jurnalul conversațiilor în LangSmith
+
+Trasarea este dezactivată implicit. Pentru activare, instalați dependențele cu `uv sync` și setați în mediul privat al fiecărui proces care deservește conversații (API-ul web, workerul WhatsApp și serviciul de apeluri):
+
+```sh
+LANGSMITH_TRACING=true
+LANGSMITH_API_KEY=<cheia-privată>
+LANGSMITH_PROJECT=daybreak
+```
+
+Pentru workspace-urile LangSmith bazate pe agenți, folosiți în schimb `LANGSMITH_AGENT_ID` și `LANGSMITH_AGENT_ENVIRONMENT` conform configurației workspace-ului. Cheia aparține exclusiv mediului privat sau fișierului ignorat `outputs/runtime/daybreak.env`, cu permisiuni 0600; nu o comiteți și nu o trimiteți în chat. Pornirea prin `daybreak_runtime.py` încarcă acel fișier. Procesele pornite separat trebuie să primească aceleași variabile în mediul propriu și să încarce codul nou.
+
+Fiecare cerere care ajunge la `ConversationService.chat` produce o trasare cu textul cererii, rolul, canalul aproximativ, răspunsul și furnizorul. Rolul și contextul complet al contului, istoricul, datele operaționale și identificatorii telefonici nu sunt trimiși ca metadate. Textul cererii și răspunsului pot conține date personale: accesul la proiectul LangSmith și perioada de păstrare trebuie stabilite în contul echipei. Canalele sunt `whatsapp_call`, `whatsapp_message` și `web_or_browser_voice`; textul și vocea din browser folosesc același punct de intrare. Replicile vocale ElevenLabs care nu apelează serviciul Daybreak nu apar în acest jurnal.
+
+SDK-ul trimite în fundal; o întrerupere, o configurare greșită sau o eroare de rețea poate pierde trasări. Jurnalul nu este o dovadă completă de audit și integrarea nu împiedică funcționarea agentului când LangSmith este indisponibil. Verificați în LangSmith o conversație sintetică pentru fiecare proces activat.

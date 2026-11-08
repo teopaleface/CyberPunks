@@ -170,3 +170,7 @@ Instalarea Python/Bun, build-ul web, pregătirea din setul complet inclus, porni
 ### 2026-11-08 05:46 București — integrare Teo în Eden
 
 La cererea lui Eden, integrată ramura `origin/Teo` la `7e30868` în ramura locală `Eden`. Rezolvate conflictele din ghid, jurnal, pornirea runtime și afișarea evaluării bilanțului, păstrând alegerea bilanț v2 și suportul Windows. `origin/main` la `cfc097a` conține versiunea anterioară a agentului conversațional, fotografii și corecții, dar nu include încă modulele agentice noi de pe Teo; conține și videoclipul demo, într-un commit separat. Integrarea este locală, fără publicare sau repornire de servicii.
+
+### 2026-11-08 05:53 București — LangSmith pe Eden
+
+La cererea lui Eden, conversațiile care ajung la serviciul comun sunt instrumentate pentru LangSmith, cu activare din mediul privat și fără chei în Git. Trasarea conține întrebarea, rolul, canalul aproximativ și răspunsul; nu include ca metadate istoricul, identitatea sau contextul operațional complet. Proba folosește date sintetice și SDK simulat la transport, fără cont sau trimitere reală către LangSmith. Replicile ElevenLabs fără apel la serviciul Daybreak și livrarea în timpul întreruperilor rămân în afara garanției. Configurare și limite: `docs/operations/RUNBOOK.md`. Fără pornirea serviciilor sau deploy.

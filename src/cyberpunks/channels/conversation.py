@@ -7,6 +7,8 @@ import re
 from decimal import Decimal
 from typing import Any
 
+from langsmith import traceable
+
 from cyberpunks.channels.codex import CodexProvider
 from cyberpunks.channels.models import ChannelError, ChatRequest, Intention
 
@@ -369,6 +371,19 @@ class ConversationService:
         self.operations = operations
         self.provider = provider or CodexProvider()
 
+    @traceable(
+        name="Daybreak conversation",
+        run_type="chain",
+        process_inputs=lambda inputs: {
+            "message": inputs["request"].message,
+            "role": inputs["actor"].role,
+            "channel": (
+                "whatsapp_call" if str(inputs.get("event_key") or "").startswith("wa-call:")
+                else "whatsapp_message" if inputs.get("event_key") else "web_or_browser_voice"
+            ),
+        },
+        process_outputs=lambda result: {"reply": result.get("reply"), "provider": result.get("provider")},
+    )
     async def chat(self, actor: Any, request: ChatRequest, *, event_key: str | None = None) -> dict:
         current = self.operations.context(actor, request.scenario)
         validate_selection(request, current)
