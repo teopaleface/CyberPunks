@@ -1,0 +1,20 @@
+{
+  "version": "fuziune-v2",
+  "params": {
+    "k_sigma": 2.921327952566203,
+    "u_def": 0.15995872434924072,
+    "cap": 2.809731262901434,
+    "demote": false
+  },
+  "source": "fusion_v2.py --train-pool trainLA (Optuna, 60 încercări, validare pe 20% din cartierele trainLA)",
+  "test_pop_sim_precision_at_10": {
+    "A_singur": 0.8,
+    "regula_v1": 0.7749999999999999,
+    "regula_reglata": 0.9
+  },
+  "test_real_a_auc": {
+    "A_singur": 0.9166824628096304,
+    "regula_v1": 0.9161985877978172,
+    "regula_reglata": 0.9193896015475979
+  }
+}

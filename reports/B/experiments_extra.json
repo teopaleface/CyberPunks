@@ -1,0 +1,121 @@
+{
+  "meta": {
+    "train_years": [
+      2023,
+      2024
+    ],
+    "test_year": 2025,
+    "counties": 80,
+    "test_rows": 29200,
+    "prevalence_test": 0.1032,
+    "note": "experiment pe ramura Eden; modelul livrat nu e schimbat"
+  },
+  "rows": [
+    {
+      "varianta": "baza",
+      "ce": "modelul livrat",
+      "pr_auc": 0.2777,
+      "brier": 0.0841,
+      "n_features": 15
+    },
+    {
+      "varianta": "ore_cu_rafale",
+      "ce": "+ câte ore cu rafale peste 50 și peste 70 km/h (nu doar maxima zilei)",
+      "pr_auc": 0.2753,
+      "brier": 0.0842,
+      "n_features": 17,
+      "delta_pr_auc_ci90": [
+        -0.0038,
+        -0.0003
+      ]
+    },
+    {
+      "varianta": "sol_umed",
+      "ce": "+ umiditatea solului 0-7 și 7-28 cm (copaci smulși mai ușor din sol îmbibat)",
+      "pr_auc": 0.2745,
+      "brier": 0.0844,
+      "n_features": 18,
+      "delta_pr_auc_ci90": [
+        -0.0053,
+        -0.0007
+      ]
+    },
+    {
+      "varianta": "presiune",
+      "ce": "+ presiunea minimă și scăderea ei în 6 și 24 de ore (fronturi, cicloni)",
+      "pr_auc": 0.2778,
+      "brier": 0.084,
+      "n_features": 18,
+      "delta_pr_auc_ci90": [
+        -0.0025,
+        0.0035
+      ]
+    },
+    {
+      "varianta": "convectie",
+      "ce": "+ CAPE și lifted index (GFS), apa precipitabilă, punctul de rouă, stratul limită (furtuni de vară)",
+      "pr_auc": 0.2865,
+      "brier": 0.0835,
+      "n_features": 21,
+      "delta_pr_auc_ci90": [
+        0.0025,
+        0.016
+      ]
+    },
+    {
+      "varianta": "zapada_strat",
+      "ce": "+ grosimea stratului de zăpadă",
+      "pr_auc": 0.2785,
+      "brier": 0.0841,
+      "n_features": 16,
+      "delta_pr_auc_ci90": [
+        -0.0006,
+        0.0024
+      ]
+    },
+    {
+      "varianta": "umiditate",
+      "ce": "+ umiditatea relativă medie",
+      "pr_auc": 0.2749,
+      "brier": 0.0842,
+      "n_features": 16,
+      "delta_pr_auc_ci90": [
+        -0.0045,
+        -0.0009
+      ]
+    },
+    {
+      "varianta": "directie_rafala",
+      "ce": "+ direcția vântului la ora rafalei maxime",
+      "pr_auc": 0.2754,
+      "brier": 0.0842,
+      "n_features": 17,
+      "delta_pr_auc_ci90": [
+        -0.0046,
+        -0.0
+      ]
+    },
+    {
+      "varianta": "toate_noi",
+      "ce": "+ toate variabilele noi",
+      "pr_auc": 0.2855,
+      "brier": 0.0836,
+      "n_features": 33,
+      "delta_pr_auc_ci90": [
+        0.0001,
+        0.0165
+      ]
+    },
+    {
+      "varianta": "rafale_sol_presiune_convectie",
+      "ce": "+ ore cu rafale, sol, presiune, convecție",
+      "pr_auc": 0.2818,
+      "brier": 0.0837,
+      "n_features": 29,
+      "delta_pr_auc_ci90": [
+        -0.0034,
+        0.0124
+      ]
+    }
+  ]
+}

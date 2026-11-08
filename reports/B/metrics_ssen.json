@@ -1,0 +1,41 @@
+{
+  "contract_version": "1.0",
+  "source": "B",
+  "model_id": "b-lgbm-ssen",
+  "model_version": "b-lgbm-ssen@a1862c1",
+  "task": "clasificare calibrată: cel puțin o avarie JT cu cauză de vreme în district, în ziua respectivă",
+  "dataset": [
+    "SSEN Distribution NaFIRS LV (SHEPD), prin Zenodo 10.5281/zenodo.23303815, CC BY 4.0",
+    "Open-Meteo Historical Weather API (best_match), CC BY 4.0"
+  ],
+  "split": "pe timp: antrenare 2016-2023, test 2024-2025 (ani nevăzuți), 5 districte SHEPD (nordul Scoției)",
+  "test_size": 3655,
+  "primary_metric": "pr_auc",
+  "metrics": {
+    "pr_auc": 0.2961,
+    "roc_auc": 0.6924,
+    "brier": 0.0872,
+    "threshold": 0.16,
+    "precision_at_thr": 0.3807,
+    "recall_at_thr": 0.3174,
+    "recall_severe_at_thr": 0.5909,
+    "recall_extreme_at_thr": 0.6897,
+    "prevalence": 0.1086,
+    "pr_auc_us_model_on_this_test": 0.2765,
+    "pr_auc_gust_rule": 0.2471
+  },
+  "baseline_id": "climatologie_district_luna (rata pe district și lună, 2016-2023)",
+  "baseline_metrics": {
+    "pr_auc": 0.1609,
+    "roc_auc": 0.6517,
+    "brier": 0.0948,
+    "threshold": 0.13,
+    "precision_at_thr": 0.1772,
+    "recall_at_thr": 0.3753,
+    "recall_severe_at_thr": 0.4015,
+    "recall_extreme_at_thr": 0.3448
+  },
+  "synthetic_share": 0.0,
+  "created_at": "2026-11-07T22:29:13+02:00",
+  "reproduce_cmd": "uv run python -m cyberpunks.b_furtuna.ssen evaluate"
+}

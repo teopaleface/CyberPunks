@@ -1,0 +1,23 @@
+{
+  // Consola Daybreak (Next, prin OpenNext) cu site-ul de prezentare la /. Construire: bun run cf:build.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "daybreak",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-11-04",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+    // /landing/index.html se servește ca atare (prima pagină e rescrisă spre el), fără redirect la /landing/
+    "html_handling": "none"
+  },
+  "observability": { "enabled": true },
+  // conturile site-ului (/intra) și aprobările lor; lib/server/accounts.ts
+  "kv_namespaces": [{ "binding": "CONTURI", "id": "17f40409baaf4aed941cf04a11a3b8d4" }],
+  "vars": {
+    // fără API-ul agentului (Python, local): consola citește planul salvat din git
+    "DATA_SOURCE": "demo",
+    "DATA_ASSETS": "1",
+    "REPO_ROOT": "/repo"
+  }
+}

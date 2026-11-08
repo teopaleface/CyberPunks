@@ -1,0 +1,626 @@
+{
+  "$defs": {
+    "AssetType": {
+      "enum": [
+        "meter",
+        "zone",
+        "transformer_post"
+      ],
+      "title": "AssetType",
+      "type": "string"
+    },
+    "Confidence": {
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "title": "Confidence",
+      "type": "string"
+    },
+    "CrewSkill": {
+      "enum": [
+        "metering",
+        "lv_grid",
+        "mv_grid"
+      ],
+      "title": "CrewSkill",
+      "type": "string"
+    },
+    "DataQuality": {
+      "additionalProperties": false,
+      "properties": {
+        "missing_ratio": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Missing Ratio",
+          "type": "number"
+        },
+        "input_issues": {
+          "description": "Probleme găsite la intrare și cum au fost tratate",
+          "items": {
+            "type": "string"
+          },
+          "title": "Input Issues",
+          "type": "array"
+        },
+        "synthetic": {
+          "description": "True dacă activul sau datele sunt sintetice",
+          "title": "Synthetic",
+          "type": "boolean"
+        },
+        "data_sources": {
+          "description": "Surse citate, de exemplu 'SGCC', 'Open-Meteo forecast'",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Data Sources",
+          "type": "array"
+        }
+      },
+      "required": [
+        "missing_ratio",
+        "synthetic",
+        "data_sources"
+      ],
+      "title": "DataQuality",
+      "type": "object"
+    },
+    "Effort": {
+      "additionalProperties": false,
+      "properties": {
+        "duration_min": {
+          "exclusiveMinimum": 0,
+          "maximum": 720,
+          "title": "Duration Min",
+          "type": "integer"
+        },
+        "crew_skill": {
+          "$ref": "#/$defs/CrewSkill"
+        },
+        "crew_size": {
+          "default": 2,
+          "maximum": 6,
+          "minimum": 1,
+          "title": "Crew Size",
+          "type": "integer"
+        },
+        "requires_planned_outage": {
+          "default": false,
+          "title": "Requires Planned Outage",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "duration_min",
+        "crew_skill"
+      ],
+      "title": "Effort",
+      "type": "object"
+    },
+    "Explanation": {
+      "additionalProperties": false,
+      "properties": {
+        "top_factors": {
+          "items": {
+            "$ref": "#/$defs/Factor"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Top Factors",
+          "type": "array"
+        },
+        "similar_cases": {
+          "items": {
+            "$ref": "#/$defs/SimilarCase"
+          },
+          "maxItems": 5,
+          "title": "Similar Cases",
+          "type": "array"
+        },
+        "summary_ro": {
+          "description": "O frază generată din șablon, cu cifrele verificate în cod",
+          "minLength": 1,
+          "title": "Summary Ro",
+          "type": "string"
+        }
+      },
+      "required": [
+        "top_factors",
+        "summary_ro"
+      ],
+      "title": "Explanation",
+      "type": "object"
+    },
+    "Factor": {
+      "additionalProperties": false,
+      "properties": {
+        "feature": {
+          "title": "Feature",
+          "type": "string"
+        },
+        "label_ro": {
+          "description": "Motivul în cuvinte simple, de exemplu '9 zile cu consum zero'",
+          "title": "Label Ro",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        },
+        "contribution": {
+          "description": "Contribuția la scor (de exemplu valoarea SHAP)",
+          "title": "Contribution",
+          "type": "number"
+        }
+      },
+      "required": [
+        "feature",
+        "label_ro",
+        "contribution"
+      ],
+      "title": "Factor",
+      "type": "object"
+    },
+    "Impact": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_value_lei": {
+          "description": "score × value_if_true_lei, minus nimic; costul vizitei îl scade planificatorul",
+          "title": "Expected Value Lei",
+          "type": "number"
+        },
+        "value_if_true_lei": {
+          "description": "Câți lei se câștigă sau se evită dacă problema e reală și o rezolvăm",
+          "minimum": 0.0,
+          "title": "Value If True Lei",
+          "type": "number"
+        },
+        "customers_affected": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Customers Affected",
+          "type": "integer"
+        },
+        "urgency_hours": {
+          "description": "În câte ore trebuie acționat ca să mai conteze",
+          "exclusiveMinimum": 0.0,
+          "title": "Urgency Hours",
+          "type": "number"
+        },
+        "safety_flag": {
+          "default": false,
+          "description": "Risc pentru oameni (de exemplu șuntare cu risc de incendiu)",
+          "title": "Safety Flag",
+          "type": "boolean"
+        },
+        "assumptions_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Cheia din config/economics.yaml folosită la calcul",
+          "title": "Assumptions Ref"
+        }
+      },
+      "required": [
+        "expected_value_lei",
+        "value_if_true_lei",
+        "urgency_hours"
+      ],
+      "title": "Impact",
+      "type": "object"
+    },
+    "Kind": {
+      "enum": [
+        "meter_inspection",
+        "storm_prepositioning",
+        "voltage_mitigation"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "Location": {
+      "additionalProperties": false,
+      "properties": {
+        "lat": {
+          "description": "Latitudine WGS84, în România",
+          "maximum": 48.5,
+          "minimum": 43.5,
+          "title": "Lat",
+          "type": "number"
+        },
+        "lon": {
+          "description": "Longitudine WGS84, în România",
+          "maximum": 30.0,
+          "minimum": 20.0,
+          "title": "Lon",
+          "type": "number"
+        },
+        "zone_id": {
+          "description": "Zona operativă (vezi config/area.yaml)",
+          "minLength": 1,
+          "title": "Zone Id",
+          "type": "string"
+        },
+        "county": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "County"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Etichetă lizibilă, de exemplu 'PT 1432, Chiajna'",
+          "title": "Label"
+        }
+      },
+      "required": [
+        "lat",
+        "lon",
+        "zone_id"
+      ],
+      "title": "Location",
+      "type": "object"
+    },
+    "Prediction": {
+      "additionalProperties": false,
+      "properties": {
+        "model_id": {
+          "description": "De exemplu 'a-lgbm', 'b-lgbm-quantile', 'c-surrogate'",
+          "minLength": 1,
+          "title": "Model Id",
+          "type": "string"
+        },
+        "model_version": {
+          "description": "Versiunea modelului, de exemplu 'a-lgbm@3f2c1ab'",
+          "minLength": 1,
+          "title": "Model Version",
+          "type": "string"
+        },
+        "prediction_id": {
+          "description": "ID unic al predicției (uuid4)",
+          "minLength": 1,
+          "title": "Prediction Id",
+          "type": "string"
+        },
+        "label": {
+          "description": "Clasa sau problema estimată: 'faulty', 'tamper', 'outage_risk', 'overvoltage'",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "score": {
+          "description": "Probabilitate calibrată ca problema să fie reală",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Score",
+          "type": "number"
+        },
+        "interval_low": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Interval Low"
+        },
+        "interval_high": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Interval High"
+        },
+        "point_estimate": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Valoare estimată: tensiune maximă (pu), clienți afectați etc.",
+          "title": "Point Estimate"
+        },
+        "point_unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Point Unit"
+        },
+        "point_interval": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Interval pentru point_estimate (P10, P90)",
+          "title": "Point Interval"
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        },
+        "abstain": {
+          "default": false,
+          "description": "Modelul spune 'nu sunt sigur'",
+          "title": "Abstain",
+          "type": "boolean"
+        },
+        "abstain_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Abstain Reason"
+        }
+      },
+      "required": [
+        "model_id",
+        "model_version",
+        "prediction_id",
+        "label",
+        "score",
+        "confidence"
+      ],
+      "title": "Prediction",
+      "type": "object"
+    },
+    "RecommendedAction": {
+      "enum": [
+        "inspect_on_site",
+        "remote_reading",
+        "watchlist",
+        "human_review",
+        "preposition_crew",
+        "adjust_tap",
+        "measurement_campaign",
+        "notify_customers",
+        "office_correction",
+        "grid_inspection",
+        "phase_rebalance",
+        "offer_battery",
+        "export_limit",
+        "transformer_upgrade",
+        "no_action"
+      ],
+      "title": "RecommendedAction",
+      "type": "string"
+    },
+    "SimilarCase": {
+      "additionalProperties": false,
+      "properties": {
+        "case_id": {
+          "title": "Case Id",
+          "type": "string"
+        },
+        "outcome": {
+          "description": "Ce s-a confirmat atunci, de exemplu 'contor_blocat', 'furtuna_confirmata'",
+          "title": "Outcome",
+          "type": "string"
+        },
+        "similarity": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Similarity",
+          "type": "number"
+        },
+        "note_ro": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note Ro"
+        }
+      },
+      "required": [
+        "case_id",
+        "outcome",
+        "similarity"
+      ],
+      "title": "SimilarCase",
+      "type": "object"
+    },
+    "Source": {
+      "enum": [
+        "A",
+        "B",
+        "C"
+      ],
+      "title": "Source",
+      "type": "string"
+    },
+    "TimeWindow": {
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        },
+        "end": {
+          "format": "date-time",
+          "title": "End",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "TimeWindow",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "contract_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "work_item_id": {
+      "description": "<sursă>-<YYYYMMDD>-<asset_id>",
+      "pattern": "^[ABC]-\\d{8}-[A-Za-z0-9_.-]+$",
+      "title": "Work Item Id",
+      "type": "string"
+    },
+    "source": {
+      "$ref": "#/$defs/Source"
+    },
+    "kind": {
+      "$ref": "#/$defs/Kind"
+    },
+    "asset_id": {
+      "minLength": 1,
+      "title": "Asset Id",
+      "type": "string"
+    },
+    "asset_type": {
+      "$ref": "#/$defs/AssetType"
+    },
+    "location": {
+      "$ref": "#/$defs/Location"
+    },
+    "target_date": {
+      "format": "date",
+      "title": "Target Date",
+      "type": "string"
+    },
+    "time_window": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TimeWindow"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "prediction": {
+      "$ref": "#/$defs/Prediction"
+    },
+    "impact": {
+      "$ref": "#/$defs/Impact"
+    },
+    "effort": {
+      "$ref": "#/$defs/Effort"
+    },
+    "explanation": {
+      "$ref": "#/$defs/Explanation"
+    },
+    "data_quality": {
+      "$ref": "#/$defs/DataQuality"
+    },
+    "recommended_action": {
+      "$ref": "#/$defs/RecommendedAction"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "extra": {
+      "additionalProperties": true,
+      "description": "Câmpuri specifice sursei (serii pentru grafice etc.)",
+      "title": "Extra",
+      "type": "object"
+    }
+  },
+  "required": [
+    "work_item_id",
+    "source",
+    "kind",
+    "asset_id",
+    "asset_type",
+    "location",
+    "target_date",
+    "prediction",
+    "impact",
+    "effort",
+    "explanation",
+    "data_quality",
+    "recommended_action",
+    "created_at"
+  ],
+  "title": "WorkItem",
+  "type": "object"
+}

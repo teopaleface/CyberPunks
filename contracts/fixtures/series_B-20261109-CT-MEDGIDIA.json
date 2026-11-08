@@ -1,0 +1,403 @@
+{
+  "contract_version": "1.0",
+  "work_item_id": "B-20261109-CT-MEDGIDIA",
+  "source": "B",
+  "title_ro": "Rafale de vânt și riscul de avarii, 48 de ore",
+  "unit": "km/h",
+  "points": [
+    {
+      "t": "2026-11-09T00:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T01:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T02:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T03:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T04:00:00+02:00",
+      "value": 25.1,
+      "expected": 0.251,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T05:00:00+02:00",
+      "value": 25.2,
+      "expected": 0.252,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T06:00:00+02:00",
+      "value": 25.7,
+      "expected": 0.257,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T07:00:00+02:00",
+      "value": 26.7,
+      "expected": 0.267,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T08:00:00+02:00",
+      "value": 28.9,
+      "expected": 0.289,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T09:00:00+02:00",
+      "value": 33.1,
+      "expected": 0.331,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T10:00:00+02:00",
+      "value": 40.0,
+      "expected": 0.4,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T11:00:00+02:00",
+      "value": 49.7,
+      "expected": 0.497,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T12:00:00+02:00",
+      "value": 61.4,
+      "expected": 0.614,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T13:00:00+02:00",
+      "value": 73.0,
+      "expected": 0.73,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T14:00:00+02:00",
+      "value": 81.8,
+      "expected": 0.818,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T15:00:00+02:00",
+      "value": 85.0,
+      "expected": 0.85,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T16:00:00+02:00",
+      "value": 81.8,
+      "expected": 0.818,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T17:00:00+02:00",
+      "value": 73.0,
+      "expected": 0.73,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T18:00:00+02:00",
+      "value": 61.4,
+      "expected": 0.614,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T19:00:00+02:00",
+      "value": 49.7,
+      "expected": 0.497,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T20:00:00+02:00",
+      "value": 40.0,
+      "expected": 0.4,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T21:00:00+02:00",
+      "value": 33.1,
+      "expected": 0.331,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T22:00:00+02:00",
+      "value": 28.9,
+      "expected": 0.289,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-09T23:00:00+02:00",
+      "value": 26.7,
+      "expected": 0.267,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T00:00:00+02:00",
+      "value": 25.7,
+      "expected": 0.257,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T01:00:00+02:00",
+      "value": 25.2,
+      "expected": 0.252,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T02:00:00+02:00",
+      "value": 25.1,
+      "expected": 0.251,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T03:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T04:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T05:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T06:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T07:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T08:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T09:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T10:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T11:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T12:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T13:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T14:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T15:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T16:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T17:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T18:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T19:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T20:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T21:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T22:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    },
+    {
+      "t": "2026-11-10T23:00:00+02:00",
+      "value": 25.0,
+      "expected": 0.25,
+      "low": null,
+      "high": null,
+      "flag": null
+    }
+  ],
+  "thresholds": {
+    "rafala_prag_kmh": 70.0
+  },
+  "annotations": [
+    {
+      "t": "2026-11-09T12:00:00+02:00",
+      "label_ro": "începe fereastra de risc"
+    }
+  ],
+  "synthetic": true
+}

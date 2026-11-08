@@ -1,0 +1,273 @@
+{
+  "main": {
+    "prevalence_test": 0.10321917808219178,
+    "test_rows": 29200,
+    "test_events": 3014,
+    "model": {
+      "pr_auc": 0.2776740116695608,
+      "roc_auc": 0.7245503379402449,
+      "brier": 0.08411089905767892,
+      "log_loss": 0.2970364055444964,
+      "threshold": 0.16,
+      "precision_at_thr": 0.28026345673404496,
+      "recall_at_thr": 0.40942269409422694,
+      "recall_severe_at_thr": 0.49768875192604006,
+      "recall_extreme_at_thr": 0.5416666666666666,
+      "alerts_per_100_zone_days": 15.07876712328767,
+      "f1_at_thr": 0.3327490899285425,
+      "pinball_q10": 0.06928416654804344,
+      "pinball_q50": 0.23886825389784735,
+      "pinball_q90": 0.14388173786801886,
+      "pinball_mean": 0.15067805277130322,
+      "coverage_p10_p90": 0.8078964830789648,
+      "coverage_p10_p90_without_conformal": 0.7219641672196416,
+      "conformal_offset_log": 0.05993904719435551
+    },
+    "clim_month": {
+      "pr_auc": 0.11977627358490983,
+      "roc_auc": 0.5519153697622607,
+      "brier": 0.09238486221216288,
+      "log_loss": 0.33134822308840156,
+      "threshold": 0.1,
+      "precision_at_thr": 0.1230392156862745,
+      "recall_at_thr": 0.4996682149966821,
+      "recall_severe_at_thr": 0.5269645608628659,
+      "recall_extreme_at_thr": 0.5416666666666666,
+      "alerts_per_100_zone_days": 41.917808219178085,
+      "f1_at_thr": 0.1974564048774092,
+      "pinball_q10": 0.06729314392505807,
+      "pinball_q50": 0.24112591552358645,
+      "pinball_q90": 0.1511567977493067,
+      "pinball_mean": 0.15319195239931707,
+      "coverage_p10_p90": 0.8112143331121433
+    },
+    "gust_rule": {
+      "pr_auc": 0.1820349860293728,
+      "roc_auc": 0.6109081839675748,
+      "brier": 0.08899439774087553,
+      "log_loss": 0.3191307632132198,
+      "threshold": 0.1,
+      "precision_at_thr": 0.17970721857647654,
+      "recall_at_thr": 0.3543463835434638,
+      "recall_severe_at_thr": 0.4268104776579353,
+      "recall_extreme_at_thr": 0.4583333333333333,
+      "alerts_per_100_zone_days": 20.352739726027398,
+      "f1_at_thr": 0.23847270291392209
+    },
+    "gust_rule_70kmh": {
+      "pr_auc": 0.13332463070307388,
+      "roc_auc": 0.5455460505066329,
+      "brier": 0.11157534246575343,
+      "log_loss": 1.5414712102686206,
+      "threshold": 0.5,
+      "precision_at_thr": 0.36853448275862066,
+      "recall_at_thr": 0.11347047113470471,
+      "recall_severe_at_thr": 0.1510015408320493,
+      "recall_extreme_at_thr": 0.14772727272727273,
+      "alerts_per_100_zone_days": 3.1780821917808217,
+      "f1_at_thr": 0.1735159817351598
+    },
+    "clim_county_month": {
+      "pr_auc": 0.15068186299472852,
+      "roc_auc": 0.6116143579256982,
+      "brier": 0.09137147418482887,
+      "log_loss": 0.3265588052309497,
+      "threshold": 0.13,
+      "precision_at_thr": 0.15477372676975457,
+      "recall_at_thr": 0.3619774386197744,
+      "recall_severe_at_thr": 0.39907550077041604,
+      "recall_extreme_at_thr": 0.4166666666666667,
+      "alerts_per_100_zone_days": 24.14041095890411,
+      "f1_at_thr": 0.21683394613932228
+    }
+  },
+  "figures": [
+    "fig_pr_curves.png",
+    "fig_reliability.png",
+    "fig_gust_bins.png",
+    "fig_shap_importance.png"
+  ],
+  "train_info": {
+    "rows": 58480,
+    "events": 5595,
+    "counties": 80,
+    "years": [
+      2023,
+      2024
+    ],
+    "states": [
+      "IL",
+      "KY",
+      "MI",
+      "MO",
+      "NY",
+      "OH",
+      "PA",
+      "VA"
+    ]
+  },
+  "capacity": {
+    "k_crews_per_day": 8,
+    "zones": 80,
+    "results": {
+      "model": {
+        "customers_covered_share": 0.1671,
+        "events_caught_share": 0.2153,
+        "alert_precision": 0.2223
+      },
+      "regula_rafala": {
+        "customers_covered_share": 0.146,
+        "events_caught_share": 0.149,
+        "alert_precision": 0.1538
+      },
+      "climatologie_comitat_luna": {
+        "customers_covered_share": 0.1227,
+        "events_caught_share": 0.1639,
+        "alert_precision": 0.1692
+      },
+      "aleator": {
+        "customers_covered_share": 0.0763,
+        "events_caught_share": 0.0946,
+        "alert_precision": 0.0976
+      },
+      "oracol": {
+        "customers_covered_share": 0.8855,
+        "events_caught_share": 0.7157,
+        "alert_precision": 0.7387
+      }
+    }
+  },
+  "decision_value_note": "Valoarea în lei presupune că o echipă scurtează întreruperea pentru toți clienții afectați, oricât de mare e avaria; cu ipotezele din config, „mereu” iese cel mai bine. Ipoteza e prea generoasă: folosiți rezultatele „capacity” (echipe puține).",
+  "decision_value": {
+    "model_la_prag": {
+      "alerts": 4403,
+      "events_caught": 1234,
+      "net_lei": 45663870.0,
+      "net_lei_per_1000_zone_days": 1563831.0
+    },
+    "regula_rafala_70kmh": {
+      "alerts": 928,
+      "events_caught": 342,
+      "net_lei": 15161250.0,
+      "net_lei_per_1000_zone_days": 519221.0
+    },
+    "climatologie_la_prag": {
+      "alerts": 7049,
+      "events_caught": 1091,
+      "net_lei": 30673800.0,
+      "net_lei_per_1000_zone_days": 1050473.0
+    },
+    "mereu": {
+      "alerts": 29200,
+      "events_caught": 3014,
+      "net_lei": 74510910.0,
+      "net_lei_per_1000_zone_days": 2551743.0
+    },
+    "niciodata": {
+      "alerts": 0,
+      "events_caught": 0,
+      "net_lei": 0.0,
+      "net_lei_per_1000_zone_days": 0.0
+    },
+    "oracol_doar_evenimente": {
+      "alerts": 3014,
+      "events_caught": 3014,
+      "net_lei": 145213110.0,
+      "net_lei_per_1000_zone_days": 4973052.0
+    }
+  },
+  "decision_value_assumptions": {
+    "preposition_cost_lei_per_crew_shift": 2700,
+    "cost_per_customer_hour_lei": 12,
+    "restoration_speedup_hours": 2.5
+  },
+  "loso": {
+    "IL": {
+      "prevalence": 0.0652054794520548,
+      "events": 238,
+      "model_pr_auc": 0.20622094665926716,
+      "model_brier": 0.0583144240256985,
+      "clim_month_pr_auc": 0.07751746232953802,
+      "clim_month_brier": 0.0623916448959546,
+      "gust_rule_pr_auc": 0.1208432631617652,
+      "model_recall_severe": 0.52
+    },
+    "KY": {
+      "prevalence": 0.12438356164383561,
+      "events": 454,
+      "model_pr_auc": 0.26577704145539943,
+      "model_brier": 0.10250914115424534,
+      "clim_month_pr_auc": 0.13720645499144046,
+      "clim_month_brier": 0.10972409913815558,
+      "gust_rule_pr_auc": 0.20307865668559286,
+      "model_recall_severe": 0.5045871559633027
+    },
+    "MI": {
+      "prevalence": 0.10191780821917808,
+      "events": 372,
+      "model_pr_auc": 0.2726957378166297,
+      "model_brier": 0.0837325658190642,
+      "clim_month_pr_auc": 0.13288521986088253,
+      "clim_month_brier": 0.0908161641836293,
+      "gust_rule_pr_auc": 0.19725640847946438,
+      "model_recall_severe": 0.43
+    },
+    "MO": {
+      "prevalence": 0.09671232876712328,
+      "events": 353,
+      "model_pr_auc": 0.2321505066281415,
+      "model_brier": 0.08227130685363637,
+      "clim_month_pr_auc": 0.11632341346567414,
+      "clim_month_brier": 0.08696406202418311,
+      "gust_rule_pr_auc": 0.17390493570381804,
+      "model_recall_severe": 0.5
+    },
+    "NY": {
+      "prevalence": 0.0747945205479452,
+      "events": 273,
+      "model_pr_auc": 0.2367871417089839,
+      "model_brier": 0.06814273773477743,
+      "clim_month_pr_auc": 0.07087935653626287,
+      "clim_month_brier": 0.07092801791046337,
+      "gust_rule_pr_auc": 0.20501751739131263,
+      "model_recall_severe": 0.5686274509803921
+    },
+    "OH": {
+      "prevalence": 0.09945205479452054,
+      "events": 363,
+      "model_pr_auc": 0.2443314083856831,
+      "model_brier": 0.08403327416003356,
+      "clim_month_pr_auc": 0.1121016845760913,
+      "clim_month_brier": 0.0894383427200919,
+      "gust_rule_pr_auc": 0.17497391755055847,
+      "model_recall_severe": 0.5714285714285714
+    },
+    "PA": {
+      "prevalence": 0.12876712328767123,
+      "events": 470,
+      "model_pr_auc": 0.2854361734696928,
+      "model_brier": 0.10483988827416463,
+      "clim_month_pr_auc": 0.1383064532055031,
+      "clim_month_brier": 0.11363950808878462,
+      "gust_rule_pr_auc": 0.21463317242887975,
+      "model_recall_severe": 0.3698630136986301
+    },
+    "VA": {
+      "prevalence": 0.1345205479452055,
+      "events": 491,
+      "model_pr_auc": 0.32547743483566716,
+      "model_brier": 0.10805546280291427,
+      "clim_month_pr_auc": 0.18952880731241456,
+      "clim_month_brier": 0.11649858567070502,
+      "gust_rule_pr_auc": 0.21636671319026812,
+      "model_recall_severe": 0.39655172413793105
+    }
+  },
+  "loso_summary": {
+    "model_pr_auc_mean": 0.2586095488699331,
+    "clim_month_pr_auc_mean": 0.12184360653472587,
+    "gust_rule_pr_auc_mean": 0.18825932307395743,
+    "states_model_beats_clim": 8,
+    "states": 8
+  }
+}

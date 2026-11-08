@@ -1,0 +1,71 @@
+{
+  "missing_data_curve": [
+    {
+      "missing_days_share": 0.0,
+      "precision_at_k": 1.0,
+      "pr_auc": 0.6918,
+      "roc_auc": 0.9104,
+      "brier": 0.0232,
+      "data_abstain_share": 0.0048,
+      "problem_decisions": 541,
+      "unsure_decisions": 573
+    },
+    {
+      "missing_days_share": 0.1,
+      "precision_at_k": 1.0,
+      "pr_auc": 0.6228,
+      "roc_auc": 0.8838,
+      "brier": 0.0276,
+      "data_abstain_share": 0.0048,
+      "problem_decisions": 660,
+      "unsure_decisions": 845
+    },
+    {
+      "missing_days_share": 0.3,
+      "precision_at_k": 1.0,
+      "pr_auc": 0.5947,
+      "roc_auc": 0.8491,
+      "brier": 0.0327,
+      "data_abstain_share": 0.0049,
+      "problem_decisions": 873,
+      "unsure_decisions": 1957
+    },
+    {
+      "missing_days_share": 0.5,
+      "precision_at_k": 1.0,
+      "pr_auc": 0.5585,
+      "roc_auc": 0.8113,
+      "brier": 0.0373,
+      "data_abstain_share": 0.0073,
+      "problem_decisions": 934,
+      "unsure_decisions": 3578
+    },
+    {
+      "missing_days_share": 0.7,
+      "precision_at_k": 0.9937,
+      "pr_auc": 0.4345,
+      "roc_auc": 0.7723,
+      "brier": 0.06,
+      "data_abstain_share": 0.8355,
+      "problem_decisions": 2356,
+      "unsure_decisions": 2653
+    }
+  ],
+  "sgcc_time_split": {
+    "model": {
+      "pr_auc": 0.1863,
+      "roc_auc": 0.703,
+      "precision_at_k": 0.4,
+      "recall_at_k": 0.047
+    },
+    "rule": {
+      "pr_auc": 0.075,
+      "roc_auc": 0.4658,
+      "precision_at_k": 0.0353,
+      "recall_at_k": 0.0041
+    },
+    "missing_share_train_window": 0.3375,
+    "missing_share_test_window": 0.0859,
+    "note": "fereastră de 365 de zile; antrenare 2014-11..2015-10, test pe clienți nevăzuți 2015-11..2016-10"
+  }
+}

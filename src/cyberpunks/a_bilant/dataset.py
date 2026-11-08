@@ -1,0 +1,516 @@
+"""Setul de date simulat al bilanțului: două loturi de posturi, cu probleme ascunse (SINTETIC).
+
+- `train`: 300 de posturi sintetice noi (variante SimBench, 50 pe topologie, parametri realiști), grupate câte 5 în
+  „cartiere” (vecinii pentru clientul trecut la postul greșit);
+- `pop`: cele 300 de posturi din registrul comun al firului C (harta din București-Ilfov), cu vecinii după distanță.
+  Rețelele lor nu se văd la antrenare: testul e pe rețele nevăzute.
+
+Pentru fiecare post și fiecare zi (2024-07-01 … 2025-07-08): energia ieșită din post (contorul de balanță), suma
+contoarelor clienților din bază, golurile de date, semnalele contoarelor (zero, blocat, negativ noaptea), tensiunile
+și adevărul din construcție (pierderea tehnică, furtul, consumul nemăsurat, clasa problemei).
+
+    uv run python -m cyberpunks.a_bilant.dataset            # ambele loturi, cel mult 4 procese
+    uv run python -m cyberpunks.a_bilant.dataset --pool pop
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import time
+from concurrent.futures import ProcessPoolExecutor
+from multiprocessing import get_context
+
+import numpy as np
+import pandas as pd
+
+from cyberpunks.a_bilant import problems as P
+from cyberpunks.a_bilant import registry, world
+from cyberpunks.c_prosumatori import grids
+from cyberpunks.common.paths import DATA_PROCESSED
+
+OUT = DATA_PROCESSED / "bilant"
+WINDOW = 14  # zile: fereastra diagnosticului
+EVAL_EVERY = 7  # o fereastră de evaluare la 7 zile
+SEEDS = {"train": 20261107, "pop": 8112026, "train2": 20261108, "trainL": 20261109, "trainLA": 20261110}
+P_POST = {"train": 0.40, "pop": 0.25, "train2": 0.40, "trainL": 0.40, "trainLA": 0.25}
+# trainL: ~3.000 de posturi (diagnosticul v2); trainLA: ~3.000 de posturi cu defectele de contor ca la A, apărute în
+# ultimele 60 de zile, ca pe harta de test (antrenarea fuziunii v2)
+N_PER_TOPOLOGY = {"train": 50, "train2": 50, "trainL": 500, "trainLA": 500}
+MAX_WORKERS = 8  # ce parte din posturi au o problemă la nivel de post (IPOTEZĂ)
+
+
+# ------------------------------------------------------------------------------------------------------------
+# specificațiile loturilor
+# ------------------------------------------------------------------------------------------------------------
+
+
+def train_specs(n_per_topology: int = 50, pool: str = "train") -> tuple[list[grids.PostSpec], pd.DataFrame]:
+    rng = np.random.default_rng(SEEDS[pool])
+    prefix = {"train": "BT", "train2": "BT2", "trainL": "BTL", "trainLA": "BTLA"}[pool]
+    specs, meta = [], []
+    k = 0
+    for topo in grids.TOPOLOGIES:
+        for i in range(n_per_topology):
+            pid = f"{prefix}-{topo}-{i:03d}"
+            specs.append(grids.sample_spec(topo, rng, pid, mode="population"))
+            meta.append({"post_id": pid, "cluster": f"K{k // 5:03d}", "lat": np.nan, "lon": np.nan})
+            k += 1
+    # cartierele amestecă topologiile (vecinii nu au aceeași rețea)
+    meta = pd.DataFrame(meta)
+    perm = np.random.default_rng(SEEDS[pool] + 1).permutation(len(meta))
+    meta["cluster"] = meta["cluster"].to_numpy()[perm]
+    return specs, meta
+
+
+def pop_specs() -> tuple[list[grids.PostSpec], pd.DataFrame]:
+    reg = registry.load_posts()
+    specs = [registry.spec_for(pid) for pid in reg["post_id"]]
+    meta = reg[["post_id", "lat", "lon", "zone_id"]].copy()
+    meta["cluster"] = meta["zone_id"]
+    return specs, meta
+
+
+def neighbors(meta: pd.DataFrame, k: int = 3) -> dict[str, list[str]]:
+    """Vecinii fiecărui post: din același cartier (train) sau cei mai apropiați k (pop, după distanță)."""
+    out: dict[str, list[str]] = {}
+    if meta["lat"].notna().all():
+        lat = np.radians(meta["lat"].to_numpy())
+        lon = np.radians(meta["lon"].to_numpy())
+        x = np.cos(lat) * np.cos(lon)
+        y = np.cos(lat) * np.sin(lon)
+        z = np.sin(lat)
+        xyz = np.stack([x, y, z], 1)
+        d = np.linalg.norm(xyz[:, None] - xyz[None], axis=2)
+        np.fill_diagonal(d, np.inf)
+        ids = meta["post_id"].to_numpy()
+        for i, pid in enumerate(ids):
+            out[pid] = list(ids[np.argsort(d[i])[:k]])
+    else:
+        for _, g in meta.groupby("cluster"):
+            ids = list(g["post_id"])
+            for pid in ids:
+                out[pid] = [q for q in ids if q != pid]
+    return out
+
+
+def n_customers(spec: grids.PostSpec) -> int:
+    return len(grids.base_net(spec.topology).load)
+
+
+A_TRUTH_SCENARIO = "demo-vara"  # adevărul lui A e pentru ziua demo, ultima zi a simulării
+
+
+def a_truth() -> pd.DataFrame | None:
+    """Adevărul injectat de firul A (contor, post, tip, de câte zile), scris de `a_contoare.predict`."""
+    from cyberpunks.common.paths import OUTPUTS
+
+    path = OUTPUTS / "work_items" / A_TRUTH_SCENARIO / "A_ground_truth.csv"
+    if not path.exists():
+        try:
+            from cyberpunks.a_contoare import predict as a_predict
+
+            a_predict.run(A_TRUTH_SCENARIO)
+        except Exception as exc:  # noqa: BLE001 - fără A, lotul rămâne cu problemele noastre de contor
+            print(f"bilanț: adevărul lui A nu e disponibil ({exc}); contoarele primesc probleme proprii")
+            return None
+    return pd.read_csv(path) if path.exists() else None
+
+
+def apply_a_truth(plans: dict[str, P.PostPlan], specs: list[grids.PostSpec], n_days: int) -> int:
+    """Pune în lumea bilanțului exact contoarele cu probleme ale lui A: al k-lea contor A al postului = clientul k.
+
+    Problemele de contor proprii (aleatoare) ale postului se înlocuiesc cu ale lui A, ca bilanțul să vadă aceeași
+    energie lipsă pe care A o caută. Comportamentele benigne ale lui A (concediu, ocupare schimbată) intră la fel.
+    Întoarce câte probleme de contor au venit de la A.
+    """
+    t = a_truth()
+    if t is None:
+        return 0
+    ncust = {s.post_id: n_customers(s) for s in specs}
+    seed = np.random.default_rng(SEEDS["pop"] + 7)
+    n = 0
+    for pid, g in t.sort_values("meter_id").groupby("post_id"):
+        if pid not in plans:
+            continue
+        plan = plans[pid]
+        plan.problems = [p for p in plan.problems if p.kind not in ("meter_fault", "meter_tamper")]
+        plan.benign = []
+        for k, r in enumerate(g.itertuples(index=False)):
+            if k >= ncust[pid]:
+                break
+            ago = int(r.true_onset_days_ago)
+            onset = max(1, n_days - 1 - max(ago, 0))
+            if r.true_family in ("faulty", "tamper") and r.true_problem == 1 and not str(r.true_kind).endswith("_terminat"):
+                kind = "meter_fault" if r.true_family == "faulty" else "meter_tamper"
+                plan.problems.append(P.Problem(kind, onset, k, {"type": str(r.true_kind), "seed": int(seed.integers(0, 2**31 - 1)), "meter_id": r.meter_id}))
+                n += 1
+            elif r.true_kind == "vacation":
+                plan.benign.append((k, "concediu", onset, 14, 0.15))
+            elif r.true_kind == "occupancy_change":
+                plan.benign.append((k, "ocupare_schimbata", onset, None, 0.6))
+    return n
+
+
+def plans_for(pool: str, specs: list[grids.PostSpec], meta: pd.DataFrame, n_days: int) -> dict[str, P.PostPlan]:
+    rng = np.random.default_rng(SEEDS[pool] + 99)
+    plans = {s.post_id: P.make_plan(s.post_id, n_customers(s), n_days, rng, p_post_problem=P_POST[pool]) for s in specs}
+    if pool == "pop":
+        print(f"bilanț: {apply_a_truth(plans, specs, n_days)} probleme de contor luate din adevărul lui A")
+    if pool == "train2":
+        r2 = np.random.default_rng(SEEDS[pool] + 3)
+        for s_ in specs:
+            P.a_like_meter_problems(plans[s_.post_id], n_customers(s_), n_days, r2)
+    if pool == "trainLA":  # ca adevărul lui A pe hartă: ~5,5% din contoare, apărute în ultimele 60 de zile
+        r2 = np.random.default_rng(SEEDS[pool] + 3)
+        for s_ in specs:
+            P.a_like_meter_problems(plans[s_.post_id], n_customers(s_), n_days, r2, p_meter=0.055, min_onset=n_days - 61)
+    # clientul la postul greșit: receptorul e un vecin fără altă problemă de post
+    nb = neighbors(meta)
+    taken = set()
+    for pid, plan in plans.items():
+        for pr in plan.problems:
+            if pr.kind == "wrong_post_donor":
+                cands = [q for q in nb[pid] if q not in taken and not any(x.kind != "meter_fault" and x.kind != "meter_tamper" for x in plans[q].problems)]
+                if not cands:
+                    plan.problems.remove(pr)
+                    continue
+                recv = cands[0]
+                taken.add(recv)
+                pr.params["receiver"] = recv
+                plans[recv].problems.append(P.Problem("wrong_post_receiver", pr.onset_day, -1, {"donor": pid, "customer": pr.customer}))
+    return plans
+
+
+# ------------------------------------------------------------------------------------------------------------
+# un post (rulat în procese separate)
+# ------------------------------------------------------------------------------------------------------------
+
+_W: dict = {}
+
+
+def _init(wx: world.Weather, cluster_mv: dict[str, np.ndarray]) -> None:
+    _W["wx"] = wx
+    _W["cluster_mv"] = cluster_mv
+
+
+def impute(rec: np.ndarray) -> np.ndarray:
+    """Golurile unui contor: valoarea de acum 7 zile, apoi media orei din zi a aceluiași contor."""
+    x = rec.astype("float64").copy()
+    for _ in range(4):
+        miss = np.isnan(x)
+        if not miss.any():
+            break
+        shifted = np.full_like(x, np.nan)
+        shifted[:, 168:] = x[:, :-168]
+        x[miss] = shifted[miss]
+    miss = np.isnan(x)
+    if miss.any():
+        T = x.shape[1]
+        hod = np.arange(T) % 24
+        for h in range(24):
+            cols = hod == h
+            m = np.nanmean(np.where(np.isnan(x[:, cols]), np.nan, x[:, cols]), axis=1)
+            sub = x[:, cols]
+            r, c = np.nonzero(np.isnan(sub))
+            sub[r, c] = np.nan_to_num(m[r])
+            x[:, cols] = sub
+    return x
+
+
+def _vcorr(volt: np.ndarray, vmed: np.ndarray, hours: np.ndarray) -> np.ndarray:
+    """Corelația variațiilor orare de tensiune ale fiecărui contor cu mediana postului, pe orele date."""
+    a = np.diff(volt[:, hours].astype("float64"), axis=1)
+    b = np.diff(vmed[hours].astype("float64"))
+    a = a - a.mean(1, keepdims=True)
+    b = b - b.mean()
+    den = np.sqrt((a**2).sum(1) * (b**2).sum()) + 1e-12
+    return (a @ b) / den
+
+
+def run_post(args: tuple[dict, dict, str, np.ndarray | None]) -> dict:
+    spec_d, plan_d, cluster, load_shape = args
+    wx: world.Weather = _W["wx"]
+    spec = grids.PostSpec(**spec_d)
+    plan = P.PostPlan(
+        post_id=plan_d["post_id"],
+        phase_shares=tuple(plan_d["phase_shares"]),
+        problems=[P.Problem(**p) for p in plan_d["problems"]],
+        benign=[tuple(b) for b in plan_d["benign"]],
+    )
+    t0 = time.perf_counter()
+    w = world.simulate(spec, wx, plan, cluster_mv=_W["cluster_mv"].get(cluster), load_shape=load_shape)
+    n, T, D = w.n_customers, wx.T, wx.D
+    day = wx.local_day
+
+    # clientul mutat în bază la alt post: iese din baza acestui post de la ziua mutării
+    in_db = np.ones((n, T), dtype=bool)
+    moved = None
+    for pr in plan.problems:
+        if pr.kind == "wrong_post_donor":
+            c = pr.customer % n
+            on = day >= pr.onset_day
+            in_db[c, on] = False
+            moved = {"customer": c, "onset": pr.onset_day, "receiver": pr.params["receiver"]}
+    rec = w.cust_kwh
+    missing = np.isnan(rec)
+    imp = impute(rec)
+    db = np.where(in_db, imp, 0.0).sum(0)
+    nmiss = (missing & in_db).sum(0)
+    keep = np.ones(n, dtype=bool)
+    if moved:
+        keep[moved["customer"]] = False
+        moved["rec"] = np.where(day >= moved["onset"], imp[moved["customer"]], 0.0).astype("float32")
+        moved["volt"] = w.cust_voltage[moved["customer"]]
+    vmed = np.median(w.cust_voltage[keep], axis=0)
+    # candidatul pentru „legat fizic la alt post”: contorul din bază cu tensiunea cea mai puțin asemănătoare cu a postului,
+    # pe toată perioada (simplificare: un singur candidat pe post)
+    all_h = np.arange(T)
+    cc_all = _vcorr(w.cust_voltage[keep], vmed, all_h)
+    cand_volt = w.cust_voltage[np.flatnonzero(keep)[int(np.argmin(cc_all))]].astype("float32")
+
+    # semnalele contoarelor, pe zi: zi cu zero, zi blocată (24 de valori egale), consum negativ noaptea la neprosumatori
+    cust_daily = np.zeros((n, D))
+    zero_d = np.zeros((n, D), bool)
+    stuck_d = np.zeros((n, D), bool)
+    neg_d = np.zeros((n, D), bool)
+    pros = np.zeros(n, bool)
+    pros[w.static["prosumer_idx"]] = True
+    starts = np.searchsorted(day, np.arange(D + 1))
+    with np.errstate(invalid="ignore"), __import__("warnings").catch_warnings():
+        __import__("warnings").simplefilter("ignore", RuntimeWarning)
+        for d in range(D):
+            x = rec[:, starts[d] : starts[d + 1]]
+            cust_daily[:, d] = np.nansum(x, 1)
+            mx = np.nanmax(np.abs(x), 1)
+            zero_d[:, d] = mx == 0
+            stuck_d[:, d] = (np.nanstd(x, 1) == 0) & (mx > 0)
+            neg_d[:, d] = np.nanmin(x[:, :6], 1) < -0.01  # primele 6 ore ale zilei locale: noapte, fără soare
+    db_member = in_db[:, starts[:-1]]
+    zero_d &= db_member
+    stuck_d &= db_member
+    neg_d &= db_member & ~pros[:, None]
+
+    # adevărul pe zi
+    def dsum(x: np.ndarray) -> np.ndarray:
+        return np.bincount(day, weights=x, minlength=D)
+
+    lh = (wx.index.tz_convert(world.TZ) - pd.Timedelta(hours=1)).hour.to_numpy()
+    night = lh < 6
+    resid = w.balance_kwh - db
+    daily = pd.DataFrame(
+        {
+            "post_id": spec.post_id,
+            "day": np.arange(D),
+            "date": wx.days,
+            "bal_kwh": dsum(w.balance_kwh),
+            "martor_kwh": dsum(w.martor_kwh) if w.static["has_martor"] else np.nan,
+            "db_kwh": dsum(db),
+            "imp_kwh": dsum(np.maximum(db, 0)),
+            "exp_kwh": dsum(np.maximum(-db, 0)),
+            "sq_kwh2": dsum(db**2),
+            "abs_kwh": dsum(np.abs(db)),
+            "night_short_kwh": dsum(np.where(night, resid, 0.0)),
+            "night_db_kwh": dsum(np.where(night, db, 0.0)),
+            "night_sq_kwh2": dsum(np.where(night, db**2, 0.0)),
+            "miss_hours": dsum(nmiss.astype(float)),
+            "n_db": dsum(in_db.sum(0).astype(float)) / np.maximum(np.bincount(day, minlength=D), 1),
+            "temp_c": dsum(wx.temp) / np.maximum(np.bincount(day, minlength=D), 1),
+            "gti_kwh_m2": dsum(wx.gti) / 1000,
+            "cnt_zero": zero_d.sum(0),
+            "cnt_stuck": stuck_d.sum(0),
+            "cnt_neg_night": neg_d.sum(0),
+            "true_line_base_kwh": dsum(w.true_line_loss_base_kwh),
+            "true_line_kwh": dsum(w.true_line_loss_kwh),
+            "true_own_kwh": w.true_own_kwh * np.bincount(day, minlength=D),
+            "true_theft_kwh": dsum(w.true_theft_kwh),
+            "true_meter_deficit_kwh": dsum(w.true_meter_deficit_kwh),
+            "true_moved_out_kwh": dsum(moved["rec"]) if moved else 0.0,
+            "true_moved_in_kwh": 0.0,
+        }
+    )
+    # tensiunile: corelația minimă din fereastră, pe zilele de evaluare
+    ev = eval_days(D)
+    vrows = []
+    for e in ev:
+        hours = np.flatnonzero((day > e - WINDOW) & (day <= e))
+        cc = _vcorr(w.cust_voltage[keep], vmed, hours)
+        idx = np.flatnonzero(keep)
+        j = int(np.argmin(cc))
+        vrows.append({"post_id": spec.post_id, "day": e, "vcorr_min": float(cc[j]), "vcorr_min_customer": int(idx[j]), "vcorr_med": float(np.median(cc))})
+    return {
+        "post_id": spec.post_id,
+        "static": {**w.static, "n_customers": n},
+        "plan": plan_d,
+        "benign": {int(k): v for k, v in w.benign.items()},
+        "daily": daily,
+        "vcorr": pd.DataFrame(vrows),
+        "cust_daily": cust_daily.astype("float32"),
+        "bal_h": w.balance_kwh.astype("float32"),
+        "db_h": db.astype("float32"),
+        "vmed": vmed.astype("float32"),
+        "cand_volt": cand_volt,
+        "moved": moved,
+        "seconds": time.perf_counter() - t0,
+    }
+
+
+def voltage_topology(res: dict, nb: dict, wx: world.Weather, ev: list[int]) -> pd.DataFrame:
+    """Identificarea topologiei din tensiuni (Short 2013; comparația din 2022, `docs/research/bilant_lit.md`).
+
+    Pentru candidații fiecărui post (contorul cu tensiunea cea mai ciudată și, la receptor, clientul venit din altă
+    parte, care e în baza lui), pe fereastra de 14 zile:
+    - `volt_elsewhere`: cât de mult seamănă un candidat mai bine cu un vecin decât cu postul lui (corelație vecin − proprie);
+    - `volt_claimed`: cât de mult seamănă candidatul unui vecin mai bine cu acest post decât cu postul lui.
+    """
+    cands: dict[str, list[np.ndarray]] = {k: [r["cand_volt"]] for k, r in res.items()}
+    for r in res.values():
+        mv = r["moved"]
+        if mv and mv["receiver"] in cands:
+            cands[mv["receiver"]].append(mv["volt"])
+    rows = []
+    for e in ev:
+        hours = np.flatnonzero((wx.local_day > e - WINDOW) & (wx.local_day <= e))
+        gain: dict[str, float] = {}
+        claim: dict[str, float] = {}
+        for p, cl in cands.items():
+            qs = [q for q in nb.get(p, []) if q in res]
+            if not qs:
+                continue
+            V = np.stack(cl)
+            own = _vcorr(V, res[p]["vmed"], hours)
+            for q in qs:
+                g = _vcorr(V, res[q]["vmed"], hours) - own
+                gain[p] = max(gain.get(p, -1.0), float(g.max()))
+                claim[q] = max(claim.get(q, -1.0), float(g.max()))
+        for p in res:
+            rows.append({"post_id": p, "day": e, "volt_elsewhere": gain.get(p, 0.0), "volt_claimed": claim.get(p, 0.0)})
+    return pd.DataFrame(rows)
+
+
+def eval_days(D: int) -> list[int]:
+    ev = list(range(P.MIN_ONSET_DAY + WINDOW, D, EVAL_EVERY))
+    if ev[-1] != D - 1:
+        ev.append(D - 1)
+    return ev
+
+
+def plan_to_dict(plan: P.PostPlan) -> dict:
+    return {
+        "post_id": plan.post_id,
+        "phase_shares": list(plan.phase_shares),
+        "problems": [{"kind": p.kind, "onset_day": p.onset_day, "customer": p.customer, "params": p.params} for p in plan.problems],
+        "benign": [list(b) for b in plan.benign],
+    }
+
+
+def cluster_voltage(meta: pd.DataFrame, T: int, seed: int) -> dict[str, np.ndarray]:
+    """Variația comună de tensiune pe MT a posturilor din același cartier (aceeași linie de medie tensiune)."""
+    rng = np.random.default_rng(seed)
+    out = {}
+    for c in sorted(meta["cluster"].unique()):
+        e = rng.normal(0.0, 0.0015, T)
+        ar = np.empty(T)
+        acc = 0.0
+        for i, x in enumerate(e):
+            acc = 0.95 * acc + x
+            ar[i] = acc
+        out[c] = ar
+    return out
+
+
+# ------------------------------------------------------------------------------------------------------------
+# lotul
+# ------------------------------------------------------------------------------------------------------------
+
+
+def build(pool: str, workers: int = 4, limit: int | None = None, *, output_pool: str | None = None,
+          weather_data: world.Weather | None = None, load_shapes: dict[str, np.ndarray] | None = None) -> pd.DataFrame:
+    wx = weather_data if weather_data is not None else world.load_weather()
+    specs, meta = train_specs(N_PER_TOPOLOGY[pool], pool=pool) if pool in N_PER_TOPOLOGY else pop_specs()
+    if limit:
+        specs, meta = specs[:limit], meta.iloc[:limit]
+    plans = plans_for(pool, specs, meta, wx.D)
+    cmv = cluster_voltage(meta, wx.T, SEEDS[pool] + 5)
+    cl = dict(zip(meta["post_id"], meta["cluster"], strict=True))
+    for k in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "VECLIB_MAXIMUM_THREADS", "MKL_NUM_THREADS"):
+        os.environ[k] = "1"
+    jobs = [(s.to_dict(), plan_to_dict(plans[s.post_id]), cl[s.post_id], load_shapes[s.post_id] if load_shapes is not None else None) for s in specs]
+    t0 = time.perf_counter()
+    res: dict[str, dict] = {}
+    with ProcessPoolExecutor(max_workers=min(workers, MAX_WORKERS), mp_context=get_context("spawn"), initializer=_init, initargs=(wx, cmv)) as ex:
+        for i, r in enumerate(ex.map(run_post, jobs, chunksize=2), 1):
+            res[r["post_id"]] = r
+            if i % 100 == 0 or (len(jobs) <= 300 and i % 25 == 0):
+                print(f"  {pool}: {i}/{len(jobs)} posturi, {time.perf_counter() - t0:.0f} s", flush=True)
+
+    # receptorii clientului mutat: baza lor primește clientul de la ziua mutării
+    ev = eval_days(wx.D)
+    extra_v = []
+    for r in res.values():
+        mv = r["moved"]
+        if not mv or mv["receiver"] not in res:
+            continue
+        q = res[mv["receiver"]]
+        q["db_h"] = q["db_h"] + mv["rec"]
+        d = q["daily"]
+        add = np.bincount(wx.local_day, weights=mv["rec"].astype(float), minlength=wx.D)
+        db_new = q["db_h"].astype(float)
+        d["db_kwh"] = np.bincount(wx.local_day, weights=db_new, minlength=wx.D)
+        d["imp_kwh"] = np.bincount(wx.local_day, weights=np.maximum(db_new, 0), minlength=wx.D)
+        d["exp_kwh"] = np.bincount(wx.local_day, weights=np.maximum(-db_new, 0), minlength=wx.D)
+        d["sq_kwh2"] = np.bincount(wx.local_day, weights=db_new**2, minlength=wx.D)
+        d["abs_kwh"] = np.bincount(wx.local_day, weights=np.abs(db_new), minlength=wx.D)
+        lh = (wx.index.tz_convert(world.TZ) - pd.Timedelta(hours=1)).hour.to_numpy() < 6
+        resid = q["bal_h"].astype(float) - db_new
+        d["night_short_kwh"] = np.bincount(wx.local_day, weights=np.where(lh, resid, 0.0), minlength=wx.D)
+        d["night_db_kwh"] = np.bincount(wx.local_day, weights=np.where(lh, db_new, 0.0), minlength=wx.D)
+        d["night_sq_kwh2"] = np.bincount(wx.local_day, weights=np.where(lh, db_new**2, 0.0), minlength=wx.D)
+        d["true_moved_in_kwh"] = add
+        for e in ev:
+            if e < mv["onset"]:
+                continue
+            hours = np.flatnonzero((wx.local_day > e - WINDOW) & (wx.local_day <= e))
+            c = float(_vcorr(mv["volt"][None, :], q["vmed"], hours)[0])
+            extra_v.append({"post_id": mv["receiver"], "day": e, "moved_corr": c})
+
+    daily = pd.concat([r["daily"] for r in res.values()], ignore_index=True)
+    vc = pd.concat([r["vcorr"] for r in res.values()], ignore_index=True)
+    if extra_v:
+        ex_v = pd.DataFrame(extra_v)
+        vc = vc.merge(ex_v, on=["post_id", "day"], how="left")
+        better = vc["moved_corr"].notna() & (vc["moved_corr"] < vc["vcorr_min"])
+        vc.loc[better, "vcorr_min"] = vc.loc[better, "moved_corr"]
+        vc.loc[better, "vcorr_min_customer"] = -1  # clientul venit din altă parte
+        vc = vc.drop(columns="moved_corr")
+    vc = vc.merge(voltage_topology(res, neighbors(meta), wx, ev), on=["post_id", "day"], how="left")
+    posts = pd.DataFrame([{"post_id": k, **{a: b for a, b in r["static"].items() if not isinstance(b, list)}} for k, r in res.items()]).merge(meta, on="post_id", how="left")
+    out = OUT / (output_pool or pool)
+    out.mkdir(parents=True, exist_ok=True)
+    daily.to_parquet(out / "daily.parquet")
+    vc.to_parquet(out / "vcorr.parquet")
+    posts.to_parquet(out / "posts.parquet")
+    np.savez_compressed(out / "hourly.npz", **{f"bal__{k}": r["bal_h"] for k, r in res.items()}, **{f"db__{k}": r["db_h"] for k, r in res.items()})
+    np.savez_compressed(out / "cust_daily.npz", **{k: r["cust_daily"] for k, r in res.items()})
+    np.save(out / "hour_day.npy", wx.local_day)
+    (out / "plans.json").write_text(json.dumps({k: {**r["plan"], "benign_applied": r["benign"]} for k, r in res.items()}, ensure_ascii=False))
+    (out / "neighbors.json").write_text(json.dumps(neighbors(meta)))
+    meta_out = {"pool": output_pool or pool, "posts": len(res), "days": wx.D, "start": str(wx.days[0].date()), "end": str(wx.days[-1].date()), "seconds": round(time.perf_counter() - t0, 1), "synthetic": True, "measured_import_shapes": load_shapes is not None}
+    (out / "meta.json").write_text(json.dumps(meta_out, indent=2))
+    print(f"gata {pool}: {len(res)} posturi în {meta_out['seconds']} s -> {out}")
+    return daily
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--pool", choices=["train", "train2", "trainL", "trainLA", "pop", "all"], default="all")
+    ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--limit", type=int, default=None)
+    a = ap.parse_args()
+    for pool in (["train", "pop"] if a.pool == "all" else [a.pool]):  # train2: doar pentru experiments.py
+        build(pool, a.workers, a.limit)
+
+
+if __name__ == "__main__":
+    main()

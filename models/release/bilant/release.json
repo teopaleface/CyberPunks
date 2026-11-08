@@ -1,0 +1,18 @@
+{
+  "version": "bilant-diagnoza-lgbm@feederbw-optuna-20261108",
+  "source": "FeederBW (CC BY 4.0), Netze BW / KIT",
+  "training": "forme import reale; rețele, pierderi și etichete sintetice",
+  "report": "reports/bilant/feederbw_optuna.json",
+  "model_sha256": {
+    "diagnose.json": "f11743709d6945facce6ef7d7b3170943238b141e001a3753d17b67d7242972c",
+    "diagnose.txt.gz": "0ee4671df73bcea6e8c6db3e4ba82eab093d46fefde713c1baf0ff9b7b227a07",
+    "feederbw_normal_cold_conformal.json": "5b3f7d1f91292c2967f3a4ade5953c599145abd6855bb05ea09a07226ab45239",
+    "feederbw_normal_cold_q10.txt": "fb6cafef46f335e4397f71ba537b74f4fe639449c662bb03a774993eae56abb2",
+    "feederbw_normal_cold_q50.txt": "35cbe6022c165b2563ad8ea2c43bad9e409d400ff0359690dbcfea90a25c7e16",
+    "feederbw_normal_cold_q90.txt": "d7c8e270d0793e0ef5db3341e30dcee5cda6b2f7217c374083cdb1c9d290efd7",
+    "feederbw_normal_warm_conformal.json": "ef1cfab2f522e59cd1602cbea333148addfe0ed9fe66b832230dc1fac1819001",
+    "feederbw_normal_warm_q10.txt": "a0c18d174a67add43f421af1d9e1f6065d426640a93311206bfeb32531f09c55",
+    "feederbw_normal_warm_q50.txt": "9a5e3d0977832410930a32bff27856e23a8cea0c1bb67644fedbe02312564f86",
+    "feederbw_normal_warm_q90.txt": "72b0c0be75481657f2ae9f7bfabe7eabcc43fd0a318242ac40ca7dc54d102cab"
+  }
+}

@@ -1,0 +1,497 @@
+{
+  "mode": "auto",
+  "sources": {
+    "A": {
+      "origin": "model",
+      "status": "ok",
+      "note": "rulat cyberpunks.a_contoare.predict.run",
+      "valid": 532,
+      "invalid": 0,
+      "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/demo-vara/A.jsonl",
+      "seconds": 9.483,
+      "optional": false
+    },
+    "A_bilant": {
+      "origin": "model",
+      "status": "ok",
+      "note": "ieșirea modelului A_bilant pentru aceeași zi, rulată la 15:16 (model lent, refolosit)",
+      "valid": 98,
+      "invalid": 0,
+      "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/demo-vara/A_bilant.jsonl",
+      "seconds": 0.002,
+      "optional": false
+    },
+    "B": {
+      "origin": "model",
+      "status": "ok",
+      "note": "rulat cyberpunks.b_furtuna.predict.run",
+      "valid": 26,
+      "invalid": 0,
+      "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/demo-vara/B.jsonl",
+      "seconds": 0.144,
+      "optional": false
+    },
+    "C": {
+      "origin": "model",
+      "status": "ok",
+      "note": "rulat cyberpunks.c_prosumatori.predict.run",
+      "valid": 33,
+      "invalid": 0,
+      "path": "/Users/teo/.t3/worktrees/CyberPunks/Teo-planificator/outputs/work_items/demo-vara/C.jsonl",
+      "seconds": 4.431,
+      "optional": false
+    }
+  },
+  "day_context": [
+    "Contoare și posturi: 630 lucrări; 17 în trasee, 473 verificări de la distanță sau corecții în birou, 17 la dispecer.",
+    "Furtună: 26 zone analizate, cel mai mare risc 58%; 3 echipe trimise din timp.",
+    "Tensiune: 33 posturi cu risc din 300 (soare pe panou până la 956 W/m² la prânz, 35 °C): 15 posturi rămân la urmărire (15 sub prag sau sub limită chiar și în scenariul pesimist), 18 primesc mesaje către prosumatori, 0 primesc echipă."
+  ],
+  "plan_id": "PLAN-demo-vara-20250708-182006-043b",
+  "scenario": "demo-vara",
+  "plan_date": "2025-07-08",
+  "as_of": "2025-07-07T18:00:00+03:00",
+  "generated_at": "2026-11-07T18:20:06+02:00",
+  "planner_version": "planner@0.1.0+e7b7c7d",
+  "solver": {
+    "name": "ortools",
+    "status": "SUCCESS",
+    "seconds": 5.829,
+    "objective_lei": 100130974.16,
+    "tasks": 227,
+    "crews": 11
+  },
+  "overrides": 0,
+  "fusion": {
+    "status": "ok",
+    "fused": 530,
+    "rejected": 0
+  },
+  "remedies": [
+    {
+      "post_id": "PT-1269",
+      "work_item_id": "C-20250708-PT-1269",
+      "label": "PT-1269, Afumați (sintetic)",
+      "feasible": true,
+      "chosen": [
+        "phase_rebalance",
+        "offer_battery",
+        "export_limit"
+      ],
+      "cost_lei": 12439.34,
+      "p90_before_pu": 1.1768,
+      "p90_after_pu": 1.0944,
+      "why_not_cheaper": [
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,175 pu",
+        "cu oferta de baterii singură (24 lei), tensiunea ajunge doar la 1,162 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (27 lei, la 10% participare), tensiunea ajunge doar la 1,160 pu"
+      ],
+      "invest": false,
+      "battery": {
+        "battery_kwh_total": 40.0,
+        "revenue_lei": 9000.0,
+        "payback_years": 5.75,
+        "customers_targeted": 12
+      },
+      "inverter_trips_avoided": 25.0,
+      "crew_steps": [
+        "phase_rebalance"
+      ],
+      "title_ro": "Soluție: mutare pe faze + baterii + limită de injecție"
+    },
+    {
+      "post_id": "PT-1076",
+      "work_item_id": "C-20250708-PT-1076",
+      "label": "PT-1076, Cornetu (sintetic)",
+      "feasible": true,
+      "chosen": [
+        "phase_rebalance",
+        "offer_battery",
+        "export_limit"
+      ],
+      "cost_lei": 8586.83,
+      "p90_before_pu": 1.1612,
+      "p90_after_pu": 1.0939,
+      "why_not_cheaper": [
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,159 pu",
+        "cu oferta de baterii singură (14 lei), tensiunea ajunge doar la 1,152 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (17 lei, la 10% participare), tensiunea ajunge doar la 1,150 pu"
+      ],
+      "invest": false,
+      "battery": {
+        "battery_kwh_total": 20.0,
+        "revenue_lei": 4500.0,
+        "payback_years": 4.65,
+        "customers_targeted": 7
+      },
+      "inverter_trips_avoided": 16.0,
+      "crew_steps": [
+        "phase_rebalance"
+      ],
+      "title_ro": "Soluție: mutare pe faze + baterii + limită de injecție"
+    },
+    {
+      "post_id": "PT-1300",
+      "work_item_id": "C-20250708-PT-1300",
+      "label": "PT-1300, Ștefăneștii de Jos (sintetic)",
+      "feasible": true,
+      "chosen": [
+        "phase_rebalance",
+        "offer_battery",
+        "export_limit"
+      ],
+      "cost_lei": 9811.93,
+      "p90_before_pu": 1.1551,
+      "p90_after_pu": 1.0991,
+      "why_not_cheaper": [
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,153 pu",
+        "cu oferta de baterii singură (22 lei), tensiunea ajunge doar la 1,145 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (25 lei, la 10% participare), tensiunea ajunge doar la 1,143 pu"
+      ],
+      "invest": false,
+      "battery": {
+        "battery_kwh_total": 30.0,
+        "revenue_lei": 6750.0,
+        "payback_years": 3.7,
+        "customers_targeted": 11
+      },
+      "inverter_trips_avoided": 8.0,
+      "crew_steps": [
+        "phase_rebalance"
+      ],
+      "title_ro": "Soluție: mutare pe faze + baterii + limită de injecție"
+    },
+    {
+      "post_id": "PT-1147",
+      "work_item_id": "C-20250708-PT-1147",
+      "label": "PT-1147, Tunari (sintetic)",
+      "feasible": true,
+      "chosen": [
+        "phase_rebalance",
+        "adjust_tap",
+        "offer_battery"
+      ],
+      "cost_lei": 1978.0,
+      "p90_before_pu": 1.1504,
+      "p90_after_pu": 1.0954,
+      "why_not_cheaper": [
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,148 pu",
+        "cu oferta de baterii singură (22 lei), tensiunea ajunge doar la 1,138 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (25 lei, la 10% participare), tensiunea ajunge doar la 1,136 pu"
+      ],
+      "invest": false,
+      "battery": {
+        "battery_kwh_total": 30.0,
+        "revenue_lei": 6750.0,
+        "payback_years": 7.4,
+        "customers_targeted": 11
+      },
+      "inverter_trips_avoided": 10.0,
+      "crew_steps": [
+        "phase_rebalance",
+        "adjust_tap"
+      ],
+      "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
+    },
+    {
+      "post_id": "PT-1131",
+      "work_item_id": "C-20250708-PT-1131",
+      "label": "PT-1131, Chitila (sintetic)",
+      "feasible": true,
+      "chosen": [
+        "phase_rebalance",
+        "export_limit"
+      ],
+      "cost_lei": 9068.57,
+      "p90_before_pu": 1.1552,
+      "p90_after_pu": 1.0958,
+      "why_not_cheaper": [
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,154 pu",
+        "cu oferta de baterii singură (18 lei), tensiunea ajunge doar la 1,145 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (21 lei, la 10% participare), tensiunea ajunge doar la 1,143 pu"
+      ],
+      "invest": false,
+      "battery": null,
+      "inverter_trips_avoided": 15.0,
+      "crew_steps": [
+        "phase_rebalance"
+      ],
+      "title_ro": "Soluție: mutare pe faze + limită de injecție"
+    },
+    {
+      "post_id": "PT-1075",
+      "work_item_id": "C-20250708-PT-1075",
+      "label": "PT-1075, Cornetu (sintetic)",
+      "feasible": true,
+      "chosen": [
+        "phase_rebalance",
+        "adjust_tap",
+        "offer_battery"
+      ],
+      "cost_lei": 1960.0,
+      "p90_before_pu": 1.1513,
+      "p90_after_pu": 1.0994,
+      "why_not_cheaper": [
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,149 pu",
+        "cu oferta de baterii singură (4 lei), tensiunea ajunge doar la 1,138 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (7 lei, la 10% participare), tensiunea ajunge doar la 1,135 pu"
+      ],
+      "invest": false,
+      "battery": {
+        "battery_kwh_total": 10.0,
+        "revenue_lei": 2250.0,
+        "payback_years": 7.5,
+        "customers_targeted": 2
+      },
+      "inverter_trips_avoided": 5.0,
+      "crew_steps": [
+        "phase_rebalance",
+        "adjust_tap"
+      ],
+      "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
+    },
+    {
+      "post_id": "PT-1072",
+      "work_item_id": "C-20250708-PT-1072",
+      "label": "PT-1072, Voluntari (sintetic)",
+      "feasible": true,
+      "chosen": [
+        "phase_rebalance",
+        "adjust_tap",
+        "offer_battery"
+      ],
+      "cost_lei": 2196.0,
+      "p90_before_pu": 1.1462,
+      "p90_after_pu": 1.0947,
+      "why_not_cheaper": [
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,145 pu",
+        "cu oferta de baterii singură (12 lei), tensiunea ajunge doar la 1,136 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (15 lei, la 10% participare), tensiunea ajunge doar la 1,135 pu"
+      ],
+      "invest": false,
+      "battery": {
+        "battery_kwh_total": 20.0,
+        "revenue_lei": 4500.0,
+        "payback_years": 5.3,
+        "customers_targeted": 6
+      },
+      "inverter_trips_avoided": 6.0,
+      "crew_steps": [
+        "phase_rebalance",
+        "adjust_tap"
+      ],
+      "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
+    },
+    {
+      "post_id": "PT-1005",
+      "work_item_id": "C-20250708-PT-1005",
+      "label": "PT-1005, Sector 1 (sintetic)",
+      "feasible": true,
+      "chosen": [
+        "notify_customers",
+        "export_limit"
+      ],
+      "cost_lei": 9974.61,
+      "p90_before_pu": 1.1396,
+      "p90_after_pu": 1.0988,
+      "why_not_cheaper": [
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,138 pu",
+        "cu oferta de baterii singură (16 lei), tensiunea ajunge doar la 1,130 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (19 lei, la 10% participare), tensiunea ajunge doar la 1,129 pu"
+      ],
+      "invest": false,
+      "battery": null,
+      "inverter_trips_avoided": 4.0,
+      "crew_steps": [],
+      "title_ro": "Soluție: mesaje Ore Smart + limită de injecție"
+    },
+    {
+      "post_id": "PT-1255",
+      "work_item_id": "C-20250708-PT-1255",
+      "label": "PT-1255, Sector 6 (sintetic)",
+      "feasible": true,
+      "chosen": [
+        "phase_rebalance",
+        "adjust_tap",
+        "offer_battery"
+      ],
+      "cost_lei": 2196.0,
+      "p90_before_pu": 1.1399,
+      "p90_after_pu": 1.0982,
+      "why_not_cheaper": [
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,139 pu",
+        "cu oferta de baterii singură (12 lei), tensiunea ajunge doar la 1,133 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (15 lei, la 10% participare), tensiunea ajunge doar la 1,132 pu"
+      ],
+      "invest": false,
+      "battery": {
+        "battery_kwh_total": 20.0,
+        "revenue_lei": 4500.0,
+        "payback_years": 6.449999999999999,
+        "customers_targeted": 6
+      },
+      "inverter_trips_avoided": 7.0,
+      "crew_steps": [
+        "phase_rebalance",
+        "adjust_tap"
+      ],
+      "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
+    },
+    {
+      "post_id": "PT-1119",
+      "work_item_id": "C-20250708-PT-1119",
+      "label": "PT-1119, Ștefăneștii de Jos (sintetic)",
+      "feasible": true,
+      "chosen": [
+        "phase_rebalance",
+        "adjust_tap"
+      ],
+      "cost_lei": 1956.0,
+      "p90_before_pu": 1.1322,
+      "p90_after_pu": 1.0957,
+      "why_not_cheaper": [
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,131 pu",
+        "cu oferta de baterii singură (14 lei), tensiunea ajunge doar la 1,128 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (17 lei, la 10% participare), tensiunea ajunge doar la 1,127 pu"
+      ],
+      "invest": false,
+      "battery": null,
+      "inverter_trips_avoided": 2.0,
+      "crew_steps": [
+        "phase_rebalance",
+        "adjust_tap"
+      ],
+      "title_ro": "Soluție: mutare pe faze + priza transformatorului"
+    },
+    {
+      "post_id": "PT-1087",
+      "work_item_id": "C-20250708-PT-1087",
+      "label": "PT-1087, Otopeni (sintetic)",
+      "feasible": true,
+      "chosen": [
+        "phase_rebalance",
+        "adjust_tap"
+      ],
+      "cost_lei": 1956.0,
+      "p90_before_pu": 1.1413,
+      "p90_after_pu": 1.0996,
+      "why_not_cheaper": [
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,138 pu",
+        "cu oferta de baterii singură (6 lei), tensiunea ajunge doar la 1,131 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (9 lei, la 10% participare), tensiunea ajunge doar la 1,128 pu"
+      ],
+      "invest": false,
+      "battery": null,
+      "inverter_trips_avoided": 2.0,
+      "crew_steps": [
+        "phase_rebalance",
+        "adjust_tap"
+      ],
+      "title_ro": "Soluție: mutare pe faze + priza transformatorului"
+    },
+    {
+      "post_id": "PT-1263",
+      "work_item_id": "C-20250708-PT-1263",
+      "label": "PT-1263, Sector 4 (sintetic)",
+      "feasible": true,
+      "chosen": [
+        "adjust_tap",
+        "offer_battery"
+      ],
+      "cost_lei": 1658.0,
+      "p90_before_pu": 1.1336,
+      "p90_after_pu": 1.0998,
+      "why_not_cheaper": [
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,133 pu",
+        "cu oferta de baterii singură (20 lei), tensiunea ajunge doar la 1,126 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (23 lei, la 10% participare), tensiunea ajunge doar la 1,125 pu"
+      ],
+      "invest": false,
+      "battery": {
+        "battery_kwh_total": 30.0,
+        "revenue_lei": 6750.0,
+        "payback_years": 6.1,
+        "customers_targeted": 10
+      },
+      "inverter_trips_avoided": 18.0,
+      "crew_steps": [
+        "adjust_tap"
+      ],
+      "title_ro": "Soluție: priza transformatorului + baterii"
+    },
+    {
+      "post_id": "PT-1252",
+      "work_item_id": "C-20250708-PT-1252",
+      "label": "PT-1252, Popești-Leordeni (sintetic)",
+      "feasible": true,
+      "chosen": [
+        "phase_rebalance",
+        "adjust_tap"
+      ],
+      "cost_lei": 1956.0,
+      "p90_before_pu": 1.1333,
+      "p90_after_pu": 1.0915,
+      "why_not_cheaper": [
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,131 pu",
+        "cu oferta de baterii singură (32 lei), tensiunea ajunge doar la 1,129 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (35 lei, la 10% participare), tensiunea ajunge doar la 1,127 pu"
+      ],
+      "invest": false,
+      "battery": null,
+      "inverter_trips_avoided": 1.0,
+      "crew_steps": [
+        "phase_rebalance",
+        "adjust_tap"
+      ],
+      "title_ro": "Soluție: mutare pe faze + priza transformatorului"
+    },
+    {
+      "post_id": "PT-1082",
+      "work_item_id": "C-20250708-PT-1082",
+      "label": "PT-1082, 1 Decembrie (sintetic)",
+      "feasible": true,
+      "chosen": [
+        "phase_rebalance",
+        "adjust_tap",
+        "offer_battery"
+      ],
+      "cost_lei": 1966.0,
+      "p90_before_pu": 1.138,
+      "p90_after_pu": 1.0947,
+      "why_not_cheaper": [
+        "cu mesajele către clienții Ore Smart singure (3 lei, la 10% participare), tensiunea ajunge doar la 1,136 pu",
+        "cu oferta de baterii singură (10 lei), tensiunea ajunge doar la 1,130 pu",
+        "cu mesajele către clienții Ore Smart și oferta de baterii (13 lei, la 10% participare), tensiunea ajunge doar la 1,128 pu"
+      ],
+      "invest": false,
+      "battery": {
+        "battery_kwh_total": 20.0,
+        "revenue_lei": 4500.0,
+        "payback_years": 5.15,
+        "customers_targeted": 5
+      },
+      "inverter_trips_avoided": 5.0,
+      "crew_steps": [
+        "phase_rebalance",
+        "adjust_tap"
+      ],
+      "title_ro": "Soluție: mutare pe faze + priza transformatorului + baterii"
+    }
+  ],
+  "work_orders": [
+    "E-BV-1.pdf",
+    "E-BV-2.pdf",
+    "E-BV-3.pdf",
+    "E-BE-1.pdf",
+    "E-BE-2.pdf",
+    "E-TM-1.pdf",
+    "E-AR-1.pdf",
+    "E-RS-1.pdf"
+  ],
+  "timings": {
+    "perceive": 0.009,
+    "estimate": 14.06,
+    "decide": 5.957,
+    "act": 1.051
+  }
+}

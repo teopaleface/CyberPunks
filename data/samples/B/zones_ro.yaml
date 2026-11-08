@@ -1,0 +1,231 @@
+# Zonele firului B (furtună) în aria Rețele Electrice România.
+# Clienții pe județ sunt oficiali (RER, 31.12.2024). Împărțirea pe zone e a noastră (APROXIMARE), nu structura oficială RER.
+# Ponderea unei zone se calculează în cod din populația orașului principal plus o parte egală din restul județului.
+# Populația orașelor: recensământul 2021 (populația stabilă), preluată din paginile ro.wikipedia (INS). Coordonatele: aceleași pagini, WGS84, rotunjite la 4 zecimale.
+sources:
+  customers: "Planul de dezvoltare RER 2026-2035, tabelele 2.1-2.3, date la 31.12.2024: https://www.reteleelectrice.ro/wp-content/uploads/plan-dezvoltare-re-consultare.pdf"
+  county_population: "Recensământul 2021 (INS), prin https://en.wikipedia.org/wiki/List_of_Romanian_counties_by_population"
+  town_population: "Recensământul 2021, paginile Wikipedia ale orașelor (URL pe fiecare zonă)"
+counties:
+  B: {name: "București", region: muntenia_sud, customers: 1061381, population_2021: 1716961, area_km2: 238}
+  IF: {name: "Ilfov", region: muntenia_sud, customers: 126526, population_2021: 542686, area_km2: 1583}
+  GR: {name: "Giurgiu", region: muntenia_sud, customers: 318642, population_2021: 262066, area_km2: 3526}
+  CT: {name: "Constanța", region: dobrogea, customers: 351735, population_2021: 655997, area_km2: 7104}
+  TL: {name: "Tulcea", region: dobrogea, customers: 103832, population_2021: 193355, area_km2: 8466}
+  CL: {name: "Călărași", region: dobrogea, customers: 129626, population_2021: 283458, area_km2: 5088}
+  IL: {name: "Ialomița", region: dobrogea, customers: 120907, population_2021: 250816, area_km2: 4453}
+  TM: {name: "Timiș", region: banat, customers: 371306, population_2021: 650533, area_km2: 8703}
+  AR: {name: "Arad", region: banat, customers: 223282, population_2021: 410143, area_km2: 7754}
+  CS: {name: "Caraș-Severin", region: banat, customers: 149668, population_2021: 246588, area_km2: 8514}
+  HD: {name: "Hunedoara", region: banat, customers: 223426, population_2021: 361657, area_km2: 7063}
+zones:
+  - zone_id: B-BUCURESTI
+    county_code: B
+    label_ro: "Zona București"
+    town: "București"
+    lat: 44.4353
+    lon: 26.1028
+    town_population_2021: 1716961
+    town_source: "https://ro.wikipedia.org/wiki/Bucure%C8%99ti"
+    town_population_note: "Populația stabilă a municipiului București (egală cu cea a județului B)."
+  - zone_id: IF-BUFTEA
+    county_code: IF
+    label_ro: "Zona Buftea"
+    town: "Buftea"
+    lat: 44.57
+    lon: 25.95
+    town_population_2021: 20586
+    town_source: "https://ro.wikipedia.org/wiki/Buftea"
+    coordinates_note: "Zona acoperă tot Ilfovul; coordonatele sunt cele ale orașului Buftea din Wikipedia (rotunjite), nu centroidul județului."
+  - zone_id: GR-GIURGIU
+    county_code: GR
+    label_ro: "Zona Giurgiu"
+    town: "Giurgiu"
+    lat: 43.8911
+    lon: 25.9572
+    town_population_2021: 54551
+    town_source: "https://ro.wikipedia.org/wiki/Giurgiu"
+  - zone_id: GR-BOLINTIN-VALE
+    county_code: GR
+    label_ro: "Zona Bolintin-Vale"
+    town: "Bolintin-Vale"
+    lat: 44.4472
+    lon: 25.7572
+    town_population_2021: 12806
+    town_source: "https://ro.wikipedia.org/wiki/Bolintin-Vale"
+  - zone_id: CT-CONSTANTA
+    county_code: CT
+    label_ro: "Zona Constanța"
+    town: "Constanța"
+    lat: 44.1733
+    lon: 28.6383
+    town_population_2021: 263688
+    town_source: "https://ro.wikipedia.org/wiki/Constan%C8%9Ba"
+  - zone_id: CT-MEDGIDIA
+    county_code: CT
+    label_ro: "Zona Medgidia"
+    town: "Medgidia"
+    lat: 44.2503
+    lon: 28.2614
+    town_population_2021: 34612
+    town_source: "https://ro.wikipedia.org/wiki/Medgidia"
+  - zone_id: CT-MANGALIA
+    county_code: CT
+    label_ro: "Zona Mangalia"
+    town: "Mangalia"
+    lat: 43.817
+    lon: 28.583
+    town_population_2021: 31950
+    town_source: "https://ro.wikipedia.org/wiki/Mangalia"
+  - zone_id: TL-TULCEA
+    county_code: TL
+    label_ro: "Zona Tulcea"
+    town: "Tulcea"
+    lat: 45.19
+    lon: 28.8
+    town_population_2021: 65624
+    town_source: "https://ro.wikipedia.org/wiki/Tulcea"
+  - zone_id: TL-BABADAG
+    county_code: TL
+    label_ro: "Zona Babadag"
+    town: "Babadag"
+    lat: 44.8933
+    lon: 28.7119
+    town_population_2021: 9213
+    town_source: "https://ro.wikipedia.org/wiki/Babadag"
+  - zone_id: TL-MACIN
+    county_code: TL
+    label_ro: "Zona Măcin"
+    town: "Măcin"
+    lat: 45.2456
+    lon: 28.1231
+    town_population_2021: 7248
+    town_source: "https://ro.wikipedia.org/wiki/M%C4%83cin"
+  - zone_id: CL-CALARASI
+    county_code: CL
+    label_ro: "Zona Călărași"
+    town: "Călărași"
+    lat: 44.2
+    lon: 27.333
+    town_population_2021: 58211
+    town_source: "https://ro.wikipedia.org/wiki/C%C4%83l%C4%83ra%C8%99i"
+  - zone_id: CL-OLTENITA
+    county_code: CL
+    label_ro: "Zona Oltenița"
+    town: "Oltenița"
+    lat: 44.0867
+    lon: 26.6364
+    town_population_2021: 22624
+    town_source: "https://ro.wikipedia.org/wiki/Olteni%C8%9Ba"
+  - zone_id: IL-SLOBOZIA
+    county_code: IL
+    label_ro: "Zona Slobozia"
+    town: "Slobozia"
+    lat: 44.5647
+    lon: 27.3517
+    town_population_2021: 41550
+    town_source: "https://ro.wikipedia.org/wiki/Slobozia"
+  - zone_id: IL-URZICENI
+    county_code: IL
+    label_ro: "Zona Urziceni"
+    town: "Urziceni"
+    lat: 44.7181
+    lon: 26.6453
+    town_population_2021: 13380
+    town_source: "https://ro.wikipedia.org/wiki/Urziceni"
+  - zone_id: TM-TIMISOARA
+    county_code: TM
+    label_ro: "Zona Timișoara"
+    town: "Timișoara"
+    lat: 45.7537
+    lon: 21.2257
+    town_population_2021: 250849
+    town_source: "https://ro.wikipedia.org/wiki/Timi%C8%99oara"
+  - zone_id: TM-LUGOJ
+    county_code: TM
+    label_ro: "Zona Lugoj"
+    town: "Lugoj"
+    lat: 45.6861
+    lon: 21.9006
+    town_population_2021: 35450
+    town_source: "https://ro.wikipedia.org/wiki/Lugoj"
+  - zone_id: TM-SANNICOLAU-MARE
+    county_code: TM
+    label_ro: "Zona Sânnicolau Mare"
+    town: "Sânnicolau Mare"
+    lat: 46.0722
+    lon: 20.6294
+    town_population_2021: 10627
+    town_source: "https://ro.wikipedia.org/wiki/S%C3%A2nnicolau_Mare"
+  - zone_id: AR-ARAD
+    county_code: AR
+    label_ro: "Zona Arad"
+    town: "Arad"
+    lat: 46.1767
+    lon: 21.3011
+    town_population_2021: 159074
+    town_source: "https://ro.wikipedia.org/wiki/Arad"
+  - zone_id: AR-INEU
+    county_code: AR
+    label_ro: "Zona Ineu"
+    town: "Ineu"
+    lat: 46.433
+    lon: 21.833
+    town_population_2021: 8807
+    town_source: "https://ro.wikipedia.org/wiki/Ineu"
+  - zone_id: AR-LIPOVA
+    county_code: AR
+    label_ro: "Zona Lipova"
+    town: "Lipova"
+    lat: 46.083
+    lon: 21.683
+    town_population_2021: 10040
+    town_source: "https://ro.wikipedia.org/wiki/Lipova"
+  - zone_id: CS-RESITA
+    county_code: CS
+    label_ro: "Zona Reșița"
+    town: "Reșița"
+    lat: 45.3
+    lon: 21.8903
+    town_population_2021: 58393
+    town_source: "https://ro.wikipedia.org/wiki/Re%C8%99i%C8%9Ba"
+  - zone_id: CS-CARANSEBES
+    county_code: CS
+    label_ro: "Zona Caransebeș"
+    town: "Caransebeș"
+    lat: 45.4214
+    lon: 22.2219
+    town_population_2021: 21714
+    town_source: "https://ro.wikipedia.org/wiki/Caransebe%C8%99"
+  - zone_id: CS-ORAVITA
+    county_code: CS
+    label_ro: "Zona Oravița"
+    town: "Oravița"
+    lat: 45.0403
+    lon: 21.6853
+    town_population_2021: 9346
+    town_source: "https://ro.wikipedia.org/wiki/Oravi%C8%9Ba"
+  - zone_id: HD-DEVA
+    county_code: HD
+    label_ro: "Zona Deva"
+    town: "Deva"
+    lat: 45.867
+    lon: 22.9
+    town_population_2021: 53113
+    town_source: "https://ro.wikipedia.org/wiki/Deva"
+  - zone_id: HD-PETROSANI
+    county_code: HD
+    label_ro: "Zona Petroșani"
+    town: "Petroșani"
+    lat: 45.4122
+    lon: 23.3733
+    town_population_2021: 31044
+    town_source: "https://ro.wikipedia.org/wiki/Petro%C8%99ani"
+  - zone_id: HD-BRAD
+    county_code: HD
+    label_ro: "Zona Brad"
+    town: "Brad"
+    lat: 46.1294
+    lon: 22.79
+    town_population_2021: 12690
+    town_source: "https://ro.wikipedia.org/wiki/Brad_%28ora%C8%99%29"

@@ -1,0 +1,1 @@
+{"lo": 6.361953242126471, "hi": 3.747968928160253, "features": ["abs_kwh", "imp_kwh", "exp_kwh", "sq_kwh2", "night_sq_kwh2", "phys_kwh", "own_est_kwh", "temp_c", "gti_kwh_m2", "miss_share", "hist_p20_ratio", "hist_p50_ratio", "hist_days", "line_km", "max_path_km", "r_max_ohm", "line_r_ohm_km", "kva", "n_customers", "n_houses", "n_prosumers", "pv_kw"]}

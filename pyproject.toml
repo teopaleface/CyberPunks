@@ -1,0 +1,52 @@
+[project]
+name = "cyberpunks"
+version = "0.1.0"
+description = "Agent AI care planifică echipele de teren Rețele Electrice (SmartHack XI 2026, tema PPC)"
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+  "numpy>=2.0",
+  "pandas>=2.2",
+  "pyarrow>=17",
+  "pydantic>=2.8",
+  "pyyaml>=6.0",
+  "typer>=0.12",
+  "rich>=13.7",
+  "httpx>=0.27",
+  "tqdm>=4.66",
+  "joblib>=1.4",
+  "scipy>=1.13",
+  "scikit-learn>=1.5",
+  "lightgbm>=4.5",
+  "shap>=0.46",
+  "matplotlib>=3.9",
+  "ortools>=9.11",
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "jinja2>=3.1",
+  "fpdf2>=2.8",
+  "pandapower>=3.4",
+  "simbench>=1.6",
+  "optuna>=5.0.0",
+]
+
+[project.scripts]
+cyberpunks = "cyberpunks.cli:app"
+
+[dependency-groups]
+dev = ["pytest>=8.3", "ruff>=0.6"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cyberpunks"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --import-mode=importlib"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"

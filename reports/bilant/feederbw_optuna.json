@@ -1,0 +1,319 @@
+{
+  "source": "https://zenodo.org/records/17831177",
+  "license": "CC BY 4.0",
+  "period": [
+    "2024-04-02",
+    "2025-03-30"
+  ],
+  "real": "forma importului orar: max(media puterii nete măsurate, 0), normalizată",
+  "synthetic": "rețele, scară kWh, clienți, PV, pierderi, măsurători simulate și toate etichetele",
+  "split_feeders": {
+    "train": [
+      1,
+      7,
+      9,
+      11,
+      13,
+      14,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      27,
+      28,
+      29,
+      30,
+      31,
+      36,
+      39,
+      40
+    ],
+    "validation": [
+      3,
+      4,
+      5,
+      6,
+      15,
+      25,
+      32,
+      33
+    ],
+    "test": [
+      2,
+      8,
+      10,
+      12,
+      16,
+      26,
+      35,
+      37
+    ]
+  },
+  "excluded_feeders": {
+    "34": "Prea multe ore lipsă: 1272/8712",
+    "38": "Prea multe ore lipsă: 1171/8712"
+  },
+  "posts": {
+    "train": 170,
+    "validation": 65,
+    "test": 65
+  },
+  "windows": {
+    "train": 7310,
+    "validation": 2795,
+    "test": 2795
+  },
+  "class_counts": {
+    "train": {
+      "normal": 3804,
+      "contor_client": 1606,
+      "furt_inainte_contor": 564,
+      "pierdere_tehnica": 512,
+      "client_post_gresit": 640,
+      "contor_bilant_setat": 184
+    },
+    "validation": {
+      "normal": 1367,
+      "contor_client": 721,
+      "furt_inainte_contor": 145,
+      "pierdere_tehnica": 224,
+      "client_post_gresit": 154,
+      "contor_bilant_setat": 184
+    },
+    "test": {
+      "normal": 1357,
+      "contor_client": 715,
+      "furt_inainte_contor": 237,
+      "pierdere_tehnica": 148,
+      "client_post_gresit": 268,
+      "contor_bilant_setat": 70
+    }
+  },
+  "features": [
+    "r_mean_kwh",
+    "r_pct",
+    "z_mean",
+    "days_over_p90",
+    "days_under_p10",
+    "jump_in_window",
+    "jump_vs_prev",
+    "corr_r_load2",
+    "night_excess_share",
+    "bal_db_ratio",
+    "neigh_min_r_kwh",
+    "neigh_match",
+    "new_zero",
+    "new_stuck",
+    "new_neg",
+    "max_drop_kwh",
+    "drop_match",
+    "drop_share",
+    "vcorr_min",
+    "vcorr_gap",
+    "miss_share_w",
+    "p50_mean_kwh",
+    "width_kwh",
+    "hist_days",
+    "delta_kwh",
+    "delta_long_kwh",
+    "neigh_mirror_corr",
+    "neigh_mirror_match",
+    "corr_r_p50",
+    "loss_ratio",
+    "loss_ratio_cv",
+    "quad_ratio",
+    "intercept_jump_kwh_h",
+    "linear_jump",
+    "volt_elsewhere",
+    "volt_claimed",
+    "n_drop50",
+    "top3_drop_match",
+    "zero7",
+    "const7",
+    "neg7",
+    "ratio_vs_gis",
+    "r_vs_gis_kwh"
+  ],
+  "classes": [
+    "normal",
+    "contor_client",
+    "furt_inainte_contor",
+    "pierdere_tehnica",
+    "client_post_gresit",
+    "contor_bilant_setat"
+  ],
+  "trials": 40,
+  "seed": 20261108,
+  "objective": "macro-F1 pe validare, inclusiv regula perechii și a contorului martor; aceleași reguli la test",
+  "baseline_params": {
+    "n_estimators": 600,
+    "learning_rate": 0.023379700105659262,
+    "num_leaves": 95,
+    "min_child_samples": 116,
+    "subsample": 0.8647695240175775,
+    "colsample_bytree": 0.8672955114137956,
+    "reg_lambda": 0.0832853409304417,
+    "class_weight_power": 0.8823401530393645
+  },
+  "best_params": {
+    "n_estimators": 900,
+    "learning_rate": 0.020253599438035955,
+    "num_leaves": 98,
+    "min_child_samples": 56,
+    "subsample": 0.772565783738863,
+    "colsample_bytree": 0.5273851384044722,
+    "reg_lambda": 7.527307715770307,
+    "class_weight_power": 0.9916217802950762
+  },
+  "validation": {
+    "baseline_macro_f1": 0.6253619762705183,
+    "optuna_macro_f1": 0.6404975514780168
+  },
+  "test": {
+    "baseline": {
+      "macro_f1": 0.7085839133099147,
+      "accuracy": 0.7470483005366726,
+      "f1_by_class": {
+        "normal": 0.8531172948221205,
+        "contor_client": 0.6103500761035008,
+        "furt_inainte_contor": 0.45410628019323673,
+        "pierdere_tehnica": 0.5431309904153354,
+        "client_post_gresit": 0.7978910369068541,
+        "contor_bilant_setat": 0.9929078014184397
+      },
+      "confusion_matrix": [
+        [
+          1211,
+          94,
+          20,
+          19,
+          13,
+          0
+        ],
+        [
+          198,
+          401,
+          39,
+          18,
+          59,
+          0
+        ],
+        [
+          35,
+          65,
+          94,
+          41,
+          1,
+          1
+        ],
+        [
+          13,
+          34,
+          15,
+          85,
+          1,
+          0
+        ],
+        [
+          25,
+          5,
+          9,
+          2,
+          227,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          70
+        ]
+      ]
+    },
+    "optuna": {
+      "macro_f1": 0.7139306330139562,
+      "accuracy": 0.7491949910554562,
+      "f1_by_class": {
+        "normal": 0.8554044380816035,
+        "contor_client": 0.6083018867924528,
+        "furt_inainte_contor": 0.46859903381642515,
+        "pierdere_tehnica": 0.5482866043613707,
+        "client_post_gresit": 0.8100840336134454,
+        "contor_bilant_setat": 0.9929078014184397
+      },
+      "confusion_matrix": [
+        [
+          1195,
+          105,
+          20,
+          25,
+          12,
+          0
+        ],
+        [
+          179,
+          403,
+          41,
+          20,
+          72,
+          0
+        ],
+        [
+          31,
+          67,
+          97,
+          40,
+          1,
+          1
+        ],
+        [
+          10,
+          34,
+          15,
+          88,
+          1,
+          0
+        ],
+        [
+          22,
+          1,
+          4,
+          0,
+          241,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          70
+        ]
+      ]
+    },
+    "delta_macro_f1": 0.005346719704041547,
+    "delta_macro_f1_bootstrap90_by_real_feeder": [
+      -0.006177916164162922,
+      0.01768754638659322
+    ]
+  },
+  "confirmed_gain": false,
+  "release_changed": true,
+  "normal_model": "parametrii existenți, antrenat numai pe plecările train; OOF 3 grupe de plecări pentru diagnosticul train",
+  "limitations": [
+    "Toate etichetele sunt SINTETICE, inclusiv furtul și pierderea normală.",
+    "Primul lot oficial: 38/40 plecări valide din 200; test pe 8 plecări reale; putere statistică mică.",
+    "Se păstrează forma importului, nu scara, exportul sau măsurătorile pereche post-clienți.",
+    "Vreme București și PV simulate, fără sincronizare cu vremea germană.",
+    "Test spațial pe plecări nevăzute, în aceeași perioadă; nu este test în viitor."
+  ],
+  "seconds": 390.3,
+  "release_version": "bilant-diagnoza-lgbm@feederbw-optuna-20261108"
+}

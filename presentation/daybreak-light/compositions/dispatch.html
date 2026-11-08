@@ -1,0 +1,10 @@
+<template><link rel="stylesheet" href="assets/theme.css"><style>#root{position:absolute;inset:0;overflow:hidden;background:var(--paper)}</style>
+<div id="root" data-composition-id="dispatch" data-width="1920" data-height="1080"><h1 class="title" style="position:absolute;left:192px;top:170px">Ready for<br>daybreak.</h1>
+<div id="sun" style="position:absolute;left:1310px;top:310px;width:170px;height:170px;border-radius:50%;background:var(--orange)"></div>
+<div style="position:absolute;left:192px;top:770px;width:1536px;height:3px;background:var(--rule)"></div>
+<img id="departure" class="object" src="assets/objects/truck/hero.png" alt="truck" style="left:860px;top:190px;width:900px;height:900px" /></div>
+<script>(function(){const tl=gsap.timeline({paused:true});
+tl.fromTo('#sun',{y:85,scale:.3},{y:0,scale:1,duration:.8,ease:'power3.out'},0);
+tl.fromTo('#departure',{x:-280},{x:200,duration:2.25,ease:'power2.inOut'},0);
+
+window.__timelines=window.__timelines||{};window.__timelines["dispatch"]=tl;})();</script></template>

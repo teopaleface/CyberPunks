@@ -1,0 +1,442 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-panel: var(--panel);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-rule: var(--rule);
+  --color-grid: var(--grid);
+  --color-idle: var(--idle);
+  --color-travel: var(--travel);
+  --color-src-a: var(--src-a);
+  --color-src-b: var(--src-b);
+  --color-src-c: var(--src-c);
+  --color-src-c-ink: var(--src-c-ink);
+  --color-att: var(--att);
+  --color-att-ink: var(--att-ink);
+  --color-att-surface: var(--att-surface);
+  --color-ok: var(--ok);
+  --color-on-att: var(--on-att);
+  --color-surface-2: var(--surface-2);
+  --color-violet: var(--violet);
+  --color-action: var(--action);
+  --color-action-hover: var(--action-hover);
+  --color-on-action: var(--on-action);
+  --color-track: var(--track);
+  --color-ok-ink: var(--ok-ink);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --font-heading: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-unbounded), var(--font-geist), ui-sans-serif, sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/*
+ * Aceeași identitate ca web/site: negru, suprafețe neutre, galben pentru acțiuni.
+ * Sursele rămân distincte: A albastru, B violet, C chihlimbar.
+ * Portocaliul semnalează verificarea de către un om; verdele indică aprobarea.
+ */
+:root,
+.dark {
+  color-scheme: dark;
+  --canvas: #000000;
+  --panel: #0b0b0c;
+  --surface-2: #141416;
+  --ink: #f5f5f7;
+  --ink-soft: #c7c7cc;
+  --rule: #2a2a2e;
+  --grid: #202023;
+  --track: #303034;
+  --idle: #74747d;
+  --travel: #a3a3a8;
+  --src-a: #3986fc;
+  --src-b: #ad5fd6;
+  --src-c: #e59b15;
+  --src-c-ink: #f2b544;
+  --att: #fc521e;
+  --att-ink: #ff8a5c;
+  --att-surface: #2a140c;
+  --ok: #16a34a;
+  --ok-ink: #4ade80;
+  --violet: #ad7cfc;
+  --action: #ffc502;
+  --action-hover: #ffdc6b;
+  --on-action: #000000;
+  --on-src: #000000;
+  --on-att: #ffffff;
+
+  --background: var(--canvas);
+  --foreground: var(--ink);
+  --card: var(--panel);
+  --card-foreground: var(--ink);
+  --popover: var(--surface-2);
+  --popover-foreground: var(--ink);
+  --primary: var(--action);
+  --primary-foreground: var(--on-action);
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--ink);
+  --muted: #1b1b1e;
+  --muted-foreground: #a3a3a8;
+  --accent: #242427;
+  --accent-foreground: var(--ink);
+  --destructive: var(--att);
+  --border: var(--rule);
+  --input: #444448;
+  --ring: var(--action);
+  --chart-1: var(--src-a);
+  --chart-2: var(--src-b);
+  --chart-3: var(--src-c);
+  --chart-4: var(--travel);
+  --chart-5: var(--idle);
+  --radius: 0.75rem;
+  --sidebar: var(--canvas);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--action);
+  --sidebar-primary-foreground: var(--on-action);
+  --sidebar-accent: var(--surface-2);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--rule);
+  --sidebar-ring: var(--ring);
+}
+
+.light {
+  color-scheme: light;
+  --canvas: #ffffff;
+  --panel: #fafafa;
+  --surface-2: #f0f0f2;
+  --ink: #151518;
+  --ink-soft: #505058;
+  --rule: #d4d4d9;
+  --grid: #e4e4e8;
+  --track: #c5c5cc;
+  --idle: #696972;
+  --travel: #61616b;
+  --src-a: #2563c7;
+  --src-b: #893ab4;
+  --src-c: #a56500;
+  --src-c-ink: #8b5300;
+  --att: #c53a12;
+  --att-ink: #a52f0d;
+  --att-surface: #fff0e8;
+  --ok: #168143;
+  --ok-ink: #126b36;
+  --violet: #7d38b8;
+  --muted: #ededf0;
+  --muted-foreground: #62626c;
+  --accent: #e8e8ed;
+  --input: #8d8d98;
+  --ring: #8b5a00;
+}
+
+/* Yellow remains the button fill; standalone text needs darker ink on white. */
+.light .text-action { color: #865700; }
+
+/* Work orders follow the screen theme, but print as an ink-friendly document. */
+@media print {
+  #order-paper {
+    color-scheme: light;
+    --panel: #ffffff;
+    --surface-2: #f8fafc;
+    --ink: #0b1322;
+    --ink-soft: #334155;
+    --rule: #cbd5e1;
+    --src-a: #1d5fcf;
+    --src-b: #8a3fb3;
+    --src-c: #a8680a;
+    --violet: #6b2d98;
+    --action: #986400;
+    --att: #b52d20;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    line-height: 1.6;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* Cifrele proporționale în text (ID-uri, fraze); coloanele de numere își pun singure `tabular-nums`. */
+@layer base {
+  html {
+    font-variant-numeric: normal;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button,
+  a,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  ::selection {
+    background: var(--action);
+    color: var(--on-action);
+  }
+  /* bare de derulare în tonul paginii */
+  * {
+    scrollbar-color: var(--input) transparent;
+    scrollbar-width: thin;
+  }
+}
+
+/* Cifrele mari rămân în Geist pentru a se citi ușor în carduri și tabele. */
+@utility num-wide {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+@utility num-tall {
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+@utility dense {
+  letter-spacing: -0.005em;
+}
+@utility code-id {
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Bara „rulează” din dialogul agentului: indeterminată, fără procente inventate. */
+@keyframes runbar {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(220%);
+  }
+}
+
+/* ---------- Harta planului: markeri DOM peste MapLibre ---------- */
+.plan-map .mk {
+  position: relative;
+  width: 0;
+  height: 0;
+  cursor: pointer;
+}
+.plan-map .mk > svg {
+  position: absolute;
+  left: -18px;
+  top: -18px;
+}
+.plan-map .mk .lab {
+  position: absolute;
+  left: 18px;
+  top: 0;
+  transform: translateY(-50%);
+  display: none;
+  white-space: nowrap;
+  padding: 2px 7px 3px;
+  line-height: 1.22;
+  font-size: 13.5px;
+  color: var(--ink);
+  background: color-mix(in oklab, var(--panel) 92%, transparent);
+  pointer-events: none;
+}
+.plan-map .mk .lab .t {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  font-stretch: 88%;
+}
+.plan-map .mk .lab .s {
+  display: block;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+.plan-map .mk .lab .s.att {
+  color: var(--att-ink);
+  font-weight: 560;
+}
+.plan-map[data-near] .mk[data-pinned="1"] .lab,
+.plan-map .mk[data-selected="1"] .lab,
+.plan-map .mk:hover .lab,
+.plan-map .mk:focus-visible .lab {
+  display: block;
+}
+.plan-map[data-far] .mk[data-pinned="1"] .lab {
+  display: none;
+}
+.plan-map[data-far] .mk[data-selected="1"] .lab,
+.plan-map[data-far] .mk:hover .lab {
+  display: block;
+}
+.plan-map .mk:hover {
+  z-index: 6;
+}
+.plan-map .mk:focus-visible {
+  outline: none;
+}
+.plan-map .mk:focus-visible > svg {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+  border-radius: 50%;
+}
+.plan-map .mk.depot {
+  cursor: default;
+}
+.plan-map .mk.depot .lab {
+  display: block;
+  left: auto;
+  right: 4px;
+  top: auto;
+  bottom: 6px;
+  transform: none;
+}
+.plan-map[data-far] .mk.depot .lab {
+  display: none;
+}
+.plan-map .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib {
+  margin: 0;
+  padding: 2px 8px;
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--muted-foreground);
+  background: color-mix(in oklab, var(--panel) 92%, transparent);
+}
+.plan-map .maplibregl-ctrl-attrib a {
+  color: var(--muted-foreground);
+}
+.plan-map .maplibregl-ctrl-group {
+  border-radius: 4px;
+  box-shadow: none;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+}
+
+/* Informațiile de la trecerea mouse-ului peste punctele hărții */
+.plan-pop .maplibregl-popup-content {
+  padding: 5px 9px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+  background: var(--popover);
+  box-shadow: 0 6px 18px -10px rgb(19 32 42 / 0.45);
+  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  color: var(--ink);
+  line-height: 1.25;
+}
+.plan-pop .maplibregl-popup-tip {
+  display: none;
+}
+.plan-pop .t {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  font-stretch: 88%;
+}
+.plan-pop .s {
+  display: block;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+.plan-pop .s.att {
+  color: var(--att-ink);
+  font-weight: 560;
+}
+
+/* Modul „Posturi”: markerii lucrărilor se ascund, bazele rămân */
+.plan-map[data-posts] .mk.item {
+  display: none;
+}
+
+/* Modul de prezentare: zona despre care se vorbește primește un contur discret */
+.spot {
+  position: relative;
+}
+.spot::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  pointer-events: none;
+  animation: spot-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.spot-att::after {
+  border-color: var(--att);
+}
+@keyframes spot-in {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

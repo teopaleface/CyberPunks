@@ -1,0 +1,325 @@
+@import "tailwindcss";
+
+/*
+ * Daybreak, landing page. Direcția (Teo, 17:55): totul în engleză, stilul paginilor de produs Apple:
+ * puține elemente, tipografie mare, mult spațiu, o singură imagine puternică pe ecran.
+ *
+ * Paleta PPC (verificată de firul Interfață din CSS-ul site-urilor PPC): bleumarin #000f1e,
+ * albastru #00a3e0, portocaliu #fa4616; albastrul PPC Energie #163fe8 (butonul principal).
+ * Ideea: culorile PPC formează un răsărit. Agentul lucrează noaptea, planul e gata în zori.
+ * Culorile surselor A, B, C sunt cele din consolă (varianta pentru fundal închis): A #3b82f0,
+ * B #b84fc0, C #c4880a. Portocaliul înseamnă, ca în consolă, „decide un om”.
+ *
+ * Contrast pe #000f1e (WCAG): text 17,6; text secundar #8fa1b5 6,9; albastru PPC 6,7;
+ * portocaliu 5,5; alb pe #163fe8 7,2.
+ */
+
+@theme {
+  --color-night: #000f1e;
+  --color-night-2: #04172a;
+  --color-tile: #071b2f;
+  --color-tile-2: #0b2440;
+  --color-hairline: rgb(255 255 255 / 0.08);
+  --color-hairline-strong: rgb(255 255 255 / 0.14);
+  --color-ink: #f5f7fa;
+  --color-ink-2: #c3cfdb;
+  --color-ink-3: #8fa1b5;
+  --color-ppc-blue: #00a3e0;
+  --color-ppc-orange: #fa4616;
+  --color-ppc-orange-soft: #ff7a4d;
+  --color-ppc-energy: #163fe8;
+  --color-ppc-energy-hover: #2b52f0;
+  --color-src-a: #3b82f0;
+  --color-src-b: #b84fc0;
+  --color-src-c: #c4880a;
+  --color-src-c-ink: #e0a42a;
+
+  /* Fontul sistemului pe Apple (SF Pro, cu dimensiuni optice); Inter (OFL) în rest. */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", var(--font-inter), "Segoe UI", system-ui,
+    sans-serif;
+
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+@layer base {
+  html {
+    background: var(--color-night);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    -webkit-tap-highlight-color: transparent;
+    color-scheme: dark;
+    letter-spacing: -0.003em;
+  }
+  body {
+    min-height: 100dvh;
+    font-size: 17px;
+    line-height: 1.47;
+  }
+  ::selection {
+    background: var(--color-ppc-blue);
+    color: var(--color-night);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-ppc-blue);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ------------------------------------------------------------------ tipografia (scara Apple) */
+.t-hero {
+  font-size: clamp(2.75rem, 6.3vw, 6.25rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  font-weight: 600;
+}
+.t-section {
+  font-size: clamp(2.5rem, 5.6vw, 5rem);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  font-weight: 600;
+}
+.t-title {
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.022em;
+  font-weight: 600;
+}
+.t-intro {
+  font-size: clamp(1.2rem, 1.75vw, 1.6rem);
+  line-height: 1.38;
+  letter-spacing: -0.012em;
+  font-weight: 500;
+}
+.t-big-number {
+  font-size: clamp(4.5rem, 13vw, 12rem);
+  line-height: 0.92;
+  letter-spacing: -0.05em;
+  font-weight: 700;
+}
+
+/* răsăritul PPC pe text: albastru, deschis, piersică, portocaliu */
+.sunrise-text {
+  background: linear-gradient(100deg, #3aa9ff 0%, #00a3e0 22%, #cfe8ff 48%, #ffb08f 70%, #fa4616 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ------------------------------------------------------------------ apariția la derulare (fără JS) */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+}
+@supports (animation-timeline: view()) {
+  .reveal {
+    animation: reveal-up linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 28%;
+  }
+}
+
+/* ------------------------------------------------------------------ hero: o singură secvență la încărcare */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+}
+@keyframes plane-in {
+  from {
+    opacity: 0;
+    transform: translateY(70px) rotateX(64deg) scale(0.94);
+  }
+}
+@keyframes sun-up {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 18%) scale(0.85);
+  }
+}
+@keyframes cell-on {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.8);
+  }
+}
+@keyframes route-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes ring-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  40% {
+    opacity: 1;
+  }
+}
+@keyframes demote {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  65% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.32;
+  }
+}
+
+.hero-fade {
+  animation: fade-in 1200ms var(--ease-out-quint) both;
+  animation-delay: var(--delay, 0ms);
+}
+.hero-rise {
+  animation: rise-in 1100ms var(--ease-out-quint) both;
+  animation-delay: var(--delay, 0ms);
+}
+.hero-plane {
+  animation: plane-in 1800ms var(--ease-out-quint) both;
+  animation-delay: 250ms;
+}
+.hero-sun {
+  animation: sun-up 2600ms var(--ease-out-quint) both;
+  animation-delay: 900ms;
+}
+.hero-cell {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cell-on 800ms var(--ease-out-quint) both;
+  animation-delay: calc(1100ms + var(--order) * 1200ms);
+}
+.hero-demote {
+  animation: demote 1600ms ease-out both;
+  animation-delay: var(--delay, 700ms);
+}
+.hero-route {
+  stroke-dasharray: 1;
+  animation: route-draw 1400ms var(--ease-in-out-quart) both;
+  animation-delay: var(--delay, 2600ms);
+}
+.hero-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ring-pulse 800ms var(--ease-out-quint) both;
+  animation-delay: var(--delay, 2200ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-fade,
+  .hero-rise,
+  .hero-plane,
+  .hero-sun,
+  .hero-cell,
+  .hero-demote,
+  .hero-route,
+  .hero-ring,
+  .reveal {
+    animation: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------ How it works: harta orașului, pe pași */
+.city .ci {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    opacity 600ms var(--ease-out-quint),
+    transform 700ms var(--ease-out-quint),
+    stroke-width 400ms ease;
+  transition-delay: var(--d, 0ms);
+  stroke: #f5f7fa;
+  stroke-width: 0;
+}
+.city .cring,
+.city .cdepot {
+  opacity: 0;
+  transition: opacity 500ms var(--ease-out-quint);
+}
+.city .croute {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1500ms var(--ease-in-out-quart);
+  transition-delay: var(--d, 0ms);
+}
+/* pasul 0: JS pornit, harta încă goală */
+.city[data-step="0"] .ci {
+  opacity: 0;
+  transform: scale(0.4);
+}
+/* 1 Perceive: toate lucrările, mici și egale */
+.city[data-step="1"] .ci {
+  opacity: 0.9;
+  transform: scale(0.7);
+}
+/* 2 Estimate: mărimea după scorul modelului */
+.city[data-step="2"] .ci,
+.city[data-step="3"] .ci,
+.city[data-step="4"] .ci {
+  opacity: 1;
+  transform: scale(var(--s));
+}
+/* 3 Decide: verificările de la distanță se sting, cazurile pentru om primesc cerc, opririle alese contur alb */
+.city:is([data-step="3"], [data-step="4"]) .ci:is([data-state="remote"], [data-state="deferred"]) {
+  opacity: 0.16;
+  transform: scale(0.6);
+}
+.city:is([data-step="3"], [data-step="4"]) .ci[data-state="route"] {
+  stroke-width: 2.2px;
+}
+.city:is([data-step="3"], [data-step="4"]) .cring {
+  opacity: 1;
+}
+/* 4 Act: traseele se desenează, bazele apar */
+.city[data-step="4"] .croute {
+  stroke-dashoffset: 0;
+}
+.city[data-step="4"] .cdepot {
+  opacity: 1;
+}
+/* textul pașilor: pasul activ aprins, restul estompat (doar cu JS) */
+.city[data-js="1"] .city-step {
+  opacity: 0.32;
+  transition: opacity 450ms ease;
+}
+.city[data-js="1"][data-step="1"] .city-step[data-scrolly-step="1"],
+.city[data-js="1"][data-step="2"] .city-step[data-scrolly-step="2"],
+.city[data-js="1"][data-step="3"] .city-step[data-scrolly-step="3"],
+.city[data-js="1"][data-step="4"] .city-step[data-scrolly-step="4"] {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .city .ci,
+  .city .croute {
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
+}

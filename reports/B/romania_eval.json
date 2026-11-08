@@ -1,0 +1,2336 @@
+{
+  "created": "2026-11-07T19:57:41+00:00",
+  "model_version": "b-lgbm@c5c8344",
+  "model_threshold": 0.16,
+  "model_train_info": {
+    "rows": 58480,
+    "events": 5595,
+    "counties": 80,
+    "years": [
+      2023,
+      2024
+    ],
+    "states": [
+      "IL",
+      "KY",
+      "MI",
+      "MO",
+      "NY",
+      "OH",
+      "PA",
+      "VA"
+    ]
+  },
+  "synthetic_data": false,
+  "labels": {
+    "rows_ro": 7457,
+    "planned": 730,
+    "unplanned": 6727,
+    "unplanned_customers_pos": 5233,
+    "open_at_snapshot": 61,
+    "window_utc": [
+      "2026-10-08T19:29:55+00:00",
+      "2026-11-07T19:29:55+00:00"
+    ],
+    "collection_since_utc": "2026-10-17T08:00:13+00:00"
+  },
+  "days_evaluated": [
+    "2026-10-18",
+    "2026-11-06"
+  ],
+  "assignment": {
+    "median_km_to_zone": 9.3,
+    "p95_km_to_zone": 31.6,
+    "rows_over_60km": 2,
+    "rows_per_zone": {
+      "B-BUCURESTI": 1782,
+      "CT-CONSTANTA": 311,
+      "TM-TIMISOARA": 309,
+      "AR-INEU": 257,
+      "AR-ARAD": 252,
+      "GR-BOLINTIN-VALE": 240,
+      "HD-BRAD": 210,
+      "CL-CALARASI": 201,
+      "CL-OLTENITA": 200,
+      "IF-BUFTEA": 170,
+      "CT-MEDGIDIA": 157,
+      "GR-GIURGIU": 131,
+      "IL-SLOBOZIA": 129,
+      "HD-PETROSANI": 120,
+      "HD-DEVA": 112,
+      "IL-URZICENI": 90,
+      "TL-BABADAG": 88,
+      "TM-LUGOJ": 81,
+      "TL-TULCEA": 76,
+      "TM-SANNICOLAU-MARE": 72,
+      "CS-CARANSEBES": 63,
+      "CT-MANGALIA": 59,
+      "CS-RESITA": 55,
+      "TL-MACIN": 38,
+      "AR-LIPOVA": 16,
+      "CS-ORAVITA": 14
+    }
+  },
+  "duration_hours": {
+    "median": 1.88,
+    "p95": 276.7,
+    "over_72h": 836
+  },
+  "archive": {
+    "rows": 520,
+    "days": 20,
+    "zones": 26,
+    "events": 303,
+    "severe_events": 67,
+    "prevalence": 0.5827,
+    "ranking": {
+      "p_model": {
+        "pr_auc": 0.6556,
+        "roc_auc": 0.5659
+      },
+      "gust_max": {
+        "pr_auc": 0.6314,
+        "roc_auc": 0.5563
+      },
+      "zone_rate_loo": {
+        "pr_auc": 0.8176,
+        "roc_auc": 0.8055
+      },
+      "small_zone": {
+        "pr_auc": 0.5758,
+        "roc_auc": 0.457
+      },
+      "random": {
+        "pr_auc": 0.5862,
+        "roc_auc": 0.5092
+      }
+    },
+    "ranking_ci95": {
+      "p_model": {
+        "pr_auc": [
+          0.5951,
+          0.7116
+        ],
+        "roc_auc": [
+          0.5167,
+          0.6152
+        ],
+        "pr_auc_minus_base": [
+          0.03,
+          0.1183
+        ]
+      },
+      "gust_max": {
+        "pr_auc": [
+          0.5557,
+          0.7091
+        ],
+        "roc_auc": [
+          0.5055,
+          0.6042
+        ],
+        "pr_auc_minus_base": [
+          -0.0003,
+          0.1049
+        ]
+      },
+      "small_zone": {
+        "pr_auc": [
+          0.5133,
+          0.6367
+        ],
+        "roc_auc": [
+          0.4298,
+          0.4848
+        ],
+        "pr_auc_minus_base": [
+          -0.03,
+          0.0233
+        ]
+      }
+    },
+    "pr_auc_model_vs": {
+      "gust_max": {
+        "diff": 0.023,
+        "ci95": [
+          -0.0081,
+          0.0589
+        ],
+        "share_a_better": 0.922
+      },
+      "small_zone": {
+        "diff": 0.0779,
+        "ci95": [
+          0.025,
+          0.133
+        ],
+        "share_a_better": 0.998
+      },
+      "zone_rate_loo": {
+        "diff": -0.1652,
+        "ci95": [
+          -0.2233,
+          -0.1013
+        ],
+        "share_a_better": 0.0
+      }
+    },
+    "probabilistic": {
+      "brier_model": 0.5066,
+      "brier_constant_prevalence": 0.2432,
+      "brier_us_train_rate": 0.4803,
+      "log_loss_model": 1.7169,
+      "ece_10bins": 0.5167,
+      "mean_predicted": 0.066,
+      "observed_rate": 0.5827
+    },
+    "reliability": [
+      {
+        "bin": "(-0.001, 0.05]",
+        "n": 238,
+        "observed": 0.5504,
+        "predicted": 0.0376
+      },
+      {
+        "bin": "(0.05, 0.1]",
+        "n": 229,
+        "observed": 0.5764,
+        "predicted": 0.0688
+      },
+      {
+        "bin": "(0.1, 0.16]",
+        "n": 32,
+        "observed": 0.7188,
+        "predicted": 0.1186
+      },
+      {
+        "bin": "(0.16, 0.3]",
+        "n": 15,
+        "observed": 0.8,
+        "predicted": 0.2069
+      },
+      {
+        "bin": "(0.3, 0.5]",
+        "n": 4,
+        "observed": 0.75,
+        "predicted": 0.3945
+      },
+      {
+        "bin": "(0.5, 1.0]",
+        "n": 2,
+        "observed": 1.0,
+        "predicted": 0.5797
+      }
+    ],
+    "at_model_threshold": {
+      "threshold": 0.16,
+      "alerts": 21,
+      "tp": 17,
+      "fp": 4,
+      "fn": 286,
+      "tn": 213,
+      "precision": 0.8095,
+      "recall": 0.0561,
+      "f1": 0.1049,
+      "recall_severe": 0.0299,
+      "false_alarm_rate": 0.0184
+    },
+    "at_best_f1_threshold_in_sample": {
+      "threshold": 0.05,
+      "alerts": 282,
+      "tp": 172,
+      "fp": 110,
+      "fn": 131,
+      "tn": 107,
+      "precision": 0.6099,
+      "recall": 0.5677,
+      "f1": 0.588,
+      "recall_severe": 0.5672,
+      "false_alarm_rate": 0.5069
+    },
+    "gust_rule_70kmh": {
+      "threshold": 70.0,
+      "alerts": 1,
+      "tp": 1,
+      "fp": 0,
+      "fn": 302,
+      "tn": 217,
+      "precision": 1.0,
+      "recall": 0.0033,
+      "f1": 0.0066,
+      "recall_severe": 0.0149,
+      "false_alarm_rate": 0.0
+    },
+    "capacity_k3": {
+      "p_model": {
+        "customers_covered_share": 0.073,
+        "events_caught_share": 0.1254,
+        "alert_precision": 0.6333
+      },
+      "gust_max": {
+        "customers_covered_share": 0.1078,
+        "events_caught_share": 0.1254,
+        "alert_precision": 0.6333
+      },
+      "small_zone": {
+        "customers_covered_share": 0.0159,
+        "events_caught_share": 0.1056,
+        "alert_precision": 0.5333
+      },
+      "random": {
+        "customers_covered_share": 0.1209,
+        "events_caught_share": 0.1155,
+        "alert_precision": 0.5833
+      },
+      "oracol": {
+        "customers_covered_share": 0.6218,
+        "events_caught_share": 0.198,
+        "alert_precision": 1.0
+      }
+    },
+    "capacity_k5": {
+      "p_model": {
+        "customers_covered_share": 0.1172,
+        "events_caught_share": 0.2112,
+        "alert_precision": 0.64
+      },
+      "gust_max": {
+        "customers_covered_share": 0.1936,
+        "events_caught_share": 0.198,
+        "alert_precision": 0.6
+      },
+      "small_zone": {
+        "customers_covered_share": 0.052,
+        "events_caught_share": 0.1914,
+        "alert_precision": 0.58
+      },
+      "random": {
+        "customers_covered_share": 0.2089,
+        "events_caught_share": 0.1881,
+        "alert_precision": 0.57
+      },
+      "oracol": {
+        "customers_covered_share": 0.7466,
+        "events_caught_share": 0.33,
+        "alert_precision": 1.0
+      }
+    },
+    "quantiles_on_events": {
+      "n": 303,
+      "coverage_p10_p90": 0.703,
+      "share_above_p90": 0.2739,
+      "share_below_p10": 0.0231,
+      "pinball_log_q10": 0.0676,
+      "pinball_log_q50": 0.227,
+      "pinball_log_q90": 0.1524,
+      "median_observed_pct": 2.376,
+      "median_p50_pct": 1.939,
+      "mae_p50_pct_points": 2.188
+    },
+    "rows_out_of_training_range": 20,
+    "out_of_range_features": {
+      "log_customers": 20,
+      "log_density": 20
+    }
+  },
+  "sensitivity": {
+    "duration_capped_72h": {
+      "rows": 520,
+      "days": 20,
+      "zones": 26,
+      "events": 180,
+      "severe_events": 22,
+      "prevalence": 0.3462,
+      "ranking": {
+        "p_model": {
+          "pr_auc": 0.3708,
+          "roc_auc": 0.5029
+        },
+        "gust_max": {
+          "pr_auc": 0.3737,
+          "roc_auc": 0.5227
+        },
+        "zone_rate_loo": {
+          "pr_auc": 0.4699,
+          "roc_auc": 0.6444
+        },
+        "small_zone": {
+          "pr_auc": 0.3217,
+          "roc_auc": 0.4337
+        },
+        "random": {
+          "pr_auc": 0.3614,
+          "roc_auc": 0.5112
+        }
+      },
+      "ranking_ci95": {
+        "p_model": {
+          "pr_auc": [
+            0.3146,
+            0.442
+          ],
+          "roc_auc": [
+            0.4462,
+            0.553
+          ],
+          "pr_auc_minus_base": [
+            -0.0094,
+            0.0805
+          ]
+        },
+        "gust_max": {
+          "pr_auc": [
+            0.3201,
+            0.433
+          ],
+          "roc_auc": [
+            0.4786,
+            0.5635
+          ],
+          "pr_auc_minus_base": [
+            -0.0057,
+            0.0696
+          ]
+        },
+        "small_zone": {
+          "pr_auc": [
+            0.2661,
+            0.3874
+          ],
+          "roc_auc": [
+            0.398,
+            0.4729
+          ],
+          "pr_auc_minus_base": [
+            -0.0452,
+            0.0102
+          ]
+        }
+      },
+      "pr_auc_model_vs": {
+        "gust_max": {
+          "diff": -0.0043,
+          "ci95": [
+            -0.0432,
+            0.0481
+          ],
+          "share_a_better": 0.426
+        },
+        "small_zone": {
+          "diff": 0.0505,
+          "ci95": [
+            0.0,
+            0.1057
+          ],
+          "share_a_better": 0.975
+        },
+        "zone_rate_loo": {
+          "diff": -0.0992,
+          "ci95": [
+            -0.1673,
+            -0.027
+          ],
+          "share_a_better": 0.004
+        }
+      },
+      "probabilistic": {
+        "brier_model": 0.3059,
+        "brier_constant_prevalence": 0.2263,
+        "brier_us_train_rate": 0.2891,
+        "log_loss_model": 1.0741,
+        "ece_10bins": 0.2819,
+        "mean_predicted": 0.066,
+        "observed_rate": 0.3462
+      },
+      "reliability": [
+        {
+          "bin": "(-0.001, 0.05]",
+          "n": 238,
+          "observed": 0.3571,
+          "predicted": 0.0376
+        },
+        {
+          "bin": "(0.05, 0.1]",
+          "n": 229,
+          "observed": 0.3013,
+          "predicted": 0.0688
+        },
+        {
+          "bin": "(0.1, 0.16]",
+          "n": 32,
+          "observed": 0.5312,
+          "predicted": 0.1186
+        },
+        {
+          "bin": "(0.16, 0.3]",
+          "n": 15,
+          "observed": 0.4,
+          "predicted": 0.2069
+        },
+        {
+          "bin": "(0.3, 0.5]",
+          "n": 4,
+          "observed": 0.5,
+          "predicted": 0.3945
+        },
+        {
+          "bin": "(0.5, 1.0]",
+          "n": 2,
+          "observed": 0.5,
+          "predicted": 0.5797
+        }
+      ],
+      "at_model_threshold": {
+        "threshold": 0.16,
+        "alerts": 21,
+        "tp": 9,
+        "fp": 12,
+        "fn": 171,
+        "tn": 328,
+        "precision": 0.4286,
+        "recall": 0.05,
+        "f1": 0.0896,
+        "recall_severe": 0.0,
+        "false_alarm_rate": 0.0353
+      },
+      "at_best_f1_threshold_in_sample": {
+        "threshold": 0.05,
+        "alerts": 282,
+        "tp": 95,
+        "fp": 187,
+        "fn": 85,
+        "tn": 153,
+        "precision": 0.3369,
+        "recall": 0.5278,
+        "f1": 0.4113,
+        "recall_severe": 0.4091,
+        "false_alarm_rate": 0.55
+      },
+      "gust_rule_70kmh": {
+        "threshold": 70.0,
+        "alerts": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 179,
+        "tn": 340,
+        "precision": 1.0,
+        "recall": 0.0056,
+        "f1": 0.011,
+        "recall_severe": 0.0,
+        "false_alarm_rate": 0.0
+      },
+      "capacity_k3": {
+        "p_model": {
+          "customers_covered_share": 0.0744,
+          "events_caught_share": 0.1389,
+          "alert_precision": 0.4167
+        },
+        "gust_max": {
+          "customers_covered_share": 0.1112,
+          "events_caught_share": 0.1278,
+          "alert_precision": 0.3833
+        },
+        "small_zone": {
+          "customers_covered_share": 0.0205,
+          "events_caught_share": 0.1,
+          "alert_precision": 0.3
+        },
+        "random": {
+          "customers_covered_share": 0.1118,
+          "events_caught_share": 0.1278,
+          "alert_precision": 0.3833
+        },
+        "oracol": {
+          "customers_covered_share": 0.7168,
+          "events_caught_share": 0.3333,
+          "alert_precision": 1.0
+        }
+      },
+      "capacity_k5": {
+        "p_model": {
+          "customers_covered_share": 0.1076,
+          "events_caught_share": 0.1944,
+          "alert_precision": 0.35
+        },
+        "gust_max": {
+          "customers_covered_share": 0.186,
+          "events_caught_share": 0.2056,
+          "alert_precision": 0.37
+        },
+        "small_zone": {
+          "customers_covered_share": 0.0713,
+          "events_caught_share": 0.1722,
+          "alert_precision": 0.31
+        },
+        "random": {
+          "customers_covered_share": 0.2382,
+          "events_caught_share": 0.2167,
+          "alert_precision": 0.39
+        },
+        "oracol": {
+          "customers_covered_share": 0.8465,
+          "events_caught_share": 0.5444,
+          "alert_precision": 0.98
+        }
+      },
+      "quantiles_on_events": {
+        "n": 180,
+        "coverage_p10_p90": 0.85,
+        "share_above_p90": 0.1278,
+        "share_below_p10": 0.0222,
+        "pinball_log_q10": 0.0543,
+        "pinball_log_q50": 0.1913,
+        "pinball_log_q90": 0.1189,
+        "median_observed_pct": 1.965,
+        "median_p50_pct": 1.921,
+        "mae_p50_pct_points": 1.781
+      },
+      "rows_out_of_training_range": 20,
+      "out_of_range_features": {
+        "log_customers": 20,
+        "log_density": 20
+      }
+    },
+    "duration_capped_24h": {
+      "rows": 520,
+      "days": 20,
+      "zones": 26,
+      "events": 128,
+      "severe_events": 16,
+      "prevalence": 0.2462,
+      "ranking": {
+        "p_model": {
+          "pr_auc": 0.2723,
+          "roc_auc": 0.5098
+        },
+        "gust_max": {
+          "pr_auc": 0.2817,
+          "roc_auc": 0.5465
+        },
+        "zone_rate_loo": {
+          "pr_auc": 0.3044,
+          "roc_auc": 0.5908
+        },
+        "small_zone": {
+          "pr_auc": 0.2347,
+          "roc_auc": 0.4518
+        },
+        "random": {
+          "pr_auc": 0.2475,
+          "roc_auc": 0.5062
+        }
+      },
+      "ranking_ci95": {
+        "p_model": {
+          "pr_auc": [
+            0.2247,
+            0.332
+          ],
+          "roc_auc": [
+            0.4611,
+            0.5523
+          ],
+          "pr_auc_minus_base": [
+            0.0018,
+            0.0671
+          ]
+        },
+        "gust_max": {
+          "pr_auc": [
+            0.2432,
+            0.337
+          ],
+          "roc_auc": [
+            0.5037,
+            0.5892
+          ],
+          "pr_auc_minus_base": [
+            0.0127,
+            0.0725
+          ]
+        },
+        "small_zone": {
+          "pr_auc": [
+            0.1957,
+            0.2864
+          ],
+          "roc_auc": [
+            0.4026,
+            0.4974
+          ],
+          "pr_auc_minus_base": [
+            -0.0318,
+            0.0239
+          ]
+        }
+      },
+      "pr_auc_model_vs": {
+        "gust_max": {
+          "diff": -0.0106,
+          "ci95": [
+            -0.0386,
+            0.0281
+          ],
+          "share_a_better": 0.259
+        },
+        "small_zone": {
+          "diff": 0.0401,
+          "ci95": [
+            -0.0065,
+            0.0821
+          ],
+          "share_a_better": 0.952
+        },
+        "zone_rate_loo": {
+          "diff": -0.0304,
+          "ci95": [
+            -0.0789,
+            0.0164
+          ],
+          "share_a_better": 0.1
+        }
+      },
+      "probabilistic": {
+        "brier_model": 0.2187,
+        "brier_constant_prevalence": 0.1856,
+        "brier_us_train_rate": 0.2082,
+        "log_loss_model": 0.7629,
+        "ece_10bins": 0.1847,
+        "mean_predicted": 0.066,
+        "observed_rate": 0.2462
+      },
+      "reliability": [
+        {
+          "bin": "(-0.001, 0.05]",
+          "n": 238,
+          "observed": 0.2563,
+          "predicted": 0.0376
+        },
+        {
+          "bin": "(0.05, 0.1]",
+          "n": 229,
+          "observed": 0.2096,
+          "predicted": 0.0688
+        },
+        {
+          "bin": "(0.1, 0.16]",
+          "n": 32,
+          "observed": 0.375,
+          "predicted": 0.1186
+        },
+        {
+          "bin": "(0.16, 0.3]",
+          "n": 15,
+          "observed": 0.3333,
+          "predicted": 0.2069
+        },
+        {
+          "bin": "(0.3, 0.5]",
+          "n": 4,
+          "observed": 0.25,
+          "predicted": 0.3945
+        },
+        {
+          "bin": "(0.5, 1.0]",
+          "n": 2,
+          "observed": 0.5,
+          "predicted": 0.5797
+        }
+      ],
+      "at_model_threshold": {
+        "threshold": 0.16,
+        "alerts": 21,
+        "tp": 7,
+        "fp": 14,
+        "fn": 121,
+        "tn": 378,
+        "precision": 0.3333,
+        "recall": 0.0547,
+        "f1": 0.094,
+        "recall_severe": 0.0,
+        "false_alarm_rate": 0.0357
+      },
+      "at_best_f1_threshold_in_sample": {
+        "threshold": 0.05,
+        "alerts": 282,
+        "tp": 67,
+        "fp": 215,
+        "fn": 61,
+        "tn": 177,
+        "precision": 0.2376,
+        "recall": 0.5234,
+        "f1": 0.3268,
+        "recall_severe": 0.5,
+        "false_alarm_rate": 0.5485
+      },
+      "gust_rule_70kmh": {
+        "threshold": 70.0,
+        "alerts": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 127,
+        "tn": 392,
+        "precision": 1.0,
+        "recall": 0.0078,
+        "f1": 0.0155,
+        "recall_severe": 0.0,
+        "false_alarm_rate": 0.0
+      },
+      "capacity_k3": {
+        "p_model": {
+          "customers_covered_share": 0.068,
+          "events_caught_share": 0.125,
+          "alert_precision": 0.2667
+        },
+        "gust_max": {
+          "customers_covered_share": 0.1246,
+          "events_caught_share": 0.1484,
+          "alert_precision": 0.3167
+        },
+        "small_zone": {
+          "customers_covered_share": 0.0242,
+          "events_caught_share": 0.1094,
+          "alert_precision": 0.2333
+        },
+        "random": {
+          "customers_covered_share": 0.1241,
+          "events_caught_share": 0.1172,
+          "alert_precision": 0.25
+        },
+        "oracol": {
+          "customers_covered_share": 0.7911,
+          "events_caught_share": 0.4688,
+          "alert_precision": 1.0
+        }
+      },
+      "capacity_k5": {
+        "p_model": {
+          "customers_covered_share": 0.1069,
+          "events_caught_share": 0.1797,
+          "alert_precision": 0.23
+        },
+        "gust_max": {
+          "customers_covered_share": 0.1935,
+          "events_caught_share": 0.2188,
+          "alert_precision": 0.28
+        },
+        "small_zone": {
+          "customers_covered_share": 0.0915,
+          "events_caught_share": 0.1875,
+          "alert_precision": 0.24
+        },
+        "random": {
+          "customers_covered_share": 0.2305,
+          "events_caught_share": 0.1953,
+          "alert_precision": 0.25
+        },
+        "oracol": {
+          "customers_covered_share": 0.9094,
+          "events_caught_share": 0.7031,
+          "alert_precision": 0.9
+        }
+      },
+      "quantiles_on_events": {
+        "n": 128,
+        "coverage_p10_p90": 0.8047,
+        "share_above_p90": 0.1406,
+        "share_below_p10": 0.0547,
+        "pinball_log_q10": 0.0525,
+        "pinball_log_q50": 0.1905,
+        "pinball_log_q90": 0.1213,
+        "median_observed_pct": 1.772,
+        "median_p50_pct": 1.931,
+        "mae_p50_pct_points": 1.796
+      },
+      "rows_out_of_training_range": 20,
+      "out_of_range_features": {
+        "log_customers": 20,
+        "log_density": 20
+      }
+    },
+    "new_incidents_ge_1pct": {
+      "rows": 520,
+      "days": 20,
+      "zones": 26,
+      "events": 99,
+      "severe_events": 15,
+      "prevalence": 0.1904,
+      "ranking": {
+        "p_model": {
+          "pr_auc": 0.2142,
+          "roc_auc": 0.507
+        },
+        "gust_max": {
+          "pr_auc": 0.2223,
+          "roc_auc": 0.5432
+        },
+        "zone_rate_loo": {
+          "pr_auc": 0.2197,
+          "roc_auc": 0.5798
+        },
+        "small_zone": {
+          "pr_auc": 0.1782,
+          "roc_auc": 0.4532
+        },
+        "random": {
+          "pr_auc": 0.2307,
+          "roc_auc": 0.5572
+        }
+      },
+      "ranking_ci95": {
+        "p_model": {
+          "pr_auc": [
+            0.1652,
+            0.2775
+          ],
+          "roc_auc": [
+            0.4492,
+            0.5615
+          ],
+          "pr_auc_minus_base": [
+            -0.0029,
+            0.0599
+          ]
+        },
+        "gust_max": {
+          "pr_auc": [
+            0.1698,
+            0.294
+          ],
+          "roc_auc": [
+            0.4844,
+            0.5983
+          ],
+          "pr_auc_minus_base": [
+            0.0033,
+            0.0788
+          ]
+        },
+        "small_zone": {
+          "pr_auc": [
+            0.141,
+            0.2348
+          ],
+          "roc_auc": [
+            0.4023,
+            0.5064
+          ],
+          "pr_auc_minus_base": [
+            -0.0292,
+            0.0219
+          ]
+        }
+      },
+      "pr_auc_model_vs": {
+        "gust_max": {
+          "diff": -0.0109,
+          "ci95": [
+            -0.0401,
+            0.0212
+          ],
+          "share_a_better": 0.235
+        },
+        "small_zone": {
+          "diff": 0.0362,
+          "ci95": [
+            -0.0056,
+            0.0727
+          ],
+          "share_a_better": 0.959
+        },
+        "zone_rate_loo": {
+          "diff": -0.0068,
+          "ci95": [
+            -0.0495,
+            0.0335
+          ],
+          "share_a_better": 0.396
+        }
+      },
+      "probabilistic": {
+        "brier_model": 0.1707,
+        "brier_constant_prevalence": 0.1541,
+        "brier_us_train_rate": 0.1631,
+        "log_loss_model": 0.6087,
+        "ece_10bins": 0.1328,
+        "mean_predicted": 0.066,
+        "observed_rate": 0.1904
+      },
+      "reliability": [
+        {
+          "bin": "(-0.001, 0.05]",
+          "n": 238,
+          "observed": 0.2059,
+          "predicted": 0.0376
+        },
+        {
+          "bin": "(0.05, 0.1]",
+          "n": 229,
+          "observed": 0.1485,
+          "predicted": 0.0688
+        },
+        {
+          "bin": "(0.1, 0.16]",
+          "n": 32,
+          "observed": 0.3438,
+          "predicted": 0.1186
+        },
+        {
+          "bin": "(0.16, 0.3]",
+          "n": 15,
+          "observed": 0.2,
+          "predicted": 0.2069
+        },
+        {
+          "bin": "(0.3, 0.5]",
+          "n": 4,
+          "observed": 0.25,
+          "predicted": 0.3945
+        },
+        {
+          "bin": "(0.5, 1.0]",
+          "n": 2,
+          "observed": 0.5,
+          "predicted": 0.5797
+        }
+      ],
+      "at_model_threshold": {
+        "threshold": 0.16,
+        "alerts": 21,
+        "tp": 5,
+        "fp": 16,
+        "fn": 94,
+        "tn": 405,
+        "precision": 0.2381,
+        "recall": 0.0505,
+        "f1": 0.0833,
+        "recall_severe": 0.0,
+        "false_alarm_rate": 0.038
+      },
+      "at_best_f1_threshold_in_sample": {
+        "threshold": 0.05,
+        "alerts": 282,
+        "tp": 50,
+        "fp": 232,
+        "fn": 49,
+        "tn": 189,
+        "precision": 0.1773,
+        "recall": 0.5051,
+        "f1": 0.2625,
+        "recall_severe": 0.4667,
+        "false_alarm_rate": 0.5511
+      },
+      "gust_rule_70kmh": {
+        "threshold": 70.0,
+        "alerts": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 98,
+        "tn": 421,
+        "precision": 1.0,
+        "recall": 0.0101,
+        "f1": 0.02,
+        "recall_severe": 0.0,
+        "false_alarm_rate": 0.0
+      },
+      "capacity_k3": {
+        "p_model": {
+          "customers_covered_share": 0.0577,
+          "events_caught_share": 0.1111,
+          "alert_precision": 0.1833
+        },
+        "gust_max": {
+          "customers_covered_share": 0.0909,
+          "events_caught_share": 0.1515,
+          "alert_precision": 0.25
+        },
+        "small_zone": {
+          "customers_covered_share": 0.0218,
+          "events_caught_share": 0.101,
+          "alert_precision": 0.1667
+        },
+        "random": {
+          "customers_covered_share": 0.1658,
+          "events_caught_share": 0.1414,
+          "alert_precision": 0.2333
+        },
+        "oracol": {
+          "customers_covered_share": 0.8502,
+          "events_caught_share": 0.5657,
+          "alert_precision": 0.9333
+        }
+      },
+      "capacity_k5": {
+        "p_model": {
+          "customers_covered_share": 0.0944,
+          "events_caught_share": 0.1818,
+          "alert_precision": 0.18
+        },
+        "gust_max": {
+          "customers_covered_share": 0.1609,
+          "events_caught_share": 0.2222,
+          "alert_precision": 0.22
+        },
+        "small_zone": {
+          "customers_covered_share": 0.0886,
+          "events_caught_share": 0.1919,
+          "alert_precision": 0.19
+        },
+        "random": {
+          "customers_covered_share": 0.2913,
+          "events_caught_share": 0.2323,
+          "alert_precision": 0.23
+        },
+        "oracol": {
+          "customers_covered_share": 0.9515,
+          "events_caught_share": 0.798,
+          "alert_precision": 0.79
+        }
+      },
+      "quantiles_on_events": {
+        "n": 99,
+        "coverage_p10_p90": 0.7879,
+        "share_above_p90": 0.1616,
+        "share_below_p10": 0.0505,
+        "pinball_log_q10": 0.0589,
+        "pinball_log_q50": 0.2109,
+        "pinball_log_q90": 0.1304,
+        "median_observed_pct": 2.195,
+        "median_p50_pct": 1.939,
+        "mae_p50_pct_points": 2.088
+      },
+      "rows_out_of_training_range": 20,
+      "out_of_range_features": {
+        "log_customers": 20,
+        "log_density": 20
+      }
+    },
+    "new_incidents_ge_2pct": {
+      "rows": 520,
+      "days": 20,
+      "zones": 26,
+      "events": 55,
+      "severe_events": 15,
+      "prevalence": 0.1058,
+      "ranking": {
+        "p_model": {
+          "pr_auc": 0.1284,
+          "roc_auc": 0.5181
+        },
+        "gust_max": {
+          "pr_auc": 0.147,
+          "roc_auc": 0.5628
+        },
+        "zone_rate_loo": {
+          "pr_auc": 0.1222,
+          "roc_auc": 0.4923
+        },
+        "small_zone": {
+          "pr_auc": 0.1192,
+          "roc_auc": 0.5168
+        },
+        "random": {
+          "pr_auc": 0.1375,
+          "roc_auc": 0.6063
+        }
+      },
+      "ranking_ci95": {
+        "p_model": {
+          "pr_auc": [
+            0.0868,
+            0.1738
+          ],
+          "roc_auc": [
+            0.4299,
+            0.5981
+          ],
+          "pr_auc_minus_base": [
+            -0.0053,
+            0.062
+          ]
+        },
+        "gust_max": {
+          "pr_auc": [
+            0.0961,
+            0.2151
+          ],
+          "roc_auc": [
+            0.4906,
+            0.6248
+          ],
+          "pr_auc_minus_base": [
+            0.0049,
+            0.1041
+          ]
+        },
+        "small_zone": {
+          "pr_auc": [
+            0.0847,
+            0.1784
+          ],
+          "roc_auc": [
+            0.4467,
+            0.5979
+          ],
+          "pr_auc_minus_base": [
+            -0.0085,
+            0.0698
+          ]
+        }
+      },
+      "pr_auc_model_vs": {
+        "gust_max": {
+          "diff": -0.0212,
+          "ci95": [
+            -0.0513,
+            0.0066
+          ],
+          "share_a_better": 0.073
+        },
+        "small_zone": {
+          "diff": 0.0082,
+          "ci95": [
+            -0.0477,
+            0.0484
+          ],
+          "share_a_better": 0.633
+        },
+        "zone_rate_loo": {
+          "diff": 0.0034,
+          "ci95": [
+            -0.0562,
+            0.0575
+          ],
+          "share_a_better": 0.542
+        }
+      },
+      "probabilistic": {
+        "brier_model": 0.098,
+        "brier_constant_prevalence": 0.0946,
+        "brier_us_train_rate": 0.0947,
+        "log_loss_model": 0.3694,
+        "ece_10bins": 0.0515,
+        "mean_predicted": 0.066,
+        "observed_rate": 0.1058
+      },
+      "reliability": [
+        {
+          "bin": "(-0.001, 0.05]",
+          "n": 238,
+          "observed": 0.1134,
+          "predicted": 0.0376
+        },
+        {
+          "bin": "(0.05, 0.1]",
+          "n": 229,
+          "observed": 0.0786,
+          "predicted": 0.0688
+        },
+        {
+          "bin": "(0.1, 0.16]",
+          "n": 32,
+          "observed": 0.25,
+          "predicted": 0.1186
+        },
+        {
+          "bin": "(0.16, 0.3]",
+          "n": 15,
+          "observed": 0.0667,
+          "predicted": 0.2069
+        },
+        {
+          "bin": "(0.3, 0.5]",
+          "n": 4,
+          "observed": 0.0,
+          "predicted": 0.3945
+        },
+        {
+          "bin": "(0.5, 1.0]",
+          "n": 2,
+          "observed": 0.5,
+          "predicted": 0.5797
+        }
+      ],
+      "at_model_threshold": {
+        "threshold": 0.16,
+        "alerts": 21,
+        "tp": 2,
+        "fp": 19,
+        "fn": 53,
+        "tn": 446,
+        "precision": 0.0952,
+        "recall": 0.0364,
+        "f1": 0.0526,
+        "recall_severe": 0.0,
+        "false_alarm_rate": 0.0409
+      },
+      "at_best_f1_threshold_in_sample": {
+        "threshold": 0.09,
+        "alerts": 94,
+        "tp": 14,
+        "fp": 80,
+        "fn": 41,
+        "tn": 385,
+        "precision": 0.1489,
+        "recall": 0.2545,
+        "f1": 0.1879,
+        "recall_severe": 0.2,
+        "false_alarm_rate": 0.172
+      },
+      "gust_rule_70kmh": {
+        "threshold": 70.0,
+        "alerts": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 54,
+        "tn": 465,
+        "precision": 1.0,
+        "recall": 0.0182,
+        "f1": 0.0357,
+        "recall_severe": 0.0,
+        "false_alarm_rate": 0.0
+      },
+      "capacity_k3": {
+        "p_model": {
+          "customers_covered_share": 0.0421,
+          "events_caught_share": 0.0909,
+          "alert_precision": 0.0833
+        },
+        "gust_max": {
+          "customers_covered_share": 0.0879,
+          "events_caught_share": 0.1636,
+          "alert_precision": 0.15
+        },
+        "small_zone": {
+          "customers_covered_share": 0.0241,
+          "events_caught_share": 0.1273,
+          "alert_precision": 0.1167
+        },
+        "random": {
+          "customers_covered_share": 0.1416,
+          "events_caught_share": 0.1091,
+          "alert_precision": 0.1
+        },
+        "oracol": {
+          "customers_covered_share": 0.9288,
+          "events_caught_share": 0.7818,
+          "alert_precision": 0.7167
+        }
+      },
+      "capacity_k5": {
+        "p_model": {
+          "customers_covered_share": 0.071,
+          "events_caught_share": 0.1455,
+          "alert_precision": 0.08
+        },
+        "gust_max": {
+          "customers_covered_share": 0.1686,
+          "events_caught_share": 0.2182,
+          "alert_precision": 0.12
+        },
+        "small_zone": {
+          "customers_covered_share": 0.1055,
+          "events_caught_share": 0.2545,
+          "alert_precision": 0.14
+        },
+        "random": {
+          "customers_covered_share": 0.2964,
+          "events_caught_share": 0.2364,
+          "alert_precision": 0.13
+        },
+        "oracol": {
+          "customers_covered_share": 0.9941,
+          "events_caught_share": 0.9818,
+          "alert_precision": 0.54
+        }
+      },
+      "quantiles_on_events": {
+        "n": 55,
+        "coverage_p10_p90": 0.7091,
+        "share_above_p90": 0.2909,
+        "share_below_p10": 0.0,
+        "pinball_log_q10": 0.0926,
+        "pinball_log_q50": 0.2916,
+        "pinball_log_q90": 0.165,
+        "median_observed_pct": 3.539,
+        "median_p50_pct": 1.965,
+        "mae_p50_pct_points": 3.283
+      },
+      "rows_out_of_training_range": 20,
+      "out_of_range_features": {
+        "log_customers": 20,
+        "log_density": 20
+      }
+    },
+    "event_threshold_0_5pct": {
+      "rows": 520,
+      "days": 20,
+      "zones": 26,
+      "events": 378,
+      "severe_events": 67,
+      "prevalence": 0.7269,
+      "ranking": {
+        "p_model": {
+          "pr_auc": 0.7982,
+          "roc_auc": 0.6019
+        },
+        "gust_max": {
+          "pr_auc": 0.7703,
+          "roc_auc": 0.5702
+        },
+        "zone_rate_loo": {
+          "pr_auc": 0.8992,
+          "roc_auc": 0.8312
+        },
+        "small_zone": {
+          "pr_auc": 0.7079,
+          "roc_auc": 0.4531
+        },
+        "random": {
+          "pr_auc": 0.7091,
+          "roc_auc": 0.4742
+        }
+      },
+      "ranking_ci95": {
+        "p_model": {
+          "pr_auc": [
+            0.742,
+            0.8458
+          ],
+          "roc_auc": [
+            0.5573,
+            0.6457
+          ],
+          "pr_auc_minus_base": [
+            0.0349,
+            0.0998
+          ]
+        },
+        "gust_max": {
+          "pr_auc": [
+            0.709,
+            0.8294
+          ],
+          "roc_auc": [
+            0.5272,
+            0.6101
+          ],
+          "pr_auc_minus_base": [
+            0.0032,
+            0.0809
+          ]
+        },
+        "small_zone": {
+          "pr_auc": [
+            0.66,
+            0.756
+          ],
+          "roc_auc": [
+            0.4231,
+            0.4835
+          ],
+          "pr_auc_minus_base": [
+            -0.042,
+            0.0074
+          ]
+        }
+      },
+      "pr_auc_model_vs": {
+        "gust_max": {
+          "diff": 0.0264,
+          "ci95": [
+            0.0072,
+            0.0477
+          ],
+          "share_a_better": 0.998
+        },
+        "small_zone": {
+          "diff": 0.0873,
+          "ci95": [
+            0.0405,
+            0.1343
+          ],
+          "share_a_better": 1.0
+        },
+        "zone_rate_loo": {
+          "diff": -0.1039,
+          "ci95": [
+            -0.1496,
+            -0.0584
+          ],
+          "share_a_better": 0.0
+        }
+      },
+      "probabilistic": {
+        "brier_model": 0.6318,
+        "brier_constant_prevalence": 0.1985,
+        "brier_us_train_rate": 0.597,
+        "log_loss_model": 2.1187,
+        "ece_10bins": 0.6609,
+        "mean_predicted": 0.066,
+        "observed_rate": 0.7269
+      },
+      "reliability": [
+        {
+          "bin": "(-0.001, 0.05]",
+          "n": 238,
+          "observed": 0.6807,
+          "predicted": 0.0376
+        },
+        {
+          "bin": "(0.05, 0.1]",
+          "n": 229,
+          "observed": 0.738,
+          "predicted": 0.0688
+        },
+        {
+          "bin": "(0.1, 0.16]",
+          "n": 32,
+          "observed": 0.875,
+          "predicted": 0.1186
+        },
+        {
+          "bin": "(0.16, 0.3]",
+          "n": 15,
+          "observed": 0.8667,
+          "predicted": 0.2069
+        },
+        {
+          "bin": "(0.3, 0.5]",
+          "n": 4,
+          "observed": 1.0,
+          "predicted": 0.3945
+        },
+        {
+          "bin": "(0.5, 1.0]",
+          "n": 2,
+          "observed": 1.0,
+          "predicted": 0.5797
+        }
+      ],
+      "at_model_threshold": {
+        "threshold": 0.16,
+        "alerts": 21,
+        "tp": 19,
+        "fp": 2,
+        "fn": 359,
+        "tn": 140,
+        "precision": 0.9048,
+        "recall": 0.0503,
+        "f1": 0.0952,
+        "recall_severe": 0.0299,
+        "false_alarm_rate": 0.0141
+      },
+      "at_best_f1_threshold_in_sample": {
+        "threshold": 0.05,
+        "alerts": 282,
+        "tp": 216,
+        "fp": 66,
+        "fn": 162,
+        "tn": 76,
+        "precision": 0.766,
+        "recall": 0.5714,
+        "f1": 0.6545,
+        "recall_severe": 0.5672,
+        "false_alarm_rate": 0.4648
+      },
+      "gust_rule_70kmh": {
+        "threshold": 70.0,
+        "alerts": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 377,
+        "tn": 142,
+        "precision": 1.0,
+        "recall": 0.0026,
+        "f1": 0.0053,
+        "recall_severe": 0.0149,
+        "false_alarm_rate": 0.0
+      },
+      "capacity_k3": {
+        "p_model": {
+          "customers_covered_share": 0.0728,
+          "events_caught_share": 0.119,
+          "alert_precision": 0.75
+        },
+        "gust_max": {
+          "customers_covered_share": 0.1064,
+          "events_caught_share": 0.119,
+          "alert_precision": 0.75
+        },
+        "small_zone": {
+          "customers_covered_share": 0.0158,
+          "events_caught_share": 0.0926,
+          "alert_precision": 0.5833
+        },
+        "random": {
+          "customers_covered_share": 0.1247,
+          "events_caught_share": 0.1058,
+          "alert_precision": 0.6667
+        },
+        "oracol": {
+          "customers_covered_share": 0.6024,
+          "events_caught_share": 0.1587,
+          "alert_precision": 1.0
+        }
+      },
+      "capacity_k5": {
+        "p_model": {
+          "customers_covered_share": 0.1169,
+          "events_caught_share": 0.2037,
+          "alert_precision": 0.77
+        },
+        "gust_max": {
+          "customers_covered_share": 0.1932,
+          "events_caught_share": 0.2037,
+          "alert_precision": 0.77
+        },
+        "small_zone": {
+          "customers_covered_share": 0.0528,
+          "events_caught_share": 0.1878,
+          "alert_precision": 0.71
+        },
+        "random": {
+          "customers_covered_share": 0.211,
+          "events_caught_share": 0.1772,
+          "alert_precision": 0.67
+        },
+        "oracol": {
+          "customers_covered_share": 0.7241,
+          "events_caught_share": 0.2646,
+          "alert_precision": 1.0
+        }
+      },
+      "quantiles_on_events": {
+        "n": 378,
+        "coverage_p10_p90": 0.5635,
+        "share_above_p90": 0.2196,
+        "share_below_p10": 0.2169,
+        "pinball_log_q10": 0.0836,
+        "pinball_log_q50": 0.2343,
+        "pinball_log_q90": 0.1456,
+        "median_observed_pct": 2.044,
+        "median_p50_pct": 1.951,
+        "mae_p50_pct_points": 2.001
+      },
+      "rows_out_of_training_range": 20,
+      "out_of_range_features": {
+        "log_customers": 20,
+        "log_density": 20
+      }
+    },
+    "event_threshold_2pct": {
+      "rows": 520,
+      "days": 20,
+      "zones": 26,
+      "events": 197,
+      "severe_events": 67,
+      "prevalence": 0.3788,
+      "ranking": {
+        "p_model": {
+          "pr_auc": 0.4548,
+          "roc_auc": 0.5546
+        },
+        "gust_max": {
+          "pr_auc": 0.408,
+          "roc_auc": 0.5081
+        },
+        "zone_rate_loo": {
+          "pr_auc": 0.6875,
+          "roc_auc": 0.7733
+        },
+        "small_zone": {
+          "pr_auc": 0.3624,
+          "roc_auc": 0.4675
+        },
+        "random": {
+          "pr_auc": 0.3919,
+          "roc_auc": 0.5158
+        }
+      },
+      "ranking_ci95": {
+        "p_model": {
+          "pr_auc": [
+            0.3899,
+            0.5182
+          ],
+          "roc_auc": [
+            0.4981,
+            0.6049
+          ],
+          "pr_auc_minus_base": [
+            0.0348,
+            0.1221
+          ]
+        },
+        "gust_max": {
+          "pr_auc": [
+            0.3234,
+            0.4926
+          ],
+          "roc_auc": [
+            0.459,
+            0.5545
+          ],
+          "pr_auc_minus_base": [
+            -0.0196,
+            0.089
+          ]
+        },
+        "small_zone": {
+          "pr_auc": [
+            0.3065,
+            0.424
+          ],
+          "roc_auc": [
+            0.4287,
+            0.513
+          ],
+          "pr_auc_minus_base": [
+            -0.0373,
+            0.0177
+          ]
+        }
+      },
+      "pr_auc_model_vs": {
+        "gust_max": {
+          "diff": 0.0458,
+          "ci95": [
+            0.0016,
+            0.0963
+          ],
+          "share_a_better": 0.981
+        },
+        "small_zone": {
+          "diff": 0.0918,
+          "ci95": [
+            0.0465,
+            0.1378
+          ],
+          "share_a_better": 1.0
+        },
+        "zone_rate_loo": {
+          "diff": -0.2363,
+          "ci95": [
+            -0.3066,
+            -0.1571
+          ],
+          "share_a_better": 0.0
+        }
+      },
+      "probabilistic": {
+        "brier_model": 0.3301,
+        "brier_constant_prevalence": 0.2353,
+        "brier_us_train_rate": 0.3155,
+        "log_loss_model": 1.1276,
+        "ece_10bins": 0.3134,
+        "mean_predicted": 0.066,
+        "observed_rate": 0.3788
+      },
+      "reliability": [
+        {
+          "bin": "(-0.001, 0.05]",
+          "n": 238,
+          "observed": 0.3487,
+          "predicted": 0.0376
+        },
+        {
+          "bin": "(0.05, 0.1]",
+          "n": 229,
+          "observed": 0.3624,
+          "predicted": 0.0688
+        },
+        {
+          "bin": "(0.1, 0.16]",
+          "n": 32,
+          "observed": 0.5625,
+          "predicted": 0.1186
+        },
+        {
+          "bin": "(0.16, 0.3]",
+          "n": 15,
+          "observed": 0.6,
+          "predicted": 0.2069
+        },
+        {
+          "bin": "(0.3, 0.5]",
+          "n": 4,
+          "observed": 0.75,
+          "predicted": 0.3945
+        },
+        {
+          "bin": "(0.5, 1.0]",
+          "n": 2,
+          "observed": 0.5,
+          "predicted": 0.5797
+        }
+      ],
+      "at_model_threshold": {
+        "threshold": 0.16,
+        "alerts": 21,
+        "tp": 13,
+        "fp": 8,
+        "fn": 184,
+        "tn": 315,
+        "precision": 0.619,
+        "recall": 0.066,
+        "f1": 0.1193,
+        "recall_severe": 0.0299,
+        "false_alarm_rate": 0.0248
+      },
+      "at_best_f1_threshold_in_sample": {
+        "threshold": 0.05,
+        "alerts": 282,
+        "tp": 114,
+        "fp": 168,
+        "fn": 83,
+        "tn": 155,
+        "precision": 0.4043,
+        "recall": 0.5787,
+        "f1": 0.476,
+        "recall_severe": 0.5672,
+        "false_alarm_rate": 0.5201
+      },
+      "gust_rule_70kmh": {
+        "threshold": 70.0,
+        "alerts": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 196,
+        "tn": 323,
+        "precision": 1.0,
+        "recall": 0.0051,
+        "f1": 0.0101,
+        "recall_severe": 0.0149,
+        "false_alarm_rate": 0.0
+      },
+      "capacity_k3": {
+        "p_model": {
+          "customers_covered_share": 0.0738,
+          "events_caught_share": 0.1371,
+          "alert_precision": 0.45
+        },
+        "gust_max": {
+          "customers_covered_share": 0.1095,
+          "events_caught_share": 0.1269,
+          "alert_precision": 0.4167
+        },
+        "small_zone": {
+          "customers_covered_share": 0.0139,
+          "events_caught_share": 0.0914,
+          "alert_precision": 0.3
+        },
+        "random": {
+          "customers_covered_share": 0.131,
+          "events_caught_share": 0.1218,
+          "alert_precision": 0.4
+        },
+        "oracol": {
+          "customers_covered_share": 0.6753,
+          "events_caught_share": 0.2944,
+          "alert_precision": 0.9667
+        }
+      },
+      "capacity_k5": {
+        "p_model": {
+          "customers_covered_share": 0.1132,
+          "events_caught_share": 0.2081,
+          "alert_precision": 0.41
+        },
+        "gust_max": {
+          "customers_covered_share": 0.1975,
+          "events_caught_share": 0.1878,
+          "alert_precision": 0.37
+        },
+        "small_zone": {
+          "customers_covered_share": 0.0487,
+          "events_caught_share": 0.1624,
+          "alert_precision": 0.32
+        },
+        "random": {
+          "customers_covered_share": 0.2006,
+          "events_caught_share": 0.203,
+          "alert_precision": 0.4
+        },
+        "oracol": {
+          "customers_covered_share": 0.8091,
+          "events_caught_share": 0.4873,
+          "alert_precision": 0.96
+        }
+      },
+      "quantiles_on_events": {
+        "n": 197,
+        "coverage_p10_p90": 0.5787,
+        "share_above_p90": 0.4213,
+        "share_below_p10": 0.0,
+        "pinball_log_q10": 0.0924,
+        "pinball_log_q50": 0.2999,
+        "pinball_log_q90": 0.1895,
+        "median_observed_pct": 3.898,
+        "median_p50_pct": 1.95,
+        "mae_p50_pct_points": 3.095
+      },
+      "rows_out_of_training_range": 20,
+      "out_of_range_features": {
+        "log_customers": 20,
+        "log_density": 20
+      }
+    }
+  },
+  "top_zone_days": [
+    {
+      "zone": "AR-INEU",
+      "date": "2026-10-27",
+      "pct_out": 29.43,
+      "out_max": 13814,
+      "p_model": 0.091,
+      "gust_kmh": 41.0,
+      "precip_mm": 3.7
+    },
+    {
+      "zone": "HD-BRAD",
+      "date": "2026-10-18",
+      "pct_out": 21.52,
+      "out_max": 13424,
+      "p_model": 0.037,
+      "gust_kmh": 29.5,
+      "precip_mm": 0.3
+    },
+    {
+      "zone": "CL-OLTENITA",
+      "date": "2026-10-24",
+      "pct_out": 17.88,
+      "out_max": 10133,
+      "p_model": 0.05,
+      "gust_kmh": 20.5,
+      "precip_mm": 0.0
+    },
+    {
+      "zone": "AR-ARAD",
+      "date": "2026-10-21",
+      "pct_out": 17.65,
+      "out_max": 22723,
+      "p_model": 0.037,
+      "gust_kmh": 37.1,
+      "precip_mm": 0.0
+    },
+    {
+      "zone": "HD-BRAD",
+      "date": "2026-10-28",
+      "pct_out": 13.95,
+      "out_max": 8700,
+      "p_model": 0.028,
+      "gust_kmh": 13.7,
+      "precip_mm": 0.0
+    },
+    {
+      "zone": "CL-CALARASI",
+      "date": "2026-10-21",
+      "pct_out": 11.57,
+      "out_max": 8438,
+      "p_model": 0.037,
+      "gust_kmh": 29.2,
+      "precip_mm": 0.0
+    },
+    {
+      "zone": "CL-OLTENITA",
+      "date": "2026-10-22",
+      "pct_out": 11.06,
+      "out_max": 6270,
+      "p_model": 0.038,
+      "gust_kmh": 31.3,
+      "precip_mm": 0.3
+    },
+    {
+      "zone": "HD-BRAD",
+      "date": "2026-10-29",
+      "pct_out": 11.06,
+      "out_max": 6900,
+      "p_model": 0.028,
+      "gust_kmh": 13.0,
+      "precip_mm": 0.1
+    },
+    {
+      "zone": "HD-BRAD",
+      "date": "2026-10-31",
+      "pct_out": 11.06,
+      "out_max": 6900,
+      "p_model": 0.056,
+      "gust_kmh": 23.8,
+      "precip_mm": 6.6
+    },
+    {
+      "zone": "HD-BRAD",
+      "date": "2026-10-30",
+      "pct_out": 11.06,
+      "out_max": 6900,
+      "p_model": 0.037,
+      "gust_kmh": 18.4,
+      "precip_mm": 0.8
+    },
+    {
+      "zone": "TL-MACIN",
+      "date": "2026-10-31",
+      "pct_out": 10.73,
+      "out_max": 2555,
+      "p_model": 0.056,
+      "gust_kmh": 32.8,
+      "precip_mm": 0.0
+    },
+    {
+      "zone": "CL-OLTENITA",
+      "date": "2026-10-26",
+      "pct_out": 10.7,
+      "out_max": 6064,
+      "p_model": 0.038,
+      "gust_kmh": 29.9,
+      "precip_mm": 0.1
+    },
+    {
+      "zone": "HD-BRAD",
+      "date": "2026-10-27",
+      "pct_out": 10.52,
+      "out_max": 6560,
+      "p_model": 0.056,
+      "gust_kmh": 18.0,
+      "precip_mm": 1.2
+    },
+    {
+      "zone": "CL-CALARASI",
+      "date": "2026-10-26",
+      "pct_out": 10.08,
+      "out_max": 7357,
+      "p_model": 0.04,
+      "gust_kmh": 27.0,
+      "precip_mm": 0.5
+    },
+    {
+      "zone": "CL-CALARASI",
+      "date": "2026-10-23",
+      "pct_out": 10.0,
+      "out_max": 7295,
+      "p_model": 0.1,
+      "gust_kmh": 39.2,
+      "precip_mm": 8.9
+    }
+  ],
+  "max_gust_kmh_in_window": 71.3,
+  "max_p_model_in_window": 0.58,
+  "historical_forecast": {
+    "rows": 520,
+    "days": 20,
+    "zones": 26,
+    "events": 303,
+    "severe_events": 67,
+    "prevalence": 0.5827,
+    "ranking": {
+      "p_model": {
+        "pr_auc": 0.637,
+        "roc_auc": 0.5505
+      },
+      "gust_max": {
+        "pr_auc": 0.6224,
+        "roc_auc": 0.5417
+      },
+      "zone_rate_loo": {
+        "pr_auc": 0.8176,
+        "roc_auc": 0.8055
+      },
+      "small_zone": {
+        "pr_auc": 0.5758,
+        "roc_auc": 0.457
+      },
+      "random": {
+        "pr_auc": 0.5862,
+        "roc_auc": 0.5092
+      }
+    },
+    "ranking_ci95": {
+      "p_model": {
+        "pr_auc": [
+          0.5764,
+          0.6939
+        ],
+        "roc_auc": [
+          0.5081,
+          0.5967
+        ],
+        "pr_auc_minus_base": [
+          0.0136,
+          0.1015
+        ]
+      },
+      "gust_max": {
+        "pr_auc": [
+          0.5491,
+          0.6947
+        ],
+        "roc_auc": [
+          0.4927,
+          0.5909
+        ],
+        "pr_auc_minus_base": [
+          -0.0098,
+          0.0925
+        ]
+      },
+      "small_zone": {
+        "pr_auc": [
+          0.5133,
+          0.6367
+        ],
+        "roc_auc": [
+          0.4298,
+          0.4848
+        ],
+        "pr_auc_minus_base": [
+          -0.03,
+          0.0233
+        ]
+      }
+    },
+    "pr_auc_model_vs": {
+      "gust_max": {
+        "diff": 0.0137,
+        "ci95": [
+          -0.0185,
+          0.0519
+        ],
+        "share_a_better": 0.782
+      },
+      "small_zone": {
+        "diff": 0.0594,
+        "ci95": [
+          0.0066,
+          0.1161
+        ],
+        "share_a_better": 0.988
+      },
+      "zone_rate_loo": {
+        "diff": -0.1837,
+        "ci95": [
+          -0.2401,
+          -0.1218
+        ],
+        "share_a_better": 0.0
+      }
+    },
+    "probabilistic": {
+      "brier_model": 0.5158,
+      "brier_constant_prevalence": 0.2432,
+      "brier_us_train_rate": 0.4803,
+      "log_loss_model": 1.7786,
+      "ece_10bins": 0.5256,
+      "mean_predicted": 0.0585,
+      "observed_rate": 0.5827
+    },
+    "reliability": [
+      {
+        "bin": "(-0.001, 0.05]",
+        "n": 285,
+        "observed": 0.5579,
+        "predicted": 0.0367
+      },
+      {
+        "bin": "(0.05, 0.1]",
+        "n": 197,
+        "observed": 0.6091,
+        "predicted": 0.0694
+      },
+      {
+        "bin": "(0.1, 0.16]",
+        "n": 25,
+        "observed": 0.56,
+        "predicted": 0.1222
+      },
+      {
+        "bin": "(0.16, 0.3]",
+        "n": 11,
+        "observed": 0.8182,
+        "predicted": 0.2134
+      },
+      {
+        "bin": "(0.3, 0.5]",
+        "n": 2,
+        "observed": 0.5,
+        "predicted": 0.4294
+      }
+    ],
+    "at_model_threshold": {
+      "threshold": 0.16,
+      "alerts": 13,
+      "tp": 10,
+      "fp": 3,
+      "fn": 293,
+      "tn": 214,
+      "precision": 0.7692,
+      "recall": 0.033,
+      "f1": 0.0633,
+      "recall_severe": 0.0299,
+      "false_alarm_rate": 0.0138
+    },
+    "at_best_f1_threshold_in_sample": {
+      "threshold": 0.05,
+      "alerts": 235,
+      "tp": 144,
+      "fp": 91,
+      "fn": 159,
+      "tn": 126,
+      "precision": 0.6128,
+      "recall": 0.4752,
+      "f1": 0.5353,
+      "recall_severe": 0.4925,
+      "false_alarm_rate": 0.4194
+    },
+    "gust_rule_70kmh": {
+      "threshold": 70.0,
+      "alerts": 0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 303,
+      "tn": 217,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "recall_severe": 0.0,
+      "false_alarm_rate": 0.0
+    },
+    "capacity_k3": {
+      "p_model": {
+        "customers_covered_share": 0.0605,
+        "events_caught_share": 0.1122,
+        "alert_precision": 0.5667
+      },
+      "gust_max": {
+        "customers_covered_share": 0.093,
+        "events_caught_share": 0.1089,
+        "alert_precision": 0.55
+      },
+      "small_zone": {
+        "customers_covered_share": 0.0159,
+        "events_caught_share": 0.1056,
+        "alert_precision": 0.5333
+      },
+      "random": {
+        "customers_covered_share": 0.1209,
+        "events_caught_share": 0.1155,
+        "alert_precision": 0.5833
+      },
+      "oracol": {
+        "customers_covered_share": 0.6218,
+        "events_caught_share": 0.198,
+        "alert_precision": 1.0
+      }
+    },
+    "capacity_k5": {
+      "p_model": {
+        "customers_covered_share": 0.1124,
+        "events_caught_share": 0.2046,
+        "alert_precision": 0.62
+      },
+      "gust_max": {
+        "customers_covered_share": 0.1615,
+        "events_caught_share": 0.1914,
+        "alert_precision": 0.58
+      },
+      "small_zone": {
+        "customers_covered_share": 0.052,
+        "events_caught_share": 0.1914,
+        "alert_precision": 0.58
+      },
+      "random": {
+        "customers_covered_share": 0.2089,
+        "events_caught_share": 0.1881,
+        "alert_precision": 0.57
+      },
+      "oracol": {
+        "customers_covered_share": 0.7466,
+        "events_caught_share": 0.33,
+        "alert_precision": 1.0
+      }
+    },
+    "quantiles_on_events": {
+      "n": 303,
+      "coverage_p10_p90": 0.6799,
+      "share_above_p90": 0.3003,
+      "share_below_p10": 0.0198,
+      "pinball_log_q10": 0.0673,
+      "pinball_log_q50": 0.2264,
+      "pinball_log_q90": 0.151,
+      "median_observed_pct": 2.376,
+      "median_p50_pct": 1.976,
+      "mae_p50_pct_points": 2.188
+    },
+    "rows_out_of_training_range": 20,
+    "out_of_range_features": {
+      "log_customers": 20,
+      "log_density": 20
+    }
+  },
+  "cases": [
+    {
+      "date": "2026-01-05",
+      "county": "HD",
+      "note": "RER: circa 5.500 clienți afectați la ora 15:00 în Hunedoara (≈2,5% din județ)",
+      "zones": {
+        "HD-DEVA": 0.113,
+        "HD-PETROSANI": 0.091,
+        "HD-BRAD": 0.056
+      },
+      "gust_kmh": {
+        "HD-DEVA": 34.9,
+        "HD-PETROSANI": 37.4,
+        "HD-BRAD": 24.8
+      },
+      "above_threshold": false
+    },
+    {
+      "date": "2025-07-08",
+      "county": "TM",
+      "note": "Furtuna din Banat: cod roșu, circa 40.000 consumatori afectați cumulat în Timiș",
+      "zones": {
+        "TM-TIMISOARA": 0.432,
+        "TM-LUGOJ": 0.364,
+        "TM-SANNICOLAU-MARE": 0.357
+      },
+      "gust_kmh": {
+        "TM-TIMISOARA": 50.0,
+        "TM-LUGOJ": 40.0,
+        "TM-SANNICOLAU-MARE": 43.9
+      },
+      "above_threshold": true
+    },
+    {
+      "date": "2025-07-08",
+      "county": "CS",
+      "note": "Furtuna din Banat: rafale 90-120 km/h, stâlpi avariați Reșița-Timișoara",
+      "zones": {
+        "CS-RESITA": 0.364,
+        "CS-CARANSEBES": 0.364,
+        "CS-ORAVITA": 0.495
+      },
+      "gust_kmh": {
+        "CS-RESITA": 58.0,
+        "CS-CARANSEBES": 64.4,
+        "CS-ORAVITA": 70.2
+      },
+      "above_threshold": true
+    },
+    {
+      "date": "2025-07-07",
+      "county": "CS",
+      "note": "Furtună la Reșița și Caransebeș, rafale peste 80 km/h",
+      "zones": {
+        "CS-RESITA": 0.241,
+        "CS-CARANSEBES": 0.196,
+        "CS-ORAVITA": 0.295
+      },
+      "gust_kmh": {
+        "CS-RESITA": 74.5,
+        "CS-CARANSEBES": 68.0,
+        "CS-ORAVITA": 70.9
+      },
+      "above_threshold": true
+    }
+  ]
+}

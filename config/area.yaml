@@ -1,0 +1,40 @@
+# Zona demo. Proprietar: firul Teo-planificator (orchestratorul a pus valorile de start).
+# Toate activele din demo sunt SINTETICE, plasate pe hartă reală. Bazele operative sunt simulate.
+operator: "Rețele Electrice România (PPC), zona de distribuție Muntenia Sud, Dobrogea, Banat"
+timezone: "Europe/Bucharest"
+regions:
+  muntenia_sud:
+    label_ro: "Muntenia Sud"
+    counties: ["București", "Ilfov", "Giurgiu"]
+  dobrogea:
+    label_ro: "Dobrogea"
+    counties: ["Constanța", "Tulcea", "Călărași", "Ialomița"]
+  banat:
+    label_ro: "Banat"
+    counties: ["Timiș", "Arad", "Caraș-Severin", "Hunedoara"]
+# A (contoare) și C (posturi de transformare) stau în București-Ilfov. B (furtună) lucrează pe județe în toate cele 3 regiuni.
+demo_bbox_bucuresti_ilfov: {lat_min: 44.25, lat_max: 44.65, lon_min: 25.85, lon_max: 26.40}
+zone_id_format: "<COD_JUDEȚ>-<zonă>, de exemplu B-S6 (București sector 6), IF-CHIAJNA, CT-MEDGIDIA"
+depots:
+  - {depot_id: "D-BUC-V", label_ro: "Bază operativă București Vest (simulată)", lat: 44.4355, lon: 26.0160, region: muntenia_sud}
+  - {depot_id: "D-BUC-E", label_ro: "Bază operativă București Est (simulată)", lat: 44.4310, lon: 26.1650, region: muntenia_sud}
+  - {depot_id: "D-CTA", label_ro: "Bază operativă Constanța (simulată)", lat: 44.1733, lon: 28.6383, region: dobrogea}
+  - {depot_id: "D-TM", label_ro: "Bază operativă Timișoara (simulată)", lat: 45.7537, lon: 21.2257, region: banat}
+  - {depot_id: "D-ARD", label_ro: "Bază operativă Arad (simulată)", lat: 46.1866, lon: 21.3123, region: banat}
+  - {depot_id: "D-RES", label_ro: "Bază operativă Reșița (simulată)", lat: 45.3008, lon: 21.8892, region: banat}
+  - {depot_id: "D-DEV", label_ro: "Bază operativă Deva (simulată)", lat: 45.8781, lon: 22.9116, region: banat}
+# Clienții Rețele Electrice pe județ, la 31.12.2024 (total 3.180.331). SURSĂ: Planul de dezvoltare RER 2026-2035,
+# tabelele 2.1-2.3: https://www.reteleelectrice.ro/wp-content/uploads/plan-dezvoltare-re-consultare.pdf
+# (preluat de firul B; Giurgiu are mai mulți clienți decât locuitori, anomalie semnalată de B și folosită ca atare).
+customers_by_county:
+  București: 1061381
+  Ilfov: 126526
+  Giurgiu: 318642
+  Constanța: 351735
+  Tulcea: 103832
+  Călărași: 129626
+  Ialomița: 120907
+  Timiș: 371306
+  Arad: 223282
+  Caraș-Severin: 149668
+  Hunedoara: 223426

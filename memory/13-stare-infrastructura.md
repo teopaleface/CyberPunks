@@ -1,0 +1,20 @@
+# Verificarea infrastructurii din 7 noiembrie 2026
+
+- Copia verificată este `origin/Teo` la `48855cf` (15:14 București). La 15:25, `origin/main` era la `bf0b1d9`, cu 180 de commit-uri mai în urmă. Repo-ul GitHub avea vizibilitate privată și ramura implicită `main`. A, C și planificatorul aveau actualizări ulterioare pe ramurile lor. Prezentarea se afla separat pe `Teo-prezentare` (varianta 3, cadre cheie, 36 s, și schița slide-urilor).
+- În `outputs/demo/` se află planul salvat pentru 8 iulie 2025, generat la 14:49 din ieșirile celor patru module: 556 de lucrări valide, 40 repartizate la 9 echipe, 25 trimise la om, 370 de acțiuni la distanță și aproximativ 431 km. Echipele și situațiile de pe teren sunt simulate.
+- În copia curată, buildul și lint-ul Next.js au trecut, la fel cele 25 de teste web. Smoke test pe planul salvat: 14 rute și un ordin PDF au răspuns cu HTTP 200. FastAPI a răspuns cu HTTP 200 la health, plan, posturi, metrici și remedii.
+- Pe macOS Apple Silicon, `uv sync --locked` și Ruff au trecut. `make check` s-a oprit la importul LightGBM din cauza lipsei bibliotecii de sistem `libomp`, care nu apare în pașii de instalare. Cu biblioteca extrasă într-un director temporar și încărcată prin `DYLD_LIBRARY_PATH`, au trecut toate cele 256 de teste Python. Exemplele de contract au fost validate: 7 valide, 0 invalide.
+- Prima rulare completă a scenariului `demo-vara` în copia curată s-a încheiat la 15:25, în circa 3 min 53 s, inclusiv simularea și antrenarea bilanțului. Toate modulele au fost `ok`: A 524, bilanț 78, B 26, C 41. Total 669 de lucrări valide, 38 repartizate la 9 echipe, 25 trimise la om, 452 de acțiuni la distanță, zero în carantină. OR-Tools a terminat cu `SUCCESS`. Planul salvat din git este o rulare anterioară, cu cifre diferite.
+- La publicare trebuie verificat conținutul din `memory/` și din istoric. Fișierul `08-ppc-workshop-ai.md` menționează slide-uri marcate intern. Separat, ramura de prezentare are fișiere de lucru 3D șterse din arbore, dar prezente în istoricul ramurii.
+
+## Estimare pe baremul PPC
+
+La 15:32, pentru `48855cf`: **88/100** estimat, cu 23/25 relevanță, 22/25 calitate ML, 23/25 agent, 9/10 robustețe, 9/10 explicabilitate și 2/5 demo și repo. Punctajul este o evaluare internă a prototipului. Repo-ul public este o cerință de predare. Cu 5/5 la demo și repo, același punctaj tehnic ar da 91/100.
+
+- A: 81% precizie în primul 1% pe SGCC, față de 16% pentru cea mai bună referință. B: PR-AUC 0,278 față de 0,182 pentru regula pe rafală, pe SUA și pe vreme reconstituită. C: eroare medie a tensiunii maxime 0,0054 pu față de 0,0227 pu pe rețele simulate. Bilanțul îmbunătățește estimarea pierderilor, dar fuziunea cu A lasă precizia în primele 100 de contoare la 100% și o reduce de la 93,0% la 90,6% în primele 500 în testul demo.
+- Agentul arată +49% valoare netă față de cea mai bună strategie simplă pe 30 de zile sintetice. Pe testul separat al zilei demo, doar cu A și cu defecte injectate, regula de siguranță a dus la 29 din 50 cazuri de siguranță vizitate, față de 2 din 50 pentru ordinea de intrare, cu valoare netă mai mică.
+- Fișa modelului B conține o explicație rămasă în urmă: în secțiunea de limite afirmă că modelul folosește canicula, în timp ce tabelul de experimente și codul arată că temperatura și radiația au fost scoase din modelul livrat. Testul B prinde 54% din evenimentele extreme la pragul ales.
+
+## Capturile consolei
+
+La 15:42 am capturat planul, decizia pentru PT-1269, coada dispecerului și pagina Modele din `48855cf`, cu `DATA_SOURCE=demo`. Pagina Modele citește rapoartele din instantaneu în acest mod. Pentru B arată 19 comitate și PR-AUC 0,24, în timp ce raportul integrat din `reports/B/metrics.json` are 80 de comitate și 0,278. Sincronizarea instantaneului și a rapoartelor trebuie verificată înaintea demo-ului.

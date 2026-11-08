@@ -13,6 +13,16 @@ Tot ce știm despre hackathon, PPC și proiect. Se citește la începutul fiecă
 | `07-tema-ppc.md` | **Tema PPC** (slideuri plus PDF-ul oficial): cerințe obligatorii, ce înseamnă proiect complet, grila de 100 de puncte, termene, checklist |
 | `08-ppc-workshop-ai.md` | Workshopul PPC: cifre, platforma de date a contoarelor, cele 9 proiecte AI ale lor, guvernanță și EU AI Act |
 | `09-rsystems-workshop.md` | Workshopul R Systems: codul decide, modelul formulează; verificări în cod |
+| `10-implementare.md` | **Implementarea**: A, B, C în paralel, cele 6 fire, orchestratorul, alegerile tehnice |
+| `11-bilant-pe-post.md` | **Bilanț pe post** (fir nou) și **scara de soluții pentru tensiune** (C), decizia lui Teo de la 13:45 |
+| `12-probleme-reale-ppc-2026.md` | Research primit de Teo (14:30), neverificat: probleme reale 2026 pe cele 4 companii, cifre pentru B, C, bilanț, A, prezentare |
+| `13-stare-infrastructura.md` | Verificarea unei copii curate a ramurii integrate, demo și ce mai rămâne pentru predare |
+| `14-date-furtuni-eden.md` | Datele românești descărcate local pentru testarea modelului de furtuni |
+| `15-date-experimente-eden.md` | Datele A, B și C de pe Eden: ce este în Git, reproducere, rezultate și limite |
+| `17-date-noi-si-optuna-eden.md` | Experimentele lui Eden din noaptea de 7-8 nov.: date noi, variabile meteo noi, Optuna pentru A, B, C |
+| `18-bilant-feederbw-optuna-eden.md` | Bilanț: profile reale FeederBW, limitele etichetelor sintetice și Optuna pentru LightGBM |
+| `13-design-console.md` | Audit UI/UX cerut de Teo: consola aliniată cu landingul, lizibilitate, navigare și limitele verificării |
+| `14-agent-conversational.md` | Planul cu 80 de cazuri și implementarea locală: trei conturi, modele locale, Codex, voce reală și WhatsApp text verificat; nota vocală Meta încă neverificată |
 | `10-raspunsuri-mentor.md` | Răspunsurile mentorului PPC: contoare la 5 minute, echipele așteaptă sfârșitul săptămânii dacă nu e urgent |
 | `13-regresie-logistica-vs-lightgbm.md` | Regresia logistică în loc de LightGBM nu ajută: cifre, metrica de decizie, ce spunem la prezentare |
 | `journal.md` | Ce s-a întâmplat și ce s-a decis, cu ora |

@@ -1,0 +1,8 @@
+{
+  "posts": 287,
+  "capture_top20pct_model": 0.3034430415805989,
+  "capture_top20pct_random": 0.19808518881987502,
+  "capture_top20pct_biggest": 0.22591605687621372,
+  "lei_year_per_meter_model_top20pct": 2997.3716635816904,
+  "lei_year_per_meter_random": 1961.807422352358
+}
