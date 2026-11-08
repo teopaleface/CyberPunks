@@ -16,6 +16,18 @@ from cyberpunks.common.processes import session_options, stop_tree
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def stop_runtime(child: subprocess.Popen) -> None:
+    if child.poll() is not None:
+        return
+    # The launcher owns separate service sessions; let its handler stop them first.
+    stop_tree(child.pid)
+    try:
+        child.wait(timeout=20)
+    except subprocess.TimeoutExpired:
+        stop_tree(child.pid, force=True)
+        child.wait(timeout=20)
+
+
 def main() -> None:
     # Never run against an active developer runtime or inherited external-service configuration.
     if os.environ.get("GITHUB_ACTIONS") != "true":
@@ -59,9 +71,7 @@ def main() -> None:
             print(log.read().decode("utf-8", errors="replace")[-12000:], file=sys.stderr)
             raise
         finally:
-            if child.poll() is None:
-                stop_tree(child.pid, force=True)
-                child.wait(timeout=20)
+            stop_runtime(child)
 
 
 if __name__ == "__main__":

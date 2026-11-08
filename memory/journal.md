@@ -199,3 +199,9 @@ Scor neoficial pentru `origin/main` la `68d62bf`: **20/25**, cu cinci puncte pos
 ### 2026-11-08 09:43 București — Eden pe main
 
 La cererea lui Eden, am verificat întâi că Teo a pus tot pe `main`: `origin/Teo` (ultimul commit 09:22) este inclus integral în `origin/main` la `68d62bf`. Apoi am îmbinat toată ramura `Eden` în `main` (commit `087bfa9`): benchmarkul CatBoost/XGBoost față de LightGBM, trasarea LangSmith (oprită implicit, fără cheie) și evaluarea ML. Conflictele au fost mici, doar în text și ordine: jurnal, memoria 15, RUNBOOK cu ambele părți păstrate; în `scripts/daybreak_runtime.py` un singur apel `bun run worker`. Verificări pe copia îmbinată: ruff curat; testele de pornire, platforme, mărimea repo-ului și benchmark trec; suita completă nu are eșecuri, iar 184 de teste nu pornesc în copia temporară pentru că lipsește rularea locală a modelelor (`outputs/plans/demo-vara`). Fără deploy și fără repornirea serviciilor.
+
+### 8 noiembrie 2026, 10:05 (București) — repararea verificărilor CI
+
+- La cererea utilizatorului, corecția se pregătește separat de fișierele locale modificate, pe `Teo-ci-fix`, pornind din `origin/main`.
+- Testul permisiunilor 0600 se aplică doar pe sisteme POSIX; Windows nu expune aceleași permisiuni prin stat.
+- Smoke check-ul trimite întâi oprire normală launcherului, care închide sesiunile separate ale serviciilor; oprirea forțată rămâne doar după timeout. Un test de regresie verifică închiderea serviciului separat.

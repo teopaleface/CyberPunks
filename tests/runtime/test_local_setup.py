@@ -1,5 +1,6 @@
 """Fresh-laptop setup uses complete model outputs and keeps private credentials local."""
 import importlib.util
+import os
 from pathlib import Path
 
 import pytest
@@ -28,7 +29,8 @@ def test_clean_clone_copies_each_output_directory_and_reuses_runtime(setup_modul
     data = Path(initial["DAYBREAK_OPERATIONS_OUTPUTS"])
     for name in ("work_items", "series", "plans"):
         assert (data / name / "synthetic-test-input.json").read_text() == '{"synthetic": true}'
-    assert m.ENV_FILE.stat().st_mode & 0o777 == 0o600
+    if os.name != "nt":
+        assert m.ENV_FILE.stat().st_mode & 0o777 == 0o600
     m.prepare()
     assert m.read_private_env() == initial
 
