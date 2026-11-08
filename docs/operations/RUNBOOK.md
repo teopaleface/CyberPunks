@@ -89,3 +89,34 @@ Răspunsul conversațional local măsurat după actualizare este circa 12 secund
 ### Token Meta reînnoit și verificat
 
 Pe 8 noiembrie, tokenul temporar expirat a fost regenerat în aplicația Meta existentă și schimbat prin API cu unul cu durată lungă. Expirare confirmată prin Debug Token: 6 ianuarie 2027, 23:15:30 București. Tokenul privat recitit are dreptul de mesagerie, API-ul confirmă numărul existent, subscrierea este activă și challenge-ul public trece. Nu este necesar restartul serviciului; testul WhatsApp al lui Teo poate începe. Nu s-au trimis mesaje de test în această verificare.
+
+## Apeluri WhatsApp primite
+
+Apelurile către același număr Meta de test sunt conectate direct prin SIP la un agent ElevenLabs separat pentru apeluri. Mesajele și notele vocale rămân în integrarea Meta existentă. Nu este un import WhatsApp nativ ElevenLabs: acel import nu acceptă WABA creat sub aplicația de dezvoltator.
+
+Numărul are calling=ENABLED, call_icon_visibility=DEFAULT, SIP către sip.rtc.elevenlabs.io:5061, semnalizare TLS, autentificare digest cu parola generată de Meta și audio SRTP cu SDES. Codecurile PCMA/PCMU sunt activate pentru compatibilitatea cu ElevenLabs. Agentul folosește v4 Turbo, filtrarea fundalului și limita de 10 minute. Jurnalele SIP și înregistrarea audio sunt dezactivate. Apelurile sunt limitate la numărul deja verificat al lui Teo și la rolul său de tehnician; nu există rută pentru apeluri inițiate de agent.
+
+Agentul apelează un serviciu restrâns pe 127.0.0.1:8722, expus prin propriul tunel HTTPS temporar. Serviciul cere o acreditare separată, verifică apelantul cu asocierea WhatsApp existentă și folosește ConversationService pe datele complete izolate și modelele locale. Apelantul și identificatorul conversației sunt injectate de ElevenLabs din variabilele de sistem, nu alese de LLM. Istoricul este păstrat numai în memoria procesului și limitat la 12 mesaje și 11 minute. Confirmarea operațiilor rămâne exclusiv în aplicație.
+
+Pornire și verificare fără apeluri automate:
+
+```sh
+.venv/bin/python scripts/daybreak_whatsapp_calls.py prepare
+.venv/bin/python -m uvicorn cyberpunks.channels.whatsapp_calls:create_app --factory --host 127.0.0.1 --port 8722 --no-access-log
+# Alt terminal, numai serviciul restrâns:
+cloudflared tunnel --url http://127.0.0.1:8722 --no-autoupdate
+# După obținerea originii HTTPS a acestui tunel:
+.venv/bin/python scripts/daybreak_whatsapp_calls.py configure --public-origin https://GAZDA.trycloudflare.com
+.venv/bin/python scripts/daybreak_whatsapp_calls.py verify
+.venv/bin/python scripts/daybreak_whatsapp_calls.py show-call-button
+```
+
+Secretele SIP, acreditarea serviciului, originea temporară și identificatorii resurselor sunt numai în outputs/runtime/whatsapp-calling.json, cu permisiuni 0600 și ignorat de Git. Nu afișați sau copiați conținutul. Scriptul păstrează separat resursele noi, refuză numere existente străine și nu repetă creări cu rezultat necunoscut. Nu oprește și nu repornește runtime-ul consolei sau workerul de mesaje.
+
+Verificare din 8 noiembrie: setările Meta și ElevenLabs recitite, certificat TLS SIP verificat, cerere neautentificată respinsă cu 401, cerere autorizată prin tunel cu răspuns Codex real în 11,23 secunde. Cele 184 teste Python pentru canale, runtime și operațiuni trec. Apelul complet de pe telefon și zgomotul din sală rămân probe separate. Teo a primit solicitarea de a suna o singură dată. Calculatorul și tunelul serviciului trebuie să rămână pornite pentru răspunsurile cu date Daybreak.
+
+Surse: [Meta SIP](https://developers.facebook.com/documentation/business-messaging/whatsapp/calling/sip/), [Meta call settings](https://developers.facebook.com/documentation/business-messaging/whatsapp/calling/call-settings/), [ElevenLabs SIP](https://elevenlabs.io/docs/eleven-agents/phone-numbers/sip-trunking), [variabile de sistem](https://elevenlabs.io/docs/eleven-agents/customization/personalization/dynamic-variables).
+
+### Restart numai de frontend
+
+`daybreak_runtime.py start` supraveghează API-ul și frontendul împreună și le oprește pe ambele dacă unul se închide. Grupurile de procese diferite nu le fac independente. Pentru QA cu restart numai de frontend, porniți API-ul și frontendul ca procese independente, cu mediul întors de `daybreak_runtime.environment()`, fără rescrierea fișierelor private. Înainte de orice pornire verificați listenerul portului, ca să nu dublați API-ul. Pe 8 noiembrie s-a verificat recuperarea separată a API-ului 8720 după acest comportament; workerul Meta și serviciul de apeluri 8722 au rămas active.
