@@ -9,6 +9,8 @@ def prepare_operation(operations, actor, request, context):
     if request.goal != "prepare_operation" or request.action is None:
         raise ValueError("An operational action is required")
     data = dict(request.data)
+    if data.get("plan_version", version) != version:
+        raise ValueError("Requested plan version changed; obtain a fresh analysis")
     data["plan_version"] = version
     case_id = request.case_id or data.get("case_id")
     if request.case_id and data.get("case_id", request.case_id) != request.case_id:

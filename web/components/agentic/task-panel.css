@@ -34,4 +34,5 @@
   cursor: pointer;
 }
 .db-agent-task button:focus-visible { outline: 2px solid var(--ink, #eee); outline-offset: 3px; }
+.db-agent-task button:disabled { opacity: .5; cursor: not-allowed; }
 .db-agent-task li { margin-top: 12px; }

@@ -42,6 +42,7 @@ def test_restricted_proxy(monkeypatch):
         ("GET", "/api/conversation/tasks/task_1"),
         ("POST", "/api/conversation/tasks"),
         ("POST", "/api/conversation/tasks/task_1/resume"),
+        ("POST", "/api/conversation/tasks/task_1/recommendations/A-20250708-PT-1182/prepare"),
     ]:
         assert client.request(method, path, headers={**headers, "cookie": "secret"}).status_code == 200
         assert calls[-1].url.host == "127.0.0.1"

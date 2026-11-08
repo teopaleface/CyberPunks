@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class TaskRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    goal: Literal["analyze_queue", "route_brief", "case_brief", "prepare_operation"]
+    goal: Literal["analyze_queue", "recommend_queue", "route_brief", "case_brief", "prepare_operation"]
     scenario: str = Field(default="demo-vara", pattern=r"^[a-z0-9][a-z0-9_-]{0,63}$")
     language: Literal["ro", "en"] = "ro"
     work_item_id: str | None = Field(default=None, max_length=120)
@@ -19,6 +19,7 @@ class TaskRequest(BaseModel):
         | None
     ) = None
     data: dict[str, Any] = Field(default_factory=dict)
+    preference: str | None = Field(default=None, max_length=4000)
     request_key: str | None = Field(default=None, max_length=120)
 
 

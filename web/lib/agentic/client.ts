@@ -5,7 +5,7 @@ export interface TaskView {
   result: Record<string, unknown>; proposal: Record<string, unknown> | null; error: string | null;
 }
 export interface TaskRequest {
-  goal: 'analyze_queue' | 'route_brief' | 'case_brief' | 'prepare_operation';
+  goal: 'analyze_queue' | 'recommend_queue' | 'route_brief' | 'case_brief' | 'prepare_operation';
   scenario: string; language?: 'ro' | 'en'; work_item_id?: string; case_id?: string;
   action?: 'create_case' | 'record_verdict' | 'review_work_item' | 'approve_plan' | 'set_availability' | 'request_human';
   data?: Record<string, unknown>; request_key?: string;
@@ -21,3 +21,4 @@ async function request(path: string, signal: AbortSignal, body?: unknown): Promi
 export const createTask = (body: TaskRequest, signal: AbortSignal) => request('', signal, body);
 export const getTask = (id: string, scenario: string, signal: AbortSignal) => request(`/${encodeURIComponent(id)}?scenario=${encodeURIComponent(scenario)}`, signal);
 export const resumeTask = (id: string, scenario: string, signal: AbortSignal) => request(`/${encodeURIComponent(id)}/resume?scenario=${encodeURIComponent(scenario)}`, signal, {});
+export const prepareRecommendation = (id: string, workItemId: string, scenario: string, signal: AbortSignal) => request(`/${encodeURIComponent(id)}/recommendations/${encodeURIComponent(workItemId)}/prepare?scenario=${encodeURIComponent(scenario)}`, signal, {});

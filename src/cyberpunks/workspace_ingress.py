@@ -52,6 +52,7 @@ def allowed(path: str, method: str) -> bool:
             rf"/operations/commands/{ID}/recover",
             r"/conversation/(chat|voice-session|tasks)",
             rf"/conversation/tasks/{ID}/resume",
+            rf"/conversation/tasks/{ID}/recommendations/{ID}/prepare",
         ],
     }
     return any(re.fullmatch(p, path) for p in patterns.get(method, []))

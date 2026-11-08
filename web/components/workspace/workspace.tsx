@@ -8,7 +8,7 @@ import { proposalSignInPath } from "@/lib/operations/proposal-link";
 import { conversationHistory } from "@/lib/operations/history";
 import { activeConversation, conversationScope, emptyConversations, newConversation, readConversations, rememberReadOnlyTurn, saveConversations, selectConversation, type ConversationStore } from "@/lib/operations/conversation-store";
 import { TaskPanel } from "@/components/agentic/task-panel";
-import { getTask, resumeTask, type TaskView } from "@/lib/agentic/client";
+import { getTask, prepareRecommendation, resumeTask, type TaskView } from "@/lib/agentic/client";
 import { MainConversation } from "./main-conversation";
 import {
   label,
@@ -112,6 +112,7 @@ function WorkspaceContent({
   );
   const [expired, setExpired] = useState(false);
   const [task, setTask] = useState<TaskView | null>(null);
+  const activeTurnSequence = useRef(0);
   const taskOutdated = Boolean(task && context && (
     text(context.plan.version ?? context.plan.plan_version) !== task.plan_version ||
     (Array.isArray(task.result.cases) && task.result.cases.some((value) => {
@@ -133,6 +134,7 @@ function WorkspaceContent({
   const [busy, setBusy] = useState(Boolean(linkedProposalId));
   const inFlight = useRef(Boolean(linkedProposalId));
   const [proposal, setProposal] = useState<Proposal | null>(null);
+  const [recommendationProposalId, setRecommendationProposalId] = useState<string | null>(null);
   const [command, setCommand] = useState<Command | null>(null);
   const [form, setForm] = useState<{ action: Action; data: Row } | null>(null);
   const [mode, setMode] = useState<"text" | "voice">("text");
@@ -140,6 +142,16 @@ function WorkspaceContent({
   const [notice, setNotice] = useState("");
   const messageList = useRef<HTMLDivElement>(null);
   const proposalCard = useRef<HTMLElement>(null);
+  const clearActiveTurn = useCallback(() => {
+    activeTurnSequence.current++;
+    setTask(null);
+    setProposal(null);
+    setRecommendationProposalId(null);
+    setForm(null);
+    setCommand(null);
+    setNotice("");
+    try { window.sessionStorage.removeItem(`agentic-task:${conversationKey}`); } catch { /* Optional storage. */ }
+  }, [conversationKey]);
   useEffect(() => {
     alive.current = true;
     return () => { alive.current = false; };
@@ -218,11 +230,12 @@ function WorkspaceContent({
   }, [proposal?.proposal_id]);
   useEffect(() => {
     const controller = new AbortController();
+    const sequence = activeTurnSequence.current;
     let taskId: string | null = null;
     try { taskId = window.sessionStorage.getItem(`agentic-task:${conversationKey}`); } catch { /* Optional storage. */ }
     if (taskId) {
       getTask(taskId, scenario, controller.signal).then((saved) => {
-        if (!controller.signal.aborted && sessionCurrent.current) setTask(saved);
+        if (!controller.signal.aborted && sessionCurrent.current && sequence === activeTurnSequence.current) setTask(saved);
       }).catch(() => { /* A stale or revoked task is never restored as current evidence. */ });
     }
     return () => controller.abort();
@@ -442,6 +455,7 @@ function WorkspaceContent({
     inFlight.current = true;
     setBusy(true);
     setError("");
+    clearActiveTurn();
     const previous = conversationHistory(history.current);
     append([{ role: "user", content: input }]);
     try {
@@ -488,6 +502,39 @@ function WorkspaceContent({
       if (alive.current && sessionCurrent.current) setTask(result);
     } catch (issue) { onError(issue); }
     finally { clearTimeout(timer); inFlight.current = false; setBusy(false); }
+  }
+  async function reviewRecommendation(taskId: string, workItemId: string) {
+    if (expired || inFlight.current || unavailable || !task || task.task_id !== taskId || taskOutdated || task.result.snapshot_outdated || task.goal !== "recommend_queue" || task.status !== "completed" || task.result.decision_source !== "llm") return;
+    const row = Array.isArray(task.result.items) ? task.result.items.find((value) => value && typeof value === "object" && (value as Row).work_item_id === workItemId) as Row | undefined : undefined;
+    if (!row || !["approve", "reject", "defer"].includes(text(row.suggested_decision))) return;
+    inFlight.current = true;
+    setBusy(true);
+    setError("");
+    setProposal(null);
+    setRecommendationProposalId(null);
+    setForm(null);
+    setCommand(null);
+    setNotice("");
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30000);
+    try {
+      // Only the server selects the saved decision and checks its snapshot.
+      const child = await prepareRecommendation(taskId, workItemId, scenario, controller.signal);
+      if (!alive.current || !sessionCurrent.current) return;
+      if (child.status !== "awaiting_confirmation" || !child.proposal)
+        throw new Error("No proposal was returned. Refresh recommendations before trying again.");
+      const saved = assertProposalScenario(child.proposal as unknown as Proposal, scenario);
+      setProposal(saved);
+      setRecommendationProposalId(saved.proposal_id);
+    } catch (issue) {
+      // A failed snapshot check must not leave the remaining rows actionable.
+      setTask((current) => current?.task_id === taskId ? { ...current, result: { ...current.result, snapshot_outdated: true } } : current);
+      onError(issue);
+    } finally {
+      clearTimeout(timer);
+      inFlight.current = false;
+      setBusy(false);
+    }
   }
   async function openDraft(proposalId: string) {
     if (expired || inFlight.current) return;
@@ -559,7 +606,8 @@ function WorkspaceContent({
       expired ||
       inFlight.current ||
       selectionPending ||
-      selectionError
+      selectionError ||
+      (proposal.proposal_id === recommendationProposalId && (taskOutdated || task?.result.snapshot_outdated))
     )
       return;
     inFlight.current = true;
@@ -580,6 +628,7 @@ function WorkspaceContent({
       );
       setCommand(saved);
       setProposal(null);
+      if (saved.status === "succeeded") setTask((current) => current?.goal === "recommend_queue" ? { ...current, result: { ...current.result, snapshot_outdated: true } } : current);
       window.dispatchEvent(
         new CustomEvent("daybreak:changed", { detail: { scenario } }),
       );
@@ -670,8 +719,8 @@ function WorkspaceContent({
                     <p className="db-muted">Expires {readableDate(proposal.expires_at)}. No change has been saved yet.</p>
                     {proposal.action === "record_verdict" && <p className="db-muted">This records a finding. It does not confirm a repair or close the case.</p>}
                     <div className="db-actions">
-                      <button className="db-primary" disabled={busy || unavailable} onClick={() => void confirm()}><Check size={17} />Confirm</button>
-                      <button className="db-button" disabled={busy || unavailable} onClick={() => { setForm({ action: proposal.action, data: proposal.data }); setProposal(null); }}>Edit</button>
+                      <button className="db-primary" disabled={busy || unavailable || (proposal.proposal_id === recommendationProposalId && (taskOutdated || Boolean(task?.result.snapshot_outdated)))} onClick={() => void confirm()}><Check size={17} />Confirm</button>
+                      {proposal.proposal_id !== recommendationProposalId && <button className="db-button" disabled={busy || unavailable} onClick={() => { setForm({ action: proposal.action, data: proposal.data }); setProposal(null); }}>Edit</button>}
                       <button className="db-button" disabled={busy || unavailable} onClick={() => { setProposal(null); setNotice("Proposal cancelled. No change was saved."); }}>Cancel</button>
                     </div>
                   </section>}
@@ -701,9 +750,8 @@ function WorkspaceContent({
                 </div>
               </details>;
   function selectChat(id?: string) {
-    setTask(null);
-    try { window.sessionStorage.removeItem(`agentic-task:${conversationKey}`); } catch { /* Optional storage. */ }
     if (busy || unavailable || reviewing || mode === "voice") return;
+    clearActiveTurn();
     const next = id ? selectConversation(conversationsRef.current, id) : newConversation(conversationsRef.current);
     updateConversations(next);
     history.current = activeConversation(next)?.messages ?? [];
@@ -711,7 +759,7 @@ function WorkspaceContent({
     setMessage("");
     setNotice("");
     setError("");
-    // Thread navigation never mutates drafts, commands or confirmations.
+    // Server drafts and saved conversation history remain available.
   }
   function sendMessage() {
     if (!message.trim() || busy || unavailable || mode === "voice") return;
@@ -732,9 +780,10 @@ function WorkspaceContent({
       if (canPrepare(context, "record_verdict")) open("record_verdict", current?.work_item_id ? { work_item_id: current.work_item_id } : {});
       return;
     }
-    const prompts = role === "dispatcher" ? ["What decisions are waiting for my review?", "Explain the current plan and why these visits were chosen.", "Help me find a work item."] : role === "technician" ? ["What is my next approved visit?", "Why was this visit chosen?"] : ["What is the current status of my case?"];
+    const prompts = role === "dispatcher" ? ["Recomandă decizii concrete pentru întreaga coadă de lucrări: aprobă, respinge sau amână fiecare lucrare și explică motivul. Dacă lipsesc dovezi, nu lua o decizie. Pregătește aplicarea numai după ce aleg o recomandare, cu confirmare explicită.", "Explain the current plan and why these visits were chosen.", "Help me find a work item."] : role === "technician" ? ["What is my next approved visit?", "Why was this visit chosen?"] : ["What is the current status of my case?"];
     if (prompts[index]) void turn(prompts[index]).catch(() => {});
   }
+  const taskResult = task ? <TaskPanel task={task} taskOutdated={taskOutdated} busy={busy || unavailable || reviewing} onReview={(work_item_id) => open("review_work_item", {work_item_id})} onResume={continueTask} onPrepareRecommendation={reviewRecommendation} /> : null;
   if (presentation === "main") {
     const showContext = Boolean(initialSelection && Object.keys(initialSelection).length) || messages.length > 0;
     const contextControls = showContext && current && !reviewing ? <details className="db-main-context">
@@ -757,7 +806,7 @@ function WorkspaceContent({
         : <>
           {error && <div className="db-alert" role="alert">{error}{!context && <button className="db-button" disabled={busy} onClick={() => { setError(""); void refresh(); }}>Retry loading access</button>}<button className="db-button" onClick={() => setError("")}>Dismiss</button></div>}
           {selectionError && <div className="db-alert" role="alert">{selectionError}<button className="db-button" disabled={busy} onClick={() => { setClearedSelection({ value: initialSelection }); backToChat(); setError(""); }}>Clear selection</button></div>}
-          <MainConversation taskResult={task ? <TaskPanel task={taskOutdated ? {...task, result: {...task.result, snapshot_outdated: true}} : task} onReview={(work_item_id) => open("review_work_item", {work_item_id})} onResume={continueTask} /> : null} role={role} messages={messages} message={message} messageId={messageId} setMessage={setMessage} busy={busy} unavailable={unavailable} reviewing={reviewing} mode={mode} setMode={setMode} onSend={sendMessage} onSuggestion={suggest} conversations={conversations} onNew={() => selectChat()} onSelect={selectChat} messageList={messageList} contextControls={contextControls} review={reviewContent} voice={<Voice scenario={scenario} turn={turn} onError={onError} disabled={unavailable} />} pending={pendingControls} notice={notice} />
+          <MainConversation taskResult={taskResult} role={role} messages={messages} message={message} messageId={messageId} setMessage={setMessage} busy={busy} unavailable={unavailable} reviewing={reviewing} mode={mode} setMode={setMode} onSend={sendMessage} onSuggestion={suggest} conversations={conversations} onNew={() => selectChat()} onSelect={selectChat} messageList={messageList} contextControls={contextControls} review={reviewContent} voice={<Voice scenario={scenario} turn={turn} onError={onError} disabled={unavailable} />} pending={pendingControls} notice={notice} />
         </>}
     </div>;
   }
@@ -828,6 +877,7 @@ function WorkspaceContent({
                   })}>Ask for help</button>
                 </div></details>}
               </div>
+              {taskResult}
               {!reviewing ? (
                 <section className="db-panel db-chat" aria-label="Chat with Daybreak">
                   {mode === "voice" && <Voice scenario={scenario} turn={turn} onError={onError} disabled={unavailable} />}

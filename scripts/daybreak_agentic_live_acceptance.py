@@ -19,7 +19,12 @@ def main():
     parser.add_argument("--base", required=True)
     parser.add_argument("--chat", action="store_true")
     parser.add_argument(
-        "--effects", action="store_true", help="Confirm a labeled synthetic current-plan approval; writes audit history"
+        "--llm-recommendations", action="store_true", help="Ask the real LLM for complete queue decisions"
+    )
+    parser.add_argument(
+        "--effects",
+        action="store_true",
+        help="Confirm one synthetic recommendation, or the current plan; writes audit history",
     )
     args = parser.parse_args()
     url = urlsplit(args.base)
@@ -146,6 +151,41 @@ def main():
             foreign = task("customer", "case_brief", case_id="SYNTHETIC-UNOWNED-" + uuid.uuid4().hex)
             require(foreign["status"] == "needs_information" and not foreign["result"].get("cases"))
             passed("customer brief matches explicitly selected authorized case")
+            recommendation = None
+            if args.llm_recommendations:
+                stage = "real LLM operational recommendations"
+                before = context("dispatcher")["plan"]["version"]
+                answer = call(
+                    clients["dispatcher"],
+                    "POST",
+                    "/api/conversation/chat",
+                    {
+                        "message": "Recomandă ce decizie ai lua pentru fiecare tichet din întreaga coadă de evaluare umană și de ce. Nu aplica încă nimic.",
+                        "scenario": "demo-vara",
+                    },
+                )
+                recommendation = answer["task"]
+                choices = recommendation["result"]
+                require(recommendation["goal"] == "recommend_queue" and recommendation["status"] == "completed")
+                require(choices["decision_source"] == "llm")
+                require(answer["provider"] == "codex-cli-chatgpt" and answer["provenance"]["write_executed"] is False)
+                require(choices["complete"] and choices["total"] == len(expected))
+                require({r["work_item_id"] for r in choices["items"]} == set(expected))
+                require(len(choices["items"]) == len(expected))
+                require(
+                    all(
+                        r.get("agent_reason") and r.get("suggested_decision") in {"approve", "reject", "defer", None}
+                        for r in choices["items"]
+                    )
+                )
+                require(context("dispatcher")["plan"]["version"] == before)
+                for role in ("customer", "technician"):
+                    call(clients[role], "POST", "/api/conversation/tasks", {"goal": "recommend_queue"}, (403, 404))
+                report["llm_decisions"] = {
+                    choice: sum(r.get("suggested_decision") == choice for r in choices["items"])
+                    for choice in ("approve", "reject", "defer", None)
+                }
+                passed("real LLM decisions cover the complete queue without writes")
             if args.chat:
                 stage = "two turn Codex conversation"
                 history = []
@@ -166,28 +206,57 @@ def main():
                     )
                 passed("two real dispatcher Codex turns without operational writes")
             if args.effects:
-                stage = "synthetic current plan approval"
-                current = context("dispatcher")["plan"]
-                prepared = task(
-                    "dispatcher",
-                    "prepare_operation",
-                    action="approve_plan",
-                    request_key="synthetic-acceptance-" + uuid.uuid4().hex,
-                    data={
-                        "plan_id": current["plan_id"],
-                        "note": "SYNTHETIC live acceptance: verify current-plan approval and idempotency. No field visit or repair claimed.",
-                    },
-                )
+                if recommendation:
+                    stage = "prepare one saved LLM deferral on synthetic operational data"
+                    choice = next(
+                        r for r in recommendation["result"]["items"] if r.get("suggested_decision") == "defer"
+                    )
+                    prepare_path = f"/api/conversation/tasks/{recommendation['task_id']}/recommendations/{choice['work_item_id']}/prepare?scenario=demo-vara"
+                    prepared = call(clients["dispatcher"], "POST", prepare_path, {})
+                    repeated = call(clients["dispatcher"], "POST", prepare_path, {})
+                    require(
+                        prepared["task_id"] == repeated["task_id"]
+                        and prepared["proposal"]["proposal_id"] == repeated["proposal"]["proposal_id"]
+                    )
+                    require(prepared["proposal"]["action"] == "review_work_item")
+                    require(prepared["proposal"]["data"]["decision"] == choice["suggested_decision"])
+                    require(prepared["proposal"]["data"]["work_item_id"] == choice["work_item_id"])
+                    call(clients["dispatcher"], "POST", prepare_path, {"decision": "approve"}, (422,))
+                else:
+                    stage = "synthetic current plan approval"
+                    current = context("dispatcher")["plan"]
+                    prepared = task(
+                        "dispatcher",
+                        "prepare_operation",
+                        action="approve_plan",
+                        request_key="synthetic-acceptance-" + uuid.uuid4().hex,
+                        data={
+                            "plan_id": current["plan_id"],
+                            "note": "SYNTHETIC live acceptance: verify current-plan approval and idempotency. No field visit or repair claimed.",
+                        },
+                    )
                 require(prepared["status"] == "awaiting_confirmation")
                 confirm_path = "/api/operations/proposals/" + prepared["proposal"]["proposal_id"] + "/confirm"
                 first = call(clients["dispatcher"], "POST", confirm_path, {})
                 second = call(clients["dispatcher"], "POST", confirm_path, {})
                 require(first["status"] == "succeeded" and first["command_id"] == second["command_id"])
+                if recommendation:
+                    require(first["result"]["manual_correction"]["requested_decision"] == choice["suggested_decision"])
+                    fresh = context("dispatcher")
+                    item = next(w for w in fresh["work_items"] if w["work_item_id"] == choice["work_item_id"])
+                    require(item["decision"]["decision"] == "deferred")
+                    require(fresh["plan"]["version"] != recommendation["plan_version"])
+                    call(clients["dispatcher"], "POST", prepare_path, {}, (409,))
+                    report["confirmed_recommendation"] = {
+                        "requested": choice["suggested_decision"],
+                        "actual": item["decision"]["decision"],
+                        "single_command": True,
+                    }
                 resumed = call(
                     clients["dispatcher"], "POST", "/api/conversation/tasks/" + prepared["task_id"] + "/resume", {}
                 )
                 require(resumed["status"] == "completed")
-                passed("synthetic plan approval confirmed once and passively resumed")
+                passed("synthetic operation confirmed once and passively resumed")
             report["ok"] = True
     except (AssertionError, RuntimeError, httpx.HTTPError, KeyError, TypeError, ValueError, OSError) as exc:
         # Never persist exception messages, request headers, response bodies, or chat text.

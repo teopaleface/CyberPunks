@@ -365,6 +365,23 @@ test("only the exact command recovery POST is allowlisted", () => {
   ])
     expect(allowedPath("operations", path, "POST")).toBe(false);
 });
+test("saved LLM recommendations have a preparation route with no editable action data", async () => {
+  const path = ["tasks", "task-one", "recommendations", "A-20250708-PT-1182", "prepare"];
+  expect(allowedPath("conversation", path, "POST")).toBe(true);
+  for (const method of ["GET", "DELETE", "PUT"])
+    expect(allowedPath("conversation", path, method)).toBe(false);
+  expect(allowedPath("conversation", [...path, "confirm"], "POST")).toBe(false);
+  const { deps, calls } = setup(member("dispatcher"));
+  const send = (body: unknown) => forward(new Request(`${ORIGIN}/api/conversation/${path.join("/")}?scenario=demo-vara`, {
+    method: "POST", headers: { origin: ORIGIN, "content-type": "application/json" }, body: JSON.stringify(body),
+  }), "conversation", path, deps);
+  expect((await send({ decision: "approve" })).status).toBe(422);
+  expect(calls).toHaveLength(0);
+  expect((await send({})).status).toBe(200);
+  expect(calls).toHaveLength(1);
+  expect(calls[0].url).toEndWith("/api/conversation/tasks/task-one/recommendations/A-20250708-PT-1182/prepare?scenario=demo-vara");
+  expect(calls[0].init?.body).toBe("{}");
+});
 test("recovery requires a verified dispatcher permission and an explicit reason", async () => {
   for (const role of ["customer", "technician", "dispatcher"] as Role[]) {
     const { deps, calls } = setup(member(role));
