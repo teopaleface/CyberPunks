@@ -1,10 +1,17 @@
 """The setup boundary must preserve another callback and fail closed after uncertain writes."""
 
 import importlib.util
+import os
 from pathlib import Path
 
 import httpx
 import pytest
+
+
+pytestmark = pytest.mark.skipif(
+    os.name == "nt",
+    reason="WhatsApp private-file setup requires POSIX permissions; use WSL2 on Windows.",
+)
 
 
 @pytest.fixture
