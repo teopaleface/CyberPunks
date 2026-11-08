@@ -1,14 +1,15 @@
-# Prezentarea: filmul de 30 de secunde, slideurile, scriptul demo-ului
+# Prezentarea Daybreak: filmul, slideurile, scriptul demo-ului
 
 | Ce | Unde |
 |---|---|
-| Filmul (HyperFrames) | `video/` (rădăcina `index.html`, scenele `compositions/k1-k9`, planul `video/STORYBOARD.md`) |
-| Stilul și regulile | `STYLE.md`, studiul referinței `research/REFERINTA-trust.md` |
-| Muzica (compusă în cod, CC0) | `music/` |
-| Slideurile | `slides/` (planul în `slides/OUTLINE.md`) |
-| Scriptul demo-ului | `demo-script.md` |
+| Filmul final, exportul versionat (52,9 s, 38,7 MB; vocea și efectele, fără muzică comercială) | `exports/daybreak-film.mp4`, făcut de `scripts/export_film_public.sh` |
+| Filmul pentru sală (aceeași imagine, cu instrumentalul „POWER”) | `exports/local/daybreak-film-power.mp4`, doar local, nu e în git |
+| Proiectul filmului (HyperFrames peste Three.js și Blender, vocea, efectele) | `frames-3d/` (`FILM_V3.md`, `threejs/film_v3/`, `audio/`) |
+| Slideurile (16 pagini) | `exports/daybreak-slides.pdf`, făcute de `scripts/build_slides.py` din `reports/` |
+| Scriptul demo-ului (5 min + 2 min întrebări, planul B) | `demo-script.md` |
+| Înregistrarea de rezervă a consolei | `exports/local/daybreak-demo-rezerva.mp4`, doar local |
 | Creditele și sursele | `CREDITS.md` |
-| Exporturile finale (MP4, PDF) | `exports/` |
+| Variantele vechi ale filmului (istoric) | `video/`, `music/`, `brand-lab/`, `frames-codex/` |
 
 ## Cerințe
 
@@ -20,6 +21,8 @@
 ## Comenzi (din rădăcina repo-ului)
 
 ```bash
+uv run python presentation/scripts/build_slides.py   # slideurile: cifrele din reports/, PDF-ul în presentation/exports/
+bash presentation/scripts/export_film_public.sh       # filmul versionat (fără „POWER”) și copia locală pentru sală
 make presentation-assets   # cifrele din film, citite din reports/ și outputs/demo/
 make video-check           # verificările HyperFrames
 make video-preview         # previzualizare pe portul 3720 (oprire: make video-preview-stop)

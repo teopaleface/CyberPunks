@@ -2,6 +2,20 @@
 
 Tot ce apare în materialele de prezentare, cu sursa și licența. Ce e generat cu AI e marcat ca atare și pe ecran ("Imagini generate cu AI"); ce e sintetic e marcat "date sintetice".
 
+## Filmul final: Daybreak (8 nov. 2026)
+
+| Ce | Sursa și licența |
+|---|---|
+| Imaginea: cele 10 planșe „lume în miniatură” (același sat) | Generate cu AI (Codex, unealta de imagine; modelul nu e raportat de unealtă), mărite cu Real-ESRGAN (licențele în `frames-3d/plates_v3/`). Prompturile: `frames-3d/plates_v3/PROMPTS.md` și `prompts.json` |
+| Obiectele 3D (camionul, contorul cu magnet, stâlpul rupt, panoul solar, casca, acele, norul) | Modelate de agenți AI în Blender, procedural (`frames-3d/objects/`) |
+| Planeta și drumul camerei | Three.js (MIT) și Blender (`frames-3d/threejs/`) |
+| Vocea (engleză) | Kokoro-82M v1.0 (Apache-2.0), prin kokoro-onnx 0.6.1, rulat local; vocea `af_heart`. Detalii: `frames-3d/audio/README.md` |
+| Efectele sonore | Procedurale, generate în cod (`frames-3d/audio/tools/build.py`) |
+| Muzica | Exportul versionat (`exports/daybreak-film.mp4`) nu are muzică. Doar copia pentru sală, care rămâne locală și nu e distribuită, folosește instrumentalul „POWER” (Kanye West); piesa nu e în git |
+| Interfața din film | Ilustrativă, în stilul consolei Daybreak; consola reală se arată live la demo |
+| Cifrele din film | „30% less driving” (10.565 față de 15.439 km) și „fewer wasted trips” (37% față de 63%): `reports/planner/agent_eval.json`, simulare de 30 de zile, față de „primul venit, primul servit”. „Eleven crews”: `config/crews.yaml`. „556 problems”: consola, scenariul sintetic `demo-vara`, 7 nov. |
+| Slideurile | Imaginile de pe slideurile 1 și 16 sunt planșe generate cu AI (etichetat pe slide); cifrele vin din `reports/` prin `scripts/build_slides.py` |
+
 ## Unelte
 
 - HyperFrames 0.9.19 (HeyGen, open source): HTML randat în MP4. Proiectul e în `video/`.
@@ -10,7 +24,7 @@ Tot ce apare în materialele de prezentare, cu sursa și licența. Ce e generat 
 - Blender 5.2.1 (pentru obiectele 3D modelate de agenți, în lucru).
 - ffmpeg: exportul final (loudnorm, AAC, faststart).
 
-## Filmul (varianta 2, după referința lui Teo)
+## Filmul, varianta 2 (istoric, nu mai e în export)
 
 | Fișier | Ce e | Sursa și licența |
 |---|---|---|
@@ -33,7 +47,7 @@ Cifrele din film nu se scriu de mână: `scripts/cifre_film.py` le citește din 
 
 - Archivo (The Archivo Project Authors, Omnibus-Type), SIL Open Font License 1.1, același font ca în consola dispecerului. Fișierele și licența: `video/assets/fonts/`.
 
-## Muzică
+## Muzica variantelor vechi (istoric)
 
 - Originală, compusă în cod de echipă pentru acest proiect, fără sample-uri: `music/compose.py` (varianta 1, 96 BPM) și `music/compose_kinetic.py` (varianta 2, 120 BPM, în lucru). Licență CC0.
 
