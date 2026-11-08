@@ -1,9 +1,9 @@
 # Status: Teo-prezentare
-Actualizat: 2026-11-08 08:42
+Actualizat: 2026-11-08 08:05
 Milestone curent: PREDAREA (12:00). Filmul, slideurile și scriptul demo-ului sunt gata și urcate; înregistrarea de rezervă e în lucru (gata pe la 10:00).
 Gata de merge: NU se face merge din acest branch (istoria cu fișierele 3D); fișierele de predare se aduc în `Teo` individual (comanda de mai jos).
 
-## Starea finală (8 nov., 08:42)
+## Starea finală (8 nov., 08:05)
 
 | Ce | Stare | Unde | Mărime |
 |---|---|---|---|
@@ -14,7 +14,7 @@ Gata de merge: NU se face merge din acest branch (istoria cu fișierele 3D); fi�
 | Înregistrarea de rezervă a consolei | ÎN LUCRU (agent separat, consola reală pe 3710 cu API-ul de pe 8710), gata pe la 10:00. Doar local | `presentation/exports/local/daybreak-demo-rezerva.mp4` | — |
 | README și credite | GATA, cu livrabilele finale, vocea Kokoro (Apache-2.0), imaginile AI, muzica doar local | `presentation/README.md`, `presentation/CREDITS.md` | mici |
 
-Verificat: `tests/test_repo_size.py` trece. La 08:20 am scos din urmărire fișierele grele urcate peste noapte în acest branch (58 de planșe QA mărite, 522 MB; o scenă Blender de 11 MB; două foi de 5,6 MB; încercările planșelor; audio-ul m4a/flac). Rămân pe disc. Sunt însă în istoria de pe GitHub (commiturile din 7 nov., 18:51 și 19:33): de adăugat la curățarea pe care o decide Teo.
+Verificat: `tests/test_repo_size.py` trece. La 08:00 am scos din urmărire fișierele grele urcate peste noapte în acest branch (58 de planșe QA mărite, 522 MB; o scenă Blender de 11 MB; două foi de 5,6 MB; încercările planșelor; audio-ul m4a/flac). Rămân pe disc. Sunt însă în istoria de pe GitHub (commiturile din 7 nov., 18:51 și 19:33): de adăugat la curățarea pe care o decide Teo.
 
 Cifrele din film și de pe slideuri, din `reports/`: +49% valoare netă, 10.565 față de 15.439 km (-31,6%, în film „30% less driving”), 37% față de 63% vizite degeaba (simulare de 30 de zile, față de „primul venit, primul servit”); A 0,62/0,02 (subtile) și 0,80/0,11 (SGCC); B PR-AUC 0,28/0,15; C 0,0054/0,0227 pu; bilanț F1 0,71/0,48. De știut: filmul spune „556 problems” (consola de ieri); planul de azi are alt număr de lucrări, deci live spunem doar ce e pe ecran.
 

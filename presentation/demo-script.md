@@ -1,6 +1,6 @@
 # Scriptul demo-ului live: 5 minute + 2 minute de întrebări
 
-Varianta finală, 8 nov. 2026, 08:30. Produsul: **Daybreak**. Prezintă Teo (T); colegii (Tudor, Eden) răspund la întrebările pe partea lor. Ecranul: laptopul pe proiector, 1920×1080.
+Varianta finală, 8 nov. 2026, 08:03. Produsul: **Daybreak**. Prezintă Teo (T); colegii (Tudor, Eden) răspund la întrebările pe partea lor. Ecranul: laptopul pe proiector, 1920×1080.
 
 ## Fișierele (toate pe laptopul lui Teo)
 
