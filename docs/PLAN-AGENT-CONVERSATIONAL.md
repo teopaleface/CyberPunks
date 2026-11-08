@@ -1,5 +1,7 @@
 # Plan pentru agentul Daybreak cu trei tipuri de cont
 
+Actualizare, 8 noiembrie 2026: acest catalog păstrează propunerea inițială din 7 noiembrie. O parte dintre funcții au fost implementate între timp, conform [stării consemnate](../memory/14-agent-conversational.md). Noua cerere de coordonare a mai multor pași, decizii și rapoarte prin telefon și WhatsApp este descrisă în [planul agentic](PLAN-AGENTIC.md), care actualizează etapele și limitele canalelor externe.
+
 Data: 7 noiembrie 2026. Stare: plan de produs și implementare, cerut de Teo. Funcțiile noi de mai jos nu sunt încă implementate sau testate. Interfața va fi în engleză; documentația și discuțiile echipei rămân în română.
 
 Daybreak leagă clientul care semnalează o problemă, dispecerul care decide intervenția și tehnicianul care verifică în teren. Toți lucrează pe același caz, cu drepturi diferite. Modelul ML antrenat de echipă rulează local și produce estimările. LLM-ul înțelege conversația și cere acțiuni verificate de aplicație.

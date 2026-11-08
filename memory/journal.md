@@ -100,3 +100,13 @@ Cronologic. Fiecare intrare: ora (București), ce s-a întâmplat, ce s-a decis.
 ### 08 November 2026, 03:26 — Fotografii la constatări și corecții AI
 
 Teo cere poze pentru tehnician, corectarea manuală vizibilă a deciziilor AI și o nouă curățare UI/UX pe toată aplicația. Implementarea păstrează agentul principal și cele 14 ecrane PPC, adaugă fotografii private cu Confirm și istoric de decizii cu motiv și autor. Probele cu scrieri sunt pe copia completă izolată; camera fizică și live-ul rămân separate.
+
+
+### 2026-11-08 04:14 București: plan pentru agentul care decide și execută
+
+Teo relatează feedback pozitiv de la un mentor de business și cere un plan pentru decizii, apeluri în funcție de cont și rapoarte WhatsApp generate din HTML ca imagini. Redactat docs/PLAN-AGENTIC.md, cu analiza întregii cozi, coordonare prin funcții autorizate, confirmare pentru schimbări operaționale, rezultate verificate și etape separate pentru celelalte identități telefonice. Estimarea de 4–7,5 ore este orientativă. Planul completează catalogul inițial; nu este o aprobare a implementării sau a publicării. Feedbackul mentorului nu este tratat drept confirmare a regulamentului. Detalii în memory/15-agent-decizii-si-canale.md. Nu s-au schimbat codul aplicației, conturile sau serviciile externe.
+
+
+### 2026-11-08 04:22 București: predare pentru brainstorming
+
+Teo cere actualizarea memoriei conform firului principal și push pe main pentru un coleg care va explora mai multe idei. Completat memory/15-agent-decizii-si-canale.md cu contextul, întrebările pentru coleg și separarea dintre propuneri și funcții verificate. Firul principal cere și prompturi de implementare în paralel, încă neconfirmate ca finalizate. Publicarea cerută privește documentația, fără deploy sau includerea schimbărilor UI în lucru.
