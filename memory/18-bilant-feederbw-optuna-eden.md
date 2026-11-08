@@ -44,3 +44,9 @@ Lucrarea este pe ramura `Eden`, ca experimentele anterioare. Modelele livrate nu
   Modelul salvat a fost reîncărcat: aceleași 2.795 de predicții de test; toate cele 40 de încercări sunt COMPLETE.
 - Decizie: păstrăm rezultatul ca experiment; modelul livrat și parametrii săi nu se înlocuiesc.
   Scorul 0,754 din experimentul v2 anterior este pe alt test; nu îl comparăm direct cu acest 0,714.
+
+## 2026-11-08 02:39 — Modelul inclus în livrare la cererea utilizatorului
+
+Pachetul activ este `models/release/bilant/`: diagnosticul LightGBM optimizat și modelele warm/cold de pierdere normală folosite în evaluare. `predict` le încarcă direct și marchează versiunea `bilant-diagnoza-lgbm@feederbw-optuna-20261108`. Predicțiile reproduc toate cele 2.795 ferestre de test (F1 0,71393); câștigul rămâne neconfirmat statistic. Metricile și fuziunea din `reports/bilant/metrics.json` sunt istorice, pentru modelul anterior. Datele de bilanț și etichetele rămân sintetice.
+
+- Verificare suplimentară pe harta simulată: F1 macro 0,58950 (13.200 ferestre), MAE 8,81 kWh/zi, acoperire P10–P90 0,695. Rezultatele istorice sunt mai bune, dar identitatea completă a intrărilor nu a fost verificată; nu susținem o comparație pereche. `reports/bilant/feederbw_release_pop.json`. Fuziunea nu a fost evaluată pentru noul model.

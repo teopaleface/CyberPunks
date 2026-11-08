@@ -21,7 +21,7 @@ async function reportText(name: string) {
 }
 
 export async function BalanceEvaluation({ report }: { report: ModelReport | null }) {
-  const [analysis, confusion] = await Promise.all([reportText("error_analysis.md"), reportText("diagnosis_confusion.csv")]);
+  const [analysis, confusion, current] = await Promise.all([reportText("error_analysis.md"), reportText("diagnosis_confusion.csv"), reportText("feederbw_optuna.md")]);
   const csv = confusion?.trim().split(/\r?\n/).map((line) => line.split(","));
   const labels = csv?.[0]?.slice(1) ?? [];
   const rows = csv?.slice(1) ?? [];
@@ -32,6 +32,8 @@ export async function BalanceEvaluation({ report }: { report: ModelReport | null
     <section id="model-bilant" className="mt-6 min-w-0 scroll-mt-6" aria-label="Energy-balance model evaluation">
       <Card title="Energy balance: loss and cause diagnosis">
         <p className="text-[15px] text-ink-soft">Synthetic network and fault labels. Validation on unseen substations; these results do not establish performance on PPC data.</p>
+        <p className="mt-2 text-[14px] text-ink-soft">The evaluation below describes the previous balance model. The current FeederBW model uses real feeder load shapes and synthetic loss and fault labels; its test improvement was not statistically conclusive.</p>
+        {current ? <a className="mt-2 inline-block text-[14px] underline" download="feederbw-optuna.ro.md" href={`data:text/markdown;charset=utf-8,${encodeURIComponent(current)}`}>Download current model evaluation</a> : null}
         <p className="mt-2 break-all text-[13px] text-muted-foreground">{report.model_version} · evaluated {fmtMoment(report.created_at)}</p>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-left text-[14px]">

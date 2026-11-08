@@ -7,6 +7,7 @@ Modelul spune „nu sunt sigur” (abstain) când cea mai probabilă cauză are 
 
 from __future__ import annotations
 
+import gzip
 import json
 from dataclasses import dataclass, field
 
@@ -14,7 +15,7 @@ import lightgbm as lgb
 import numpy as np
 import pandas as pd
 
-from cyberpunks.a_bilant.normal import MODEL_DIR
+from cyberpunks.a_bilant.normal import MODEL_DIR, RELEASE_DIR
 from cyberpunks.a_bilant.problems import CLASSES
 from cyberpunks.a_bilant.windows import WIN_FEATURES
 
@@ -52,7 +53,13 @@ def load(name: str = "diagnose") -> Diagnoser:
 
 
 def load_best() -> Diagnoser:
-    """Diagnosticul folosit în producție: v2 dacă e antrenat (`models/bilant/diagnose_v2.txt`), altfel v1."""
+    """Folosește modelul livrat; fără pachetul release, păstrează comportamentul v2/v1 anterior."""
+    if (RELEASE_DIR / "release.json").exists():
+        meta = json.loads((RELEASE_DIR / "diagnose.json").read_text())
+        if meta["classes"] != list(CLASSES):
+            raise ValueError("Clasele modelului livrat nu corespund claselor bilanțului")
+        with gzip.open(RELEASE_DIR / "diagnose.txt.gz", "rt") as f:
+            return Diagnoser(lgb.Booster(model_str=f.read()), meta["features"])
     return load("diagnose_v2") if (MODEL_DIR / "diagnose_v2.txt").exists() else load("diagnose")
 
 

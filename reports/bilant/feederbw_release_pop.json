@@ -1,0 +1,80 @@
+{
+  "model_version": "bilant-diagnoza-lgbm@feederbw-optuna-20261108",
+  "test": "300 de posturi pe harta simulată; rețele, contoare, pierderi și etichete SINTETICE",
+  "test_windows": 13200,
+  "diagnosis": {
+    "macro_f1": 0.5895027310530899,
+    "accuracy": 0.7125,
+    "f1_by_class": {
+      "normal": 0.8321706085871476,
+      "contor_client": 0.31978155339805825,
+      "furt_inainte_contor": 0.43227937706465314,
+      "pierdere_tehnica": 0.2702702702702703,
+      "client_post_gresit": 0.7438105489773951,
+      "contor_bilant_setat": 0.9387040280210157
+    },
+    "confusion_matrix": [
+      [
+        7336,
+        1523,
+        535,
+        269,
+        181,
+        1
+      ],
+      [
+        179,
+        527,
+        155,
+        35,
+        7,
+        3
+      ],
+      [
+        64,
+        196,
+        458,
+        57,
+        14,
+        5
+      ],
+      [
+        108,
+        57,
+        116,
+        125,
+        3,
+        2
+      ],
+      [
+        99,
+        74,
+        60,
+        28,
+        691,
+        0
+      ],
+      [
+        0,
+        13,
+        1,
+        0,
+        10,
+        268
+      ]
+    ]
+  },
+  "normal": {
+    "mae_kwh_day": 8.813079499275398,
+    "mape_pct": 23.833392580774905,
+    "bias_kwh_day": -1.120493214004794,
+    "coverage_p10_p90": 0.6946350472623735,
+    "interval_width_kwh_day": 16.918925542379792,
+    "pinball_mean": 2.638739834227876
+  },
+  "limitations": [
+    "Acest test este diferit de testul FeederBW.",
+    "Nu s-a verificat identitatea completă a datelor față de raportul vechi.",
+    "Fuziunea cu scorul A nu a fost evaluată pentru noul model."
+  ]
+}

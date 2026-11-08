@@ -3,6 +3,7 @@
     uv run python -m cyberpunks.a_bilant.feederbw download
     uv run python -m cyberpunks.a_bilant.feederbw prepare --workers 4
     uv run python -m cyberpunks.a_bilant.feederbw tune --trials 40 --workers 4
+    uv run python -m cyberpunks.a_bilant.feederbw evaluate-release --workers 4
 
 FeederBW, Netze BW / KIT, CC BY 4.0, doi:10.5281/zenodo.17831177.
 Treutlein et al., Scientific Data 13, 1283 (2026), doi:10.1038/s41597-026-08152-9.
@@ -316,9 +317,34 @@ def tune(trials: int, workers: int) -> None:
     print(json.dumps(result, indent=2, ensure_ascii=False), flush=True)
 
 
+def evaluate_release(workers: int) -> None:
+    """Test suplimentar al pachetului activ pe harta simulată, separat de testul FeederBW."""
+    if not (DATA_PROCESSED / "bilant" / "pop" / "daily.parquet").exists():
+        D.build("pop", workers)
+    d = F.load_pool("pop")
+    pred = W.predict_normal(N.load_for_prediction(), d)
+    # Pe hartă, vecinii geografici pot fi în zone diferite; calculăm împreună.
+    win = W.build_windows(d, pred, "pop")
+    labels = full_decision(G.load_best(), win)["label"].to_numpy()
+    clean = d["clean"] & (d["hist_days"] > 0)
+    result = {
+        "model_version": json.loads((N.RELEASE_DIR / "release.json").read_text())["version"],
+        "test": "300 de posturi pe harta simulată; rețele, contoare, pierderi și etichete SINTETICE",
+        "test_windows": len(win),
+        "diagnosis": scores(win["true_class"].to_numpy(), labels),
+        "normal": N.interval_metrics(d.loc[clean, "short_kwh"].to_numpy(), pred.loc[clean]),
+        "limitations": ["Acest test este diferit de testul FeederBW.",
+                        "Nu s-a verificat identitatea completă a datelor față de raportul vechi.",
+                        "Fuziunea cu scorul A nu a fost evaluată pentru noul model."],
+    }
+    path = REPORTS / "bilant" / "feederbw_release_pop.json"
+    path.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n")
+    print(json.dumps(result, indent=2, ensure_ascii=False), flush=True)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("command", choices=["download", "prepare", "tune"])
+    ap.add_argument("command", choices=["download", "prepare", "tune", "evaluate-release"])
     ap.add_argument("--trials", type=int, default=40)
     ap.add_argument("--workers", type=int, default=4)
     args = ap.parse_args()
@@ -330,8 +356,10 @@ def main() -> None:
         download()
     elif args.command == "prepare":
         prepare(args.workers)
-    else:
+    elif args.command == "tune":
         tune(args.trials, args.workers)
+    else:
+        evaluate_release(args.workers)
 
 
 if __name__ == "__main__":

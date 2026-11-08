@@ -24,6 +24,7 @@ from cyberpunks.common.paths import MODELS
 
 QUANTILES = (0.1, 0.5, 0.9)
 MODEL_DIR = MODELS / "bilant"
+RELEASE_DIR = MODELS / "release" / "bilant"
 PARAMS = {"n_estimators": 500, "learning_rate": 0.04, "num_leaves": 31, "min_child_samples": 40, "subsample": 0.8, "subsample_freq": 1, "colsample_bytree": 0.8, "verbose": -1, "n_jobs": 4}
 
 
@@ -54,10 +55,17 @@ class _Booster:
         return self.b.predict(X)
 
 
-def load(name: str = "normal") -> NormalModel:
-    c = json.loads((MODEL_DIR / f"{name}_conformal.json").read_text())
-    models = {a: _Booster(str(MODEL_DIR / f"{name}_q{int(a * 100)}.txt")) for a in QUANTILES}
+def load(name: str = "normal", directory=MODEL_DIR) -> NormalModel:
+    c = json.loads((directory / f"{name}_conformal.json").read_text())
+    models = {a: _Booster(str(directory / f"{name}_q{int(a * 100)}.txt")) for a in QUANTILES}
     return NormalModel(models=models, conformal=(c["lo"], c["hi"]))  # type: ignore[arg-type]
+
+
+def load_for_prediction() -> dict[str, NormalModel]:
+    """Folosește perechea livrată cu diagnosticul, inclusiv într-o clonă curată."""
+    if (RELEASE_DIR / "release.json").exists():
+        return {name: load(f"feederbw_normal_{name}", RELEASE_DIR) for name in ("warm", "cold")}
+    return {"warm": load("normal"), "cold": load("normal_cold")}
 
 
 def drop_history(df: pd.DataFrame) -> pd.DataFrame:

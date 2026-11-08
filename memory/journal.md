@@ -96,3 +96,11 @@ Arhiva MD5 verificată. Sursele 34 și 38 sunt excluse (peste 10% ore lipsă); r
 ### 2026-11-08 02:32 — Integrarea experimentului FeederBW în main
 
 La cererea utilizatorului, integrare a experimentului de bilanț și Optuna pe `main`, păstrând modificările echipei. Profilele sunt reale; rețelele, pierderile și etichetele rămân sintetice. Modelul livrat rămâne neschimbat.
+
+### 2026-11-08 02:39 — Modelul optimizat FeederBW în livrare
+
+Utilizatorul a precizat că dorește modelul optimizat pe main, nu doar experimentul. Inclus diagnosticul Optuna împreună cu modelele warm/cold folosite la evaluare în `models/release/bilant/` și conectat la predicție; identitatea testată pe toate cele 2.795 de ferestre. Avantajul este mic și neconfirmat statistic; `metrics.json` și fuziunea rămân evaluări istorice.
+
+### 2026-11-08 02:46 — Verificare pe harta simulată
+
+Pachetul activ FeederBW: F1 macro 0,58950 pe 13.200 ferestre, MAE pierdere normală 8,81 kWh/zi, acoperire P10–P90 0,695. Raportul vechi are rezultate mai bune, dar identitatea completă a intrărilor nu a fost verificată. Fuziunea cu noul model nu a fost evaluată separat.

@@ -142,7 +142,19 @@ Aceste rezultate nu măsoară performanța pe pierderi reale sau pe date PPC.
 
 Rezultatul celor 40 de încercări: F1 macro test **0,70858 → 0,71393**; diferență +0,00535,
 interval bootstrap 90% **[-0,00618; +0,01769]** pe plecări reale. Câștigul nu este confirmat statistic;
-modelul rămâne experimental. Rezumat: `reports/bilant/feederbw_optuna.md`.
+modelul a fost inclus în livrare la cererea explicită a utilizatorului. Rezumat: `reports/bilant/feederbw_optuna.md`.
+
+Pachetul activ este `models/release/bilant/`: diagnosticul comprimat și cele șase modele P10/P50/P90,
+warm/cold, folosite împreună în experiment. `predict` le încarcă direct inclusiv într-o clonă curată,
+înaintea vechilor modele locale. Versiunea înscrisă în predicții este
+`bilant-diagnoza-lgbm@feederbw-optuna-20261108`. Pachetul este verificabil prin SHA256 în `release.json`.
+Evaluarea din `reports/bilant/metrics.json` și cifrele fuziunii sunt **istorice**, pentru modelul anterior;
+fuziunea cu noul model nu a fost validată separat. Datele și etichetele de bilanț folosite la test rămân sintetice.
+
+Verificare suplimentară a modelului activ pe harta simulată: F1 macro **0,58950** pe 13.200 de ferestre,
+eroare medie a pierderii normale **8,81 kWh/zi**, acoperire P10–P90 **0,695**. Nu s-a verificat identitatea
+completă a intrărilor față de raportul istoric. Rezultat și reproducere: `reports/bilant/feederbw_release_pop.json`,
+`uv run python -m cyberpunks.a_bilant.feederbw evaluate-release`.
 
 ## Adaptarea pe date PPC
 

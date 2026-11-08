@@ -161,7 +161,7 @@ def _factor_text(feat: str, r: pd.Series, extra: dict) -> str | None:
 def post_states(pool: str, target_day: int) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Trăsăturile zilnice cu pierderea normală, fereastra zilei țintă, diagnosticul."""
     d = F.load_pool(pool)
-    models = {"warm": N.load("normal"), "cold": N.load("normal_cold")}
+    models = N.load_for_prediction()
     pred = W.predict_normal(models, d)
     win = W.build_windows(d, pred, pool, days=[target_day])
     diag = G.load_best()
@@ -204,11 +204,12 @@ def ensure_ready(pool: str = "pop") -> None:
     """Dintr-o clonă curată: simulează loturile (~1 minut) și antrenează modelele (~4 minute) dacă lipsesc."""
     from cyberpunks.a_bilant import dataset
 
-    for p in ("train", pool):
+    released = (N.RELEASE_DIR / "release.json").exists()
+    for p in ((pool,) if released else ("train", pool)):
         if not (DATA_PROCESSED / "bilant" / p / "daily.parquet").exists():
             print(f"bilanț: lipsește lotul simulat {p}, îl construiesc (cel mult 4 procese)")
             dataset.build(p)
-    if not (N.MODEL_DIR / "diagnose.txt").exists() or not (N.MODEL_DIR / "normal_q50.txt").exists():
+    if not released and (not (N.MODEL_DIR / "diagnose.txt").exists() or not (N.MODEL_DIR / "normal_q50.txt").exists()):
         print("bilanț: lipsesc modelele, rulez evaluarea (antrenare + metrici)")
         from cyberpunks.a_bilant import evaluate
 
@@ -275,7 +276,8 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
     cust = np.load(DATA_PROCESSED / "bilant" / pool / "cust_daily.npz")
     sig_scale = json.loads((N.MODEL_DIR / "fusion_sigma.json").read_text()) if (N.MODEL_DIR / "fusion_sigma.json").exists() else {"level": 0.9, "delta": 0.5}
     now = datetime.now(TZ).replace(microsecond=0)
-    version = json.loads((N.MODEL_DIR / "version.json").read_text())["version"] if (N.MODEL_DIR / "version.json").exists() else f"{MODEL_ID}@local"
+    version_path = N.RELEASE_DIR / "release.json" if (N.RELEASE_DIR / "release.json").exists() else N.MODEL_DIR / "version.json"
+    version = json.loads(version_path.read_text())["version"] if version_path.exists() else f"{MODEL_ID}@local"
     checks = input_checks(pool, tday, set(win["post_id"]))
     a_by_post = a_items_by_post(scenario)
     dedup = {"human_review_left_to_A": 0, "meter_work_left_to_A": 0}
@@ -440,7 +442,7 @@ def run(scenario: str, date: str | None = None, pool: str = "pop") -> Path:
             },
             "effort": {"duration_min": dur, "crew_skill": skill, "crew_size": size, "requires_planned_outage": False},
             "explanation": {"top_factors": factors or [{"feature": "r_mean_kwh", "label_ro": "Lipsă peste normal la post", "value": round(float(r["r_mean_kwh"]), 2), "contribution": 0.0}], "summary_ro": summary},
-            "data_quality": {"missing_ratio": miss, "input_issues": issues + post_issues + ([f"{miss * 100:.1f}% ore lipsă la contoare, completate din istoricul aceluiași contor"] if miss > 0 else []), "synthetic": True, "data_sources": DATA_SOURCES},
+            "data_quality": {"missing_ratio": miss, "input_issues": issues + post_issues + ([f"{miss * 100:.1f}% ore lipsă la contoare, completate din istoricul aceluiași contor"] if miss > 0 else []), "synthetic": True, "data_sources": DATA_SOURCES + (["Model antrenat pe forma importului FeederBW (Netze BW/KIT, CC BY 4.0); etichete SINTETICE"] if (N.RELEASE_DIR / "release.json").exists() else [])},
             "recommended_action": action,
             "created_at": now.isoformat(),
             "extra": {**extra, "label_ro": LABEL_RO, "lei_per_month": round(lei_month, 2), "simulated_day": sim_day.isoformat()},
