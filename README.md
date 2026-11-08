@@ -10,12 +10,12 @@ Ghidul pentru echipă, cu pornirea demo-ului într-o singură comandă (`make de
 
 Pentru cele trei conturi, conversația prin Codex, vocea ElevenLabs și WhatsApp: [`docs/operations/RUNBOOK.md`](docs/operations/RUNBOOK.md). Această integrare rulează separat, local, fără publicarea site-ului.
 
+Pe Windows, urmează [pornirea în PowerShell](docs/WINDOWS.md), fără `make`. Pentru voce și WhatsApp cu fișiere private, ghidul indică WSL2.
+
 ## Unde vezi produsul
 
 - Consola dispecerului, publicată: https://daybreak.ghiseateodor245.workers.dev (pe planul gratuit Cloudflare, ecranele `/alerte` și `/rulare` pot da eroarea 1102; local merg toate).
 - Pagina de prezentare (landing, în engleză): nu e publicată online. Local: `cd landing && bun install && bun dev`, apoi http://localhost:3730; sau `cd landing && bun run build` și `open landing/out/index.html` (merge fără server).
-
-Pe Windows, urmează [pornirea în PowerShell](docs/WINDOWS.md), fără `make`. Pentru voce și WhatsApp cu fișiere private, ghidul indică WSL2.
 
 ## Pornire rapidă
 
